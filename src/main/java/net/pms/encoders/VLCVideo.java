@@ -67,6 +67,7 @@ public class VLCVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	VLCVideo() {
+		super(CONFIGURATION.getVLCPaths());
 	}
 
 	@Override
@@ -118,11 +119,6 @@ public class VLCVideo extends Engine {
 	public String mimeType() {
 		// I think?
 		return HTTPResource.VIDEO_TRANSCODE;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getVLCPaths();
 	}
 
 	/**
@@ -536,7 +532,7 @@ public class VLCVideo extends Engine {
 					if (params.getSid().isExternalFileUtf16()) {
 						try {
 							// Convert UTF-16 -> UTF-8
-							File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.getSid().getName());
+							File convertedSubtitles = new File(CONFIGURATION.getTempFolder(), "utf8_" + params.getSid().getName());
 							FileUtil.convertFileFromUtf16ToUtf8(params.getSid().getExternalFile(), convertedSubtitles);
 							externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
 						} catch (IOException e) {

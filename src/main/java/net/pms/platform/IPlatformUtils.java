@@ -52,6 +52,8 @@ public interface IPlatformUtils {
 
 	public abstract boolean isAviSynthAvailable();
 
+	public abstract boolean isAviSynthPlusAvailable();
+
 	public abstract boolean isTsMuxeRCompatible();
 
 	/**
@@ -116,6 +118,13 @@ public interface IPlatformUtils {
 	 * @return The default shared folders.
 	 */
 	public abstract List<Path> getDefaultFolders();
+
+	/**
+	 * Determines the file version of library or executable.
+	 *
+	 * @return The file version or null.
+	 */
+	public abstract Version getFileVersionInfo(String filePath);
 
 	/**
 	 * Returns the iTunes XML file.This file has all the information of the iTunes database.

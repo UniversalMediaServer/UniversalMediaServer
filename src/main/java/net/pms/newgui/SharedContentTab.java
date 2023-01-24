@@ -214,11 +214,11 @@ public class SharedContentTab implements SharedContentListener {
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				int firstSelectedRow = sharedContentList.getSelectedRow();
 				if (firstSelectedRow >= 0) {
-					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile()));
+					sharedContentArray.add(firstSelectedRow, new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				} else {
-					sharedContentArray.add(new FolderContent(chooser.getSelectedFile()));
+					sharedContentArray.add(new FolderContent(chooser.getSelectedFile().getAbsoluteFile()));
 				}
-				SharedContentConfiguration.updateSharedContent(sharedContentArray, false);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
 		builderFolder.add(addFolderButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
@@ -462,7 +462,7 @@ public class SharedContentTab implements SharedContentListener {
 			// Remove any existing rows
 			((SharedContentTableModel) sharedContentList.getModel()).setRowCount(0);
 			for (SharedContent sharedContent : sharedContentArray) {
-				if (sharedContent instanceof FolderContent folder) {
+				if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
 					sharedContentTableModel.addRow(new Object[]{READABLE_TYPE_FOLDER, null, null, folder.getFile().getPath(), folder.isMonitored(), folder.isActive()});
 				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
 					List<String> childs = new ArrayList<>();
@@ -583,7 +583,28 @@ public class SharedContentTab implements SharedContentListener {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return column == 4 || column == 5;
+			return isMonitoredCheckbox(row, column) || isActiveCheckbox(row, column);
+		}
+
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			if (isMonitoredCheckbox(row, column)) {
+				//Monitored
+				((FolderContent) sharedContentArray.get(row)).setMonitored((Boolean) aValue);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+			} else if (isActiveCheckbox(row, column)) {
+				//Active
+				sharedContentArray.get(row).setActive((Boolean) aValue);
+				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
+			}
+		}
+
+		private boolean isMonitoredCheckbox(int row, int column) {
+			return (column == 4 && sharedContentArray != null && sharedContentArray.get(row) instanceof FolderContent);
+		}
+
+		private boolean isActiveCheckbox(int row, int column) {
+			return (column == 5 && sharedContentArray != null && sharedContentArray.get(row) != null);
 		}
 	}
 
@@ -629,7 +650,7 @@ public class SharedContentTab implements SharedContentListener {
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 					int returnVal = chooser.showOpenDialog((java.awt.Component) event.getSource());
 					if (returnVal == JFileChooser.APPROVE_OPTION) {
-						folder.setFile(chooser.getSelectedFile());
+						folder.setFile(chooser.getSelectedFile().getAbsoluteFile());
 						SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 					}
 					return;

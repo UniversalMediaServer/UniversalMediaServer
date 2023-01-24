@@ -70,6 +70,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonArray SUBTITLES_DEPTH = UmsConfiguration.getSubtitlesDepthArray();
 	private static final JsonArray SUBTITLES_INFO_LEVELS = UmsConfiguration.getSubtitlesInfoLevelsAsJsonArray();
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = UmsConfiguration.getEnginesPurposesAsJsonArray();
+	private static final JsonArray GPU_ENCODING_H264_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray();
+	private static final JsonArray GPU_ENCODING_H265_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray();
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
@@ -81,7 +83,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		"web_gui_port",
 		"web_player_port"
 	);
-	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method");
+	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method", "ffmpeg_avisynth_output_format_index_3d", "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d", "ffmpeg_avisynth_horizontal_resize_resolution");
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
 
 	@Override
@@ -116,6 +118,8 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());
 				jsonResponse.add("enabledRendererNames", RendererConfigurations.getEnabledRendererNamesAsJsonArray());
 				jsonResponse.add("transcodingEngines", UmsConfiguration.getAllEnginesAsJsonObject());
+				jsonResponse.add("gpuEncodingH264AccelerationMethods", GPU_ENCODING_H264_ACCELERATION_METHODS);
+				jsonResponse.add("gpuEncodingH265AccelerationMethods", GPU_ENCODING_H265_ACCELERATION_METHODS);
 
 				String configurationAsJsonString = getConfigurationAsJsonString();
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();

@@ -19,6 +19,7 @@ import jwtDecode, { JwtPayload } from 'jwt-decode';
 import { authApiUrl, playerApiUrl } from '../utils';
 
 const storeJwtInLocalStorage = (jwt: string) => {
+  axios.defaults.headers.common['Authorization'] = 'Bearer ' + jwt;
   localStorage.setItem('user', jwt);
   const decoded = jwtDecode<JwtPayload>(jwt);
   if (decoded.exp) {
@@ -73,9 +74,12 @@ export const clearJwt = async () => {
   localStorage.removeItem('user');
   const uuid = sessionStorage.getItem('player');
   if (uuid) {
-    await axios.post(playerApiUrl + 'logout', {token:uuid});
+    try {
+      await axios.post(playerApiUrl + 'logout', {uuid:uuid});
+    } catch {/*server Forbidden or Unauthorized*/}
     sessionStorage.removeItem('player');
   }
+  axios.defaults.headers.common['Authorization'] = undefined;
 }
 
 export const refreshAuthTokenNearExpiry = () => {
@@ -98,6 +102,10 @@ export const refreshAuthTokenNearExpiry = () => {
 
 export const getJwt = () => {
   return localStorage.getItem('user');
+}
+
+export const setAxiosAuthorization = () => {
+  axios.defaults.headers.common['Authorization'] = localStorage.getItem('user') ? 'Bearer ' + localStorage.getItem('user') : undefined;
 }
 
 export const redirectToLogin = async () => {

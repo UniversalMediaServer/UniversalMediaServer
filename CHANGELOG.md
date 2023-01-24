@@ -1,6 +1,222 @@
 # Changelog
 
-## Unreleased
+## [13.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.1.0...13.2.0) (2023-01-15)
+
+### General:
+- Improved motion compensation with 2D to 3D conversion, for full details see https://iwantaholodeck.com/algorithmic-tuning-motion-and-alignment/ (thanks, threedguru!)
+- Added support for KeepAspectRatio settings in 2D-to-3D converted videos (thanks, threedguru!)
+- Database scanning and cleanups are triggered from shared content updates
+- Fixed login screen being shown more than once in web settings (#3751) (thanks for reporting, BitEater21 and Richardk2n!)
+- Fixed broken database upgrade (#3756) (thanks for reporting, mykeehu!)
+- Fixed sharing of network drives (#3750) (thanks for reporting, BitEater21 and OldMan100!)
+- Fixed moving and marking as fully played setting in UK English
+- Fixed error causing failed startup
+- Fixed unshared content not being cleaned up after scan
+
+### Translation updates via Crowdin
+- English (United Kingdom) (15%)
+- Japanese (83%) (thanks, Kazunori Hamada!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Slovak (83%) (thanks, Dušan!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies:
+- Updated all subdependencies
+- Update dependency com.auth0:java-jwt to v4.2.2
+- Update dependency com.google.code.gson:gson to v2.10.1
+- Update dependency eslint to v8.32.0
+- Update dependency org.apache.maven.plugins:maven-checkstyle-plugin to v3.2.1
+- Update dependency org.apache.maven.plugins:maven-pmd-plugin to v3.20.0
+- Update dependency org.apache.maven.plugins:maven-project-info-reports-plugin to v3.4.2
+- Update dependency react-router-dom to v6.6.2
+- Update dependency web-vitals to v3.1.1
+- Update jna-version to v5.13.0
+- Update junit5 monorepo to v5.9.2
+- Update Mantine monorepo packages to v5.10.0
+- Update surefire-version to v3.0.0-M8
+- Update typescript-eslint monorepo to v5.48.1
+
+## [13.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.1...13.1.0) (2023-01-01)
+
+### General:
+- Added language support for API metadata
+- Added Tagline, Rated, Year Started, and Total Seasons on web player
+- Added button to TMDB and IMDb on web player
+- Improved quality of 2D-to-3D conversion (thanks, threedguru!)
+- Made H.265 transcoding over 2x faster
+- Improved compatibility of H.264 transcoded stream via MEncoder
+- Removed minimize Java GUI setting from web interface
+- Fixed adding folders via old interface (#3726) (Thanks for reporting, infectormp!)
+- Fixed web player server failure to start
+- Fixed database metrics on close
+- Fixed admin account when no auth is enabled
+- Fixed ordering of TV series episodes in Media Library
+- Fixed React player logos and posters
+- Fixed some thumbnail bugs
+- Stop using poster for Resume thumbnail
+- Fixed changing language via browser
+- Fixed not muxing H.264 via MEncoder when possible
+- Fixed audio not playing in web player (#3130)
+- Fixed web player use via proxy
+- Fixed setting monitored and active states for shared content via old settings
+- Fixed bugs with tsMuxeR handling H.265
+- Fixed tsMuxeR deferral for certain files
+- Fixed quickrun scripts not copying some files for development
+- Made tests run faster on GitHub Actions
+- General performance improvements
+
+### Translation updates via Crowdin
+- Chinese Traditional (77%) (thanks, Gene Wu!)
+- Finnish (100%) (thanks, Esko Gardner!)
+- French (97%)
+- Italian (93%) (thanks, nonlosao!)
+- Portuguese (Brazilian) (100%) (thanks, Mauro.A!)
+- Russian (77%) (thanks, shecof!)
+- Spanish (100%) (thanks, Yllelder!)
+
+### Renderers:
+- Added HDR to Supported lines in renderer configs
+- Improved detection of SkyBox VR Player (thanks, threedguru!)
+- Improved support for Mirascreen (thanks, Dušan Kazik!)
+- Improved support for VLC for desktop and iOS (thanks, Kevin Abel!)
+- Improved MP4 support on LG TVs and VLC
+- Improved Dolby Vision support on LG TVs (thanks, narae0.kim from LG!)
+- Fixed marking files as played when LG TVs are browsing
+- Fixed Caliber support
+
+### Dependencies:
+- Update all Node.js subdependencies
+- Update dependency @types/jest to v29.2.5
+- Update dependency @types/node to v18.11.18
+- Update dependency @types/react-dom to v18.0.10
+- Update dependency axios to v1.2.2
+- Update dependency com.puppycrawl.tools:checkstyle to v10.6.0
+- Update dependency eslint to v8.31.0
+- Update dependency mantine to 5.9.6
+- Update dependency net.coobird:thumbnailator to v0.4.19
+- Update dependency org.apache.httpcomponents:httpclient to v4.5.14
+- Update dependency react-router-dom to v6.6.1
+- Update FFmpeg to latest nightly
+- Update MediaInfo to 22.12
+- Update tsMuxeR to latest nightly
+- Update typescript-eslint monorepo to v5.47.1
+- Update Yarn to v3.3.1
+
+## [13.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.0...13.0.1) (2022-12-17)
+
+### General:
+- Increased default max memory on Windows
+- Fixed insertion of API metadata
+- Fixed being unable to disable toggles in web settings (#3689)
+- Fixed duplicate entries added to shared content on save when entries were removed
+- Fixed shared content updates not saving (#3697)
+- Fixed running via VS Code
+
+### Translation updates via Crowdin
+- Catalan (89%) (thanks, Toni Grau i Quellos!)
+- Czech (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (100%) (thanks, Karol Szastok!)
+- Portuguese (Brazilian) (96%) (thanks, Matias Dos Reis!)
+- Slovak (82%) (thanks, Filip Hanes!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Dependencies:
+- Updated all Node.js subdependencies
+- Update dependency @types/node to v18.11.15
+- Update dependency org.slf4j:slf4j-api to v2.0.6
+- Update dependency react-router-dom to v6.5.0
+- Update typescript-eslint monorepo to v5.46.1
+
+## [13.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.1...13.0.0) (2022-12-11)
+
+### General:
+- Added 2D to 3D conversion for virtual reality, for full details see https://iwantaholodeck.com/on-the-fly-2d-to-3d-video-conversion-with-universal-media-server-ums/
+- Fixed reload button is disabled after a restart
+- Fixed sometimes mixed renderer found
+- Implements LINN iOS app search request for attribute upnp:artist@role=composer
+- Handle UPNP:AlbumArtist
+- Escape iOS Smart Punctuation apostrophe
+- Fixed case-insensitive UPnP search
+- Double-click on tray icon opens web settings
+- Made language more clear on the right-click tray menu
+- Fixed API metadata countries, plot, ratings, rated (classification), start year, tagline, total seasons, and votes
+- Fixed API poster/cover images sometimes not being set
+- Fixed duplicate API fetches for failed results
+- Fixed star rating updates not immediately updating
+- Fixed resume files with AviSynth transcoding
+
+### Translation updates via Crowdin
+- Czech (94%)
+- Danish (99%) (thanks, NCAA!)
+- Finnish (99%) (thanks, Esko Gardner!)
+- French (94%) (thanks, SurfaceS!)
+- German (93%) (thanks, jaba82!)
+- Korean (94%) (thanks, VenusGirl!)
+- Portuguese (100%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (94%) (thanks, Sandro Almeida!)
+- Spanish (88%) (thanks, edwardalvarez2011!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+- Ukrainian (26%) (thanks, Paul Furlet!)
+
+### Renderers:
+- Let LG TVs use their built-in resume only
+- Fixed support for DTS on LG OLED models newer than 2019
+- Avoid re-encoding x265 needlessly on LG OLEDs
+- Detect more versions of VLC
+
+### Dependencies:
+- Updated all Node.js subdependencies
+- Update dependency @types/jest to v29.2.4
+- Update dependency @types/lodash to v4.14.191
+- Update dependency @types/node to v18.11.13
+- Update dependency @types/react to v18.0.26
+- Update dependency @types/video.js to v7.3.50
+- Update dependency axios to v1.2.1
+- Update dependency com.github.oshi:oshi-core to v6.4.0
+- Update dependency com.puppycrawl.tools:checkstyle to v10.5.0
+- Update dependency eslint to v8.29.0
+- Update dependency hls.js to v1.2.9
+- Update dependency react-router-dom to v6.4.5
+- Update dependency tabler-icons-react to v1.56.0
+- Update dependency typescript to v4.9.4
+- Update Mantine monorepo packages to v5.8.4
+- Update typescript-eslint monorepo to v5.46.0
+
+## [12.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/12.0.0...12.0.1) (2022-11-27)
+
+### General:
+- Fixed freeze on startup
+- Fixed broken translations on startup language selection
+- Fixed can't add folders via Java GUI in v12 on macOS
+- Fixed not detecting Playlist additions/changes during scans
+- Fixed database update/drop
+- Fixed macOS repeatedly prompting for permissions
+- Fixed react player logout error prevent to browse to login
+
+### Translation updates via Crowdin
+- Slovak (81%) (thanks, Dušan!)
+- Spanish (92%) (thanks, Pablo Camacho!)
+
+### Dependencies
+- Update dependency @types/jest to v29.2.3
+- Update dependency @types/lodash to v4.14.190
+- Update dependency @types/react-dom to v18.0.9
+- Update dependency axios to v1.2.0
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.14.1
+- Update dependency com.github.oshi:oshi-core to v6.3.2
+- Update dependency eslint to v8.28.0
+- Update logback-version to v1.4.5
+- Update Mantine monorepo packages to v5.8.3
+- Update dependency org.slf4j:slf4j-api to v2.0.5
+- Update dependency web-vitals to v3.1.0
+- Update twelvemonkeys-imageio-version to v3.9.4
+- Update dependency typescript to v4.9.3
+- Update typescript-eslint monorepo to v5.44.0
+- Update dependency video.js to v7.21.1
+- Update dependency videojs-contrib-quality-levels to v2.2.1
+
+## [12.0.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/11.6.0...12.0.0) (2022-11-15)
 
 ### General:
 - Added a new web settings interface, which is now the supported way to add content and change settings
@@ -13,6 +229,8 @@
 - Improved UPnP/DLNA support
 - Consolidated configuration files, with automatic migration to the new format
 - Fixed TV series never being found locally by IMDb ID
+- Fixed duplicate API requests
+- Fixed profile support on Docker
 - Hundreds of bugfixes and performance tweaks
 
 ### Renderers:
@@ -24,12 +242,13 @@
 - Catalan (88%) (thanks, Toni Grau i Quellos!)
 - Czech (100%)
 - Danish (99%) (thanks, GurliGebis and NCAA!)
-- German (89%) (thanks, pipin!)
+- German (93%) (thanks, pipin!)
 - Finnish (99%) (thanks, Esko Gardner!)
 - Italian (96%) (thanks, Oscar Zambotti!)
 - Korean (100%) (thanks, VenusGirl!)
 - Polish (100%) (thanks, Karol Szastok!)
 - Portuguese (99%) (thanks, mariopinto!)
+- Portuguese (Brazilian) (99%) (thanks, Mauro.A!)
 - Russian (82%) (thanks, Максим Мухачев!)
 - Turkish (100%) (thanks, Burak Yavuz!)
 

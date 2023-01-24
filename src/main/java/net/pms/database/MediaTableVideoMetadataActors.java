@@ -17,13 +17,12 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
+import net.pms.media.metadata.ApiStringArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,6 +95,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
+					executeUpdate(connection, "DROP INDEX IF EXISTS FILENAME_ACTOR_TVSERIESID_IDX");
 					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_FILEID + " INTEGER");
 					if (isColumnExist(connection, TABLE_NAME, "FILENAME")) {
 						executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET " + COL_FILEID + "=(SELECT " + MediaTableFiles.TABLE_COL_ID + " FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FILENAME + " = " + TABLE_NAME + ".FILENAME) WHERE " + TABLE_NAME + ".FILENAME != ''");
@@ -125,8 +125,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 				COL_TVSERIESID + "  INTEGER                         , " +
 				COL_FILEID + "      INTEGER                         , " +
 				COL_ACTOR + "       VARCHAR(1024)       NOT NULL    , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + " ON DELETE CASCADE, " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE " +
 			")"
 		);
 	}
@@ -139,8 +139,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	 * @param actors
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement actors, final Long tvSeriesID) {
-		if (actors == null || !actors.isJsonArray() || actors.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiStringArray actors, final Long tvSeriesID) {
+		if (actors == null || actors.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -159,10 +159,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = actors.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				String actor = i.next().getAsString();
-
+			for (String actor : actors) {
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(actor, 1024));
@@ -192,6 +189,24 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		}
 	}
 
+	public static ApiStringArray getActorsForFile(final Connection connection, final Long fileId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ACTORS_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -205,6 +220,24 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiStringArray getActorsForTvSerie(final Connection connection, final Long tvSerieId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ACTORS_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for TV serie ID \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

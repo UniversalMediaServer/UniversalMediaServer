@@ -87,11 +87,11 @@ public class StandardEngineId extends EngineId {
 	static {
 		List<EngineId> allEngines = new ArrayList<>(12);
 		allEngines.add(FFMPEG_VIDEO);
-		if (PlatformUtils.INSTANCE.isAviSynthAvailable()) {
+		if (PlatformUtils.isWindows()) {
 			allEngines.add(AVI_SYNTH_FFMPEG);
 		}
 		allEngines.add(MENCODER_VIDEO);
-		if (PlatformUtils.INSTANCE.isAviSynthAvailable()) {
+		if (PlatformUtils.isWindows()) {
 			allEngines.add(AVI_SYNTH_MENCODER);
 		}
 		allEngines.add(TSMUXER_VIDEO);

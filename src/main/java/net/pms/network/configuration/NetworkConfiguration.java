@@ -16,16 +16,28 @@
  */
 package net.pms.network.configuration;
 
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import com.google.gson.JsonArray;
-import java.net.*;
-import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServerNetworkConfigurationListener;
 import net.pms.util.UMSUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class stores the network configuration information: which network
@@ -191,7 +203,7 @@ public class NetworkConfiguration {
 				for (InetAddress address : addrSet) {
 					if (!oldAddrSet.contains(address)) {
 						addedAddresses.add(address);
-						LOGGER.trace("new founded address {} is mapped to the interface {}({})", address, networkInterface.getName(), interfaceIndex);
+						LOGGER.trace("new found address {} is mapped to the interface {}({})", address, networkInterface.getName(), interfaceIndex);
 					}
 				}
 				if (!removedAddresses.isEmpty() || !addedAddresses.isEmpty()) {
@@ -257,7 +269,7 @@ public class NetworkConfiguration {
 		boolean changed = false;
 		synchronized (INTERFACES_WITH_ASSOCIATED_ADDRESS) {
 			if (!INTERFACES_WITH_ASSOCIATED_ADDRESS.contains(interfaceIndex)) {
-				//newly multicast interface founded
+				//newly multicast interface found
 				LOGGER.trace("available multicast interface with address #{}", interfaceIndex);
 				INTERFACES_WITH_ASSOCIATED_ADDRESS.add(interfaceIndex);
 				changed = true;

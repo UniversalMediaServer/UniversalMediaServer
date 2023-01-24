@@ -20,14 +20,14 @@ import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import net.pms.util.ExternalProgramInfo;
-import net.pms.util.FFmpegProgramInfo;
-import net.pms.util.ProgramExecutableType;
-import net.pms.platform.PlatformProgramPaths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.platform.PlatformProgramPaths;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.FFmpegProgramInfo;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
+import net.pms.util.ProgramExecutableType;
 
 /**
  * This class keeps track of paths to external programs on Linux.
@@ -41,7 +41,6 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo vlcInfo;
 	private final ExternalProgramInfo mEncoderInfo;
 	private final ExternalProgramInfo tsMuxeRInfo;
-	private final ExternalProgramInfo tsMuxeRNewInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
 	private final ExternalProgramInfo youtubeDlInfo;
@@ -110,21 +109,6 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 			tsMuxeRInfo.setPath(ProgramExecutableType.INSTALLED, tsMuxeR);
 		}
 
-		// tsMuxeRNew
-		Path tsMuxeRNew = null;
-		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			tsMuxeRNew = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("tsMuxeR-new");
-		}
-		if (tsMuxeRNew == null || !Files.exists(tsMuxeRNew)) {
-			tsMuxeRNew = PLATFORM_BINARIES_FOLDER.resolve("tsMuxeR-new");
-		}
-		tsMuxeRNewInfo = new ExternalProgramInfo("tsMuxeRNew", ProgramExecutableType.BUNDLED);
-		tsMuxeRNewInfo.setPath(ProgramExecutableType.BUNDLED, tsMuxeRNew);
-		tsMuxeRNew = FileUtil.findExecutableInOSPath(Paths.get("tsMuxeR-new"));
-		if (tsMuxeRNew != null) {
-			tsMuxeRNewInfo.setPath(ProgramExecutableType.INSTALLED, tsMuxeRNew);
-		}
-
 		// FLAC
 		Path flac = FileUtil.findExecutableInOSPath(Paths.get("flac"));
 		if (flac != null) {
@@ -185,11 +169,6 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
-		return tsMuxeRNewInfo;
-	}
-
-	@Override
 	public ExternalProgramInfo getFLAC() {
 		return flacInfo;
 	}
@@ -200,7 +179,47 @@ public class LinuxProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public ExternalProgramInfo getAviSynth() {
+		return null;
+	}
+
+	@Override
 	public ExternalProgramInfo getInterFrame() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getFFMS2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getDirectShowSource() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getMvtools2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getDepan() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getMasktools2() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getCropResize() {
+		return null;
+	}
+
+	@Override
+	public ExternalProgramInfo getConvert2dTo3d() {
 		return null;
 	}
 

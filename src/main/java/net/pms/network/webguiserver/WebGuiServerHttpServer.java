@@ -57,7 +57,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 		try {
 			server = HttpServer.create(address, 0);
 		} catch (IOException e) {
-			LOGGER.error("Failed to start web graphical user interface server : {}", e.getMessage());
+			LOGGER.error("Failed to start web graphical user interface server ({}) : {}", address, e.getMessage());
 		}
 
 		if (server != null) {

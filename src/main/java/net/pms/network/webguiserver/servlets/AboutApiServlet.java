@@ -71,6 +71,7 @@ public class AboutApiServlet extends GuiHttpServlet {
 				jsonlinks.add(toJsonObject("Jordan Michael Groll's Icons", "https://www.deviantart.com/jrdng"));
 				jsonlinks.add(toJsonObject("SVP", "https://www.svp-team.com/"));
 				jsonlinks.add(toJsonObject("OpenSubtitles.org", "https://www.opensubtitles.org/"));
+				jsonlinks.add(toJsonObject("The Movie Database (TMDB)", "https://www.themoviedb.org"));
 				jsonResponse.add("links", jsonlinks);
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && (account.havePermission(Permissions.SETTINGS_VIEW | Permissions.SETTINGS_MODIFY))) {

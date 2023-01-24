@@ -114,8 +114,8 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder tvShowsFolder = new MediaLibraryFolder(
 			Messages.getString("TvShows"),
 			new String[]{
-				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + "                              ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",
-				"SELECT          *               " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
+				"SELECT DISTINCT " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " " + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + "                                                                        ORDER BY " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " ASC",
+				"SELECT *        "                                                           + MediaLibraryFolder.FROM_FILES_VIDEOMETA + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND " + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + " = '${0}' ORDER BY TVSEASON, TVEPISODENUMBER"
 			},
 			new int[]{MediaLibraryFolder.TVSERIES_WITH_FILTERS, MediaLibraryFolder.EPISODES}
 		);

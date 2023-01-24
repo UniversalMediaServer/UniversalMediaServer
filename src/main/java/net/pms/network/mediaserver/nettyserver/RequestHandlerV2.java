@@ -264,6 +264,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			logMessageReceived(event, null, renderer);
 		}
 
+		/**
+		 * LG TVs send us many "play" requests while browsing directories, in order
+		 * for them to show dynamic thumbnails. That means we can skip certain things
+		 * like searching for subtitles and fully played logic.
+		 */
+		if (renderer.isLG() && userAgentString != null && userAgentString.contains("Lavf/")) {
+			request.setIsVideoThumbnailRequest(true);
+		}
+
 		writeResponse(ctx, event, request, ia);
 	}
 
@@ -411,9 +420,12 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			);
 		}
 
-		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
-		// Attach it to the context so it can be invoked if connection is reset unexpectedly
-		ctx.setAttachment(startStopListenerDelegate);
+		StartStopListenerDelegate startStopListenerDelegate = null;
+		if (!request.isVideoThumbnailRequest()) {
+			startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
+			// Attach it to the context so it can be invoked if connection is reset unexpectedly
+			ctx.setAttachment(startStopListenerDelegate);
+		}
 
 		try {
 			request.answer(response, event, close, startStopListenerDelegate);
@@ -424,7 +436,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// answer() is non-blocking. we only (may) need to call it
 			// here in the case of an exception. it's a no-op if it's
 			// already been called
-			startStopListenerDelegate.stop();
+			if (startStopListenerDelegate != null) {
+				startStopListenerDelegate.stop();
+			}
 		}
 	}
 

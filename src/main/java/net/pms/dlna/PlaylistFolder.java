@@ -63,6 +63,11 @@ public final class PlaylistFolder extends DLNAResource {
 	}
 
 	@Override
+	public boolean allowScan() {
+		return true;
+	}
+
+	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
 	}

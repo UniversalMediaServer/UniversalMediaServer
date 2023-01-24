@@ -459,7 +459,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebPlayerServer()) {
-			webinterface = createToolBarButton(Messages.getString("WebInterface"), "button-wif.png", Messages.getString("ThisLaunchesOurWebInterface"));
+			webinterface = createToolBarButton(Messages.getString("WebSettings"), "button-wif.png", Messages.getString("ThisLaunchesOurWebSettings"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
@@ -647,12 +647,12 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
 				}
 			} else {
-				reload.setEnabled(true);
 				if (restartRequredIcon == reload.getIcon()) {
 					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
 					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
+			reload.setEnabled(true);
 		});
 	}
 
@@ -736,7 +736,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		} else {
 			st.setMediaServerBind("-");
 		}
-		if (PMS.get().getWebPlayerServer() != null) {
+		if (PMS.get().getWebPlayerServer() != null && PMS.get().getWebPlayerServer().getServer() != null) {
 			st.setInterfaceServerBind(PMS.get().getWebPlayerServer().getAddress());
 		} else {
 			st.setInterfaceServerBind("-");

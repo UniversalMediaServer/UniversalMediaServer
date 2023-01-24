@@ -34,6 +34,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.platform.PlatformUtils;
+import net.pms.service.LibraryScanner;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
@@ -51,10 +52,11 @@ public class SharedContentConfiguration {
 	private static final SharedContentArray SHARED_CONTENT_ARRAY = new SharedContentArray();
 
 	// Automatic reloading
-	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> updateSharedContent(readConfiguration(), false);
+	private static boolean isWritingConfiguration = false;
+	public static final FileWatcher.Listener RELOAD_WATCHER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> reloadConfiguration();
 
 	static {
-		updateSharedContent(readAllConfigurations(), false);
+		readAllConfigurations();
 		FileWatcher.add(new FileWatcher.Watch(CONFIGURATION.getSharedConfPath(), RELOAD_WATCHER));
 	}
 
@@ -107,7 +109,7 @@ public class SharedContentConfiguration {
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.isMonitored() && folder.getFile() != null) {
 				files.add(folder.getFile());
-			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null && !folders.getChilds().isEmpty()) {
 				files.addAll(getMonitoredFolders(folders.getChilds()));
 			}
 		}
@@ -122,11 +124,24 @@ public class SharedContentConfiguration {
 	}
 
 	public static void updateSharedContent(SharedContentArray values, boolean save) {
+		LOGGER.debug("New shared content configuration sent.");
 		boolean updated = false;
 		synchronized (SHARED_CONTENT_ARRAY) {
 			if (!values.equals(SHARED_CONTENT_ARRAY)) {
+				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
-				SHARED_CONTENT_ARRAY.addAll(values);
+				//check viability
+				Boolean wasFolderUpdate = false;
+				for (SharedContent sharedContent : values) {
+					if (sharedContent instanceof FolderContent folderContent) {
+						if (folderContent.getFile() != null) {
+							SHARED_CONTENT_ARRAY.add(sharedContent);
+							wasFolderUpdate = true;
+						}
+					} else {
+						SHARED_CONTENT_ARRAY.add(sharedContent);
+					}
+				}
 				if (save) {
 					writeConfiguration();
 				}
@@ -135,6 +150,16 @@ public class SharedContentConfiguration {
 					PMS.get().resetRenderersRoot();
 				}
 				updated = true;
+
+				if (wasFolderUpdate) {
+					// Rescan to add/remove Media Library content
+					if (CONFIGURATION.getUseCache()) {
+						LibraryScanner.stopScanLibrary();
+						LibraryScanner.scanLibrary();
+					}
+				}
+			} else {
+				LOGGER.debug("Current shared content configuration is already up to date.");
 			}
 		}
 		if (updated) {
@@ -175,7 +200,7 @@ public class SharedContentConfiguration {
 	}
 
 	/**
-	 * Get Shared contents configuration.
+	 * Set Shared contents configuration.
 	 * First, parse shared contents configs file (default to SHARED.conf).
 	 * If not exists, try to update from old shared contents configs files (WEB.conf, VirtualFolders.conf and UMS.conf)
 	 * If no results, default to the default media folders on your computer.
@@ -190,39 +215,40 @@ public class SharedContentConfiguration {
 	 *    - /user/Videos
 	 *  On Linux:
 	 *    - /user
-	 *
-	 * @return the SharedContentArray.
 	 */
-	private static synchronized SharedContentArray readAllConfigurations() {
+	private static synchronized void readAllConfigurations() {
 		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
 		try {
 			if (Files.exists(sharedConfFilePath)) {
+				LOGGER.info("Getting shared content from configuration file : " + sharedConfFilePath);
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
-				return GSON.fromJson(json, SharedContentArray.class);
+				updateSharedContent(GSON.fromJson(json, SharedContentArray.class), false);
 			} else {
 				//import old settings
+				LOGGER.info("Importing old shared content configuration files");
 				SharedContentArray oldConfig = OldConfigurationImporter.getOldConfigurations();
 				if (oldConfig.isEmpty()) {
 					//no shared conf files, set to default media folders
 					oldConfig = defaultConfiguration();
 				}
 				updateSharedContent(oldConfig, true);
-				return oldConfig;
 			}
 		} catch (IOException | JsonSyntaxException ex) {
 			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
 			LOGGER.debug(null, ex);
+			updateSharedContent(new SharedContentArray(), false);
 		}
-		return new SharedContentArray();
 	}
 
 	private static synchronized SharedContentArray readConfiguration() {
 		Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+		LOGGER.debug("Reading shared content configuration file: " + sharedConfFilePath);
 		try {
 			if (Files.exists(sharedConfFilePath)) {
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
 				return GSON.fromJson(json, SharedContentArray.class);
 			}
+			LOGGER.trace("Shared content configuration file missing: " + sharedConfFilePath);
 		} catch (IOException | JsonSyntaxException ex) {
 			LOGGER.info("Error in shared content configuration file : " + ex.getMessage());
 			LOGGER.debug(null, ex);
@@ -237,17 +263,30 @@ public class SharedContentConfiguration {
 	private static synchronized SharedContentArray defaultConfiguration() {
 		SharedContentArray result = new SharedContentArray();
 		for (Path path : PlatformUtils.INSTANCE.getDefaultFolders()) {
-			result.add(new FolderContent(path.toFile()));
+			File file = path.toFile();
+			if (file != null) {
+				result.add(new FolderContent(path.toFile()));
+			}
 		}
 		return result;
 	}
 
 	private static synchronized void writeConfiguration() {
 		try {
-			Path webConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
-			Files.writeString(webConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
+			isWritingConfiguration = true;
+			Path sharedConfFilePath = Paths.get(CONFIGURATION.getSharedConfPath());
+			LOGGER.debug("Writing shared content configuration file: " + sharedConfFilePath);
+			Files.writeString(sharedConfFilePath, GSON.toJson(SHARED_CONTENT_ARRAY), StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			LOGGER.debug("An error occurred while writing the web config file: {}", e);
+			LOGGER.debug("An error occurred while writing the shared content configuration file: {}", e);
+		}
+		isWritingConfiguration = false;
+	}
+
+	private static synchronized void reloadConfiguration() {
+		if (!isWritingConfiguration) {
+			LOGGER.debug("Reloading shared content configuration file");
+			updateSharedContent(readConfiguration(), false);
 		}
 	}
 

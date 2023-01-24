@@ -140,6 +140,8 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
 		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
 
+		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
+
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
@@ -330,6 +332,10 @@ public class RendererConfigurationTest {
 		testHeaders("VLC for desktop", "User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19");
 		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
 		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
+		testHeaders("VLC for desktop", "User-Agent: UPnP/1.0, Portable SDK for UPnP devices/1.14.13on windows");
+
+		testHeaders("VLC for iOS", "User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0");
+		testHeaders("VLC for iOS", "User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13");
 
 		testHeaders("WD TV Live", "User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423");
 

@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>11.6.0-SNAPSHOT</version>
+	<version>13.2.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>11.6.0</project.version.short>
+		<project.version.short>13.2.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -61,7 +61,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<twelvemonkeys-imageio-version>3.9.3</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.9.4</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -69,7 +69,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>162</binary-revision>
+		<binary-revision>163</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -91,13 +91,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.3</slf4j-api-version>
+		<slf4j-api-version>2.0.6</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.4</logback-version>
+		<logback-version>1.4.5</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -105,9 +105,9 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.13.4.2</jackson.version>
+		<jackson.version>2.14.1</jackson.version>
 
-		<surefire-version>3.0.0-M7</surefire-version>
+		<surefire-version>3.0.0-M8</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -116,7 +116,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.12.1</jna-version>
+		<jna-version>5.13.0</jna-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -124,7 +124,7 @@
 			 system-makensis profile
 		 -->
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
-		<junit5.version>5.9.1</junit5.version>
+		<junit5.version>5.9.2</junit5.version>
 		<com.sun.xml.bind-version>4.0.1</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
 		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
@@ -149,7 +149,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>4.2.1</version>
+		    <version>4.2.2</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -189,6 +189,13 @@
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpasyncclient</artifactId>
 			<version>4.1.5</version>
+			<exclusions>
+				<exclusion>
+					<!-- lets us use a newer version of httpclient -->
+					<groupId>org.apache.httpcomponents</groupId>
+					<artifactId>httpclient</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -201,7 +208,7 @@
 
 				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
 			-->
-			<version>4.5.13</version>
+			<version>4.5.14</version>
 			<exclusions>
 				<exclusion>
 					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
@@ -262,7 +269,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.10</version>
+			<version>2.10.1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.netty</groupId>
@@ -292,7 +299,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.18</version>
+			<version>0.4.19</version>
 		</dependency>
 
 		<!--
@@ -566,7 +573,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.3.1</version>
+			<version>6.4.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -774,81 +781,6 @@
 						<projectName>Universal Media Server</projectName>
 					</configuration>
 				</plugin>
-
-				<!--
-					This plugin's configuration is used to store Eclipse m2e settings only.
-					It has no influence on the Maven build itself.
-				-->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.apache.maven.plugins
-										</groupId>
-										<artifactId>
-											maven-antrun-plugin
-										</artifactId>
-										<versionRange>
-											[1.7,)
-										</versionRange>
-										<goals>
-											<goal>run</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											pl.project13.maven
-										</groupId>
-										<artifactId>
-											git-commit-id-plugin
-										</artifactId>
-										<versionRange>
-											[${git-commit-id-plugin-version},)
-										</versionRange>
-										<goals>
-											<goal>revision</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>com.universalmediaserver</groupId>
-										<artifactId>
-											crowdin-maven-plugin
-										</artifactId>
-										<versionRange>
-											[0.1,)
-										</versionRange>
-										<goals>
-											<goal>fetch</goal>
-											<goal>push</goal>
-											<goal>build</goal>
-											<goal>apply</goal>
-											<goal>pull</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<execute></execute>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
 			</plugins>
 		</pluginManagement>
 		<plugins>
@@ -926,187 +858,8 @@
 					<wtpversion>1.5</wtpversion>
 				</configuration>
 			</plugin>
-
-			<plugin>
-				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.2.1</version>
-				<configuration>
-					<downloadSources>true</downloadSources>
-					<downloadJavadocs>true</downloadJavadocs>
-					<dependenciesAsLibraries>true</dependenciesAsLibraries>
-					<useFullNames>false</useFullNames>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-				<version>3.12.1</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.doxia</groupId>
-						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.11.1</version>
-					</dependency>
-				</dependencies>
-			</plugin>
-			<plugin>
-				<groupId>com.github.eirslett</groupId>
-				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.12.1</version>
-				<configuration>
-					<installDirectory>react-client</installDirectory>
-					<workingDirectory>react-client</workingDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>install node and yarn</id>
-						<goals>
-							<goal>install-node-and-yarn</goal>
-						</goals>
-						<configuration>
-							<nodeVersion>v18.12.1</nodeVersion>
-							<yarnVersion>v1.22.19</yarnVersion>
-						</configuration>
-					</execution>
-					<!-- download Node.js dependencies -->
-					<execution>
-						<id>yarn install</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-					</execution>
-					<!-- compile the react client to the web directory -->
-					<execution>
-						<id>yarn build</id>
-						<goals>
-							<goal>yarn</goal>
-						</goals>
-						<configuration>
-							<environmentVariables>
-								<PUBLIC_URL>/</PUBLIC_URL>
-							</environmentVariables>
-							<arguments>build</arguments>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 	</build>
-
-	<!-- Set reports for the maven site plugin -->
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-project-info-reports-plugin</artifactId>
-				<version>3.4.1</version>
-				<reportSets>
-					<reportSet>
-						<reports>
-							<report>index</report>
-							<report>dependencies</report>
-							<report>dependency-convergence</report>
-							<report>dependency-management</report>
-							<report>plugins</report>
-						</reports>
-					</reportSet>
-				</reportSets>
-			</plugin>
-
-			<!-- tests report -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-surefire-report-plugin</artifactId>
-				<version>${surefire-version}</version>
-				<configuration>
-					<showSuccess>false</showSuccess>
-				</configuration>
-			</plugin>
-
-			<!-- Javadoc -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${maven-javadoc-plugin-version}</version>
-				<configuration>
-					<quiet>true</quiet>
-					<tags>
-						<tag>
-							<name>todo</name>
-							<placement>a</placement>
-							<head>To Do:</head>
-						</tag>
-						<tag>
-							<name>review</name>
-							<placement>a</placement>
-							<head>Review:</head>
-						</tag>
-					</tags>
-					<detectJavaApiLink>false</detectJavaApiLink>
-					<links>
-						<link>http://docs.oracle.com/javase/7/docs/api/</link>
-					</links>
-
-					<!--
-						Doclet to generate class diagrams inside Javadoc.
-						Requires the installation of Graphviz (http://www.graphviz.org/)
-					-->
-					<doclet>org.jboss.apiviz.APIviz</doclet>
-					<docletArtifact>
-						<groupId>org.jboss.apiviz</groupId>
-						<artifactId>apiviz</artifactId>
-						<version>1.3.2.GA</version>
-					</docletArtifact>
-					<useStandardDocletOptions>true</useStandardDocletOptions>
-				</configuration>
-			</plugin>
-
-			<!-- Class dependency report -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jdepend-maven-plugin</artifactId>
-				<version>2.0</version>
-			</plugin>
-
-			<!-- Spotbugs report -->
-			<plugin>
-				<groupId>com.github.spotbugs</groupId>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>4.7.3.0</version>
-			</plugin>
-
-			<!-- Cobertura Test Coverage report -->
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.7</version>
-			</plugin>
-
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-pmd-plugin</artifactId>
-				<version>3.19.0</version>
-				<configuration>
-					<linkXref>false</linkXref>
-					<sourceEncoding>utf-8</sourceEncoding>
-					<minimumTokens>100</minimumTokens>
-					<targetJdk>${project.jre-version}</targetJdk>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>com.github.jrh3k5</groupId>
-				<artifactId>l10n-maven-plugin</artifactId>
-				<version>1.4</version>
-				<configuration>
-					<failBuild>true</failBuild>
-					<messagesFile>${project.basedir}/src/main/resources/i18n/messages.properties</messagesFile>
-					<translatedMessagesPattern>src/main/resources/i18n/messages*.properties</translatedMessagesPattern>
-				</configuration>
-			</plugin>
-		</plugins>
-	</reporting>
 
 	<profiles>
 		<profile>
@@ -1129,6 +882,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -1187,7 +981,6 @@
 										<mkdir dir="${project.binaries}/windows" />
 										<mkdir dir="${project.binaries}/windows/avisynth" />
 										<mkdir dir="${project.binaries}/windows/codecs" />
-										<mkdir dir="${project.binaries}/windows/interframe" />
 										<mkdir dir="${project.binaries}/windows/fonts" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.avail" />
 										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
@@ -1216,7 +1009,6 @@
 										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/avisynth.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
@@ -1243,9 +1035,9 @@
 										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/interframe/InterFrame2.avsi" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/interframe/svpflow2.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
 											<cutdirsmapper dirs="1" />
@@ -1297,6 +1089,79 @@
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
 										<mkdir dir="${project.binaries}/windows/winxp" />
 										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
+
+										<!-- Copy avisynth -->
+										<mkdir dir="${project.binaries}/windows/x86_64/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/windows/x86_64" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/windows/x86_64" />
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+										</copy>
+										<mkdir dir="${project.binaries}/bin/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/bin" />
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/bin" />
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+										</copy>
+										<copy file="${project.external-resources}/windows/avisynth/x86/AviSynth.dll" todir="${project.binaries}/windows/x86" />
+										<copy file="${project.external-resources}/windows/avisynth/x86/system/DevIL.dll" todir="${project.binaries}/windows/x86" />
+										<mkdir dir="${project.binaries}/windows/x86/avisynth" />
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/x86/plugins" />
+										</copy>
+
+										<!-- Copy convert2dto3d.avsi -->
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/bin/avisynth" />
+										
+										<!-- Copy CropResize.avsi -->
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/windows/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/bin/avisynth" />
+
+										<!-- Copy mvtools2 to its destination -->
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86" />
+										</copy>
+										
+										<!-- Copy masktools2 to its destination -->
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x86" />
+										</copy>										
+
+										<!-- Copy ffms2 to its destination -->
+										<copy todir="${project.binaries}/windows/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2">
+												<exclude name="x86/"/>
+												<exclude name="x64/"/>
+											</fileset>
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2">
+												<exclude name="x86/"/>
+												<exclude name="x64/"/>
+											</fileset>
+										</copy>
+										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+										</copy>
+										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x86" />
+										</copy>
 									</target>
 								</configuration>
 							</execution>
@@ -1397,6 +1262,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
@@ -1504,6 +1410,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1610,6 +1557,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1715,6 +1703,47 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
@@ -1830,6 +1859,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
@@ -1933,95 +2003,6 @@
 		</profile>
 
 		<!--
-			Testing profile: For running our automated tests - does not download binaries
-		-->
-		<profile>
-			<id>testing</id>
-			<!--
-				this setting does the right thing on Linux
-				and is needed for the Hudson profile to work
-			-->
-			<activation>
-				<activeByDefault>true</activeByDefault>
-			</activation>
-
-			<build>
-				<plugins>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<executions>
-							<!-- Assemble a jar with dependencies -->
-							<execution>
-								<id>make-jar-with-dependencies-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-
-							<!-- Assemble the distribution file. -->
-							<execution>
-								<id>build-pms-testing</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
-										</manifest>
-									</archive>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-					<!--
-						Use the antrun plugin to:
-
-						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
-					-->
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-antrun-plugin</artifactId>
-						<version>${maven-antrun-plugin-version}</version>
-						<executions>
-							<execution>
-								<id>copy-jar-with-dependencies-test</id>
-								<phase>package</phase>
-								<goals>
-									<goal>run</goal>
-								</goals>
-								<configuration>
-									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
-									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-
-		<!--
 			macOS 10.15 (Catalina) onwards
 			Note: This does not make the disk image (.dmg), see the wiki for instructions https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-build-UMS#building-the-macos-disk-image
 		-->
@@ -2032,6 +2013,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2233,6 +2255,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2436,6 +2499,47 @@
 			</activation>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-enforcer-plugin</artifactId>
@@ -2728,13 +2832,147 @@
 		</profile>
 
 		<!--
+			This profile is only active when the property "m2e.version"
+			is set, which is the case when building in Eclipse with m2e.
+		-->
+		<profile>
+			<id>m2e</id>
+			<activation>
+				<property>
+					<name>m2e.version</name>
+				</property>
+			</activation>
+			<build>
+				<pluginManagement>
+					<plugins>
+						<!--
+							This plugin's configuration is used to store Eclipse m2e settings only.
+							It has no influence on the Maven build itself.
+						-->
+						<plugin>
+							<groupId>org.eclipse.m2e</groupId>
+							<artifactId>lifecycle-mapping</artifactId>
+							<version>1.0.0</version>
+							<configuration>
+								<lifecycleMappingMetadata>
+									<pluginExecutions>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>
+													org.apache.maven.plugins
+												</groupId>
+												<artifactId>
+													maven-antrun-plugin
+												</artifactId>
+												<versionRange>
+													[1.7,)
+												</versionRange>
+												<goals>
+													<goal>run</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore></ignore>
+											</action>
+										</pluginExecution>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>
+													pl.project13.maven
+												</groupId>
+												<artifactId>
+													git-commit-id-plugin
+												</artifactId>
+												<versionRange>
+													[${git-commit-id-plugin-version},)
+												</versionRange>
+												<goals>
+													<goal>revision</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<ignore></ignore>
+											</action>
+										</pluginExecution>
+										<pluginExecution>
+											<pluginExecutionFilter>
+												<groupId>com.universalmediaserver</groupId>
+												<artifactId>
+													crowdin-maven-plugin
+												</artifactId>
+												<versionRange>
+													[0.1,)
+												</versionRange>
+												<goals>
+													<goal>fetch</goal>
+													<goal>push</goal>
+													<goal>build</goal>
+													<goal>apply</goal>
+													<goal>pull</goal>
+												</goals>
+											</pluginExecutionFilter>
+											<action>
+												<execute></execute>
+											</action>
+										</pluginExecution>
+									</pluginExecutions>
+								</lifecycleMappingMetadata>
+							</configuration>
+						</plugin>
+					</plugins>
+				</pluginManagement>
+			</build>
+		</profile>
+
+		<!--
 			Quick run profiles: Builds, replaces and runs ums.jar in the default installation directory.
-			For extra quickness, run with the skipTests flag, like mvn -P quickrun-windows package -DskipTests
+			For extra quickness, run with the skipTests and offline flags: mvn -P quickrun-windows package -DskipTests -Doffline
 		-->
 		<profile>
 			<id>quickrun-windows-x86</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -2805,12 +3043,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files (x86)/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files (x86)/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -2840,6 +3078,47 @@
 			<id>quickrun-windows</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -2910,12 +3189,12 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>C:/Program Files/Universal Media Server/web/</outputDirectory>
+									<outputDirectory>C:/Program Files/Universal Media Server</outputDirectory>
 									<fileMode>0644</fileMode>
 									<directoryMode>0755</directoryMode>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -2945,6 +3224,47 @@
 			<id>quickrun-macos</id>
 			<build>
 				<plugins>
+					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -3015,10 +3335,10 @@
 									<goal>copy-resources</goal>
 								</goals>
 								<configuration>
-									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources/web</outputDirectory>
+									<outputDirectory>/Applications/Universal Media Server.app/Contents/Resources</outputDirectory>
 									<resources>
 										<resource>
-											<directory>${project.external-resources}/web/</directory>
+											<directory>${project.external-resources}</directory>
 										</resource>
 									</resources>
 								</configuration>
@@ -3049,33 +3369,82 @@
 			Testing profiles below
 		-->
 		<profile>
-			<id>testing-windows</id>
+			<id>testing</id>
+			<!--
+				this setting does the right thing on Linux
+				and is needed for the Hudson profile to work
+			-->
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+
 			<build>
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-						</configuration>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the distribution file. -->
+							<execution>
+								<id>build-ums-testing</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-testing.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
 					</plugin>
+					<!--
+						Use the antrun plugin to:
+
+						Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar
+					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
-								<phase>process-resources</phase>
+								<id>copy-jar-with-dependencies-test</id>
+								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target unless="offline">
-										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3125,6 +3494,47 @@
 			<build>
 				<plugins>
 					<plugin>
+						<groupId>com.github.eirslett</groupId>
+						<artifactId>frontend-maven-plugin</artifactId>
+						<version>1.12.1</version>
+						<configuration>
+							<installDirectory>react-client</installDirectory>
+							<workingDirectory>react-client</workingDirectory>
+						</configuration>
+						<executions>
+							<execution>
+								<id>install node and yarn</id>
+								<goals>
+									<goal>install-node-and-yarn</goal>
+								</goals>
+								<configuration>
+									<nodeVersion>v18.12.1</nodeVersion>
+									<yarnVersion>v1.22.19</yarnVersion>
+								</configuration>
+							</execution>
+							<!-- download Node.js dependencies -->
+							<execution>
+								<id>yarn install</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+							</execution>
+							<!-- compile the react client to the web directory -->
+							<execution>
+								<id>yarn build</id>
+								<goals>
+									<goal>yarn</goal>
+								</goals>
+								<configuration>
+									<environmentVariables>
+										<PUBLIC_URL>/</PUBLIC_URL>
+									</environmentVariables>
+									<arguments>build</arguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>${maven-assembly-plugin-version}</version>
 						<configuration>
@@ -3157,12 +3567,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.2.0</version>
+						<version>3.2.1</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.4</version>
+								<version>10.6.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

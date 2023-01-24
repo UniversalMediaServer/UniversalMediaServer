@@ -71,6 +71,7 @@ public class PlatformUtils implements IPlatformUtils {
 	protected Path vlcPath;
 	protected Version vlcVersion;
 	protected boolean aviSynth;
+	protected boolean aviSynthPlus;
 
 	/** Only to be instantiated by {@link PlatformUtils#createInstance()}. */
 	protected PlatformUtils() {
@@ -114,6 +115,11 @@ public class PlatformUtils implements IPlatformUtils {
 	@Override
 	public boolean isAviSynthAvailable() {
 		return aviSynth;
+	}
+
+	@Override
+	public boolean isAviSynthPlusAvailable() {
+		return aviSynthPlus;
 	}
 
 	@Override
@@ -170,7 +176,7 @@ public class PlatformUtils implements IPlatformUtils {
 
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
-			MenuItem traceItem = new MenuItem(Messages.getString("MainPanel"));
+			MenuItem traceItem = new MenuItem(Messages.getString("SettingsOld"));
 
 			defaultItem.addActionListener((ActionEvent e) -> PMS.quit());
 
@@ -182,7 +188,7 @@ public class PlatformUtils implements IPlatformUtils {
 				popup.add(webPlayerItem);
 			}
 
-			MenuItem webGuiItem = new MenuItem(Messages.getString("WebInterface"));
+			MenuItem webGuiItem = new MenuItem(Messages.getString("Settings"));
 			webGuiItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
 			popup.add(webGuiItem);
 			popup.add(traceItem);
@@ -192,8 +198,7 @@ public class PlatformUtils implements IPlatformUtils {
 
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addActionListener((ActionEvent e) -> {
-				frame.setVisible(true);
-				frame.setFocusable(true);
+				browseURI(PMS.get().getGuiServer().getUrl());
 			});
 			try {
 				tray.add(trayIcon);
@@ -287,6 +292,11 @@ public class PlatformUtils implements IPlatformUtils {
 		// xdg-user-dir PICTURES
 		// xdg-user-dir VIDEOS
 		return result;
+	}
+
+	@Override
+	public Version getFileVersionInfo(String filePath) {
+		return null;
 	}
 
 	@Override

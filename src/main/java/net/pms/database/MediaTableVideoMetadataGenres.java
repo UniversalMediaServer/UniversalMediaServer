@@ -17,13 +17,12 @@
 package net.pms.database;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Iterator;
+import net.pms.media.metadata.ApiStringArray;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,8 +130,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 				COL_TVSERIESID + "  INTEGER                         , " +
 				COL_FILEID + "      INTEGER                         , " +
 				COL_GENRE + "       VARCHAR(1024)       NOT NULL    , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE, " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + " ON DELETE CASCADE, " +
+				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE " +
 			")"
 		);
 	}
@@ -145,8 +144,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param genres
 	 * @param tvSeriesID
 	 */
-	public static void set(final Connection connection, final Long fileId, final JsonElement genres, final Long tvSeriesID) {
-		if (genres == null || !genres.isJsonArray() || genres.getAsJsonArray().isEmpty()) {
+	public static void set(final Connection connection, final Long fileId, final ApiStringArray genres, final Long tvSeriesID) {
+		if (genres == null || genres.isEmpty()) {
 			return;
 		}
 		final String sqlSelect;
@@ -165,10 +164,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		}
 
 		try {
-			Iterator<JsonElement> i = genres.getAsJsonArray().iterator();
-			while (i.hasNext()) {
-				String genre = i.next().getAsString();
-
+			for (String genre : genres) {
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 					ps.setInt(1, id);
 					ps.setString(2, StringUtils.left(genre, 1024));
@@ -198,6 +194,24 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		}
 	}
 
+	public static ApiStringArray getGenresForFile(final Connection connection, final Long fileId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_FILEID)) {
+				ps.setLong(1, fileId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
 	public static JsonArray getJsonArrayForFile(final Connection connection, final Long fileId) {
 		JsonArray result = new JsonArray();
 		try {
@@ -211,6 +225,24 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static ApiStringArray getGenresForTvSerie(final Connection connection, final Long tvSerieId) {
+		ApiStringArray result = new ApiStringArray();
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_TVSERIESID)) {
+				ps.setLong(1, tvSerieId);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						result.add(rs.getString(1));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for tv serie ID \"{}\": {}", tvSerieId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

@@ -51,6 +51,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * skeptical
 * taconaut
 * tcox
+* [threedguru][34]
 * tomeko
 
 ##### Thanks for documentation and contributions to the community:
@@ -112,3 +113,4 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [31]: https://github.com/js-kyle
   [32]: https://github.com/ik666
   [33]: https://github.com/SurfaceS
+  [34]: https://github.com/threedguru

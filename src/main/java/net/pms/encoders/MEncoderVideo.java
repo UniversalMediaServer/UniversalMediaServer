@@ -44,7 +44,6 @@ import net.pms.util.*;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
-import net.pms.util.ExternalProgramInfo;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
 import org.apache.commons.lang3.ArrayUtils;
@@ -85,6 +84,12 @@ public class MEncoderVideo extends Engine {
 	private boolean ovccopy;
 	private boolean ac3Remux;
 	private boolean isTranscodeToMPEGTS;
+
+	/**
+	 * Whether MEncoder will transcode to H.264.
+	 * Note: This will be true if the renderer has specified H.265
+	 * because MEncoder does not support encoding to H.265.
+	 */
 	private boolean isTranscodeToH264;
 	private boolean isTranscodeToAAC;
 	private boolean wmv;
@@ -116,6 +121,7 @@ public class MEncoderVideo extends Engine {
 
 	// Not to be instantiated by anything but PlayerFactory
 	MEncoderVideo() {
+		super(CONFIGURATION.getMEncoderPaths());
 	}
 
 	@Override
@@ -186,15 +192,16 @@ public class MEncoderVideo extends Engine {
 			defaultArgsList.add("format=mpegts");
 		}
 
-		defaultArgsList.add("-mpegopts");
-		defaultArgsList.add("format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64");
+		if (!isTranscodeToH264) {
+			defaultArgsList.add("-mpegopts");
+			defaultArgsList.add("format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64");
+		}
 
 		defaultArgsList.add("-ovc");
 		String ovc = "lavc";
 		if (ovccopy) {
 			ovc = "copy";
-		}
-		if (isTranscodeToH264) {
+		} else if (isTranscodeToH264) {
 			ovc = "x264";
 		}
 		defaultArgsList.add(ovc);
@@ -255,11 +262,6 @@ public class MEncoderVideo extends Engine {
 		}
 
 		return args;
-	}
-
-	@Override
-	protected ExternalProgramInfo programInfo() {
-		return configuration.getMEncoderPaths();
 	}
 
 	private static int[] getVideoBitrateConfig(String bitrate) {
@@ -396,7 +398,7 @@ public class MEncoderVideo extends Engine {
 				);
 			}
 
-			if (renderer.isTranscodeToH264()) {
+			if (isTranscodeToH264) {
 				encodeSettings += ":vbv_maxrate=" + defaultMaxBitrates[0] + ":vbv_bufsize=" + bufSize;
 			} else {
 				encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
@@ -989,7 +991,7 @@ public class MEncoderVideo extends Engine {
 				encodeSettings = "-lavcopts " + aspectRatioLavcopts + acodec + abitrate +
 					":threads=" + configuration.getMencoderMaxThreads();
 
-				encodeSettings += " -x264encopts crf=" + x264CRF + ":preset=ultrafast:level=31:threads=auto";
+				encodeSettings += " -x264encopts crf=" + x264CRF + ":preset=superfast:level=31:threads=auto";
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.getMediaRenderer(), audioType);
 			}
@@ -1888,7 +1890,7 @@ public class MEncoderVideo extends Engine {
 				pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-				File f = new File(configuration.getTempFolder(), "ums-tsmuxer.meta");
+				File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 				String[] cmd = new String[]{ts.getExecutable(), f.getAbsolutePath(), pipe.getInputPipe()};
 				pw = new ProcessWrapperImpl(cmd, params);
 

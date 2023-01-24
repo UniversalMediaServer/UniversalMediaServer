@@ -16,11 +16,6 @@
  */
 package net.pms.configuration;
 
-import ch.qos.logback.classic.Level;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.sun.jna.Platform;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -31,11 +26,33 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.sun.jna.Platform;
+import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -70,15 +87,6 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Container for all configurable UMS settings. Settings are typically defined by three things:
@@ -259,13 +267,23 @@ public class UmsConfiguration extends BaseConfiguration {
 	/* Start without external network (increase startup speed) */
 	private static final String KEY_EXTERNAL_NETWORK = "external_network";
 	private static final String KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS = "ffmpeg_available_gpu_acceleration_methods";
+	private static final String KEY_FFMPEG_AVISYNTH_2D_TO_3D = "ffmpeg_avisynth_2d_to_3d_conversion";
+	private static final String KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D = "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	private static final String KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D = "ffmpeg_avisynth_frame_stretch_factor_2d_to_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE = "ffmpeg_avisynth_horizontal_resize";
+	private static final String KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION = "ffmpeg_avisynth_horizontal_resize_resolution";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D = "ffmpeg_avisynth_light_offset_factor_2d_to_3d";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D = "ffmpeg_avisynth_output_format_index_3d";
+	private static final String KEY_FFMPEG_AVISYNTH_USE_FFMS2 = "ffmpeg_avisynth_use_ffms2";
 	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD = "ffmpeg_gpu_decoding_acceleration_method";
 	private static final String KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER = "ffmpeg_gpu_decoding_acceleration_thread_number";
+	private static final String KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD = "ffmpeg_gpu_encoding_H264_acceleration_method";
+	private static final String KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD = "ffmpeg_gpu_encoding_H265_acceleration_method";
 	private static final String KEY_FFMPEG_LOGGING_LEVEL = "ffmpeg_logging_level";
 	private static final String KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES = "ffmpeg_mencoder_problematic_subtitles";
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
@@ -1175,53 +1193,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for tsMuxeRNew.
-	 */
-	@Nullable
-	public ExternalProgramInfo getTsMuxeRNewPaths() {
-		return programPaths.getTsMuxeRNew();
-	}
-
-	/**
-	 * @return The configured path to the tsMuxeRNew executable. If none is
-	 *         configured, the default is used.
-	 */
-	@Nullable
-	public String getTsMuxeRNewPath() {
-		Path executable = null;
-		ExternalProgramInfo tsMuxeRNewPaths = getTsMuxeRNewPaths();
-		if (tsMuxeRNewPaths != null) {
-			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
-				ConfigurableProgramPaths.KEY_TSMUXER_NEW_EXECUTABLE_TYPE,
-				tsMuxeRNewPaths.getDefault()
-			);
-			if (executableType != null) {
-				executable = tsMuxeRNewPaths.getPath(executableType);
-			}
-
-			if (executable == null) {
-				executable = tsMuxeRNewPaths.getDefaultPath();
-			}
-		}
-		return executable == null ? null : executable.toString();
-	}
-
-	/**
-	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * "tsMuxeR new" both in {@link UmsConfiguration} and the
-	 * {@link ExternalProgramInfo}.
-	 *
-	 * @param customPath the new {@link Path} or {@code null} to clear it.
-	 */
-	public void setCustomTsMuxeRNewPath(@Nullable Path customPath) {
-		if (!isCustomProgramPathsSupported()) {
-			throw new IllegalStateException("The program paths aren't configurable");
-		}
-
-		((ConfigurableProgramPaths) programPaths).setCustomTsMuxeRNewPath(customPath);
-	}
-
-	/**
 	 * @return The {@link ExternalProgramInfo} for FLAC.
 	 */
 	@Nullable
@@ -1268,6 +1239,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth.
+	 */
+	@Nullable
+	public ExternalProgramInfo getAviSynthPaths() {
+		return programPaths.getAviSynth();
+	}
+
+	/**
+	 * @return The configured path to the AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getAviSynthPath() {
+		Path executable = null;
+		ExternalProgramInfo aviSynthPaths = getAviSynthPaths();
+		if (aviSynthPaths != null) {
+			executable = aviSynthPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * @return The {@link ExternalProgramInfo} for Interframe.
 	 */
 	@Nullable
@@ -1300,6 +1293,176 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth DirectShowSource library.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDirectShowSourcePaths() {
+		return programPaths.getDirectShowSource();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for AviSynth FFMS2 library.
+	 */
+	@Nullable
+	public ExternalProgramInfo getFFMS2Paths() {
+		return programPaths.getFFMS2();
+	}
+
+	/**
+	 * @return The configured path to the FFMS2 folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getFFMS2Path() {
+		Path executable = null;
+		ExternalProgramInfo ffms2Paths = getFFMS2Paths();
+		if (ffms2Paths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_FFMS2_EXECUTABLE_TYPE,
+				ffms2Paths.getDefault()
+			);
+			if (executableType != null) {
+				executable = ffms2Paths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = ffms2Paths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for mvtools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMvtools2Paths() {
+		return programPaths.getMvtools2();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Depan AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getDepanPaths() {
+		return programPaths.getDepan();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for masktools2 AviSynth plugin.
+	 */
+	@Nullable
+	public ExternalProgramInfo getMasktools2Paths() {
+		return programPaths.getMasktools2();
+	}
+
+	/**
+	 * @return The configured path to the mvtools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMvtools2Path() {
+		Path executable = null;
+		ExternalProgramInfo mvtools2Paths = getMvtools2Paths();
+		if (mvtools2Paths != null) {
+			executable = mvtools2Paths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The configured path to the Depan AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getDepanPath() {
+		Path executable = null;
+		ExternalProgramInfo depanPaths = getDepanPaths();
+		if (depanPaths != null) {
+			executable = depanPaths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The configured path to the masktools2 AviSynth folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getMasktools2Path() {
+		Path executable = null;
+		ExternalProgramInfo masktools2Paths = getMasktools2Paths();
+		if (masktools2Paths != null) {
+			executable = masktools2Paths.getDefaultPath();
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for Convert2dTo3d.
+	 */
+	@Nullable
+	public ExternalProgramInfo getConvert2dTo3dPaths() {
+		return programPaths.getConvert2dTo3d();
+	}
+
+	/**
+	 * @return The configured path to the Convert2dTo3d folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getConvert2dTo3dPath() {
+		Path executable = null;
+		ExternalProgramInfo convert2dTo3dPaths = getConvert2dTo3dPaths();
+		if (convert2dTo3dPaths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_2DTO3D_EXECUTABLE_TYPE,
+				convert2dTo3dPaths.getDefault()
+			);
+			if (executableType != null) {
+				executable = convert2dTo3dPaths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = convert2dTo3dPaths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
+	 * @return The {@link ExternalProgramInfo} for CropResize.
+	 */
+	@Nullable
+	public ExternalProgramInfo getCropResizePaths() {
+		return programPaths.getCropResize();
+	}
+
+	/**
+	 * @return The configured path to the CropResize folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getCropResizePath() {
+		Path executable = null;
+		ExternalProgramInfo cropResizePaths = getCropResizePaths();
+		if (cropResizePaths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_CROP_RESIZE_EXECUTABLE_TYPE,
+				cropResizePaths.getDefault()
+			);
+			if (executableType != null) {
+				executable = cropResizePaths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = cropResizePaths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
 	 * Interframe both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
@@ -1312,6 +1475,51 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 
 		((ConfigurableProgramPaths) programPaths).setCustomInterFramePath(customPath);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * FFMS2 both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFFMS2Path(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomFFMS2Path(customPath);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Convert2dTo3d both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomConvert2dTo3dPath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomConvert2dTo3dPath(customPath);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * CropResize both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomCropResizePath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomCropResizePath(customPath);
 	}
 
 	/**
@@ -2344,12 +2552,16 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The number of CPU cores.
 	 */
 	public int getNumberOfCpuCores() {
-		int nbcores = Runtime.getRuntime().availableProcessors();
-		if (nbcores < 1) {
-			nbcores = 1;
-		}
+		return getInt(KEY_NUMBER_OF_CPU_CORES, getNumberOfSystemCpuCores());
+	}
 
-		return getInt(KEY_NUMBER_OF_CPU_CORES, nbcores);
+	/**
+	 * Returns the number of CPU cores on the system.
+	 *
+	 * @return The number of CPU cores.
+	 */
+	public static int getNumberOfSystemCpuCores() {
+		return Math.max(1, Runtime.getRuntime().availableProcessors());
 	}
 
 	/**
@@ -2711,12 +2923,19 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isFfmpegMultithreading() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
+		return getBoolean(KEY_FFMPEG_MULTITHREADING, getNumberOfCpuCores() > 1);
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
+	}
+
+	public String getFFmpegGPUH264EncodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, "libx264");
+	}
+
+	public String getFFmpegGPUH265EncodingAccelerationMethod() {
+		return getString(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, "libx265");
 	}
 
 	public void setFFmpegGPUDecodingAccelerationMethod(String value) {
@@ -2727,12 +2946,28 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, "1");
 	}
 
+	public void setFFmpegGPUH264EncodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, value);
+	}
+
+	public void setFFmpegGPUH265EncodingAccelerationMethod(String value) {
+		configuration.setProperty(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, value);
+	}
+
 	public void setFFmpegGPUDecodingAccelerationThreadNumber(String value) {
 		configuration.setProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, value);
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
 		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
+	}
+
+	public static String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
+		return new String[] {"libx264", "h264_nvenc", "h264_amf", "h264_qsv", "h264_mf", "libx264rgb"};
+	}
+
+	public  static  String[] getFFmpegAvailableGPUH265EncodingAccelerationMethods() {
+		return new String[] {"libx265", "hevc_nvenc", "hevc_amf", "hevc_qsv", "hevc_mf"};
 	}
 
 	public void setFFmpegAvailableGPUDecodingAccelerationMethods(List<String> methods) {
@@ -2744,8 +2979,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isFfmpegAviSynthMultithreading() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
+		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfCpuCores() > 1);
 	}
 
 	/**
@@ -2754,7 +2988,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @param value True if we should pass the flag.
 	 */
 	public void setFfmpegAvisynthConvertFps(boolean value) {
-		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, value);
 	}
 
 	/**
@@ -2780,6 +3014,151 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean getFfmpegAvisynthInterFrameGPU() {
 		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
+	}
+
+	/**
+	 * Whether we should use FFMS2 instead of DirectShowSource in AviSynth.
+	 *
+	 * @param value True if we should use FFMS2 instead of DirectShowSource
+	 *              in AviSynth.
+	 */
+	public void setFfmpegAvisynthUseFFMS2(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, value);
+	}
+
+	/**
+	 * Returns true if we should use FFMS2 instead of DirectShowSource in
+	 * AviSynth.
+	 *
+	 * @return True if we should use FFMS2 instead of DirectShowSource in
+	 *         AviSynth.
+	 */
+	public boolean getFfmpegAvisynthUseFFMS2() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
+	}
+
+	/**
+	 * Whether we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @param value True if we should pass the flag.
+	 */
+	public void setFfmpegAvisynth2Dto3D(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns true if we should convert 2D video to 3D in AviSynth.
+	 *
+	 * @return True if we should convert 2D video to 3D in AviSynth.
+	 */
+	public boolean isFfmpegAvisynth2Dto3D() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+	}
+
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the format.
+	 */
+	public int getFfmpegAvisynthOutputFormat3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, 4);
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the format.
+	 */
+	public void setFfmpegAvisynthOutputFormat3D(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, value);
+	}
+
+	/**
+	 * Returns the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The index of the algorithm.
+	 */
+	public int getFfmpegAvisynthConversionAlgorithm2Dto3D() {
+		return getInt(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, 1);
+	}
+
+	/**
+	 * Sets the index of the 2D to 3D conversion algorithm that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthConversionAlgorithm2Dto3D(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns the frame stretch factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The frame stretch factor.
+	 */
+	public int getFfmpegAvisynthFrameStretchFactor() {
+		return getInt(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 8);
+	}
+
+	/**
+	 * Sets the frame stretch factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthFrameStretchFactor(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, value);
+	}
+
+	/**
+	 * Returns the light offset factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @return The light offset factor.
+	 */
+	public int getFfmpegAvisynthLightOffsetFactor() {
+		return getInt(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, 3);
+	}
+
+	/**
+	 * Sets the light offset factor that AviSynth should use for
+	 * 2D to 3D conversion.
+	 *
+	 * @param value The index of the algorithm.
+	 */
+	public void setFfmpegAvisynthLightOffsetFactor(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, value);
+	}
+
+	/**
+	 * Whether we should resize the input 2D video for 3D conversion in AviSynth.
+	 *
+	 * @param value True if we should resize.
+	 */
+	public void setFfmpegAvisynthHorizontalResize(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, value);
+	}
+
+	/**
+	 * Returns true if we should resize the input 2D video for 3D conversion in AviSynth.
+	 *
+	 * @return True if we should resize.
+	 */
+	public boolean isFfmpegAvisynthHorizontalResize() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
+	}
+
+	public int getFfmpegAvisynthHorizontalResizeResolution() {
+		return getInt(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, 1920);
+	}
+
+	public void setFfmpegAvisynthHorizontalResizeResolution(int value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, value);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
@@ -3488,8 +3867,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public boolean getMencoderMT() {
-		boolean isMultiCore = getNumberOfCpuCores() > 1;
-		return getBoolean(KEY_MENCODER_MT, isMultiCore);
+		return getBoolean(KEY_MENCODER_MT, getNumberOfCpuCores() > 1);
 	}
 
 	public void setAudioRemuxAC3(boolean value) {
@@ -5163,6 +5541,18 @@ public class UmsConfiguration extends BaseConfiguration {
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
+	public static synchronized JsonArray getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray() {
+		String[] values = getFFmpegAvailableGPUH264EncodingAccelerationMethods();
+		String[] labels = getFFmpegAvailableGPUH264EncodingAccelerationMethods();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public static synchronized JsonArray getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray() {
+		String[] values = getFFmpegAvailableGPUH265EncodingAccelerationMethods();
+		String[] labels = getFFmpegAvailableGPUH265EncodingAccelerationMethods();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
 	public static JsonObject getWebSettingsWithDefaults() {
 		// populate WEB_SETTINGS_WITH_DEFAULTS with all defaults
 		JsonObject jObj = new JsonObject();
@@ -5199,11 +5589,25 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_FONTCONFIG, false);
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 		jObj.addProperty(KEY_FFMPEG_GPU_DECODING_ACCELERATION_THREAD_NUMBER, 1);
+		jObj.addProperty(KEY_FFMPEG_GPU_ENCODING_H264_ACCELERATION_METHOD, "libx264");
+		jObj.addProperty(KEY_FFMPEG_GPU_ENCODING_H265_ACCELERATION_METHOD, "libx265");
 		jObj.addProperty(KEY_FFMPEG_LOGGING_LEVEL, "fatal");
 		jObj.addProperty(KEY_FFMPEG_MENCODER_PROBLEMATIC_SUBTITLES, true);
-		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, "");
+		jObj.addProperty(KEY_FFMPEG_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, false);
 		jObj.addProperty(KEY_FFMPEG_SOX, true);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, true);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 8);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, 3);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION, "1920");
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_USE_FFMS2, false);
 		jObj.addProperty(KEY_FORCE_EXTERNAL_SUBTITLES, true);
 		jObj.addProperty(KEY_FORCED_SUBTITLE_LANGUAGE, "");
 		jObj.addProperty(KEY_FORCED_SUBTITLE_TAGS, "forced");
@@ -5223,7 +5627,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_MENCODER_FONT_CONFIG, true);
 		jObj.addProperty(KEY_MENCODER_FORCE_FPS, false);
 		jObj.addProperty(KEY_MENCODER_INTELLIGENT_SYNC, true);
-		jObj.addProperty(KEY_MENCODER_MT, "");
+		jObj.addProperty(KEY_MENCODER_MT, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_MENCODER_MUX_COMPATIBLE, false);
 		jObj.addProperty(KEY_MENCODER_NOASS_OUTLINE, 1);
 		jObj.addProperty(KEY_MENCODER_NO_OUT_OF_SYNC, false);

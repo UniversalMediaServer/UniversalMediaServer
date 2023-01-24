@@ -65,7 +65,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 			try {
 				server = httpsServer(address);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start web player server on HTTPS: {}", e.getMessage());
+				LOGGER.error("Failed to start web player server ({}) on HTTPS: {}", address, e.getMessage());
 				LOGGER.trace("", e);
 				if (e.getMessage().contains("UMS.jks")) {
 					LOGGER.info(
@@ -75,14 +75,14 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 					);
 				}
 			} catch (GeneralSecurityException e) {
-				LOGGER.error("Failed to start web player server on HTTPS due to a security error: {}", e.getMessage());
+				LOGGER.error("Failed to start web player server ({}) on HTTPS due to a security error: {}", address, e.getMessage());
 				LOGGER.trace("", e);
 			}
 		} else {
 			try {
 				server = HttpServer.create(address, 0);
 			} catch (IOException e) {
-				LOGGER.error("Failed to start web player server : {}", e.getMessage());
+				LOGGER.error("Failed to start web player server ({}) : {}", address, e.getMessage());
 			}
 		}
 
@@ -111,12 +111,18 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 
 	@Override
 	public int getPort() {
-		return server.getAddress().getPort();
+		if (server != null) {
+			return server.getAddress().getPort();
+		}
+		return 0;
 	}
 
 	@Override
 	public String getAddress() {
-		return MediaServer.getHost() + ":" + getPort();
+		if (server != null) {
+			return MediaServer.getHost() + ":" + getPort();
+		}
+		return null;
 	}
 
 	@Override
