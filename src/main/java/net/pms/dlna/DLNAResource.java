@@ -750,7 +750,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Use device-specific conf, if any
 		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
-		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
+		boolean parserV2 = media != null && renderer.isUseMediaInfo();
 		Engine resolvedEngine;
 
 		if (media == null) {
@@ -779,8 +779,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		String rendererForceExtensions = renderer == null ? null : renderer.getTranscodedExtensions();
-		String rendererSkipExtensions = renderer == null ? null : renderer.getStreamedExtensions();
+		String rendererForceExtensions = renderer.getTranscodedExtensions();
+		String rendererSkipExtensions = renderer.getStreamedExtensions();
 		String configurationForceExtensions = configurationSpecificToRenderer.getForceTranscodeForExtensions();
 		String configurationSkipExtensions = configurationSpecificToRenderer.getDisableTranscodeForExtensions();
 
@@ -813,12 +813,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.debug(prependTranscodingReason + "streaming of DVD video tracks isn't supported", getName());
 			} else if (!format.isCompatible(this, renderer)) {
 				isIncompatible = true;
-				if (renderer == null) {
-					LOGGER.debug(prependTranscodingReason + "the renderer is not recognised", getName());
-				} else {
-					LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
-						renderer.getRendererName());
-				}
+				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
+					renderer.getRendererName());
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
 				if (getMediaAudio() != null && (FormatConfiguration.AC3.equals(getMediaAudio().getAudioCodec()) ||
 					FormatConfiguration.DTS.equals(getMediaAudio().getAudioCodec()))) {
@@ -836,7 +832,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && renderer != null) {
+			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
 				if (renderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
@@ -885,7 +881,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\" with mime type \"{}\"", getName(),
-						resolvedEngine.toString(), renderer != null ? renderer.getMimeType(this) : media.getMimeType());
+						resolvedEngine.toString(), renderer.getMimeType(this));
 				} else {
 					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\"", getName(), resolvedEngine.toString());
 				}
