@@ -13,7 +13,7 @@
     "@mantine/notifications": "5.10.2",
     "@mantine/prism": "5.10.2",
     "@microsoft/fetch-event-source": "2.0.1",
-    "axios": "1.2.4",
+    "axios": "1.2.5",
     "hls.js": "1.2.9",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",

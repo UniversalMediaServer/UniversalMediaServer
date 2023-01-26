@@ -4458,14 +4458,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.2.4":
-  version: 1.2.4
-  resolution: "axios@npm:1.2.4"
+"axios@npm:1.2.5":
+  version: 1.2.5
+  resolution: "axios@npm:1.2.5"
   dependencies:
     follow-redirects: ^1.15.0
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
-  checksum: 3454248d72028d69e90e348542140136c1226b448529e78beae5b88e65d6c67f85a3d0eb49f089b338cb54f173671b585c95ef3339f3cb28286eb2878fe47880
+  checksum: 3d7a3b029b9f46fb296bcecf84fbe4be32b09511aba2256d44fc5c1a75824f364d2ce22fd0ea61adfd564e1c353c6d2000b4cc340c65b27102528101557dd9db
   languageName: node
   linkType: hard
 
@@ -13512,7 +13512,7 @@ __metadata:
     "@types/videojs-hls-quality-selector": 1.1.0
     "@typescript-eslint/eslint-plugin": 5.49.0
     "@typescript-eslint/parser": 5.49.0
-    axios: 1.2.4
+    axios: 1.2.5
     eslint: 8.32.0
     eslint-plugin-react: 7.31.11
     hls.js: 1.2.9
