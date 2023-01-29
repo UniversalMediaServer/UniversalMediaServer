@@ -75,6 +75,12 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom 2DTO3D path. */
 	public static final String KEY_2DTO3D_PATH  = "2dTo3d_path";
 
+	/** The {@link Configuration} key for the CropResize executable type. */
+	public static final String KEY_CROP_RESIZE_EXECUTABLE_TYPE = "cropResize_executable_type";
+
+	/** The {@link Configuration} key for the custom CropResize path. */
+	public static final String KEY_CROP_RESIZE_PATH  = "cropResize_path";
+
 	/** The {@link Configuration} key for the custom youtube-dl path. */
 	public static final String KEY_YOUTUBEDL_PATH  = "youtubedl_path";
 
@@ -173,6 +179,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
+	public final ExternalProgramInfo getCropResize() {
+		return platformPaths.getCropResize();
+	}
+
+	@Override
 	public final ExternalProgramInfo getYoutubeDl() {
 		return platformPaths.getYoutubeDl();
 	}
@@ -228,6 +239,17 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	public void setCustomConvert2dTo3dPath(@Nullable Path path) {
 		setCustomProgramPath(path, platformPaths.getConvert2dTo3d(), KEY_2DTO3D_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * CropResize both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomCropResizePath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getCropResize(), KEY_CROP_RESIZE_PATH, true);
 	}
 
 	/**

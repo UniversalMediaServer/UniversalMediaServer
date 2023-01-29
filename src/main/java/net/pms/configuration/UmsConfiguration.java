@@ -1431,6 +1431,38 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return The {@link ExternalProgramInfo} for CropResize.
+	 */
+	@Nullable
+	public ExternalProgramInfo getCropResizePaths() {
+		return programPaths.getCropResize();
+	}
+
+	/**
+	 * @return The configured path to the CropResize folder. If none is
+	 *         configured, the default is used.
+	 */
+	@Nullable
+	public String getCropResizePath() {
+		Path executable = null;
+		ExternalProgramInfo cropResizePaths = getCropResizePaths();
+		if (cropResizePaths != null) {
+			ProgramExecutableType executableType = ProgramExecutableType.toProgramExecutableType(
+				ConfigurableProgramPaths.KEY_CROP_RESIZE_EXECUTABLE_TYPE,
+				cropResizePaths.getDefault()
+			);
+			if (executableType != null) {
+				executable = cropResizePaths.getPath(executableType);
+			}
+
+			if (executable == null) {
+				executable = cropResizePaths.getDefaultPath();
+			}
+		}
+		return executable == null ? null : executable.toString();
+	}
+
+	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
 	 * Interframe both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
@@ -1473,6 +1505,21 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 
 		((ConfigurableProgramPaths) programPaths).setCustomConvert2dTo3dPath(customPath);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * CropResize both in {@link PmsConfiguration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param customPath the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomCropResizePath(@Nullable Path customPath) {
+		if (!isCustomProgramPathsSupported()) {
+			throw new IllegalStateException("The program paths aren't configurable");
+		}
+
+		((ConfigurableProgramPaths) programPaths).setCustomCropResizePath(customPath);
 	}
 
 	/**
@@ -5555,7 +5602,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, getNumberOfSystemCpuCores() > 1);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_2D_TO_3D, false);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D, "1");
-		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 5);
+		jObj.addProperty(KEY_FFMPEG_AVISYNTH_FRAME_STRETCH_FACTOR_2D_TO_3D, 8);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_LIGHT_OFFSET_FACTOR_2D_TO_3D, 3);
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D, "4");
 		jObj.addProperty(KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE, true);

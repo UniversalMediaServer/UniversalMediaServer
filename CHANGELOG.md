@@ -1,29 +1,39 @@
 # Changelog
 
-## Unreleased
+## [13.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.1.0...13.2.0) (2023-01-15)
 
 ### General:
-- Improved motion compensation with 2D to 3D conversion, for full details see https://iwantaholodeck.com/algorithmic-tuning-motion-and-alignment/
-- Fixed login screen being shown more than once in web settings (#3751)
-- Fixed broken database upgrade (#3756)
-- Fixed sharing of network drives (#3750) (thanks for reporting, Richardk2n and BitEater21!)
+- Improved motion compensation with 2D to 3D conversion, for full details see https://iwantaholodeck.com/algorithmic-tuning-motion-and-alignment/ (thanks, threedguru!)
+- Added support for KeepAspectRatio settings in 2D-to-3D converted videos (thanks, threedguru!)
+- Database scanning and cleanups are triggered from shared content updates
+- Fixed login screen being shown more than once in web settings (#3751) (thanks for reporting, BitEater21 and Richardk2n!)
+- Fixed broken database upgrade (#3756) (thanks for reporting, mykeehu!)
+- Fixed sharing of network drives (#3750) (thanks for reporting, BitEater21 and OldMan100!)
 - Fixed moving and marking as fully played setting in UK English
 - Fixed error causing failed startup
-- Fixed broken thumbnails in Docker (#3762)
+- Fixed unshared content not being cleaned up after scan
 
 ### Translation updates via Crowdin
 - English (United Kingdom) (15%)
+- Japanese (83%) (thanks, Kazunori Hamada!)
 - Russian (100%) (thanks, Олег Лойко!)
 - Slovak (83%) (thanks, Dušan!)
 - Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies:
 - Updated all subdependencies
+- Update dependency com.auth0:java-jwt to v4.2.2
 - Update dependency com.google.code.gson:gson to v2.10.1
+- Update dependency eslint to v8.32.0
+- Update dependency org.apache.maven.plugins:maven-checkstyle-plugin to v3.2.1
+- Update dependency org.apache.maven.plugins:maven-pmd-plugin to v3.20.0
+- Update dependency org.apache.maven.plugins:maven-project-info-reports-plugin to v3.4.2
 - Update dependency react-router-dom to v6.6.2
 - Update dependency web-vitals to v3.1.1
+- Update jna-version to v5.13.0
 - Update junit5 monorepo to v5.9.2
 - Update Mantine monorepo packages to v5.10.0
+- Update surefire-version to v3.0.0-M8
 - Update typescript-eslint monorepo to v5.48.1
 
 ## [13.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.0.1...13.1.0) (2023-01-01)

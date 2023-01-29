@@ -31,6 +31,7 @@ import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -53,6 +54,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
+	private static final String WIDESCREEN_STANDARD_ASPECT_RATO = "16:9";
 
 	/** The final AviSynth {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull
@@ -63,6 +65,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private final ExternalProgramInfo depanInfo;
 	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo convert2dTo3dInfo;
+	private final ExternalProgramInfo cropResizeInfo;
 	private boolean isAviSynthPlus = false;
 	private Path ffms2Path;
 	private Path directShowSourcePath;
@@ -70,6 +73,34 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private Path depanPath;
 	private Path masktools2Path;
 	private Path convert2dTo3dPath;
+	private Path cropResizePath;
+
+	public class AviSynthScriptGenerationResult {
+		private File avsFile = null;
+		private boolean convertedTo3d = false;
+
+		public AviSynthScriptGenerationResult(File avsFile, boolean convertedTo3d) {
+			super();
+			this.avsFile = avsFile;
+			this.convertedTo3d = convertedTo3d;
+		}
+
+		public File getAvsFile() {
+			return avsFile;
+		}
+
+		public void setAvsFile(File avsFile) {
+			this.avsFile = avsFile;
+		}
+
+		public boolean isConvertedTo3d() {
+			return convertedTo3d;
+		}
+
+		public void setConvertedTo3d(boolean convertedTo3d) {
+			this.convertedTo3d = convertedTo3d;
+		}
+	}
 
 	// Not to be instantiated by anything but PlayerFactory
 	AviSynthFFmpeg() {
@@ -80,6 +111,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		depanInfo = CONFIGURATION.getDepanPaths();
 		masktools2Info = CONFIGURATION.getMasktools2Paths();
 		convert2dTo3dInfo = CONFIGURATION.getConvert2dTo3dPaths();
+		cropResizeInfo = CONFIGURATION.getCropResizePaths();
 		if (aviSynthInfo == null) {
 			throw new IllegalStateException(
 				"Can't instantiate " + this.getClass().getSimpleName() + "because executables() returns null"
@@ -265,6 +297,16 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 			}
 		}
+		if (cropResizeInfo != null) {
+			for (ProgramExecutableType executableType : cropResizeInfo.getExecutableTypes()) {
+				Path cropResizeTestPath = cropResizeInfo.getPath(executableType);
+				if (Files.exists(cropResizeTestPath)) {
+					cropResizePath = cropResizeTestPath;
+					LOGGER.info("Found AviSynth CropResize script");
+					break;
+				}
+			}
+		}
 		if (convert2dTo3dInfo != null) {
 			for (ProgramExecutableType executableType : convert2dTo3dInfo.getExecutableTypes()) {
 				Path convert2dTo3dTestPath = convert2dTo3dInfo.getPath(executableType);
@@ -282,12 +324,13 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public File getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber) throws IOException {
+	public AviSynthScriptGenerationResult getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber, DLNAMediaInfo media) throws IOException {
 		Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration customConfiguration = renderer.getUmsConfiguration();
 		double timeSeek = params.getTimeSeek();
 		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(CONFIGURATION.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
+		AviSynthScriptGenerationResult aviSynthScriptGenerationResult = new AviSynthScriptGenerationResult(file, false);
 
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
@@ -449,9 +492,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				}
 				lines.add(line);
 			}
-			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && depanPath != null && masktools2Path != null && convert2dTo3dPath != null) {
 
-				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + " seconds");
+			if (customConfiguration.isFfmpegAvisynth2Dto3D() && renderer.getAviSynth2Dto3D() && mvtools2Path != null && depanPath != null && masktools2Path != null && convert2dTo3dPath != null && cropResizePath != null) {
+
+				LOGGER.debug("AviSynth will seek to time index: " + timeSeek + ", before 2D to 3D conversion");
 
 				lines.add("video2d=Last");
 				lines.add("seekFrame=int(video2d.FrameRate*" + timeSeek + "+0.5)");
@@ -461,12 +505,34 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				"LoadPlugin(\"" + mvtools2Path + "\")\n" +
 				"LoadPlugin(\"" + depanPath + "\")\n" +
 				"LoadPlugin(\"" + masktools2Path + "\")\n" +
+				"Import(\"" + cropResizePath + "\")\n" +
 				"Import(\"" + convert2dTo3dPath + "\")\n\n");
 
 				int frameStretchFactor = customConfiguration.getFfmpegAvisynthFrameStretchFactor();
 				int lightOffsetFactor = customConfiguration.getFfmpegAvisynthLightOffsetFactor();
 
-				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + customConfiguration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + customConfiguration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + customConfiguration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + customConfiguration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ")");
+				// Convert aspect ratio to standard (16/9), if the renderer needs it, during AviSynth transform
+				boolean forceStandardAspectRatio = false;
+				boolean rendererRequestsToKeepStandardAspectRatio = renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding();
+
+				if (rendererRequestsToKeepStandardAspectRatio) {
+					LOGGER.debug("AviSynth, renderer requests keeping standard aspect ratio");
+					boolean mediaMeetsStandardAspectRatioRequirement = WIDESCREEN_STANDARD_ASPECT_RATO.equals(media.getAspectRatioContainer());
+
+					if (mediaMeetsStandardAspectRatioRequirement) {
+						LOGGER.debug("AviSynth, media already meets standard aspect ratio requirement so no transformation required");
+					}
+
+					forceStandardAspectRatio = !mediaMeetsStandardAspectRatioRequirement;
+
+					if (forceStandardAspectRatio) {
+						LOGGER.debug("AviSynth, forcing standard aspect ratio transform as media has a different aspect ratio");
+					}
+				}
+
+				lines.add("convert2dTo3d(video2dFromSeekPoint, algorithm=" + customConfiguration.getFfmpegAvisynthConversionAlgorithm2Dto3D() + ", outputFormat=" + customConfiguration.getFfmpegAvisynthOutputFormat3D() + ", resize=" + customConfiguration.isFfmpegAvisynthHorizontalResize() + ", hzTargetSize=" + customConfiguration.getFfmpegAvisynthHorizontalResizeResolution() + ", frameStretchFactor=" + frameStretchFactor + ", lightOffsetFactor=" + lightOffsetFactor + ", forceTargetDAR=" + forceStandardAspectRatio + ")");
+
+				aviSynthScriptGenerationResult.setConvertedTo3d(true);
 			}
 
 			if (customConfiguration.getFfmpegAvisynthInterFrame() && interframePath != null) {
@@ -498,7 +564,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 		}
 		file.deleteOnExit();
-		return file;
+		return aviSynthScriptGenerationResult;
 	}
 
 }
