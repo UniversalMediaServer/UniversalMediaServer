@@ -5563,6 +5563,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_AUDIO_CHANNEL_COUNT, "6");
 		jObj.addProperty(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
 		jObj.addProperty(KEY_AUDIO_BITRATE, "448");
+		jObj.addProperty(KEY_AUDIO_LANGUAGES, Messages.getString("AudioLanguages"));
 		jObj.addProperty(KEY_AUDIO_REMUX_AC3, true);
 		jObj.addProperty(KEY_AUDIO_RESAMPLE, true);
 		jObj.addProperty(KEY_AUDIO_SUB_LANGS, "");
@@ -5662,6 +5663,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
 		jObj.addProperty(KEY_SERVER_ENGINE, "0");
 		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
+		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
@@ -5670,6 +5672,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SORT_METHOD, "4");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");
+		jObj.addProperty(KEY_SUBTITLES_LANGUAGES, Messages.getString("SubtitlesLanguages"));
 		jObj.addProperty(KEY_SUBS_COLOR, "0xFFFFFFFF");
 		jObj.addProperty(KEY_SUBS_FONT, "");
 		jObj.addProperty(KEY_ASS_MARGIN, 10);
