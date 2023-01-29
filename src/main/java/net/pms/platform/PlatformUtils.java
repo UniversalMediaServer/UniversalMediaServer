@@ -65,8 +65,10 @@ public class PlatformUtils implements IPlatformUtils {
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
 	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
-	protected static final Semver OS_VERSION = createOsVersion();
 	protected static Boolean isAdmin = null;
+
+	// the OS version for macOS and Windows
+	protected static final Semver OS_VERSION = createOSVersion();
 
 	protected Path vlcPath;
 	protected Version vlcVersion;
@@ -355,17 +357,22 @@ public class PlatformUtils implements IPlatformUtils {
 		return new PlatformUtils();
 	}
 
-	private static Semver createOsVersion() {
-		int dotCount = 0;
-		String ver = System.getProperty("os.version");
-		for (int i = 0; i < ver.length(); i++) {
-			if (ver.charAt(i) == '.') {
-				dotCount++;
-			}
+	/**
+	 * Returns the operating system version on macOS and Windows.
+	 * Not implemented for other operating systems because of
+	 * unpredictable versioning and lack of need.
+	 */
+	private static Semver createOSVersion() {
+		if (!Platform.isMac() && !Platform.isWindows()) {
+			return null;
 		}
+
+		String ver = System.getProperty("os.version");
+		int dotCount = StringUtils.countMatches(ver, ".");
 		if (dotCount == 1) {
 			ver += ".0";
 		}
+
 		return new Semver(ver);
 	}
 
@@ -378,9 +385,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	/**
-	 * Get the operating system version.
-	 *
-	 * @return The operating system version.
+	 * @return the operating system version, for Windows and macOS
 	 */
 	public static Semver getOSVersion() {
 		return OS_VERSION;

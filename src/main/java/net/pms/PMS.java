@@ -956,7 +956,7 @@ public class PMS {
 			assert umsConfiguration != null;
 
 			// Log whether the service is installed as it may help with debugging and support
-			if (PlatformUtils.isWindows()) {
+			if (Platform.isWindows()) {
 				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
 					LOGGER.info("The Windows service is installed.");
