@@ -43,10 +43,12 @@ public class LibraryScanner {
 		} else {
 			Runnable scan = () -> {
 				try {
-					long start = System.currentTimeMillis();
-					PMS.get().getRootFolder(null).startScan();
-					LOGGER.info("Library scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
-					analyzeDb();
+					if (PMS.get().getRootFolder(null) != null) {
+						long start = System.currentTimeMillis();
+						PMS.get().getRootFolder(null).startScan();
+						LOGGER.info("Library scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
+						analyzeDb();
+					}
 				} catch (Exception e) {
 					LOGGER.error("Unhandled exception during library scan: {}", e.getMessage());
 					LOGGER.trace("", e);
