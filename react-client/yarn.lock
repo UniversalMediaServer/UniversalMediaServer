@@ -13510,9 +13510,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ums gui@workspace:.":
+"ums-gui@workspace:.":
   version: 0.0.0-use.local
-  resolution: "ums gui@workspace:."
+  resolution: "ums-gui@workspace:."
   dependencies:
     "@emotion/react": 11.10.5
     "@mantine/core": 5.10.2
