@@ -897,7 +897,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1277,7 +1277,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1424,7 +1424,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1571,7 +1571,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1718,7 +1718,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1873,7 +1873,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2028,7 +2028,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2270,7 +2270,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2514,7 +2514,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2947,7 +2947,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3093,7 +3093,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3239,7 +3239,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3508,7 +3508,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
