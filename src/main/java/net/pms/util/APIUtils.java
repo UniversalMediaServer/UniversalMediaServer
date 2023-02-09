@@ -163,7 +163,7 @@ public class APIUtils {
 
 				try {
 					JsonElement element = GSON.fromJson(apiResult, JsonElement.class);
-					if (element.isJsonObject()) {
+					if (element != null && element.isJsonObject()) {
 						jsonData = element.getAsJsonObject();
 					}
 				} catch (JsonSyntaxException e) {
