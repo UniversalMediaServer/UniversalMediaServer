@@ -701,7 +701,7 @@ export default function TranscodingSettings(
 						disabled={!canModify}
 						size="xs"
 						label={i18n.get['RemuxVideosTsmuxer']}
-						{...form.getInputProps('mencoder_mux_compatible ', { type: 'checkbox' })}
+						{...form.getInputProps('mencoder_mux_compatible', { type: 'checkbox' })}
 					/>
 					<TextInput
 						disabled={!canModify}

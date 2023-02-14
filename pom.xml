@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>13.2.0-SNAPSHOT</version>
+	<version>13.2.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>13.2.0</project.version.short>
+		<project.version.short>13.2.1</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -69,14 +69,14 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>163</binary-revision>
+		<binary-revision>165</binary-revision>
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<maven-javadoc-plugin-version>3.4.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.4.2</maven-assembly-plugin-version>
-		<maven-enforcer-plugin-version>3.1.0</maven-enforcer-plugin-version>
+		<maven-enforcer-plugin-version>3.2.1</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -105,7 +105,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.14.1</jackson.version>
+		<jackson.version>2.14.2</jackson.version>
 
 		<surefire-version>3.0.0-M8</surefire-version>
 
@@ -149,7 +149,7 @@
 		<dependency>
 		    <groupId>com.auth0</groupId>
 		    <artifactId>java-jwt</artifactId>
-		    <version>4.2.2</version>
+		    <version>4.3.0</version>
 		    <exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -665,7 +665,7 @@
 		<dependency>
 			<groupId>at.favre.lib</groupId>
 			<artifactId>bcrypt</artifactId>
-			<version>0.9.0</version>
+			<version>0.10.2</version>
 		</dependency>
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
@@ -897,7 +897,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1277,7 +1277,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1424,7 +1424,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1571,7 +1571,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1718,7 +1718,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -1873,7 +1873,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2028,7 +2028,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2270,7 +2270,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2514,7 +2514,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -2947,7 +2947,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3093,7 +3093,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3239,7 +3239,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3508,7 +3508,7 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.12.1</nodeVersion>
+									<nodeVersion>v18.14.0</nodeVersion>
 									<yarnVersion>v1.22.19</yarnVersion>
 								</configuration>
 							</execution>
@@ -3572,7 +3572,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.6.0</version>
+								<version>10.7.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

@@ -495,7 +495,7 @@ const Accounts = () => {
   return (
       <Box sx={{ maxWidth: 1024 }} mx="auto">
           {canManageGroups ? (
-            <Tabs defaultValue='users'>
+            <Tabs defaultValue={accounts.enabled ? 'users' : 'settings'}>
               <Tabs.List>
               {session.authenticate && (
                 <Tabs.Tab value='users'>

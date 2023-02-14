@@ -1,5 +1,49 @@
 # Changelog
 
+## [13.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.2.0...13.2.1) (2023-02-06)
+
+### General:
+- Fixed the Show the Media Library Folder, Audio Priority, Subtitles Priority, and Show the Live Subtitles Folder settings
+- Fixed web player download permissions
+- Fixed unnecessary transcoding
+- Fixed MEncoder defer to tsMuxeR setting
+- Fixed startup error on non-semver operating systems
+- Fixed the appearance of broken settings in unauthenticated mode
+- Allow directories to be unselected/cleared
+- Fixed broken thumbnails in Docker
+- Fixed exception when folders are populated on startup
+- Fixed invalid GUI package name
+- Removed unused plugins for faster first build time
+- Improved documentation about developer workflow
+
+### Translation updates via Crowdin
+- English (United Kingdom) (65%) (thanks, Pete Russell!)
+- German (100%) (thanks, pipin!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Ukrainian (27%) (thanks, Roman Malkov!)
+
+### Dependencies:
+- Bump all subdependencies
+- Bump eslint-plugin-react to 7.32.2
+- Bump http-cache-semantics from 4.1.0 to 4.1.1
+- Bump MediaInfo on Windows to 22.12
+- Bump Node.js to 18.14.0
+- Update dependency @types/jest to v29.4.0
+- Update dependency @types/node to v18.11.19
+- Update dependency @types/react to v18.0.27
+- Update dependency @types/video.js to v7.3.51
+- Update dependency axios to v1.3.2
+- Update dependency com.fasterxml.jackson.core:jackson-databind to v2.14.2
+- Update dependency com.puppycrawl.tools:checkstyle to v10.7.0
+- Update dependency eslint to v8.33.0
+- Update dependency org.apache.maven.plugins:maven-enforcer-plugin to v3.2.1
+- Update dependency typescript to v4.9.5
+- Update dependency react-router-dom to v6.8.0
+- Update dependency video.js to v7.21.2
+- Update Mantine monorepo packages to v5.10.3
+- Update typescript-eslint monorepo to v5.50.0
+- Update Yarn to v3.4.1
+
 ## [13.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.1.0...13.2.0) (2023-01-15)
 
 ### General:

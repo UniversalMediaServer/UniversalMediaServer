@@ -2,7 +2,7 @@ FROM alpine
 
 MAINTAINER Anand Tamariya <atamariya@gmail.com>
 
-RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk17-jre iputils mplayer
+RUN apk add --no-cache coreutils ffmpeg mediainfo openjdk17-jre iputils mplayer ttf-dejavu
 
 WORKDIR /usr/src/ums
 
