@@ -1831,7 +1831,7 @@ public class FFMpegVideo extends Engine {
 				if (result instanceof FFmpegExecutableInfoBuilder fFmpegExecutableInfoBuilder) {
 					List<String> protocols = FFmpegOptions.getSupportedProtocols(executableInfo.getPath());
 					fFmpegExecutableInfoBuilder.protocols(protocols);
-					if (!protocols.isEmpty()) {
+					if (protocols.isEmpty()) {
 						LOGGER.warn("Couldn't parse any supported protocols for \"{}\"", executableInfo.getPath());
 					} else {
 						LOGGER.debug("{} supported protocols: {}", executableInfo.getPath(), protocols);
