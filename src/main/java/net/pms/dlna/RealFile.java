@@ -78,7 +78,8 @@ public class RealFile extends VirtualFile {
 		if (file == null) {
 			throw new NullPointerException("file shall not be empty");
 		}
-		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
+		Boolean useSymlinks = configuration != null && configuration.isUseSymlinksTargetFile();
+		if (useSymlinks && FileUtil.isSymbolicLink(file)) {
 			getFiles().add(FileUtil.getRealFile(file));
 		} else {
 			getFiles().add(file);
