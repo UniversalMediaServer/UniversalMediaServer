@@ -557,11 +557,16 @@ public class UMSUtils {
 	 * @throws ConfigurationException
 	 */
 	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(UmsConfiguration configuration) throws ConfigurationException {
+		String ffmpegPath = configuration.getFFmpegPath();
+		if (ffmpegPath == null) {
+			return;
+		}
+
 		OutputParams outputParams = new OutputParams(configuration);
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
-			new String[] {configuration.getFFmpegPaths().getDefaultPath().toString(), "-hwaccels"}, false, outputParams, true, false);
+			new String[] {configuration.getFFmpegPath(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = () -> {
 			sleep(10000);
 
