@@ -288,7 +288,7 @@
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.18.0</version>
+			<version>1.19.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
