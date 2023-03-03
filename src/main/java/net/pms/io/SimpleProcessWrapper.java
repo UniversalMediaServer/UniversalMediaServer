@@ -486,6 +486,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		}
 		boolean manageProcess = timeoutMS > 0;
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
+		processBuilder.environment().put("LC_ALL", "C");
 		processBuilder.redirectErrorStream(true);
 		if (LOGGER.isTraceEnabled()) {
 			//XXX: Replace with String.join() in Java 8
