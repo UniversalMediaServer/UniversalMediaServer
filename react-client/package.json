@@ -71,8 +71,8 @@
     "@types/video.js": "7.3.51",
     "@types/videojs-contrib-quality-levels": "2.0.1",
     "@types/videojs-hls-quality-selector": "1.1.0",
-    "@typescript-eslint/eslint-plugin": "5.54.0",
-    "@typescript-eslint/parser": "5.54.0",
+    "@typescript-eslint/eslint-plugin": "5.54.1",
+    "@typescript-eslint/parser": "5.54.1",
     "eslint": "8.35.0",
     "eslint-plugin-react": "7.32.2",
     "react-scripts": "5.0.1"
