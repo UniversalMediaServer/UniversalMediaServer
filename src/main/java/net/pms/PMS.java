@@ -52,7 +52,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.YoutubeDl;
+import net.pms.encoders.YtDlp;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
 import net.pms.io.*;
@@ -468,12 +468,12 @@ public class PMS {
 		// Actions that happen only the first time UMS runs
 		if (!umsConfiguration.hasRunOnce()) {
 			/*
-			 * Enable youtube-dl once, to ensure that if it is
+			 * Enable yt-dlp once, to ensure that if it is
 			 * disabled, that was done by the user.
 			 */
-			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
-				umsConfiguration.setEngineEnabled(YoutubeDl.ID, true);
-				umsConfiguration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
+			if (!EngineFactory.isEngineActive(YtDlp.ID)) {
+				umsConfiguration.setEngineEnabled(YtDlp.ID, true);
+				umsConfiguration.setEnginePriorityBelow(YtDlp.ID, FFmpegWebVideo.ID);
 			}
 
 			// Ensure this only happens once

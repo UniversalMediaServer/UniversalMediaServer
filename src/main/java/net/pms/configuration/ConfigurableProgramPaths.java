@@ -81,8 +81,8 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom CropResize path. */
 	public static final String KEY_CROP_RESIZE_PATH  = "cropResize_path";
 
-	/** The {@link Configuration} key for the custom youtube-dl path. */
-	public static final String KEY_YOUTUBEDL_PATH  = "youtubedl_path";
+	/** The {@link Configuration} key for the custom yt-dlp path. */
+	public static final String KEY_YOUTUBEDL_PATH  = "ytdlp_path";
 
 	private final Configuration configuration;
 	private final PlatformProgramPaths platformPaths = PlatformProgramPaths.get();
@@ -100,7 +100,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 		setCustomPathFromConfiguration(getMPlayer(), KEY_MPLAYER_PATH);
 		setCustomPathFromConfiguration(getFLAC(), KEY_FLAC_PATH);
 		setCustomPathFromConfiguration(getInterFrame(), KEY_INTERFRAME_PATH);
-		setCustomPathFromConfiguration(getYoutubeDl(), KEY_YOUTUBEDL_PATH);
+		setCustomPathFromConfiguration(getYtDlp(), KEY_YOUTUBEDL_PATH);
 	}
 
 	@Override
@@ -184,8 +184,8 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public final ExternalProgramInfo getYoutubeDl() {
-		return platformPaths.getYoutubeDl();
+	public final ExternalProgramInfo getYtDlp() {
+		return platformPaths.getYtDlp();
 	}
 
 	/**
@@ -253,13 +253,13 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	/**
-	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for youtube-dl
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for yt-dlp
 	 * both in {@link #configuration} and the {@link ExternalProgramInfo}.
 	 *
 	 * @param path the new {@link Path} or {@code null} to clear it.
 	 */
-	public void setCustomYoutubeDlPath(@Nullable Path path) {
-		setCustomProgramPath(path, platformPaths.getYoutubeDl(), KEY_YOUTUBEDL_PATH, true);
+	public void setCustomYtDlpPath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getYtDlp(), KEY_YOUTUBEDL_PATH, true);
 	}
 
 	/**

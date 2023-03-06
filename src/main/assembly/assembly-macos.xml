@@ -42,7 +42,7 @@
 			<includes>
 				<include>dcraw</include>
 				<include>libmediainfo.dylib</include>
-				<include>youtube-dl</include>
+				<include>yt-dlp</include>
 			</includes>
 		</fileSet>
 

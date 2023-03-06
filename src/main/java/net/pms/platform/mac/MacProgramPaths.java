@@ -38,7 +38,7 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo tsMuxeRInfo;
 	private final ExternalProgramInfo flacInfo;
 	private final ExternalProgramInfo dcRawInfo;
-	private final ExternalProgramInfo youtubeDlInfo;
+	private final ExternalProgramInfo ytDlpInfo;
 
 	/**
 	 * Not to be instantiated, call {@link PlatformProgramPaths#get()} instead.
@@ -149,19 +149,19 @@ public class MacProgramPaths extends PlatformProgramPaths {
 			dcRawInfo.setPath(ProgramExecutableType.INSTALLED, dcRaw);
 		}
 
-		// youtube-dl
-		Path youtubeDl = null;
+		// yt-dlp
+		Path ytDlp = null;
 		if (PLATFORM_DEVELOPMENT_BINARIES_FOLDER != null) {
-			youtubeDl = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("youtube-dl");
+			ytDlp = PLATFORM_DEVELOPMENT_BINARIES_FOLDER.resolve("yt-dlp");
 		}
-		if (youtubeDl == null || !Files.exists(youtubeDl)) {
-			youtubeDl = PLATFORM_BINARIES_FOLDER.resolve("youtube-dl");
+		if (ytDlp == null || !Files.exists(ytDlp)) {
+			ytDlp = PLATFORM_BINARIES_FOLDER.resolve("yt-dlp");
 		}
-		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
-		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
-		youtubeDl = FileUtil.findExecutableInOSPath(Paths.get("youtube-dl"));
-		if (youtubeDl != null) {
-			flacInfo.setPath(ProgramExecutableType.INSTALLED, youtubeDl);
+		ytDlpInfo = new ExternalProgramInfo("yt-dlp", ProgramExecutableType.BUNDLED);
+		ytDlpInfo.setPath(ProgramExecutableType.BUNDLED, ytDlp);
+		ytDlp = FileUtil.findExecutableInOSPath(Paths.get("yt-dlp"));
+		if (ytDlp != null) {
+			flacInfo.setPath(ProgramExecutableType.INSTALLED, ytDlp);
 		}
 	}
 
@@ -246,7 +246,7 @@ public class MacProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getYoutubeDl() {
-		return youtubeDlInfo;
+	public ExternalProgramInfo getYtDlp() {
+		return ytDlpInfo;
 	}
 }

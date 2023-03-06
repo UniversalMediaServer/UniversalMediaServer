@@ -126,7 +126,7 @@ public final class EngineFactory {
 		registerEngine(new VideoLanAudioStreaming());
 		registerEngine(new VideoLanVideoStreaming());
 		registerEngine(new DCRaw());
-		registerEngine(new YoutubeDl());
+		registerEngine(new YtDlp());
 	}
 
 	/**

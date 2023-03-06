@@ -39,9 +39,9 @@
 			<lineEnding>unix</lineEnding>
 		</file>
 
-		<!-- Include the youtube-dl binary -->
+		<!-- Include the yt-dlp binary -->
 		<file>
-			<source>${project.binaries}/linux/youtube-dl</source>
+			<source>${project.binaries}/linux/yt-dlp</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>

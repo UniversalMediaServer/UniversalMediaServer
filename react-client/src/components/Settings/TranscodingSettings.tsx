@@ -1060,7 +1060,7 @@ export default function TranscodingSettings(
 				return getVLCWebVideo();
 			case 'VLCVideoStreaming':
 				return noSettingsForNow();
-			case 'youtubeDl':
+			case 'ytDlp':
 				return noSettingsForNow();
 			default:
 				return engineNotKnown();

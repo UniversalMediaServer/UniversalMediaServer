@@ -137,10 +137,10 @@ public abstract class PlatformProgramPaths {
 	public abstract ExternalProgramInfo getCropResize();
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for YoutubeDl.
+	 * @return The {@link ExternalProgramInfo} for YtDlp.
 	 */
 	@Nullable
-	public abstract ExternalProgramInfo getYoutubeDl();
+	public abstract ExternalProgramInfo getYtDlp();
 
 	/**
 	 * @return The {@link Path} for {@code ctrlsender.exe} for Windows.

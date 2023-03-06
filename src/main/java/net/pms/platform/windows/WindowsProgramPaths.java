@@ -58,7 +58,7 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	private final ExternalProgramInfo masktools2Info;
 	private final ExternalProgramInfo cropResizeInfo;
 	private final ExternalProgramInfo convert2dTo3dInfo;
-	private final ExternalProgramInfo youtubeDlInfo;
+	private final ExternalProgramInfo ytDlpInfo;
 	private final Path mediaInfo;
 	private final Path ctrlSender;
 	private final Path taskKill;
@@ -193,10 +193,10 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 		}
 		ctrlSender = tmpCtrlSender;
 
-		// youtube-dl
-		Path youtubeDl = resolve("youtube-dl.exe");
-		youtubeDlInfo = new ExternalProgramInfo("youtube-dl", ProgramExecutableType.BUNDLED);
-		youtubeDlInfo.setPath(ProgramExecutableType.BUNDLED, youtubeDl);
+		// yt-dlp
+		Path ytDlp = resolve("yt-dlp.exe");
+		ytDlpInfo = new ExternalProgramInfo("yt-dlp", ProgramExecutableType.BUNDLED);
+		ytDlpInfo.setPath(ProgramExecutableType.BUNDLED, ytDlp);
 
 		// mediaInfo
 		Path tmpMediaInfo = resolve("mediainfo.dll");
@@ -290,8 +290,8 @@ public class WindowsProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getYoutubeDl() {
-		return youtubeDlInfo;
+	public ExternalProgramInfo getYtDlp() {
+		return ytDlpInfo;
 	}
 
 	/**

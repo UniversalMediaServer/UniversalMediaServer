@@ -32,7 +32,7 @@
 				<include>mencoder</include>
 				<include>mplayer</include>
 				<include>tsMuxeR</include>
-				<include>youtube-dl</include>
+				<include>yt-dlp</include>
 			</includes>
 		</fileSet>
 

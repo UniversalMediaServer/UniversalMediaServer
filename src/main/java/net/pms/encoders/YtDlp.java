@@ -32,15 +32,15 @@ import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class YoutubeDl extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeDl.class);
+public class YtDlp extends FFMpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(YtDlp.class);
 
 	public static final EngineId ID = StandardEngineId.YOUTUBE_DL;
 	public static final String KEY_FFMPEG_WEB_EXECUTABLE_TYPE = "ffmpeg_web_executable_type";
-	public static final String NAME = "youtube-dl";
+	public static final String NAME = "yt-dlp";
 
 	// Not to be instantiated by anything but PlayerFactory
-	YoutubeDl() {
+	YtDlp() {
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class YoutubeDl extends FFMpegVideo {
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
 
-		cmdList.add(configuration.getYoutubeDlPath());
+		cmdList.add(configuration.getYtDlpPath());
 
 		if (params.getTimeSeek() > 0) {
 			cmdList.add("-ss");
@@ -101,7 +101,7 @@ public class YoutubeDl extends FFMpegVideo {
 		} else {
 			// basename of the named pipe:
 			String fifoName = String.format(
-				"youtubedl_%d_%d",
+				"ytdlp_%d_%d",
 				Thread.currentThread().getId(),
 				System.currentTimeMillis()
 			);
@@ -118,7 +118,7 @@ public class YoutubeDl extends FFMpegVideo {
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
-		// Now launch youtube-dl
+		// Now launch yt-dlp
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
 		if (!directPipe) {

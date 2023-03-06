@@ -78,8 +78,8 @@ public class StandardEngineId extends EngineId {
 	/** The identifier for {@link VLCWebVideo} */
 	public static final EngineId VLC_WEB_VIDEO = new StandardEngineId("VLCWebVideo");
 
-	/** The identifier for {@link YoutubeDl} */
-	public static final EngineId YOUTUBE_DL = new StandardEngineId("youtubeDl");
+	/** The identifier for {@link YtDlp} */
+	public static final EngineId YOUTUBE_DL = new StandardEngineId("ytDlp");
 
 	/** *  A static list of all {@link StandardEngineId}s */
 	public static final List<EngineId> ALL;

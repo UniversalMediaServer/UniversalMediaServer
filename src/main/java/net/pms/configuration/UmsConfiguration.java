@@ -1523,11 +1523,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return The {@link ExternalProgramInfo} for youtube-dl.
+	 * @return The {@link ExternalProgramInfo} for yt-dlp.
 	 */
 	@Nullable
-	public ExternalProgramInfo getYoutubeDlPaths() {
-		return programPaths.getYoutubeDl();
+	public ExternalProgramInfo getYtDlpPaths() {
+		return programPaths.getYtDlp();
 	}
 
 	/**
@@ -1535,11 +1535,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	 *         configured, the default is used.
 	 */
 	@Nullable
-	public String getYoutubeDlPath() {
+	public String getYtDlpPath() {
 		Path executable = null;
-		ExternalProgramInfo youtubeDlPaths = getYoutubeDlPaths();
-		if (youtubeDlPaths != null) {
-			executable = youtubeDlPaths.getDefaultPath();
+		ExternalProgramInfo ytDlpPaths = getYtDlpPaths();
+		if (ytDlpPaths != null) {
+			executable = ytDlpPaths.getDefaultPath();
 		}
 		return executable != null ? executable.toString() : null;
 	}
