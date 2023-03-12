@@ -322,14 +322,12 @@ public class MediaInfoParser {
 
 						value = MI.get(video, i, "HDR_Format");
 						if (!value.isEmpty()) {
-							if (value.startsWith("Dolby Vision")) {
-								media.setVideoHDRFormat(value);
-							} else {
-								value = MI.get(video, i, "HDR_Format_Compatibility");
-								if (value.startsWith("HDR10") || value.startsWith("HDR10+")) {
-									media.setVideoHDRFormat(value);
-								}
-							}
+							media.setVideoHDRFormat(value);
+						}
+
+						value = MI.get(video, i, "HDR_Format_Compatibility");
+						if (!value.isEmpty()) {
+							media.setVideoHDRFormatCompatibility(value);
 						}
 
 						value = MI.get(video, i, "Format_Profile");

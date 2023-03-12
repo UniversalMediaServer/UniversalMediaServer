@@ -345,35 +345,6 @@ public class FormatConfiguration {
 			return true;
 		}
 
-		public boolean match(String container, String videoCodec, String audioCodec) {
-			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, iMaxBitrate, 0, null, null, null, false, null);
-		}
-
-		public boolean match(DLNAResource dlna) {
-			DLNAMediaInfo media = dlna.getMedia();
-			if (dlna.getMediaSubtitle() != null) {
-				return match(
-					media.getContainer(),
-					media.getCodecV(),
-					dlna.getMediaAudio().getCodecA(),
-					0,
-					0,
-					0,
-					0,
-					0,
-					iMaxBitrate,
-					media.getVideoBitDepth(),
-					media.getVideoHDRFormat(),
-					null,
-					dlna.getMediaSubtitle().getType().getExtension(),
-					dlna.getMediaSubtitle().isExternal(),
-					null
-				);
-			} else {
-				return match(media.getContainer(), media.getCodecV(), dlna.getMediaAudio().getCodecA());
-			}
-		}
-
 		/**
 		 * Determine whether or not the provided parameters match the
 		 * "Supported" lines for this configuration, or the related settings.
@@ -424,7 +395,7 @@ public class FormatConfiguration {
 			int videoWidth,
 			int videoHeight,
 			int videoBitDepth,
-			String videoHdrFormat,
+			String videoHdrInRendererFormat,
 			Map<String, String> extras,
 			String subsFormat,
 			boolean isExternalSubs,
@@ -493,19 +464,9 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (videoHdrFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
-				// Translate the full HDR string from MediaInfo into one matching the renderer config
-				String hdrValueInRendererFormat = null;
-				if (videoHdrFormat.startsWith("Dolby Vision")) {
-					hdrValueInRendererFormat = "dolbyvision";
-				} else if (videoHdrFormat.startsWith("HDR10+")) {
-					hdrValueInRendererFormat = "hdr10+";
-				} else if (videoHdrFormat.startsWith("HDR10")) {
-					hdrValueInRendererFormat = "hdr10";
-				}
-
-				if (!miExtras.get(MI_HDR).matcher(hdrValueInRendererFormat).matches()) {
-					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormat, supportLine);
+			if (videoHdrInRendererFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
+				if (!miExtras.get(MI_HDR).matcher(videoHdrInRendererFormat).matches()) {
+					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrInRendererFormat, supportLine);
 					return false;
 				}
 			}
@@ -679,7 +640,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
-				media.getVideoHDRFormat(),
+				media.getVideoHDRFormatForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -710,7 +671,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
-				media.getVideoHDRFormat(),
+				media.getVideoHDRFormatForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -732,7 +693,7 @@ public class FormatConfiguration {
 				media.getWidth(),
 				media.getHeight(),
 				media.getVideoBitDepth(),
-				media.getVideoHDRFormat(),
+				media.getVideoHDRFormatForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -790,7 +751,7 @@ public class FormatConfiguration {
 			0,
 			0,
 			media.getVideoBitDepth(),
-			media.getVideoHDRFormat(),
+			media.getVideoHDRFormatForRenderer(),
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),
@@ -809,7 +770,7 @@ public class FormatConfiguration {
 		int videoWidth,
 		int videoHeight,
 		int videoBitDepth,
-		String videoHdrFormat,
+		String videoHdrInRendererFormat,
 		Map<String, String> extras,
 		String subsFormat,
 		boolean isInternal,
@@ -829,7 +790,7 @@ public class FormatConfiguration {
 				videoWidth,
 				videoHeight,
 				videoBitDepth,
-				videoHdrFormat,
+				videoHdrInRendererFormat,
 				extras,
 				subsFormat,
 				isInternal,
