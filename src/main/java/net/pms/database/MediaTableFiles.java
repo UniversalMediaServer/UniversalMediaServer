@@ -361,8 +361,17 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMAT VARCHAR");
 					}
 					case 34 -> {
-						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column");
+						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column and clearing all HDR files from the database to reparse");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMATCOMPATIBILITY VARCHAR");
+						try (Statement statement = connection.createStatement()) {
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append("DELETE FROM ")
+									.append(TABLE_NAME).append(" ")
+								.append("WHERE ")
+									.append("HDRFORMAT != NULL");
+							statement.execute(sb.toString());
+						}
 					}
 					default -> {
 						// Do the dumb way
@@ -707,7 +716,7 @@ public class MediaTableFiles extends MediaTable {
 							rs.updateInt("IMAGECOUNT", media.getImageCount());
 							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
 							rs.updateString("HDRFORMAT", StringUtils.left(media.getVideoHDRFormat(), SIZE_MAX));
-							rs.updateString("HDRFORMATCOMPATIBILITY", StringUtils.left(media.getVideoHDRFormat(), SIZE_MAX));
+							rs.updateString("HDRFORMATCOMPATIBILITY", StringUtils.left(media.getVideoHDRFormatCompatibility(), SIZE_MAX));
 							rs.updateString("PIXELASPECTRATIO", StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
 							updateSerialized(rs, media.getScanType(), "SCANTYPE");
 							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
