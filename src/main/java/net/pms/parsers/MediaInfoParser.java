@@ -320,14 +320,14 @@ public class MediaInfoParser {
 							}
 						}
 
-						value = MI.get(video, i, "HDR_Format_Compatibility");
+						value = MI.get(video, i, "HDR_Format");
 						if (!value.isEmpty()) {
 							media.setVideoHDRFormat(value);
-						} else {
-							value = MI.get(video, i, "HDR_Format");
-							if (!value.isEmpty()) {
-								media.setVideoHDRFormat(value);
-							}
+						}
+
+						value = MI.get(video, i, "HDR_Format_Compatibility");
+						if (!value.isEmpty()) {
+							media.setVideoHDRFormatCompatibility(value);
 						}
 
 						value = MI.get(video, i, "Format_Profile");

@@ -146,6 +146,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 	private String videoHDRFormat;
+	private String videoHDRFormatCompatibility;
 
 	private volatile DLNAThumbnail thumb = null;
 
@@ -1766,6 +1767,12 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getVideoHDRFormat())) {
 				result.append(", Video HDR Format: ").append(getVideoHDRFormat());
 			}
+			if (isNotBlank(getVideoHDRFormatCompatibility())) {
+				result.append(", Video HDR Format Compatibility: ").append(getVideoHDRFormatCompatibility());
+			}
+			if (isNotBlank(getVideoHDRFormatForRenderer())) {
+				result.append(" (").append(getVideoHDRFormatForRenderer()).append(")");
+			}
 			if (isNotBlank(getFileTitleFromMetadata())) {
 				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
 			}
@@ -2183,6 +2190,59 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setVideoHDRFormat(String value) {
 		this.videoHDRFormat = value;
+	}
+
+	public String getVideoHDRFormatCompatibility() {
+		return videoHDRFormatCompatibility;
+	}
+
+	public void setVideoHDRFormatCompatibility(String value) {
+		this.videoHDRFormatCompatibility = value;
+	}
+
+	/**
+	 * Uses the HDR format and HDR format compatibility information
+	 * to return a string that the renderer config can match.
+	 *
+	 * Note: Sometimes HDR files have a "SDR" compatibility, this means
+	 * that any player can play them, so we return null for that just like
+	 * any other SDR video.
+	 */
+	public String getVideoHDRFormatForRenderer() {
+		if (StringUtils.isBlank(videoHDRFormat) && StringUtils.isBlank(videoHDRFormatCompatibility)) {
+			return null;
+		}
+
+		String hdrValueInRendererFormat = null;
+		if (StringUtils.isNotBlank(videoHDRFormatCompatibility)) {
+			if (videoHDRFormatCompatibility.startsWith("Dolby Vision")) {
+				hdrValueInRendererFormat = "dolbyvision";
+			} else if (
+				(
+					videoHDRFormatCompatibility.startsWith("HDR10") &&
+					!videoHDRFormatCompatibility.startsWith("HDR10+")
+				) ||
+				videoHDRFormatCompatibility.endsWith("HDR10") // match "HDR10+ Profile A / HDR10"
+			) {
+				hdrValueInRendererFormat = "hdr10";
+			} else if (videoHDRFormatCompatibility.startsWith("HDR10+")) {
+				hdrValueInRendererFormat = "hdr10+";
+			} else if (videoHDRFormatCompatibility.startsWith("HLG")) {
+				hdrValueInRendererFormat = "hlg";
+			}
+		} else if (StringUtils.isNotBlank(videoHDRFormat)) {
+			if (videoHDRFormat.startsWith("Dolby Vision")) {
+				hdrValueInRendererFormat = "dolbyvision";
+			} else if (videoHDRFormat.startsWith("HDR10+")) {
+				hdrValueInRendererFormat = "hdr10+";
+			} else if (videoHDRFormat.startsWith("HDR10")) {
+				hdrValueInRendererFormat = "hdr10";
+			} else if (videoHDRFormat.startsWith("HLG")) {
+				hdrValueInRendererFormat = "hlg";
+			}
+		}
+
+		return hdrValueInRendererFormat;
 	}
 
 	public int getPlaybackCount() {
