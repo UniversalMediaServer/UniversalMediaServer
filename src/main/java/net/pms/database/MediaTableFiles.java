@@ -361,17 +361,8 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMAT VARCHAR");
 					}
 					case 34 -> {
-						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column and clearing all HDR files from the database to reparse");
+						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMATCOMPATIBILITY VARCHAR");
-						try (Statement statement = connection.createStatement()) {
-							StringBuilder sb = new StringBuilder();
-							sb
-								.append("DELETE FROM ")
-									.append(TABLE_NAME).append(" ")
-								.append("WHERE ")
-									.append("HDRFORMAT != NULL");
-							statement.execute(sb.toString());
-						}
 					}
 					default -> {
 						// Do the dumb way
