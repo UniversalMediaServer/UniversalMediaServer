@@ -23,12 +23,14 @@ public class MusicBrainzAlbum {
 	private final String album;
 	private final String artist;
 	private final Integer year;
+	private String genre;
 
-	public MusicBrainzAlbum(String mbReleaseid, String album, String artist, Integer year) {
+	public MusicBrainzAlbum(String mbReleaseid, String album, String artist, Integer year, String genre) {
 		this.mbReleaseid = mbReleaseid;
 		this.album = album;
 		this.artist = artist;
 		this.year = year;
+		this.genre = genre;
 	}
 
 	public String getMbReleaseid() {
@@ -45,6 +47,14 @@ public class MusicBrainzAlbum {
 
 	public int getYear() {
 		return year;
+	}
+
+	public String getGenre() {
+		return genre;
+	}
+
+	public void setGenre(String genre) {
+		this.genre = genre;
 	}
 
 	@Override

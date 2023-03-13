@@ -163,7 +163,7 @@ public class DbIdResourceLocator {
 							}
 						}
 						case TYPE_MYMUSIC_ALBUM -> {
-							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ", " + MediaTableAudiotracks.TABLE_COL_MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + ";";
+							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " + MediaTableAudiotracks.TABLE_COL_ALBUM + ", " + MediaTableAudiotracks.TABLE_COL_GENRE + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ", " + MediaTableAudiotracks.TABLE_COL_MEDIA_YEAR + " FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD + ";";
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MYMUSIC_ALBUM : %s", sql));
 							}
@@ -187,7 +187,8 @@ public class DbIdResourceLocator {
 											resultSet.getString("MBID_RELEASE"),
 											resultSet.getString("ALBUM"),
 											resultSet.getString("ARTIST"),
-											resultSet.getInt("MEDIA_YEAR")));
+											resultSet.getInt("MEDIA_YEAR"),
+											resultSet.getString("GENRE")));
 								}
 								for (MusicBrainzAlbum album : filter.getUniqueAlbumSet()) {
 									VirtualFolderDbId albumFolder = new VirtualFolderDbId(album.getAlbum(), new DbIdTypeAndIdent(
@@ -293,6 +294,7 @@ public class DbIdResourceLocator {
 		audioInf.setAlbum(album.getAlbum());
 		audioInf.setArtist(album.getArtist());
 		audioInf.setYear(album.getYear());
+		audioInf.setGenre(album.getGenre());
 		List<DLNAMediaAudio> audios = new ArrayList<>();
 		audios.add(audioInf);
 		DLNAMediaInfo mi = new DLNAMediaInfo();
