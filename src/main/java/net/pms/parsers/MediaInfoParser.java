@@ -676,7 +676,7 @@ public class MediaInfoParser {
 		StreamKind general = StreamKind.GENERAL;
 		String artist = MI.get(general, 0, "ARTISTS");
 		if (StringUtils.isBlank(artist)) {
-			artist = MI.get(general, 0, "PERFORMER");
+			artist = MI.get(general, 0, "Performer");
 		}
 		return artist;
 	}
