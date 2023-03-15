@@ -14,31 +14,38 @@
 ### Renderers:
 - Fixed detection of Sony Xperia devices
 
+### Translation updates via Crowdin
+- Chinese Simplified (100%) (thanks, QI wolong!)
+- Chinese Traditional (78%) (thanks, Simon Lee!)
+- French (100%) (thanks, Ydrana!)
+- Japanese (93%) (thanks, elepro!)
+- Serbian (Cyrillic) (79%) (thanks, Bojan Maksimovic!)
+
 ### Dependencies:
 - Bump all subdependencies
 - update dependency @emotion/react to v11.10.6
 - update dependency @testing-library/react to v14
 - update dependency @types/jest to v29.4.1
-- update dependency @types/node to v18.15.0
+- update dependency @types/node to v18.15.3
 - update dependency @types/react to v18.0.28
 - update dependency @types/react-dom to v18.0.11
 - update dependency at.favre.lib:bcrypt to v0.10.2
 - update dependency axios to v1.3.4
 - update dependency com.auth0:java-jwt to v4.3.0
 - update dependency com.puppycrawl.tools:checkstyle to v10.8.1
-- update dependency com.rometools:rome to v2
+- update dependency com.rometools:rome to v2.1.0
 - update dependency eslint to v8.36.0
 - Update dependency hls.js to v1.3.4
 - update mantine monorepo packages to v5.10.5
 - update dependency org.apache.maven.plugins:maven-assembly-plugin to v3.5.0
 - update dependency org.apache.maven.plugins:maven-compiler-plugin to v3.11.0
-- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.0.0-m9
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.0.0
 - update dependency org.jupnp:org.jupnp to v2.7.0
 - update dependency org.jupnp:org.jupnp.support to v2.7.0
 - update dependency react-router-dom to v6.9.0
 - update dependency video.js to v7.21.3
 - update dependency web-vitals to v3.3.0
-- update typescript-eslint monorepo to v5.54.1
+- update typescript-eslint monorepo to v5.55.0
 
 ## [13.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.2.0...13.2.1) (2023-02-06)
 
