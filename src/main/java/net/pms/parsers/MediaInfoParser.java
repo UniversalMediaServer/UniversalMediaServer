@@ -52,6 +52,7 @@ import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -390,7 +391,7 @@ public class MediaInfoParser {
 					currentAudioTrack.setSongname(MI.get(general, 0, "Track"));
 					currentAudioTrack.setAlbum(MI.get(general, 0, "Album"));
 					currentAudioTrack.setAlbumArtist(MI.get(general, 0, "Album/Performer"));
-					currentAudioTrack.setArtist(MI.get(general, 0, "Performer"));
+					currentAudioTrack.setArtist(getArtist());
 					currentAudioTrack.setGenre(MI.get(general, 0, "Genre"));
 					if (videoTrackCount == 0) {
 						try {
@@ -664,6 +665,20 @@ public class MediaInfoParser {
 			media.setMediaparsed(true);
 		}
 		media.setParsing(false);
+	}
+
+	/**
+	 * Reads artist either from the ARTISTS tag or if empty from the PERFORMER tag.
+	 *
+	 * @return artist
+	 */
+	private static String getArtist() {
+		StreamKind general = StreamKind.GENERAL;
+		String artist = MI.get(general, 0, "ARTISTS");
+		if (StringUtils.isBlank(artist)) {
+			artist = MI.get(general, 0, "Performer");
+		}
+		return artist;
 	}
 
 	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
