@@ -153,13 +153,13 @@ public class SearchRequestHandler {
 	private String addSqlSelectByType(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return "select A.RATING, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			}
 			case TYPE_PERSON -> {
 				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
@@ -478,7 +478,7 @@ public class SearchRequestHandler {
 												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
 												resultSet.getString("album"), resultSet.getString("artist"),
-												resultSet.getInt("media_year"));
+												resultSet.getInt("media_year"), resultSet.getString("genre"));
 											DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
