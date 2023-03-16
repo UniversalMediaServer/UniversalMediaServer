@@ -1,15 +1,17 @@
 # Changelog
 
-## Unreleased
+## [13.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.2.1...13.3.0) (2023-03-16)
 
 ### General:
 - Added HDR video muxing to FFmpeg video engine
+- Added support for UPnP searching music by genre
 - Use ENTRYPOINT instead of CMD to launch on Docker (thanks, Alfonso Montero!)
 - Fixed support for HLG HDR files
 - Fixed compatibility for certain Dolby Vision and HDR10+ HDR profiles
 - Fixed server startup error if API is enabled and down (thanks, Iridias!)
 - Fixed server startup error on Linux sometimes
 - Fixed detection of VLC on some non-English systems (thanks, LMS!)
+- Fixed the music Artist field being set to the Performer
 
 ### Renderers:
 - Fixed detection of Sony Xperia devices
@@ -25,7 +27,7 @@
 - Bump all subdependencies
 - update dependency @emotion/react to v11.10.6
 - update dependency @testing-library/react to v14
-- update dependency @types/jest to v29.4.1
+- update dependency @types/jest to v29.4.4
 - update dependency @types/node to v18.15.3
 - update dependency @types/react to v18.0.28
 - update dependency @types/react-dom to v18.0.11
@@ -43,8 +45,9 @@
 - update dependency org.jupnp:org.jupnp to v2.7.0
 - update dependency org.jupnp:org.jupnp.support to v2.7.0
 - update dependency react-router-dom to v6.9.0
-- update dependency video.js to v7.21.3
+- update dependency video.js to v7.21.4
 - update dependency web-vitals to v3.3.0
+- update logback-version to v1.4.6
 - update typescript-eslint monorepo to v5.55.0
 
 ## [13.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.2.0...13.2.1) (2023-02-06)
