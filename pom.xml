@@ -593,11 +593,18 @@
 		<!--
 			Those dependencies could be removed as soon as we drop support for Java 8,
 			and add "-add-modules java.xml.bind" as a app command line argument
+			See https://github.com/UniversalMediaServer/UniversalMediaServer/pull/3104#issuecomment-1169845267 before attempting
 		-->
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
 			<version>3.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.angus</groupId>
+					<artifactId>angus-activation</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
