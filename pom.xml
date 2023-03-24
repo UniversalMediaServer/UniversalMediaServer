@@ -125,7 +125,7 @@
 		 -->
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.9.2</junit5.version>
-		<com.sun.xml.bind-version>4.0.1</com.sun.xml.bind-version>
+		<com.sun.xml.bind-version>4.0.2</com.sun.xml.bind-version>
 		<maven.compiler.source>${project.jre-version}</maven.compiler.source>
 		<maven.compiler.target>${project.jre-version}</maven.compiler.target>
 	</properties>
