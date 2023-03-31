@@ -28,7 +28,7 @@
     "tabler-icons-react": "1.56.0",
     "typescript": "4.9.5",
     "video.js": "7.21.4",
-    "videojs-contrib-quality-levels": "3.0.0",
+    "videojs-contrib-quality-levels": "4.0.0",
     "videojs-hls-quality-selector": "1.1.4",
     "web-vitals": "3.3.0"
   },

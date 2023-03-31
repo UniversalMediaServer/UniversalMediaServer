@@ -13614,7 +13614,7 @@ __metadata:
     tabler-icons-react: 1.56.0
     typescript: 4.9.5
     video.js: 7.21.4
-    videojs-contrib-quality-levels: 3.0.0
+    videojs-contrib-quality-levels: 4.0.0
     videojs-hls-quality-selector: 1.1.4
     web-vitals: 3.3.0
   languageName: unknown
@@ -13911,6 +13911,17 @@ __metadata:
   peerDependencies:
     video.js: ^6 || ^7 || ^8
   checksum: 06635a74f4c88d7adb7c8e55687b76306432ea5921c4a03cfb9845adc0eef671c9e043706911e761366a41e6a4046cafaa619c645f25858764500e5596ce9b41
+  languageName: node
+  linkType: hard
+
+"videojs-contrib-quality-levels@npm:4.0.0":
+  version: 4.0.0
+  resolution: "videojs-contrib-quality-levels@npm:4.0.0"
+  dependencies:
+    global: ^4.4.0
+  peerDependencies:
+    video.js: ^8
+  checksum: 08d6b1159f0c2a97994213ef5bf84498c29020b06ab8ac0095d5cf6e3400748eede5daf27877c1f52bcc8604e34046ba45e3ec69bb7fc184a33bca00237fab25
   languageName: node
   linkType: hard
 
