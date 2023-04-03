@@ -11703,12 +11703,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-country-flag@npm:3.0.2":
-  version: 3.0.2
-  resolution: "react-country-flag@npm:3.0.2"
+"react-country-flag@npm:3.1.0":
+  version: 3.1.0
+  resolution: "react-country-flag@npm:3.1.0"
   peerDependencies:
     react: ">=16"
-  checksum: 3510e96302a136e0fc70cbb3a5492d3088548a3e43f05b75a600740733522b140a75dee5ce5a0b9776e20941597e4232d9fd2b60e61b5f00f2ae8a4ac6f1d9a4
+  checksum: d032dac7d342b6aab8efc77552acc91939a8f78edc158a54972180834ff591e4c01f1f3ecced7eeaabd98cbb26db9ea7ce64892facade3157380a91f226e9161
   languageName: node
   linkType: hard
 
@@ -13604,7 +13604,7 @@ __metadata:
     lodash: 4.17.21
     react: 18.2.0
     react-color: 2.19.3
-    react-country-flag: 3.0.2
+    react-country-flag: 3.1.0
     react-dom: 18.2.0
     react-movable: 3.0.4
     react-router-dom: 6.10.0
