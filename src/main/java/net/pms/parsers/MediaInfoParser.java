@@ -393,6 +393,8 @@ public class MediaInfoParser {
 					currentAudioTrack.setAlbumArtist(MI.get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(getArtist());
 					currentAudioTrack.setGenre(MI.get(general, 0, "Genre"));
+					currentAudioTrack.setComposer(MI.get(general, 0, "Composer"));
+
 					if (videoTrackCount == 0) {
 						try {
 							AudioFile af;
