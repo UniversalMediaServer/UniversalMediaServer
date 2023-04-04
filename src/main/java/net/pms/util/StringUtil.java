@@ -122,6 +122,17 @@ public class StringUtil {
 		sb.append("&gt;");
 	}
 
+	public static void addXMLTagAndAttributeWithRole(StringBuilder sb, String tag, Object value) {
+		String myTagWithoutRole = tag.split(" ")[0];
+		sb.append("&lt;");
+		sb.append(tag);
+		sb.append("&gt;");
+		sb.append(value);
+		sb.append("&lt;/");
+		sb.append(myTagWithoutRole);
+		sb.append("&gt;");
+	}
+
 	/**
 	 * Does double transformations between &<> characters and their XML
 	 * representation with ampersands.
