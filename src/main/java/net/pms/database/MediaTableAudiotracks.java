@@ -50,8 +50,8 @@ public class MediaTableAudiotracks extends MediaTable {
 	private static final String COL_MBID_TRACK = "MBID_TRACK";
 	private static final String COL_LIKE_SONG = "LIKESONG";
 	private static final String COL_DISC = "DISC";
-	private static final String COL_COMPOSER = "COMPOSER";
-	private static final String COL_CONDUCTOR = "CONDUCTOR";
+	public static final String COL_COMPOSER = "COMPOSER";
+	public static final String COL_CONDUCTOR = "CONDUCTOR";
 
 	/**
 	 * COLUMNS with table name

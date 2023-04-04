@@ -35,6 +35,7 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudiotracks;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
@@ -335,10 +336,15 @@ public class SearchRequestHandler {
 			// handle title by return type.
 			return getTitlePropertyMapping(requestType);
 		} else if (property.startsWith("upnp:artist")) {
+			// check for @role=composer, @role=conductor or @role=albumartist
 			if (property.contains("albumartist")) {
 				return " A.ALBUMARTIST ";
+			} else if (property.contains("composer")) {
+				return " A." + MediaTableAudiotracks.COL_COMPOSER + " ";
+			} else if (property.contains("conductor")) {
+				return " A." + MediaTableAudiotracks.COL_CONDUCTOR + " ";
 			}
-			// this matches all other like : @role=conductor and @role=composer
+			// no role, just the artist
 			return " A.ARTIST ";
 		} else if ("upnp:genre".equals(property)) {
 			return " A.GENRE ";
