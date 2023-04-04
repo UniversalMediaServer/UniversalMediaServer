@@ -51,6 +51,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	private static final String COL_LIKE_SONG = "LIKESONG";
 	private static final String COL_DISC = "DISC";
 	private static final String COL_COMPOSER = "COMPOSER";
+	private static final String COL_CONDUCTOR = "CONDUCTOR";
 
 	/**
 	 * COLUMNS with table name
@@ -79,7 +80,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 10;
+	private static final int TABLE_VERSION = 11;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -182,6 +183,14 @@ public class MediaTableAudiotracks extends MediaTable {
 						LOGGER.trace("Indexing column " + COL_COMPOSER + " on table " + TABLE_NAME);
 					}
 				}
+				case 10 -> {
+					if (!isColumnExist(connection, TABLE_NAME, COL_CONDUCTOR)) {
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD " + COL_CONDUCTOR + " VARCHAR(" + SIZE_COMPOSER + ")");
+						LOGGER.trace("Adding " + COL_CONDUCTOR + " to table " + TABLE_NAME);
+						executeUpdate(connection, "CREATE INDEX IDX_CONDUCTOR ON " + TABLE_NAME + " (" + COL_CONDUCTOR + ");");
+						LOGGER.trace("Indexing column " + COL_CONDUCTOR + " on table " + TABLE_NAME);
+					}
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -228,6 +237,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			sb.append(", RATING            INTEGER");
 			sb.append(", AUDIOTRACK_ID     INTEGER          AUTO_INCREMENT");
 			sb.append(", " + COL_COMPOSER + " VARCHAR(").append(SIZE_COMPOSER).append(')');
+			sb.append(", " + COL_CONDUCTOR + " VARCHAR(").append(SIZE_COMPOSER).append(')');
 			sb.append(", CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID)");
 			sb.append(", CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE");
 			sb.append(')');
@@ -260,6 +270,9 @@ public class MediaTableAudiotracks extends MediaTable {
 
 			LOGGER.trace("Creating index IDX_COMPOSER");
 			statement.execute("CREATE INDEX IDX_COMPOSER on " + TABLE_NAME + " (" + COL_COMPOSER + ")");
+
+			LOGGER.trace("Creating index IDX_CONDUCTOR");
+			statement.execute("CREATE INDEX IDX_COMPOSER on " + TABLE_NAME + " (" + COL_CONDUCTOR + ")");
 		}
 	}
 
@@ -270,14 +283,14 @@ public class MediaTableAudiotracks extends MediaTable {
 
 		String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, BITSPERSAMPLE, " +
 			"ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DELAY, MUXINGMODE, BITRATE, MBID_RECORD, MBID_TRACK, DISC, RATING, " +
-			COL_COMPOSER;
+			COL_COMPOSER + ", " + COL_CONDUCTOR;
 
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(
 				"SELECT " +
 					"FILEID, ID, MBID_RECORD, MBID_TRACK, LANG, TITLE, NRAUDIOCHANNELS, SAMPLEFREQ, CODECA, " +
 					"BITSPERSAMPLE, ALBUM, ARTIST, ALBUMARTIST, SONGNAME, GENRE, MEDIA_YEAR, TRACK, DISC, " +
-					"DELAY, MUXINGMODE, BITRATE, RATING, " + COL_COMPOSER + " " +
+					"DELAY, MUXINGMODE, BITRATE, RATING, " + COL_COMPOSER + ", " + COL_CONDUCTOR + " " +
 				"FROM " + TABLE_NAME + " " +
 				"WHERE " +
 					"FILEID = ? AND ID = ?",
@@ -328,6 +341,11 @@ public class MediaTableAudiotracks extends MediaTable {
 							rs.updateNull(COL_COMPOSER);
 						} else {
 							rs.updateString(COL_COMPOSER, left(trimToEmpty(audioTrack.getComposer()), SIZE_COMPOSER));
+						}
+						if (audioTrack.getConductor() == null) {
+							rs.updateNull(COL_CONDUCTOR);
+						} else {
+							rs.updateString(COL_CONDUCTOR, left(trimToEmpty(audioTrack.getConductor()), SIZE_COMPOSER));
 						}
 
 						//Special case for album artist. If it's empty, we want to insert NULL (for quicker retrieval)
@@ -403,16 +421,25 @@ public class MediaTableAudiotracks extends MediaTable {
 							}
 						}
 						insertStatement.setInt(21, audioTrack.getDisc());
+
 						if (audioTrack.getRating() == null) {
 							insertStatement.setNull(22, Types.INTEGER);
 						} else {
 							insertStatement.setInt(22, audioTrack.getRating());
 						}
+
 						if (audioTrack.getComposer() == null) {
-							insertStatement.setNull(23, Types.INTEGER);
+							insertStatement.setNull(23, Types.VARCHAR);
 						} else {
 							insertStatement.setString(23, audioTrack.getComposer());
 						}
+
+						if (audioTrack.getConductor() == null) {
+							insertStatement.setNull(24, Types.VARCHAR);
+						} else {
+							insertStatement.setString(24, audioTrack.getConductor());
+						}
+
 						insertStatement.executeUpdate();
 					}
 				}
@@ -453,6 +480,7 @@ public class MediaTableAudiotracks extends MediaTable {
 					audio.setMbidRecord(elements.getString("MBID_RECORD"));
 					audio.setMbidTrack(elements.getString("MBID_TRACK"));
 					audio.setComposer(elements.getString(COL_COMPOSER));
+					audio.setConductor(elements.getString(COL_CONDUCTOR));
 					LOGGER.trace("Adding audio from the database: {}", audio.toString());
 					result.add(audio);
 				}

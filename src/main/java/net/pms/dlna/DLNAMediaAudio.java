@@ -36,6 +36,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String album;
 	private String artist;
 	private String composer;
+	private String conductor;
 	private String songname;
 	private String genre;
 	private int year;
@@ -538,6 +539,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		if (isNotBlank(getComposer())) {
 			result.append(", Composer: ").append(getComposer());
 		}
+		if (isNotBlank(getConductor())) {
+			result.append(", Conductor: ").append(getConductor());
+		}
 		if (isNotBlank(getAlbum())) {
 			result.append(", Album: ").append(getAlbum());
 		}
@@ -730,6 +734,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Returns the conductor of the audio track.
+	 *
+	 * @return The conductor name.
+	 */
+	public String getConductor() {
+		return conductor;
+	}
+
+	/**
 	 * Sets the name of the main artist of the album of the audio track.
 	 * This field is often used for the compilation type albums or "featuring..." songs.
 	 *
@@ -765,6 +778,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setComposer(String composer) {
 		this.composer = composer;
+	}
+
+	/**
+	 * Sets the conductor of the audio track.
+	 *
+	 * @param The conductor name to set.
+	 */
+	public void setConductor(String conductor) {
+		this.conductor = conductor;
 	}
 
 	/**
