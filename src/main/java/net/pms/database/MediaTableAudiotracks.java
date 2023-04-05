@@ -272,7 +272,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			statement.execute("CREATE INDEX IDX_COMPOSER on " + TABLE_NAME + " (" + COL_COMPOSER + ")");
 
 			LOGGER.trace("Creating index IDX_CONDUCTOR");
-			statement.execute("CREATE INDEX IDX_COMPOSER on " + TABLE_NAME + " (" + COL_CONDUCTOR + ")");
+			statement.execute("CREATE INDEX IDX_CONDUCTOR on " + TABLE_NAME + " (" + COL_CONDUCTOR + ")");
 		}
 	}
 
