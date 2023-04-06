@@ -60,6 +60,8 @@ public class MediaTableAudiotracks extends MediaTable {
 	public static final String TABLE_COL_ALBUM = TABLE_NAME + ".ALBUM";
 	public static final String TABLE_COL_ALBUMARTIST = TABLE_NAME + ".ALBUMARTIST";
 	public static final String TABLE_COL_ARTIST = TABLE_NAME + ".ARTIST";
+	public static final String TABLE_COL_COMPOSER = TABLE_NAME + ".COMPOSER";
+	public static final String TABLE_COL_CONDUCTOR = TABLE_NAME + ".CONDUCTOR";
 	public static final String TABLE_COL_GENRE = TABLE_NAME + ".GENRE";
 	public static final String TABLE_COL_MBID_RECORD = TABLE_NAME + "." + COL_MBID_RECORD;
 	public static final String TABLE_COL_MBID_TRACK = TABLE_NAME + "." + COL_MBID_TRACK;
@@ -70,7 +72,7 @@ public class MediaTableAudiotracks extends MediaTable {
 
 	private static final int SIZE_LANG = 3;
 	private static final int SIZE_GENRE = 64;
-	private static final int SIZE_COMPOSER = 128;
+	private static final int SIZE_COMPOSER = 1024;
 	private static final int SIZE_MUXINGMODE = 32;
 	private static final int SIZE_SAMPLEFREQ = 16;
 	private static final int SIZE_CODECA = 32;
