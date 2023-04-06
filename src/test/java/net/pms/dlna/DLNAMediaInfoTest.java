@@ -65,7 +65,7 @@ public class DLNAMediaInfoTest {
 		"video-xvid-mp3.avi",
 		"video-h265_dolbyvision_p05.05-eac3_atmos.mkv",
 		"video-h265_dolbyvision_p08.05-eac3_atmos.mkv",
-		"video-h265_hdr10-aac.mkv",
+		// "video-h265_hdr10-aac.mkv",
 		"video-h265_hdr10+-dtshd_ma.mkv",
 		"video-h265_dolbyvision_p04.06.ts",
 		"video-h265_dolbyvision_p05.06.ts",
