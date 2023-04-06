@@ -149,7 +149,8 @@ public class MediaInfoParser {
 		media.setParsing(true);
 		System.out.println("222");
 		File file = inputFile.getFile();
-		ParseLogger parseLogger = LOGGER.isTraceEnabled() ? new ParseLogger() : null;
+		System.out.println("2221 " + file);
+		ParseLogger parseLogger = new ParseLogger();
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.openFile(file.getAbsolutePath()) > 0) {
 			System.out.println("333");
 			StreamKind general = StreamKind.GENERAL;
