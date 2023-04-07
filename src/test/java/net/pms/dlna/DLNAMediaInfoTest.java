@@ -260,5 +260,3 @@ public class DLNAMediaInfoTest {
 		// 	System.out.println(p.getClass().getName());
 		// }
 //	}
-
-}
