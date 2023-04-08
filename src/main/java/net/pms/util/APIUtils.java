@@ -826,6 +826,10 @@ public class APIUtils {
 			filebytesize = file.length();
 
 			imdbID = ImdbUtil.extractImdbId(path, false);
+
+			if (isBlank(movieOrTVSeriesTitle)) {
+				movieOrTVSeriesTitle = FileUtil.getFileNameWithoutExtension(file.getName());
+			}
 		}
 
 		// Remove the year from the title before lookup if it exists
@@ -951,7 +955,11 @@ public class APIUtils {
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
 
-		LOGGER.trace("Getting API data from: {}", url);
+		if (isSeries) {
+			LOGGER.trace("Getting API data for series from: {}", url);
+		} else {
+			LOGGER.trace("Getting API data for video from: {}", url);
+		}
 
 		return getJson(url);
 	}
