@@ -844,8 +844,8 @@ public class APIUtils {
 
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
 
-		String notFoundMessage = "Metadata not found on OpenSubtitles";
-		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
+		String notFoundPartialMessage = "Metadata not found";
+		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
 			LOGGER.trace("no result for " + movieOrTVSeriesTitle + ", received: " + apiResult);
 			return null;
 		}
