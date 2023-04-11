@@ -226,27 +226,14 @@ public class DbIdResourceLocator {
 							res.setFakeParentId(encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeAndIdent.ident)));
 						}
 						case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
-							String identAsString = "";
-							switch (typeAndIdent.type) {
-								case TYPE_PERSON -> {
-									identAsString = typeAndIdent.ident;
-								}
-								case TYPE_PERSON_COMPOSER -> {
-									identAsString = DbIdMediaType.PERSON_COMPOSER_PREFIX + typeAndIdent.ident;
-								}
-								case TYPE_PERSON_CONDUCTOR -> {
-									identAsString = DbIdMediaType.PERSON_CONDUCTOR_PREFIX + typeAndIdent.ident;
-								}
-								default -> throw new RuntimeException("Unknown Type");
-							}
-							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, identAsString),
+							res = new VirtualFolderDbId(typeAndIdent.ident, new DbIdTypeAndIdent(typeAndIdent.type, typeAndIdent.ident),
 								"");
 							res.setDefaultRenderer(renderer);
 							DLNAResource allFiles = new VirtualFolderDbId(Messages.getString("AllFiles"),
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, identAsString), "");
+								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
 							DLNAResource albums = new VirtualFolderDbId(Messages.getString("ByAlbum_lowercase"),
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, identAsString), "");
+								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 						}
 						case TYPE_PERSON_ALBUM -> {
@@ -265,14 +252,7 @@ public class DbIdResourceLocator {
 						}
 						case TYPE_PERSON_ALBUM_FILES -> {
 							String[] identSplitted = typeAndIdent.ident.split(DbIdMediaType.SPLIT_CHARS);
-							sql = String.format(
-								"SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_ID + ", " +
-									MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " +
-									MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " +
-									MediaTableAudiotracks.TABLE_COL_FILEID + " " + "WHERE (" + MediaTableAudiotracks.TABLE_COL_ALBUM +
-									" = '%s') AND (" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " +
-									MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s')",
-								identSplitted[1], identSplitted[0], identSplitted[0]);
+							sql = personAlbumFileSql(typeAndIdent);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								res = new VirtualFolderDbId(identSplitted[1],
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
@@ -301,24 +281,43 @@ public class DbIdResourceLocator {
 		return res;
 	}
 
+	private static String personAlbumFileSql(DbIdTypeAndIdent typeAndIdent) {
+		StringBuilder sb = new StringBuilder();
+		String[] identSplitted = typeAndIdent.ident.split(DbIdMediaType.SPLIT_CHARS);
+
+		sb.append("SELECT ").append(MediaTableFiles.TABLE_COL_FILENAME).append(", ").append(MediaTableFiles.TABLE_COL_ID).append(", ")
+			.append(MediaTableFiles.TABLE_COL_MODIFIED).append(" FROM ").append(MediaTableFiles.TABLE_NAME).append(" LEFT OUTER JOIN ")
+			.append(MediaTableAudiotracks.TABLE_NAME).append(" ON ").append(MediaTableFiles.TABLE_COL_ID).append(" = ")
+			.append(MediaTableAudiotracks.TABLE_COL_FILEID).append(" ").append("WHERE (").append(MediaTableAudiotracks.TABLE_COL_ALBUM)
+			.append(" = '").append(identSplitted[1]).append("') AND ( ");
+		wherePartPersonByType(identSplitted[0], sb);
+		sb.append(")");
+		LOGGER.debug("personAlbumFilesSql : {}", sb.toString());
+		return sb.toString();
+	}
+
 	private static String personAlbumSql(DbIdTypeAndIdent typeAndIdent) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SELECT DISTINCT(").append(MediaTableAudiotracks.TABLE_COL_ALBUM).append(") FROM ")
 			.append(MediaTableAudiotracks.TABLE_NAME).append(" WHERE (");
-		if (typeAndIdent.ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
-			sb.append(MediaTableAudiotracks.TABLE_COL_COMPOSER).append(" = '")
-				.append(typeAndIdent.ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length())).append("'");
-		} else if (typeAndIdent.ident.startsWith(DbIdMediaType.PERSON_CONDUCTOR_PREFIX)) {
-			sb.append(MediaTableAudiotracks.TABLE_COL_CONDUCTOR).append(" = '")
-				.append(typeAndIdent.ident.substring(DbIdMediaType.PERSON_CONDUCTOR_PREFIX.length())).append("'");
-		} else {
-			sb.append(String.format(
-				" COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
-				typeAndIdent.ident));
-		}
+		wherePartPersonByType(typeAndIdent.ident, sb);
 		sb.append(")");
 		LOGGER.debug("personAlbumSql : {}", sb.toString());
 		return sb.toString();
+	}
+
+	private static void wherePartPersonByType(String ident, StringBuilder sb) {
+		if (ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
+			sb.append(MediaTableAudiotracks.TABLE_COL_COMPOSER).append(" = '")
+				.append(ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length())).append("'");
+		} else if (ident.startsWith(DbIdMediaType.PERSON_CONDUCTOR_PREFIX)) {
+			sb.append(MediaTableAudiotracks.TABLE_COL_CONDUCTOR).append(" = '")
+				.append(ident.substring(DbIdMediaType.PERSON_CONDUCTOR_PREFIX.length())).append("'");
+		} else {
+			sb.append(String.format(
+				" COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
+				ident));
+		}
 	}
 
 	private static String personAllFilesSql(DbIdTypeAndIdent typeAndIdent) {

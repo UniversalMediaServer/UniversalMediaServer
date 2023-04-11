@@ -537,6 +537,10 @@ public class SearchRequestHandler {
 								}
 								case TYPE_PERSON -> filesList
 									.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
+								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbId(filenameField,
+									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField), ""));
+								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbId(filenameField,
+									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField), ""));
 								case TYPE_PLAYLIST -> filesList
 									.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
 								default -> {
