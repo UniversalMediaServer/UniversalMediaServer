@@ -17,6 +17,10 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.platform.win32.Kernel32;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import net.pms.service.sleep.AbstractSleepWorker;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -28,6 +32,19 @@ import org.slf4j.LoggerFactory;
  */
 public class WindowsSleepWorker extends AbstractSleepWorker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsSleepWorker.class);
+
+	private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+	/**
+	 * When this is active, it means we are in the process of
+	 * counting down from 5 minutes before we let Windows 11
+	 * resume its normal sleep activity. This is to work
+	 * around different logic in Windows 11 vs previous versions
+	 * of Windows.
+	 *
+	 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/3883
+	 */
+	private static ScheduledFuture futureSleep = null;
 
 	/**
 	 * Creates a new {@link WindowsSleepWorker} initialized with the
@@ -43,8 +60,24 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 	@Override
 	protected synchronized void doAllowSleep() {
 		LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
-		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-		sleepPrevented = false;
+		Runnable allowSleepRunner = () -> {
+			LOGGER.trace("Windows can sleep now");
+			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
+			sleepPrevented = false;
+		};
+
+		// Windows 11 identifies itself as 10.0.0, FFS...
+		if (WindowsUtils.getOSVersion().isGreaterThanOrEqualTo("10.0.0")) {
+			/*
+			 * Future enhancement could make this delay the same
+			 * as the configured Windows sleep delay, for now 5 minutes
+			 * seems better than 0.
+			 */
+			futureSleep = executorService.schedule(allowSleepRunner, 5, TimeUnit.MINUTES);
+			LOGGER.trace("Windows will sleep in 5 minutes unless cancelled");
+		} else {
+			allowSleep();
+		}
 	}
 
 	@Override
@@ -52,6 +85,9 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to prevent Windows from going to sleep");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 		sleepPrevented = true;
+		if (futureSleep != null) {
+			futureSleep.cancel(true);
+		}
 	}
 
 	@Override
@@ -59,5 +95,8 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
 		resetSleepTimer = false;
+		if (futureSleep != null) {
+			futureSleep.cancel(true);
+		}
 	}
 }
