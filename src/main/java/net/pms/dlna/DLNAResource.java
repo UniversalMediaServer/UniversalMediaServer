@@ -19,6 +19,7 @@ package net.pms.dlna;
 import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
 import static net.pms.util.StringUtil.addAttribute;
 import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
 import static net.pms.util.StringUtil.closeTag;
 import static net.pms.util.StringUtil.convertTimeToString;
 import static net.pms.util.StringUtil.encodeXML;
@@ -2291,6 +2292,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
+			}
+
+			if (StringUtils.isNotBlank(firstAudioTrack.getComposer())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttributeWithRole(sb, "upnp:author role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttribute(sb, "upnp:composer", encodeXML(firstAudioTrack.getComposer()));
+			}
+
+			if (StringUtils.isNotBlank(firstAudioTrack.getConductor())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Conductor\"", encodeXML(firstAudioTrack.getConductor()));
+				addXMLTagAndAttribute(sb, "upnp:conductor", encodeXML(firstAudioTrack.getConductor()));
 			}
 
 			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {

@@ -669,6 +669,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 							audio.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
 							audio.setArtist(extractAudioTagKeyValue(t, FieldKey.ARTIST));
+							audio.setComposer(extractAudioTagKeyValue(t, FieldKey.COMPOSER));
+							audio.setConductor(extractAudioTagKeyValue(t, FieldKey.CONDUCTOR));
 							audio.setSongname(extractAudioTagKeyValue(t, FieldKey.TITLE));
 							audio.setMbidRecord(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
 							audio.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
