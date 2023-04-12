@@ -103,16 +103,19 @@ public class SearchRequestHandler {
 		if (matcher.find()) {
 			String roleValue = matcher.group("val");
 			if ("composer".equalsIgnoreCase(roleValue)) {
-				LOGGER.info("looking up artist composer");
+				LOGGER.debug("looking up artist composer");
 				return DbIdMediaType.TYPE_PERSON_COMPOSER;
 			} else if ("conductor".equalsIgnoreCase(roleValue)) {
-				LOGGER.info("looking up artist conductor");
+				LOGGER.debug("looking up artist conductor");
 				return DbIdMediaType.TYPE_PERSON_CONDUCTOR;
+			} else if ("AlbumArtist".equalsIgnoreCase(roleValue)) {
+				LOGGER.debug("looking up artist AlbumArtist");
+				return DbIdMediaType.TYPE_PERSON_ALBUMARTIST;
 			}
 			LOGGER.warn("unknown artist role {}. Fallback to artist search ... ", roleValue);
 			return DbIdMediaType.TYPE_PERSON;
 		} else {
-			LOGGER.trace("artist without role.");
+			LOGGER.trace("artist without role. Regular artist search.");
 			return DbIdMediaType.TYPE_PERSON;
 		}
 	}
@@ -180,13 +183,16 @@ public class SearchRequestHandler {
 				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			}
 			case TYPE_PERSON -> {
-				return "select DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST) as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT A.ARTIST as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				return "select DISTINCT A.CONDUCTOR as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				return "select DISTINCT A.COMPOSER as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
 			}
 			case TYPE_ALBUM -> {
 				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
@@ -213,13 +219,16 @@ public class SearchRequestHandler {
 				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
 			}
 			case TYPE_PERSON -> {
-				return "select count (DISTINCT COALESCE(A.ALBUMARTIST, A.ARTIST)) from AUDIOTRACKS as A where ";
+				return "select count (DISTINCT A.ARTIST) from AUDIOTRACKS as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				return "select count (DISTINCT A.CONDUCTOR) from AUDIOTRACKS as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				return "select count (DISTINCT A.COMPOSER) from AUDIOTRACKS as A where ";
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return "select count (DISTINCT A.ALBUMARTIST) from AUDIOTRACKS as A where ";
 			}
 			case TYPE_ALBUM -> {
 				return "select count(DISTINCT A.id) from AUDIOTRACKS as A where ";
@@ -407,11 +416,13 @@ public class SearchRequestHandler {
 				return " A.ALBUM ";
 			}
 			case TYPE_PERSON -> {
-				// TODO
-				return " COALESCE(A.ALBUMARTIST, A.ARTIST) ";
+				return " A.ARTIST ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
 				return " A.COMPOSER ";
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return " A.ALBUMARTIST ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
 				return " A.CONDUCTOR ";
@@ -428,7 +439,7 @@ public class SearchRequestHandler {
 
 	private void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
+			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 				sb.append(" 1=1 ");
 				return;
 			}
@@ -455,7 +466,7 @@ public class SearchRequestHandler {
 		// album and persons titles are stored within the RealFile and have
 		// therefore no unique id.
 		switch (mediaFolderType) {
-			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
+			case TYPE_AUDIO, TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 				return Format.AUDIO;
 			}
 			case TYPE_VIDEO -> {
@@ -541,6 +552,8 @@ public class SearchRequestHandler {
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField), ""));
 								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbId(filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField), ""));
+								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbId(filenameField,
+									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField), ""));
 								case TYPE_PLAYLIST -> filesList
 									.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
 								default -> {

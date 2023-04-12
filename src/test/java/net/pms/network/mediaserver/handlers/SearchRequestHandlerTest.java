@@ -82,7 +82,17 @@ public class SearchRequestHandlerTest {
 		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-			"select\\s+count\\s+\\(\\s*DISTINCT\\s+COALESCE\\s*\\(\\s*A.ALBUMARTIST\\s*,\\s*A.ARTIST\\s*\\)\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ALBUMARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+			"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ALBUMARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+	}
+
+	@Test
+	public void testArtistSearch() {
+		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"";
+		SearchRequestHandler h = new SearchRequestHandler();
+		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		LOG.info(countSQL);
+		assertTrue(countSQL.matches(
+			"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
 	}
 
 	/**

@@ -310,13 +310,18 @@ public class DbIdResourceLocator {
 		if (ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
 			sb.append(MediaTableAudiotracks.TABLE_COL_COMPOSER).append(" = '")
 				.append(ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length())).append("'");
+			LOGGER.trace("WHERE PERSON COMPOSER");
 		} else if (ident.startsWith(DbIdMediaType.PERSON_CONDUCTOR_PREFIX)) {
 			sb.append(MediaTableAudiotracks.TABLE_COL_CONDUCTOR).append(" = '")
 				.append(ident.substring(DbIdMediaType.PERSON_CONDUCTOR_PREFIX.length())).append("'");
+			LOGGER.trace("WHERE PERSON CONDUCTOR");
+		} else if (ident.startsWith(DbIdMediaType.PERSON_ALBUMARTIST_PREFIX)) {
+			sb.append(MediaTableAudiotracks.TABLE_COL_ALBUMARTIST).append(" = '")
+				.append(ident.substring(DbIdMediaType.PERSON_ALBUMARTIST_PREFIX.length())).append("'");
+			LOGGER.trace("WHERE PERSON ALBUMARTIST");
 		} else {
-			sb.append(String.format(
-				" COALESCE(" + MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudiotracks.TABLE_COL_ARTIST + ") = '%s'",
-				ident));
+			sb.append(String.format(MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s'", ident));
+			LOGGER.trace("WHERE PERSON ARTIST");
 		}
 	}
 
@@ -326,18 +331,7 @@ public class DbIdResourceLocator {
 			.append(MediaTableFiles.TABLE_COL_MODIFIED).append(" FROM ").append(MediaTableFiles.TABLE_NAME).append(" LEFT OUTER JOIN ")
 			.append(MediaTableAudiotracks.TABLE_NAME).append(" ON ").append(MediaTableFiles.TABLE_COL_ID).append(" = ")
 			.append(MediaTableAudiotracks.TABLE_COL_FILEID).append(" WHERE ( ");
-
-		if (typeAndIdent.ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
-			sb.append(MediaTableAudiotracks.TABLE_COL_COMPOSER).append(" = '")
-				.append(typeAndIdent.ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length())).append("'");
-		} else if (typeAndIdent.ident.startsWith(DbIdMediaType.PERSON_CONDUCTOR_PREFIX)) {
-			sb.append(MediaTableAudiotracks.TABLE_COL_CONDUCTOR).append(" = '")
-				.append(typeAndIdent.ident.substring(DbIdMediaType.PERSON_CONDUCTOR_PREFIX.length())).append("'");
-		} else {
-			sb.append(String.format(
-				MediaTableAudiotracks.TABLE_COL_ALBUMARTIST + " = '%s' OR " + MediaTableAudiotracks.TABLE_COL_ARTIST + " = '%s'",
-				typeAndIdent.ident, typeAndIdent.ident));
-		}
+		wherePartPersonByType(typeAndIdent.ident, sb);
 		sb.append(")");
 		LOGGER.debug("personAllFilesSql : {}", sb.toString());
 		return sb.toString();
@@ -350,6 +344,7 @@ public class DbIdResourceLocator {
 	 * @param albumFolder
 	 */
 	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+		LOGGER.debug("adding music album information");
 		DLNAMediaAudio audioInf = new DLNAMediaAudio();
 		audioInf.setAlbum(album.getAlbum());
 		audioInf.setArtist(album.getArtist());
