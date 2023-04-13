@@ -8,12 +8,12 @@
       "draft": true,
       "prerelease": false,
       "extra-files": [
-    {
-      "type": "xml",
-      "path": "pom.xml",
-      "xpath": "//project/properties/project.version.short"
-    }
-  ]
+        {
+          "type": "xml",
+          "path": "pom.xml",
+          "xpath": "//project/properties/project.version.short"
+        }
+      ]
     }
   },
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
