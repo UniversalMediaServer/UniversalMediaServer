@@ -666,4 +666,12 @@ public class WindowsUtils extends PlatformUtils {
 		return true;
 	}
 
+	/**
+	 * A readable way to see if this is Windows 11 or greater,
+	 * becuase Windows 11 identifies itself as 10.0.0, FFS...
+	 *
+	 */
+	public static boolean isWindows11OrGreater() {
+		return WindowsUtils.getOSVersion().isGreaterThanOrEqualTo("10.0.0");
+	}
 }

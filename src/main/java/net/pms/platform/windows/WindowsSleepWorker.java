@@ -63,11 +63,9 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 		Runnable allowSleepRunner = () -> {
 			LOGGER.trace("Windows can sleep now");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
-			sleepPrevented = false;
 		};
 
-		// Windows 11 identifies itself as 10.0.0, FFS...
-		if (WindowsUtils.getOSVersion().isGreaterThanOrEqualTo("10.0.0")) {
+		if (WindowsUtils.isWindows11OrGreater()) {
 			/*
 			 * Future enhancement could make this delay the same
 			 * as the configured Windows sleep delay, for now 5 minutes
@@ -76,8 +74,10 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 			futureSleep = executorService.schedule(allowSleepRunner, 5, TimeUnit.MINUTES);
 			LOGGER.trace("Windows will sleep in 5 minutes unless cancelled");
 		} else {
-			allowSleep();
+			Thread thread = new Thread(allowSleepRunner);
+			thread.start();
 		}
+		sleepPrevented = false;
 	}
 
 	@Override
