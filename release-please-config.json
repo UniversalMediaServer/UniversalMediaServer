@@ -11,7 +11,7 @@
         {
           "type": "xml",
           "path": "pom.xml",
-          "xpath": "//project/properties/project.version.short"
+          "xpath": "project/properties/project.version.short"
         }
       ]
     }
