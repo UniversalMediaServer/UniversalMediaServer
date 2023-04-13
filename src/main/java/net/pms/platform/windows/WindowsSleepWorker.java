@@ -95,8 +95,5 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 		LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED to reset the Windows sleep timer");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED);
 		resetSleepTimer = false;
-		if (futureSleep != null) {
-			futureSleep.cancel(true);
-		}
 	}
 }
