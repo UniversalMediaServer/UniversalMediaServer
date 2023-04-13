@@ -26,6 +26,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
@@ -86,7 +87,7 @@ public class DbIdResourceLocator {
 					switch (typeAndIdent.type) {
 						case TYPE_AUDIO, TYPE_VIDEO, TYPE_IMAGE -> {
 							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME +
-								" WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
+								" WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", StringEscapeUtils.escapeSql(typeAndIdent.ident));
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO/VIDEO/IMAGE : %s", sql));
 							}
@@ -100,7 +101,7 @@ public class DbIdResourceLocator {
 						}
 						case TYPE_PLAYLIST -> {
 							sql = String.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + " FROM " + MediaTableFiles.TABLE_NAME +
-								" WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", typeAndIdent.ident);
+								" WHERE " + MediaTableFiles.TABLE_COL_ID + " = %s", StringEscapeUtils.escapeSql(typeAndIdent.ident));
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL PLAYLIST : %s", sql));
 							}
@@ -119,7 +120,7 @@ public class DbIdResourceLocator {
 								", " + MediaTableFiles.TABLE_COL_MODIFIED + " FROM " + MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " +
 								MediaTableAudiotracks.TABLE_NAME + " ON " + MediaTableFiles.TABLE_COL_ID + " = " +
 								MediaTableAudiotracks.TABLE_COL_FILEID + " " + "WHERE ( " + MediaTableFiles.TABLE_COL_FORMAT_TYPE +
-								" = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')", typeAndIdent.ident);
+								" = 1  AND  " + MediaTableAudiotracks.TABLE_COL_ALBUM + " = '%s')", StringEscapeUtils.escapeSql(typeAndIdent.ident));
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
 							}
@@ -143,7 +144,7 @@ public class DbIdResourceLocator {
 									MediaTableFiles.TABLE_NAME + " LEFT OUTER JOIN " + MediaTableAudiotracks.TABLE_NAME + " ON " +
 									MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " " + "WHERE ( " +
 									MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 and " + MediaTableAudiotracks.TABLE_COL_MBID_RECORD +
-									" = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK, typeAndIdent.ident);
+									" = '%s' ) ORDER BY " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK, StringEscapeUtils.escapeSql(typeAndIdent.ident));
 							if (LOGGER.isTraceEnabled()) {
 								LOGGER.trace(String.format("SQL TYPE_MUSICBRAINZ_RECORDID : %s", sql));
 							}
@@ -289,7 +290,7 @@ public class DbIdResourceLocator {
 			.append(MediaTableFiles.TABLE_COL_MODIFIED).append(" FROM ").append(MediaTableFiles.TABLE_NAME).append(" LEFT OUTER JOIN ")
 			.append(MediaTableAudiotracks.TABLE_NAME).append(" ON ").append(MediaTableFiles.TABLE_COL_ID).append(" = ")
 			.append(MediaTableAudiotracks.TABLE_COL_FILEID).append(" ").append("WHERE (").append(MediaTableAudiotracks.TABLE_COL_ALBUM)
-			.append(" = '").append(identSplitted[1]).append("') AND ( ");
+			.append(" = '").append(StringEscapeUtils.escapeSql(identSplitted[1])).append("') AND ( ");
 		wherePartPersonByType(identSplitted[0], sb);
 		sb.append(")");
 		LOGGER.debug("personAlbumFilesSql : {}", sb.toString());
@@ -307,6 +308,7 @@ public class DbIdResourceLocator {
 	}
 
 	private static void wherePartPersonByType(String ident, StringBuilder sb) {
+		ident = StringEscapeUtils.escapeSql(ident);
 		if (ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
 			sb.append(MediaTableAudiotracks.TABLE_COL_COMPOSER).append(" = '")
 				.append(ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length())).append("'");
