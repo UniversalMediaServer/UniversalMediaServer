@@ -1168,6 +1168,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private boolean shouldDoAudioTrackSorting(DLNAResource dlna) {
 		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
+			LOGGER.trace("shouldDoAudioTrackSorting : {}", PMS.getConfiguration().isSortAudioTracksByAlbumPosition());
 			return false;
 		}
 
@@ -1179,12 +1180,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
+					LOGGER.warn("Audio resource has no AudioTrack : {}", res.getDisplayName());
+					continue;
+				}
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
-					if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
-						return false;
-					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
 					mbReleaseId = res.getMedia().getFirstAudioTrack().getMbidRecord();
 					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
