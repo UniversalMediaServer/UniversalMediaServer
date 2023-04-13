@@ -843,6 +843,8 @@ public class RequestV2 extends HTTPResource {
 					future.addListener(ChannelFutureListener.CLOSE);
 				}
 			}
+		} catch (Exception e) {
+			LOGGER.error("error while generating answer", e);
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
