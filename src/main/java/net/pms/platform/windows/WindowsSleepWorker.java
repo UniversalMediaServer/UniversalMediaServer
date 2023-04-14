@@ -35,15 +35,6 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 
 	private static ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-	/**
-	 * When this is active, it means we are in the process of
-	 * counting down from 5 minutes before we let Windows 11
-	 * resume its normal sleep activity. This is to work
-	 * around different logic in Windows 11 vs previous versions
-	 * of Windows.
-	 *
-	 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/3883
-	 */
 	private static ScheduledFuture futureSleep = null;
 
 	/**
@@ -65,7 +56,7 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 		};
 
-		if (WindowsUtils.isWindows11OrGreater()) {
+		if (WindowsUtils.isVersionThatSleepsImmediately()) {
 			/*
 			 * Future enhancement could make this delay the same
 			 * as the configured Windows sleep delay, for now 5 minutes
