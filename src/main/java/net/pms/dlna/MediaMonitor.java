@@ -237,6 +237,14 @@ public class MediaMonitor extends VirtualFolder {
 		}
 
 		/**
+		 * Do not treat this as a legitimate playback attempt if the start
+		 * time was within 2 seconds of the end of the video.
+		 */
+		if (fileDuration > 2.0 && realFile.getLastStartPosition() > (fileDuration - 2.0)) {
+			return;
+		}
+
+		/**
 		 * Only mark the file as fully played if more than 92% (default) of
 		 * the duration has elapsed since it started playing.
 		 */
