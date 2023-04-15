@@ -143,7 +143,7 @@ public abstract class AbstractSleepWorker extends Thread {
 
 								if (System.currentTimeMillis() < allowSleepTimer) {
 									// we are still waiting for the allow sleep timer to elapse
-									wait(System.currentTimeMillis() + 5000);
+									wait(5000);
 									continue;
 								} else {
 									// the timer has elapsed, reset it
