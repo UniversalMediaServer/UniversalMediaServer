@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
 		To build UMS, do:
@@ -20,7 +19,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>13.3.0-SNAPSHOT</version>
+	<version>13.3.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -976,79 +975,79 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the download folders exist -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/bin" />
-										<mkdir dir="${project.binaries}/windows" />
-										<mkdir dir="${project.binaries}/windows/avisynth" />
-										<mkdir dir="${project.binaries}/windows/codecs" />
-										<mkdir dir="${project.binaries}/windows/fonts" />
-										<mkdir dir="${project.binaries}/windows/fonts/conf.avail" />
-										<mkdir dir="${project.binaries}/windows/fonts/conf.d" />
-										<mkdir dir="${project.binaries}/windows/x86" />
-										<mkdir dir="${project.binaries}/windows/x86/jre${project.jre-version}" />
-										<mkdir dir="${project.binaries}/windows/x86_64" />
-										<mkdir dir="${project.binaries}/windows/x86_64/jre${project.jre-version}" />
-										<mkdir dir="${project.binaries}/windows/mplayer" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/bin"/>
+										<mkdir dir="${project.binaries}/windows"/>
+										<mkdir dir="${project.binaries}/windows/avisynth"/>
+										<mkdir dir="${project.binaries}/windows/codecs"/>
+										<mkdir dir="${project.binaries}/windows/fonts"/>
+										<mkdir dir="${project.binaries}/windows/fonts/conf.avail"/>
+										<mkdir dir="${project.binaries}/windows/fonts/conf.d"/>
+										<mkdir dir="${project.binaries}/windows/x86"/>
+										<mkdir dir="${project.binaries}/windows/x86/jre${project.jre-version}"/>
+										<mkdir dir="${project.binaries}/windows/x86_64"/>
+										<mkdir dir="${project.binaries}/windows/x86_64/jre${project.jre-version}"/>
+										<mkdir dir="${project.binaries}/windows/mplayer"/>
 
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
-										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-dsnative.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe"  usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/pncrt.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/sipr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/tokr3260.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wma9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmv9dmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmvdmod.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/40-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/45-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/49-sansserif.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/50-user.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/51-local.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/60-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/69-unifont.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/MediaInfo.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86/MediaInfo.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/MediaInfo.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/windows/MediaInfo-License.html" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-dsnative.txt" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt?p=${binary-revision}" dest="${project.binaries}/windows/LICENSE-mplayer.txt" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/builds.txt?p=${binary-revision}" dest="${project.binaries}/windows/builds.txt" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/dcrawMS.exe?p=${binary-revision}" dest="${project.binaries}/windows/dcrawMS.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/ffmpeg.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86/ffmpeg.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/bin/ffmpeg.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/ffmpeg64.exe?p=${binary-revision}" dest="${project.binaries}/windows/x86_64/ffmpeg.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/flac.exe?p=${binary-revision}" dest="${project.binaries}/windows/flac.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/mencoder.exe?p=${binary-revision}" dest="${project.binaries}/windows/mencoder.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/mplayer.exe?p=${binary-revision}" dest="${project.binaries}/windows/mplayer.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/tsMuxeR.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe?p=${binary-revision}" dest="${project.binaries}/windows/tsMuxeR-new.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/vcomp100.dll?p=${binary-revision}" dest="${project.binaries}/windows/vcomp100.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/youtube-dl.exe?p=${binary-revision}" dest="${project.binaries}/windows/youtube-dl.exe" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/drv33260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv33260.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/drv43260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drv43260.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/drvc.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/pncrt.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/pncrt.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/sipr3260.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/tokr3260.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/wma9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wma9dmod.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/wmv9dmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmv9dmod.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/codecs/wmvdmod.dll?p=${binary-revision}" dest="${project.binaries}/windows/codecs/wmvdmod.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/fonts.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/10-scale-bitmap-fonts.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/10-scale-bitmap-fonts.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/40-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/40-nonlatin.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/45-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/45-latin.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/49-sansserif.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/49-sansserif.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/50-user.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/50-user.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/51-local.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/51-local.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/60-latin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/60-latin.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-fonts-persian.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-fonts-persian.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/65-nonlatin.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/65-nonlatin.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/69-unifont.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/69-unifont.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/80-delicious.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/90-synthetic.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/fonts/conf.d/README?p=${binary-revision}" dest="${project.binaries}/windows/fonts/conf.d/README" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/InterFrame2.avsi" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow1.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/interframe/svpflow2.dll?p=${binary-revision}" dest="${project.binaries}/windows/avisynth/svpflow2.dll" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x64.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x64.zip" usetimestamp="true"/>
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x64.zip" dest="${project.binaries}/windows/x86_64/jre${project.jre-version}">
-											<cutdirsmapper dirs="1" />
+											<cutdirsmapper dirs="1"/>
 										</unzip>
-										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/jre${project.jre-version}-x86.zip?p=${binary-revision}" dest="${project.basedir}/target/jre${project.jre-version}-x86.zip" usetimestamp="true"/>
 										<unzip src="${project.basedir}/target/jre${project.jre-version}-x86.zip" dest="${project.binaries}/windows/x86/jre${project.jre-version}">
-											<cutdirsmapper dirs="1" />
+											<cutdirsmapper dirs="1"/>
 										</unzip>
-										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/mplayer/config?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/config" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/mplayer/input.conf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/input.conf" usetimestamp="true"/>
+										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true"/>
 
 										<!-- Make sure the download folders exist -->
 									</target>
@@ -1063,81 +1062,80 @@
 								<configuration>
 									<target>
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 
 										<!-- Copy the wrapper to its destination -->
-										<mkdir dir="${project.binaries}/windows/service" />
+										<mkdir dir="${project.binaries}/windows/service"/>
 										<copy todir="${project.binaries}/windows/service" overwrite="true">
 											<fileset dir="${project.external-resources}/windows/wrapper">
 												<exclude name="x86/"/>
 												<exclude name="x86_64/"/>
 											</fileset>
 										</copy>
-										<mkdir dir="${project.binaries}/windows/x86/service" />
+										<mkdir dir="${project.binaries}/windows/x86/service"/>
 										<copy todir="${project.binaries}/windows/x86/service" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/wrapper/x86" />
+											<fileset dir="${project.external-resources}/windows/wrapper/x86"/>
 										</copy>
-										<mkdir dir="${project.binaries}/windows/x86_64/service" />
+										<mkdir dir="${project.binaries}/windows/x86_64/service"/>
 										<copy todir="${project.binaries}/windows/x86_64/service" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/wrapper/x86_64" />
+											<fileset dir="${project.external-resources}/windows/wrapper/x86_64"/>
 										</copy>
 
 										<!-- Copy the ctrlsender.exe -->
-										<copy file="${project.external-resources}/windows/ctrlsender/ctrlsender.exe" todir="${project.binaries}/windows" />
+										<copy file="${project.external-resources}/windows/ctrlsender/ctrlsender.exe" todir="${project.binaries}/windows"/>
 
 										<!-- Copy the custom jnidispatch.dll for Windows XP -->
-										<mkdir dir="${project.binaries}/windows/winxp" />
-										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp" />
+										<mkdir dir="${project.binaries}/windows/winxp"/>
+										<copy file="${project.external-resources}/windows/winxp/jnidispatch.dll" todir="${project.binaries}/windows/winxp"/>
 
 										<!-- Copy avisynth -->
-										<mkdir dir="${project.binaries}/windows/x86_64/avisynth" />
-										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/windows/x86_64" />
-										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/windows/x86_64" />
+										<mkdir dir="${project.binaries}/windows/x86_64/avisynth"/>
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/windows/x86_64"/>
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/windows/x86_64"/>
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins"/>
 										</copy>
-										<mkdir dir="${project.binaries}/bin/avisynth" />
-										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/bin" />
-										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/bin" />
+										<mkdir dir="${project.binaries}/bin/avisynth"/>
+										<copy file="${project.external-resources}/windows/avisynth/x64/AviSynth.dll" todir="${project.binaries}/bin"/>
+										<copy file="${project.external-resources}/windows/avisynth/x64/system/DevIL.dll" todir="${project.binaries}/bin"/>
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins" />
+											<fileset dir="${project.external-resources}/windows/avisynth/x64/plugins"/>
 										</copy>
-										<copy file="${project.external-resources}/windows/avisynth/x86/AviSynth.dll" todir="${project.binaries}/windows/x86" />
-										<copy file="${project.external-resources}/windows/avisynth/x86/system/DevIL.dll" todir="${project.binaries}/windows/x86" />
-										<mkdir dir="${project.binaries}/windows/x86/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/x86/AviSynth.dll" todir="${project.binaries}/windows/x86"/>
+										<copy file="${project.external-resources}/windows/avisynth/x86/system/DevIL.dll" todir="${project.binaries}/windows/x86"/>
+										<mkdir dir="${project.binaries}/windows/x86/avisynth"/>
 										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/x86/plugins" />
+											<fileset dir="${project.external-resources}/windows/avisynth/x86/plugins"/>
 										</copy>
 
 										<!-- Copy convert2dto3d.avsi -->
-										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth" />
-										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/bin/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/windows/avisynth"/>
+										<copy file="${project.external-resources}/windows/avisynth/convert2dto3d.avsi" todir="${project.binaries}/bin/avisynth"/>
 										
 										<!-- Copy CropResize.avsi -->
-										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/windows/avisynth" />
-										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/bin/avisynth" />
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/windows/avisynth"/>
+										<copy file="${project.external-resources}/windows/avisynth/CropResize/CropResize.avsi" todir="${project.binaries}/bin/avisynth"/>
 
 										<!-- Copy mvtools2 to its destination -->
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86" />
+											<fileset dir="${project.external-resources}/windows/avisynth/mvtools2/x86"/>
 										</copy>
 										
 										<!-- Copy masktools2 to its destination -->
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x86" />
+											<fileset dir="${project.external-resources}/windows/avisynth/masktools2/x86"/>
 										</copy>										
 
 										<!-- Copy ffms2 to its destination -->
@@ -1154,13 +1152,13 @@
 											</fileset>
 										</copy>
 										<copy todir="${project.binaries}/windows/x86_64/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/bin/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64" />
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x64"/>
 										</copy>
 										<copy todir="${project.binaries}/windows/x86/avisynth" overwrite="true">
-											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x86" />
+											<fileset dir="${project.external-resources}/windows/avisynth/ffms2/x86"/>
 										</copy>
 									</target>
 								</configuration>
@@ -1368,14 +1366,14 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/arm64" />
-										<mkdir dir="${project.binaries}/linux/arm64/ffmpeg" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/linux"/>
+										<mkdir dir="${project.binaries}/linux/arm64"/>
+										<mkdir dir="${project.binaries}/linux/arm64/ffmpeg"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1387,8 +1385,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1515,14 +1512,14 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/armel" />
-										<mkdir dir="${project.binaries}/linux/armel/ffmpeg" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/linux"/>
+										<mkdir dir="${project.binaries}/linux/armel"/>
+										<mkdir dir="${project.binaries}/linux/armel/ffmpeg"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1534,8 +1531,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1662,14 +1658,14 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/armhf" />
-										<mkdir dir="${project.binaries}/linux/armhf/ffmpeg" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/linux"/>
+										<mkdir dir="${project.binaries}/linux/armhf"/>
+										<mkdir dir="${project.binaries}/linux/armhf/ffmpeg"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1681,8 +1677,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1809,21 +1804,21 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/x86" />
-										<mkdir dir="${project.binaries}/linux/x86/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/linux"/>
+										<mkdir dir="${project.binaries}/linux/x86"/>
+										<mkdir dir="${project.binaries}/linux/x86/ffmpeg"/>
+										<mkdir dir="${project.binaries}/linux/x86/jre${project.jre-version}"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86/ffmpeg/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR-new" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86/tsMuxeR_license.txt" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" usetimestamp="true"/>
 										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
-											<cutdirsmapper dirs="1" />
+											<cutdirsmapper dirs="1"/>
 										</untar>
 									</target>
 								</configuration>
@@ -1836,8 +1831,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1964,21 +1958,21 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the folders exist -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/linux" />
-										<mkdir dir="${project.binaries}/linux/x86_64" />
-										<mkdir dir="${project.binaries}/linux/x86_64/ffmpeg" />
-										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/linux"/>
+										<mkdir dir="${project.binaries}/linux/x86_64"/>
+										<mkdir dir="${project.binaries}/linux/x86_64/ffmpeg"/>
+										<mkdir dir="${project.binaries}/linux/x86_64/jre${project.jre-version}"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/x86_64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/ffmpeg/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR-new" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86_64/tsMuxeR_licence.txt?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/tsMuxeR_license.txt" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true"/>
+										<get src="${project.binaries-base}/linux/x86_64/jre${project.jre-version}.tar.gz?p=${binary-revision}" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" usetimestamp="true"/>
 										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
-											<cutdirsmapper dirs="1" />
+											<cutdirsmapper dirs="1"/>
 										</untar>
 									</target>
 								</configuration>
@@ -1991,8 +1985,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2091,29 +2084,29 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/osx" />
-										<mkdir dir="${project.binaries}/osx/10.15" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/osx"/>
+										<mkdir dir="${project.binaries}/osx/10.15"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/10.15/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true"/>
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/10.15/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true"/>
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}"/>
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}"/>
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*"/>
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2126,20 +2119,20 @@
 								<configuration>
 									<target>
 										<!-- Make sure the target folder exists -->
-										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution"/>
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
-											<arg value="-e" />
-											<arg value="tell application &quot;Finder&quot;" />
-											<arg value="-e" />
-											<arg value="set src to POSIX file &quot;/Applications&quot;" />
-											<arg value="-e" />
-											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
-											<arg value="-e" />
-											<arg value="make new alias file to folder src at folder dest" />
-											<arg value="-e" />
-											<arg value="end tell" />
+											<arg value="-e"/>
+											<arg value="tell application &quot;Finder&quot;"/>
+											<arg value="-e"/>
+											<arg value="set src to POSIX file &quot;/Applications&quot;"/>
+											<arg value="-e"/>
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;"/>
+											<arg value="-e"/>
+											<arg value="make new alias file to folder src at folder dest"/>
+											<arg value="-e"/>
+											<arg value="end tell"/>
 										</exec>
 									</target>
 								</configuration>
@@ -2151,33 +2144,17 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<property environment="env" />
+									<property environment="env"/>
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+										<exec executable="/usr/libexec/java_home" failonerror="true" outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
-										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
-										<bundleapp 
-											jrePreferred="true"
-											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
-											name="${project.name}"
-											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
-											shortversion="${project.version.short}"
-											version="${project.version}"
-											icon="${project.basedir}/src/main/resources/images/logo.icns"
-											applicationCategory="public.app-category.entertainment"
-											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
-										>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp jrePreferred="true" outputdirectory="${project.build.directory}/${project.build.finalName}-distribution" name="${project.name}" displayname="${project.name}" executableName="UMS" identifier="net.pms.PMS" shortversion="${project.version.short}" version="${project.version}" icon="${project.basedir}/src/main/resources/images/logo.icns" applicationCategory="public.app-category.entertainment" workingdirectory="$APP_ROOT/Contents/Resources" mainclassname="net.pms.PMS">
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
 											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
@@ -2333,31 +2310,31 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/osx" />
-										<mkdir dir="${project.binaries}/osx/10.15" />
-										<mkdir dir="${project.binaries}/osx/arm" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/osx"/>
+										<mkdir dir="${project.binaries}/osx/10.15"/>
+										<mkdir dir="${project.binaries}/osx/arm"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/arm/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true"/>
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/arm/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/arm/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/flac?p=${binary-revision}" dest="${project.binaries}/osx/10.15/flac" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mencoder" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/10.15/mplayer" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/10.15/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/10.15/tsMuxeR-new" usetimestamp="true"/>
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}"/>
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}"/>
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
-										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*"/>
+										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*"/>
+										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2370,20 +2347,20 @@
 								<configuration>
 									<target>
 										<!-- Make sure the target folder exists -->
-										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution"/>
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
-											<arg value="-e" />
-											<arg value="tell application &quot;Finder&quot;" />
-											<arg value="-e" />
-											<arg value="set src to POSIX file &quot;/Applications&quot;" />
-											<arg value="-e" />
-											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
-											<arg value="-e" />
-											<arg value="make new alias file to folder src at folder dest" />
-											<arg value="-e" />
-											<arg value="end tell" />
+											<arg value="-e"/>
+											<arg value="tell application &quot;Finder&quot;"/>
+											<arg value="-e"/>
+											<arg value="set src to POSIX file &quot;/Applications&quot;"/>
+											<arg value="-e"/>
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;"/>
+											<arg value="-e"/>
+											<arg value="make new alias file to folder src at folder dest"/>
+											<arg value="-e"/>
+											<arg value="end tell"/>
 										</exec>
 									</target>
 								</configuration>
@@ -2395,33 +2372,17 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<property environment="env" />
+									<property environment="env"/>
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+										<exec executable="/usr/libexec/java_home" failonerror="true" outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
-										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
-										<bundleapp 
-											jrePreferred="true"
-											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
-											name="${project.name}"
-											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
-											shortversion="${project.version.short}"
-											version="${project.version}"
-											icon="${project.basedir}/src/main/resources/images/logo.icns"
-											applicationCategory="public.app-category.entertainment"
-											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
-										>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp jrePreferred="true" outputdirectory="${project.build.directory}/${project.build.finalName}-distribution" name="${project.name}" displayname="${project.name}" executableName="UMS" identifier="net.pms.PMS" shortversion="${project.version.short}" version="${project.version}" icon="${project.basedir}/src/main/resources/images/logo.icns" applicationCategory="public.app-category.entertainment" workingdirectory="$APP_ROOT/Contents/Resources" mainclassname="net.pms.PMS">
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
 											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
@@ -2577,27 +2538,27 @@
 								<configuration>
 									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
-										<mkdir dir="${project.binaries}" />
-										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.binaries}"/>
+										<mkdir dir="${project.binaries}/osx"/>
 
 										<!-- Download binaries -->
-										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true" />
-										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
-										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/dcraw?p=${binary-revision}" dest="${project.binaries}/osx/dcraw" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/flac?p=${binary-revision}" dest="${project.binaries}/osx/flac" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/youtube-dl?p=${binary-revision}" dest="${project.binaries}/osx/youtube-dl" usetimestamp="true"/>
+										<get src="${project.binaries-base}/MediaInfo-License.html?p=${binary-revision}" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/mencoder?p=${binary-revision}" dest="${project.binaries}/osx/mencoder" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/mplayer?p=${binary-revision}" dest="${project.binaries}/osx/mplayer" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/tsMuxeR?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true"/>
+										<get src="${project.binaries-base}/osx/tsMuxeR-new?p=${binary-revision}" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true"/>
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
-										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}"/>
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}"/>
 
 										<!-- Make all downloaded binaries executable -->
-										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2610,20 +2571,20 @@
 								<configuration>
 									<target>
 										<!-- Make sure the target folder exists -->
-										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution" />
+										<mkdir dir="${project.build.directory}/${project.build.finalName}-distribution"/>
 
 										<!-- Create the shortcut to the Applications folder -->
 										<exec executable="/usr/bin/osascript">
-											<arg value="-e" />
-											<arg value="tell application &quot;Finder&quot;" />
-											<arg value="-e" />
-											<arg value="set src to POSIX file &quot;/Applications&quot;" />
-											<arg value="-e" />
-											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
-											<arg value="-e" />
-											<arg value="make new alias file to folder src at folder dest" />
-											<arg value="-e" />
-											<arg value="end tell" />
+											<arg value="-e"/>
+											<arg value="tell application &quot;Finder&quot;"/>
+											<arg value="-e"/>
+											<arg value="set src to POSIX file &quot;/Applications&quot;"/>
+											<arg value="-e"/>
+											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;"/>
+											<arg value="-e"/>
+											<arg value="make new alias file to folder src at folder dest"/>
+											<arg value="-e"/>
+											<arg value="end tell"/>
 										</exec>
 									</target>
 								</configuration>
@@ -2635,33 +2596,17 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<property environment="env" />
+									<property environment="env"/>
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
-										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+										<exec executable="/usr/libexec/java_home" failonerror="true" outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
-										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
-										<bundleapp 
-											jrePreferred="true"
-											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
-											name="${project.name}"
-											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
-											shortversion="${project.version.short}"
-											version="${project.version}"
-											icon="${project.basedir}/src/main/resources/images/logo.icns"
-											applicationCategory="public.app-category.entertainment"
-											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
-										>
+										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+										<bundleapp jrePreferred="true" outputdirectory="${project.build.directory}/${project.build.finalName}-distribution" name="${project.name}" displayname="${project.name}" executableName="UMS" identifier="net.pms.PMS" shortversion="${project.version.short}" version="${project.version}" icon="${project.basedir}/src/main/resources/images/logo.icns" applicationCategory="public.app-category.entertainment" workingdirectory="$APP_ROOT/Contents/Resources" mainclassname="net.pms.PMS">
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
 											<runtime dir="/Library/Java/JavaVirtualMachines/liberica-jre-${project.jre-version}.jre/Contents/Home"/>
@@ -2790,8 +2735,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2872,7 +2816,7 @@
 												</goals>
 											</pluginExecutionFilter>
 											<action>
-												<ignore></ignore>
+												<ignore/>
 											</action>
 										</pluginExecution>
 										<pluginExecution>
@@ -2891,7 +2835,7 @@
 												</goals>
 											</pluginExecutionFilter>
 											<action>
-												<ignore></ignore>
+												<ignore/>
 											</action>
 										</pluginExecution>
 										<pluginExecution>
@@ -2912,7 +2856,7 @@
 												</goals>
 											</pluginExecutionFilter>
 											<action>
-												<execute></execute>
+												<execute/>
 											</action>
 										</pluginExecution>
 									</pluginExecutions>
@@ -3025,8 +2969,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -3171,8 +3114,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -3316,8 +3258,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -3443,8 +3384,7 @@
 								</goals>
 								<configuration>
 									<target>
-										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar" tofile="${project.basedir}/target/ums.jar" overwrite="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -3479,8 +3419,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<mkdir dir="${project.binaries}"/>
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true"/>
 									</target>
 								</configuration>
 							</execution>
@@ -3556,8 +3496,8 @@
 								</goals>
 								<configuration>
 									<target unless="offline">
-										<mkdir dir="${project.binaries}/bin" />
-										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/bin"/>
+										<get src="${project.binaries-base}/win32/MediaInfo64.dll?p=${binary-revision}" dest="${project.binaries}/bin/MediaInfo.dll" usetimestamp="true"/>
 									</target>
 								</configuration>
 							</execution>
