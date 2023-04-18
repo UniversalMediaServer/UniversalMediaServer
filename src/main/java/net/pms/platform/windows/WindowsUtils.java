@@ -667,11 +667,13 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	/**
-	 * A readable way to see if this is Windows 11 or greater,
-	 * becuase Windows 11 identifies itself as 10.0.0, FFS...
+	 * Windows has changed its sleep strategy in version 11 to
+	 * sleep immediately after we release the sleep lock, instead
+	 * of respecting the timer.
 	 *
+	 * @see https://learn.microsoft.com/en-us/answers/questions/999348/setthreadexecutionstate-without-es-continuous-does
 	 */
-	public static boolean isWindows11OrGreater() {
-		return WindowsUtils.getOSVersion().isGreaterThanOrEqualTo("10.0.0");
+	public static boolean isVersionThatSleepsImmediately() {
+		return StringUtils.equals(System.getProperty("os.name"), "Windows 11");
 	}
 }
