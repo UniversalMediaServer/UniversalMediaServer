@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [13.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.3.0...13.4.0) (2023-04-19)
 
 ### General:
 - Added Composer and Conductor to UPnP results, for better handling of classical music
