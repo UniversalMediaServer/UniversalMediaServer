@@ -151,10 +151,10 @@ public class MediaTableMetadata extends MediaTable {
 						result.moveToInsertRow();
 					}
 
-					result.updateString(COL_M_KEY, key);
 					result.updateString(COL_M_VALUE, value);
 
 					if (isCreatingNewRecord) {
+						result.updateString(COL_M_KEY, key);
 						result.insertRow();
 					} else {
 						result.updateRow();
