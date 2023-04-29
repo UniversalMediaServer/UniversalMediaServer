@@ -136,34 +136,42 @@ public class MediaTableMetadata extends MediaTable {
 	public static void setOrUpdateMetadataValue(final Connection connection, final String key, final String value) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				statement.setString(1, key);
-				if (trace) {
-					LOGGER.trace("Searching for value in METADATA with \"{}\" before update", statement);
-				}
-
-				try (ResultSet result = statement.executeQuery()) {
-					boolean isCreatingNewRecord = false;
-
-					if (!result.next()) {
-						isCreatingNewRecord = true;
-						result.moveToInsertRow();
-					}
-
-					result.updateString(COL_M_VALUE, value);
-
-					if (isCreatingNewRecord) {
-						result.updateString(COL_M_KEY, key);
-						result.insertRow();
-					} else {
-						result.updateRow();
-					}
-				}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setString(1, key);
+			if (trace) {
+				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", statement);
 			}
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing value", key, TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+
+			try (ResultSet result = statement.executeQuery()) {
+				boolean isCreatingNewRecord = false;
+
+				if (result.next()) {
+					if (trace) {
+						LOGGER.trace("Existing record found, updating");
+					}
+				} else {
+					if (trace) {
+						LOGGER.trace("Existing record not found, inserting new one");
+					}
+					isCreatingNewRecord = true;
+					result.moveToInsertRow();
+				}
+
+				result.updateString(COL_M_VALUE, value);
+
+				if (isCreatingNewRecord) {
+					result.updateString(COL_M_KEY, key);
+					result.insertRow();
+				} else {
+					result.updateRow();
+				}
+			} catch (Exception e) {
+				LOGGER.error("Error while writing metadata: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		} catch (Exception e2) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_FOR_IN, DATABASE_NAME, "writing value", key, value, TABLE_NAME, e2.getMessage());
+			LOGGER.trace("", e2);
 		}
 	}
 }

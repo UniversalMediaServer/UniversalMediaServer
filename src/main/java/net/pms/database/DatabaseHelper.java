@@ -56,6 +56,7 @@ public abstract class DatabaseHelper {
 	protected static final String LOG_CONNECTION_GET_ERROR = "Database \"{}\" error while getting connection: {}";
 	protected static final String LOG_ERROR_WHILE_IN = "Database \"{}\" error while {} in \"{}\": {}";
 	protected static final String LOG_ERROR_WHILE_VAR_IN = "Database \"{}\" error while {} \"{}\" in \"{}\": {}";
+	protected static final String LOG_ERROR_WHILE_VAR_FOR_IN = "Database \"{}\" error while {} \"{}\" for \"{}\" in \"{}\": {}";
 	protected static final String LOG_ERROR_WHILE_IN_FOR = "Database \"{}\" error while {} in \"{}\" for \"{}\": {}";
 	protected static final String LOG_ERROR_WHILE_VAR_IN_FOR = "Database \"{}\" error while {} \"{}\" in \"{}\" for \"{}\": {}";
 
