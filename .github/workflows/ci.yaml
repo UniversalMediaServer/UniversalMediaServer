@@ -85,10 +85,10 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.40/libzen0v5_0.4.40-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libzen0v5_0.4.40-1_amd64.xUbuntu_20.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.03/libmediainfo0v5_23.03-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_23.03-1_amd64.xUbuntu_20.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.04/libmediainfo0v5_23.04-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_23.04-1_amd64.xUbuntu_20.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
@@ -117,8 +117,8 @@ jobs:
       - name: Run tests
         run: |
           sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.40/libzen0v5_0.4.40-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libzen0v5_0.4.40-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.03/libmediainfo0v5_23.03-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_23.03-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.04/libmediainfo0v5_23.04-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_23.04-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
