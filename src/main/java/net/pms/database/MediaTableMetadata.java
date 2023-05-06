@@ -172,7 +172,7 @@ public class MediaTableMetadata extends MediaTable {
 				LOGGER.trace("", e);
 
 				executeUpdate(connection, "DROP INDEX IF EXISTS IDX_M_KEY");
-				String query = "DELETE FROM " + TABLE_NAME + " WHERE M_KEY = " + key;
+				String query = "DELETE FROM " + TABLE_NAME + " WHERE M_KEY = " + sqlQuote(key);
 				try {
 					execute(connection, query);
 					LOGGER.debug("Recovery seems successful, recreating unique index");
