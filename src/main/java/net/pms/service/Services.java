@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * use the services and destroyed after other threads have terminated. This is
  * to avoid the cost of synchronization each time a service reference is needed.
  * <p>
- * <b>Note:</b> This class holds instance references that relies on
+ * <b>Note:</b> This class holds instance references that rely on
  * {@link UmsConfiguration} being initialized. This is therefore not suitable to
  * hold instance references that must exist when {@link UmsConfiguration} itself
  * is initialized.
@@ -127,7 +127,7 @@ public class Services {
 	}
 
 	/**
-	 * Creates and starts the services. Isn't normallyt needed, use
+	 * Creates and starts the services. Isn't normally needed, use
 	 * {@link Services#create()} instead.
 	 *
 	 * @throws IllegalStateException If the services have already been started.
