@@ -105,7 +105,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.14.2</jackson.version>
+		<jackson.version>2.15.1</jackson.version>
 
 		<surefire-version>3.1.0</surefire-version>
 
