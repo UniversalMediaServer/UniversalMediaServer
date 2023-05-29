@@ -1,5 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### General
+
+- Fixed broken SystemUpdateId update
+- Fixed broken filename parsing with some HDR files
+- Updated Javadocs (thanks, RichardIcecube!)
+
+### Dependencies
+- lock file maintenance
+- update dependency @emotion/react to v11.11.0 
+- update dependency @types/jest to v29.5.1
+- update dependency @types/lodash to v4.14.195
+- update dependency @types/node to v18.16.16
+- update dependency @types/react to v18.2.7
+- update dependency @types/react-dom to v18.2.4
+- update dependency @types/video.js to v7.3.52
+- update dependency axios to v1.4.0
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.15.1
+- update dependency com.github.oshi:oshi-core to v6.4.2
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.0
+- update dependency commons-io:commons-io to v2.12.0
+- update dependency eslint to v8.41.0
+- update dependency hls.js to v1.4.4
+- update dependency org.apache.maven.plugins:maven-assembly-plugin to v3.6.0 
+- update dependency org.apache.maven.plugins:maven-checkstyle-plugin to v3.3.0
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.1.0
+- update dependency react-router-dom to v6.11.2
+- update dependency stylis to v4.2.0
+- Update JRE to 17.0.7+7
+- update junit5 monorepo to v5.9.3
+- update logback-version to v1.4.7
+- update react monorepo to v18.2.0
+- Update tsMuxeR to 2023-04-13-02-05-26
+- update typescript-eslint monorepo to v5.59.7
+- update yarn to v3.5.1
+
 ## [13.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.3.0...13.4.0) (2023-04-19)
 
 ### General:
