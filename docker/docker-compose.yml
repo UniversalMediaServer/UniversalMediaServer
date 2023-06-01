@@ -1,0 +1,20 @@
+---
+version: "2.1"
+services:
+  universal_media_server:
+    image: universalmediaserver/ums:latest
+    container_name: ums_app
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /path/to/your/movies/:/root/movies
+      - /path/to/ums/config/:/root/.config/UMS
+      - /path/to/your/music/:/root/music
+    ports:
+      - 1044:1044 
+      - 5002:5002
+      - 9001:9001
+      - 9002:9002
+    restart: unless-stopped
