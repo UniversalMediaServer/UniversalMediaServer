@@ -3459,14 +3459,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.2.8":
-  version: 18.2.8
-  resolution: "@types/react@npm:18.2.8"
+"@types/react@npm:18.2.9":
+  version: 18.2.9
+  resolution: "@types/react@npm:18.2.9"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: 351fe2450d30bff2ceb6aa84788e948317555e5ea22cb44f6778e08c977aab1878a0119bd94bc3d1bec5f5af4a75ffaa2ce111df5cd9d4ce26bfd719e4d971c2
+  checksum: f155256171a2d701eb962a1d3aa2a1c9ee36d9dd4a4aecb911d29e50717aab1a76914aef25242665147c455b9e8d081d1a60275d13ca81075c148ebd6607414a
   languageName: node
   linkType: hard
 
@@ -13737,7 +13737,7 @@ __metadata:
     "@types/jest": 29.5.2
     "@types/lodash": 4.14.195
     "@types/node": 18.16.16
-    "@types/react": 18.2.8
+    "@types/react": 18.2.9
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.2.4
     "@types/video.js": 7.3.52
