@@ -2,6 +2,7 @@
   "extends": [
     "config:base"
   ],
+  "schedule": ["on friday"],
   "lockFileMaintenance": {
     "enabled": true,
     "automerge": true,
