@@ -29,7 +29,7 @@ public class ViewLevelTest {
 
 	@BeforeEach
 	public void setUp() throws ConfigurationException {
-		// Silence all log messages from the UMS code that is being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
