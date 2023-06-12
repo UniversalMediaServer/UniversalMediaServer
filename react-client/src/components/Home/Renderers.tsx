@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, Slider, Stack, Table, Text } from '@mantine/core';
+import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Slider, Stack, Table, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -162,7 +162,7 @@ const Renderers = () => {
   const rendererDetail = (
     <Modal
       centered
-      overflow='inside'
+      scrollAreaComponent={ScrollArea.Autosize}
       opened={infos != null}
       onClose={() => setAskInfos(-1)}
       title={infos?.title}

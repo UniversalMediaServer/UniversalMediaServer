@@ -16,7 +16,6 @@
  */
 import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer, MantineTheme } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { NotificationsProvider } from '@mantine/notifications';
 import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
@@ -104,7 +103,6 @@ function App() {
           },
         }}
       >
-        <NotificationsProvider>
           <I18nProvider rtl={rtl} setRtl={setRtl}>
             <NavbarProvider><NavbarContext.Consumer>
             {navbar => (
@@ -206,7 +204,6 @@ function App() {
             )}
             </NavbarContext.Consumer></NavbarProvider>
           </I18nProvider>
-        </NotificationsProvider>
       </MantineProvider>
     </ColorSchemeProvider>
   );
