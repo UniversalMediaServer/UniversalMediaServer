@@ -503,6 +503,16 @@ public class WindowsUtils extends PlatformUtils {
 		}
 	}
 
+	@Override
+	public String getShutdownCommand() {
+		return "shutdown.exe -s -t 0";
+	}
+
+	@Override
+	public String getJvmExecutableName() {
+		return System.console() == null ? "javaw.exe" : "java.exe";
+	}
+
 	private static String getAviSynthPluginsFolder() {
 		String key = "SOFTWARE\\AviSynth";
 		try {

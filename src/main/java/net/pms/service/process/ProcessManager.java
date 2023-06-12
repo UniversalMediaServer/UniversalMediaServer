@@ -16,11 +16,9 @@
  */
 package net.pms.service.process;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 import net.pms.platform.PlatformUtils;
@@ -90,6 +88,7 @@ public class ProcessManager {
 				currentTerminator.join();
 			} catch (InterruptedException e) {
 				LOGGER.debug("ProcessManager was interrupted while waiting for the process terminator to terminate");
+				Thread.currentThread().interrupt();
 			}
 		}
 	}
@@ -247,34 +246,5 @@ public class ProcessManager {
 			}
 		}
 	}
-
-	/**
-	 * Checks if the process is still alive using reflection if possible.
-	 *
-	 * @param process the {@link Process} to check.
-	 * @return {@code true} if the process is still alive, {@code false}
-	 *         otherwise.
-	 */
-	@SuppressFBWarnings("REC_CATCH_EXCEPTION")
-	public static boolean isProcessIsAlive(@Nullable Process process) {
-		if (process == null) {
-			return false;
-		}
-		return process.isAlive();
-	}
-
-	/**
-	 * Retrieves the process ID (PID) for the specified {@link Process}.
-	 *
-	 * @param process the {@link Process} for whose PID to retrieve.
-	 * @return The PID or zero if the PID couldn't be retrieved.
-	 */
-	public static long getProcessId(@Nullable Process process) {
-		if (process == null) {
-			return 0;
-		}
-		return process.pid();
-	}
-
 
 }
