@@ -11937,27 +11937,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.12.1":
-  version: 6.12.1
-  resolution: "react-router-dom@npm:6.12.1"
+"react-router-dom@npm:6.13.0":
+  version: 6.13.0
+  resolution: "react-router-dom@npm:6.13.0"
   dependencies:
     "@remix-run/router": 1.6.3
-    react-router: 6.12.1
+    react-router: 6.13.0
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: 885528986b6e32bde0cc6ff1f318186ce6931cf4a2a36511fe12eafb380576b448a991d43fe473dbb9bc97bb7efa0c87ac179a7470345a1d3534a34b65578677
+  checksum: f51131063c2d5e127b6b3f3f813c6d4988d0f37694a06697dc9d4a4d9d3825e2a4487ec9b81a1d356eb269018814d884ffc2e3d9ff056a46ae59c99c9e7e1086
   languageName: node
   linkType: hard
 
-"react-router@npm:6.12.1":
-  version: 6.12.1
-  resolution: "react-router@npm:6.12.1"
+"react-router@npm:6.13.0":
+  version: 6.13.0
+  resolution: "react-router@npm:6.13.0"
   dependencies:
     "@remix-run/router": 1.6.3
   peerDependencies:
     react: ">=16.8"
-  checksum: a23a0f2e6635eba19aec8d50b9126f61663d1e6ee6e69d6b2ca6e5dd678496b54d925f0d86a375270646da11cc12be66ac5e6ebf73962957af91ac828b63d10b
+  checksum: 31a187005d05e063c59324564a283cd28052eaf848ad446c87658f4fc48fa9543329fe8a14d7be14d9bbf62410d383f8cf1cf13898a838bf9c1e3201fe93384c
   languageName: node
   linkType: hard
 
@@ -13765,7 +13765,7 @@ __metadata:
     react-country-flag: 3.1.0
     react-dom: 18.2.0
     react-movable: 3.0.4
-    react-router-dom: 6.12.1
+    react-router-dom: 6.13.0
     react-scripts: 5.0.1
     stylis: 4.2.0
     stylis-plugin-rtl: 2.1.1
