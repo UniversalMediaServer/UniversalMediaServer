@@ -97,7 +97,7 @@
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.7</logback-version>
+		<logback-version>1.4.8</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -511,7 +511,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>73.1</version>
+			<version>73.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
