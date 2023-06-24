@@ -49,13 +49,13 @@ public class LoggingTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that is being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
 
 	/**
-	 * Test CacheAppender and it's utility class CacheLogger
+	 * Test CacheAppender and its utility class CacheLogger
 	 */
 	@Test
 	public void testCacheLogger() {
