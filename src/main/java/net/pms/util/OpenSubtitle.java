@@ -48,10 +48,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -118,13 +116,15 @@ public class OpenSubtitle {
 	private static Token token = null;
 
 	// Minimum number of threads in pool
-	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
+		0,
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
-
+		TimeUnit.SECONDS,
 		// The queue holding the tasks waiting to be processed
-		TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+		new LinkedBlockingQueue<>(),
+		// The ThreadFactory
+		new SimpleThreadFactory("OpenSubtitles background worker", "OpenSubtitles background workers group", Thread.NORM_PRIORITY - 1)
 	);
 
 	static {
@@ -4422,27 +4422,4 @@ public class OpenSubtitle {
 		}
 	}
 
-	/**
-	 * A {@link ThreadFactory} that creates threads for the OpenSubtitles
-	 * background workers
-	 */
-	static class OpenSubtitlesBackgroundWorkerThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		OpenSubtitlesBackgroundWorkerThreadFactory() {
-			group = new ThreadGroup("OpenSubtitles background workers group");
-			group.setDaemon(false);
-			group.setMaxPriority(Thread.NORM_PRIORITY - 1);
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "OpenSubtitles background worker " + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			return thread;
-		}
-	}
 }

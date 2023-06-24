@@ -103,7 +103,6 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
-import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
 import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
@@ -111,6 +110,7 @@ import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 
@@ -1127,7 +1127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
+						new SimpleThreadFactory("DLNAResource resolver thread", true));
 
 					if (shouldDoAudioTrackSorting(dlna)) {
 						sortChildrenWithAudioElements(dlna);
