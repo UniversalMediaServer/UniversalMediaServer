@@ -590,14 +590,39 @@
 		</dependency>
 		<!-- start of JAXB dependencies -->
 		<dependency>
-			<groupId>jakarta.xml.soap</groupId>
-			<artifactId>jakarta.xml.soap-api</artifactId>
-			<version>3.0.0</version>
+			<groupId>org.eclipse.angus</groupId>
+			<artifactId>angus-activation</artifactId>
+			<version>2.0.1</version>
 		</dependency>
 		<dependency>
-			<groupId>jakarta.xml.bind</groupId>
-			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>4.0.0</version>
+			<groupId>com.sun.xml.messaging.saaj</groupId>
+			<artifactId>saaj-impl</artifactId>
+			<version>3.0.2</version>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+					<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.angus</groupId>
+					<artifactId>angus-activation</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>4.0.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>jakarta.activation</groupId>
+					<artifactId>jakarta.activation-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.angus</groupId>
+					<artifactId>angus-activation</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<!-- end of JAXB dependencies -->
 		<dependency>
