@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 public class TextAreaFIFOTest {
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the UMS code that is being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
