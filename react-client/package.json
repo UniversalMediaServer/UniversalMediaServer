@@ -14,7 +14,6 @@
     "@mantine/prism": "5.10.5",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.4.0",
-    "hls.js": "1.4.6",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
     "react": "18.2.0",
@@ -27,9 +26,7 @@
     "stylis-plugin-rtl": "2.1.1",
     "tabler-icons-react": "1.56.0",
     "typescript": "5.0.4",
-    "video.js": "7.21.4",
-    "videojs-contrib-quality-levels": "3.0.0",
-    "videojs-hls-quality-selector": "1.1.4",
+    "video.js": "8.3.0",
     "web-vitals": "3.3.2"
   },
   "scripts": {
@@ -49,7 +46,8 @@
     "production": [
       ">0.2%",
       "not dead",
-      "not op_mini all"
+      "not op_mini all",
+      "not android < 5"
     ],
     "development": [
       "last 1 chrome version",
@@ -69,8 +67,6 @@
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.2.6",
     "@types/video.js": "7.3.52",
-    "@types/videojs-contrib-quality-levels": "2.0.1",
-    "@types/videojs-hls-quality-selector": "1.1.0",
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "5.60.0",
     "eslint": "8.43.0",
