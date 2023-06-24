@@ -134,7 +134,7 @@ public class LinuxUtils extends PlatformUtils {
 					try {
 						p.exitValue();
 					} catch (IllegalThreadStateException itse) {
-						// Unix only						
+						// Unix only
 						// still running: nuke it
 						// kill -14 (ALRM) works (for MEncoder) and is less
 						// dangerous than kill -9 so try that first

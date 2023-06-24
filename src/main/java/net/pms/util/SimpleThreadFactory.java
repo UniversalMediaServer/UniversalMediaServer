@@ -24,7 +24,7 @@ import org.apache.commons.lang3.StringUtils;
  * The default UMS thread factory.
  */
 public class SimpleThreadFactory implements ThreadFactory {
-	private static final AtomicInteger poolNumber = new AtomicInteger(1);
+	private static final AtomicInteger POOL_NUMBER = new AtomicInteger(1);
 	private final AtomicInteger threadNumber = new AtomicInteger(1);
 	private final String namePrefix;
 	private final ThreadGroup group;
@@ -61,7 +61,7 @@ public class SimpleThreadFactory implements ThreadFactory {
 		}
 
 		if (logPoolNumber) {
-			namePrefix = name + " " + poolNumber.getAndIncrement() + "-";
+			namePrefix = name + " " + POOL_NUMBER.getAndIncrement() + "-";
 		} else {
 			namePrefix = name + " ";
 		}
