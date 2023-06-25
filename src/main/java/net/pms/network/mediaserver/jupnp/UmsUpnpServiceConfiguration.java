@@ -23,7 +23,6 @@ import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
@@ -31,11 +30,12 @@ import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
 import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
+import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
+import net.pms.util.SimpleThreadFactory;
 import org.jupnp.DefaultUpnpServiceConfiguration;
 import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.header.UpnpHeader;
@@ -242,7 +242,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 	public static class JUPnPExecutor extends ThreadPoolExecutor {
 
 		public JUPnPExecutor(String name) {
-			this(new JUPnPThreadFactory(name),
+			this(new SimpleThreadFactory("jupnp-" + name),
 					new ThreadPoolExecutor.DiscardPolicy() {
 				// The pool is bounded and rejections will happen during shutdown
 				@Override
@@ -287,36 +287,6 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 				LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class).warn("Thread terminated " + runnable + " abruptly with exception: " + throwable);
 				LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class).warn("Root cause: " + cause);
 			}
-		}
-	}
-
-	// Executors.DefaultThreadFactory is package visibility (...no touching, you unworthy JDK user!)
-	public static class JUPnPThreadFactory implements ThreadFactory {
-
-		protected final ThreadGroup group;
-		protected final AtomicInteger threadNumber = new AtomicInteger(1);
-		protected final String namePrefix;
-
-		public JUPnPThreadFactory(String name) {
-			namePrefix = "jupnp-" + name + "-";
-			group = Thread.currentThread().getThreadGroup();
-		}
-
-		@Override
-		public Thread newThread(Runnable r) {
-			Thread t = new Thread(
-					group, r,
-					namePrefix + threadNumber.getAndIncrement(),
-					0
-			);
-			if (t.isDaemon()) {
-				t.setDaemon(false);
-			}
-			if (t.getPriority() != Thread.NORM_PRIORITY) {
-				t.setPriority(Thread.NORM_PRIORITY);
-			}
-
-			return t;
 		}
 	}
 

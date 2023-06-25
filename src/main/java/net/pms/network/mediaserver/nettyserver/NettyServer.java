@@ -16,14 +16,14 @@
  */
 package net.pms.network.mediaserver.nettyserver;
 
-import net.pms.network.mediaserver.*;
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
+import net.pms.network.mediaserver.HttpMediaServer;
+import net.pms.util.SimpleThreadFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
@@ -54,8 +54,12 @@ public class NettyServer extends HttpMediaServer {
 		InetSocketAddress address = new InetSocketAddress(serverInetAddress, port);
 		ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
 		ChannelFactory factory = new NioServerSocketChannelFactory(
-			Executors.newCachedThreadPool(new NettyBossThreadFactory()),
-			Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
+			Executors.newCachedThreadPool(
+				new SimpleThreadFactory("HTTPv2 Request Handler", "Netty boss group")
+			),
+			Executors.newCachedThreadPool(
+				new SimpleThreadFactory("HTTPv2 Request Worker", "Netty worker group")
+			)
 		);
 
 		bootstrap = new ServerBootstrap(factory);
@@ -103,53 +107,4 @@ public class NettyServer extends HttpMediaServer {
 		LOGGER.info("HTTP server stopped");
 	}
 
-	/**
-	 * A {@link ThreadFactory} that creates Netty worker threads.
-	 */
-	static class NettyWorkerThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		NettyWorkerThreadFactory() {
-			group = new ThreadGroup("Netty worker group");
-			group.setDaemon(false);
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "HTTPv2 Request Worker " + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			if (thread.getPriority() != Thread.NORM_PRIORITY) {
-				thread.setPriority(Thread.NORM_PRIORITY);
-			}
-			return thread;
-		}
-	}
-
-	/**
-	 * A {@link ThreadFactory} that creates Netty boss threads.
-	 */
-	static class NettyBossThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		NettyBossThreadFactory() {
-			group = new ThreadGroup("Netty boss group");
-			group.setDaemon(false);
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "HTTPv2 Request Handler " + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			if (thread.getPriority() != Thread.NORM_PRIORITY) {
-				thread.setPriority(Thread.NORM_PRIORITY);
-			}
-			return thread;
-		}
-	}
 }

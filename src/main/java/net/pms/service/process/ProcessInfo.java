@@ -18,7 +18,7 @@ package net.pms.service.process;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.NotThreadSafe;
-import static net.pms.service.process.ProcessManager.getProcessId;
+import net.pms.util.ProcessUtil;
 
 /**
  * This class represents a {@link Process} and its state information
@@ -60,7 +60,7 @@ public class ProcessInfo {
 		}
 		this.process = process;
 		this.processName = processName;
-		this.pid = getProcessId(process);
+		this.pid = ProcessUtil.getProcessId(process);
 		if (this.pid == 0) {
 			throw new IllegalStateException("Unable to retrieve process id");
 		}

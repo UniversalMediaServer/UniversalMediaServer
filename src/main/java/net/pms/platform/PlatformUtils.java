@@ -23,6 +23,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
@@ -49,6 +50,7 @@ import net.pms.service.sleep.AbstractSleepWorker;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.StringUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -341,6 +343,26 @@ public class PlatformUtils implements IPlatformUtils {
 		sb.append("Process exited with code ").append(exitCode).append(":\n");
 	}
 
+	@Override
+	public List<String> getRestartCommand(boolean hasOptions) {
+		return getUMSCommand();
+	}
+
+	@Override
+	public String getShutdownCommand() {
+		return null;
+	}
+
+	@Override
+	public String getJvmExecutableName() {
+		return "java";
+	}
+
+	@Override
+	public void destroyProcess(Process p) {
+		p.destroy();
+	}
+
 	private static PlatformUtils createInstance() {
 		if (Platform.isWindows()) {
 			return new WindowsUtils();
@@ -426,4 +448,37 @@ public class PlatformUtils implements IPlatformUtils {
 	public static boolean isMac() {
 		return Platform.isMac();
 	}
+
+	// Reconstruct the command that started this jvm, including all options.
+	// See
+	// http://stackoverflow.com/questions/4159802/how-can-i-restart-a-java-application
+	// http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
+	protected static List<String> getUMSCommand() {
+		List<String> restart = new ArrayList<>();
+		File jvmPath = new File(System.getProperty("java.home"));
+		String jvmExecutableName = INSTANCE.getJvmExecutableName();
+		File jvmExecutable = new File(jvmPath, jvmExecutableName);
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			jvmPath = new File(jvmPath, "bin");
+			jvmExecutable = new File(jvmPath, jvmExecutableName);
+		}
+		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
+			LOGGER.error("Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
+				jvmExecutable.getAbsolutePath(), jvmExecutableName);
+			restart.add(jvmExecutableName);
+		} else {
+			restart.add(StringUtil.quoteArg(jvmExecutable.getAbsolutePath()));
+		}
+		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+			restart.add(StringUtil.quoteArg(jvmArg));
+		}
+		restart.add("-cp");
+		restart.add(ManagementFactory.getRuntimeMXBean().getClassPath());
+		// Could also use generic main discovery instead:
+		// see
+		// http://stackoverflow.com/questions/41894/0-program-name-in-java-discover-main-class
+		restart.add(PMS.class.getName());
+		return restart;
+	}
+
 }
