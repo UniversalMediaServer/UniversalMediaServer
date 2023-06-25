@@ -57,8 +57,12 @@ export default function TranscodingSettings(
 		) : [];
 	}
 
+	const isStringArray = (value: any): boolean => {
+		return Array.isArray(value) && value.every((elem : any) => typeof elem === 'string')
+	}
+
 	const moveTranscodingEnginesPriority = (purpose: number, oldIndex: number, newIndex: number) => {
-		if (form.getInputProps('engines_priority').value instanceof Array<string>) {
+		if (isStringArray(form.getInputProps('engines_priority').value)) {
 			const items = form.getInputProps('engines_priority').value as Array<string>;
 			const index = items.indexOf(getTranscodingEnginesPriority(purpose)[oldIndex]);
 			const moveTo = index - oldIndex + newIndex;
@@ -67,7 +71,7 @@ export default function TranscodingSettings(
 	}
 
 	const setTranscodingEngineStatus = (id: string, enabled: boolean) => {
-		const items = (form.getInputProps('engines').value instanceof Array<string>) ?
+		const items = isStringArray(form.getInputProps('engines').value) ?
 			form.getInputProps('engines').value as Array<string> :
 			[form.getInputProps('engines').value];
 		const included = items.includes(id);
@@ -81,7 +85,7 @@ export default function TranscodingSettings(
 	}
 
 	const getTranscodingEngineStatus = (engine: { id: string, name: string, isAvailable: boolean, purpose: number, statusText: string[] }) => {
-		const items = (form.getInputProps('engines').value instanceof Array<string>) ?
+		const items = isStringArray(form.getInputProps('engines').value) ?
 			form.getInputProps('engines').value as Array<string> :
 			[form.getInputProps('engines').value];
 		if (!engine.isAvailable) {
