@@ -170,4 +170,12 @@ public interface IPlatformUtils {
 	public abstract IPipeProcess getPipeProcess(String pipeName, String... extras);
 
 	public abstract void appendErrorString(StringBuilder sb, int exitCode);
+
+	public abstract List<String> getRestartCommand(boolean hasOptions);
+
+	public abstract String getShutdownCommand();
+
+	public abstract String getJvmExecutableName();
+
+	public abstract void destroyProcess(final Process p);
 }
