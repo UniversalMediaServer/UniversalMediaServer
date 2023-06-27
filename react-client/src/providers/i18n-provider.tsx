@@ -20,6 +20,7 @@ import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
 import { i18nContext, LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
+import { ExclamationMark } from 'tabler-icons-react';
 
 interface Props {
   children?: ReactNode,
@@ -28,7 +29,13 @@ interface Props {
 }
 
 export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
-  const [i18n, setI18n] = useState<{[key: string]: string}>({});
+  const [i18n, setI18n] = useState<{[key: string]: string}>(
+  {
+    'Error' : 'Error',
+    'LanguagesNotReceived' : 'Languages were not received from the server.',
+    'Warning' : 'Warning',
+    'UniversalMediaServerUnreachable' : 'Universal Media Server unreachable'
+  });
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
@@ -66,14 +73,22 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
         setI18n(response.data.i18n);
         setRtl(response.data.isRtl);
       })
-      .catch(function () {
-        showNotification({
-          id: 'data-loading',
-          color: 'red',
-          title: 'Error',
-          message: 'Languages were not received from the server.',
-          autoClose: 3000,
-        });
+      .catch(function (error) {
+        if (!error.response && error.request) {
+          showNotification({
+            color: 'red',
+            title: i18n['Warning'],
+            message: i18n['UniversalMediaServerUnreachable'],
+            icon: <ExclamationMark size="1rem" />
+          });
+        } else {
+          showNotification({
+            id: 'data-loading',
+            color: 'red',
+            title: i18n['Error'],
+            message: i18n['LanguagesNotReceived']
+          });
+		}
     });
   }, [language]);
 
