@@ -223,7 +223,7 @@ export const Player = () => {
                   theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
-              onClick={() => sse.askBrowseId(media.id)}
+              onClick={() => { media.id && sse.askBrowseId(media.id)}}
             >
               {media.name}
             </Badge>);
@@ -231,7 +231,7 @@ export const Player = () => {
       </Group>);
     }
   }
- 
+
   const getMetadataBaseMedia = (title: string, media?: BaseMedia) => {
     if (media) {
       return getMetadataBaseMediaList(title, [media]);

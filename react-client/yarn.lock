@@ -2571,6 +2571,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@mycujoo/videojs-hls-quality-selector@npm:1.1.5-rc.4":
+  version: 1.1.5-rc.4
+  resolution: "@mycujoo/videojs-hls-quality-selector@npm:1.1.5-rc.4"
+  dependencies:
+    global: ^4.3.2
+    karma-safaritechpreview-launcher: 0.0.6
+    video.js: ^8.3.0
+    videojs-contrib-quality-levels: ^3.0.0
+  checksum: 5ad188a86effc0af9c1dd6640ed173b23c39ff0352d36fc37e7636a8819a4df83ddc203dbc5efa4a0e54eb6920e2b94ba17ff40ca833f676b69497ef6d8808f2
+  languageName: node
+  linkType: hard
+
 "@nicolo-ribaudo/eslint-scope-5-internals@npm:5.1.1-v1":
   version: 5.1.1-v1
   resolution: "@nicolo-ribaudo/eslint-scope-5-internals@npm:5.1.1-v1"
@@ -2795,10 +2807,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@remix-run/router@npm:1.6.3":
-  version: 1.6.3
-  resolution: "@remix-run/router@npm:1.6.3"
-  checksum: f6968b1626af930b42f8cb5a044f05e4fbce05af6c7947beb1704e45c9570944e3be16ee008b185e5e13baac97948299eb55341b2a359c3e2e54b9d6646ae167
+"@remix-run/router@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@remix-run/router@npm:1.7.0"
+  checksum: 80cab2fda9e4b9047c991e9b05b8bda8afa2adf7b85c785d7e6f593a399eb264d6a74302438babc81833b5d304eae0b22832f27552b1601e2ca9001d94b8e174
   languageName: node
   linkType: hard
 
@@ -3366,9 +3378,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 20.3.1
-  resolution: "@types/node@npm:20.3.1"
-  checksum: 63a393ab6d947be17320817b35d7277ef03728e231558166ed07ee30b09fd7c08861be4d746f10fdc63ca7912e8cd023939d4eab887ff6580ff704ff24ed810c
+  version: 20.3.2
+  resolution: "@types/node@npm:20.3.2"
+  checksum: 5929ce2b9b12b1e2a2304a0921a953c72a81f5753ad39ac43b99ce6312fbb2b4fb5bc6b60d64a2550704e3223cd5de1299467d36085ac69888899db978f2653a
   languageName: node
   linkType: hard
 
@@ -3559,15 +3571,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/videojs-contrib-quality-levels@npm:2.0.1":
-  version: 2.0.1
-  resolution: "@types/videojs-contrib-quality-levels@npm:2.0.1"
-  dependencies:
-    "@types/video.js": "*"
-  checksum: 6e8e8935f86c497393b5b4df090de297e2f73a47eec8d610d27445a969077d97cfa3627de6d81047cb713de734db0d725aaa269067b791e51dca47afc7c33819
-  languageName: node
-  linkType: hard
-
 "@types/videojs-hls-quality-selector@npm:1.1.0":
   version: 1.1.0
   resolution: "@types/videojs-hls-quality-selector@npm:1.1.0"
@@ -3611,7 +3614,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:5.60.0, @typescript-eslint/eslint-plugin@npm:^5.5.0":
+"@typescript-eslint/eslint-plugin@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.60.0"
   dependencies:
@@ -3635,18 +3638,42 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/experimental-utils@npm:^5.0.0":
-  version: 5.60.0
-  resolution: "@typescript-eslint/experimental-utils@npm:5.60.0"
+"@typescript-eslint/eslint-plugin@npm:^5.5.0":
+  version: 5.60.1
+  resolution: "@typescript-eslint/eslint-plugin@npm:5.60.1"
   dependencies:
-    "@typescript-eslint/utils": 5.60.0
+    "@eslint-community/regexpp": ^4.4.0
+    "@typescript-eslint/scope-manager": 5.60.1
+    "@typescript-eslint/type-utils": 5.60.1
+    "@typescript-eslint/utils": 5.60.1
+    debug: ^4.3.4
+    grapheme-splitter: ^1.0.4
+    ignore: ^5.2.0
+    natural-compare-lite: ^1.4.0
+    semver: ^7.3.7
+    tsutils: ^3.21.0
   peerDependencies:
+    "@typescript-eslint/parser": ^5.0.0
     eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
-  checksum: 37d46701a35c4329ba24ce8ed063362978a58d0b429db80f520f7e5ba71616e5cab76c07fe8360a6a71ddb9872af9ace7e329c879915c73e9efc598c2283ec77
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 6ea3fdc64b216ee709318bfce1573cd8d90836150f0075aaa8755c347541af9ec026043e538a3264d28d1b32ff49b1fd7c6163826b8513f19f0957fefccf7752
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:5.60.0, @typescript-eslint/parser@npm:^5.5.0":
+"@typescript-eslint/experimental-utils@npm:^5.0.0":
+  version: 5.60.1
+  resolution: "@typescript-eslint/experimental-utils@npm:5.60.1"
+  dependencies:
+    "@typescript-eslint/utils": 5.60.1
+  peerDependencies:
+    eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
+  checksum: 826716327e619632856e8468c7bacc2c463f9f3335c9d9c93a56112a54d188f08bd2216d4c967fec539ae61e7e975313a4b402377b5cb54985d809ba8bf0e126
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/parser@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/parser@npm:5.60.0"
   dependencies:
@@ -3663,6 +3690,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/parser@npm:^5.5.0":
+  version: 5.60.1
+  resolution: "@typescript-eslint/parser@npm:5.60.1"
+  dependencies:
+    "@typescript-eslint/scope-manager": 5.60.1
+    "@typescript-eslint/types": 5.60.1
+    "@typescript-eslint/typescript-estree": 5.60.1
+    debug: ^4.3.4
+  peerDependencies:
+    eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 08f1552ab0da178524a8de3654d2fb7c8ecb9efdad8e771c9cbf4af555c42e77d17b2c182d139a531cc76c3cabd091d1d25024c2c215cb809dca8b147c8a493c
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/scope-manager@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/scope-manager@npm:5.60.0"
@@ -3670,6 +3714,16 @@ __metadata:
     "@typescript-eslint/types": 5.60.0
     "@typescript-eslint/visitor-keys": 5.60.0
   checksum: b21ee1ef57be948a806aa31fd65a9186766b3e1a727030dc47025edcadc54bd1aa6133a439acd5f44a93e2b983dd55bc5571bb01cb834461dab733682d66256a
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/scope-manager@npm:5.60.1":
+  version: 5.60.1
+  resolution: "@typescript-eslint/scope-manager@npm:5.60.1"
+  dependencies:
+    "@typescript-eslint/types": 5.60.1
+    "@typescript-eslint/visitor-keys": 5.60.1
+  checksum: 32c0786123f12fbb861aba3527471134a2e9978c7f712e0d7650080651870903482aed72a55f81deba9493118c1ca3c57edaaaa75d7acd9892818e3e9cc341ef
   languageName: node
   linkType: hard
 
@@ -3690,10 +3744,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/type-utils@npm:5.60.1":
+  version: 5.60.1
+  resolution: "@typescript-eslint/type-utils@npm:5.60.1"
+  dependencies:
+    "@typescript-eslint/typescript-estree": 5.60.1
+    "@typescript-eslint/utils": 5.60.1
+    debug: ^4.3.4
+    tsutils: ^3.21.0
+  peerDependencies:
+    eslint: "*"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: f8d5f87b5441d5c671f69631efd103f5f45e0cb7dbe0131a5b4234a5208ac845041219e8baaa3adc341e82a602165dd6fabf4fd06964d0109d0875425c8ac918
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/types@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/types@npm:5.60.0"
   checksum: 48f29e5c084c5663cfed1a6c4458799a6690a213e7861a24501f9b96698ae59e89a1df1c77e481777e4da78f1b0a5573a549f7b8880e3f4071a7a8b686254db8
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/types@npm:5.60.1":
+  version: 5.60.1
+  resolution: "@typescript-eslint/types@npm:5.60.1"
+  checksum: 766b6c857493b72a8f515e6a8e409476a317b7a7f0401fbcdf18f417839fca004dcaf06f58eb5ba00777e3ca9c68cd2f56fda79f3a8eb8a418095b5b1f625712
   languageName: node
   linkType: hard
 
@@ -3715,7 +3793,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/utils@npm:5.60.0, @typescript-eslint/utils@npm:^5.58.0":
+"@typescript-eslint/typescript-estree@npm:5.60.1":
+  version: 5.60.1
+  resolution: "@typescript-eslint/typescript-estree@npm:5.60.1"
+  dependencies:
+    "@typescript-eslint/types": 5.60.1
+    "@typescript-eslint/visitor-keys": 5.60.1
+    debug: ^4.3.4
+    globby: ^11.1.0
+    is-glob: ^4.0.3
+    semver: ^7.3.7
+    tsutils: ^3.21.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 5bb9d08c3cbc303fc64647878cae37283c4cfa9e3ed00da02ee25dc2e46798a1ad6964c9f04086f0134716671357e6569a65ea0ae75f0f3ff94ae67666385c6f
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/utils@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/utils@npm:5.60.0"
   dependencies:
@@ -3733,6 +3829,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@typescript-eslint/utils@npm:5.60.1, @typescript-eslint/utils@npm:^5.58.0":
+  version: 5.60.1
+  resolution: "@typescript-eslint/utils@npm:5.60.1"
+  dependencies:
+    "@eslint-community/eslint-utils": ^4.2.0
+    "@types/json-schema": ^7.0.9
+    "@types/semver": ^7.3.12
+    "@typescript-eslint/scope-manager": 5.60.1
+    "@typescript-eslint/types": 5.60.1
+    "@typescript-eslint/typescript-estree": 5.60.1
+    eslint-scope: ^5.1.1
+    semver: ^7.3.7
+  peerDependencies:
+    eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
+  checksum: 00c1adaa09d5d5be947e98962a78c21ed08c3ac46dd5ddd7b78f6102537d50afd4578a42a3e09a24dd51f5bc493f0b968627b4423647540164b2d2380afa9246
+  languageName: node
+  linkType: hard
+
 "@typescript-eslint/visitor-keys@npm:5.60.0":
   version: 5.60.0
   resolution: "@typescript-eslint/visitor-keys@npm:5.60.0"
@@ -3743,21 +3857,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:2.16.2":
-  version: 2.16.2
-  resolution: "@videojs/http-streaming@npm:2.16.2"
+"@typescript-eslint/visitor-keys@npm:5.60.1":
+  version: 5.60.1
+  resolution: "@typescript-eslint/visitor-keys@npm:5.60.1"
   dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 3.0.5
-    aes-decrypter: 3.1.3
-    global: ^4.4.0
-    m3u8-parser: 4.8.0
-    mpd-parser: ^0.22.1
-    mux.js: 6.0.1
-    video.js: ^6 || ^7
-  peerDependencies:
-    video.js: ^6 || ^7
-  checksum: 575caab333b34b7c2df291b28b802d5bb0e0d865dd2b677bfade91ab536f6a303115dcdc9783588b6636ec380e11e9bf9ec8b22361bd7cd67010b23cc83238ea
+    "@typescript-eslint/types": 5.60.1
+    eslint-visitor-keys: ^3.3.0
+  checksum: 137f6a6f8efb398969087147b59f99f7d0deed044d89d7efce3631bb90bc32e3a13a5cee6a65e1c9830862c5c4402ac1a9b2c9e31fe46d1716602af2813bffae
   languageName: node
   linkType: hard
 
@@ -3779,17 +3885,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/vhs-utils@npm:3.0.5, @videojs/vhs-utils@npm:^3.0.4, @videojs/vhs-utils@npm:^3.0.5":
-  version: 3.0.5
-  resolution: "@videojs/vhs-utils@npm:3.0.5"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    global: ^4.4.0
-    url-toolkit: ^2.2.1
-  checksum: 637dc9a8848027eab4213d6e85439d216577d0cb0346767c15bbb07a5a730aa30545f0b5d7bfd636f40212e490f34bf103e331f0bc180b4d3c245e77f30b437f
-  languageName: node
-  linkType: hard
-
 "@videojs/vhs-utils@npm:4.0.0, @videojs/vhs-utils@npm:^4.0.0":
   version: 4.0.0
   resolution: "@videojs/vhs-utils@npm:4.0.0"
@@ -3798,6 +3893,17 @@ __metadata:
     global: ^4.4.0
     url-toolkit: ^2.2.1
   checksum: a824900d0173478c80ee9683f67cc041e204d79ac280ae369adb03357d51d8a51b296bd6aff96b2cce66633a63f05a10d11d53da6ec063ee7c4d6e38dabd826e
+  languageName: node
+  linkType: hard
+
+"@videojs/vhs-utils@npm:^3.0.5":
+  version: 3.0.5
+  resolution: "@videojs/vhs-utils@npm:3.0.5"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    global: ^4.4.0
+    url-toolkit: ^2.2.1
+  checksum: 637dc9a8848027eab4213d6e85439d216577d0cb0346767c15bbb07a5a730aa30545f0b5d7bfd636f40212e490f34bf103e331f0bc180b4d3c245e77f30b437f
   languageName: node
   linkType: hard
 
@@ -4078,18 +4184,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aes-decrypter@npm:3.1.3":
-  version: 3.1.3
-  resolution: "aes-decrypter@npm:3.1.3"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": ^3.0.5
-    global: ^4.4.0
-    pkcs7: ^1.0.4
-  checksum: e634af25c5086894690062a2875d87e80118cd8f7945a162b4f8aaadb4e5c0f0656d2c31c619024c64f935c04938260f30e1531607617ce775430c74a840ca14
-  languageName: node
-  linkType: hard
-
 "aes-decrypter@npm:4.0.1, aes-decrypter@npm:^4.0.1":
   version: 4.0.1
   resolution: "aes-decrypter@npm:4.0.1"
@@ -4330,11 +4424,11 @@ __metadata:
   linkType: hard
 
 "aria-query@npm:^5.0.0, aria-query@npm:^5.1.3":
-  version: 5.2.1
-  resolution: "aria-query@npm:5.2.1"
+  version: 5.3.0
+  resolution: "aria-query@npm:5.3.0"
   dependencies:
     dequal: ^2.0.3
-  checksum: fdb7a337d97acf4dae831e4c2c786233aca5ccb779a02c10fe65a65af9849f6e9868073593313ab52b7b0d9817e05cfb22a5cd43ecf22a8e7f2abea2268bdac9
+  checksum: 305bd73c76756117b59aba121d08f413c7ff5e80fa1b98e217a3443fcddb9a232ee790e24e432b59ae7625aebcf4c47cb01c2cac872994f0b426f5bdfcd96ba9
   languageName: node
   linkType: hard
 
@@ -4958,9 +5052,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.0, caniuse-lite@npm:^1.0.30001464, caniuse-lite@npm:^1.0.30001503":
-  version: 1.0.30001507
-  resolution: "caniuse-lite@npm:1.0.30001507"
-  checksum: 7044172bdf65140c927cdaaff50368a97676f06a9fd8b515c046613bdf52cb769e9efb832ee491b8f8cc21f82c15f154a896efbab690f431bb064c95f3a2b7a8
+  version: 1.0.30001508
+  resolution: "caniuse-lite@npm:1.0.30001508"
+  checksum: 0a083ed92194d87e608fc35cac65830a27900249729eb8a68e270f866f2c4f83396c2e54eb47b0ef71360682174dd74e2e68eac0b8d407d125611c7bc12488eb
   languageName: node
   linkType: hard
 
@@ -6136,9 +6230,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.431":
-  version: 1.4.440
-  resolution: "electron-to-chromium@npm:1.4.440"
-  checksum: 702f8f045492a15bc6eee408987c986de1e78a568b34fc68ed6a21e1fc03f3a3019e7e6a6d88c1f4468fbe788045425e70104ec9b481825d0bce00e3841418b8
+  version: 1.4.441
+  resolution: "electron-to-chromium@npm:1.4.441"
+  checksum: 807a3659daf9ac376c3b7a2d19965e186a8c8a4b2498a911c96bc80f43701ec6e9268c382b4e3155ce0def4c9e35071de6a0506dd69b822bd9592ad8de71bc91
   languageName: node
   linkType: hard
 
@@ -7627,13 +7721,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hls.js@npm:1.4.6":
-  version: 1.4.6
-  resolution: "hls.js@npm:1.4.6"
-  checksum: 7a44107c92e52859bfd5a37b6ea647cfea20848466286c1280b2cf956cfaccf8131fa54867cd8edfb60042a238025fb8788263fd9dfb9d1798ddbdc08f5aab50
-  languageName: node
-  linkType: hard
-
 "hoist-non-react-statics@npm:^3.3.1":
   version: 3.3.2
   resolution: "hoist-non-react-statics@npm:3.3.2"
@@ -7672,9 +7759,9 @@ __metadata:
   linkType: hard
 
 "html-entities@npm:^2.1.0, html-entities@npm:^2.3.2":
-  version: 2.3.6
-  resolution: "html-entities@npm:2.3.6"
-  checksum: 559a88dc3a2059b1e8882940dcaf996ea9d8151b9a780409ff223a79dc1d42ee8bb19b3365064f241f2e2543b0f90612d63f9b8e36d14c4c7fbb73540a8f41cb
+  version: 2.4.0
+  resolution: "html-entities@npm:2.4.0"
+  checksum: 25bea32642ce9ebd0eedc4d24381883ecb0335ccb8ac26379a0958b9b16652fdbaa725d70207ce54a51db24103436a698a8e454397d3ba8ad81460224751f1dc
   languageName: node
   linkType: hard
 
@@ -9305,13 +9392,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"keycode@npm:^2.2.0":
-  version: 2.2.1
-  resolution: "keycode@npm:2.2.1"
-  checksum: 7a5c775b2410a3b6d9c07a415ecb70639187a965be239d2c11c71079cb1ca2f9dede94b86426f3ece475dc8ae3debf2367531bbcafc0af8c82f157d9a4f7e6cb
-  languageName: node
-  linkType: hard
-
 "kind-of@npm:^6.0.2":
   version: 6.0.3
   resolution: "kind-of@npm:6.0.3"
@@ -9572,17 +9652,6 @@ __metadata:
   bin:
     lz-string: bin/bin.js
   checksum: 1ee98b4580246fd90dd54da6e346fb1caefcf05f677c686d9af237a157fdea3fd7c83a4bc58f858cd5b10a34d27afe0fdcbd0505a47e0590726a873dc8b8f65d
-  languageName: node
-  linkType: hard
-
-"m3u8-parser@npm:4.8.0":
-  version: 4.8.0
-  resolution: "m3u8-parser@npm:4.8.0"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": ^3.0.5
-    global: ^4.4.0
-  checksum: 850a8c5cacdbdc154d4fa18c79af77fdf45ef4afcb3d8a0507d04e8d9ddb5c0a9d18cb48c8e23be707d007c063038cdeab0d3de23100e5c02050a7aff6e2b2b8
   languageName: node
   linkType: hard
 
@@ -9933,20 +10002,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mpd-parser@npm:0.22.1, mpd-parser@npm:^0.22.1":
-  version: 0.22.1
-  resolution: "mpd-parser@npm:0.22.1"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": ^3.0.5
-    "@xmldom/xmldom": ^0.8.3
-    global: ^4.4.0
-  bin:
-    mpd-to-m3u8-json: bin/parse.js
-  checksum: 688e4d6c2353e3e55a9a7841fff263825d92ec44e0d0800e4c9d332fa27f9ffffac201723d9f5793a49813060fd150e9f203f20e840e64f7da2626b49764ba01
-  languageName: node
-  linkType: hard
-
 "mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.1.1":
   version: 1.1.1
   resolution: "mpd-parser@npm:1.1.1"
@@ -9991,18 +10046,6 @@ __metadata:
   bin:
     multicast-dns: cli.js
   checksum: 00b8a57df152d4cd0297946320a94b7c3cdf75a46a2247f32f958a8927dea42958177f9b7fdae69fab2e4e033fb3416881af1f5e9055a3e1542888767139e2fb
-  languageName: node
-  linkType: hard
-
-"mux.js@npm:6.0.1":
-  version: 6.0.1
-  resolution: "mux.js@npm:6.0.1"
-  dependencies:
-    "@babel/runtime": ^7.11.2
-    global: ^4.4.0
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: dcf6fb7a3ea5bce741268480fe5ed43ae75c82403ebcaddb2f6d1bd83364e3c70359feea9348112cb7ddd88b02e9c2f9fa0c0a5de9eaf32e8f246a53c6ed8f8a
   languageName: node
   linkType: hard
 
@@ -11882,27 +11925,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.13.0":
-  version: 6.13.0
-  resolution: "react-router-dom@npm:6.13.0"
+"react-router-dom@npm:6.14.0":
+  version: 6.14.0
+  resolution: "react-router-dom@npm:6.14.0"
   dependencies:
-    "@remix-run/router": 1.6.3
-    react-router: 6.13.0
+    "@remix-run/router": 1.7.0
+    react-router: 6.14.0
   peerDependencies:
     react: ">=16.8"
     react-dom: ">=16.8"
-  checksum: f51131063c2d5e127b6b3f3f813c6d4988d0f37694a06697dc9d4a4d9d3825e2a4487ec9b81a1d356eb269018814d884ffc2e3d9ff056a46ae59c99c9e7e1086
+  checksum: 66800b8779f5ae9f8b8e1f41e25599519a40c532e020a8c1450e1645d2c8cc8351e51ed0f2516584681e9a509c6c40f629f2d80663123e132c68022c0edced03
   languageName: node
   linkType: hard
 
-"react-router@npm:6.13.0":
-  version: 6.13.0
-  resolution: "react-router@npm:6.13.0"
+"react-router@npm:6.14.0":
+  version: 6.14.0
+  resolution: "react-router@npm:6.14.0"
   dependencies:
-    "@remix-run/router": 1.6.3
+    "@remix-run/router": 1.7.0
   peerDependencies:
     react: ">=16.8"
-  checksum: 31a187005d05e063c59324564a283cd28052eaf848ad446c87658f4fc48fa9543329fe8a14d7be14d9bbf62410d383f8cf1cf13898a838bf9c1e3201fe93384c
+  checksum: 50a941746d12e81cea5495505c1afbcd099cc7d497624b013454cfd5a360d9403578f8fb3df17973bf775fbff91cb76477448023d537215e6aa71a8b85ae95bd
   languageName: node
   linkType: hard
 
@@ -13301,9 +13344,9 @@ __metadata:
   linkType: hard
 
 "tabbable@npm:^6.0.1":
-  version: 6.1.2
-  resolution: "tabbable@npm:6.1.2"
-  checksum: 1e2d9af4f172a3793f491bab10263c26903c2be6a5c4ab723d69d1ba2054828d22a50add9ba7fc42735468871d40054d906fa4f0a9dc2fbd4feff875e84c1a89
+  version: 6.2.0
+  resolution: "tabbable@npm:6.2.0"
+  checksum: f8440277d223949272c74bb627a3371be21735ca9ad34c2570f7e1752bd646ccfc23a9d8b1ee65d6561243f4134f5fbbf1ad6b39ac3c4b586554accaff4a1300
   languageName: node
   linkType: hard
 
@@ -13594,9 +13637,9 @@ __metadata:
   linkType: hard
 
 "tslib@npm:^2.0.0, tslib@npm:^2.0.3, tslib@npm:^2.1.0, tslib@npm:^2.4.0":
-  version: 2.5.3
-  resolution: "tslib@npm:2.5.3"
-  checksum: 88902b309afaf83259131c1e13da1dceb0ad1682a213143a1346a649143924d78cf3760c448b84d796938fd76127183894f8d85cbb3bf9c4fddbfcc140c0003c
+  version: 2.6.0
+  resolution: "tslib@npm:2.6.0"
+  checksum: c01066038f950016a18106ddeca4649b4d76caa76ec5a31e2a26e10586a59fceb4ee45e96719bf6c715648e7c14085a81fee5c62f7e9ebee68e77a5396e5538f
   languageName: node
   linkType: hard
 
@@ -13720,6 +13763,7 @@ __metadata:
     "@mantine/notifications": 6.0.14
     "@mantine/prism": 6.0.14
     "@microsoft/fetch-event-source": 2.0.1
+    "@mycujoo/videojs-hls-quality-selector": 1.1.5-rc.4
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.4.3
@@ -13730,14 +13774,12 @@ __metadata:
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.2.6
     "@types/video.js": 7.3.52
-    "@types/videojs-contrib-quality-levels": 2.0.1
     "@types/videojs-hls-quality-selector": 1.1.0
     "@typescript-eslint/eslint-plugin": 5.60.0
     "@typescript-eslint/parser": 5.60.0
     axios: 1.4.0
     eslint: 8.43.0
     eslint-plugin-react: 7.32.2
-    hls.js: 1.4.6
     jwt-decode: 3.1.2
     lodash: 4.17.21
     react: 18.2.0
@@ -13745,15 +13787,14 @@ __metadata:
     react-country-flag: 3.1.0
     react-dom: 18.2.0
     react-movable: 3.0.4
-    react-router-dom: 6.13.0
+    react-router-dom: 6.14.0
     react-scripts: 5.0.1
     stylis: 4.2.0
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.1.3
-    video.js: 7.21.4
-    videojs-contrib-quality-levels: 3.0.0
-    videojs-hls-quality-selector: 1.1.4
+    video.js: 8.5.0
+    videojs-contrib-quality-levels: 4.0.0
     web-vitals: 3.3.2
   languageName: unknown
   linkType: soft
@@ -14029,28 +14070,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:7.21.4, video.js@npm:^6 || ^7, video.js@npm:^7.5.5":
-  version: 7.21.4
-  resolution: "video.js@npm:7.21.4"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 2.16.2
-    "@videojs/vhs-utils": ^3.0.4
-    "@videojs/xhr": 2.6.0
-    aes-decrypter: 3.1.3
-    global: ^4.4.0
-    keycode: ^2.2.0
-    m3u8-parser: 4.8.0
-    mpd-parser: 0.22.1
-    mux.js: 6.0.1
-    safe-json-parse: 4.0.0
-    videojs-font: 3.2.0
-    videojs-vtt.js: ^0.15.4
-  checksum: 0a58e5a26a6d219da03080b215dd32442e6ba6ab70fab6629ee46e62306ac46d8405d467349ce07af837024ccd706cfe7e659435bbd888ea4c7e06432931e3a6
-  languageName: node
-  linkType: hard
-
-"video.js@npm:^6 || ^7 || ^8, video.js@npm:^7 || ^8":
+"video.js@npm:8.5.0, video.js@npm:^7 || ^8, video.js@npm:^8.3.0":
   version: 8.5.0
   resolution: "video.js@npm:8.5.0"
   dependencies:
@@ -14072,17 +14092,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"videojs-contrib-quality-levels@npm:3.0.0":
-  version: 3.0.0
-  resolution: "videojs-contrib-quality-levels@npm:3.0.0"
-  dependencies:
-    global: ^4.4.0
-  peerDependencies:
-    video.js: ^6 || ^7 || ^8
-  checksum: 06635a74f4c88d7adb7c8e55687b76306432ea5921c4a03cfb9845adc0eef671c9e043706911e761366a41e6a4046cafaa619c645f25858764500e5596ce9b41
-  languageName: node
-  linkType: hard
-
 "videojs-contrib-quality-levels@npm:4.0.0":
   version: 4.0.0
   resolution: "videojs-contrib-quality-levels@npm:4.0.0"
@@ -14094,22 +14103,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"videojs-contrib-quality-levels@npm:^2.0.9":
-  version: 2.2.1
-  resolution: "videojs-contrib-quality-levels@npm:2.2.1"
+"videojs-contrib-quality-levels@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "videojs-contrib-quality-levels@npm:3.0.0"
   dependencies:
-    global: ^4.3.2
-    video.js: ^6 || ^7 || ^8
+    global: ^4.4.0
   peerDependencies:
     video.js: ^6 || ^7 || ^8
-  checksum: 0903dd1d42f7ce347ba6c90f2fe1baca10c7e604d32957139d8d3a8784ccfea54387e44fe81fb1183fe940e63edf15d15d2e79976c8219895aa7b2a48072685d
-  languageName: node
-  linkType: hard
-
-"videojs-font@npm:3.2.0":
-  version: 3.2.0
-  resolution: "videojs-font@npm:3.2.0"
-  checksum: 3c773d4a64123c237c26029a5d04c51919e3b6e688db0a20c6f9c647198ec815425d96a62dd24989046f27aa583c96cecae715f789f8d98452b4df419c23158a
+  checksum: 06635a74f4c88d7adb7c8e55687b76306432ea5921c4a03cfb9845adc0eef671c9e043706911e761366a41e6a4046cafaa619c645f25858764500e5596ce9b41
   languageName: node
   linkType: hard
 
@@ -14120,19 +14121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"videojs-hls-quality-selector@npm:1.1.4":
-  version: 1.1.4
-  resolution: "videojs-hls-quality-selector@npm:1.1.4"
-  dependencies:
-    global: ^4.3.2
-    karma-safaritechpreview-launcher: 0.0.6
-    video.js: ^7.5.5
-    videojs-contrib-quality-levels: ^2.0.9
-  checksum: 1cdbee9d3e2177438b2367ba16c4c1edede53654adde3cc9ccc4b2bb0eecae2e7a328d2b7f656249d26f55efd36060c7a7fd0e67dde68e7c2a2350b511cfe9aa
-  languageName: node
-  linkType: hard
-
-"videojs-vtt.js@npm:0.15.4, videojs-vtt.js@npm:^0.15.4":
+"videojs-vtt.js@npm:0.15.4":
   version: 0.15.4
   resolution: "videojs-vtt.js@npm:0.15.4"
   dependencies:
