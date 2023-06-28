@@ -752,7 +752,6 @@ export interface VideoMedia extends PlayMedia {
   metadata?: VideoMetadata,
   mime: string,
   resumePosition?: number,
-  sub?: string,
   width: number,
 }
 

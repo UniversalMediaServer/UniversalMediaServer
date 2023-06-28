@@ -41,15 +41,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     if (vpOptions.media.mediaType === 'audio') {
       options.audioPosterMode = true;
     }
-    if (videoMedia?.sub) {
-      if (!options.tracks) { options.tracks = [] }
-      const sub = {kind:'captions', src:'/files/' + videoMedia.sub, default:true};
-      options.tracks.push(sub);
-    }
     if (videoMedia?.isVideoWithChapters) {
       if (!options.tracks) { options.tracks = [] }
       const sub = {kind:'chapters', src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id + '/chapters.vtt', default:true};
-      options.tracks.push(sub);
+        options.tracks.push(sub);
     }
     const status = {'uuid':vpOptions.uuid,'id':vpOptions.media.id} as {[key: string]: string};
     const setStatus = (key:string, value:any, wait:boolean) => {

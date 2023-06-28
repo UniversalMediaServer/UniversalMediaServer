@@ -44,6 +44,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String subsCharacterSet;
 
 	private File convertedFile;
+	private boolean defaultFlag = false;
+	private boolean forcedFlag = false;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -64,6 +66,42 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isExternal() {
 		return !isEmbedded();
+	}
+
+	/**
+	 * Returns whether or not the subtitles are flagged Default.
+	 *
+	 * @return True if the subtitles are flagged Default, false otherwise.
+	 */
+	public boolean isDefault() {
+		return this.defaultFlag;
+	}
+
+	/**
+	 * Sets the parsed subtitles Default flag.
+	 *
+	 * @param value the subtitles Default flag.
+	 */
+	public void setDefault(boolean value) {
+		this.defaultFlag = value;
+	}
+
+	/**
+	 * Returns whether or not the subtitles are flagged Forced.
+	 *
+	 * @return True if the subtitles are flagged Forced, false otherwise.
+	 */
+	public boolean isForced() {
+		return this.forcedFlag;
+	}
+
+	/**
+	 * Sets the parsed subtitles Forced flag.
+	 *
+	 * @param value the subtitles Forced flag.
+	 */
+	public void setForced(boolean value) {
+		this.forcedFlag = value;
 	}
 
 	@Override

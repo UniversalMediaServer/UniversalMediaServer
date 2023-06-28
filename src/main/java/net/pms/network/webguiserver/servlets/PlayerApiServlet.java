@@ -51,14 +51,12 @@ import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
@@ -81,7 +79,6 @@ import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
-import net.pms.util.SubtitleUtils;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -681,29 +678,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				media.addProperty("mime", mime);
 			}
 
-			if (isVideo && CONFIGURATION.getWebPlayerSubs()) {
-				// only if subs are requested as <track> tags
-				// otherwise we'll transcode them in
-				boolean isFFmpegFontConfig = CONFIGURATION.isFFmpegFontConfig();
-				if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
-					CONFIGURATION.setFFmpegFontConfig(false);
-				}
-				OutputParams p = new OutputParams(CONFIGURATION);
-				p.setSid(rootResource.getMediaSubtitle());
-				Engine.setAudioAndSubs(rootResource, p);
-				if (p.getSid() != null && p.getSid().getType().isText()) {
-					try {
-						File subFile = SubtitleUtils.getSubtitles(rootResource, rootResource.getMedia(), p, CONFIGURATION, SubtitleType.WEBVTT);
-						LOGGER.debug("subFile " + subFile);
-						if (subFile != null) {
-							media.addProperty("sub", subFile.getName());
-						}
-					} catch (IOException e) {
-						LOGGER.debug("error when doing sub file " + e);
-					}
-				}
-				CONFIGURATION.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
-			}
 			medias.add(media);
 			result.add("medias", medias);
 			result.add("folders", jFolders);
