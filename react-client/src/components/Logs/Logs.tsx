@@ -333,7 +333,7 @@ const Logs = () => {
       </Modal>
       <Modal
         centered
-        overflow='inside'
+        scrollAreaComponent={ScrollArea.Autosize}
         opened={settingsOpened}
         onClose={() => setSettingsOpened(false)}
         title={i18n.get['Settings']}
@@ -367,14 +367,14 @@ const Logs = () => {
       </Modal>
       {!fileMode && (<>
       <Modal
-        overflow='inside'
+        scrollAreaComponent={ScrollArea.Autosize}
         centered
         opened={packerOpened}
         onClose={() => { setPackerOpened(false);}}
         title={i18n.get['PackDebugFiles']}
       >
         <Button disabled={packerFiles.length === 0} onClick={() => {getPackerZip();setPackerOpened(false);setSettingsOpened(false) }}>{i18n.get['ZipSelectedFiles']}</Button>
-        <Checkbox.Group value={packerFiles} onChange={setPackerFiles} orientation='vertical'>
+        <Checkbox.Group value={packerFiles} onChange={setPackerFiles}>
           { getPackerItems() }
         </Checkbox.Group>
       </Modal>
@@ -411,7 +411,7 @@ const Logs = () => {
         }
       </Group>
       <Divider my="sm" />
-      <Pagination page={activePage} onChange={setActivePage} total={totalPage} />
+      <Pagination value={activePage} onChange={setActivePage} total={totalPage} />
       <Divider my="sm" />
       <ScrollArea offsetScrollbars style={{height: 'calc(100vh - 275px)'}}>
         <Prism

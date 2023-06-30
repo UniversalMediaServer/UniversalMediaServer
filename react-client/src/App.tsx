@@ -14,9 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer, MantineTheme } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Burger, Center, ColorScheme, ColorSchemeProvider, createEmotionCache, DefaultMantineColor, Footer, Group, Header, Loader, MantineProvider, MantineTheme, MediaQuery, Navbar, ScrollArea, Stack, Tuple } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { NotificationsProvider } from '@mantine/notifications';
+import { Notifications } from '@mantine/notifications';
+
 import { useEffect } from 'react'; 
 import {
   BrowserRouter as Router,
@@ -49,8 +50,6 @@ import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
-
-import { Tuple, DefaultMantineColor } from '@mantine/core';
 
 type ExtendedCustomColors = 'darkTransparent' | 'lightTransparent' | DefaultMantineColor;
 
@@ -104,9 +103,10 @@ function App() {
           },
         }}
       >
-        <NotificationsProvider>
-          <I18nProvider rtl={rtl} setRtl={setRtl}>
-            <NavbarProvider><NavbarContext.Consumer>
+        <Notifications autoClose={3000}/>
+        <I18nProvider rtl={rtl} setRtl={setRtl}>
+          <NavbarProvider>
+            <NavbarContext.Consumer>
             {navbar => (
               <SessionProvider><SessionContext.Consumer>
                 {session => (
@@ -198,15 +198,15 @@ function App() {
                               <Loader size='xl' variant='dots' sx={{marginTop: '150px'}}/>
                             </Box>
                           </Center>
-                        )}
-                      </AppShell>
-                    </div>
+                      )}
+                    </AppShell>
+                  </div>
                 )}
               </SessionContext.Consumer></SessionProvider>
             )}
-            </NavbarContext.Consumer></NavbarProvider>
-          </I18nProvider>
-        </NotificationsProvider>
+            </NavbarContext.Consumer>
+          </NavbarProvider>
+        </I18nProvider>
       </MantineProvider>
     </ColorSchemeProvider>
   );
