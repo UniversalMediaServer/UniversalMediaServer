@@ -13151,6 +13151,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"stylis@npm:4.3.0":
+  version: 4.3.0
+  resolution: "stylis@npm:4.3.0"
+  checksum: 6120de3f03eacf3b5adc8e7919c4cca991089156a6badc5248752a3088106afaaf74996211a6817a7760ebeadca09004048eea31875bd8d4df51386365c50025
+  languageName: node
+  linkType: hard
+
 "sucrase@npm:^3.32.0":
   version: 3.32.0
   resolution: "sucrase@npm:3.32.0"
@@ -13713,7 +13720,7 @@ __metadata:
     react-movable: 3.0.4
     react-router-dom: 6.14.0
     react-scripts: 5.0.1
-    stylis: 4.2.0
+    stylis: 4.3.0
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.1.6
