@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Code, Group, Modal, Select, Table, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Code, Group, Modal, ScrollArea, Select, Table, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -455,7 +455,7 @@ export default function SharedContentSettings(
   const getSharedContentModifyModal = () => {
     const isNew = editingIndex < 0;
     return (
-      <Modal overflow='inside' opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
+      <Modal scrollAreaComponent={ScrollArea.Autosize} opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
         <Select
           disabled={!canModify || !isNew}
           label={i18n.get['Type']}

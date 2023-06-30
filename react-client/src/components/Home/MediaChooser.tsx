@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
@@ -103,7 +103,7 @@ export default function MediaChooser(props: {
               {i18n.get['SelectedMedia']}
             </Group>
           }
-          overflow='inside'
+          scrollAreaComponent={ScrollArea.Autosize}
           size='lg'
         >
           <Box mx='auto'>

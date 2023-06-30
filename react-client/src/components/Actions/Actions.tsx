@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, Group, Modal, Text, Stack, Tooltip, List, Code } from '@mantine/core';
+import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import { useContext, useState } from 'react';
 import { Power, Refresh, RefreshAlert, Report } from 'tabler-icons-react';
 
@@ -52,7 +52,7 @@ const Actions = () => {
       {canRestartServer &&
         <Modal
           centered
-          overflow='inside'
+          scrollAreaComponent={ScrollArea.Autosize}
           opened={restartServerOpened}
           onClose={() => setRestartServerOpened(false)}
           title={(<Text color='red'>{i18n.get['Warning']}</Text>)}
@@ -71,7 +71,7 @@ const Actions = () => {
       {canRestartApplication &&
         <Modal
           centered
-          overflow='inside'
+          scrollAreaComponent={ScrollArea.Autosize}
           opened={restartApplicationOpened}
           onClose={() => setRestartApplicationOpened(false)}
           title={<Text color='red'>{i18n.get['Warning']}</Text>}
@@ -91,7 +91,7 @@ const Actions = () => {
       {canShutdownApplication &&
         <Modal
           centered
-          overflow='inside'
+          scrollAreaComponent={ScrollArea.Autosize}
           opened={shutdownApplicationOpened}
           onClose={() => setShutdownApplicationOpened(false)}
           title={<Text color='red'>{i18n.get['Warning']}</Text>}
