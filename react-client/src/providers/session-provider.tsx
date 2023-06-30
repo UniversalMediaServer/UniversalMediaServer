@@ -26,17 +26,17 @@ interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ children, ...props }: Props) =>{
-  const [session, setSession] = useState({noAdminFound:false, authenticate:true, initialized:false, player:false} as UmsSession)
+export const SessionProvider = ({ children, ...props }: Props) => {
+  const [session, setSession] = useState({ noAdminFound: false, authenticate: true, initialized: false, player: false } as UmsSession)
   const i18n = useContext(I18nContext);
 
   useEffect(() => {
     const refresh = () => {
       axios.get(authApiUrl + 'session')
-        .then(function (response: any) {
-          setSession({...response.data, initialized: true, refresh: refresh});
+        .then(function(response: any) {
+          setSession({ ...response.data, initialized: true, refresh: refresh });
         })
-        .catch(function () {
+        .catch(function() {
           showNotification({
             id: 'data-loading',
             color: 'red',
@@ -52,7 +52,7 @@ export const SessionProvider = ({ children, ...props }: Props) =>{
   }, [session.initialized, i18n]);
 
   const { Provider } = sessionContext;
-  return(
+  return (
     <Provider value={session}>
       {children}
     </Provider>

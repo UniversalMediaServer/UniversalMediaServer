@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ThemeIcon, Tooltip } from '@mantine/core';
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import { PlugConnected, PlugConnectedX } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -32,15 +32,15 @@ export const ServerEventStatus = () => {
   const connectionStatusTooltip = [
     i18n.get['ConnectingToServer'],
     i18n.get['UniversalMediaServerRunning'],
-	i18n.get['UniversalMediaServerUnreachable'],
+    i18n.get['UniversalMediaServerUnreachable'],
   ];
 
   return (
     <Tooltip label={connectionStatusTooltip[sse.connectionStatus]} width={350} color='blue' multiline withArrow>
-      <ThemeIcon variant="light" color={connectionStatusStr[sse.connectionStatus]}>
-        { sse.connectionStatus ===1 ? <PlugConnected /> : <PlugConnectedX /> }
+      <ThemeIcon variant='light' color={connectionStatusStr[sse.connectionStatus]}>
+        {sse.connectionStatus === 1 ? <PlugConnected /> : <PlugConnectedX />}
       </ThemeIcon>
-	</Tooltip>
+    </Tooltip>
   );
 };
 

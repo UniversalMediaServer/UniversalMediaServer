@@ -24,17 +24,17 @@ import { i18nApiUrl } from '../utils';
 interface Props {
   children?: ReactNode,
   rtl: boolean,
-  setRtl:(val: boolean) => void,
+  setRtl: (val: boolean) => void,
 }
 
-export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
-  const [i18n, setI18n] = useState<{[key: string]: string}>({});
+export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
+  const [i18n, setI18n] = useState<{ [key: string]: string }>({});
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
     defaultValue: navigator.languages
-    ? navigator.languages[0]
-    : (navigator.language || 'en-US'),
+      ? navigator.languages[0]
+      : (navigator.language || 'en-US'),
   });
 
   const getI18nString = (value: string) => {
@@ -46,7 +46,7 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
   }
 
   const getI18nFormat = (value: string[]) => {
-    if (value == null || value.length < 1) { return "";}
+    if (value == null || value.length < 1) { return ''; }
     let result = getI18nString(value[0]);
     for (let i = 1; i < value.length; i++) {
       const str = '%' + i.toString() + '$s';
@@ -55,18 +55,18 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
       } else if (value[i].includes('%s')) {
         result = result.replace('%s', getI18nString(value[i]));
       }
-	}
-	return result;
+    }
+    return result;
   }
 
   useEffect(() => {
-    axios.post(i18nApiUrl, {language:language})
-      .then(function (response: any) {
+    axios.post(i18nApiUrl, { language: language })
+      .then(function(response: any) {
         setLanguages(response.data.languages);
         setI18n(response.data.i18n);
         setRtl(response.data.isRtl);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'data-loading',
           color: 'red',
@@ -74,11 +74,11 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) =>{
           message: 'Languages were not received from the server.',
           autoClose: 3000,
         });
-    });
+      });
   }, [language]);
 
   const { Provider } = i18nContext;
-  return(
+  return (
     <Provider value={{
       get: i18n,
       getI18nString: getI18nString,

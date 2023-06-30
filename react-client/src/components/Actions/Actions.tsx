@@ -48,7 +48,7 @@ const Actions = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
       {canRestartServer &&
         <Modal
           centered
@@ -64,7 +64,7 @@ const Actions = () => {
           <Text>{i18n.get['AreYouSureContinue']}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setRestartServerOpened(false)}>{i18n.get['Cancel']}</Button>
-            <Button color="red" onClick={() => {setRestartServerOpened(false);restartServer()}}>{i18n.get['Confirm']}</Button>
+            <Button color='red' onClick={() => { setRestartServerOpened(false); restartServer() }}>{i18n.get['Confirm']}</Button>
           </Group>
         </Modal>
       }
@@ -84,7 +84,7 @@ const Actions = () => {
           <Text>{i18n.get['AreYouSureContinue']}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setRestartApplicationOpened(false)}>{i18n.get['Cancel']}</Button>
-            <Button color="red" onClick={() => {setRestartApplicationOpened(false);restartApplication()}}>{i18n.get['Confirm']}</Button>
+            <Button color='red' onClick={() => { setRestartApplicationOpened(false); restartApplication() }}>{i18n.get['Confirm']}</Button>
           </Group>
         </Modal>
       }
@@ -104,7 +104,7 @@ const Actions = () => {
           <Text>{i18n.get['AreYouSureContinue']}</Text>
           <Group position='right' mt='md'>
             <Button onClick={() => setShutdownApplicationOpened(false)}>{i18n.get['Cancel']}</Button>
-            <Button color="red" onClick={() => {setShutdownApplicationOpened(false);shutdownApplication()}}>{i18n.get['Confirm']}</Button>
+            <Button color='red' onClick={() => { setShutdownApplicationOpened(false); shutdownApplication() }}>{i18n.get['Confirm']}</Button>
           </Group>
         </Modal>
       }
@@ -114,17 +114,17 @@ const Actions = () => {
         )}
         {canRestartServer && (
           <Tooltip label={i18n.get['ThisRestartsMediaServices']} {...defaultTooltipSettings}>
-            <Button leftIcon={<Refresh />} onClick={() => { setRestartServerOpened(true)}}>{i18n.get['RestartServer']}</Button>
+            <Button leftIcon={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get['RestartServer']}</Button>
           </Tooltip>
         )}
         {canRestartApplication && (
           <Tooltip label={i18n.get['ThisStopsRestartsApp']} {...defaultTooltipSettings}>
-            <Button leftIcon={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true)}}>{i18n.get['RestartApplication']}</Button>
+            <Button leftIcon={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get['RestartApplication']}</Button>
           </Tooltip>
         )}
         {canShutdownApplication && (
           <Tooltip label={i18n.get['ThisClosesApp']} {...defaultTooltipSettings}>
-            <Button leftIcon={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true)}}>{i18n.get['ShutdownApplication']}</Button>
+            <Button leftIcon={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
           </Tooltip>
         )}
       </Stack>

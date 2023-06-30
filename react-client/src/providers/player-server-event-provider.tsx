@@ -29,7 +29,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const PlayerEventProvider = ({ children, ...props }: Props) =>{
+export const PlayerEventProvider = ({ children, ...props }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
@@ -37,29 +37,29 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
   const [reqId, setReqId] = useState('0');
   const [reqType, setReqType] = useState('browse');
 
-  const askReqId = (id:string,type:string) => {
+  const askReqId = (id: string, type: string) => {
     setReqType('');
     setReqId(id);
     setReqType(type);
   }
 
-  const askPlayId = (id:string) => {
+  const askPlayId = (id: string) => {
     askReqId(id, 'play');
   }
 
-  const askBrowseId = (id:string) => {
+  const askBrowseId = (id: string) => {
     askReqId(id, 'browse');
   }
 
-  const askShowId = (id:string) => {
+  const askShowId = (id: string) => {
     askReqId(id, 'show');
   }
 
-  const setPlayerVolume = (volume:number) => {
+  const setPlayerVolume = (volume: number) => {
     try {
       const player = videojs.getPlayer('player');
-      player?.volume(volume/100);
-    } catch(error) {
+      player?.volume(volume / 100);
+    } catch (error) {
       console.log('volume', error);
     }
   }
@@ -69,7 +69,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     try {
       const player = videojs.getPlayer('player');
       player?.muted(true);
-    } catch(error) {
+    } catch (error) {
       console.log('mute', error);
     }
   }
@@ -78,7 +78,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     try {
       const player = videojs.getPlayer('player');
       player?.pause();
-    } catch(error) {
+    } catch (error) {
       console.log('pausePlayer', error);
     }
   }
@@ -87,7 +87,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     try {
       const player = videojs.getPlayer('player');
       player?.pause();
-    } catch(error) {
+    } catch (error) {
       console.log('stop', error);
     }
   }
@@ -144,7 +144,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     const onMessage = (event: EventSourceMessage) => {
-      if (event.event === "message") {
+      if (event.event === 'message') {
         const datas = JSON.parse(event.data);
         if (datas.action === 'player') {
           switch (datas.request) {
@@ -156,16 +156,16 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
             case 'notify':
               switch (datas.arg0) {
                 case 'okay':
-                  addNotification({color:'green', title:datas.arg1});
+                  addNotification({ color: 'green', title: datas.arg1 });
                   break;
                 case 'info':
-                  addNotification({color:'blue', title:datas.arg1});
+                  addNotification({ color: 'blue', title: datas.arg1 });
                   break;
                 case 'warn':
-                  addNotification({color:'orange', title:datas.arg1});
+                  addNotification({ color: 'orange', title: datas.arg1 });
                   break;
                 case 'err':
-                  addNotification({color:'red', title:datas.arg1});
+                  addNotification({ color: 'red', title: datas.arg1 });
                   break;
               }
               break;
@@ -222,7 +222,7 @@ export const PlayerEventProvider = ({ children, ...props }: Props) =>{
 
   const { Provider } = PlayerEventContext;
 
-  return(
+  return (
     <Provider value={{
       connectionStatus: connectionStatus,
       reqId: reqId,
