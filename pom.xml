@@ -298,7 +298,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.19</version>
+			<version>0.4.20</version>
 		</dependency>
 
 		<!--
