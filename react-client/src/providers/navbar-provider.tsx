@@ -26,12 +26,12 @@ export const NavbarProvider = ({ children, ...props }: Props) => {
   const [value, setValue] = useState(undefined);
   const [opened, setOpened] = useState<boolean>(false);
   const { Provider } = NavbarContext;
-  return(
+  return (
     <Provider value={{
       value: value,
-      setValue : setValue,
-      opened : opened,
-      setOpened : setOpened,
+      setValue: setValue,
+      opened: opened,
+      setOpened: setOpened,
     }}>{children}</Provider>
   )
 }

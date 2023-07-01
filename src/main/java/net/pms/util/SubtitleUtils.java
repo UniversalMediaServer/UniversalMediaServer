@@ -469,6 +469,7 @@ public class SubtitleUtils {
 			pw.stopProcess();
 		} catch (InterruptedException e) {
 			LOGGER.debug("Subtitles conversion finished wih error: " + e);
+			Thread.currentThread().interrupt();
 			return null;
 		}
 

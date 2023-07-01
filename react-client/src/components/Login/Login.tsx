@@ -73,7 +73,7 @@ const Login = () => {
   };
 
   const handleAuthDisable = () => {
-      disable().then(
+    disable().then(
       () => {
         clearJwt();
         window.location.reload();
@@ -93,9 +93,9 @@ const Login = () => {
   return (
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
-          <Text size="xl">Universal Media Server</Text>
-          <Text size="lg">{ session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn'] }</Text>
-        <Space h="md" />
+        <Text size='xl'>Universal Media Server</Text>
+        <Text size='lg'>{session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn']}</Text>
+        <Space h='md' />
         <TextInput
           required
           label={i18n.get['Username']}
@@ -114,7 +114,7 @@ const Login = () => {
         </Group>
         {session.noAdminFound && session.authenticate && (
           <>
-            <Divider my='lg' label={i18n.get['Or']} labelPosition="center" />
+            <Divider my='lg' label={i18n.get['Or']} labelPosition='center' />
             <Modal
               centered
               opened={opened}
@@ -124,11 +124,11 @@ const Login = () => {
               <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
               <Group position='right' mt='md'>
                 <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
-                <Button color="red" onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
+                <Button color='red' onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
               </Group>
             </Modal>
             <Group position='center' mt='md'>
-              <Button color="red" onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
+              <Button color='red' onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
             </Group>
           </>
         )}

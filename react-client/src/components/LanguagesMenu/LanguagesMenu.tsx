@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Group, Menu, ScrollArea, Text } from '@mantine/core';
-import React, { useContext } from 'react';
+import { useContext } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { Language } from 'tabler-icons-react';
 
@@ -30,10 +30,10 @@ function LanguagesMenu() {
         key={language.id}
       >
         <Group spacing='xs'>
-          <ReactCountryFlag countryCode={language.country} style={{fontSize: '1.5em'}}/>
+          <ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} />
           <Text>{language.name}</Text>
-          {language.name!==language.defaultname && (
-            <Text>{'('+language.defaultname+')'}</Text>
+          {language.name !== language.defaultname && (
+            <Text>{'(' + language.defaultname + ')'}</Text>
           )}
         </Group>
       </Menu.Item>
@@ -47,7 +47,7 @@ function LanguagesMenu() {
   return (
     <Menu>
       <Menu.Target>
-         <ActionIcon variant="default" size={30}>
+        <ActionIcon variant='default' size={30}>
           <Language size={16} />
         </ActionIcon>
       </Menu.Target>

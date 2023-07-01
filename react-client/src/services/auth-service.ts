@@ -75,8 +75,8 @@ export const clearJwt = async () => {
   const uuid = sessionStorage.getItem('player');
   if (uuid) {
     try {
-      await axios.post(playerApiUrl + 'logout', {uuid:uuid});
-    } catch {/*server Forbidden or Unauthorized*/}
+      await axios.post(playerApiUrl + 'logout', { uuid: uuid });
+    } catch {/*server Forbidden or Unauthorized*/ }
     sessionStorage.removeItem('player');
   }
   axios.defaults.headers.common['Authorization'] = undefined;
@@ -92,7 +92,7 @@ export const refreshAuthTokenNearExpiry = () => {
   const now = Math.floor(new Date().getTime() / 1000);
   const refreshInterval = (exp - now) * 1000 - FIVE_SECONDS_IN_MS;
   if (refreshInterval > 0) {
-    setTimeout(async() => {
+    setTimeout(async () => {
       await refreshToken();
     }, refreshInterval);
   } else {

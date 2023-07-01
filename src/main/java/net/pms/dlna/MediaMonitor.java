@@ -241,6 +241,7 @@ public class MediaMonitor extends VirtualFolder {
 		 * time was within 2 seconds of the end of the video.
 		 */
 		if (fileDuration > 2.0 && realFile.getLastStartPosition() > (fileDuration - 2.0)) {
+			LOGGER.trace("final decision: not legitimate playback");
 			return;
 		}
 
@@ -253,8 +254,13 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed > configuration.getMinimumWatchedPlayTimeSeconds() &&
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
+			LOGGER.trace("final decision: fully played");
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
+			if (fileParent == null) {
+				LOGGER.trace("fileParent is null for {}", fullPathToFile);
+			} else if (isFullyPlayed(fullPathToFile, true)) {
+				LOGGER.trace("{} already marked as fully played", fullPathToFile);
+			} else {
 				/*
 				 * Set to fully played even if it will be deleted or moved, because
 				 * the entry will be cleaned up later in those cases.

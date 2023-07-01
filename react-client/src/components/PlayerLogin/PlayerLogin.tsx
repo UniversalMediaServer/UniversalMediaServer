@@ -53,9 +53,9 @@ const Login = () => {
   return (
     <Box sx={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleLogin)}>
-          <Text size="xl">Universal Media Server</Text>
-          <Text size="lg">{ i18n.get['LogIn'] }</Text>
-        <Space h="md" />
+        <Text size='xl'>Universal Media Server</Text>
+        <Text size='lg'>{i18n.get['LogIn']}</Text>
+        <Space h='md' />
         <TextInput
           required
           label={i18n.get['Username']}

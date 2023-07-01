@@ -552,6 +552,16 @@ public class MediaInfoParser {
 						}
 					}
 
+					value = MI.get(text, i, "Default/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setDefault(true);
+					}
+
+					value = MI.get(text, i, "Forced/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setForced(true);
+					}
+
 					addSub(currentSubTrack, media);
 					if (parseLogger != null) {
 						parseLogger.logSubtitleTrackColumns(i, false);

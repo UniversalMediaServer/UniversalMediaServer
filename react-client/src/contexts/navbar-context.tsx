@@ -22,10 +22,10 @@ export const NavbarContext: Context<{
   opened: boolean;
   setOpened: (opened: any) => void;
 }> = createContext({
-  value : undefined,
-  setValue : (navbar) => {},
-  opened : false as boolean,
-  setOpened : (opened) => {},
+  value: undefined,
+  setValue: (navbar) => { },
+  opened: false as boolean,
+  setOpened: (opened) => { },
 });
 
 export default NavbarContext;
