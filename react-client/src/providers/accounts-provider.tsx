@@ -28,7 +28,7 @@ interface Props {
 }
 
 export const AccountsProvider = ({ children, ...props }: Props) => {
-  const [accounts, setAccounts] = useState({users:[],groups:[],enabled:true,localhost:false} as UmsAccounts)
+  const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const sse = useContext(ServerEventContext);
   const i18n = useContext(I18nContext);
 
@@ -36,12 +36,12 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
     if (!sse.updateAccounts) {
       return;
     }
-	sse.setUpdateAccounts(false);
+    sse.setUpdateAccounts(false);
     axios.get(accountApiUrl + 'accounts')
-      .then(function (response: any) {
+      .then(function(response: any) {
         setAccounts(response.data);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'accounts-data-loading',
           color: 'red',
@@ -53,7 +53,7 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
   }, [i18n, sse]);
 
   const { Provider } = accountsContext;
-  return(
+  return (
     <Provider value={accounts}>
       {children}
     </Provider>

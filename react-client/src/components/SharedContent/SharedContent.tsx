@@ -24,7 +24,7 @@ import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import {openGitHubNewIssue, sharedApiUrl} from '../../utils';
+import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
 
 export default function SharedContent() {
@@ -59,35 +59,35 @@ export default function SharedContent() {
 
   useEffect(() => {
     canView && axios.get(sharedApiUrl)
-      .then(function (response: any) {
+      .then(function(response: any) {
         const sharedResponse = response.data;
         setConfiguration(sharedResponse);
         formSetValues(sharedResponse);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'data-loading',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotReceived'] +  ' ' + i18n.get['ClickHereReportBug'],
+          message: i18n.get['ConfigurationNotReceived'] + ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
       })
-      .then(function () {
+      .then(function() {
         setLoading(false);
       });
   }, [canView, formSetValues]);
 
-  const handleSubmit = async(values: typeof form.values) => {
+  const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
     try {
       const changedValues: Record<string, any> = {};
-  
+
       // construct an object of only changed values to send
       for (const key in values) {
         if (!_.isEqual(configuration[key], values[key])) {
-          changedValues[key] = values[key]?values[key]:null;
+          changedValues[key] = values[key] ? values[key] : null;
         }
       }
 
@@ -118,19 +118,19 @@ export default function SharedContent() {
   };
 
   return canView ? (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Tabs defaultValue="SharedContent">
+        <Tabs defaultValue='SharedContent'>
           <Tabs.List>
-            <Tabs.Tab value="SharedContent">{i18n.get['SharedContent']}</Tabs.Tab>
+            <Tabs.Tab value='SharedContent'>{i18n.get['SharedContent']}</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="SharedContent">
-            { SharedContentSettings(form,configuration) }
+          <Tabs.Panel value='SharedContent'>
+            {SharedContentSettings(form, configuration)}
           </Tabs.Panel>
         </Tabs>
         {canModify && (
-          <Group position="right" mt="md">
-            <Button type="submit" loading={isLoading}>
+          <Group position='right' mt='md'>
+            <Button type='submit' loading={isLoading}>
               {i18n.get['Save']}
             </Button>
           </Group>
@@ -138,8 +138,8 @@ export default function SharedContent() {
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
-      <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 }

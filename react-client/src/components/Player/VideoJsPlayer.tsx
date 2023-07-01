@@ -28,51 +28,46 @@ import { AudioMedia, BaseMedia, VideoMedia } from './Player';
 export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
-    videoElem.id='player';
-    videoElem.classList.add('video-js','vjs-default-skin','vjs-fluid','vjs-big-play-centered','full-card','card');
+    videoElem.id = 'player';
+    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fluid', 'vjs-big-play-centered', 'full-card', 'card');
     document.getElementById('videodiv')?.appendChild(videoElem);
 
     const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null;
     const options = {} as any;
     options.liveui = true;
     options.controls = true;
-    options.sources=[{src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id, type: vpOptions.media.mime}];
-    options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/'  + vpOptions.media.id;
+    options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
+    options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/' + vpOptions.media.id;
     if (vpOptions.media.mediaType === 'audio') {
       options.audioPosterMode = true;
     }
-    if (videoMedia?.sub) {
-      if (!options.tracks) { options.tracks = [] }
-      const sub = {kind:'captions', src:'/files/' + videoMedia.sub, default:true};
-      options.tracks.push(sub);
-    }
     if (videoMedia?.isVideoWithChapters) {
       if (!options.tracks) { options.tracks = [] }
-      const sub = {kind:'chapters', src:playerApiUrl + 'media/' + vpOptions.uuid + '/'  + vpOptions.media.id + '/chapters.vtt', default:true};
+      const sub = { kind: 'chapters', src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id + '/chapters.vtt', default: true };
       options.tracks.push(sub);
     }
-    const status = {'uuid':vpOptions.uuid,'id':vpOptions.media.id} as {[key: string]: string};
-    const setStatus = (key:string, value:any, wait:boolean) => {
+    const status = { 'uuid': vpOptions.uuid, 'id': vpOptions.media.id } as { [key: string]: string };
+    const setStatus = (key: string, value: any, wait: boolean) => {
       if (status[key] !== value) {
         status[key] = value;
-        if (! wait) {
+        if (!wait) {
           axios.post(playerApiUrl + 'status', status);
         }
       }
     }
-    const onready = (player: Player ) => {
+    const onready = (player: Player) => {
       const volumeStatus = () => {
         setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
-		setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false);
+        setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false);
       }
-      videoPlayer.on(['play','playing'], () => {setStatus('playback', 'PLAYING', false)});
-      videoPlayer.on('pause', () => {setStatus('playback', 'PAUSED', false)});
-      videoPlayer.on(['dispose','abort','ended','error','beforeunload'], () => {setStatus('playback', 'STOPPED', false)});
-      videoPlayer.on('timeupdate', () => {setStatus('position', (videoPlayer.currentTime() || 0).toFixed(0), false)});
-      videoPlayer.on('volumechange', () => {volumeStatus()});
+      videoPlayer.on(['play', 'playing'], () => { setStatus('playback', 'PLAYING', false) });
+      videoPlayer.on('pause', () => { setStatus('playback', 'PAUSED', false) });
+      videoPlayer.on(['dispose', 'abort', 'ended', 'error', 'beforeunload'], () => { setStatus('playback', 'STOPPED', false) });
+      videoPlayer.on('timeupdate', () => { setStatus('position', (videoPlayer.currentTime() || 0).toFixed(0), false) });
+      videoPlayer.on('volumechange', () => { volumeStatus() });
       if (videoMedia?.resumePosition) {
-        videoPlayer.on('loadedmetadata', () => {videoPlayer.currentTime(videoMedia.resumePosition as number)});
-        videoPlayer.one('canplaythrough', () => {videoPlayer.currentTime(videoMedia.resumePosition as number)});
+        videoPlayer.on('loadedmetadata', () => { videoPlayer.currentTime(videoMedia.resumePosition as number) });
+        videoPlayer.one('canplaythrough', () => { videoPlayer.currentTime(videoMedia.resumePosition as number) });
       }
       volumeStatus();
       if (vpOptions.media.isDownload) {
@@ -80,7 +75,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         if (controlBar) {
           const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
           const downloadButton = controlBar.addChild('button',
-            {'controlText':'Download', 'className':'vjs-menu-button', 'clickHandler':() => {window.open(playerApiUrl + 'download/' + vpOptions.uuid + '/' + vpOptions.media.id ,'_blank'); }}
+            { 'controlText': 'Download', 'className': 'vjs-menu-button', 'clickHandler': () => { window.open(playerApiUrl + 'download/' + vpOptions.uuid + '/' + vpOptions.media.id, '_blank'); } }
             , indexopt);
           const placeholder = downloadButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
           if (placeholder) {
@@ -95,7 +90,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         if (controlBar) {
           const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
           const nextButton = controlBar.addChild('button',
-            {'controlText':next.name, 'className':'vjs-menu-button', 'clickHandler':() => {vpOptions.askPlayId(next.id)}}
+            { 'controlText': next.name, 'className': 'vjs-menu-button', 'clickHandler': () => { vpOptions.askPlayId(next.id) } }
             , indexopt);
           const placeholder = nextButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
           if (placeholder) {
@@ -103,7 +98,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
           }
         }
         if (vpOptions.media.autoContinue) {
-          videoPlayer.on('ended', () => {vpOptions.askPlayId(next.id)});
+          videoPlayer.on('ended', () => { vpOptions.askPlayId(next.id) });
         }
       }
       if (vpOptions.media.surroundMedias.prev !== undefined) {
@@ -112,7 +107,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         if (controlBar) {
           const indexopt = controlBar.children().findIndex((e) => e.hasClass('vjs-remaining-time')) + 1;
           const prevButton = controlBar.addChild('button',
-            {'controlText':prev.name, 'className':'vjs-menu-button', 'clickHandler':() => {vpOptions.askPlayId(prev.id)}}
+            { 'controlText': prev.name, 'className': 'vjs-menu-button', 'clickHandler': () => { vpOptions.askPlayId(prev.id) } }
             , indexopt);
           const placeholder = prevButton.el().getElementsByClassName('vjs-icon-placeholder').item(0);
           if (placeholder) {
@@ -141,7 +136,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
 };
 
 export interface VideoPlayerOption {
-  media:VideoMedia|AudioMedia,
-  uuid:string,
-  askPlayId: (id:string) => void;
+  media: VideoMedia | AudioMedia,
+  uuid: string,
+  askPlayId: (id: string) => void;
 }
