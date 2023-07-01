@@ -28,7 +28,7 @@ const PERMITTED_ACTIONS = [
   'Server.ScanAllSharedFoldersCancel',
 ];
 
-export const sendAction = async(operation: string) => {
+export const sendAction = async (operation: string) => {
   if (PERMITTED_ACTIONS.includes(operation)) {
     return axios
       .post(actionsApiUrl, {

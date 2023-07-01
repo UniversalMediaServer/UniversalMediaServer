@@ -70,7 +70,7 @@ public class FormatRecognitionTest {
 		RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
-		// Silence all log messages from the UMS code that is being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 
@@ -275,8 +275,8 @@ public class FormatRecognitionTest {
 	/**
 	 * When UMS is in the process of starting up, something particular happens.
 	 * The RootFolder is initialized and several VirtualVideoActions are added
-	 * as children. VirtualVideoActions use the MPG format and at the time of
-	 * initialization getDefaultRenderer() is used to determine whether or not
+	 * as children. VirtualVideoActions use the MPG format and, at the time of
+	 * initialization getDefaultRenderer(), is used to determine whether or not
 	 * the format can be streamed.
 	 * <p>
 	 * Under these conditions Format.isCompatible() must return true, or

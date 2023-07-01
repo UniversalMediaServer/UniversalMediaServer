@@ -503,6 +503,16 @@ public class WindowsUtils extends PlatformUtils {
 		}
 	}
 
+	@Override
+	public String getShutdownCommand() {
+		return "shutdown.exe -s -t 0";
+	}
+
+	@Override
+	public String getJvmExecutableName() {
+		return System.console() == null ? "javaw.exe" : "java.exe";
+	}
+
 	private static String getAviSynthPluginsFolder() {
 		String key = "SOFTWARE\\AviSynth";
 		try {
@@ -666,4 +676,14 @@ public class WindowsUtils extends PlatformUtils {
 		return true;
 	}
 
+	/**
+	 * Windows has changed its sleep strategy in version 11 to
+	 * sleep immediately after we release the sleep lock, instead
+	 * of respecting the timer.
+	 *
+	 * @see https://learn.microsoft.com/en-us/answers/questions/999348/setthreadexecutionstate-without-es-continuous-does
+	 */
+	public static boolean isVersionThatSleepsImmediately() {
+		return StringUtils.equals(System.getProperty("os.name"), "Windows 11");
+	}
 }

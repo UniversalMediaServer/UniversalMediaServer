@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
  * @author Nadahar
  */
 public abstract class AbstractSleepWorker extends Thread {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSleepWorker.class);
 
 	/**
@@ -48,14 +47,28 @@ public abstract class AbstractSleepWorker extends Thread {
 	protected boolean resetSleepTimer;
 
 	/**
+	 * An internal state flag that indicates if a system sleep allow
+	 * action has been requested but not executed.
+	 */
+	// protected boolean allowSleep;
+
+	/**
 	 * An internal timestamp for when the last sleep action request was
 	 * made.
 	 */
 	protected long lastChange = 0;
 
+	/** Timestamp for when the allow sleep delay will be done. */
+	protected long allowSleepTimer = 0;
+
 	/** The current {@link PreventSleepMode} */
 	protected PreventSleepMode mode;
 	private final SleepManager owner;
+
+	/** Number of milliseconds to delay allowing sleep mode after preventing it */
+	protected int getDelayUntilAllowSleep() {
+		return 0;
+	}
 
 	/**
 	 * An abstract constructor that initializes the required fields.
@@ -111,16 +124,38 @@ public abstract class AbstractSleepWorker extends Thread {
 		try {
 			while (true) {
 				while (sleepPrevented && lastChange + 5000 > System.currentTimeMillis()) {
-					// Wait until there's been 5 seconds after a change
-					// before
-					// allowing sleep if it's already prevented. This is to
-					// avoid acting on multiple rapid changes.
+					/*
+					 * Wait until there's been 5 seconds after a change before
+					 * allowing sleep if it's already prevented. This is to
+					 * avoid acting on multiple rapid changes.
+					 */
 					wait(Math.max(System.currentTimeMillis() - lastChange + 5001, 0));
 				}
 				if (preventSleep != sleepPrevented) {
 					if (preventSleep) {
 						doPreventSleep();
 					} else {
+						// this else block means we should allow sleep, or begin counting down to allow it
+
+						if (getDelayUntilAllowSleep() > 0) {
+							if (allowSleepTimer > 0) {
+								// the allow sleep timer is active, now let's check whether it has elapsed
+
+								if (System.currentTimeMillis() < allowSleepTimer) {
+									// we are still waiting for the allow sleep timer to elapse
+									wait(5000);
+									continue;
+								} else {
+									// the timer has elapsed, reset it
+									allowSleepTimer = 0;
+								}
+							} else {
+								// set the allow sleep timer if it has not been set
+								allowSleepTimer = System.currentTimeMillis() + getDelayUntilAllowSleep();
+								continue;
+							}
+						}
+
 						doAllowSleep();
 					}
 				} else if (resetSleepTimer) {

@@ -19,9 +19,9 @@ import { showNotification } from '@mantine/notifications';
 import { redirectToLogin } from './auth-service';
 import { authApiUrl } from '../utils';
 
-axios.interceptors.response.use(function (response) {
+axios.interceptors.response.use(function(response) {
   return response;
-}, function (error) {
+}, function(error) {
   if (error?.response?.status === 401 && error?.config?.url !== authApiUrl + 'login') {
     showNotification({
       id: 'authentication-error',

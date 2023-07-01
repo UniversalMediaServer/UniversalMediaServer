@@ -34,6 +34,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.TimeRange;
 import net.pms.renderers.Renderer;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * HlsConfiguration Helper.
@@ -162,17 +163,11 @@ public class HlsHelper {
 					sb.append(mediaAudio.getLang()).append("\",NAME=\"");
 					String audioName = mediaAudio.getLangFullName();
 					if (audioGroup.audioChannels != 2) {
-						switch (audioGroup.audioChannels) {
-							case 6:
-								audioName = audioName.concat(" (5.1)");
-								break;
-							case 8:
-								audioName = audioName.concat(" (7.1)");
-								break;
-							default:
-								audioName = audioName.concat(" (" + audioGroup.audioChannels + "ch)");
-								break;
-						}
+						audioName = switch (audioGroup.audioChannels) {
+							case 6 -> audioName.concat(" (5.1)");
+							case 8 -> audioName.concat(" (7.1)");
+							default -> audioName.concat(" (" + audioGroup.audioChannels + "ch)");
+						};
 					}
 					if (audioNames.containsKey(audioName)) {
 						audioNames.put(audioName, audioNames.get(audioName) + 1);
@@ -194,14 +189,21 @@ public class HlsHelper {
 			for (DLNAMediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
 				if (mediaSubtitle.isEmbedded() && mediaSubtitle.getType().isText()) {
 					subtitleAdded = true;
-					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES,DEFAULT=NO,FORCED=NO");
+					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES");
+					sb.append(",DEFAULT=").append(mediaSubtitle.isDefault() ? "YES" : "NO");
+					sb.append(",FORCED=NO");
 					String subtitleName;
-					if (mediaSubtitle.getSubtitlesTrackTitleFromMetadata() != null) {
+					if (StringUtils.isNotBlank(mediaSubtitle.getSubtitlesTrackTitleFromMetadata())) {
 						subtitleName = mediaSubtitle.getSubtitlesTrackTitleFromMetadata();
-					} else if (mediaSubtitle.getName() != null) {
+					} else if (StringUtils.isNotBlank(mediaSubtitle.getName())) {
 						subtitleName = mediaSubtitle.getName();
-					} else {
+					} else if (StringUtils.isNotBlank(mediaSubtitle.getLangFullName())) {
 						subtitleName = mediaSubtitle.getLangFullName();
+					} else {
+						subtitleName = String.valueOf(mediaSubtitle.getId());
+					}
+					if (mediaSubtitle.isForced() && !subtitleName.toLowerCase().contains("forced")) {
+						subtitleName = subtitleName.concat(" (forced)");
 					}
 					sb.append(",NAME=\"").append(subtitleName).append("\"");
 					sb.append(",LANGUAGE=\"").append(mediaSubtitle.getLang()).append("\"");

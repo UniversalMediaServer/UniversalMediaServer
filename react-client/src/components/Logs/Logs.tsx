@@ -41,7 +41,7 @@ const Logs = () => {
   const [guiLogLevel, setGuiLogLevel] = useState(0);
   const [logLevel, setLogLevel] = useState(0);
   const [logLevelFilter, setLogLevelFilter] = useState<string[]>([]);
-  const [logSearchFilter, setLogSearchFilter] = useState<SearchValue>({search:'',isCapSensitive:true,isRexp:false});
+  const [logSearchFilter, setLogSearchFilter] = useState<SearchValue>({ search: '', isCapSensitive: true, isRexp: false });
   const [logSearchFilterIndexes, setLogSearchFilterIndexes] = useState<number[]>([]);
   const [logSearchFilterIndex, setLogSearchFilterIndex] = useState<number>(0);
   const [logThreads, setLogThreads] = useState<string[]>([]);
@@ -59,7 +59,7 @@ const Logs = () => {
   const [packerItems, setPackerItems] = useState([] as PackerItem[]);
   const [packerFiles, setPackerFiles] = useState([] as string[]);
   const [fileMode, setFileMode] = useState('');
-  const searchForm = useForm({ initialValues: {search:'',isCapSensitive:true,isRexp:false} as SearchValue});
+  const searchForm = useForm({ initialValues: { search: '', isCapSensitive: true, isRexp: false } as SearchValue });
 
   const logLevels = [
     { value: '1', label: i18n.get['Error'] },
@@ -74,7 +74,7 @@ const Logs = () => {
     { value: '0', label: i18n.get['Off'] },
   ]);
 
-  const getLogLevel = (level:string) => {
+  const getLogLevel = (level: string) => {
     if (level) {
       switch (level) {
         case 'ALL':
@@ -91,7 +91,7 @@ const Logs = () => {
           return 1;
       }
     }
-	return 0;
+    return 0;
   }
 
   useEffect(() => {
@@ -100,7 +100,7 @@ const Logs = () => {
       return;
     }
     axios.get(logsApiUrl)
-      .then(function (response: any) {
+      .then(function(response: any) {
         setLogs(response.data.logs);
         setLogThreadFilter([]);
         setLogThreads([]);
@@ -109,7 +109,7 @@ const Logs = () => {
         setLogLevel(getLogLevel(response.data.guiLogLevel));
         setTraceMode(response.data.traceMode);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'logs-data-loading',
           color: 'red',
@@ -121,11 +121,11 @@ const Logs = () => {
   }, [i18n, canModify, fileMode]);
 
   useEffect(() => {
-    const filterLogLevelFilter = (level:string) => {
+    const filterLogLevelFilter = (level: string) => {
       if (logLevelFilter.length === 0 || logLevelFilter.length === 5) { return true }
       return logLevelFilter.includes(level);
     }
-    const filterLogLevel = (logLine:string) => {
+    const filterLogLevel = (logLine: string) => {
       if (logLevel === 0) { return false }
       if (logLevel === 6 && logLevelFilter.length === 0) { return true }
       const level = fileMode ? logLine.substring(0, 5) : logLine.substring(9, 14);
@@ -143,7 +143,7 @@ const Logs = () => {
       }
       return (logLevel === 6);
     }
-    const filterLogThread = (logLine:string) => {
+    const filterLogThread = (logLine: string) => {
       if (logThreadFilter.length === 0) { return true }
       const thread = logLine.substring(31, logLine.indexOf(']')).replace(/[\d|-]+$/, '');
       return logThreadFilter.includes(thread);
@@ -157,12 +157,12 @@ const Logs = () => {
       setLogSearchFilter(values);
       setLogSearchFilterIndex(0);
     } else {
-      setLogSearchFilterIndex(logSearchFilterIndex+1);
+      setLogSearchFilterIndex(logSearchFilterIndex + 1);
     }
   }
 
   useEffect(() => {
-    const searchFilterLine = (logLine:string) => {
+    const searchFilterLine = (logLine: string) => {
       if (!logSearchFilter.search) { return false }
       return logLine.includes(logSearchFilter.search);
     }
@@ -207,7 +207,7 @@ const Logs = () => {
       }
       logsTemp.push(logLine);
     }
-	setLogs(logsTemp);
+    setLogs(logsTemp);
   }, [logs, sse, fileMode]);
 
   useEffect(() => {
@@ -215,7 +215,7 @@ const Logs = () => {
       return;
     }
     axios.get(logsApiUrl + 'packer')
-      .then(function (response: any) {
+      .then(function(response: any) {
         const items = response.data as PackerItem[];
         const selItems = [];
         for (const item of items) {
@@ -224,29 +224,29 @@ const Logs = () => {
           }
         }
         setPackerItems(items);
-		setPackerFiles(selItems);
+        setPackerFiles(selItems);
       });
   }, [packerOpened]);
 
   const getPackerZip = () => {
-    axios.post(logsApiUrl + 'packer', {items:packerFiles}, {responseType:'blob'})
-      .then(function (response: any) {
-        const fileName = response.headers["content-disposition"].split("filename=")[1];
-		const type = response.headers['content-type'];
-		const blob = new Blob([response.data], { type: type });
-		const link = document.createElement('a');
-		link.href = window.URL.createObjectURL(blob);
-		link.download = fileName;
-		link.click();
-		link.remove();
+    axios.post(logsApiUrl + 'packer', { items: packerFiles }, { responseType: 'blob' })
+      .then(function(response: any) {
+        const fileName = response.headers['content-disposition'].split('filename=')[1];
+        const type = response.headers['content-type'];
+        const blob = new Blob([response.data], { type: type });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = fileName;
+        link.click();
+        link.remove();
       }
-    );
+      );
   }
 
   const getPackerItems = () => {
-    return packerItems.map((packerItem : PackerItem) => (
+    return packerItems.map((packerItem: PackerItem) => (
       <Checkbox key={packerItem.path} value={packerItem.path} disabled={!packerItem.exists} label={packerItem.name} />
-    ));	
+    ));
   }
 
   const logFileReader = new FileReader();
@@ -266,18 +266,18 @@ const Logs = () => {
     for (let i = 0; i < tmplines.length; i++) {
       if (tmplines[i].length > 30 && tmplines[i].substring(30, 31) === '[') {
         const thread = tmplines[i].substring(31, tmplines[i].indexOf(']')).replace(/[\d|-]+$/, '');
-		if (!threads.includes(thread)) { threads.push(thread) }
+        if (!threads.includes(thread)) { threads.push(thread) }
         lines.push(tmplines[i]);
       } else {
         (lines.length === 0) ? lines.push(tmplines[i]) : lines[lines.length - 1] = lines[lines.length - 1].concat('\r', tmplines[i]);
       }
     }
-	setLogThreads(threads);
+    setLogThreads(threads);
     setLogs(lines);
   }
 
   return canModify ? (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
       <Modal
         centered
         opened={filterOpened}
@@ -290,7 +290,7 @@ const Logs = () => {
           onChange={(value) => value === null ? 0 : setLogLevel(parseInt(value))}
           data={allLogLevels}
         />
-        <Divider my="sm" />
+        <Divider my='sm' />
         <form onSubmit={searchForm.onSubmit(handleSearchSubmit)}>
           <TextInput
             label={i18n.get['EnterSearchString']}
@@ -309,7 +309,7 @@ const Logs = () => {
             />
           </Tooltip>
           <Button
-            type="submit"
+            type='submit'
             leftIcon={<ListSearch />}
           >
             {i18n.get['Search']}
@@ -333,63 +333,63 @@ const Logs = () => {
       </Modal>
       <Modal
         centered
-        overflow='inside'
+        scrollAreaComponent={ScrollArea.Autosize}
         opened={settingsOpened}
         onClose={() => setSettingsOpened(false)}
         title={i18n.get['Settings']}
       >
         <Stack>
-        <Tooltip label={allowHtml(i18n.get['FilterLogMessagesLogWindow'])} {...defaultTooltipSettings}>
-          <Select
-            label={i18n.get['Filter']}
-            value={guiLogLevel.toString()}
-            onChange={(value) => value === null ? 0 : setGuiLogLevel(parseInt(value))}
-            data={[
-              { value: '1', label: i18n.get['Error'], disabled: rootLogLevel < 1 },
-              { value: '2', label: i18n.get['Warning'], disabled: rootLogLevel < 2 },
-              { value: '3', label: i18n.get['Info'], disabled: rootLogLevel < 3 },
-              { value: '4', label: i18n.get['Debug'], disabled: rootLogLevel < 4 },
-              { value: '5', label: i18n.get['Trace'], disabled: rootLogLevel < 5 },
-              { value: '6', label: i18n.get['All'], disabled: rootLogLevel < 6 },
-              { value: '0', label: i18n.get['Off'] },
-            ]}
-          />
-        </Tooltip>
-        { traceMode === 0 &&
-          <Tooltip label={allowHtml(i18n.get['RestartUniversalMediaServerTrace'])} {...defaultTooltipSettings}>
-            <Button leftIcon={<FileDescription />} onClick={() => {setRestartOpened(true)}}>{i18n.get['CreateTraceLogs']}</Button>
+          <Tooltip label={allowHtml(i18n.get['FilterLogMessagesLogWindow'])} {...defaultTooltipSettings}>
+            <Select
+              label={i18n.get['Filter']}
+              value={guiLogLevel.toString()}
+              onChange={(value) => value === null ? 0 : setGuiLogLevel(parseInt(value))}
+              data={[
+                { value: '1', label: i18n.get['Error'], disabled: rootLogLevel < 1 },
+                { value: '2', label: i18n.get['Warning'], disabled: rootLogLevel < 2 },
+                { value: '3', label: i18n.get['Info'], disabled: rootLogLevel < 3 },
+                { value: '4', label: i18n.get['Debug'], disabled: rootLogLevel < 4 },
+                { value: '5', label: i18n.get['Trace'], disabled: rootLogLevel < 5 },
+                { value: '6', label: i18n.get['All'], disabled: rootLogLevel < 6 },
+                { value: '0', label: i18n.get['Off'] },
+              ]}
+            />
           </Tooltip>
-        }
-        <Tooltip label={allowHtml(i18n.get['PackLogConfigurationFileCompressed'])} {...defaultTooltipSettings}>
-          <Button leftIcon={<FileZip />} onClick={() => {setPackerOpened(true); if (traceMode === 0) {setRestartOpened(true)}}}>{i18n.get['PackDebugFiles']}</Button>
-        </Tooltip>
+          {traceMode === 0 &&
+            <Tooltip label={allowHtml(i18n.get['RestartUniversalMediaServerTrace'])} {...defaultTooltipSettings}>
+              <Button leftIcon={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get['CreateTraceLogs']}</Button>
+            </Tooltip>
+          }
+          <Tooltip label={allowHtml(i18n.get['PackLogConfigurationFileCompressed'])} {...defaultTooltipSettings}>
+            <Button leftIcon={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get['PackDebugFiles']}</Button>
+          </Tooltip>
         </Stack>
       </Modal>
       {!fileMode && (<>
-      <Modal
-        overflow='inside'
-        centered
-        opened={packerOpened}
-        onClose={() => { setPackerOpened(false);}}
-        title={i18n.get['PackDebugFiles']}
-      >
-        <Button disabled={packerFiles.length === 0} onClick={() => {getPackerZip();setPackerOpened(false);setSettingsOpened(false) }}>{i18n.get['ZipSelectedFiles']}</Button>
-        <Checkbox.Group value={packerFiles} onChange={setPackerFiles} orientation='vertical'>
-          { getPackerItems() }
-        </Checkbox.Group>
-      </Modal>
-      <Modal
-        centered
-        opened={restartOpened}
-        onClose={() => { setRestartOpened(false); setRestartOpened(false)}}
-        title={i18n.get['StartupLogLevelNotTrace']}
-      >
-        <span dangerouslySetInnerHTML={{__html: i18n.get['ForReportingMostIssuesBest']}}></span>
-        <Group>
-          <Button onClick={() => {sendAction('Process.Reboot.Trace'); setRestartOpened(false); setSettingsOpened(false)}}>{i18n.get['Yes']}</Button>
-          <Button onClick={() => {setRestartOpened(false)}}>{i18n.get['No']}</Button>
-        </Group>
-      </Modal>
+        <Modal
+          scrollAreaComponent={ScrollArea.Autosize}
+          centered
+          opened={packerOpened}
+          onClose={() => { setPackerOpened(false); }}
+          title={i18n.get['PackDebugFiles']}
+        >
+          <Button disabled={packerFiles.length === 0} onClick={() => { getPackerZip(); setPackerOpened(false); setSettingsOpened(false) }}>{i18n.get['ZipSelectedFiles']}</Button>
+          <Checkbox.Group value={packerFiles} onChange={setPackerFiles}>
+            {getPackerItems()}
+          </Checkbox.Group>
+        </Modal>
+        <Modal
+          centered
+          opened={restartOpened}
+          onClose={() => { setRestartOpened(false); setRestartOpened(false) }}
+          title={i18n.get['StartupLogLevelNotTrace']}
+        >
+          <span dangerouslySetInnerHTML={{ __html: i18n.get['ForReportingMostIssuesBest'] }}></span>
+          <Group>
+            <Button onClick={() => { sendAction('Process.Reboot.Trace'); setRestartOpened(false); setSettingsOpened(false) }}>{i18n.get['Yes']}</Button>
+            <Button onClick={() => { setRestartOpened(false) }}>{i18n.get['No']}</Button>
+          </Group>
+        </Modal>
       </>)}
       <Group>
         <SegmentedControl
@@ -397,23 +397,23 @@ const Logs = () => {
           onChange={setFileMode}
           data={[{ label: i18n.get['Server'], value: '' }, { label: i18n.get['File'], value: 'file' }]}
         />
-        <Button leftIcon={<Filter />} onClick={() => {setFilterOpened(true)}}>{i18n.get['Filter']}</Button>
+        <Button leftIcon={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get['Filter']}</Button>
         {fileMode ?
           <Dropzone
             padding={5}
             onDrop={(files: FileWithPath[]) => readLogFile(files)}
             maxFiles={1}
           >
-            <Text align="center">Drop/Select log here</Text>
+            <Text align='center'>Drop/Select log here</Text>
           </Dropzone>
-        :
-          <Button leftIcon={<Activity />} onClick={() => {setSettingsOpened(true)}}>{i18n.get['Options']}</Button>
+          :
+          <Button leftIcon={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get['Options']}</Button>
         }
       </Group>
-      <Divider my="sm" />
-      <Pagination page={activePage} onChange={setActivePage} total={totalPage} />
-      <Divider my="sm" />
-      <ScrollArea offsetScrollbars style={{height: 'calc(100vh - 275px)'}}>
+      <Divider my='sm' />
+      <Pagination value={activePage} onChange={setActivePage} total={totalPage} />
+      <Divider my='sm' />
+      <ScrollArea offsetScrollbars style={{ height: 'calc(100vh - 275px)' }}>
         <Prism
           noCopy
           language={'ums' as any}
@@ -423,22 +423,22 @@ const Logs = () => {
       </ScrollArea>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
-      <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   )
 };
 
 interface SearchValue {
-  search:string,
-  isCapSensitive:boolean,
-  isRexp:boolean,
+  search: string,
+  isCapSensitive: boolean,
+  isRexp: boolean,
 }
 
 interface PackerItem {
-  name:string,
-  path:string,
-  exists:boolean
+  name: string,
+  path: string,
+  exists: boolean
 }
 
 export default Logs;

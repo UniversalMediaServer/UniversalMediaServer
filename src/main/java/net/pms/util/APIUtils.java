@@ -32,7 +32,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -65,7 +64,6 @@ import net.pms.media.metadata.ApiStringArray;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.media.metadata.TvSeriesMetadata;
 import net.pms.media.metadata.VideoMetadataLocalized;
-import net.pms.util.OpenSubtitle.OpenSubtitlesBackgroundWorkerThreadFactory;
 
 /**
  * This class contains utility methods for API to get the Metadata info.
@@ -83,13 +81,14 @@ public class APIUtils {
 	}
 
 	// Minimum number of threads in pool
-	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
-		5, // Maximum number of threads in pool
-		30, // Number of seconds before an idle thread is terminated
-
-		// The queue holding the tasks waiting to be processed
-		TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
+			0,
+			5, // Maximum number of threads in pool
+			30, TimeUnit.SECONDS, // Number of seconds before an idle thread is terminated
+			// The queue holding the tasks waiting to be processed
+			new LinkedBlockingQueue<>(),
+			// The ThreadFactory
+			new SimpleThreadFactory("Lookup Metadata background worker", "Lookup Metadata background workers group", Thread.NORM_PRIORITY - 1)
 	);
 
 	static {
@@ -826,6 +825,10 @@ public class APIUtils {
 			filebytesize = file.length();
 
 			imdbID = ImdbUtil.extractImdbId(path, false);
+
+			if (isBlank(movieOrTVSeriesTitle)) {
+				movieOrTVSeriesTitle = FileUtil.getFileNameWithoutExtension(file.getName());
+			}
 		}
 
 		// Remove the year from the title before lookup if it exists
@@ -840,8 +843,8 @@ public class APIUtils {
 
 		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
 
-		String notFoundMessage = "Metadata not found on OpenSubtitles";
-		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
+		String notFoundPartialMessage = "Metadata not found";
+		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
 			LOGGER.trace("no result for " + movieOrTVSeriesTitle + ", received: " + apiResult);
 			return null;
 		}
@@ -951,7 +954,11 @@ public class APIUtils {
 		String getParametersJoined = StringUtils.join(getParameters, "&");
 		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
 
-		LOGGER.trace("Getting API data from: {}", url);
+		if (isSeries) {
+			LOGGER.trace("Getting API data for series from: {}", url);
+		} else {
+			LOGGER.trace("Getting API data for video from: {}", url);
+		}
 
 		return getJson(url);
 	}

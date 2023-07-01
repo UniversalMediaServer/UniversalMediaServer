@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Code, Group, Modal, Select, Table, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Code, Group, Modal, ScrollArea, Select, Table, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -118,7 +118,7 @@ export default function SharedContentSettings(
     setLoading(false);
   }
 
-  const getSharedContentTypeLocalized= (value: string) => {
+  const getSharedContentTypeLocalized = (value: string) => {
     switch (value) {
       case 'FeedAudio':
         return i18n.get['Podcast'];
@@ -134,7 +134,7 @@ export default function SharedContentSettings(
         return i18n.get['Folder'];
       case 'VirtualFolder':
         return i18n.get['VirtualFolders'];
-	}	  
+    }
   }
 
   const getSharedContentParents = (value: Feed | Stream | VirtualFolder) => {
@@ -193,7 +193,7 @@ export default function SharedContentSettings(
 
   const getSharedContentVirtualFolderChildsView = (value: VirtualFolder) => {
     return value.childs ? value.childs.map((child: SharedContent, index) => (
-      child.type === 'Folder' && 
+      child.type === 'Folder' &&
       <div key={index}><Code color='blue'>{(child as Folder).file}</Code></div>
     )) : null;
   }
@@ -204,7 +204,7 @@ export default function SharedContentSettings(
       <div>
         <div>{type}</div>
         <div>{getSharedContentParents(value)}<Code color='teal'>{value.name}</Code></div>
-		{getSharedContentVirtualFolderChildsView(value)}
+        {getSharedContentVirtualFolderChildsView(value)}
       </div>
     );
   }
@@ -222,8 +222,8 @@ export default function SharedContentSettings(
         return getSharedContentFolderView(value as Folder);
       case 'VirtualFolder':
         return getSharedContentVirtualFolderView(value as VirtualFolder);
-	}
-	return (<div>{i18n.get['Unknown']}</div>);
+    }
+    return (<div>{i18n.get['Unknown']}</div>);
   }
 
   const getSharedContentFeedActions = (value: Feed) => {
@@ -246,8 +246,8 @@ export default function SharedContentSettings(
       <>
         <Tooltip label={i18n.get['MonitorPlayedStatusFiles']} {...defaultTooltipSettings}>
           <ActionIcon
-            color="blue"
-            variant="transparent"
+            color='blue'
+            variant='transparent'
             disabled={!canModify || !configuration.use_cache}
             onClick={() => toggleFolderMonitored(value)}
           >
@@ -256,8 +256,8 @@ export default function SharedContentSettings(
         </Tooltip>
         <Tooltip label={i18n.get['MarkContentsFullyPlayed']} {...defaultTooltipSettings}>
           <ActionIcon
-            color="blue"
-            variant="transparent"
+            color='blue'
+            variant='transparent'
             disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
             onClick={() => markDirectoryFullyPlayed(value.file, true)}
           >
@@ -266,8 +266,8 @@ export default function SharedContentSettings(
         </Tooltip>
         <Tooltip label={i18n.get['MarkContentsUnplayed']} {...defaultTooltipSettings}>
           <ActionIcon
-            color="green"
-            variant="transparent"
+            color='green'
+            variant='transparent'
             disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
             onClick={() => markDirectoryFullyPlayed(value.file, false)}
           >
@@ -286,8 +286,8 @@ export default function SharedContentSettings(
         return getSharedContentFeedActions(item as Feed);
       case 'Folder':
         return getSharedContentFolderActions(item as Folder);
-	}
-	return (<></>);
+    }
+    return (<></>);
   }
 
   const editSharedContentItem = (value: SharedContent) => {
@@ -300,7 +300,7 @@ export default function SharedContentSettings(
     const sharedContentsTemp = _.cloneDeep(sharedContents);
     const index = sharedContents.indexOf(item);
     sharedContentsTemp[index].active = !sharedContentsTemp[index].active;
-	setSharedContents(sharedContentsTemp);
+    setSharedContents(sharedContentsTemp);
   }
 
   const removeSharedContentItem = (item: SharedContent) => {
@@ -318,88 +318,88 @@ export default function SharedContentSettings(
 
   const getSharedContentsList = () => {
     return (
-            <List
-              lockVertically
-              values={sharedContents}
-              onChange={({ oldIndex, newIndex }) => {
-                canModify && moveSharedContentItem(oldIndex, newIndex);
-              }}
-              renderList={
-                ({ children, props }) => {
-                  return (
-                    <Table highlightOnHover>
-                      <thead>
-                        <tr>
-                          <th></th>
-                          <th>Share</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody {...props}>
-                        {children}
-                      </tbody>
-                    </Table>
-                  )
-                }
-              }
-              renderItem={
-                ({ value, props, isDragged, isSelected }) => {
-                  return (
-                    <tr {...props}>
-                      <td>
-                        <ActionIcon
-                          data-movable-handle
-                          size={20}
-                          style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
-                          variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                          disabled={!canModify}
-                        >
-                          <ArrowsVertical />
-                        </ActionIcon>
-                      </td>
-                      <td>
-                        {getSharedContentView(value)}
-                      </td>
-                      <td>
-                      <Group position='right'>
-                        {getSharedContentActions(value)}
-                        <Tooltip label={i18n.get['Edit']} {...defaultTooltipSettings}>
-                        <ActionIcon
-                          color='green'
-                          variant='transparent'
-                          disabled={!canModify}
-                          onClick={() => editSharedContentItem(value)}
-                        >
-                          <Edit />
-                        </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label={value.active ? i18n.get['Disable'] : i18n.get['Enable']} {...defaultTooltipSettings}>
-                        <ActionIcon
-                          color={value.active ? 'blue' : 'orange'}
-                          variant='transparent'
-                          disabled={!canModify}
-                          onClick={() => toogleSharedContentItemActive(value)}
-                        >
-                          {value.active ? <Share /> : <ShareOff />}
-                        </ActionIcon>
-                        </Tooltip>
-                        <Tooltip label={i18n.get['Delete']} {...defaultTooltipSettings}>
-                        <ActionIcon
-                          color='red'
-                          variant='transparent'
-                          disabled={!canModify}
-                          onClick={() => removeSharedContentItem(value)}
-                        >
-                          <SquareX />
-                        </ActionIcon>
-                        </Tooltip>
-                        </Group>
-                      </td>
-                    </tr>
-                  )
-                }
-              }
-            />
+      <List
+        lockVertically
+        values={sharedContents}
+        onChange={({ oldIndex, newIndex }) => {
+          canModify && moveSharedContentItem(oldIndex, newIndex);
+        }}
+        renderList={
+          ({ children, props }) => {
+            return (
+              <Table highlightOnHover>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Share</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody {...props}>
+                  {children}
+                </tbody>
+              </Table>
+            )
+          }
+        }
+        renderItem={
+          ({ value, props, isDragged, isSelected }) => {
+            return (
+              <tr {...props}>
+                <td>
+                  <ActionIcon
+                    data-movable-handle
+                    size={20}
+                    style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
+                    variant={isDragged || isSelected ? 'outline' : 'subtle'}
+                    disabled={!canModify}
+                  >
+                    <ArrowsVertical />
+                  </ActionIcon>
+                </td>
+                <td>
+                  {getSharedContentView(value)}
+                </td>
+                <td>
+                  <Group position='right'>
+                    {getSharedContentActions(value)}
+                    <Tooltip label={i18n.get['Edit']} {...defaultTooltipSettings}>
+                      <ActionIcon
+                        color='green'
+                        variant='transparent'
+                        disabled={!canModify}
+                        onClick={() => editSharedContentItem(value)}
+                      >
+                        <Edit />
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label={value.active ? i18n.get['Disable'] : i18n.get['Enable']} {...defaultTooltipSettings}>
+                      <ActionIcon
+                        color={value.active ? 'blue' : 'orange'}
+                        variant='transparent'
+                        disabled={!canModify}
+                        onClick={() => toogleSharedContentItemActive(value)}
+                      >
+                        {value.active ? <Share /> : <ShareOff />}
+                      </ActionIcon>
+                    </Tooltip>
+                    <Tooltip label={i18n.get['Delete']} {...defaultTooltipSettings}>
+                      <ActionIcon
+                        color='red'
+                        variant='transparent'
+                        disabled={!canModify}
+                        onClick={() => removeSharedContentItem(value)}
+                      >
+                        <SquareX />
+                      </ActionIcon>
+                    </Tooltip>
+                  </Group>
+                </td>
+              </tr>
+            )
+          }
+        }
+      />
     );
   }
 
@@ -417,7 +417,7 @@ export default function SharedContentSettings(
     return modalForm.values['contentChilds'] && modalForm.values['contentChilds'].length > 0 ? (<>
       <label>{i18n.get['SharedFolders']}</label>
       {getSharedContentChildsDirectoryChooser()}
-	</>) : null;
+    </>) : null;
   }
 
   const getSharedContentChildsDirectoryChooser = () => {
@@ -439,7 +439,7 @@ export default function SharedContentSettings(
   const setSharedContentChild = (file: string, index: number) => {
     const contentChilds = _.cloneDeep(modalForm.values['contentChilds']);
     if (index < 0) {
-      contentChilds.push({type:'Folder',file:file,monitored:true,metadata:true,active:true} as Folder);
+      contentChilds.push({ type: 'Folder', file: file, monitored: true, metadata: true, active: true } as Folder);
     } else {
       contentChilds[index].file = file;
     }
@@ -455,42 +455,42 @@ export default function SharedContentSettings(
   const getSharedContentModifyModal = () => {
     const isNew = editingIndex < 0;
     return (
-      <Modal overflow='inside' opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
+      <Modal scrollAreaComponent={ScrollArea.Autosize} opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
         <Select
           disabled={!canModify || !isNew}
           label={i18n.get['Type']}
           data={[
-            {value: 'Folder', label: i18n.get['Folder']},
-            {value: 'VirtualFolder', label: i18n.get['VirtualFolders']},
-            {value: 'FeedAudio', label: i18n.get['Podcast']},
-            {value: 'FeedImage', label: i18n.get['ImageFeed']},
-            {value: 'FeedVideo', label: i18n.get['VideoFeed']},
-            {value: 'StreamAudio', label: i18n.get['AudioStream']},
-            {value: 'StreamVideo', label: i18n.get['VideoStream']},
+            { value: 'Folder', label: i18n.get['Folder'] },
+            { value: 'VirtualFolder', label: i18n.get['VirtualFolders'] },
+            { value: 'FeedAudio', label: i18n.get['Podcast'] },
+            { value: 'FeedImage', label: i18n.get['ImageFeed'] },
+            { value: 'FeedVideo', label: i18n.get['VideoFeed'] },
+            { value: 'StreamAudio', label: i18n.get['AudioStream'] },
+            { value: 'StreamVideo', label: i18n.get['VideoStream'] },
           ]}
           {...modalForm.getInputProps('contentType')}
         ></Select>
-        { modalForm.values['contentType'] !== 'Folder' && (
+        {modalForm.values['contentType'] !== 'Folder' && (
           <TextInput
             disabled={!canModify || modalForm.values['contentType'].startsWith('Feed')}
             label={i18n.get['Name']}
             placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get['NamesSetAutomaticallyFeeds'] : ''}
-            name="contentName"
+            name='contentName'
             sx={{ flex: 1 }}
             {...modalForm.getInputProps('contentName')}
           />
         )}
-        { modalForm.values['contentType'] !== 'Folder' && (
+        {modalForm.values['contentType'] !== 'Folder' && (
           <TextInput
             disabled={!canModify}
             label={i18n.get['Path']}
             placeholder={modalForm.values['contentType'] !== 'VirtualFolder' ? 'Web' : ''}
-            name="contentPath"
+            name='contentPath'
             sx={{ flex: 1 }}
             {...modalForm.getInputProps('contentPath')}
           />
         )}
-        { modalForm.values['contentType'] === 'Folder' ? (
+        {modalForm.values['contentType'] === 'Folder' ? (
           <DirectoryChooser
             disabled={!canModify}
             label={i18n.get['Folder']}
@@ -498,16 +498,16 @@ export default function SharedContentSettings(
             path={modalForm.values['contentSource']}
             callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
           ></DirectoryChooser>
-		) : modalForm.values['contentType'] !== 'VirtualFolder' && (
+        ) : modalForm.values['contentType'] !== 'VirtualFolder' && (
           <TextInput
             disabled={!canModify}
             label={i18n.get['SourceURLColon']}
-            name="contentSource"
+            name='contentSource'
             sx={{ flex: 1 }}
             {...modalForm.getInputProps('contentSource')}
           />
         )}
-        { modalForm.values['contentType'] === 'VirtualFolder' && (<>
+        {modalForm.values['contentType'] === 'VirtualFolder' && (<>
           {getSharedContentChilds()}
           <label>{i18n.get['AddFolder']}</label>
           <DirectoryChooser
@@ -518,7 +518,7 @@ export default function SharedContentSettings(
           ></DirectoryChooser>
         </>)}
         <Group position='right' mt='sm'>
-          <Button variant="outline" onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false)}}>
+          <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
             {canModify ? isNew ? i18n.get['Add'] : i18n.get['Apply'] : i18n.get['Close']}
           </Button>
         </Group>
@@ -528,44 +528,44 @@ export default function SharedContentSettings(
 
   const saveModal = (values: typeof modalForm.values) => {
     const sharedContentsTemp = _.cloneDeep(sharedContents);
-    switch(values.contentType) {
+    switch (values.contentType) {
       case 'Folder':
         if (editingIndex < 0) {
-          sharedContentsTemp.push({type:values.contentType,active:true,file:values.contentSource,monitored:true,metadata:true} as Folder);
+          sharedContentsTemp.push({ type: values.contentType, active: true, file: values.contentSource, monitored: true, metadata: true } as Folder);
         } else {
           (sharedContentsTemp[editingIndex] as Folder).file = values.contentSource;
         }
-      break;
+        break;
       case 'VirtualFolder':
         if (editingIndex < 0) {
-          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,childs:values.contentChilds,addToMediaLibrary:true} as VirtualFolder);
+          sharedContentsTemp.push({ type: values.contentType, active: true, parent: values.contentPath, name: values.contentName, childs: values.contentChilds, addToMediaLibrary: true } as VirtualFolder);
         } else {
           (sharedContentsTemp[editingIndex] as VirtualFolder).parent = values.contentPath;
           (sharedContentsTemp[editingIndex] as VirtualFolder).name = values.contentName;
           (sharedContentsTemp[editingIndex] as VirtualFolder).childs = values.contentChilds;
         }
-      break;
+        break;
       case 'FeedAudio':
       case 'FeedImage':
       case 'FeedVideo':
         if (editingIndex < 0) {
-          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,uri:values.contentSource} as Feed);
+          sharedContentsTemp.push({ type: values.contentType, active: true, parent: values.contentPath, name: values.contentName, uri: values.contentSource } as Feed);
         } else {
           (sharedContentsTemp[editingIndex] as Feed).parent = values.contentPath;
           (sharedContentsTemp[editingIndex] as Feed).name = values.contentName;
           (sharedContentsTemp[editingIndex] as Feed).uri = values.contentSource;
         }
-      break;
+        break;
       case 'StreamAudio':
       case 'StreamVideo':
         if (editingIndex < 0) {
-          sharedContentsTemp.push({type:values.contentType,active:true,parent:values.contentPath,name:values.contentName,uri:values.contentSource} as Stream);
+          sharedContentsTemp.push({ type: values.contentType, active: true, parent: values.contentPath, name: values.contentName, uri: values.contentSource } as Stream);
         } else {
           (sharedContentsTemp[editingIndex] as Stream).parent = values.contentPath;
           (sharedContentsTemp[editingIndex] as Stream).name = values.contentName;
           (sharedContentsTemp[editingIndex] as Stream).uri = values.contentSource;
         }
-      break;
+        break;
     }
     setSharedContents(sharedContentsTemp);
     setNewOpened(false);
@@ -577,15 +577,15 @@ export default function SharedContentSettings(
     return haveFolder ? (
       <Tooltip label={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']} {...defaultTooltipSettings}>
         <ActionIcon
-          size="xl"
+          size='xl'
           disabled={!canModify || isLoading || !sse.scanLibrary.enabled || (!configuration.use_cache && !sse.scanLibrary.running)}
-          variant="transparent"
-          color={sse.scanLibrary.running ? "red" : "blue"}
+          variant='transparent'
+          color={sse.scanLibrary.running ? 'red' : 'blue'}
           title={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
           onClick={() => sse.scanLibrary.running ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
         >
           <ListSearch />
-          {sse.scanLibrary.running  && (<Loader />)}
+          {sse.scanLibrary.running && (<Loader />)}
         </ActionIcon>
       </Tooltip>
     ) : null;
@@ -603,7 +603,7 @@ export default function SharedContentSettings(
     const contentPath = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).parent;
     const contentSource = isNew || sharedContent.type === 'VirtualFolder' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file;
     const contentChilds = isNew || sharedContent.type !== 'VirtualFolder' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : [];
-    modalForm.setValues({contentType:contentType,contentName:contentName,contentPath:contentPath,contentSource:contentSource,contentChilds:contentChilds});
+    modalForm.setValues({ contentType: contentType, contentName: contentName, contentPath: contentPath, contentSource: contentSource, contentChilds: contentChilds });
   }, [sharedContents, editingIndex]);
 
   useEffect(() => {
@@ -614,7 +614,7 @@ export default function SharedContentSettings(
   return (
     <>
       <Group>
-        <Button leftIcon={<Plus />} variant='outline' onClick={() => {setEditingIndex(-1); setNewOpened(true)}}>
+        <Button leftIcon={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get['AddNewSharedContent']}
         </Button>
         {getScanSharedFoldersButton()}

@@ -487,6 +487,7 @@ public class NSFoundation {
 		 *
 		 * @deprecated There is no one single Developer directory.
 		 */
+		@Deprecated
 		NSDeveloperApplicationDirectory(3),
 
 		/** System and network administration applications ({@code Administration}) */
@@ -503,6 +504,7 @@ public class NSFoundation {
 		 *
 		 * @deprecated There is no one single Developer directory.
 		 */
+		@Deprecated
 		NSDeveloperDirectory(6),
 
 		/** User home directories ({@code Users}) */

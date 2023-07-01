@@ -951,9 +951,9 @@ public class FFMpegVideo extends Engine {
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (media.getVideoHDRFormat() != null) {
+			} else if (media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.debug(prependFfmpegTraceReason + "the file is HDR and FFmpeg seems to not preserve HDR data (worth re-checking periodically).");
+				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
 

@@ -14,10 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Center, ColorSchemeProvider, ColorScheme, createEmotionCache, Group, Header, Loader, MantineProvider, Navbar, MediaQuery, Burger, Stack, ScrollArea, Footer, MantineTheme } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Burger, Center, ColorScheme, ColorSchemeProvider, createEmotionCache, DefaultMantineColor, Footer, Group, Header, Loader, MantineProvider, MantineTheme, MediaQuery, Navbar, ScrollArea, Stack, Tuple } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { NotificationsProvider } from '@mantine/notifications';
-import { useEffect } from 'react'; 
+import { Notifications } from '@mantine/notifications';
+
+import { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Route,
@@ -49,8 +50,6 @@ import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
 import { NavbarProvider } from './providers/navbar-provider';
-
-import { Tuple, DefaultMantineColor } from '@mantine/core';
 
 type ExtendedCustomColors = 'darkTransparent' | 'lightTransparent' | DefaultMantineColor;
 
@@ -91,9 +90,9 @@ function App() {
         emotionCache={
           rtl
             ? // rtl cache
-              rtlCache
+            rtlCache
             : // ltr cache
-              undefined
+            undefined
         }
         theme={{
           colorScheme,
@@ -104,13 +103,14 @@ function App() {
           },
         }}
       >
-        <NotificationsProvider>
-          <I18nProvider rtl={rtl} setRtl={setRtl}>
-            <NavbarProvider><NavbarContext.Consumer>
-            {navbar => (
-              <SessionProvider><SessionContext.Consumer>
-                {session => (
-                    <div dir={rtl ? 'rtl' : 'ltr'} className="bodyBackgroundImageScreen">
+        <Notifications autoClose={3000} />
+        <I18nProvider rtl={rtl} setRtl={setRtl}>
+          <NavbarProvider>
+            <NavbarContext.Consumer>
+              {navbar => (
+                <SessionProvider><SessionContext.Consumer>
+                  {session => (
+                    <div dir={rtl ? 'rtl' : 'ltr'} className='bodyBackgroundImageScreen'>
                       <AppShell
                         padding='md'
                         navbarOffsetBreakpoint='sm'
@@ -119,8 +119,8 @@ function App() {
                             hiddenBreakpoint='sm'
                             hidden={!navbar.opened}
                             width={{ sm: 200, lg: 300 }}
-                            p="xs"
-                            sx={(theme:MantineTheme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                            p='xs'
+                            sx={(theme: MantineTheme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
                           >
                             <Navbar.Section grow component={ScrollArea}><Stack spacing={0}>{navbar.value}</Stack></Navbar.Section>
                           </Navbar>}
@@ -128,28 +128,28 @@ function App() {
                           <Header
                             height={50}
                             p='xs'
-                            sx={(theme) => ({backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0],})}
+                            sx={(theme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
                           >{
-                            <Group position='apart'>
-                              <Group position='left'>
-                                {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
-                                  <Burger
-                                    opened={navbar.opened}
-                                    onClick={() => navbar.setOpened((o : boolean) => !o)}
-                                    size='sm'
-                                    mr='xl'
-                                  />
-                                </MediaQuery>}
+                              <Group position='apart'>
+                                <Group position='left'>
+                                  {navbar.value && <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+                                    <Burger
+                                      opened={navbar.opened}
+                                      onClick={() => navbar.setOpened((o: boolean) => !o)}
+                                      size='sm'
+                                      mr='xl'
+                                    />
+                                  </MediaQuery>}
+                                </Group>
+                                <Group position='right'>
+                                  <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
+                                    {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                                  </ActionIcon>
+                                  <LanguagesMenu />
+                                  {session.account && <UserMenu />}
+                                </Group>
                               </Group>
-                              <Group position='right'>
-                                <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                                  {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
-                                </ActionIcon>
-                                <LanguagesMenu />
-                                {session.account && <UserMenu />}
-                              </Group>
-                            </Group>
-                          }</Header>
+                            }</Header>
                         }
                         footer={
                           <Footer height={0}>
@@ -185,8 +185,8 @@ function App() {
                               <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
                               <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
                               <Route
-                                path="/*"
-                                element={<Navigate replace to="/" />}
+                                path='/*'
+                                element={<Navigate replace to='/' />}
                               />
                             </Routes>
                           </Router>
@@ -195,18 +195,18 @@ function App() {
                         ) : (
                           <Center>
                             <Box sx={{ maxWidth: 1024 }} mx='auto'>
-                              <Loader size='xl' variant='dots' sx={{marginTop: '150px'}}/>
+                              <Loader size='xl' variant='dots' sx={{ marginTop: '150px' }} />
                             </Box>
                           </Center>
                         )}
                       </AppShell>
                     </div>
-                )}
-              </SessionContext.Consumer></SessionProvider>
-            )}
-            </NavbarContext.Consumer></NavbarProvider>
-          </I18nProvider>
-        </NotificationsProvider>
+                  )}
+                </SessionContext.Consumer></SessionProvider>
+              )}
+            </NavbarContext.Consumer>
+          </NavbarProvider>
+        </I18nProvider>
       </MantineProvider>
     </ColorSchemeProvider>
   );

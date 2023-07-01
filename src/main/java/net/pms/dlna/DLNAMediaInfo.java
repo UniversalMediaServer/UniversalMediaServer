@@ -146,6 +146,7 @@ public class DLNAMediaInfo implements Cloneable {
 	private String aspectRatioVideoTrack;
 	private int videoBitDepth = 8;
 	private String videoHDRFormat;
+	private String videoHDRFormatCompatibility;
 
 	private volatile DLNAThumbnail thumb = null;
 
@@ -668,6 +669,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 							audio.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
 							audio.setArtist(extractAudioTagKeyValue(t, FieldKey.ARTIST));
+							audio.setComposer(extractAudioTagKeyValue(t, FieldKey.COMPOSER));
+							audio.setConductor(extractAudioTagKeyValue(t, FieldKey.CONDUCTOR));
 							audio.setSongname(extractAudioTagKeyValue(t, FieldKey.TITLE));
 							audio.setMbidRecord(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
 							audio.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
@@ -1232,7 +1235,7 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 						}
 					} else if (line.contains("Subtitle:")) {
-						DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
+						DLNAMediaSubtitle subtitle = new DLNAMediaSubtitle();
 						// $ ffmpeg -codecs | grep "^...S"
 						// ..S... = Subtitle codec
 						// DES... ass                  ASS (Advanced SSA) subtitle
@@ -1258,39 +1261,41 @@ public class DLNAMediaInfo implements Cloneable {
 						// D.S... webvtt               WebVTT subtitle
 						// DES... xsub                 XSUB
 						if (line.contains("srt") || line.contains("subrip")) {
-							lang.setType(SubtitleType.SUBRIP);
+							subtitle.setType(SubtitleType.SUBRIP);
 						} else if (line.contains(" text")) {
 							// excludes dvb_teletext, mov_text, realtext
-							lang.setType(SubtitleType.TEXT);
+							subtitle.setType(SubtitleType.TEXT);
 						} else if (line.contains("microdvd")) {
-							lang.setType(SubtitleType.MICRODVD);
+							subtitle.setType(SubtitleType.MICRODVD);
 						} else if (line.contains("sami")) {
-							lang.setType(SubtitleType.SAMI);
+							subtitle.setType(SubtitleType.SAMI);
 						} else if (line.contains("ass") || line.contains("ssa")) {
-							lang.setType(SubtitleType.ASS);
+							subtitle.setType(SubtitleType.ASS);
 						} else if (line.contains("dvd_subtitle")) {
-							lang.setType(SubtitleType.VOBSUB);
+							subtitle.setType(SubtitleType.VOBSUB);
 						} else if (line.contains("xsub")) {
-							lang.setType(SubtitleType.DIVX);
+							subtitle.setType(SubtitleType.DIVX);
 						} else if (line.contains("mov_text")) {
-							lang.setType(SubtitleType.TX3G);
+							subtitle.setType(SubtitleType.TX3G);
 						} else if (line.contains("webvtt")) {
-							lang.setType(SubtitleType.WEBVTT);
+							subtitle.setType(SubtitleType.WEBVTT);
 						} else if (line.contains("eia_608")) {
-							lang.setType(SubtitleType.EIA608);
+							subtitle.setType(SubtitleType.EIA608);
 						} else if (line.contains("dvb_subtitle")) {
-							lang.setType(SubtitleType.DVBSUB);
+							subtitle.setType(SubtitleType.DVBSUB);
 						} else {
-							lang.setType(SubtitleType.UNKNOWN);
+							subtitle.setType(SubtitleType.UNKNOWN);
 						}
 						int a = line.indexOf('(');
 						int b = line.indexOf("):", a);
 						if (a > -1 && b > a) {
-							lang.setLang(line.substring(a + 1, b));
+							subtitle.setLang(line.substring(a + 1, b));
 						} else {
-							lang.setLang(DLNAMediaLang.UND);
+							subtitle.setLang(DLNAMediaLang.UND);
 						}
-						lang.setId(subId++);
+						subtitle.setId(subId++);
+						subtitle.setDefault(line.contains("(default)"));
+						subtitle.setForced(line.contains("(forced)"));
 						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
 						if (fFmpegMetaDataNr > -1) {
 							line = lines.get(fFmpegMetaDataNr);
@@ -1303,7 +1308,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setSubtitlesTrackTitleFromMetadata(line.substring(aa + 2, bb));
+										subtitle.setSubtitlesTrackTitleFromMetadata(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1312,7 +1317,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 						}
-						subtitleTracks.add(lang);
+						subtitleTracks.add(subtitle);
 					} else if (line.contains("Chapters:")) {
 						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
 						if (fFmpegMetaDataNr > -1) {
@@ -1766,6 +1771,12 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getVideoHDRFormat())) {
 				result.append(", Video HDR Format: ").append(getVideoHDRFormat());
 			}
+			if (isNotBlank(getVideoHDRFormatCompatibility())) {
+				result.append(", Video HDR Format Compatibility: ").append(getVideoHDRFormatCompatibility());
+			}
+			if (isNotBlank(getVideoHDRFormatForRenderer())) {
+				result.append(" (").append(getVideoHDRFormatForRenderer()).append(")");
+			}
 			if (isNotBlank(getFileTitleFromMetadata())) {
 				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
 			}
@@ -2183,6 +2194,59 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void setVideoHDRFormat(String value) {
 		this.videoHDRFormat = value;
+	}
+
+	public String getVideoHDRFormatCompatibility() {
+		return videoHDRFormatCompatibility;
+	}
+
+	public void setVideoHDRFormatCompatibility(String value) {
+		this.videoHDRFormatCompatibility = value;
+	}
+
+	/**
+	 * Uses the HDR format and HDR format compatibility information
+	 * to return a string that the renderer config can match.
+	 *
+	 * Note: Sometimes HDR files have a "SDR" compatibility, this means
+	 * that any player can play them, so we return null for that just like
+	 * any other SDR video.
+	 */
+	public String getVideoHDRFormatForRenderer() {
+		if (StringUtils.isBlank(videoHDRFormat) && StringUtils.isBlank(videoHDRFormatCompatibility)) {
+			return null;
+		}
+
+		String hdrValueInRendererFormat = null;
+		if (StringUtils.isNotBlank(videoHDRFormatCompatibility)) {
+			if (videoHDRFormatCompatibility.startsWith("Dolby Vision")) {
+				hdrValueInRendererFormat = "dolbyvision";
+			} else if (
+				(
+					videoHDRFormatCompatibility.startsWith("HDR10") &&
+					!videoHDRFormatCompatibility.startsWith("HDR10+")
+				) ||
+				videoHDRFormatCompatibility.endsWith("HDR10") // match "HDR10+ Profile A / HDR10"
+			) {
+				hdrValueInRendererFormat = "hdr10";
+			} else if (videoHDRFormatCompatibility.startsWith("HDR10+")) {
+				hdrValueInRendererFormat = "hdr10+";
+			} else if (videoHDRFormatCompatibility.startsWith("HLG")) {
+				hdrValueInRendererFormat = "hlg";
+			}
+		} else if (StringUtils.isNotBlank(videoHDRFormat)) {
+			if (videoHDRFormat.startsWith("Dolby Vision")) {
+				hdrValueInRendererFormat = "dolbyvision";
+			} else if (videoHDRFormat.startsWith("HDR10+")) {
+				hdrValueInRendererFormat = "hdr10+";
+			} else if (videoHDRFormat.startsWith("HDR10")) {
+				hdrValueInRendererFormat = "hdr10";
+			} else if (videoHDRFormat.startsWith("HLG")) {
+				hdrValueInRendererFormat = "hlg";
+			}
+		}
+
+		return hdrValueInRendererFormat;
 	}
 
 	public int getPlaybackCount() {

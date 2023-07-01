@@ -33,7 +33,7 @@ public class FormatFactoryTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		// Silence all log messages from the PMS code that is being tested
+		// Silence all log messages from the PMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 	}
@@ -64,7 +64,7 @@ public class FormatFactoryTest {
 		testSingleFormat("http://example.com/test.mp3", "WEB", Format.UNKNOWN);
 		testSingleFormat("http://example.com/test.asf?format=.wmv", "WEB", Format.UNKNOWN);
 
-		// confirm that the WEB format is assigned for arbitrary protocols
+		// Confirm that the WEB format is assigned for arbitrary protocols
 		testSingleFormat("svn+ssh://example.com/example.test", "WEB", Format.UNKNOWN);
 		testSingleFormat("bogus://example.com/test.test", "WEB", Format.UNKNOWN);
 		testSingleFormat("fake://example.com/test.test", "WEB", Format.UNKNOWN);

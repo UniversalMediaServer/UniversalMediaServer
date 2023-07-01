@@ -52,6 +52,7 @@ import net.pms.util.StringUtil;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.containsIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -322,14 +323,12 @@ public class MediaInfoParser {
 
 						value = MI.get(video, i, "HDR_Format");
 						if (!value.isEmpty()) {
-							if (value.startsWith("Dolby Vision")) {
-								media.setVideoHDRFormat(value);
-							} else {
-								value = MI.get(video, i, "HDR_Format_Compatibility");
-								if (value.startsWith("HDR10") || value.startsWith("HDR10+")) {
-									media.setVideoHDRFormat(value);
-								}
-							}
+							media.setVideoHDRFormat(value);
+						}
+
+						value = MI.get(video, i, "HDR_Format_Compatibility");
+						if (!value.isEmpty()) {
+							media.setVideoHDRFormatCompatibility(value);
 						}
 
 						value = MI.get(video, i, "Format_Profile");
@@ -392,8 +391,11 @@ public class MediaInfoParser {
 					currentAudioTrack.setSongname(MI.get(general, 0, "Track"));
 					currentAudioTrack.setAlbum(MI.get(general, 0, "Album"));
 					currentAudioTrack.setAlbumArtist(MI.get(general, 0, "Album/Performer"));
-					currentAudioTrack.setArtist(MI.get(general, 0, "Performer"));
+					currentAudioTrack.setArtist(getArtist());
 					currentAudioTrack.setGenre(MI.get(general, 0, "Genre"));
+					currentAudioTrack.setComposer(MI.get(general, 0, "Composer"));
+					currentAudioTrack.setConductor(MI.get(general, 0, "Conductor"));
+
 					if (videoTrackCount == 0) {
 						try {
 							AudioFile af;
@@ -550,6 +552,16 @@ public class MediaInfoParser {
 						}
 					}
 
+					value = MI.get(text, i, "Default/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setDefault(true);
+					}
+
+					value = MI.get(text, i, "Forced/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setForced(true);
+					}
+
 					addSub(currentSubTrack, media);
 					if (parseLogger != null) {
 						parseLogger.logSubtitleTrackColumns(i, false);
@@ -666,6 +678,20 @@ public class MediaInfoParser {
 			media.setMediaparsed(true);
 		}
 		media.setParsing(false);
+	}
+
+	/**
+	 * Reads artist either from the ARTISTS tag or if empty from the PERFORMER tag.
+	 *
+	 * @return artist
+	 */
+	private static String getArtist() {
+		StreamKind general = StreamKind.GENERAL;
+		String artist = MI.get(general, 0, "ARTISTS");
+		if (StringUtils.isBlank(artist)) {
+			artist = MI.get(general, 0, "Performer");
+		}
+		return artist;
 	}
 
 	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {

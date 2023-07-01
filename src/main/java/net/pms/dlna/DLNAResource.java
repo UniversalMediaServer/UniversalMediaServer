@@ -19,6 +19,7 @@ package net.pms.dlna;
 import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
 import static net.pms.util.StringUtil.addAttribute;
 import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
 import static net.pms.util.StringUtil.closeTag;
 import static net.pms.util.StringUtil.convertTimeToString;
 import static net.pms.util.StringUtil.encodeXML;
@@ -102,7 +103,6 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
-import net.pms.util.BasicThreadFactory;
 import net.pms.util.DLNAList;
 import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
@@ -110,6 +110,7 @@ import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 
@@ -1126,7 +1127,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-						new BasicThreadFactory("DLNAResource resolver thread %d-%d"));
+						new SimpleThreadFactory("DLNAResource resolver thread", true));
 
 					if (shouldDoAudioTrackSorting(dlna)) {
 						sortChildrenWithAudioElements(dlna);
@@ -1167,6 +1168,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private boolean shouldDoAudioTrackSorting(DLNAResource dlna) {
 		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
+			LOGGER.trace("shouldDoAudioTrackSorting : {}", PMS.getConfiguration().isSortAudioTracksByAlbumPosition());
 			return false;
 		}
 
@@ -1178,12 +1180,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
+					LOGGER.warn("Audio resource has no AudioTrack : {}", res.getDisplayName());
+					continue;
+				}
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
-					if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
-						return false;
-					}
 					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
 					mbReleaseId = res.getMedia().getFirstAudioTrack().getMbidRecord();
 					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
@@ -2291,6 +2294,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
+			}
+
+			if (StringUtils.isNotBlank(firstAudioTrack.getComposer())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttributeWithRole(sb, "upnp:author role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttribute(sb, "upnp:composer", encodeXML(firstAudioTrack.getComposer()));
+			}
+
+			if (StringUtils.isNotBlank(firstAudioTrack.getConductor())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Conductor\"", encodeXML(firstAudioTrack.getConductor()));
+				addXMLTagAndAttribute(sb, "upnp:conductor", encodeXML(firstAudioTrack.getConductor()));
 			}
 
 			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
