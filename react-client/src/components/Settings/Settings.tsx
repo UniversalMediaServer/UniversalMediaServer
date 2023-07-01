@@ -17,10 +17,11 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
-import { showNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import { Check, ExclamationMark } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
@@ -107,6 +108,14 @@ export default function Settings() {
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
+    showNotification({
+      id: 'settings-save',
+      loading: true,
+      title: i18n.get['Save'],
+      message: i18n.get['SavingConfiguration'],
+      autoClose: false,
+      withCloseButton: false
+    });
     try {
       const changedValues: Record<string, any> = {};
 
@@ -118,21 +127,41 @@ export default function Settings() {
       }
 
       if (_.isEmpty(changedValues)) {
-        showNotification({
+        updateNotification({
+          id: 'settings-save',
           title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationHasNoChanges'],
+          message: i18n.get['ConfigurationHasNoChanges']
         })
       } else {
-        await axios.post(settingsApiUrl, changedValues);
-        setConfiguration(values);
-        setLoading(false);
-        showNotification({
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
-        })
+        await axios.post(settingsApiUrl, changedValues)
+          .then(function() {
+            setConfiguration(values);
+            setLoading(false);
+            updateNotification({
+              id: 'settings-save',
+              color: 'teal',
+              title: i18n.get['Saved'],
+              message: i18n.get['ConfigurationSaved'],
+              icon: <Check size='1rem' />
+            })
+          })
+          .catch(function(error) {
+            if (!error.response && error.request) {
+              updateNotification({
+                id: 'settings-save',
+                color: 'red',
+                title: i18n.get['Error'],
+                message: i18n.get['ConfigurationNotReceived'],
+                icon: <ExclamationMark size='1rem' />
+              })
+            } else {
+              throw new Error(error);
+            }
+          });
       }
     } catch (err) {
-      showNotification({
+      updateNotification({
+        id: 'settings-save',
         color: 'red',
         title: i18n.get['Error'],
         message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],

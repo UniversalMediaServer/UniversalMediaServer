@@ -59,7 +59,7 @@ const Accounts = () => {
     const newUserForm = useForm({ initialValues: { username: null, password: null, groupid: '0', displayname: null } });
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = { operation: 'createuser', username: values.username, password: values.password, groupid: values.groupid, displayname: values.displayname };
-      postAccountAction(data, i18n.get['UserCreation'], i18n.get['NewUserCreated'], i18n.get['NewUserNotCreated']);
+      postAccountAction(data, i18n.get['UserCreation'], i18n.get['NewUserCreating'], i18n.get['NewUserCreated'], i18n.get['NewUserNotCreated']);
     }
     return (
       <form onSubmit={newUserForm.onSubmit(handleNewUserSubmit)}>
@@ -102,7 +102,7 @@ const Accounts = () => {
     const userIdentityForm = useForm({ initialValues: { id: user.id, username: user.username, password: '' } });
     const handleUserIdentitySubmit = (values: typeof userIdentityForm.values) => {
       const data = { operation: 'changelogin', userid: user.id, username: values.username, password: values.password };
-      postAccountAction(data, i18n.get['CredentialsUpdate'], i18n.get['CredentialsUpdated'], i18n.get['CredentialsNotUpdated']);
+      postAccountAction(data, i18n.get['CredentialsUpdate'], i18n.get['CredentialsUpdating'], i18n.get['CredentialsUpdated'], i18n.get['CredentialsNotUpdated']);
     }
     return (
       <form onSubmit={userIdentityForm.onSubmit(handleUserIdentitySubmit)}>
@@ -133,7 +133,7 @@ const Accounts = () => {
     const userDisplayNameForm = useForm({ initialValues: { id: user.id, displayName: user.displayName } });
     const handleUserDisplayNameSubmit = (values: typeof userDisplayNameForm.values) => {
       const data = { operation: 'modifyuser', userid: user.id, name: values.displayName };
-      postAccountAction(data, i18n.get['DisplayNameUpdate'], i18n.get['DisplayNameUpdated'], i18n.get['DisplayNameNotUpdated']);
+      postAccountAction(data, i18n.get['DisplayNameUpdate'], i18n.get['DisplayNameUpdating'], i18n.get['DisplayNameUpdated'], i18n.get['DisplayNameNotUpdated']);
     }
     return (
       <form onSubmit={userDisplayNameForm.onSubmit(handleUserDisplayNameSubmit)}>
@@ -156,7 +156,7 @@ const Accounts = () => {
     const userGroupForm = useForm({ initialValues: { id: user.id, groupId: user.groupId.toString() } });
     const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {
       const data = { operation: 'modifyuser', userid: user.id, groupid: values.groupId };
-      postAccountAction(data, i18n.get['UserGroupChange'], i18n.get['UserGroupChanged'], i18n.get['UserGroupNotChanged']);
+      postAccountAction(data, i18n.get['UserGroupChange'], i18n.get['UserGroupChanging'], i18n.get['UserGroupChanged'], i18n.get['UserGroupNotChanged']);
     };
     return (
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
@@ -183,7 +183,7 @@ const Accounts = () => {
     const userDeleteForm = useForm({ initialValues: { id: user.id } });
     const handleUserDeleteSubmit = () => {
       const data = { operation: 'deleteuser', userid: user.id };
-      postAccountAction(data, i18n.get['UserDeletion'], i18n.get['UserDeleted'], i18n.get['UserNotDeleted']);
+      postAccountAction(data, i18n.get['UserDeletion'], i18n.get['UserDeleting'], i18n.get['UserDeleted'], i18n.get['UserNotDeleted']);
     }
     const [opened, setOpened] = useState(false);
     return (
@@ -272,7 +272,7 @@ const Accounts = () => {
     const groupDisplayNameForm = useForm({ initialValues: { id: group.id, displayName: group.displayName } });
     const handleGroupDisplayNameSubmit = (values: typeof groupDisplayNameForm.values) => {
       const data = { operation: 'modifygroup', groupid: group.id, name: values.displayName };
-      postAccountAction(data, i18n.get['DisplayNameUpdate'], i18n.get['DisplayNameUpdated'], i18n.get['DisplayNameNotUpdated']);
+      postAccountAction(data, i18n.get['DisplayNameUpdate'], i18n.get['DisplayNameUpdating'], i18n.get['DisplayNameUpdated'], i18n.get['DisplayNameNotUpdated']);
     }
     return (
       <form onSubmit={groupDisplayNameForm.onSubmit(handleGroupDisplayNameSubmit)}>
@@ -302,7 +302,7 @@ const Accounts = () => {
     const groupPermissionsForm = useForm({ initialValues: { id: group.id } });
     const handleGroupPermissionsSubmit = (values: typeof groupPermissionsForm.values) => {
       const data = { operation: 'updatepermission', groupid: group.id, permissions: permissions };
-      postAccountAction(data, i18n.get['PermissionsUpdate'], i18n.get['PermissionsUpdated'], i18n.get['PermissionsNotUpdated']);
+      postAccountAction(data, i18n.get['PermissionsUpdate'], i18n.get['PermissionsUpdating'], i18n.get['PermissionsUpdated'], i18n.get['PermissionsNotUpdated']);
     }
     return (
       <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
@@ -335,7 +335,7 @@ const Accounts = () => {
     const groupDeleteForm = useForm({ initialValues: { id: group.id } });
     const handleGroupDeleteSubmit = () => {
       const data = { operation: 'deletegroup', groupid: group.id };
-      postAccountAction(data, i18n.get['GroupDeletion'], i18n.get['GroupDeleted'], i18n.get['GroupNotDeleted']);
+      postAccountAction(data, i18n.get['GroupDeletion'], i18n.get['GroupDeleting'], i18n.get['GroupDeleted'], i18n.get['GroupNotDeleted']);
     }
     const [opened, setOpened] = useState(false);
     return group.id > 1 ? (
@@ -385,7 +385,7 @@ const Accounts = () => {
     const newGroupForm = useForm({ initialValues: { displayName: '' } });
     const handleNewGroupSubmit = (values: typeof newGroupForm.values) => {
       const data = { operation: 'creategroup', name: values.displayName };
-      postAccountAction(data, i18n.get['GroupCreation'], i18n.get['NewGroupCreated'], i18n.get['NewGroupNotCreated']);
+      postAccountAction(data, i18n.get['GroupCreation'], i18n.get['NewGroupCreating'], i18n.get['NewGroupCreated'], i18n.get['NewGroupNotCreated']);
     }
     return (
       <form onSubmit={newGroupForm.onSubmit(handleNewGroupSubmit)}>

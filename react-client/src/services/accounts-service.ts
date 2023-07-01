@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { showNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 
 import { UmsAccounts } from '../contexts/accounts-context';
@@ -69,20 +69,28 @@ export const getUserGroupsSelection = (accounts: UmsAccounts, none: string) => {
   return result;
 };
 
-export const postAccountAction = (data: any, title: string, message: string, errormessage: string) => {
+export const postAccountAction = (data: any, title: string, message: string, successmessage: string, errormessage: string) => {
+  showNotification({
+    id: 'account-action',
+    title: title,
+    message: message,
+  });
   return axios.post(accountApiUrl + 'action', data)
     .then(function() {
-      showNotification({
+      updateNotification({
+        id: 'account-action',
+        color: 'teal',
         title: title,
-        message: message,
-      })
+        message: successmessage
+      });
     })
     .catch(function() {
-      showNotification({
+      updateNotification({
+        id: 'account-action',
         color: 'red',
         title: 'Error',
-        message: errormessage,
-      })
+        message: errormessage
+      });
     });
 };
 
