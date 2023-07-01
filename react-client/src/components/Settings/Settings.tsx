@@ -125,7 +125,7 @@ export default function Settings() {
       } else {
         await axios.post(settingsApiUrl, changedValues);
         setConfiguration(values);
-		setLoading(false);
+        setLoading(false);
         showNotification({
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationSaved'],

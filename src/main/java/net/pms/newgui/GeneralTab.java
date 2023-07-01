@@ -320,11 +320,11 @@ public class GeneralTab {
 				}
 			});
 
-			ipFilter = new JTextField(configuration.getIpFilter());
+			ipFilter = new JTextField(configuration.getAllowedIpAddresses());
 			ipFilter.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
-					configuration.setIpFilter(ipFilter.getText());
+					configuration.setAllowedIpAddresses(ipFilter.getText());
 				}
 			});
 
@@ -356,7 +356,7 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("ForcePortServer"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("UseIpFilterAllowlist"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("AllowedIpAddresses"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ipFilter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("MaximumBandwidthMbs"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));

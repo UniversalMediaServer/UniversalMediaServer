@@ -14,9 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, Switch, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
+import { Check, X } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -62,7 +63,7 @@ export default function GeneralSettings(
               <Checkbox
                 label={i18n.get['ShowAdvancedSettings']}
                 checked={advancedSettings}
-                onChange={(event:React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
               />
               <Select
                 disabled={!canModify}
@@ -202,12 +203,37 @@ export default function GeneralSettings(
                 label={i18n.get['ForceIpServer']}
                 {...form.getInputProps('hostname')}
               />
-              <TextInput
+              <Switch
                 disabled={!canModify}
-                mt="xs"
-                label={i18n.get['UseIpFilterAllowlist']}
-                {...form.getInputProps('ip_filter')}
+                mt='xl'
+                label={i18n.get['WhetherAllowBlockRenderersDefault']}
+                onLabel={i18n.get['Allow'].toLocaleUpperCase()} offLabel={i18n.get['Block'].toLocaleUpperCase()}
+                thumbIcon={
+                  (form.values['allow_or_block_renderers_by_default'] === true) ? (
+                    <Check size={12} color="blue" />
+                  ) : (
+                    <X size={12} color="red" />
+                  )
+                }
+                {...form.getInputProps('allow_or_block_renderers_by_default', { type: 'checkbox' })}
               />
+              <div hidden={form.values['allow_or_block_renderers_by_default'] === true}>
+                <TextInput
+                  disabled={!canModify}
+                  mt="xs"
+                  label={i18n.get['AllowedIpAddresses']}
+                  placeholder={i18n.get['AllAddressesAllowedUseNone']}
+                  {...form.getInputProps('ip_filter')}
+                />
+              </div>
+              <div hidden={form.values['allow_or_block_renderers_by_default'] !== true}>
+                <TextInput
+                  disabled={!canModify}
+                  mt="xs"
+                  label={i18n.get['BlockedIpAddresses']}
+                  {...form.getInputProps('blocked_ip_addresses')}
+                />
+              </div>
               <Group>
                 <NumberInput
                   label={i18n.get['MaximumBandwidthMbs']}
@@ -216,6 +242,7 @@ export default function GeneralSettings(
                   placeholder={i18n.get['Mbs']}
                   hideControls
                   {...form.getInputProps('maximum_bitrate')}
+                  mt="xs"
                 />
                 <Tooltip label={allowHtml(i18n.get['ItSetsOptimalBandwidth'])} {...defaultTooltipSettings}>
                   <Checkbox

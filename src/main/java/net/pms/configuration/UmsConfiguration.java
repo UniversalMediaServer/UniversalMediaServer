@@ -81,6 +81,7 @@ import net.pms.util.InvalidArgumentException;
 import net.pms.util.IpFilter;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
+import net.pms.util.PmsProperties;
 import net.pms.util.ProgramExecutableType;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
@@ -239,6 +240,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	private static final String KEY_API_KEY = "api_key";
+	private static final String KEY_BLOCKED_IP_ADDRESSES = "blocked_ip_addresses";
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	private static final String KEY_CHROMECAST_DBG = "chromecast_debug";
@@ -247,7 +249,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	private static final String KEY_CODE_TMO = "code_valid_timeout";
 	private static final String KEY_CODE_USE = "code_enable";
-	private static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
 	private static final String KEY_DATABASE_MEDIA_CACHE_SIZE_KB = "database_media_cache_size";
 	private static final String KEY_DATABASE_MEDIA_USE_CACHE_SOFT = "database_media_use_cache_soft";
 	private static final String KEY_DATABASE_MEDIA_USE_MEMORY_INDEXES = "database_media_use_memory_indexes";
@@ -408,6 +409,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
+	private static final String KEY_SORT_AUDIO_TRACKS_BY_ALBUM_POSITION = "sort_audio_tracks_by_album_position";
 	private static final String KEY_SORT_METHOD = "sort_method";
 	private static final String KEY_SORT_PATHS = "sort_paths";
 	private static final String KEY_SPEED_DBG = "speed_debug";
@@ -430,6 +432,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_USE_CACHE = "use_cache";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
+	private static final String KEY_USE_IP_ALLOWLIST_OR_DENYLIST = "use_ip_allowlist_or_denylist";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	private static final String KEY_UUID = "uuid";
@@ -657,17 +660,22 @@ public class UmsConfiguration extends BaseConfiguration {
 		PROFILE_DIRECTORY = profileLocation.getDirectoryPath();
 
 		// Set SKEL_PROFILE_PATH for Linux systems
-		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
-		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
-			SKEL_PROFILE_PATH = FilenameUtils.normalize(
-				new File(
+		PmsProperties projectProperties = PropertiesUtil.getProjectProperties();
+		if (projectProperties != null) {
+			String skelDir = projectProperties.get("project.skelprofile.dir");
+			if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
+				SKEL_PROFILE_PATH = FilenameUtils.normalize(
 					new File(
-						skelDir,
-						PROFILE_DIRECTORY_NAME
-					).getAbsolutePath(),
-					DEFAULT_PROFILE_FILENAME
-				).getAbsolutePath()
-			);
+						new File(
+							skelDir,
+							PROFILE_DIRECTORY_NAME
+						).getAbsolutePath(),
+						DEFAULT_PROFILE_FILENAME
+					).getAbsolutePath()
+				);
+			} else {
+				SKEL_PROFILE_PATH = null;
+			}
 		} else {
 			SKEL_PROFILE_PATH = null;
 		}
@@ -4121,17 +4129,75 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_USE_MPLAYER_FOR_THUMBS, false);
 	}
 
-	public String getIpFilter() {
+	public String getAllowedIpAddresses() {
 		return getString(KEY_IP_FILTER, "");
 	}
 
+	public String getBlockedIpAddresses() {
+		return getString(KEY_BLOCKED_IP_ADDRESSES, "");
+	}
+
+	/**
+	 * Whether to allow or deny renderers by default.
+   * This determines whether the allowlist (ip_filter) or denylist (blocked_ip_addresses)
+   * is used for individual address permissions.
+	 */
+	public boolean isUseAllowlistOrDenylist() {
+		return getBoolean(KEY_USE_IP_ALLOWLIST_OR_DENYLIST, true);
+	}
+
+	/**
+	 * Gets and caches either the allowlist or denylist, based on
+	 * filter mode.
+	 */
 	public synchronized IpFilter getIpFiltering() {
-		filter.setRawFilter(getIpFilter());
+		String ipList = isUseAllowlistOrDenylist() ? getBlockedIpAddresses() : getAllowedIpAddresses();
+		filter.setRawFilter(ipList);
 		return filter;
 	}
 
-	public void setIpFilter(String value) {
+	public void setAllowedIpAddresses(String value) {
 		configuration.setProperty(KEY_IP_FILTER, value);
+	}
+
+	public void addAllowedIpAddress(String value) {
+		String existingAllowedIpAddresses = getAllowedIpAddresses();
+		if (existingAllowedIpAddresses.equals("none")) {
+			configuration.setProperty(KEY_IP_FILTER, value);
+		} else {
+			configuration.setProperty(KEY_IP_FILTER, existingAllowedIpAddresses + "," + value);
+		}
+	}
+
+	public void removeAllowedIpAddress(String value) {
+		if (getAllowedIpAddresses().contains(value)) {
+			String allowlist = StringUtils.remove(getAllowedIpAddresses(), value + ",");
+			allowlist = StringUtils.remove(allowlist, "," + value);
+			allowlist = StringUtils.remove(allowlist, value);
+			configuration.setProperty(KEY_IP_FILTER, allowlist);
+		} else {
+			LOGGER.trace("Could not remove allowed IP address because it is not in the list: {}", getAllowedIpAddresses());
+		}
+	}
+
+	public void addBlockedIpAddress(String value) {
+		String existingBlockedIpAddresses = getBlockedIpAddresses();
+		configuration.setProperty(KEY_IP_FILTER, existingBlockedIpAddresses + "," + value);
+	}
+
+	public void removeBlockedIpAddress(String value) {
+		if (getBlockedIpAddresses().contains(value)) {
+			String allowlist = StringUtils.remove(getBlockedIpAddresses(), value + ",");
+			allowlist = StringUtils.remove(allowlist, "," + value);
+			allowlist = StringUtils.remove(allowlist, value);
+			configuration.setProperty(KEY_IP_FILTER, allowlist);
+		} else {
+			LOGGER.trace("Could not remove blocked IP address because it is not in the list: {}", getAllowedIpAddresses());
+		}
+	}
+
+	public void setBlockedIpAddresses(String value) {
+		configuration.setProperty(KEY_BLOCKED_IP_ADDRESSES, value);
 	}
 
 	public void setPreventSleep(PreventSleepMode value) {
@@ -5619,6 +5685,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SERVER_HOSTNAME, "");
 		jObj.addProperty(KEY_IGNORE_THE_WORD_A_AND_THE, true);
 		jObj.addProperty(KEY_IP_FILTER, "");
+		jObj.addProperty(KEY_BLOCKED_IP_ADDRESSES, "");
+		jObj.addProperty(KEY_USE_IP_ALLOWLIST_OR_DENYLIST, true);
 		jObj.addProperty(KEY_LANGUAGE, "en-US");
 		jObj.addProperty(KEY_LIVE_SUBTITLES_KEEP, false);
 		jObj.addProperty(KEY_LIVE_SUBTITLES_LIMIT, 20);

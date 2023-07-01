@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +45,6 @@ public class IpFilter {
 	}
 
 	static class HostNamePredicate implements Predicate {
-
 		String name;
 
 		public HostNamePredicate(String n) {
@@ -246,27 +247,96 @@ public class IpFilter {
 	public synchronized boolean allowed(InetAddress addr) {
 		boolean log = isFirstDecision(addr);
 		if (matchers.isEmpty()) {
+			// an empty allowlist means allow all in this case, and same with an empty denylist
 			if (log) {
-				LOGGER.trace("IP Filter: No IP filter specified, access granted to {}", addr.getHostAddress());
+				LOGGER.trace("IP Filter: No IP filter configured, access granted to {}", addr.getHostAddress());
 			}
 			return true;
 		}
-		//if it is loopback address, it come from server
+
+		// if it is loopback address, it come from server
 		if (addr.isLoopbackAddress()) {
 			return true;
 		}
+
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
-				if (log) {
-					LOGGER.trace("IP Filter: Access granted to {} with rule: {}", addr.getHostAddress(), p);
+				if (PMS.getConfiguration().isUseAllowlistOrDenylist() == false) {
+					if (log) {
+						LOGGER.trace("IP Filter: Access granted to {} with rule: {} because it matched the allowlist", addr.getHostAddress(), p);
+					}
+					return true;
+				} else {
+					if (log) {
+						LOGGER.trace("IP Filter: Access denied to {} with rule: {} because it matched the denylist", addr.getHostAddress(), p);
+					}
+					return false;
 				}
-				return true;
+			} else {
+				if (PMS.getConfiguration().isUseAllowlistOrDenylist() == false) {
+					if (log) {
+						LOGGER.trace("IP Filter: Access denied to {} with rule: {} because it was not on the allowlist", addr.getHostAddress(), p);
+					}
+					return false;
+				} else {
+					if (log) {
+						LOGGER.trace("IP Filter: Access allowed to {} with rule: {} because it was not on the denylist", addr.getHostAddress(), p);
+					}
+					return true;
+				}
 			}
 		}
+
 		if (log) {
 			LOGGER.info("IP Filter: Access denied to {}", addr.getHostName());
 		}
+
 		return false;
+	}
+
+	/**
+	 * Updates the allowlist or denylist to allow or block the IP address.
+	 *
+	 * @param addr
+	 * @param isAllowed
+	 */
+	public synchronized void setAllowed(String addr, boolean isAllowed) {
+		UmsConfiguration configuration = PMS.getConfiguration();
+		if (matchers.isEmpty()) {
+			if (configuration.isUseAllowlistOrDenylist() == true) {
+				if (isAllowed) {
+					LOGGER.trace("IP Filter: No change made, all IP addresses are already allowed");
+				} else {
+					// todo: have strong client-side warnings about this change!
+					configuration.setAllowedIpAddresses("none");
+					LOGGER.trace("IP Filter: Blocking all IP addresses");
+				}
+			} else {
+				if (isAllowed) {
+					LOGGER.trace("IP Filter: No change made, all IP addresses are already allowed");
+				} else {
+					configuration.setAllowedIpAddresses(addr);
+					LOGGER.trace("IP Filter: Blocking IP address {}", addr);
+				}
+			}
+		}
+
+		if (configuration.isUseAllowlistOrDenylist() == true) {
+			if (isAllowed) {
+				configuration.addAllowedIpAddress(addr);
+			} else {
+				configuration.removeAllowedIpAddress(addr);
+			}
+		} else {
+			if (isAllowed) {
+				configuration.removeBlockedIpAddress(addr);
+			} else {
+				configuration.addBlockedIpAddress(addr);
+			}
+		}
+
+		// persist the change
+		configuration.getIpFiltering();
 	}
 
 	Predicate parse(String rule) {

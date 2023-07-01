@@ -26,6 +26,7 @@ import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
@@ -115,6 +116,19 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					} else {
 						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
+				}
+				case "/allow" -> {
+					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					if (data != null && data.has("id")) {
+						int rId = data.get("id").getAsInt();
+						RendererItem renderer = RendererItem.getRenderer(rId);
+						if (renderer != null) {
+							Boolean isAllowed = data.get("isAllowed").getAsBoolean();
+							renderer.setAllowed(isAllowed);
+							PMS.getConfiguration().getIpFiltering().setAllowed(renderer.address, isAllowed);
+						}
+					}
+					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("RenderersApiServlet request not available : {}", path);

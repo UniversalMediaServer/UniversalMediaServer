@@ -43,7 +43,7 @@ const Renderers = () => {
   useEffect(() => {
     axios.get(renderersApiUrl)
       .then(function (response: any) {
-		setRenderers(response.data.renderers);
+        setRenderers(response.data.renderers);
       })
       .catch(function () {
         showNotification({
@@ -118,9 +118,15 @@ const Renderers = () => {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
-                { canModify && (
+                { canModify && (<>
                   <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
-                )}
+                  { renderer.isBlocked && (
+                    <Menu.Item icon={<Settings size={14} />} onClick={() => setAllowed(renderer.id, true)} color="green">{i18n.get['Allow']}</Menu.Item>
+                  )}
+                  { !renderer.isBlocked && (
+                    <Menu.Item icon={<Settings size={14} />} onClick={() => setAllowed(renderer.id, false)} color="red">{i18n.get['Block']}</Menu.Item>
+                  )}
+                  </>)}
                 { canControlRenderers && (
                   <Menu.Item icon={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
                 )}
@@ -168,7 +174,7 @@ const Renderers = () => {
       title={infos?.title}
     >
       <Table><tbody>
-        {infos?.details.map((detail:RendererDetail) => (
+        {infos?.details.map((detail: RendererDetail) => (
           <tr key={detail.key}>
             <td>{i18n.getI18nString(detail.key)}</td>
             <td>{detail.value}</td>
@@ -178,13 +184,22 @@ const Renderers = () => {
     </Modal>
   );
 
-  const sendRendererControl = (id:number, action:string, value?: any) => {
-    axios.post(renderersApiUrl + 'control', {'id':id, 'action':action, 'value':value})
+  const sendRendererControl = (id: number, action: string, value?: any) => {
+    axios.post(renderersApiUrl + 'control', {'id': id, 'action': action, 'value': value})
   }
 
-  const getRenderer = (id:number) => {
+  const getRenderer = (id: number) => {
     return renderers.find((renderer) => renderer.id === id);
   }
+
+  const setAllowed = async (id: number, isAllowed: boolean) => {
+    try {
+      const response = await axios.post(renderersApiUrl + 'allow', { id, isAllowed });
+      console.log(111,response);
+    } catch (err) {
+      // do something
+    }
+  };
 
   const rendererControlled = getRenderer(controlId);
 
@@ -258,7 +273,7 @@ const Renderers = () => {
 };
 
 interface RendererAction extends Renderer {
-  action:string,
+  action: string,
 }
 
 interface RendererState {
@@ -274,27 +289,28 @@ interface RendererState {
 }
 
 interface Renderer {
-  id : number,
-  name : string,
-  address : string,
-  icon : string,
-  playing : string,
-  time : string,
-  progressPercent : number,
-  isActive : boolean,
-  controls : number,
-  state : RendererState,
+  id: number,
+  name: string,
+  address: string,
+  icon: string,
+  playing: string,
+  time: string,
+  progressPercent: number,
+  isActive: boolean,
+  isBlocked: boolean,
+  controls: number,
+  state: RendererState,
 }
 
 interface RendererInfos {
-  title:string,
-  isUpnp:boolean,
-  details:RendererDetail[],
+  title: string,
+  isUpnp: boolean,
+  details: RendererDetail[],
 }
 
 interface RendererDetail {
-  key:string,
-  value:string
+  key: string,
+  value: string,
 }
 
 export default Renderers;
