@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class IpFilter {
 	private static final String IP_FILTER_RULE_CHAR = "0123456789-.* ";
-	private static final Pattern PATTERN = Pattern.compile("(([0-9]*)(-([0-9]*))?)");
+	private static final Pattern PATTERN = Pattern.compile("((\\d*)(-(\\d*))?)");
 	private static final Logger LOGGER = LoggerFactory.getLogger(IpFilter.class);
 
 	interface Predicate {
@@ -82,10 +82,7 @@ public class IpFilter {
 				if (min >= 0 && value < min) {
 					return false;
 				}
-				if (max >= 0 && value > max) {
-					return false;
-				}
-				return true;
+				return !(max >= 0 && value > max);
 			}
 
 			/*
@@ -127,7 +124,7 @@ public class IpFilter {
 			}
 		}
 
-		ByteRule parseTag(String s) {
+		private static ByteRule parseTag(String s) {
 			if ("*".equals(s)) {
 				return new ByteRule(-1, -1);
 			} else {
@@ -209,7 +206,7 @@ public class IpFilter {
 		return rawFilter;
 	}
 
-	public synchronized void setRawFilter(String rawFilter) {
+	public final synchronized void setRawFilter(String rawFilter) {
 		if (this.rawFilter != null && this.rawFilter.equals(rawFilter)) {
 			return;
 		}
@@ -261,7 +258,7 @@ public class IpFilter {
 
 		for (Predicate p : matchers) {
 			if (p.match(addr)) {
-				if (PMS.getConfiguration().isUseAllowlistOrDenylist() == false) {
+				if (!PMS.getConfiguration().isUseAllowlistOrDenylist()) {
 					if (log) {
 						LOGGER.trace("IP Filter: Access granted to {} with rule: {} because it matched the allowlist", addr.getHostAddress(), p);
 					}
@@ -273,7 +270,7 @@ public class IpFilter {
 					return false;
 				}
 			} else {
-				if (PMS.getConfiguration().isUseAllowlistOrDenylist() == false) {
+				if (!PMS.getConfiguration().isUseAllowlistOrDenylist()) {
 					if (log) {
 						LOGGER.trace("IP Filter: Access denied to {} with rule: {} because it was not on the allowlist", addr.getHostAddress(), p);
 					}
@@ -303,7 +300,7 @@ public class IpFilter {
 	public synchronized void setAllowed(String addr, boolean isAllowed) {
 		UmsConfiguration configuration = PMS.getConfiguration();
 		if (matchers.isEmpty()) {
-			if (configuration.isUseAllowlistOrDenylist() == true) {
+			if (configuration.isUseAllowlistOrDenylist()) {
 				if (isAllowed) {
 					LOGGER.trace("IP Filter: No change made, all IP addresses are already allowed");
 				} else {
@@ -321,7 +318,7 @@ public class IpFilter {
 			}
 		}
 
-		if (configuration.isUseAllowlistOrDenylist() == true) {
+		if (configuration.isUseAllowlistOrDenylist()) {
 			if (isAllowed) {
 				configuration.addAllowedIpAddress(addr);
 			} else {
