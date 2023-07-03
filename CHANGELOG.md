@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...main) (2023-07-04)
+## [13.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...13.5.0) (2023-07-04)
 
 ### General
 - Added support for default and forced flags on subtitles on web player
@@ -11,7 +11,7 @@
 - Logging improvements
 
 ### Renderers
-- Fix H.265 support on Freebox
+- Fix H.265 support on Freebox (thanks, ouaklafoud!)
 
 ### Dependencies
 - lock file maintenance
