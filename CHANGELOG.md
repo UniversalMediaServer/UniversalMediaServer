@@ -1,5 +1,41 @@
 # Changelog
 
+## [Unreleased](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...main) (2023-07-04)
+
+### General
+- Added support for default and forced flags on subtitles on web player
+- Improve handling of web interface when server is offline
+- Fixed metadata not displaying when Media Library folder is disabled
+- Fixed subtitles without titles not working on web player
+- Formatting (thanks, RichardIcecube!)
+- Logging improvements
+
+### Renderers
+- Fix H.265 support on Freebox
+
+### Dependencies
+- lock file maintenance
+- update dependency @emotion/react to v11.11.1
+- update dependency @types/node to v18.16.18
+- update dependency @types/react to v18.2.14
+- update dependency com.ibm.icu:icu4j to v73.2
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.1
+- update dependency com.sun.xml.bind-version to v4.0.3
+- update dependency commons-io:commons-io to v2.13.0
+- update dependency eslint to v8.43.0
+- update dependency frontend-maven-plugin to 1.13.3
+- update dependency hls.js to v1.4.6
+- update dependency mantine to v6.0.15
+- update dependency net.coobird:thumbnailator to v0.4.20
+- update dependency react-router-dom to v6.14.1
+- update dependency stylis to v4.3.0
+- update dependency typescript to v5.1.6
+- update logback-version to v1.4.8
+- update typescript-eslint monorepo to v5.60.1
+- update video.js to 8.5.0
+- update videojs-contrib-quality-levels to 4.0.0
+- update yarn to v3.6.0
+
 ## [13.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.0...13.4.1) (2023-06-07)
 
 ### General
