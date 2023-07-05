@@ -320,14 +320,15 @@ public class GeneralTab {
 				}
 			});
 
-			ipFilter = new JTextField(configuration.getAllowedIpAddresses());
+			ipFilter = new JTextField(configuration.getNetworkDevicesFilter());
+			ipFilter.setToolTipText(Messages.getString((configuration.isNetworkDevicesBlockedByDefault() ? "NetworkDevicesBlockedByDefault" : "NetworkDevicesAllowedByDefault")));
 			ipFilter.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
-					configuration.setAllowedIpAddresses(ipFilter.getText());
+					configuration.setNetworkDevicesFilter(ipFilter.getText());
 				}
 			});
-
+			
 			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
 			maxbitrate.setToolTipText(Messages.getString("AValue90Recommended"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
@@ -356,7 +357,7 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("ForcePortServer"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString("AllowedIpAddresses"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkDevices"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ipFilter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("MaximumBandwidthMbs"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));

@@ -53,7 +53,7 @@ import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
-import net.pms.util.IpFilter;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.util.Languages;
 import net.pms.util.UMSUtils;
 import org.apache.commons.io.FileUtils;
@@ -283,7 +283,7 @@ public class WebInterfaceServerUtil {
 	}
 
 	public static boolean deny(InetAddress inetAddress) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress) || !PMS.isReady();
+		return !NetworkDeviceFilter.isAllowed(inetAddress) || !PMS.isReady();
 	}
 
 	private static ByteRange nullRange(long len) {
@@ -515,17 +515,12 @@ public class WebInterfaceServerUtil {
 		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
-	private static IpFilter bumpFilter = null;
-
 	public static boolean bumpAllowed(HttpExchange t) {
 		return bumpAllowed(t.getRemoteAddress().getAddress());
 	}
 
 	public static boolean bumpAllowed(InetAddress inetAddress) {
-		if (bumpFilter == null) {
-			bumpFilter = new IpFilter(PMS.getConfiguration().getBumpAllowedIps());
-		}
-		return bumpFilter.allowed(inetAddress);
+		return false;
 	}
 
 	public static String transMime() {
