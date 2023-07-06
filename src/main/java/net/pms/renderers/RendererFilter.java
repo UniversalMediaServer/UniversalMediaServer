@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * Renderer Filter class.
  */
 public class RendererFilter {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererFilter.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final List<String> FILTER = new ArrayList<>();
@@ -51,7 +52,7 @@ public class RendererFilter {
 				}
 			}
 		}
-		for(String uuid : FILTER) {
+		for (String uuid : FILTER) {
 			Renderer renderer = ConnectedRenderers.getRendererByUUID(uuid);
 			if (renderer != null) {
 				renderer.setAllowed(isAllowed(uuid, false));
