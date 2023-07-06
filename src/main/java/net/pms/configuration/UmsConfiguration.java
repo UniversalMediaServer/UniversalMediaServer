@@ -359,7 +359,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
 	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
 	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
@@ -447,7 +446,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 	private static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	private static final String KEY_WEB_GUI_PORT = "web_gui_port";
-	private static final String KEY_WEB_LOW_SPEED = "web_low_speed";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
 	private static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
@@ -467,35 +465,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WEB_PLAYER_SUB_LANG = "web_use_browser_sub_lang";
 	private static final String KEY_WEB_PLAYER_SUBS_TRANS = "web_subtitles_transcoded";
 	private static final String KEY_WEB_THREADS = "web_threads";
-	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-
-	/**
-	 * Old Web interface stuff
-	 */
-	// TODO: remove on old player removal
-	@Deprecated
-	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
-	@Deprecated
-	private static final String KEY_BUMP_ADDRESS = "bump";
-	@Deprecated
-	private static final String KEY_BUMP_IPS = "allowed_bump_ips";
-	@Deprecated
-	private static final String KEY_BUMP_JS = "bump.js";
-	@Deprecated
-	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
-	@Deprecated
-	private static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
-	@Deprecated
-	private static final String KEY_WEB_FLASH = "web_flash";
-	@Deprecated
-	private static final String KEY_WEB_HEIGHT = "web_height";
-	@Deprecated
-	private static final String KEY_WEB_SIZE = "web_size";
-	@Deprecated
-	private static final String KEY_WEB_WIDTH = "web_width";
-	@Deprecated
-	private static final String KEY_IP_FILTER = "ip_filter";
 
 	/**
 	 * The map of keys that need to be refactored.
@@ -530,7 +500,21 @@ public class UmsConfiguration extends BaseConfiguration {
 		"media_lib_sort",			//not used
 		"no_shared",				//not used
 		"plugin_purge",				//not used
-		"proxy"						//not used
+		"proxy",					//not used
+		"ip_filter",				//old ip filter
+		"web_transcode",			//old player
+		"web_low_speed",			//old player
+		"web_use_browser_lang",		//old player
+		"web_authenticate",			//old player
+		"allowed_bump_ips",			//old player
+		"web_flash",				//old player
+		"web_height",				//old player
+		"web_size",					//old player
+		"web_width",				//old player
+		"bump.js",					//old player
+		"bump.skin",				//old player
+		"min_playtime_web",			//old player
+		"bump"						//old player
 	);
 
 	/**
@@ -752,6 +736,13 @@ public class UmsConfiguration extends BaseConfiguration {
 				configuration.setProperty(refactoredKey.getValue(), value);
 				configuration.clearProperty(refactoredKey.getKey());
 			}
+		}
+		//keep ip_filter if it was presents
+		String oldIpFilter = getString("ip_filter", null);
+		if (StringUtils.isNotBlank(oldIpFilter)) {
+			configuration.setProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, true);
+			configuration.setProperty(KEY_NETWORK_DEVICES_FILTER, oldIpFilter);
+			configuration.clearProperty("ip_filter");
 		}
 		for (String removedKey : REMOVED_KEYS) {
 			configuration.clearProperty(removedKey);
@@ -4142,7 +4133,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @param value True to block network devices by default.
 	 */
 	public void setNetworkDevicesBlockedByDefault(boolean value) {
-		configuration.setProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, value);
+		configuration.setProperty(KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT, value);
 	}
 
 	/**
@@ -5032,10 +5023,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getMinimumWatchedPlayTime() / 1000;
 	}
 
-	public int getMinPlayTimeWeb() {
-		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
-	}
-
 	public int getMinPlayTimeFile() {
 		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinimumWatchedPlayTime());
 	}
@@ -5125,10 +5112,6 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public File getWebFile(String file) {
 		return new File(getWebPath().getAbsolutePath() + File.separator + file);
-	}
-
-	public boolean isWebAuthenticate() {
-		return getBoolean(KEY_WEB_AUTHENTICATE, false);
 	}
 
 	/**
@@ -5226,64 +5209,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	//TODO : Lang can be set from react
 	public boolean useWebPlayerSubLang() {
 		return getBoolean(KEY_WEB_PLAYER_SUB_LANG, false);
-	}
-
-	@Deprecated
-	public String getBumpAddress() {
-		return getString(KEY_BUMP_ADDRESS, "");
-	}
-
-	@Deprecated
-	public void setBumpAddress(String value) {
-		configuration.setProperty(KEY_BUMP_ADDRESS, value);
-	}
-
-	@Deprecated
-	public String getBumpJS(String fallback) {
-		return getString(KEY_BUMP_JS, fallback);
-	}
-
-	@Deprecated
-	public String getBumpSkinDir(String fallback) {
-		return getString(KEY_BUMP_SKIN_DIR, fallback);
-	}
-
-	@Deprecated
-	public String getWebSize() {
-		return getString(KEY_WEB_SIZE, "");
-	}
-
-	@Deprecated
-	public int getWebHeight() {
-		return getInt(KEY_WEB_HEIGHT, 0);
-	}
-
-	@Deprecated
-	public int getWebWidth() {
-		return getInt(KEY_WEB_WIDTH, 0);
-	}
-
-	@Deprecated
-	public boolean getWebFlash() {
-		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	@Deprecated
-	public String getBumpAllowedIps() {
-		return getString(KEY_BUMP_IPS, "");
-	}
-
-	@Deprecated
-	public boolean useWebLang() {
-		return getBoolean(KEY_WEB_BROWSE_LANG, false);
-	}
-
-	public String getWebTranscode() {
-		return getString(KEY_WEB_TRANSCODE, null);
-	}
-
-	public int getWebLowSpeed() {
-		return getInt(KEY_WEB_LOW_SPEED, 0);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
@@ -5676,10 +5601,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_HIDE_EXTENSIONS, true);
 		jObj.addProperty(KEY_SERVER_HOSTNAME, "");
 		jObj.addProperty(KEY_IGNORE_THE_WORD_A_AND_THE, true);
-		jObj.addProperty(KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT, false);
-		jObj.addProperty(KEY_NETWORK_DEVICES_FILTER, "");
-		jObj.addProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, false);
-		jObj.addProperty(KEY_RENDERERS_FILTER, "");
 		jObj.addProperty(KEY_LANGUAGE, "en-US");
 		jObj.addProperty(KEY_LIVE_SUBTITLES_KEEP, false);
 		jObj.addProperty(KEY_LIVE_SUBTITLES_LIMIT, 20);
