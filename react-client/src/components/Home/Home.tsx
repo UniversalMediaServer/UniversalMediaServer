@@ -99,6 +99,10 @@ const Home = () => {
       });
   }
 
+  const setRenderersAllowed = async (rule: string, isAllowed: boolean) => {
+    setAllowed('renderers', rule, isAllowed);
+  }
+
   const setDevicesAllowed = async (rule: string, isAllowed: boolean) => {
     setAllowed('devices', rule, isAllowed);
   };
@@ -158,8 +162,8 @@ const Home = () => {
             canControlRenderers={canControlRenderers}
             canModify={canModify}
             i18n={i18n}
-            refreshData={refreshData}
             renderers={renderers}
+            setAllowed={setRenderersAllowed}
           />
         </Tabs.Panel>
         <Tabs.Panel value='blocked_renderers' pt='xs'>
@@ -169,8 +173,8 @@ const Home = () => {
             canControlRenderers={canControlRenderers}
             canModify={canModify}
             i18n={i18n}
-            refreshData={refreshData}
             renderers={renderers}
+            setAllowed={setRenderersAllowed}
           />
         </Tabs.Panel>
         <Tabs.Panel value='network_devices' pt='xs'>

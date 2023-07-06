@@ -15,18 +15,17 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Slider, Stack, Table, Text } from '@mantine/core';
-import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Cast, Check, DevicesPc, DevicesPcOff, Dots, ExclamationMark, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
+import { Cast, DevicesPc, DevicesPcOff, Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
 import { renderersApiUrl } from '../../utils';
 import MediaChooser, { Media } from './MediaChooser';
 import { Renderer } from './Home';
 
 const Renderers = (
-  { allowed, blockedByDefault, canControlRenderers, canModify, i18n, refreshData, renderers }:
+  { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, setAllowed }:
     {
       allowed: boolean,
       blockedByDefault: boolean,
@@ -36,9 +35,8 @@ const Renderers = (
         get: { [key: string]: string };
         getI18nString: (value: string) => string;
       },
-      refreshData: () => void,
       renderers: Renderer[],
-      
+      setAllowed: (rule: string, isAllowed: boolean) => void
     }
 ) => {
 
@@ -67,46 +65,6 @@ const Renderers = (
 
   const getRenderer = (id: number) => {
     return renderers.find((renderer) => renderer.id === id);
-  }
-
-  const setAllowed = async (uuid: string, isAllowed: boolean) => {
-    showNotification({
-      id: 'settings-save',
-      loading: true,
-      title: i18n.get['Save'],
-      message: i18n.get['SavingConfiguration'],
-      autoClose: false,
-      withCloseButton: false
-    });
-    await axios.post(renderersApiUrl + 'renderers', { uuid, isAllowed })
-      .then(function() {
-        updateNotification({
-          id: 'settings-save',
-          color: 'teal',
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
-          icon: <Check size='1rem' />
-        });
-        refreshData();
-      })
-      .catch(function(error) {
-        if (!error.response && error.request) {
-          updateNotification({
-            id: 'settings-save',
-            color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotReceived'],
-            icon: <ExclamationMark size='1rem' />
-          })
-        } else {
-          updateNotification({
-            id: 'settings-save',
-            color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotSaved']
-          })
-        }
-      });
   }
 
   const rendererDetail = (
