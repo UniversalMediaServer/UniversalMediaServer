@@ -16,6 +16,11 @@
  */
 package net.pms.configuration;
 
+import ch.qos.logback.classic.Level;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.sun.jna.Platform;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,20 +44,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.configuration.event.ConfigurationListener;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import com.sun.jna.Platform;
-import ch.qos.logback.classic.Level;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.CodeEnter;
@@ -78,7 +69,6 @@ import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
-import net.pms.util.IpFilter;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
 import net.pms.util.PmsProperties;
@@ -88,6 +78,15 @@ import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
 import net.pms.util.UniqueList;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Container for all configurable UMS settings. Settings are typically defined by three things:
@@ -240,7 +239,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	private static final String KEY_API_KEY = "api_key";
-	private static final String KEY_BLOCKED_IP_ADDRESSES = "blocked_ip_addresses";
+	private static final String KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT = "block_network_devices_by_default";
+	private static final String KEY_BLOCK_RENDERERS_BY_DEFAULT = "block_renderers_by_default";
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	private static final String KEY_CHROMECAST_DBG = "chromecast_debug";
@@ -310,7 +310,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_INFO_DB_RETRY = "infodb_retry";
-	private static final String KEY_IP_FILTER = "ip_filter";
 	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	private static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
 	private static final String KEY_LANGUAGE = "language";
@@ -360,11 +359,11 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_PLAY_TIME = "minimum_watched_play_time";
 	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
 	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
+	private static final String KEY_NETWORK_DEVICES_FILTER = "network_devices_filter";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -377,6 +376,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_RENDERERS_FILTER = "renderers_filter";
 	private static final String KEY_RESUME = "resume";
 	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
@@ -432,7 +432,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_USE_CACHE = "use_cache";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
-	private static final String KEY_USE_IP_ALLOWLIST_OR_DENYLIST = "use_ip_allowlist_or_denylist";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	private static final String KEY_UUID = "uuid";
@@ -447,7 +446,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WAS_YOUTUBE_DL_ENABLED_ONCE = "was_youtube_dl_enabled_once";
 	private static final String KEY_WEB_GUI_ON_START = "web_gui_on_start";
 	private static final String KEY_WEB_GUI_PORT = "web_gui_port";
-	private static final String KEY_WEB_LOW_SPEED = "web_low_speed";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_WEB_PLAYER_AUTH = "web_player_auth";
 	private static final String KEY_WEB_PLAYER_CONT_AUDIO = "web_player_continue_audio";
@@ -467,33 +465,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_WEB_PLAYER_SUB_LANG = "web_use_browser_sub_lang";
 	private static final String KEY_WEB_PLAYER_SUBS_TRANS = "web_subtitles_transcoded";
 	private static final String KEY_WEB_THREADS = "web_threads";
-	private static final String KEY_WEB_TRANSCODE = "web_transcode";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-
-	/**
-	 * Old Web interface stuff
-	 */
-	// TODO: remove on old player removal
-	@Deprecated
-	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
-	@Deprecated
-	private static final String KEY_BUMP_ADDRESS = "bump";
-	@Deprecated
-	private static final String KEY_BUMP_IPS = "allowed_bump_ips";
-	@Deprecated
-	private static final String KEY_BUMP_JS = "bump.js";
-	@Deprecated
-	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
-	@Deprecated
-	private static final String KEY_WEB_BROWSE_LANG = "web_use_browser_lang";
-	@Deprecated
-	private static final String KEY_WEB_FLASH = "web_flash";
-	@Deprecated
-	private static final String KEY_WEB_HEIGHT = "web_height";
-	@Deprecated
-	private static final String KEY_WEB_SIZE = "web_size";
-	@Deprecated
-	private static final String KEY_WEB_WIDTH = "web_width";
 
 	/**
 	 * The map of keys that need to be refactored.
@@ -528,7 +500,21 @@ public class UmsConfiguration extends BaseConfiguration {
 		"media_lib_sort",			//not used
 		"no_shared",				//not used
 		"plugin_purge",				//not used
-		"proxy"						//not used
+		"proxy",					//not used
+		"ip_filter",				//old ip filter
+		"web_transcode",			//old player
+		"web_low_speed",			//old player
+		"web_use_browser_lang",		//old player
+		"web_authenticate",			//old player
+		"allowed_bump_ips",			//old player
+		"web_flash",				//old player
+		"web_height",				//old player
+		"web_size",					//old player
+		"web_width",				//old player
+		"bump.js",					//old player
+		"bump.skin",				//old player
+		"min_playtime_web",			//old player
+		"bump"						//old player
 	);
 
 	/**
@@ -679,6 +665,12 @@ public class UmsConfiguration extends BaseConfiguration {
 		} else {
 			SKEL_PROFILE_PATH = null;
 		}
+		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
+		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
+			maxMaxMemoryBufferSize = (int) usableMemory;
+		}
+		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
+		defaultAviSynthScript = "<movie>\n<sub>\n";
 	}
 
 	// Path to default logfile directory
@@ -691,7 +683,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private final PlatformProgramPaths programPaths;
 
 	protected TempFolder tempFolder;
-	protected IpFilter filter;
 
 	/**
 	 * Default constructor that will attempt to load the PMS configuration file
@@ -746,23 +737,21 @@ public class UmsConfiguration extends BaseConfiguration {
 				configuration.clearProperty(refactoredKey.getKey());
 			}
 		}
+		//keep ip_filter if it was presents
+		String oldIpFilter = getString("ip_filter", null);
+		if (StringUtils.isNotBlank(oldIpFilter)) {
+			configuration.setProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, true);
+			configuration.setProperty(KEY_NETWORK_DEVICES_FILTER, oldIpFilter);
+			configuration.clearProperty("ip_filter");
+		}
 		for (String removedKey : REMOVED_KEYS) {
 			configuration.clearProperty(removedKey);
 		}
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = new ConfigurableProgramPaths(configuration);
-		filter = new IpFilter();
 		PMS.setLocale(getLanguageLocale(true));
 		//TODO: The line below should be removed once all calls to Locale.getDefault() is replaced with PMS.getLocale()
 		Locale.setDefault(getLanguageLocale());
-
-		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		defaultAviSynthScript = "<movie>\n<sub>\n";
-
-		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
-		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
-			maxMaxMemoryBufferSize = (int) usableMemory;
-		}
 
 		if ("".equals(getJwtSecret())) {
 			String randomUuid = UUID.randomUUID().toString();
@@ -774,7 +763,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		// Just instantiate
 		super(configuration, configurationReader);
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
-		filter = null;
 		programPaths = new ConfigurableProgramPaths(configuration);
 	}
 
@@ -4129,75 +4117,70 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_USE_MPLAYER_FOR_THUMBS, false);
 	}
 
-	public String getAllowedIpAddresses() {
-		return getString(KEY_IP_FILTER, "");
-	}
-
-	public String getBlockedIpAddresses() {
-		return getString(KEY_BLOCKED_IP_ADDRESSES, "");
+	/**
+	 * Whether network devices are blocked by default.
+	 * This also determines whether the current network devices filter is an
+	 * allowlist or a denylist.
+	 */
+	public boolean isNetworkDevicesBlockedByDefault() {
+		return getBoolean(KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT, false);
 	}
 
 	/**
-	 * Whether to allow or deny renderers by default.
-   * This determines whether the allowlist (ip_filter) or denylist (blocked_ip_addresses)
-   * is used for individual address permissions.
+	 * Whether to allow or block network devices by default.
+	 * Changing this value will also delete the current network devices filter.
+	 *
+	 * @param value True to block network devices by default.
 	 */
-	public boolean isUseAllowlistOrDenylist() {
-		return getBoolean(KEY_USE_IP_ALLOWLIST_OR_DENYLIST, true);
+	public void setNetworkDevicesBlockedByDefault(boolean value) {
+		configuration.setProperty(KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT, value);
 	}
 
 	/**
-	 * Gets and caches either the allowlist or denylist, based on
-	 * filter mode.
+	 * Gets the network devices filter.
 	 */
-	public synchronized IpFilter getIpFiltering() {
-		String ipList = isUseAllowlistOrDenylist() ? getBlockedIpAddresses() : getAllowedIpAddresses();
-		filter.setRawFilter(ipList);
-		return filter;
+	public final String getNetworkDevicesFilter() {
+		return getString(KEY_NETWORK_DEVICES_FILTER, "");
 	}
 
-	public void setAllowedIpAddresses(String value) {
-		configuration.setProperty(KEY_IP_FILTER, value);
+	/**
+	 * Sets the network devices filter.
+	 */
+	public void setNetworkDevicesFilter(String value) {
+		configuration.setProperty(KEY_NETWORK_DEVICES_FILTER, value);
 	}
 
-	public void addAllowedIpAddress(String value) {
-		String existingAllowedIpAddresses = getAllowedIpAddresses();
-		if (existingAllowedIpAddresses.equals("none")) {
-			configuration.setProperty(KEY_IP_FILTER, value);
-		} else {
-			configuration.setProperty(KEY_IP_FILTER, existingAllowedIpAddresses + "," + value);
-		}
+	/**
+	 * Whether renderers are blocked by default.
+	 * This also determines whether the current renderers filter is an allowlist
+	 * or a denylist.
+	 */
+	public boolean isRenderersBlockedByDefault() {
+		return getBoolean(KEY_BLOCK_RENDERERS_BY_DEFAULT, false);
 	}
 
-	public void removeAllowedIpAddress(String value) {
-		if (getAllowedIpAddresses().contains(value)) {
-			String allowlist = StringUtils.remove(getAllowedIpAddresses(), value + ",");
-			allowlist = StringUtils.remove(allowlist, "," + value);
-			allowlist = StringUtils.remove(allowlist, value);
-			configuration.setProperty(KEY_IP_FILTER, allowlist);
-		} else {
-			LOGGER.trace("Could not remove allowed IP address because it is not in the list: {}", getAllowedIpAddresses());
-		}
+	/**
+	 * Whether to allow or block renderers by default.
+	 * Changing this value will also delete the current renderers filter.
+	 *
+	 * @param value True to block renderers by default.
+	 */
+	public void setRenderersBlockedByDefault(boolean value) {
+		configuration.setProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, value);
 	}
 
-	public void addBlockedIpAddress(String value) {
-		String existingBlockedIpAddresses = getBlockedIpAddresses();
-		configuration.setProperty(KEY_IP_FILTER, existingBlockedIpAddresses + "," + value);
+	/**
+	 * Gets the renderers filter.
+	 */
+	public final String getRenderersFilter() {
+		return getString(KEY_RENDERERS_FILTER, "");
 	}
 
-	public void removeBlockedIpAddress(String value) {
-		if (getBlockedIpAddresses().contains(value)) {
-			String allowlist = StringUtils.remove(getBlockedIpAddresses(), value + ",");
-			allowlist = StringUtils.remove(allowlist, "," + value);
-			allowlist = StringUtils.remove(allowlist, value);
-			configuration.setProperty(KEY_IP_FILTER, allowlist);
-		} else {
-			LOGGER.trace("Could not remove blocked IP address because it is not in the list: {}", getAllowedIpAddresses());
-		}
-	}
-
-	public void setBlockedIpAddresses(String value) {
-		configuration.setProperty(KEY_BLOCKED_IP_ADDRESSES, value);
+	/**
+	 * Sets the renderers filter.
+	 */
+	public void setRenderersFilter(String value) {
+		configuration.setProperty(KEY_RENDERERS_FILTER, value);
 	}
 
 	public void setPreventSleep(PreventSleepMode value) {
@@ -5040,10 +5023,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getMinimumWatchedPlayTime() / 1000;
 	}
 
-	public int getMinPlayTimeWeb() {
-		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinimumWatchedPlayTime());
-	}
-
 	public int getMinPlayTimeFile() {
 		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinimumWatchedPlayTime());
 	}
@@ -5133,10 +5112,6 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public File getWebFile(String file) {
 		return new File(getWebPath().getAbsolutePath() + File.separator + file);
-	}
-
-	public boolean isWebAuthenticate() {
-		return getBoolean(KEY_WEB_AUTHENTICATE, false);
 	}
 
 	/**
@@ -5234,64 +5209,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	//TODO : Lang can be set from react
 	public boolean useWebPlayerSubLang() {
 		return getBoolean(KEY_WEB_PLAYER_SUB_LANG, false);
-	}
-
-	@Deprecated
-	public String getBumpAddress() {
-		return getString(KEY_BUMP_ADDRESS, "");
-	}
-
-	@Deprecated
-	public void setBumpAddress(String value) {
-		configuration.setProperty(KEY_BUMP_ADDRESS, value);
-	}
-
-	@Deprecated
-	public String getBumpJS(String fallback) {
-		return getString(KEY_BUMP_JS, fallback);
-	}
-
-	@Deprecated
-	public String getBumpSkinDir(String fallback) {
-		return getString(KEY_BUMP_SKIN_DIR, fallback);
-	}
-
-	@Deprecated
-	public String getWebSize() {
-		return getString(KEY_WEB_SIZE, "");
-	}
-
-	@Deprecated
-	public int getWebHeight() {
-		return getInt(KEY_WEB_HEIGHT, 0);
-	}
-
-	@Deprecated
-	public int getWebWidth() {
-		return getInt(KEY_WEB_WIDTH, 0);
-	}
-
-	@Deprecated
-	public boolean getWebFlash() {
-		return getBoolean(KEY_WEB_FLASH, false);
-	}
-
-	@Deprecated
-	public String getBumpAllowedIps() {
-		return getString(KEY_BUMP_IPS, "");
-	}
-
-	@Deprecated
-	public boolean useWebLang() {
-		return getBoolean(KEY_WEB_BROWSE_LANG, false);
-	}
-
-	public String getWebTranscode() {
-		return getString(KEY_WEB_TRANSCODE, null);
-	}
-
-	public int getWebLowSpeed() {
-		return getInt(KEY_WEB_LOW_SPEED, 0);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
@@ -5684,9 +5601,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_HIDE_EXTENSIONS, true);
 		jObj.addProperty(KEY_SERVER_HOSTNAME, "");
 		jObj.addProperty(KEY_IGNORE_THE_WORD_A_AND_THE, true);
-		jObj.addProperty(KEY_IP_FILTER, "");
-		jObj.addProperty(KEY_BLOCKED_IP_ADDRESSES, "");
-		jObj.addProperty(KEY_USE_IP_ALLOWLIST_OR_DENYLIST, true);
 		jObj.addProperty(KEY_LANGUAGE, "en-US");
 		jObj.addProperty(KEY_LIVE_SUBTITLES_KEEP, false);
 		jObj.addProperty(KEY_LIVE_SUBTITLES_LIMIT, 20);

@@ -58,11 +58,11 @@ import net.pms.gui.GuiManager;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GuiUtil;
@@ -77,6 +77,7 @@ import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.RendererFilter;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -400,6 +401,8 @@ public class PMS {
 		// Initialize databases
 		MediaDatabase.init();
 		UserDatabase.init();
+		NetworkDeviceFilter.reset();
+		RendererFilter.reset();
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have
@@ -710,7 +713,6 @@ public class PMS {
 		RendererConfigurations.loadRendererConfigurations();
 		if (delete) {
 			ConnectedRenderers.deleteAllConnectedRenderers();
-			OldPlayerServer.deleteRenderers();
 		}
 	}
 
@@ -731,7 +733,6 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		OldPlayerServer.resetRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 

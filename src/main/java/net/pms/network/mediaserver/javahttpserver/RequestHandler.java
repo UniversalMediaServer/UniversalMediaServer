@@ -52,8 +52,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.ByteRange;
@@ -83,6 +83,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.network.HTTPResource;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -137,7 +138,7 @@ public class RequestHandler implements HttpHandler {
 					userAgentString != null &&
 					userAgentString.contains("UMS/");
 			// Filter if required
-			if (isSelf || filterIp(ia)) {
+			if (isSelf || !NetworkDeviceFilter.isAllowed(ia)) {
 				exchange.close();
 				return;
 			}
@@ -149,6 +150,13 @@ public class RequestHandler implements HttpHandler {
 				// If RendererConfiguration.resolve() didn't return the default renderer
 				// it means we know via upnp that it's not really a renderer.
 				exchange.close();
+				return;
+			}
+
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
 				return;
 			}
 
@@ -1366,18 +1374,6 @@ public class RequestHandler implements HttpHandler {
 			}
 		}
 		return identifiers;
-	}
-
-	/**
-	 * Applies the IP filter to the specified internet address. Returns true if
-	 * the address is not allowed and therefore should be filtered out, false
-	 * otherwise.
-	 *
-	 * @param inetAddress The internet address to verify.
-	 * @return True when not allowed, false otherwise.
-	 */
-	private static boolean filterIp(InetAddress inetAddress) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
 	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, Renderer renderer) {

@@ -130,7 +130,7 @@ public class UmsContentDirectoryService {
 			defaultValue = "0",
 			eventMaximumRateMilliseconds = 200
 	)
-	private UnsignedIntegerFourBytes systemUpdateID = new UnsignedIntegerFourBytes(0);
+	private final UnsignedIntegerFourBytes systemUpdateID = new UnsignedIntegerFourBytes(0);
 
 	protected final PropertyChangeSupport propertyChangeSupport;
 
@@ -321,6 +321,12 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer != null && !renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
@@ -368,7 +374,7 @@ public class UmsContentDirectoryService {
 		long count = filessize - minus;
 
 		long totalMatches;
-		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+		if (browseDirectChildren && renderer != null && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, files are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
@@ -416,6 +422,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer != null && !renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
 		try {
 			SearchRequestHandler handler = new SearchRequestHandler();
 			return handler.createSearchResponse(
@@ -579,6 +592,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer != null && !renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
 		if (posSecond == 0) {
 			// Sometimes when Samsung device is starting to play the video
 			// it sends X_SetBookmark message immediatelly with the position=0.
@@ -608,6 +628,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer != null && !renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
 		StringBuilder features = new StringBuilder();
 		String rootFolderId = PMS.get().getRootFolder(renderer).getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");

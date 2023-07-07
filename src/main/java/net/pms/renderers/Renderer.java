@@ -121,6 +121,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				uuid = id;
 			}
 		}
+		allowed = RendererFilter.isAllowed(uuid);
 		controls = 0;
 		active = false;
 		details = null;
@@ -156,6 +157,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		super.reset();
 		// update gui
 		updateRendererGui();
+		allowed = RendererFilter.isAllowed(uuid);
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
 			renderer.updateRendererGui();
 		}

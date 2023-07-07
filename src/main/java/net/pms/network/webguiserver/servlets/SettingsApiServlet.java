@@ -75,9 +75,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
 		"alternate_thumb_folder",
-		"blocked_ip_addresses",
 		"hostname",
-		"ip_filter",
 		"network_interface",
 		"port",
 		"renderer_default",
