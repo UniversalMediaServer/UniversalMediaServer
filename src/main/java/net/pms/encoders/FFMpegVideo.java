@@ -425,7 +425,6 @@ public class FFMpegVideo extends Engine {
 						transcodeOptions.add("copy");
 					}
 				} else {
-
 					String selectedTranscodeAccelerationMethod = null;
 
 					if (!customFFmpegOptions.contains("-c:v")) {
@@ -445,7 +444,6 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("-preset");
 							transcodeOptions.add("llhp");
 						}
-
 					}
 
 					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
@@ -905,6 +903,7 @@ public class FFMpegVideo extends Engine {
 		 * - The setting is enabled
 		 * - There are subtitles to transcode
 		 * - The file is not being played via the transcode folder
+		 * - The file is not Dolby Vision, because our MEncoder implementation can't handle that yet
 		 */
 		if (
 			EngineFactory.isEngineActive(MEncoderVideo.ID) &&
@@ -916,7 +915,8 @@ public class FFMpegVideo extends Engine {
 			(
 				params.getSid().getType().isText() ||
 				params.getSid().getType() == SubtitleType.VOBSUB
-			)
+			) &&
+			!(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))
 		) {
 			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);

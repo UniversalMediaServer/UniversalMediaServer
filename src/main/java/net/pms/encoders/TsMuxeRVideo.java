@@ -50,7 +50,7 @@ public class TsMuxeRVideo extends Engine {
 	public static final EngineId ID = StandardEngineId.TSMUXER_VIDEO;
 
 	/** The {@link Configuration} key for the custom tsMuxeR path. */
-	public static final String KEY_TSMUXER_PATH     = "tsmuxer_path";
+	public static final String KEY_TSMUXER_PATH = "tsmuxer_path";
 
 	/** The {@link Configuration} key for the tsMuxeR executable type. */
 	public static final String KEY_TSMUXER_EXECUTABLE_TYPE = "tsmuxer_executable_type";
