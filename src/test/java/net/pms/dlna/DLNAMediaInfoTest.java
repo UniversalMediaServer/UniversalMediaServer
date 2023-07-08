@@ -101,7 +101,7 @@ public class DLNAMediaInfoTest {
 		PMS.getGlobalRepo().add(parent);
 
 		assertEquals(
-			"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: progressive high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-aac.mp4")
 		);
 		assertEquals(
@@ -201,7 +201,7 @@ public class DLNAMediaInfoTest {
 			getTestFileMediaInfo("video-h265_hdr10-aac.mkv")
 		);
 		assertEquals(
-			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, Video Tracks: 1, Video Codec: h265, Duration: 0:00:01.127, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: SMPTE ST 2094 App 4, Video HDR Format Compatibility: HDR10+ Profile A / HDR10 (hdr10), File Title from Metadata: A Beautiful Planet (2016), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: DTS:X, Audio Codec: DTS HD, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, Video Tracks: 1, Video Codec: h265, Duration: 0:00:01.127, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: SMPTE ST 2094 App 4 / SMPTE ST 2086, Video HDR Format Compatibility: HDR10+ Profile A / HDR10 (hdr10), File Title from Metadata: A Beautiful Planet (2016), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: DTS:X, Audio Codec: DTS, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_hdr10+-dtshd_ma.mkv")
 		);
 		assertEquals(
