@@ -22,9 +22,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.network.mediaserver.HttpMediaServer;
+import net.pms.util.SimpleThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +46,9 @@ public class JavaHttpServer extends HttpMediaServer {
 			localPort = server.getAddress().getPort();
 			server.createContext("/", new RequestHandler());
 			server.createContext("/api", new ApiHandler());
-			ExecutorService executorService = Executors.newCachedThreadPool(new HttpServerThreadFactory());
+			ExecutorService executorService = Executors.newCachedThreadPool(
+				new SimpleThreadFactory("HTTPv3 Request Handler", "HttpServer Requests group")
+			);
 			server.setExecutor(executorService);
 			server.start();
 			LOGGER.info("HTTP server started on host {} and port {}", hostname, localPort);
@@ -66,28 +67,4 @@ public class JavaHttpServer extends HttpMediaServer {
 		LOGGER.info("HTTP server stopped");
 	}
 
-	/**
-	 * A {@link ThreadFactory} that creates HttpServer requests threads.
-	 */
-	static class HttpServerThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		HttpServerThreadFactory() {
-			group = new ThreadGroup("HttpServer requests group");
-			group.setDaemon(false);
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "HTTPv3 Request Handler " + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			if (thread.getPriority() != Thread.NORM_PRIORITY) {
-				thread.setPriority(Thread.NORM_PRIORITY);
-			}
-			return thread;
-		}
-	}
 }

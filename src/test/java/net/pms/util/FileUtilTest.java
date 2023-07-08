@@ -45,7 +45,7 @@ public class FileUtilTest {
 
 	@BeforeAll
 	public static void SetUPClass() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the code that is being tested
+		// Silence all log messages from the code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
 		PMS.get();

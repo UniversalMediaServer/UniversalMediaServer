@@ -333,6 +333,7 @@ public class RendererConfigurationTest {
 		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
 		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
 		testHeaders("VLC for desktop", "User-Agent: UPnP/1.0, Portable SDK for UPnP devices/1.14.13on windows");
+		testHeaders("VLC for desktop", "User-Agent: VLC/3.0.19 LibVLC/3.0.19");
 
 		testHeaders("VLC for iOS", "User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0");
 		testHeaders("VLC for iOS", "User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13");

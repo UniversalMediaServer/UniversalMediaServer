@@ -50,7 +50,7 @@ public class TsMuxeRVideo extends Engine {
 	public static final EngineId ID = StandardEngineId.TSMUXER_VIDEO;
 
 	/** The {@link Configuration} key for the custom tsMuxeR path. */
-	public static final String KEY_TSMUXER_PATH     = "tsmuxer_path";
+	public static final String KEY_TSMUXER_PATH = "tsmuxer_path";
 
 	/** The {@link Configuration} key for the tsMuxeR executable type. */
 	public static final String KEY_TSMUXER_EXECUTABLE_TYPE = "tsmuxer_executable_type";
@@ -111,7 +111,7 @@ public class TsMuxeRVideo extends Engine {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		// Use device-specific pms conf
+		// Use device-specific ums conf
 		UmsConfiguration prev = configuration;
 		configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = dlna.getFileName();
@@ -123,7 +123,7 @@ public class TsMuxeRVideo extends Engine {
 		PipeIPCProcess[] ffAudioPipe = null;
 		ProcessWrapperImpl[] ffAudio = null;
 
-		String fps = media.getValidFps(false);
+		String fps = null;
 
 		int width  = media.getWidth();
 		int height = media.getHeight();
@@ -237,7 +237,7 @@ public class TsMuxeRVideo extends Engine {
 				"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 				"-i", filename,
 				"-c", "copy",
-				"-f", "rawvideo",
+				"-f", codecV.equals(FormatConfiguration.H265) ? "hevc" : "rawvideo",
 				"-y",
 				ffVideoPipe.getInputPipe()
 			};
@@ -510,7 +510,7 @@ public class TsMuxeRVideo extends Engine {
 			if (configuration.isFix25FPSAvMismatch()) {
 				fps = "25";
 			}
-			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + (width != -1 ? ("video-width=" + width + ", ") : "") + (height != -1 ? ("video-height=" + height + ", ") : "") + videoparams);
+			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + videoparams);
 
 			if (ffAudioPipe != null && ffAudioPipe.length == 1) {
 				String timeshift = "";

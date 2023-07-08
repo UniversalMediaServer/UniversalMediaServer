@@ -22,13 +22,12 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
-import net.pms.service.StartStopListenerDelegate;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
+import net.pms.service.StartStopListenerDelegate;
+import net.pms.util.SimpleThreadFactory;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -85,9 +84,13 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			ThreadRenamingRunnable.setThreadNameDeterminer(ThreadNameDeterminer.CURRENT);
 			allChannels = new DefaultChannelGroup("JUPnP-HTTPServer");
 			ChannelFactory factory = new NioServerSocketChannelFactory(
-					Executors.newCachedThreadPool(new NettyBossThreadFactory()),
-					Executors.newCachedThreadPool(new NettyWorkerThreadFactory())
-					);
+				Executors.newCachedThreadPool(
+					new SimpleThreadFactory("jupnp-netty-handler", "JUPnP Netty boss group")
+				),
+				Executors.newCachedThreadPool(
+					new SimpleThreadFactory("jupnp-netty-worker", "JUPnP Netty worker group")
+				)
+			);
 
 			bootstrap = new ServerBootstrap(factory);
 			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(router, allChannels);
@@ -246,54 +249,6 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 
 			// Close the connection as soon as the error message is sent.
 			ctx.getChannel().write(response).addListener(ChannelFutureListener.CLOSE);
-		}
-	}
-
-	/**
-	 * A {@link ThreadFactory} that creates Netty worker threads.
-	 */
-	protected static class NettyWorkerThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		NettyWorkerThreadFactory() {
-			group = new ThreadGroup("JUPnP Netty worker group");
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "jupnp-netty-worker-" + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			if (thread.getPriority() != Thread.NORM_PRIORITY) {
-				thread.setPriority(Thread.NORM_PRIORITY);
-			}
-			return thread;
-		}
-	}
-
-	/**
-	 * A {@link ThreadFactory} that creates Netty boss threads.
-	 */
-	protected static class NettyBossThreadFactory implements ThreadFactory {
-		private final ThreadGroup group;
-		private final AtomicInteger threadNumber = new AtomicInteger(1);
-
-		NettyBossThreadFactory() {
-			group = new ThreadGroup("JUPnP Netty boss group");
-		}
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread thread = new Thread(group, runnable, "jupnp-netty-handler-" + threadNumber.getAndIncrement());
-			if (thread.isDaemon()) {
-				thread.setDaemon(false);
-			}
-			if (thread.getPriority() != Thread.NORM_PRIORITY) {
-				thread.setPriority(Thread.NORM_PRIORITY);
-			}
-			return thread;
 		}
 	}
 

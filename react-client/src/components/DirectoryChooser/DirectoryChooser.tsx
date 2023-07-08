@@ -14,11 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, Stack, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea, Stack, TextInput, Tooltip } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
-import { CircleMinus, Devices2, Eraser, Folder, Folders } from 'tabler-icons-react';
+import { CircleMinus, Devices2, Folder, Folders } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
@@ -44,9 +44,9 @@ export default function DirectoryChooser(props: {
   const selectAndCloseModal = (clear?: boolean) => {
     if (selectedDirectory || clear) {
       if (props.formKey) {
-        props.callback(props.formKey, clear ? "" : selectedDirectory);
+        props.callback(props.formKey, clear ? '' : selectedDirectory);
       } else {
-        props.callback(clear ? "" : selectedDirectory);
+        props.callback(clear ? '' : selectedDirectory);
       }
       return setOpened(false);
     }
@@ -59,14 +59,14 @@ export default function DirectoryChooser(props: {
   };
 
   const getSubdirectories = (path: string) => {
-    axios.post(settingsApiUrl + 'directories', {path:(path)?path:''})
-      .then(function (response: any) {
+    axios.post(settingsApiUrl + 'directories', { path: (path) ? path : '' })
+      .then(function(response: any) {
         const directoriesResponse = response.data;
         setSeparator(directoriesResponse.separator);
         setDirectories(directoriesResponse.children);
         setParents(directoriesResponse.parents.reverse());
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'data-loading',
           color: 'red',
@@ -76,20 +76,21 @@ export default function DirectoryChooser(props: {
           autoClose: 3000,
         });
       })
-      .then(function () {
+      .then(function() {
         setLoading(false);
       });
   };
 
   const input = (): ReactNode => {
-   return <TextInput
+    return <TextInput
       size={props.size}
       label={props.label}
       disabled={props.disabled}
       sx={{ flex: 1 }}
       value={props.path}
       readOnly
-    /> }
+    />
+  }
 
   return (
     <Group>
@@ -103,17 +104,17 @@ export default function DirectoryChooser(props: {
               {i18n.get['SelectedDirectory']}
             </Group>
           }
-          overflow="inside"
-          size="lg"
+          scrollAreaComponent={ScrollArea.Autosize}
+          size='lg'
         >
-          <Box mx="auto">
-            <Paper shadow="md" p="xs" withBorder>
+          <Box mx='auto'>
+            <Paper shadow='md' p='xs' withBorder>
               <Group>
                 <Breadcrumbs separator={separator}>
                   <Button
                     loading={isLoading}
                     onClick={() => getSubdirectories('roots')}
-                    variant="default"
+                    variant='default'
                     compact
                   >
                     <Devices2 />
@@ -122,8 +123,8 @@ export default function DirectoryChooser(props: {
                     <Button
                       loading={isLoading}
                       onClick={() => getSubdirectories(parent.value)}
-                      key={"breadcrumb" + parent.label}
-                      variant="default"
+                      key={'breadcrumb' + parent.label}
+                      variant='default'
                       compact
                     >
                       {parent.label}
@@ -132,12 +133,12 @@ export default function DirectoryChooser(props: {
                 </Breadcrumbs>
               </Group>
             </Paper>
-            <Stack spacing="xs" align="flex-start" justify="flex-start" mt="sm">
+            <Stack spacing='xs' align='flex-start' justify='flex-start' mt='sm'>
               {directories.map(directory => (
-                <Group key={"group" + directory.label}>
+                <Group key={'group' + directory.label}>
                   <Button
                     leftIcon={<Folder size={18} />}
-                    variant={(selectedDirectory === directory.value) ? "light" : "subtle"}
+                    variant={(selectedDirectory === directory.value) ? 'light' : 'subtle'}
                     loading={isLoading}
                     onClick={() => setSelectedDirectory(directory.value)}
                     onDoubleClick={() => getSubdirectories(directory.value)}
@@ -148,10 +149,10 @@ export default function DirectoryChooser(props: {
                   </Button>
                   {selectedDirectory === directory.value &&
                     <Button
-                      variant="filled"
+                      variant='filled'
                       loading={isLoading}
                       onClick={() => selectAndCloseModal()}
-                      key={"select" + directory.label}
+                      key={'select' + directory.label}
                       compact
                     >
                       Select
@@ -164,8 +165,8 @@ export default function DirectoryChooser(props: {
         </Modal>
 
         {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} multiline withArrow={true}>
-            {input()}
-          </Tooltip>) : input()
+          {input()}
+        </Tooltip>) : input()
         }
         {!props.disabled && (
           <>
@@ -181,7 +182,7 @@ export default function DirectoryChooser(props: {
               mt={props.label ? '24px' : undefined}
               size={props.size}
               onClick={() => selectAndCloseModal(true)}
-              variant="default"
+              variant='default'
             >
               <CircleMinus size={18} />
             </ActionIcon>

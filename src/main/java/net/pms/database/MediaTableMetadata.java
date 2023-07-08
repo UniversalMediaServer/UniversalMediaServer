@@ -20,6 +20,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +50,6 @@ public class MediaTableMetadata extends MediaTable {
 		if (tableExists(connection, TABLE_NAME)) {
 			Integer version = MediaTableTablesVersions.getTableVersion(connection, TABLE_NAME);
 			if (version == null) {
-				// Moving sql from DLNAMediaDatabase to this class.
 				version = 1;
 			}
 			if (version < TABLE_VERSION) {
@@ -136,34 +136,58 @@ public class MediaTableMetadata extends MediaTable {
 	public static void setOrUpdateMetadataValue(final Connection connection, final String key, final String value) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				statement.setString(1, key);
-				if (trace) {
-					LOGGER.trace("Searching for value in METADATA with \"{}\" before update", statement);
-				}
-
-				try (ResultSet result = statement.executeQuery()) {
-					boolean isCreatingNewRecord = false;
-
-					if (!result.next()) {
-						isCreatingNewRecord = true;
-						result.moveToInsertRow();
-					}
-
-					result.updateString(COL_M_KEY, key);
-					result.updateString(COL_M_VALUE, value);
-
-					if (isCreatingNewRecord) {
-						result.insertRow();
-					} else {
-						result.updateRow();
-					}
-				}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setString(1, key);
+			if (trace) {
+				LOGGER.trace("Searching for value in METADATA with \"{}\" before update", statement);
 			}
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing value", key, TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+
+			try (ResultSet result = statement.executeQuery()) {
+				boolean isCreatingNewRecord = false;
+
+				if (!result.next()) {
+					isCreatingNewRecord = true;
+					result.moveToInsertRow();
+				}
+
+				result.updateString(COL_M_KEY, key);
+				result.updateString(COL_M_VALUE, value);
+
+				if (isCreatingNewRecord) {
+					result.insertRow();
+				} else {
+					result.updateRow();
+				}
+			} catch (JdbcSQLIntegrityConstraintViolationException e) {
+				/**
+				 * Allow the database to recover from a unique index violation.
+				 * Not sure how the database has allowed itself to get into that
+				 * in the first place but that seems out of our control - my
+				 * assumption being that h2database should not allow a unique index
+				 * to be applied to non-unique data.
+				 *
+				 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/3901
+				 */
+				LOGGER.debug("Attempting to recover from error: {}", e.getMessage());
+				LOGGER.trace("", e);
+
+				executeUpdate(connection, "DROP INDEX IF EXISTS IDX_M_KEY");
+				String query = "DELETE FROM " + TABLE_NAME + " WHERE M_KEY = " + sqlQuote(key);
+				try {
+					execute(connection, query);
+					LOGGER.debug("Recovery seems successful, recreating unique index");
+				} catch (SQLException se) {
+					LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting value", key, TABLE_NAME, se.getMessage());
+					LOGGER.trace("", se);
+				}
+				executeUpdate(connection, "CREATE UNIQUE INDEX IDX_M_KEY ON " + TABLE_NAME + "(M_KEY)");
+			} catch (Exception e) {
+				LOGGER.error("Error while writing metadata: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+		} catch (Exception e2) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_FOR_IN, DATABASE_NAME, "writing value", key, value, TABLE_NAME, e2.getMessage());
+			LOGGER.trace("", e2);
 		}
 	}
 }

@@ -403,6 +403,9 @@ public class MediaInfoParser {
 					currentAudioTrack.setAlbumArtist(MI.get(general, 0, "Album/Performer"));
 					currentAudioTrack.setArtist(getArtist());
 					currentAudioTrack.setGenre(MI.get(general, 0, "Genre"));
+					currentAudioTrack.setComposer(MI.get(general, 0, "Composer"));
+					currentAudioTrack.setConductor(MI.get(general, 0, "Conductor"));
+
 					if (videoTrackCount == 0) {
 						try {
 							AudioFile af;
@@ -557,6 +560,16 @@ public class MediaInfoParser {
 						} else {
 							currentSubTrack.setId(media.getSubtitlesTracks().size());
 						}
+					}
+
+					value = MI.get(text, i, "Default/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setDefault(true);
+					}
+
+					value = MI.get(text, i, "Forced/String");
+					if (isNotBlank(value) && "Yes".equals(value)) {
+						currentSubTrack.setForced(true);
 					}
 
 					addSub(currentSubTrack, media);

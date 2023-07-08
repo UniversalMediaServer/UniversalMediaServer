@@ -41,6 +41,11 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 	}
 
 	@Override
+	protected int getDelayUntilAllowSleep() {
+		return WindowsUtils.isVersionThatSleepsImmediately() ? (5 * 60 * 1000) : 0;
+	}
+
+	@Override
 	protected synchronized void doAllowSleep() {
 		LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS to allow Windows to go to sleep");
 		Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);

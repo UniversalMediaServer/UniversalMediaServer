@@ -210,6 +210,18 @@
 		}
 	},
 	{
+		"comment": "Video of an extended cut of a TV episode",
+		"filename": "Universal.Media.Server.S01E02.HDR.720p.mkv",
+		"prettified": "Universal Media Server S01E02",
+		"metadata": {
+			"type": "tv-series-episodes",
+			"series": "Universal Media Server",
+			"season": 1,
+			"episodes": [2],
+			"title": null
+		}
+	},
+	{
 		"comment": "Video of a TV episode that airs very regularly",
 		"filename": "Universal.Media.Server.2015.01.23.720p.mkv",
 		"prettified": "Universal Media Server 2015/01/23",

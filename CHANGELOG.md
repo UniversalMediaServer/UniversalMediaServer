@@ -1,5 +1,132 @@
 # Changelog
 
+## [13.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...13.5.0) (2023-07-04)
+
+### General
+- Added support for default and forced flags on subtitles on web player
+- Improve handling of web interface when server is offline
+- Fixed metadata not displaying when Media Library folder is disabled
+- Fixed subtitles without titles not working on web player
+- Formatting (thanks, RichardIcecube!)
+- Logging improvements
+
+### Renderers
+- Fix H.265 support on Freebox (thanks, ouaklafoud!)
+
+### Dependencies
+- lock file maintenance
+- update dependency @emotion/react to v11.11.1
+- update dependency @types/node to v18.16.18
+- update dependency @types/react to v18.2.14
+- update dependency com.ibm.icu:icu4j to v73.2
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.1
+- update dependency com.sun.xml.bind-version to v4.0.3
+- update dependency commons-io:commons-io to v2.13.0
+- update dependency eslint to v8.43.0
+- update dependency frontend-maven-plugin to 1.13.3
+- update dependency hls.js to v1.4.6
+- update dependency mantine to v6.0.15
+- update dependency net.coobird:thumbnailator to v0.4.20
+- update dependency react-router-dom to v6.14.1
+- update dependency stylis to v4.3.0
+- update dependency typescript to v5.1.6
+- update logback-version to v1.4.8
+- update typescript-eslint monorepo to v5.60.1
+- update video.js to 8.5.0
+- update videojs-contrib-quality-levels to 4.0.0
+- update yarn to v3.6.0
+
+## [13.4.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.0...13.4.1) (2023-06-07)
+
+### General
+
+- Fixed broken SystemUpdateId update
+- Fixed broken filename parsing with some HDR files
+- Fixed web player video playback bugs
+- Fixed security vulnerabilities
+- Fixed muxing Dolby Vision with tsMuxeR
+- Updated Javadocs (thanks, RichardIcecube!)
+
+### Translation updates via Crowdin
+- Bulgarian (47%) (thanks, STOYAN STOYANOV!)
+- Catalan (57%) (thanks, Antoni Grau i Quellos!)
+- Danish (64%) (thanks, GurliGebis!)
+- Japanese (59%) (thanks, was0914!)
+- Swedish (51%) (thanks, Erik Karlsson!)
+
+### Dependencies
+- lock file maintenance
+- update dependency @emotion/react to v11.11.0 
+- update dependency @types/jest to v29.5.2
+- update dependency @types/lodash to v4.14.195
+- update dependency @types/node to v18.16.16
+- update dependency @types/react to v18.2.8
+- update dependency @types/react-dom to v18.2.4
+- update dependency @types/video.js to v7.3.52
+- update dependency axios to v1.4.0
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.15.2
+- update dependency com.github.oshi:oshi-core to v6.4.3
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.0
+- update dependency commons-io:commons-io to v2.12.0
+- update dependency eslint to v8.42.0
+- update dependency hls.js to v1.4.5
+- update dependency org.apache.maven.plugins:maven-assembly-plugin to v3.6.0 
+- update dependency org.apache.maven.plugins:maven-checkstyle-plugin to v3.3.0
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.1.2
+- update dependency react-router-dom to v6.11.2
+- update dependency stylis to v4.2.0
+- update dependency web-vitals to v3.3.2
+- Update JRE to 17.0.7+7
+- update junit5 monorepo to v5.9.3
+- update logback-version to v1.4.7
+- update react monorepo to v18.2.0
+- Update tsMuxeR to 2023-04-13-02-05-26
+- update typescript-eslint monorepo to v5.59.9
+- update yarn to v3.5.1
+
+## [13.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.3.0...13.4.0) (2023-04-19)
+
+### General:
+- Added Composer and Conductor to UPnP results, for better handling of classical music
+- Fixed Windows 11 going to sleep too soon (#3883)
+- Fixed files being marked as fully played on playback failure or media parsing requests (#1479 and #3683)
+- Fixed metadata API results for some files
+- Faster CI (thanks, optimizing-ci-builds!)
+- Fixed crash when audio file has no audio track
+- Fixed bugs with UPnP searching
+
+### Translation updates via Crowdin
+- Afrikaans (22%) (thanks, John Botes and stefan ivanov!)
+- Bulgarian (79%) (thanks, stefan ivanov!)
+- Chinese (Traditional) (78%) (thanks, RX78!)
+- French (100%) (thanks, Archaos and Vincent Panel!)
+- Japanese (94%) (thanks, elepro!)
+- Ukrainian (28%) (thanks, Paul Furlet!)
+
+### Dependencies
+- lock file maintenance
+- update dependency @types/jest to v29.5.0
+- update dependency @types/lodash to v4.14.194
+- update dependency @types/node to v18.15.11
+- update dependency @types/react to v18.0.37
+- update dependency axios to v1.3.5
+- update dependency com.auth0:java-jwt to v4.4.0
+- update dependency com.ibm.icu:icu4j to v73
+- update dependency com.github.oshi:oshi-core to v6.4.1
+- update dependency com.puppycrawl.tools:checkstyle to v10.9.3
+- update dependency com.sun.xml.messaging.saaj:saaj-impl to v3.0.1
+- update dependency eslint to v8.38.0
+- update dependency hls.js to v1.4.0
+- update dependency org.apache.maven.plugins:maven-enforcer-plugin to v3.3.0
+- update dependency org.apache.maven.plugins:maven-resources-plugin to v3.3.1
+- update dependency org.slf4j:slf4j-api to v2.0.7
+- update dependency react-country-flag to v3.1.0 
+- update dependency react-router-dom to v6.10.0
+- update dependency typescript to v5
+- update dependency web-vitals to v3.3.1
+- update typescript-eslint monorepo to v5.59.0
+- update yarn to v3.5.0
+
 ## [13.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.2.1...13.3.0) (2023-03-16)
 
 ### General:

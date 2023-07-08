@@ -35,86 +35,86 @@ function UserMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-      {!session.player && 
-        <Menu.Item
-          color='green'
-          icon={<Home size={14} />}
-          onClick={() => { window.location.href = '/'; }}
-        >
-          {i18n.get['Home']}
-        </Menu.Item>
-      }
-      {havePermission(session, Permissions.web_player_browse) && (
-        <Menu.Item
-          color='blue'
-          icon={<PlayerPlay size={14} />}
-          onClick={() => { window.location.href = '/player'; }}
-        >
-          {i18n.getI18nString("Player")}
-        </Menu.Item>
-      )}
-      {session.player &&
-        <Menu.Item
-          color='orange'
-          icon={<PlayerPlay size={14} />}
-          onClick={() => { window.location.href = '/oldplayer'; }}
-        >
-          {i18n.getI18nString('Player') + ' (old)'}
-        </Menu.Item>
-      }
-      {!session.player && <>
+        {!session.player &&
+          <Menu.Item
+            color='green'
+            icon={<Home size={14} />}
+            onClick={() => { window.location.href = '/'; }}
+          >
+            {i18n.get['Home']}
+          </Menu.Item>
+        }
+        {havePermission(session, Permissions.web_player_browse) && (
+          <Menu.Item
+            color='blue'
+            icon={<PlayerPlay size={14} />}
+            onClick={() => { window.location.href = '/player'; }}
+          >
+            {i18n.getI18nString('Player')}
+          </Menu.Item>
+        )}
+        {session.player &&
+          <Menu.Item
+            color='orange'
+            icon={<PlayerPlay size={14} />}
+            onClick={() => { window.location.href = '/oldplayer'; }}
+          >
+            {i18n.getI18nString('Player') + ' (old)'}
+          </Menu.Item>
+        }
+        {!session.player && <>
+          <Menu.Divider />
+          <Menu.Label>{i18n.get['Settings']}</Menu.Label>
+          {havePermission(session, Permissions.settings_view) && (
+            <Menu.Item
+              icon={<Share size={14} />}
+              onClick={() => { window.location.href = '/shared'; }}
+            >
+              {i18n.get['SharedContent']}
+            </Menu.Item>
+          )}
+          {havePermission(session, Permissions.server_restart | Permissions.settings_modify) && (
+            <Menu.Item
+              icon={<Tool size={14} />}
+              onClick={() => { window.location.href = '/actions'; }}
+            >
+              {i18n.get['Tools']}
+            </Menu.Item>
+          )}
+          {havePermission(session, Permissions.settings_view) && (
+            <Menu.Item
+              icon={<Settings size={14} />}
+              onClick={() => { window.location.href = '/settings'; }}
+            >
+              {i18n.get['ServerSettings']}
+            </Menu.Item>
+          )}
+          <Menu.Item
+            icon={havePermission(session, Permissions.users_manage) ? <Users size={14} /> : <User size={14} />}
+            onClick={() => { window.location.href = '/accounts'; }}
+          >
+            {havePermission(session, Permissions.users_manage) ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+          </Menu.Item>
+        </>}
         <Menu.Divider />
-        <Menu.Label>{i18n.get['Settings']}</Menu.Label>
-        {havePermission(session, Permissions.settings_view) && (
-          <Menu.Item
-            icon={<Share size={14} />}
-            onClick={() => { window.location.href = '/shared'; }}
-          >
-            {i18n.get['SharedContent']}
-          </Menu.Item>
-        )}
-        {havePermission(session, Permissions.server_restart | Permissions.settings_modify)  && (
-          <Menu.Item
-            icon={<Tool size={14} />}
-            onClick={() => { window.location.href = '/actions'; }}
-          >
-            {i18n.get['Tools']}
-          </Menu.Item>
-        )}
-        {havePermission(session, Permissions.settings_view) && (
-          <Menu.Item
-            icon={<Settings size={14} />}
-            onClick={() => { window.location.href = '/settings'; }}
-          >
-            {i18n.get['ServerSettings']}
-          </Menu.Item>
-        )}
         <Menu.Item
-          icon={havePermission(session, Permissions.users_manage) ? <Users size={14} /> : <User size={14} />}
-          onClick={() => { window.location.href = '/accounts'; }}
+          color='yellow'
+          icon={<InfoCircle size={14} />}
+          onClick={() => { window.location.href = '/about'; }}
         >
-          {havePermission(session, Permissions.users_manage) ? i18n.get['ManageAccounts'] : i18n.get['MyAccount']}
+          {i18n.get['About']}
         </Menu.Item>
-      </>}
-      <Menu.Divider />
-      <Menu.Item
-        color='yellow'
-        icon={<InfoCircle size={14} />}
-        onClick={() => { window.location.href = '/about'; }}
-      >
-        {i18n.get['About']}
-      </Menu.Item>
-      {session.authenticate && session.account?.user.id !== 2147483647 && (
-        <Menu.Item
-          color='red'
-          icon={<Logout size={14} />}
-          onClick={() => {
-            redirectToLogin();
-          }}
-        >
-          {i18n.get['LogOut']}
-        </Menu.Item>
-      )}
+        {session.authenticate && session.account?.user.id !== 2147483647 && (
+          <Menu.Item
+            color='red'
+            icon={<Logout size={14} />}
+            onClick={() => {
+              redirectToLogin();
+            }}
+          >
+            {i18n.get['LogOut']}
+          </Menu.Item>
+        )}
       </Menu.Dropdown>
     </Menu>
   );

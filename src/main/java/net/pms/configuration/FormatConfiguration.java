@@ -27,6 +27,8 @@ import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.TsMuxeRVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.io.OutputParams;
@@ -35,6 +37,7 @@ import net.pms.renderers.Renderer;
 import net.pms.util.AudioUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -374,6 +377,8 @@ public class FormatConfiguration {
 		 * @param videoWidth
 		 * @param videoHeight
 		 * @param videoBitDepth
+		 * @param videoHdrFormatInRendererFormat a sanitized HDR format based on compatibility
+		 * @param videoHdrFormat the raw HDR format, not compatibility/fallback info
 		 * @param extras map containing 0 or more key/value pairs for:
 		 *               - qpel
 		 *               - gmc
@@ -395,7 +400,8 @@ public class FormatConfiguration {
 			int videoWidth,
 			int videoHeight,
 			int videoBitDepth,
-			String videoHdrInRendererFormat,
+			String videoHdrFormatInRendererFormat,
+			String videoHdrFormatCompatibilityInRendererFormat,
 			Map<String, String> extras,
 			String subsFormat,
 			boolean isExternalSubs,
@@ -464,10 +470,63 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (videoHdrInRendererFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
-				if (!miExtras.get(MI_HDR).matcher(videoHdrInRendererFormat).matches()) {
-					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrInRendererFormat, supportLine);
-					return false;
+			if (videoHdrFormatInRendererFormat != null && miExtras != null && miExtras.get(MI_HDR) != null) {
+				if (!miExtras.get(MI_HDR).matcher(videoHdrFormatInRendererFormat).matches()) {
+					/**
+					 * We know now the strict HDR format is not compatible with the renderer.
+					 *
+					 * BUT the choice is more complicated because of HDR compatibility.
+					 *
+					 * Some video streams are a hybrid of Dolby Vision with a fallback.
+					 * Some TVs support ONLY the fallback (compatibility stream) while
+					 * others support the best quality (Dolby Vision) stream.
+					 *
+					 * It gets even more complicated with LG TVs because they support
+					 * Dolby Vision within MP4 and TS containers ONLY, and will play the
+					 * DV file within MKV container as just HDR (lower quality).
+					 *
+					 * So here we have logic to handle that special case, and report that
+					 * the file is incompatible, to let UMS remux the MKV file into TS
+					 * to allow the LG TV to play it as Dolby Vision.
+					 */
+					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
+
+					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
+					if (!StringUtils.equalsIgnoreCase(format, "mpegts") && isTsMuxeRVideoEngineActive) {
+						/**
+						 * Calls this function again, with a TS container and without
+						 * HDR compatibility info, so we get either a STRICT match or none
+						 */
+						boolean wouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+							"mpegts",
+							videoCodec,
+							audioCodec,
+							nbAudioChannels,
+							frequency,
+							bitrate,
+							framerate,
+							videoWidth,
+							videoHeight,
+							videoBitDepth,
+							videoHdrFormatInRendererFormat,
+							null,
+							extras,
+							subsFormat,
+							isExternalSubs,
+							renderer
+						) != null;
+
+						if (wouldBeCompatibleInTsContainer) {
+							LOGGER.trace("Video HDR format value \"{}\" is compatible in TS container, but not this container \"{}\", so will report it as incompatible to allow on-the-fly remuxing with tsMuxeR {}", videoHdrFormatInRendererFormat, format, supportLine);
+							return false;
+						}
+					}
+
+					// Last chance, see if the HDR format compatibility/fallback exists and matches
+					if (videoHdrFormatCompatibilityInRendererFormat == null || !miExtras.get(MI_HDR).matcher(videoHdrFormatCompatibilityInRendererFormat).matches()) {
+						LOGGER.trace("Video HDR format compatibility value \"{}\" also failed to match support line {}", videoHdrFormatCompatibilityInRendererFormat, supportLine);
+						return false;
+					}
 				}
 			}
 
@@ -641,6 +700,7 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getVideoBitDepth(),
 				media.getVideoHDRFormatForRenderer(),
+				media.getVideoHDRFormatCompatibilityForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -672,6 +732,7 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getVideoBitDepth(),
 				media.getVideoHDRFormatForRenderer(),
+				media.getVideoHDRFormatCompatibilityForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -694,6 +755,7 @@ public class FormatConfiguration {
 				media.getHeight(),
 				media.getVideoBitDepth(),
 				media.getVideoHDRFormatForRenderer(),
+				media.getVideoHDRFormatCompatibilityForRenderer(),
 				media.getExtras(),
 				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
 				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
@@ -720,6 +782,7 @@ public class FormatConfiguration {
 			0,
 			0,
 			0,
+			null,
 			null,
 			null,
 			null,
@@ -752,6 +815,7 @@ public class FormatConfiguration {
 			0,
 			media.getVideoBitDepth(),
 			media.getVideoHDRFormatForRenderer(),
+			media.getVideoHDRFormatCompatibilityForRenderer(),
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),
@@ -770,7 +834,8 @@ public class FormatConfiguration {
 		int videoWidth,
 		int videoHeight,
 		int videoBitDepth,
-		String videoHdrInRendererFormat,
+		String videoHdrFormatInRendererFormat,
+		String videoHdrFormatCompatibilityInRendererFormat,
 		Map<String, String> extras,
 		String subsFormat,
 		boolean isInternal,
@@ -790,7 +855,8 @@ public class FormatConfiguration {
 				videoWidth,
 				videoHeight,
 				videoBitDepth,
-				videoHdrInRendererFormat,
+				videoHdrFormatInRendererFormat,
+				videoHdrFormatCompatibilityInRendererFormat,
 				extras,
 				subsFormat,
 				isInternal,

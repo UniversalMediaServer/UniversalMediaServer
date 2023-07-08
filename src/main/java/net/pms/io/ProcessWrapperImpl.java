@@ -235,10 +235,10 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				params.getStdIn().push(process.getOutputStream());
 			}
 
-			Integer pid = ProcessUtil.getProcessID(process);
+			long pid = ProcessUtil.getProcessId(process);
 
-			if (pid != null) {
-				LOGGER.debug("Unix process ID ({}): {}", cmdArray[0], pid);
+			if (pid != 0) {
+				LOGGER.debug("Process ID ({}): {}", cmdArray[0], pid);
 			}
 
 			ProcessUtil.waitFor(process);
@@ -367,9 +367,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		if (!destroyed) {
 			destroyed = true;
 			if (process != null) {
-				Integer pid = ProcessUtil.getProcessID(process);
-				if (pid != null) {
-					LOGGER.debug("Stopping Unix process " + pid + ": " + this);
+				long pid = ProcessUtil.getProcessId(process);
+				if (pid != 0) {
+					LOGGER.debug("Stopping process " + pid + ": " + this);
 				} else {
 					LOGGER.debug("Stopping process: " + this);
 				}

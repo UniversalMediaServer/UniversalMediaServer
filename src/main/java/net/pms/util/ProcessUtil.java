@@ -16,22 +16,17 @@
  */
 package net.pms.util;
 
-import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.management.ManagementFactory;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import net.pms.PMS;
-import net.pms.io.StreamGobbler;
 import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,14 +36,6 @@ import org.slf4j.LoggerFactory;
 // for background/issues/discussion related to this class
 public class ProcessUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessUtil.class);
-
-	// how long to wait in milliseconds until a kill -TERM on Unix has been
-	// deemed to fail
-	private static final int TERM_TIMEOUT = 10000;
-
-	// how long to wait in milliseconds until a kill -ALRM on Unix has been
-	// deemed to fail
-	private static final int ALRM_TIMEOUT = 2000;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -64,115 +51,47 @@ public class ProcessUtil {
 		try {
 			exit = p.waitFor();
 		} catch (InterruptedException e) {
-			Thread.interrupted();
+			Thread.currentThread().interrupt();
 		}
 
 		return exit;
 	}
 
 	/**
-	 * Get the process ID on Unix.
+	 * Retrieves the process ID (PID) for the specified {@link Process}.
 	 *
-	 * @param p the process
-	 * @return the process ID, null otherwise
-	 *
-	 * @deprecated use {@link ProcessManager.getProcessId} instead
+	 * @param process the {@link Process} for whose PID to retrieve.
+	 * @return The PID or zero if the PID couldn't be retrieved.
 	 */
-	@Deprecated
-	public static Integer getProcessID(Process p) {
-		Integer pid = null;
-
-		if (p != null && p.getClass().getName().equals("java.lang.UNIXProcess")) {
-			try {
-				Field f = p.getClass().getDeclaredField("pid");
-				f.setAccessible(true);
-				pid = f.getInt(p);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
-			}
+	public static long getProcessId(@Nullable Process process) {
+		if (process == null) {
+			return 0;
 		}
-
-		return pid;
-	}
-
-	// kill -9 a Unix process
-	public static void kill(Integer pid) {
-		kill(pid, 9);
-	}
-
-	/*
-	 * FIXME: this is a hack - destroy() *should* work
-	 *
-	 * call chain (innermost last):
-	 *
-	 * WaitBufferedInputStream.close BufferedOutputFile.detachInputStream
-	 * ProcessWrapperImpl.stopProcess ProcessUtil.destroy ProcessUtil.kill
-	 *
-	 * my best guess is that the process's stdout/stderr streams aren't
-	 * being/haven't been fully/promptly consumed. From the abovelinked article:
-	 *
-	 * The Java 6 API clearly states that failure to promptly “read the output
-	 * stream of the subprocess may cause the subprocess to block, and even
-	 * deadlock.
-	 *
-	 * This is corroborated by the fact that destroy() works fine if the process
-	 * is allowed to run to completion:
-	 *
-	 * https://code.google.com/p/ps3mediaserver/issues/detail?id=680#c11
-	 */
-	// send a Unix process the specified signal
-	public static boolean kill(Integer pid, int signal) {
-		boolean killed = false;
-		LOGGER.warn("Sending kill -" + signal + " to the Unix process: " + pid);
 		try {
-			ProcessBuilder processBuilder = new ProcessBuilder("kill", "-" + signal, Integer.toString(pid));
-			processBuilder.redirectErrorStream(true);
-			Process process = processBuilder.start();
-			// consume the error and output process streams
-			StreamGobbler.consume(process.getInputStream(), true);
-			int exit = waitFor(process);
-			if (exit == 0) {
-				killed = true;
-				LOGGER.debug("Successfully sent kill -" + signal + " to the Unix process: " + pid);
-			}
-		} catch (IOException e) {
-			LOGGER.error("Error calling: kill -" + signal + " " + pid, e);
+			return process.pid();
+		} catch (UnsupportedOperationException e) {
+			return 0;
 		}
+	}
 
-		return killed;
+	/**
+	 * Checks if the process is still alive using reflection if possible.
+	 *
+	 * @param process the {@link Process} to check.
+	 * @return {@code true} if the process is still alive, {@code false}
+	 *         otherwise.
+	 */
+	public static boolean isProcessIsAlive(@Nullable Process process) {
+		if (process == null) {
+			return false;
+		}
+		return process.isAlive();
 	}
 
 	// destroy a process safely (kill -TERM on Unix)
 	public static void destroy(final Process p) {
 		if (p != null) {
-			final Integer pid = getProcessID(p);
-
-			if (pid != null) { // Unix only
-				LOGGER.trace("Killing the Unix process: " + pid);
-				Runnable r = () -> {
-					UMSUtils.sleep(TERM_TIMEOUT);
-
-					try {
-						p.exitValue();
-					} catch (IllegalThreadStateException itse) {
-						// still running: nuke it
-						// kill -14 (ALRM) works (for MEncoder) and is less
-						// dangerous than kill -9 so try that first
-						if (!kill(pid, 14)) {
-							// This is a last resort, so let's not be
-							// too eager
-							UMSUtils.sleep(ALRM_TIMEOUT);
-
-							kill(pid, 9);
-						}
-					}
-				};
-
-				Thread failsafe = new Thread(r, "Process Destroyer");
-				failsafe.start();
-			}
-
-			p.destroy();
+			PlatformUtils.INSTANCE.destroyProcess(p);
 		}
 	}
 
@@ -231,8 +150,10 @@ public class ProcessUtil {
 				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());
 			}
 			return output.toString();
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
+		} catch (InterruptedException ie) {
+			Thread.currentThread().interrupt();
 		}
 		return "";
 	}
@@ -290,32 +211,10 @@ public class ProcessUtil {
 	// Shutdown UMS and either reboot or run the given command (e.g. a script to
 	// restart UMS)
 	public static void reboot(List<String> cmd, Map<String, String> env, String startdir, String... umsOptions) {
-		final List<String> reboot;
-		String macAppPath = null;
-		if (Platform.isMac()) {
-			String libraryPath = ManagementFactory.getRuntimeMXBean().getLibraryPath();
-			if (StringUtils.isNotBlank(libraryPath)) {
-				Pattern pattern = Pattern.compile("(.+?\\.app)/Contents/MacOS");
-				Matcher matcher = pattern.matcher(libraryPath);
-				if (matcher.find()) {
-					macAppPath = matcher.group(1);
-				}
-			}
-		}
-		if (StringUtils.isNotBlank(macAppPath)) {
-			reboot = new ArrayList<>();
-			reboot.add("open");
-			reboot.add("-n");
-			reboot.add("-a");
-			reboot.add(macAppPath);
-			if (umsOptions.length > 0) {
-				reboot.add("--args");
-			}
-		} else {
-			reboot = getUMSCommand();
-		}
+		final boolean hasOption = umsOptions.length > 0;
+		final List<String> reboot = PlatformUtils.INSTANCE.getRestartCommand(hasOption);
 
-		if (umsOptions.length > 0) {
+		if (hasOption) {
 			reboot.addAll(Arrays.asList(umsOptions));
 		}
 		if (cmd == null) {
@@ -353,17 +252,9 @@ public class ProcessUtil {
 	/**
 	 * Shuts down the computer.
 	 * This is initiated via the Server Settings folder.
-	 *
-	 * @see https://stackoverflow.com/a/25666/2049714
 	 */
 	public static void shutDownComputer() {
-		String shutdownCommand = null;
-
-		if (Platform.isLinux() || Platform.isMac()) {
-			shutdownCommand = "shutdown -h now";
-		} else if (Platform.isWindows()) {
-			shutdownCommand = "shutdown.exe -s -t 0";
-		}
+		String shutdownCommand = PlatformUtils.INSTANCE.getShutdownCommand();
 
 		if (shutdownCommand != null) {
 			try {
@@ -375,35 +266,4 @@ public class ProcessUtil {
 		}
 	}
 
-	// Reconstruct the command that started this jvm, including all options.
-	// See
-	// http://stackoverflow.com/questions/4159802/how-can-i-restart-a-java-application
-	// http://stackoverflow.com/questions/1518213/read-java-jvm-startup-parameters-eg-xmx
-	public static List<String> getUMSCommand() {
-		List<String> reboot = new ArrayList<>();
-		File jvmPath = new File(System.getProperty("java.home"));
-		String jvmExecutableName = Platform.isWindows() && System.console() == null ? "javaw.exe" : "java";
-		File jvmExecutable = new File(jvmPath, jvmExecutableName);
-		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
-			jvmPath = new File(jvmPath, "bin");
-			jvmExecutable = new File(jvmPath, jvmExecutableName);
-		}
-		if (!jvmExecutable.exists() || jvmExecutable.isDirectory()) {
-			LOGGER.error("Can´t find Java executable \"{}\", falling back to pathless execution using \"{}\"",
-				jvmExecutable.getAbsolutePath(), jvmExecutableName);
-			reboot.add(jvmExecutableName);
-		} else {
-			reboot.add(StringUtil.quoteArg(jvmExecutable.getAbsolutePath()));
-		}
-		for (String jvmArg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			reboot.add(StringUtil.quoteArg(jvmArg));
-		}
-		reboot.add("-cp");
-		reboot.add(ManagementFactory.getRuntimeMXBean().getClassPath());
-		// Could also use generic main discovery instead:
-		// see
-		// http://stackoverflow.com/questions/41894/0-program-name-in-java-discover-main-class
-		reboot.add(PMS.class.getName());
-		return reboot;
-	}
 }

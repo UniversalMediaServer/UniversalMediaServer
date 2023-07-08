@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 	 *
 	 * @param owner the {@link ProcessManager} controlling this terminator thread.
 	 */
-	public AbstractProcessTerminator(@Nonnull ProcessManager owner) {
+	protected AbstractProcessTerminator(@Nonnull ProcessManager owner) {
 		super("Process Terminator");
 		if (owner == null) {
 			throw new IllegalArgumentException("owner cannot be null");
@@ -92,7 +93,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 		if (processInfo == null) {
 			return;
 		}
-		if (ProcessManager.isProcessIsAlive(processInfo.getProcess())) {
+		if (ProcessUtil.isProcessIsAlive(processInfo.getProcess())) {
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug(
 					"Trying to terminate process \"{}\" ({}) since its allowed run time has expired",
@@ -145,7 +146,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 	 * @return The next available schedule time in nanoseconds.
 	 */
 	protected Long getSchedule(long delayMS) {
-		Long schedule = Long.valueOf(System.nanoTime() + delayMS * 1000000);
+		Long schedule = System.nanoTime() + delayMS * 1000000;
 		while (processes.get(schedule) != null) {
 			schedule++;
 		}
@@ -243,84 +244,84 @@ public abstract class AbstractProcessTerminator extends Thread {
 					synchronized (owner.incoming) {
 						currentTicket = owner.incoming.poll();
 					}
-					if (currentTicket != null) {
-						if (currentTicket.getAction() == ProcessTicketAction.ADD) {
-							processes.put(getSchedule(currentTicket.getTimeoutMS()), new ProcessInfo(
-									currentTicket.getProcess(),
-									currentTicket.getName(),
-									currentTicket.getTerminateTimeoutMS()
-							));
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace(
-									"ProcessTerminator scheduled shutdown of process \"{}\" in {} milliseconds",
-									currentTicket.getName(),
-									currentTicket.getTimeoutMS()
-								);
-							}
-						} else if (currentTicket.getAction() == ProcessTicketAction.REMOVE) {
-							ProcessInfo remove = null;
-							for (
-								Iterator<Map.Entry<Long, ProcessInfo>> iterator = processes.entrySet().iterator();
-								iterator.hasNext();
-							) {
-								Map.Entry<Long, ProcessInfo> entry = iterator.next();
-								if (entry.getValue().getProcess() == currentTicket.getProcess()) {
-									remove = entry.getValue();
-									iterator.remove();
+					if (currentTicket != null && currentTicket.getAction() != null) {
+						switch (currentTicket.getAction()) {
+							case ADD -> {
+								processes.put(getSchedule(currentTicket.getTimeoutMS()), new ProcessInfo(
+										currentTicket.getProcess(),
+										currentTicket.getName(),
+										currentTicket.getTerminateTimeoutMS()
+								));	if (LOGGER.isTraceEnabled()) {
+									LOGGER.trace(
+											"ProcessTerminator scheduled shutdown of process \"{}\" in {} milliseconds",
+											currentTicket.getName(),
+											currentTicket.getTimeoutMS()
+									);
 								}
 							}
-							if (LOGGER.isDebugEnabled()) {
-								if (remove == null) {
+							case REMOVE -> {
+								ProcessInfo remove = null;
+								for (
+										Iterator<Map.Entry<Long, ProcessInfo>> iterator = processes.entrySet().iterator();
+										iterator.hasNext();
+										) {
+									Map.Entry<Long, ProcessInfo> entry = iterator.next();
+									if (entry.getValue().getProcess() == currentTicket.getProcess()) {
+										remove = entry.getValue();
+										iterator.remove();
+									}
+								}	if (LOGGER.isDebugEnabled()) {
+									if (remove == null) {
+										LOGGER.debug(
+												"Couldn't find {} process to remove from process management",
+												currentTicket.getName()
+										);
+									} else if (LOGGER.isTraceEnabled()) {
+										LOGGER.trace(
+												"ProcessTerminator unscheduled process \"{}\" ({})",
+												remove.getName(),
+												remove.getPID()
+										);
+									}
+								}
+							}
+							case SHUTDOWN -> {
+								ProcessInfo reschedule = null;
+								for (
+										Iterator<Map.Entry<Long, ProcessInfo>> iterator = processes.entrySet().iterator();
+										iterator.hasNext();
+										) {
+									Map.Entry<Long, ProcessInfo> entry = iterator.next();
+									if (entry.getValue().getProcess() == currentTicket.getProcess()) {
+										reschedule = entry.getValue();
+										iterator.remove();
+									}
+								}	if (reschedule != null) {
+									if (currentTicket.getTerminateTimeoutMS() > 0) {
+										reschedule.setTerminateTimeoutMS(Math.max(100, currentTicket.getTerminateTimeoutMS()));
+									}
+									processes.put(getSchedule(0), reschedule);
+									if (LOGGER.isTraceEnabled()) {
+										LOGGER.trace(
+												"ProcessTerminator rescheduled process \"{}\" ({}) for immediate shutdown",
+												reschedule.getName(),
+												reschedule.getPID()
+										);
+									}
+								} else if (LOGGER.isDebugEnabled()) {
 									LOGGER.debug(
-										"Couldn't find {} process to remove from process management",
-										currentTicket.getName()
-									);
-								} else if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace(
-										"ProcessTerminator unscheduled process \"{}\" ({})",
-										remove.getName(),
-										remove.getPID()
+											"ProcessTerminator: No matching {} process found to reschedule for immediate shutdown"
 									);
 								}
 							}
-						} else if (currentTicket.getAction() == ProcessTicketAction.SHUTDOWN) {
-							ProcessInfo reschedule = null;
-							for (
-								Iterator<Map.Entry<Long, ProcessInfo>> iterator = processes.entrySet().iterator();
-								iterator.hasNext();
-							) {
-								Map.Entry<Long, ProcessInfo> entry = iterator.next();
-								if (entry.getValue().getProcess() == currentTicket.getProcess()) {
-									reschedule = entry.getValue();
-									iterator.remove();
-								}
-							}
-							if (reschedule != null) {
-								if (currentTicket.getTerminateTimeoutMS() > 0) {
-									reschedule.setTerminateTimeoutMS(Math.max(100, currentTicket.getTerminateTimeoutMS()));
-								}
-								processes.put(getSchedule(0), reschedule);
-								if (LOGGER.isTraceEnabled()) {
-									LOGGER.trace(
-										"ProcessTerminator rescheduled process \"{}\" ({}) for immediate shutdown",
-										reschedule.getName(),
-										reschedule.getPID()
-									);
-								}
-							} else if (LOGGER.isDebugEnabled()) {
-								LOGGER.debug(
-									"ProcessTerminator: No matching {} process found to reschedule for immediate shutdown"
-								);
-							}
-						} else {
-							throw new AssertionError("Unimplemented ProcessTicketAction");
+							default -> throw new AssertionError("Unimplemented ProcessTicketAction");
 						}
 					}
 				} while (currentTicket != null);
 			}
 
 			//Process schedule
-			while (!processes.isEmpty() && processes.firstKey().longValue() <= System.nanoTime()) {
+			while (!processes.isEmpty() && processes.firstKey() <= System.nanoTime()) {
 				ProcessInfo processInfo = processes.remove(processes.firstKey());
 				stopProcess(processInfo);
 			}
@@ -339,7 +340,7 @@ public abstract class AbstractProcessTerminator extends Thread {
 					}
 				}
 			} else {
-				long waitTime = processes.firstKey().longValue() - System.nanoTime();
+				long waitTime = processes.firstKey() - System.nanoTime();
 				if (waitTime > 0) {
 					synchronized (owner.incoming) {
 						if (owner.incoming.isEmpty()) {

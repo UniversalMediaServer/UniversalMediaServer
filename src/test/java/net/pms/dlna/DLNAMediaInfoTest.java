@@ -101,7 +101,7 @@ public class DLNAMediaInfoTest {
 		PMS.getGlobalRepo().add(parent);
 
 		assertEquals(
-			"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: progressive high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 1325017, Overall Bitrate: 676979, Video Tracks: 1, Video Codec: h264, Duration: 0:00:15.658, Video Resolution: 640 x 360, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.601, Reference Frame Count: 4, AVC Level: 3, AVC Profile: high, Audio Tracks: 1 [Audio Codec: AAC-LC, Bitrate: 125547, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-aac.mp4")
 		);
 		assertEquals(
@@ -193,7 +193,7 @@ public class DLNAMediaInfoTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.05-eac3_atmos.mkv")
 		);
 		assertEquals(
-			"Container: MKV, Size: 7799945, Overall Bitrate: 10372267, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086, Video HDR Format Compatibility: HDR10 / HDR10 (hdr10), Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 7799945, Overall Bitrate: 10372267, Video Tracks: 1, Video Codec: h265, Duration: 0:00:06.016, Video Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Frame Rate: 59.940, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), Video HDR Format Compatibility: HDR10 / HDR10 (hdr10), Audio Tracks: 1 [Audio Codec: Enhanced AC-3, Bitrate: 640000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.05-eac3_atmos.mkv")
 		);
 		assertEquals(
@@ -201,11 +201,11 @@ public class DLNAMediaInfoTest {
 			getTestFileMediaInfo("video-h265_hdr10-aac.mkv")
 		);
 		assertEquals(
-			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, Video Tracks: 1, Video Codec: h265, Duration: 0:00:01.127, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: SMPTE ST 2094 App 4 / SMPTE ST 2086, Video HDR Format Compatibility: HDR10+ Profile A / HDR10 (hdr10), File Title from Metadata: A Beautiful Planet (2016), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: DTS:X, Audio Codec: DTS, Bitrate: 0, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, Video Tracks: 1, Video Codec: h265, Duration: 0:00:01.127, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: SMPTE ST 2094 App 4, Video HDR Format Compatibility: HDR10+ Profile A / HDR10 (hdr10), File Title from Metadata: A Beautiful Planet (2016), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Track Title From Metadata: DTS:X, Audio Codec: DTS HD, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_hdr10+-dtshd_ma.mkv")
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Video Tracks: 1, Video Codec: h265, Duration: 0:00:08.341, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Video HDR Format Compatibility: SDR, Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Video Tracks: 1, Video Codec: h265, Duration: 0:00:08.341, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Video Bit Depth: 10, Video HDR Format: Dolby Vision (dolbyvision), Video HDR Format Compatibility: SDR, Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p04.06.ts")
 		);
 		assertEquals(
@@ -217,15 +217,15 @@ public class DLNAMediaInfoTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.09.ts")
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 2448136, Overall Bitrate: 3926871, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.921, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086, Video HDR Format Compatibility: Blu-ray / HDR10 (hdr10), Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 2448136, Overall Bitrate: 3926871, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.921, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), Video HDR Format Compatibility: Blu-ray / HDR10 (hdr10), Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p07.06.ts")
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.504, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision, Video HDR Format Compatibility: HLG (hlg), Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Video Tracks: 1, Video Codec: h265, Duration: 0:00:04.504, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision (dolbyvision), Video HDR Format Compatibility: HLG (hlg), Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.12.ts")
 		);
 		assertEquals(
-			"Container: MKV, Size: 11413502, Overall Bitrate: 6110012, Video Tracks: 1, Video Codec: h265, Duration: 0:00:14.944, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086, Video HDR Format Compatibility: HDR10 / HDR10 (hdr10), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: Enhanced AC-3, Bitrate: 768000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 11413502, Overall Bitrate: 6110012, Video Tracks: 1, Video Codec: h265, Duration: 0:00:14.944, Video Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 25.000, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), Video HDR Format Compatibility: HDR10 / HDR10 (hdr10), Audio Tracks: 1 [Id: 0, Language Code: eng, Audio Codec: Enhanced AC-3, Bitrate: 768000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv")
 		);
 	}

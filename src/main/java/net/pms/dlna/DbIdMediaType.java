@@ -31,6 +31,9 @@ public enum DbIdMediaType {
 	TYPE_MUSICBRAINZ_RECORDID("MUSICBRAINZALBUM$", "object.container.album.musicAlbum"),
 	TYPE_MYMUSIC_ALBUM("MYMUSIC$", "object.container.storageFolder"),
 	TYPE_PERSON("PERSON$", "object.container.person.musicArtist"),
+	TYPE_PERSON_COMPOSER("PERSON_COMPOSER$", "object.container.person.musicArtist"),
+	TYPE_PERSON_CONDUCTOR("PERSON_CONDUCTOR$", "object.container.person.musicArtist"),
+	TYPE_PERSON_ALBUMARTIST("PERSON_ALBUMARTIST$", "object.container.person.musicArtist"),
 	TYPE_PERSON_ALBUM_FILES("PERSON_ALBUM_FILES$", "object.container.storageFolder"),
 	TYPE_PERSON_ALBUM("PERSON_ALBUM$", "object.container.storageFolder"),
 	TYPE_PERSON_ALL_FILES("PERSON_ALL_FILES$", "object.container.storageFolder"),
@@ -41,6 +44,9 @@ public enum DbIdMediaType {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DbIdMediaType.class);
 	public static final String GENERAL_PREFIX = "$DBID$";
+	public static final String PERSON_COMPOSER_PREFIX = "COMP_";
+	public static final String PERSON_CONDUCTOR_PREFIX = "COND_";
+	public static final String PERSON_ALBUMARTIST_PREFIX = "AART_";
 	public static final String SPLIT_CHARS = "___";
 	public final String dbidPrefix;
 	public final String uclass;

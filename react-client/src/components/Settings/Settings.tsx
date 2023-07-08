@@ -17,15 +17,16 @@
 import { Box, Button, Group, Tabs, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { useLocalStorage } from '@mantine/hooks';
-import { showNotification } from '@mantine/notifications';
+import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import { Check, ExclamationMark } from 'tabler-icons-react';
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import {openGitHubNewIssue, settingsApiUrl} from '../../utils';
+import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
 import TranscodingSettings from './TranscodingSettings';
@@ -79,7 +80,7 @@ export default function Settings() {
   // Code here will run just like componentDidMount
   useEffect(() => {
     canView && axios.get(settingsApiUrl)
-      .then(function (response: any) {
+      .then(function(response: any) {
         const settingsResponse = response.data;
         setSelectionSettings(settingsResponse);
         setDefaultConfiguration(settingsResponse.userSettingsDefaults);
@@ -90,26 +91,34 @@ export default function Settings() {
         setConfiguration(userConfig);
         formSetValues(userConfig);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'data-loading',
           color: 'red',
           title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotReceived'] +  ' ' + i18n.get['ClickHereReportBug'],
+          message: i18n.get['ConfigurationNotReceived'] + ' ' + i18n.get['ClickHereReportBug'],
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
       })
-      .then(function () {
+      .then(function() {
         setLoading(false);
       });
   }, [canView, formSetValues]);
 
-  const handleSubmit = async(values: typeof form.values) => {
+  const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);
+    showNotification({
+      id: 'settings-save',
+      loading: true,
+      title: i18n.get['Save'],
+      message: i18n.get['SavingConfiguration'],
+      autoClose: false,
+      withCloseButton: false
+    });
     try {
       const changedValues: Record<string, any> = {};
-  
+
       // construct an object of only changed values to send
       for (const key in values) {
         if (!_.isEqual(configuration[key], values[key])) {
@@ -118,21 +127,41 @@ export default function Settings() {
       }
 
       if (_.isEmpty(changedValues)) {
-        showNotification({
+        updateNotification({
+          id: 'settings-save',
           title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationHasNoChanges'],
+          message: i18n.get['ConfigurationHasNoChanges']
         })
       } else {
-        await axios.post(settingsApiUrl, changedValues);
-        setConfiguration(values);
-		setLoading(false);
-        showNotification({
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
-        })
+        await axios.post(settingsApiUrl, changedValues)
+          .then(function() {
+            setConfiguration(values);
+            setLoading(false);
+            updateNotification({
+              id: 'settings-save',
+              color: 'teal',
+              title: i18n.get['Saved'],
+              message: i18n.get['ConfigurationSaved'],
+              icon: <Check size='1rem' />
+            })
+          })
+          .catch(function(error) {
+            if (!error.response && error.request) {
+              updateNotification({
+                id: 'settings-save',
+                color: 'red',
+                title: i18n.get['Error'],
+                message: i18n.get['ConfigurationNotReceived'],
+                icon: <ExclamationMark size='1rem' />
+              })
+            } else {
+              throw new Error(error);
+            }
+          });
       }
     } catch (err) {
-      showNotification({
+      updateNotification({
+        id: 'settings-save',
         color: 'red',
         title: i18n.get['Error'],
         message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
@@ -144,31 +173,31 @@ export default function Settings() {
   };
 
   return canView ? (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Tabs defaultValue="GeneralSettings">
+        <Tabs defaultValue='GeneralSettings'>
           <Tabs.List>
-            <Tabs.Tab value="GeneralSettings">{i18n.get['GeneralSettings']}</Tabs.Tab>
-            { advancedSettings &&
-              <Tabs.Tab value="NavigationSettings">{i18n.get['NavigationSettings']}</Tabs.Tab>
+            <Tabs.Tab value='GeneralSettings'>{i18n.get['GeneralSettings']}</Tabs.Tab>
+            {advancedSettings &&
+              <Tabs.Tab value='NavigationSettings'>{i18n.get['NavigationSettings']}</Tabs.Tab>
             }
-            <Tabs.Tab value="TranscodingSettings">{i18n.get['TranscodingSettings']}</Tabs.Tab>
+            <Tabs.Tab value='TranscodingSettings'>{i18n.get['TranscodingSettings']}</Tabs.Tab>
           </Tabs.List>
-          <Tabs.Panel value="GeneralSettings">
-            {GeneralSettings(form,defaultConfiguration,selectionSettings)}
+          <Tabs.Panel value='GeneralSettings'>
+            {GeneralSettings(form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
-          { advancedSettings &&
-            <Tabs.Panel value="NavigationSettings">
-              {NavigationSettings(form,defaultConfiguration,selectionSettings)}
+          {advancedSettings &&
+            <Tabs.Panel value='NavigationSettings'>
+              {NavigationSettings(form, defaultConfiguration, selectionSettings)}
             </Tabs.Panel>
           }
-          <Tabs.Panel value="TranscodingSettings">
-            { TranscodingSettings(form,defaultConfiguration,selectionSettings) }
+          <Tabs.Panel value='TranscodingSettings'>
+            {TranscodingSettings(form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
         </Tabs>
         {canModify && (
-          <Group position="right" mt="md">
-            <Button type="submit" loading={isLoading}>
+          <Group position='right' mt='md'>
+            <Button type='submit' loading={isLoading}>
               {i18n.get['Save']}
             </Button>
           </Group>
@@ -176,8 +205,8 @@ export default function Settings() {
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx="auto">
-      <Text color="red">{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 }

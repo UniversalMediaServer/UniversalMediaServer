@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, Slider, Stack, Table, Text } from '@mantine/core';
+import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Slider, Stack, Table, Text } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -38,14 +38,14 @@ const Renderers = () => {
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
   const [controlId, setControlId] = useState(-1);
-  const [controlMedia, setControlMedia] = useState<Media|null>(null);
+  const [controlMedia, setControlMedia] = useState<Media | null>(null);
 
   useEffect(() => {
     axios.get(renderersApiUrl)
-      .then(function (response: any) {
-		setRenderers(response.data.renderers);
+      .then(function(response: any) {
+        setRenderers(response.data.renderers);
       })
-      .catch(function () {
+      .catch(function() {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
@@ -66,7 +66,7 @@ const Renderers = () => {
       if (rendererAction === null) {
         break;
       }
-      switch(rendererAction.action) {
+      switch (rendererAction.action) {
         case 'renderer_add': {
           renderersTemp.push(rendererAction);
           break;
@@ -95,11 +95,11 @@ const Renderers = () => {
       setInfos(null);
       return;
     }
-    axios.post(renderersApiUrl + 'infos', {'id' : askInfos})
-      .then(function (response: any) {
+    axios.post(renderersApiUrl + 'infos', { 'id': askInfos })
+      .then(function(response: any) {
         setInfos(response.data);
       })
-      .catch(function () {
+      .catch(function() {
         setInfos(null);
       });
   }, [askInfos]);
@@ -118,10 +118,10 @@ const Renderers = () => {
               </Menu.Target>
               <Menu.Dropdown>
                 <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
-                { canModify && (
-                  <Menu.Item icon={<Settings size={14} />} color="red" disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
+                {canModify && (
+                  <Menu.Item icon={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
                 )}
-                { canControlRenderers && (
+                {canControlRenderers && (
                   <Menu.Item icon={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
                 )}
               </Menu.Dropdown>
@@ -132,25 +132,25 @@ const Renderers = () => {
           <Image
             src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
             height={160}
-            fit="contain"
-            sx={!renderer.isActive ? {filter:'grayscale(95%)'}:undefined}
+            fit='contain'
+            sx={!renderer.isActive ? { filter: 'grayscale(95%)' } : undefined}
             alt={renderer.name}
           />
         </Card.Section>
-        { renderer.address && 
+        {renderer.address &&
           <Text align='center' size='sm' color='dimmed'>
             {renderer.address}
           </Text>
         }
-        { renderer.playing && 
+        {renderer.playing &&
           <Progress value={renderer.progressPercent} />
         }
-        { renderer.playing && 
+        {renderer.playing &&
           <Text align='center' size='sm' color='dimmed'>
             {renderer.playing}
           </Text>
         }
-        { renderer.time && 
+        {renderer.time &&
           <Text align='center' size='sm' color='dimmed'>
             {renderer.time}
           </Text>
@@ -162,13 +162,13 @@ const Renderers = () => {
   const rendererDetail = (
     <Modal
       centered
-      overflow='inside'
+      scrollAreaComponent={ScrollArea.Autosize}
       opened={infos != null}
       onClose={() => setAskInfos(-1)}
       title={infos?.title}
     >
       <Table><tbody>
-        {infos?.details.map((detail:RendererDetail) => (
+        {infos?.details.map((detail: RendererDetail) => (
           <tr key={detail.key}>
             <td>{i18n.getI18nString(detail.key)}</td>
             <td>{detail.value}</td>
@@ -178,11 +178,11 @@ const Renderers = () => {
     </Modal>
   );
 
-  const sendRendererControl = (id:number, action:string, value?: any) => {
-    axios.post(renderersApiUrl + 'control', {'id':id, 'action':action, 'value':value})
+  const sendRendererControl = (id: number, action: string, value?: any) => {
+    axios.post(renderersApiUrl + 'control', { 'id': id, 'action': action, 'value': value })
   }
 
-  const getRenderer = (id:number) => {
+  const getRenderer = (id: number) => {
     return renderers.find((renderer) => renderer.id === id);
   }
 
@@ -205,14 +205,14 @@ const Renderers = () => {
         </>)}
         {((rendererControlled.controls & 1) === 1) && rendererControlled.isActive &&
           <Group spacing='xs' grow mt='md'>
-            <ActionIcon style={{flexGrow:'unset'}} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
+            <ActionIcon style={{ flexGrow: 'unset' }} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
               {rendererControlled.state.mute ?
-                <VolumeOff/>
-              :
-                <Volume/>
+                <VolumeOff />
+                :
+                <Volume />
               }
             </ActionIcon>
-            <Slider labelAlwaysOn mt='lg' style={{maxWidth:'unset', marginInlineEnd:'10px'}}
+            <Slider labelAlwaysOn mt='lg' style={{ maxWidth: 'unset', marginInlineEnd: '10px' }}
               defaultValue={rendererControlled.state.volume}
               onChangeEnd={(value: number) => sendRendererControl(rendererControlled.id, 'volume', value)}
             />
@@ -220,27 +220,27 @@ const Renderers = () => {
         }
         {((rendererControlled.controls & 2) === 2) && rendererControlled.isActive &&
           <Group position='center'>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack/></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev/></ActionIcon>
-            {rendererControlled.state.playback===1 ?
-              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause/></ActionIcon>
-            :
-              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay/></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev /></ActionIcon>
+            {rendererControlled.state.playback === 1 ?
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'pause')}><PlayerPause /></ActionIcon>
+              :
+              <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'play')}><PlayerPlay /></ActionIcon>
             }
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop/></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext/></ActionIcon>
-            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward/></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'stop')}><PlayerStop /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'next')}><PlayerTrackNext /></ActionIcon>
+            <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward /></ActionIcon>
           </Group>
         }
         {rendererControlled.isActive && (<Group position='center'>
           <MediaChooser
             disabled={!canModify}
-            size="xs"
+            size='xs'
             id={rendererControlled.id}
             media={controlMedia}
-            callback={(value: Media|null) => setControlMedia(value)}
+            callback={(value: Media | null) => setControlMedia(value)}
           ></MediaChooser>
-          { controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><Cast/></ActionIcon> }
+          {controlMedia && <ActionIcon onClick={() => sendRendererControl(rendererControlled.id, 'mediaid', controlMedia.value)}><Cast /></ActionIcon>}
         </Group>)}
       </Stack>
     </Drawer>
@@ -258,7 +258,7 @@ const Renderers = () => {
 };
 
 interface RendererAction extends Renderer {
-  action:string,
+  action: string,
 }
 
 interface RendererState {
@@ -274,27 +274,27 @@ interface RendererState {
 }
 
 interface Renderer {
-  id : number,
-  name : string,
-  address : string,
-  icon : string,
-  playing : string,
-  time : string,
-  progressPercent : number,
-  isActive : boolean,
-  controls : number,
-  state : RendererState,
+  id: number,
+  name: string,
+  address: string,
+  icon: string,
+  playing: string,
+  time: string,
+  progressPercent: number,
+  isActive: boolean,
+  controls: number,
+  state: RendererState,
 }
 
 interface RendererInfos {
-  title:string,
-  isUpnp:boolean,
-  details:RendererDetail[],
+  title: string,
+  isUpnp: boolean,
+  details: RendererDetail[],
 }
 
 interface RendererDetail {
-  key:string,
-  value:string
+  key: string,
+  value: string
 }
 
 export default Renderers;

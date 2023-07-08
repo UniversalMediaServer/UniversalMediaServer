@@ -28,14 +28,14 @@ interface Props {
   children?: ReactNode
 }
 
-export const ServerEventProvider = ({ children, ...props }: Props) =>{
+export const ServerEventProvider = ({ children, ...props }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
-  const [memory, setMemory] = useState<{max:number,used:number,buffer:number}>({max:0,used:0,buffer:0});
+  const [memory, setMemory] = useState<{ max: number, used: number, buffer: number }>({ max: 0, used: 0, buffer: 0 });
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
-  const [scanLibrary, setScanLibrary] = useState<{enabled:boolean,running:boolean}>({enabled:true,running:false});
+  const [scanLibrary, setScanLibrary] = useState<{ enabled: boolean, running: boolean }>({ enabled: true, running: false });
   const [hasRendererAction, setRendererAction] = useState(false);
   const [rendererActions] = useState([] as any[]);
   const [hasNewLogLine, setNewLogLine] = useState(false);
@@ -79,7 +79,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
     };
 
     const onMessage = (event: EventSourceMessage) => {
-      if (event.event === "message") {
+      if (event.event === 'message') {
         const datas = JSON.parse(event.data);
         switch (datas.action) {
           case 'update_memory':
@@ -101,7 +101,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
             setUserConfiguration(datas.value);
             break;
           case 'set_scanlibrary_status':
-            setScanLibrary({'enabled':datas.enabled, 'running':datas.running});
+            setScanLibrary({ 'enabled': datas.enabled, 'running': datas.running });
             break;
           case 'renderer_add':
           case 'renderer_delete':
@@ -173,20 +173,20 @@ export const ServerEventProvider = ({ children, ...props }: Props) =>{
   };
 
   const { Provider } = serverEventContext;
-  return(
+  return (
     <Provider value={{
       connectionStatus: connectionStatus,
       memory: memory,
-      updateAccounts:updateAccounts,
-      setUpdateAccounts:setUpdateAccounts,
-      reloadable:reloadable,
-      userConfiguration:userConfiguration,
-      setUserConfiguration:setUserConfiguration,
-      scanLibrary:scanLibrary,
-      hasRendererAction:hasRendererAction,
-      getRendererAction:getRendererAction,
-      hasNewLogLine:hasNewLogLine,
-      getNewLogLine:getNewLogLine,
+      updateAccounts: updateAccounts,
+      setUpdateAccounts: setUpdateAccounts,
+      reloadable: reloadable,
+      userConfiguration: userConfiguration,
+      setUserConfiguration: setUserConfiguration,
+      scanLibrary: scanLibrary,
+      hasRendererAction: hasRendererAction,
+      getRendererAction: getRendererAction,
+      hasNewLogLine: hasNewLogLine,
+      getNewLogLine: getNewLogLine,
     }}>
       {children}
     </Provider>
