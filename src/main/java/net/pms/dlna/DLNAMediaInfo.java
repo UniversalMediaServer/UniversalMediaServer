@@ -1833,7 +1833,9 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", ").append(getThumb());
 		}
 
-		result.append(", Mime Type: ").append(getMimeType());
+		if (getMimeType() != null) {
+			result.append(", Mime Type: ").append(getMimeType());
+		}
 
 		return result.toString();
 	}
