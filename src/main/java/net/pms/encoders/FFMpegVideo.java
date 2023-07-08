@@ -934,8 +934,15 @@ public class FFMpegVideo extends Engine {
 			} else if (media.isH264() && !params.getMediaRenderer().isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
-			} else if (params.getSid() != null) {
+			} else if (params.getSid() != null && !(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))) {
 				deferToTsmuxer = false;
+				/**
+				 * @todo here we are manually preventing hardcoding subtitles
+				 * to a Dolby Vision video stream, because the colors will be
+				 * wrong and unwatchable. When this FFmpegVideo engine supports
+				 * handling and encoding Dolby Vision streams we should remove
+				 * this condition
+				 */
 				LOGGER.debug(prependTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
