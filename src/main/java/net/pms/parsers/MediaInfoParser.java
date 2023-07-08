@@ -144,20 +144,12 @@ public class MediaInfoParser {
 	 * Parse media via MediaInfo.
 	 */
 	public static synchronized void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
-		System.out.println("111");
 		media.waitMediaParsing(5);
 		media.setParsing(true);
-		System.out.println("222");
 		File file = inputFile.getFile();
-		System.out.println("2221 " + file);
 		ParseLogger parseLogger = new ParseLogger();
-		System.out.println("2222 " + (file == null));
-		System.out.println("2223 " + (media.isMediaparsed()));
-		System.out.println("2224 " + (MI.isValid()));
 		Boolean fileOpened = MI.openFile(file.getAbsolutePath()) > 0;
-		System.out.println("2224 " + (fileOpened));
 		if (!media.isMediaparsed() && file != null && MI.isValid() && fileOpened) {
-			System.out.println("333");
 			StreamKind general = StreamKind.GENERAL;
 			StreamKind video = StreamKind.VIDEO;
 			StreamKind audio = StreamKind.AUDIO;
@@ -166,7 +158,6 @@ public class MediaInfoParser {
 			DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
 			DLNAMediaSubtitle currentSubTrack;
 			media.setSize(file.length());
-			System.out.println("444 " + file.length());
 			String value;
 
 			// set General
