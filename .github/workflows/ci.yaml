@@ -8,7 +8,7 @@ jobs:
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
     name: macOS
-    runs-on: macos-12
+    runs-on: macos-13
     strategy:
       matrix:
         # test against two different xcode version on MacOS
