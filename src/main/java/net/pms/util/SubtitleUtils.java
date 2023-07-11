@@ -47,23 +47,14 @@ import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
-<<<<<<< HEAD
 import net.pms.dlna.RealFile;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.newgui.IFrame;
-=======
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
-import net.pms.formats.v2.SubtitleType;
-import net.pms.io.OutputParams;
-import net.pms.io.ProcessWrapperImpl;
 import net.pms.renderers.Renderer;
->>>>>>> cb0c2b831ba9dda2b6de3783450eb865bbe38e9e
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
 import static net.pms.util.Constants.*;
@@ -107,8 +98,6 @@ public class SubtitleUtils {
 			}
 		});
 	}
-
-	private static IFrame frame = PMS.get().getFrame();
 
 	static {
 		String subtitles = "Subtitles";

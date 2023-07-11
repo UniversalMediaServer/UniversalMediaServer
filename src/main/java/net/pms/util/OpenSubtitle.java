@@ -96,11 +96,8 @@ import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
-<<<<<<< HEAD
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-=======
 	private static final String SUB_DIR = "subs";
->>>>>>> cb0c2b831ba9dda2b6de3783450eb865bbe38e9e
 	private static final String UA = "Universal Media Server v1";
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000L; // 10 minutes
 
