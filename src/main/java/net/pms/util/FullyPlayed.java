@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -28,7 +25,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.MediaMonitor;
 import net.pms.dlna.MediaType;
@@ -44,7 +41,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
-	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private static UmsConfiguration configuration = PMS.getConfiguration();
 	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/icon-fullyplayed.png";
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 	private static final int BLANK_IMAGE_RESOLUTION = 256;
@@ -157,11 +154,11 @@ public class FullyPlayed {
 			case IMAGE:
 				return String.format("[%s] %s", Messages.getString("DLNAResource.6"), displayName);
 			case VIDEO:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.4"), displayName);
+				return String.format("[%s] %s", Messages.getString("Watched"), displayName);
 			case AUDIO:
 			case UNKNOWN:
 			default:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.5"), displayName);
+				return String.format("[%s] %s", Messages.getString("Played"), displayName);
 
 		}
 	}

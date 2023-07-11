@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA compatible renderers
- * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
- * developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -19,20 +17,9 @@
 
 package net.pms.util;
 
-import static net.pms.util.XMLRPCUtil.createReader;
-import static net.pms.util.XMLRPCUtil.createWriter;
-import static net.pms.util.XMLRPCUtil.readMethodResponse;
-import static net.pms.util.XMLRPCUtil.writeMethod;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -40,7 +27,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
@@ -50,7 +36,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,17 +43,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -81,42 +62,15 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.similarity.JaroWinklerSimilarity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
-import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.database.TableFailedLookups;
-import net.pms.database.TableTVSeries;
-import net.pms.database.TableThumbnails;
-import net.pms.database.TableVideoMetadataActors;
-import net.pms.database.TableVideoMetadataAwards;
-import net.pms.database.TableVideoMetadataCountries;
-import net.pms.database.TableVideoMetadataDirectors;
-import net.pms.database.TableVideoMetadataGenres;
-import net.pms.database.TableVideoMetadataIMDbRating;
-import net.pms.database.TableVideoMetadataPosters;
-import net.pms.database.TableVideoMetadataProduction;
-import net.pms.database.TableVideoMetadataRated;
-import net.pms.database.TableVideoMetadataRatings;
-import net.pms.database.TableVideoMetadataReleased;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.newgui.IFrame;
-import static net.pms.util.FileUtil.indexOf;
+import net.pms.renderers.Renderer;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
 import net.pms.util.XMLRPCUtil.MemberInt;
@@ -127,13 +81,28 @@ import net.pms.util.XMLRPCUtil.Value;
 import net.pms.util.XMLRPCUtil.ValueArray;
 import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
+import static net.pms.util.XMLRPCUtil.createReader;
+import static net.pms.util.XMLRPCUtil.createWriter;
+import static net.pms.util.XMLRPCUtil.readMethodResponse;
+import static net.pms.util.XMLRPCUtil.writeMethod;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.similarity.JaroWinklerSimilarity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
+<<<<<<< HEAD
 	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+=======
+	private static final String SUB_DIR = "subs";
+>>>>>>> cb0c2b831ba9dda2b6de3783450eb865bbe38e9e
 	private static final String UA = "Universal Media Server v1";
-	private static final String VERBOSE_UA = "Universal Media Server " + PMS.getVersion();
-	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000; // 10 minutes
+	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000L; // 10 minutes
 
 	/** The minimum Jaro–Winkler title distance for IMDB guesses to be valid */
 	private static final double MIN_IMDB_GUESS_JW_DISTANCE = 0.65;
@@ -151,18 +120,16 @@ public class OpenSubtitle {
 	private static Token token = null;
 
 	// Minimum number of threads in pool
-	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(0,
+	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
+		0,
 		5, // Maximum number of threads in pool
 		30, // Number of seconds before an idle thread is terminated
-
+		TimeUnit.SECONDS,
 		// The queue holding the tasks waiting to be processed
-		TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(),
-			new OpenSubtitlesBackgroundWorkerThreadFactory() // The ThreadFactory
+		new LinkedBlockingQueue<>(),
+		// The ThreadFactory
+		new SimpleThreadFactory("OpenSubtitles background worker", "OpenSubtitles background workers group", Thread.NORM_PRIORITY - 1)
 	);
-
-	private static Gson gson = new Gson();
-
-	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	static {
 		Runtime.getRuntime().addShutdownHook(new Thread("OpenSubtitles Executor Shutdown Hook") {
@@ -176,8 +143,6 @@ public class OpenSubtitle {
 	// Do not instantiate
 	private OpenSubtitle() {
 	}
-
-	private static IFrame frame = PMS.get().getFrame();
 
 	/**
 	 * Gets the <a href=
@@ -233,62 +198,6 @@ public class OpenSubtitle {
 		}
 
 		return hash;
-	}
-
-	private static String getJson(URL url) throws IOException {
-		HttpURLConnection connection = null;
-		try {
-			connection = (HttpURLConnection) url.openConnection();
-			connection.setAllowUserInteraction(false);
-			connection.setUseCaches(false);
-			connection.setDefaultUseCaches(false);
-			connection.setRequestProperty("Content-Type", "application/json");
-			connection.setRequestProperty("Content-length", "0");
-			connection.setRequestProperty("User-Agent", VERBOSE_UA);
-			connection.connect();
-
-			int status = connection.getResponseCode();
-
-			switch (status) {
-				case 200:
-				case 201:
-					try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
-						StringBuilder sb = new StringBuilder();
-						String line;
-						while ((line = br.readLine()) != null) {
-							sb.append(line).append("\n");
-						}
-						br.close();
-						return sb.toString().trim();
-					} catch (Exception e) {
-						LOGGER.info("API lookup error for {}, {}", connection.getURL(), e.getMessage());
-					}
-					LOGGER.debug("API URL was {}", connection.getURL());
-					break;
-				default:
-					StringBuilder errorMessage = new StringBuilder();
-					if (connection.getErrorStream() != null) {
-						InputStreamReader inputStreamReader = new InputStreamReader(connection.getErrorStream(), StandardCharsets.UTF_8);
-						BufferedReader in = new BufferedReader(inputStreamReader);
-						String str;
-						while ((str = in.readLine()) != null) {
-							errorMessage.append(str.trim()).append("\n");
-						}
-					}
-
-					LOGGER.debug("API status was {} for {}, {}", status, errorMessage, connection.getURL());
-					return "{ statusCode: \"" + status + "\", serverResponse: " + gson.toJson(errorMessage) + " }";
-			}
-		} finally {
-			if (connection != null) {
-				try {
-					connection.disconnect();
-				} catch (Exception ex) {
-					LOGGER.debug("" + ex);
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -381,10 +290,10 @@ public class OpenSubtitle {
 			String username = "";
 			if (credentials != null) {
 				// if we got credentials use them
-				if (isNotBlank(credentials.password)) {
-					pword = DigestUtils.md5Hex(credentials.password);
+				if (isNotBlank(credentials.getPassword())) {
+					pword = DigestUtils.md5Hex(credentials.getPassword());
 				}
-				username = credentials.username;
+				username = credentials.getUsername();
 			}
 
 			// Setup connection
@@ -421,8 +330,8 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "LogIn", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace("Sending OpenSubtitles login request:\n{}", toLogString((LoggableOutputStream) out));
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Sending OpenSubtitles login request:\n{}", toLogString(loggableOutputStream));
 				}
 			} catch (XMLStreamException | FactoryConfigurationError e) {
 				LOGGER.error("An error occurred while generating OpenSubtitles login request: {}", e.getMessage());
@@ -631,12 +540,12 @@ public class OpenSubtitle {
 	 *
 	 * @param resource the {@link DLNAResource} for which to find OpenSubtitles
 	 *            subtitles.
-	 * @param renderer the {@link RendererConfiguration} or {@code null}.
+	 * @param renderer the {@link Renderer} or {@code null}.
 	 * @return The {@link List} of found {@link SubtitleItem}. If none are
 	 *         found, an empty {@link List} is returned.
 	 */
-	public static ArrayList<SubtitleItem> findSubtitles(DLNAResource resource, RendererConfiguration renderer) {
-		ArrayList<SubtitleItem> result = new ArrayList<>();
+	public static List<SubtitleItem> findSubtitles(DLNAResource resource, Renderer renderer) {
+		List<SubtitleItem> result = new ArrayList<>();
 		if (resource == null) {
 			return new ArrayList<>();
 		}
@@ -651,8 +560,8 @@ public class OpenSubtitle {
 		String imdbId = null;
 		FileNamePrettifier prettifier = new FileNamePrettifier(resource);
 		boolean satisfactory = false;
-		if (resource instanceof RealFile) {
-			Path file = ((RealFile) resource).getFile().toPath();
+		if (resource instanceof RealFile realFile) {
+			Path file = realFile.getFile().toPath();
 			LOGGER.info("Looking for OpenSubtitles subtitles for \"{}\"", file);
 
 			// Query by hash
@@ -705,7 +614,7 @@ public class OpenSubtitle {
 			result.addAll(findSubtitlesByName(resource, languageCodes, prettifier));
 		}
 
-		if (result.size() > 0) {
+		if (!result.isEmpty()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace(
 					"Found {} OpenSubtitles subtitles ({}) for \"{}\":\n{}",
@@ -737,7 +646,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByFileHash(
+	protected static List<SubtitleItem> findSubtitlesByFileHash(
 		DLNAResource resource,
 		String fileHash,
 		long fileSize,
@@ -776,7 +685,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByImdbId(
+	protected static List<SubtitleItem> findSubtitlesByImdbId(
 		DLNAResource resource,
 		String imdbId,
 		String languageCodes,
@@ -818,7 +727,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> searchSubtitles(
+	protected static List<SubtitleItem> searchSubtitles(
 		Array queryArray,
 		DLNAResource resource,
 		FileNamePrettifier prettifier,
@@ -873,9 +782,9 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "SearchSubtitles", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
 					LOGGER.trace("Querying OpenSubtitles for subtitles for \"{}\" using {}:\n{}", resource.getName(), logDescription,
-						toLogString((LoggableOutputStream) out));
+						toLogString(loggableOutputStream));
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
 						"Querying OpenSubtitles for subtitles for \"{}\" using {} \"{}\"",
@@ -905,11 +814,10 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace(
-						"Received OpenSubtitles search by {} response:\n{}",
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles search by {} response:\n{}",
 						logDescription,
-						toLogString((LoggableInputStream) reply)
+						toLogString(loggableInputStream)
 					);
 				}
 			}
@@ -926,7 +834,7 @@ public class OpenSubtitle {
 				// No data
 				return new ArrayList<>();
 			}
-			ArrayList<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
+			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
 
 			if (LOGGER.isDebugEnabled()) {
 				if (results.isEmpty()) {
@@ -1027,7 +935,7 @@ public class OpenSubtitle {
 			);
 			return null;
 		}
-		ArrayList<GuessCandidate> candidates = new ArrayList<>();
+		List<GuessCandidate> candidates = new ArrayList<>();
 		addGuesses(candidates, items, prettifier, prettifier.getClassification(), PMS.getLocale());
 		if (candidates.isEmpty()) {
 			LOGGER.debug(
@@ -1121,11 +1029,10 @@ public class OpenSubtitle {
 				XMLStreamWriter writer = createWriter(out);
 				writeMethod(writer, "CheckMovieHash2", params);
 				writer.flush();
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace(
-						"Querying OpenSubtitles for titles using file hash{}:\n{}",
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Querying OpenSubtitles for titles using file hash{}:\n{}",
 						fileHashes.length > 1 ? "es" : "",
-						toLogString((LoggableOutputStream) out)
+						toLogString(loggableOutputStream)
 					);
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug(
@@ -1159,8 +1066,8 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace("Received OpenSubtitles CheckMovieHash2 response:\n{}", toLogString((LoggableInputStream) reply));
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles CheckMovieHash2 response:\n{}", toLogString(loggableInputStream));
 				}
 			}
 
@@ -1230,7 +1137,7 @@ public class OpenSubtitle {
 	 * @return A {@link List} with the found {@link SubtitleItem}s (might be
 	 *         empty).
 	 */
-	protected static ArrayList<SubtitleItem> findSubtitlesByName(
+	protected static List<SubtitleItem> findSubtitlesByName(
 		DLNAResource resource,
 		String languageCodes,
 		FileNamePrettifier prettifier
@@ -1239,8 +1146,8 @@ public class OpenSubtitle {
 			return new ArrayList<>();
 		}
 		String fileName = null;
-		if (resource instanceof RealFile) {
-			File file = ((RealFile) resource).getFile();
+		if (resource instanceof RealFile realFile) {
+			File file = realFile.getFile();
 			if (file != null) {
 				fileName = file.getName();
 			}
@@ -1363,8 +1270,8 @@ public class OpenSubtitle {
 			return null;
 		}
 		if (resource != null) {
-			if (resource instanceof RealFile) {
-				File file = ((RealFile) resource).getFile();
+			if (resource instanceof RealFile realFile) {
+				File file = realFile.getFile();
 				if (file == null) {
 					return null;
 				}
@@ -1423,8 +1330,8 @@ public class OpenSubtitle {
 				writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
 
-				if (out instanceof LoggableOutputStream) {
-					LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\":\n{}", fileName, toLogString((LoggableOutputStream) out));
+				if (out instanceof LoggableOutputStream loggableOutputStream) {
+					LOGGER.trace("Querying OpenSubtitles for IMDB ID for \"{}\":\n{}", fileName, toLogString(loggableOutputStream));
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Querying OpenSubtitles for IMDB ID for \"{}\"", fileName);
 				}
@@ -1449,8 +1356,8 @@ public class OpenSubtitle {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace("Received OpenSubtitles GuessMovieFromString response:\n{}", toLogString((LoggableInputStream) reply));
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles GuessMovieFromString response:\n{}", toLogString(loggableInputStream));
 				}
 			}
 
@@ -1492,17 +1399,17 @@ public class OpenSubtitle {
 				}
 
 				Locale locale = PMS.getLocale();
-				ArrayList<GuessCandidate> candidates = new ArrayList<>();
-				if (movieGuess.getGuessesFromString().size() > 0) {
+				List<GuessCandidate> candidates = new ArrayList<>();
+				if (!movieGuess.getGuessesFromString().isEmpty()) {
 					addGuesses(candidates, movieGuess.getGuessesFromString().values(), prettifier, classification, locale);
 				}
-				if (movieGuess.getImdbSuggestions().size() > 0) {
+				if (!movieGuess.getImdbSuggestions().isEmpty()) {
 					addGuesses(candidates, movieGuess.getImdbSuggestions().values(), prettifier, classification, locale);
 				}
 				if (movieGuess.getBestGuess() != null) {
 					addGuesses(candidates, Collections.singletonList(movieGuess.getBestGuess()), prettifier, classification, locale);
 				}
-				if (candidates.size() > 0) {
+				if (!candidates.isEmpty()) {
 					Collections.sort(candidates);
 					if (LOGGER.isTraceEnabled()) {
 						StringBuilder sb = new StringBuilder();
@@ -1704,16 +1611,16 @@ public class OpenSubtitle {
 	 * Generates the ISO 639-2 (3 letter) language code query string for the
 	 * configured subtitle languages.
 	 *
-	 * @param renderer the {@link RendererConfiguration} for which to the
+	 * @param renderer the {@link Renderer} for which to the
 	 *            generate language codes query.
 	 * @return The comma separated list of ISO 639-2 codes or {@code null}.
 	 */
-	public static String getLanguageCodes(RendererConfiguration renderer) {
+	public static String getLanguageCodes(Renderer renderer) {
 		String languages = UMSUtils.getLangList(renderer, false);
 		if (isBlank(languages)) {
 			return null;
 		}
-		ArrayList<String> languagesList = new ArrayList<>();
+		List<String> languagesList = new ArrayList<>();
 		String[] languagesArray = languages.trim().split("\\s*,\\s*");
 		for (String language : languagesArray) {
 			if (isNotBlank(language)) {
@@ -1723,7 +1630,7 @@ public class OpenSubtitle {
 				}
 			}
 		}
-		if (languagesList.size() == 0) {
+		if (languagesList.isEmpty()) {
 			return null;
 		}
 		return StringUtils.join(languagesList, ',');
@@ -1745,165 +1652,6 @@ public class OpenSubtitle {
 			return languageCodes.substring(0, firstComma);
 		}
 		return null;
-	}
-
-	/**
-	 * Attempts to get metadata about a file from our API.
-	 *
-	 * @param file the {@link File} to lookup.
-	 * @param movieOrTVSeriesTitle the title of the movie or TV series
-	 * @param year optional year to include with title lookups
-	 * @param season
-	 * @param episode
-	 * @return The parameter {@link String}.
-	 * @throws IOException If an I/O error occurs during the operation.
-	 */
-	public static HashMap getAPIMetadata(File file, String movieOrTVSeriesTitle, String year, String season, String episode) throws IOException {
-		Path path = null;
-		String apiResult = null;
-
-		String imdbID = null;
-		String osdbHash = null;
-		long filebytesize = 0L;
-
-		if (file != null) {
-			path = file.toPath();
-			osdbHash = getHash(path);
-			if (isBlank(osdbHash)) {
-				LOGGER.trace("OSDb hash was blank for " + path);
-			}
-			filebytesize = file.length();
-
-			imdbID = ImdbUtil.extractImdbId(path, false);
-		}
-
-		String mediaType = isBlank(episode) ? "movie" : "episode";
-
-		// Remove the year from the title before lookup if it exists
-		int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), movieOrTVSeriesTitle);
-		if (yearIndex > -1) {
-			movieOrTVSeriesTitle = movieOrTVSeriesTitle.substring(0, yearIndex);
-		}
-
-		LOGGER.trace("looking up " + mediaType + ": " + movieOrTVSeriesTitle);
-		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
-
-		String notFoundMessage = "Metadata not found on OpenSubtitles";
-		if (apiResult == null || Objects.equals(notFoundMessage, apiResult)) {
-			LOGGER.trace("no result for " + movieOrTVSeriesTitle + ", received: " + apiResult);
-			return null;
-		}
-
-		HashMap data = new HashMap();
-
-		try {
-			data = gson.fromJson(apiResult, data.getClass());
-		} catch (JsonSyntaxException e) {
-			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
-		}
-
-		if (data.isEmpty()) {
-			return null;
-		}
-
-		return data;
-	}
-
-	/**
-	 * Initiates a series of API lookups, from most to least desirable, until
-	 * one succeeds.
-	 *
-	 * @param formattedName the name to use in the name search
-	 * @param imdbID
-	 * @param year
-	 * @return The API result or null
-	 * @throws IOException If an I/O error occurs during the operation.
-	 */
-	public static HashMap<String, Object> getTVSeriesInfo(String formattedName, String imdbID, String year) throws IOException {
-		String apiResult = null;
-
-		// Remove the year from the title if it exists
-		int yearIndex = indexOf(Pattern.compile("\\s\\((?:19|20)\\d{2}\\)"), formattedName);
-		if (yearIndex > -1) {
-			formattedName = formattedName.substring(0, yearIndex);
-		}
-
-		LOGGER.trace("getting API info for TV series: {}, {}, {}", formattedName, imdbID, year);
-
-		apiResult = getInfoFromAllExtractedData(formattedName, true, year, null, null, imdbID, null, 0L);
-
-		HashMap<String, Object> data = new HashMap();
-		try {
-			data = gson.fromJson(apiResult, data.getClass());
-		} catch (JsonSyntaxException e) {
-			LOGGER.debug("API Result was not JSON. Received: {}, full stack: {}", apiResult, e);
-		}
-
-		if (data != null && data.isEmpty()) {
-			return null;
-		}
-
-		return data;
-	}
-
-	/**
-	 * Attempt to return information from our API about the file based on
-	 * all data we have extracted about it.
-	 *
-	 * @param title title or filename
-	 * @param isSeries whether we are looking for a TV series (not a video itself)
-	 * @param year
-	 * @param season
-	 * @param episode
-	 * @param imdbID
-	 * @param osdbHash
-	 * @param filebytesize
-	 *
-	 * @return a string array including the IMDb ID, episode title, season number,
-	 *         episode number relative to the season, and the show name, or null
-	 *         if we couldn't find it.
-	 *
-	 * @throws IOException
-	 */
-	private static String getInfoFromAllExtractedData(
-		String title,
-		boolean isSeries,
-		String year,
-		String season,
-		String episode,
-		String imdbID,
-		String osdbHash,
-		long filebytesize
-	) throws IOException {
-		URL domain = new URL("https://api.universalmediaserver.com");
-		String endpoint = isSeries ? "seriestitle" : "video";
-		ArrayList<String> getParameters = new ArrayList<>();
-		if (isNotBlank(title)) {
-			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
-			getParameters.add("title=" + title);
-		}
-		if (isNotBlank(year)) {
-			getParameters.add("year=" + year);
-		}
-		if (isNotBlank(season)) {
-			getParameters.add("season=" + season);
-		}
-		if (isNotBlank(episode)) {
-			getParameters.add("episode=" + episode);
-		}
-		if (isNotBlank(imdbID)) {
-			getParameters.add("imdbID=" + imdbID);
-		}
-		if (isNotBlank(osdbHash)) {
-			getParameters.add("osdbHash=" + osdbHash);
-		}
-		if (filebytesize != 0L) {
-			getParameters.add("filebytesize=" + filebytesize);
-		}
-		String getParametersJoined = StringUtils.join(getParameters, "&");
-		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
-
-		return getJson(url);
 	}
 
 	/**
@@ -1940,7 +1688,7 @@ public class OpenSubtitle {
 			return null;
 		}
 		if (output == null) {
-			output = resolveSubtitlesPath("TempSub" + String.valueOf(System.currentTimeMillis()));
+			output = resolveSubtitlesPath("TempSub" + System.currentTimeMillis());
 		}
 		URLConnection connection = url.openConnection();
 		connection.setDoInput(true);
@@ -2254,7 +2002,7 @@ public class OpenSubtitle {
 			boolean first = !addFieldToStringBuilder(true, sb, "IDUser", idUser, false, true, true);
 			first &= !addFieldToStringBuilder(first, sb, "UserNickName", userNickName, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "UserRank", userRank, true, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "IsVIP", Boolean.valueOf(isVIP), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "IsVIP", isVIP, false, false, true);
 			if (userPreferredLanguages.length > 0) {
 				first &= !addFieldToStringBuilder(
 					first,
@@ -2666,10 +2414,7 @@ public class OpenSubtitle {
 				return false;
 			}
 			GuessFromString other = (GuessFromString) obj;
-			if (score != other.score) {
-				return false;
-			}
-			return true;
+			return (score == other.score);
 		}
 
 		/**
@@ -2705,8 +2450,7 @@ public class OpenSubtitle {
 						Member.getString(guessStruct, "score")
 					));
 				}
-			} else if (member.getValue() instanceof Array) {
-				Array array = (Array) member.getValue();
+			} else if (member.getValue() instanceof Array array) {
 				if (array.isEmpty()) {
 					return result;
 				}
@@ -3122,8 +2866,8 @@ public class OpenSubtitle {
 			BestGuess bestGuess
 		) {
 			this.guessIt = guessIt;
-			this.guessesFromString = guessesFromString != null ? guessesFromString : new HashMap<String, GuessFromString>();
-			this.imdbSuggestions = imdbSuggestions != null ? imdbSuggestions : new HashMap<String, GuessItem>();
+			this.guessesFromString = guessesFromString != null ? guessesFromString : new HashMap<>();
+			this.imdbSuggestions = imdbSuggestions != null ? imdbSuggestions : new HashMap<>();
 			this.bestGuess = bestGuess;
 		}
 
@@ -3485,10 +3229,7 @@ public class OpenSubtitle {
 			if (seriesSeason != other.seriesSeason) {
 				return false;
 			}
-			if (subCount != other.subCount) {
-				return false;
-			}
-			return true;
+			return (subCount == other.subCount);
 		}
 	}
 
@@ -3610,14 +3351,14 @@ public class OpenSubtitle {
 			this.openSubtitlesScore = openSubtitlesScore;
 			double tmpScore = 0.0;
 			if (isNotBlank(matchedBy)) {
-				switch (matchedBy.toLowerCase(Locale.ROOT)) {
-					case "moviehash":
-						tmpScore += 200d;
-					case "imdbid":
-						tmpScore += 100d;
-					case "tag":
-						tmpScore += 10d;
-				}
+				tmpScore += (
+					switch (matchedBy.toLowerCase(Locale.ROOT)) {
+						case "moviehash" -> 200d;
+						case "imdbid" -> 100d;
+						case "tag" -> 10d;
+						default -> 0d;
+					}
+				);
 			}
 			if (prettifier != null) {
 				Locale locale = PMS.getLocale();
@@ -3908,8 +3649,8 @@ public class OpenSubtitle {
 			}
 			boolean first = !addFieldToStringBuilder(true, sb, "MatchedBy", matchedBy, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "LanguageCode", languageCode, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "Score", Double.valueOf(score), false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "OSScore", Double.valueOf(openSubtitlesScore), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "Score", score, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "OSScore", openSubtitlesScore, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitleFile", idSubtitleFile, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "SubFileName", subFileName, true, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubHash", subHash, false, false, false);
@@ -3926,26 +3667,26 @@ public class OpenSubtitle {
 			}
 			first &= !addFieldToStringBuilder(first, sb, "IDSubtitle", idSubtitle, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "SubFormat", subtitleType, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubBad", Boolean.valueOf(subBad), false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubRating", Double.valueOf(subRating), false, false, false);
-			first &= !addFieldToStringBuilder(first, sb, "SubDLCnt", Integer.valueOf(subDownloadsCnt), false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "SubBad", subBad, false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "SubRating", subRating, false, false, false);
+			first &= !addFieldToStringBuilder(first, sb, "SubDLCnt", subDownloadsCnt, false, false, false);
 			first &= !addFieldToStringBuilder(first, sb, "MovieFPS", movieFPS, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IMDB ID", idMovieImdb, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "MovieName", movieName, true, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "MovieNameEng", movieNameEng, true, false, true);
 			if (movieYear > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "MovieYear", Integer.valueOf(movieYear), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "MovieYear", movieYear, false, false, false);
 			}
 			first &= !addFieldToStringBuilder(first, sb, "UserRank", userRank, false, false, false);
 			if (seriesSeason > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "SeriesSeason", Integer.valueOf(seriesSeason), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "SeriesSeason", seriesSeason, false, false, false);
 			}
 			if (seriesEpisode > 0) {
-				first &= !addFieldToStringBuilder(first, sb, "SeriesEpisode", Integer.valueOf(seriesEpisode), false, false, false);
+				first &= !addFieldToStringBuilder(first, sb, "SeriesEpisode", seriesEpisode, false, false, false);
 			}
 			first &= !addFieldToStringBuilder(first, sb, "MovieKind", movieKind, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "SubEncoding", subEncoding, false, false, true);
-			first &= !addFieldToStringBuilder(first, sb, "SubFromTrusted", Boolean.valueOf(subFromTrusted), false, false, true);
+			first &= !addFieldToStringBuilder(first, sb, "SubFromTrusted", subFromTrusted, false, false, true);
 			addFieldToStringBuilder(first, sb, "SubDownloadLink", subDownloadLink, true, true, true);
 			sb.append("]");
 			return sb.toString();
@@ -4291,10 +4032,7 @@ public class OpenSubtitle {
 			} else if (!guessItem.equals(other.guessItem)) {
 				return false;
 			}
-			if (Double.doubleToLongBits(score) != Double.doubleToLongBits(other.score)) {
-				return false;
-			}
-			return true;
+			return (Double.doubleToLongBits(score) == Double.doubleToLongBits(other.score));
 		}
 
 		@Override
@@ -4331,7 +4069,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum HTTPResponseCode {
+	public enum HTTPResponseCode {
 
 		/** Successful: OK */
 		OK(200, false),
@@ -4376,18 +4114,13 @@ public class OpenSubtitle {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case OK:
-					return "Successful: OK";
-				case ORIGIN_ERROR:
-					return "Origin Error: Unknown cause";
-				case TOO_MANY_REQUESTS:
-					return "Server Error: Service Unavailable";
-				case SERVICE_UNAVAILABLE:
-					return "Server Error: Service Unavailable (temporary, retry in 1 second)";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case OK -> "Successful: OK";
+				case ORIGIN_ERROR -> "Origin Error: Unknown cause";
+				case TOO_MANY_REQUESTS -> "Server Error: Service Unavailable";
+				case SERVICE_UNAVAILABLE -> "Server Error: Service Unavailable (temporary, retry in 1 second)";
+				default -> name();
+			};
 		}
 
 		/**
@@ -4449,7 +4182,7 @@ public class OpenSubtitle {
 	 *
 	 * @author Nadahar
 	 */
-	public static enum StatusCode {
+	public enum StatusCode {
 
 		/** Successful: OK */
 		OK(200, false),
@@ -4539,52 +4272,30 @@ public class OpenSubtitle {
 
 		@Override
 		public String toString() {
-			switch (this) {
-				case DISABLED_USER_AGENT:
-					return "Error: Disabled user agent";
-				case DOWNLOAD_LIMIT_REACHED:
-					return "Error: Download limit reached";
-				case INTERNAL_VALIDATION_FAILURE:
-					return "Error: Internal subtitle validation failed";
-				case INVALID_FORMAT:
-					return "Error: %s has invalid format (reason)";
-				case INVALID_IMDBID:
-					return "Error: Invalid ImdbID";
-				case INVALID_PARAMETER:
-					return "Error: Invalid parameters";
-				case INVALID_SUBTITLES_FORMAT:
-					return "Error: Subtitles has invalid format";
-				case HASH_MISMATCH:
-					return "Error: SubHashes (content and sent subhash) are not same!";
-				case INVALID_SUBTITLES_LANGUAGE:
-					return "Error: Subtitles has invalid language!";
-				case INVALID_USERAGENT:
-					return "Error: Empty or invalid useragent";
-				case MISSING_MANDATORY_PARAMETER:
-					return "Error: Not all mandatory parameters was specified";
-				case MOVED:
-					return "Moved (host)";
-				case NO_SESSION:
-					return "Error: No session";
-				case OK:
-					return "Successful: OK";
-				case PARTIAL_CONTENT:
-					return "Successful: Partial content; message";
-				case SERVER_MAINTENANCE:
-					return "Server Error: Server under maintenance";
-				case SERVICE_UNAVAILABLE:
-					return "Server Error: Service Unavailable (temporary, retry in 1 second)";
-				case UNAUTHORIZED:
-					return "Error: Unauthorized";
-				case UNKNOWN_ERROR:
-					return "Error: Other or unknown error";
-				case UNKNOWN_METHOD:
-					return "Error: Method not found";
-				case UNKNOWN_USER_AGENT:
-					return "Error: Unknown User Agent";
-				default:
-					return name();
-			}
+			return switch (this) {
+				case DISABLED_USER_AGENT -> "Error: Disabled user agent";
+				case DOWNLOAD_LIMIT_REACHED -> "Error: Download limit reached";
+				case INTERNAL_VALIDATION_FAILURE -> "Error: Internal subtitle validation failed";
+				case INVALID_FORMAT -> "Error: %s has invalid format (reason)";
+				case INVALID_IMDBID -> "Error: Invalid ImdbID";
+				case INVALID_PARAMETER -> "Error: Invalid parameters";
+				case INVALID_SUBTITLES_FORMAT -> "Error: Subtitles has invalid format";
+				case HASH_MISMATCH -> "Error: SubHashes (content and sent subhash) are not same!";
+				case INVALID_SUBTITLES_LANGUAGE -> "Error: Subtitles has invalid language!";
+				case INVALID_USERAGENT -> "Error: Empty or invalid useragent";
+				case MISSING_MANDATORY_PARAMETER -> "Error: Not all mandatory parameters was specified";
+				case MOVED -> "Moved (host)";
+				case NO_SESSION -> "Error: No session";
+				case OK -> "Successful: OK";
+				case PARTIAL_CONTENT -> "Successful: Partial content; message";
+				case SERVER_MAINTENANCE -> "Server Error: Server under maintenance";
+				case SERVICE_UNAVAILABLE -> "Server Error: Service Unavailable (temporary, retry in 1 second)";
+				case UNAUTHORIZED -> "Error: Unauthorized";
+				case UNKNOWN_ERROR -> "Error: Other or unknown error";
+				case UNKNOWN_METHOD -> "Error: Method not found";
+				case UNKNOWN_USER_AGENT -> "Error: Unknown User Agent";
+				default -> name();
+			};
 		}
 
 		/**

@@ -1,21 +1,18 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui.components;
 
@@ -48,11 +45,11 @@ import net.pms.newgui.LooksFrame;
  *  (https://tips4java.wordpress.com/2009/06/21/animated-icon/).
  */
 public class AnimatedIcon implements Icon, ActionListener {
-	public final static float TOP = 0.0f;
-	public final static float LEFT = 0.0f;
-	public final static float CENTER = 0.5f;
-	public final static float BOTTOM = 1.0f;
-	public final static float RIGHT = 1.0f;
+	public static final float TOP = 0.0f;
+	public static final float LEFT = 0.0f;
+	public static final float CENTER = 0.5f;
+	public static final float BOTTOM = 1.0f;
+	public static final float RIGHT = 1.0f;
 
 	private JComponent component;
 	private final ArrayList<AnimatedIconFrame> frames = new ArrayList<>();
@@ -667,7 +664,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	/**
 	 * Defines icon type used in callback
 	 */
-	public static enum AnimatedIconType {
+	public enum AnimatedIconType {
 		DEFAULTICON,
 		PRESSEDICON,
 		DISABLEDICON,

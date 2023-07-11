@@ -32,7 +32,6 @@
 				<include>mencoder</include>
 				<include>mplayer</include>
 				<include>tsMuxeR</include>
-				<include>tsMuxeR-new</include>
 				<include>youtube-dl</include>
 			</includes>
 		</fileSet>
@@ -55,7 +54,7 @@
 			<fileMode>0644</fileMode>
 			<includes>
 				<include>README.md</include>
-				<include>CHANGELOG.txt</include>
+				<include>CHANGELOG.md</include>
 				<include>LICENSE.txt</include>
 			</includes>
 		</fileSet>
@@ -81,7 +80,6 @@
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
 				<include>documentation/**</include>
-				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>

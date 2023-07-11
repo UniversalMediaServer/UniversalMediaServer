@@ -1,0 +1,1649 @@
+=================================================================================
+=================================================================================
+             CropResize Help 2022-11-19
+=================================================================================
+=================================================================================
+
+https://forum.videohelp.com/threads/393752-CropResize-Cropping-resizing-script
+https://forum.doom9.org/showthread.php?t=176667
+
+The main goal of CropResize is to crop and resize without having to worry about calculating aspect error or
+distorting the picture. Rather than distort the picture as traditional resizing does when the input and output
+aspect ratios don't match, the script crops or adds borders instead. It can apply sub-pixel cropping when
+required. Despite the numerous options, basic usage is fairly straightforward.
+When following either of the above links, post #2 contains examples of CropResize usage, including pictures.
+
+=================================================================================
+             Requirements
+=================================================================================
+
+Avisynth 2.6 or AviSynth+ (not all optional plugins support Avisynth 2.6).
+
+There's no additional plugins required for cropping and resizing, however the following plugins are required for
+specific functions.
+
+---------------------------------------------------------------------------------
+             Miscellaneous Plugins
+---------------------------------------------------------------------------------
+
+To add FrostyBorders.
+FastBlur https://forum.doom9.org/showpost.php?p=1878232 and either
+AddGrainC http://avisynth.nl/index.php/AddGrainC
+or neo_f3kdb https://github.com/HomeOfAviSynthPlusEvolution/neo_f3kdb
+(AddGrainC is the default unless GPlugin=2 is specified using the global FCropResize function).
+
+To enable auto cropping.
+AutoCrop 32 bit http://avisynth.nl/index.php/AutoCrop
+AutoCrop 64 bit http://avisynth.nl/index.php/AviSynth%2B_x64_plugins
+
+To enable ringing repair.
+RGTools http://avisynth.nl/index.php/RgTools
+
+To displaying current frame number and time over the video with the Position argument.
+GRunT http://avisynth.nl/index.php/GRunT
+
+---------------------------------------------------------------------------------
+             Color Conversion & Resizing Plugins
+---------------------------------------------------------------------------------
+
+CropResize only supports standard dynamic range color conversions between SD, HD and UHD colorimetry.
+
+AVSResize
+Color conversion in 16 bit and/or resizing.
+Supports all YUV formats for color conversion and resizing except YV411.
+Supports both packed and planar RGB for resizing. Packed RGB is converted to planar and back.
+AviSynth+ is required.
+http://avisynth.nl/index.php/Avsresize
+
+ColorMatrix
+Color conversion.
+Supports YV12, YUY2 and YV16 for rec.709 <-> rec.601 matrix-only color conversions.
+ColorMatrix 32 bit http://www.mediafire.com/file/69xnjjxannnqo8b/ColorMatrixv25.zip/file
+ColorMatrix 64 bit https://forum.doom9.org/showthread.php?p=1374605#post1374605
+
+DitherTools
+Color conversion and/or resizing in stacked 16 bit.
+Supports all 8 bit YUV formats for resizing and for rec.709 <-> rec.601 matrix-only color conversions.
+http://avisynth.nl/index.php/Dither_tools
+
+FMTConv
+Color conversion and/or resizing in 16 bit.
+Supports all YUV formats for color conversion and resizing except YV411.
+RGB is supported for resizing.
+Supports both packed and planar RGB for resizing. Packed RGB is converted to planar and back.
+AviSynth+ is required.
+http://avisynth.nl/index.php/Fmtconv
+
+HDRMatrix
+Supports all YUV formats except YV411 for rec.709 <-> rec.601 matrix-only color conversions.
+For Avisynth+, CropResize will attempt to use ConvertStacked.dll to convert video of any bitdepth to
+interleaved LSB/MSB for color conversion.
+If ConvertStacked.dll isn't loaded, CropResize will attempt to use HDRCore.dll from the HDRFilters plugins
+pack to convert 8 bit video to interleaved LSB/MSB for color conversion (or HDRCore-x64.dll).
+If neither ConvertStacked.dll or HDRCore.dll are loaded, only 8 bit video can be color converted.
+HDRMatrix.dll from the HDRFilters plugins pack is required (or HDRMatrix-x64.dll).
+https://www.videoartifact.com/hdr/
+
+HDRTools
+Supports all YUV formats for 16 bit color conversion except YV411.
+AviSynth+ is required.
+https://forum.doom9.org/showthread.php?t=175488
+https://github.com/jpsdr/HDRTools/releases
+
+---------------------------------------------------------------------------------
+             Some Recommended Resizers
+---------------------------------------------------------------------------------
+
+ResampleMT (multithreaded version of Avisynth's resizers).
+http://avisynth.nl/index.php/ResampleMT
+
+Resize8 script, HBD version https://forum.doom9.org/showthread.php?t=183057
+Corrects the slight chroma shift caused by Avisynth's resizers for sources with sub-sampled chroma.
+Includes ringing repair.
+
+ResizeX script https://github.com/realfinder/AVS-Stuff/blob/master/avs 2.6 and up/ResizeX.avsi
+ResizeX dependency https://github.com/realfinder/AVS-Stuff/blob/Community/avs 2.5 and up/Zs_RF_Shared.avsi
+Corrects the slight chroma shift caused by Avisynth's resizers for sources with sub-sampled chroma.
+Includes ringing repair.
+
+ResampleHQ http://avisynth.nl/index.php/ResampleHQ
+
+=================================================================================
+=================================================================================
+             Basic Usage
+=================================================================================
+=================================================================================
+
+CropResize(Source, \
+OutWidth=0, OutHeight=0, \
+CL=0.0, CT=0.0, CR=0.0, CB=0.0, CropDAR=0.0, CSplit=1, \
+AutoC=false, CThresh=30, CStart=250, CSample=5, \
+CPreview=0, CLine=1, \
+InDAR=0.0, InSAR=0.0, OutDAR=0.0, OutSAR=0.0, AutoDAR=false, \
+Mod=4, HMod=4, \
+NoResize=false, ResizeWO=false, \
+Borders=false, CleanBorders=false, BColor=color_black, Frosty=false, \
+ColorConvert="", ColorMode="", \
+Resizer="Spline36Resize[MT]", RStr="", RingRepair=false, \
+GMode=1, RMode=false, PicDim=0, Position=false, Info=false)
+
+---------------------------------------------------------------------------------
+
+Whenever the help file refers to a source being anamorphic, it's assumed either an input display aspect ratio
+(InDAR) or a sample/pixel aspect ratio (InSAR) has been specified. If neither are specified the source is assumed
+to be non-anamorphic (unless CropResize is using aspect information added to a script by MeGUI).
+
+When the help file refers to full resizing mode, it's assumed both NoResize and ResizeWO are false.
+If an output aspect ratio (OutDAR) or an output sample aspect ratio (OutDAR) are not specified, CropResize
+always resizes to "square pixel" dimensions.
+
+Possibly the most common use for the script would be to specify a width and let the script take care of the
+cropping, resizing and height. To resize a 16:9 DVD to a width of 832 while forcing the script to crop at least 10
+pixels from both left and right, and 4 pixels from both top and bottom:
+CropResize(832,0, 10,4,-10,-4, InDAR=16.0/9.0)
+
+It's simple to crop and resize to your preferred resolution. For example, to force the script to apply the same
+cropping as above (minimum cropping), while resizing to 16:9 dimensions (1024x576), all that's required is the
+following:
+CropResize(1024,576, 10,4,-10,-4, InDAR=16.0/9.0)
+If additional cropping is required to prevent aspect error it'll be applied automatically by the script.
+
+Exactly the same cropping would be applied again for the following example, only the output would be 
+anamorphic 16:9 with an NTSC DVD resolution.
+CropResize(720,480, 10,4,-10,-4, InDAR=16.0/9.0, OutDAR=16.0/9.0)
+
+The script has quite a few options, but once you get the hang of it, it's very easy to use, and there's no need to
+calculate aspect error when resizing. The script automatically applies (sub-pixel) cropping as required to prevent
+picture distortion.
+
+---------------------------------------------------------------------------------
+             Global Options
+---------------------------------------------------------------------------------
+
+Each of the CropResize options can be enabled globally for when there's more than one instance of CropResize
+in a script. See the "Global Options" section towards the end of the help file.
+
+---------------------------------------------------------------------------------
+             Wrapper Functions
+---------------------------------------------------------------------------------
+
+Wrapper functions are included for enabling the default cropping preview and setting Info=true, reducing the
+need to manually type the argument names. See the Wrapper Functions section towards the end of the help file.
+Additional wrapper functions are also included for specifying options when resizing with an alternative resizer.
+Most of the relevant information regarding the wrapper functions for resizers can be found at the top of the
+"CropResize Resizer Functions" script.
+
+=================================================================================
+=================================================================================
+             The Options
+=================================================================================
+=================================================================================
+
+=================================================================================
+             OutWidth & OutHeight
+=================================================================================
+
+OutWidth & OutHeight are explained in detail as the effect of specifying them changes according to other
+options.
+
+OutWidth (default, 0)
+The output width of the video. An OutWidth of zero is considered an unspecified output width.
+OutHeight (default, 0)
+The output height of the video. An OutHeight of zero is considered an unspecified output height.
+
+In full resizing mode:
+If OutWidth > 0 and OutHeight = 0, the height is automatically resized according to the specified width.
+If OutWidth = 0 and OutHeight > 0, the width is automatically resized according to the specified height.
+If OutWidth > 0 and OutHeight > 0, they specify the output width and height.
+
+In each of the above examples, the script will automatically crop as required to prevent aspect error when
+resizing. When OutWidth & OutHeight are both greater than zero, the script can crop a great deal of picture
+when the output aspect ratio and the source aspect ratio differ by a large amount (assuming an OutDAR has
+not been specified). For example, 640x480 will give you an output of 4:3 (unless an output aspect ratio is
+specified), so for a 16:9 source, the script would crop a fair amount of picture from each side to prevent
+aspect error. In other words, the script would crop the source to 4:3 before resizing to 640x480.
+
+In full resizing mode, and when Borders=true, OutWidth and OutHeight still specify the output dimensions, but
+instead of cropping the picture as required for the specified output resolution, the script adds borders instead.
+If the specified output aspect ratio is wider than the cropped source display aspect ratio, borders will be added
+to the sides.
+If the specified output aspect ratio is narrower than the cropped source display aspect ratio, borders will be
+added to the top and bottom.
+
+When NoResize=true, both OutWidth and OutHeight are disabled for resizing and can only be used to add borders
+if Borders=true, when they exceed the cropped picture width or height (any output dimensions will be ignored
+when NoResize=true, unless borders are enabled).
+
+When ResizeWO=true, OutWidth can be used to add borders if Borders=true in the same way it does when
+NoResize=true. It can also be used to resize the width when an OutDAR is specified. OutHeight can also be
+used to add borders when ResizeWO=true, except when an OutDAR is specified. When an OutDAR is specified,
+an OutHeight other than zero will produce an error when ResizeWO=true.
+
+Finally, OutWidth and OutHeight are disabled completely when CleanBorders=true, and can't be used to resize or
+add borders. CleanBorders has a specific purpose and adds it's own borders.
+
+---------------------------------------------------------------------------------
+             Additional OutWidth & OutHeight options since 2021-02-01
+---------------------------------------------------------------------------------
+
+OutWidth & OutHeight can have negative values. Using them in this way is explained towards the end of
+this help file as it's more of an advanced option.
+
+=================================================================================
+             CL, CT, CR, & CB (defaults, 0.0)
+=================================================================================
+
+Cropping Left, Cropping Top, Cropping Right, Cropping Bottom.
+
+Specify the minimum cropping (in addition to auto-cropping when AutoC=true). It's referred to as the minimum
+cropping as the script may increase it to prevent aspect error when resizing, or increase it according to the mod
+option (the default is mod4) when resizing is disabled.
+Cropping can be float from CropResize version 2021-10-15.
+
+When resizing is disabled and non-mod or non-integer cropping is specified, by default CropResize will increase
+the cropping for the appropriate mod width and/or height if necessary, however when CSplit=2 or CSplit=3, a
+resizer may also be used to increase the cropping to integer dimensions, although the source won't be resized
+as such.
+
+For a PAL 720x576 DVD:
+
+CropResize(0,0, 1, 61, -2, -62, InDAR=16.0/9.0, NoResize=true)
+The specified cropping would be increased for mod4 dimensions (716x452):
+Crop(2, 62, -2, -62)
+ 
+CropResize(0,0, 1, 61, -2, -62, InDAR=16.0/9.0, NoResize=true, CSplit=2)
+The specified cropping would still be increased for mod4 dimensions (716x452) but a resizer is also used to crop:
+Crop(0, 60, -2, -62).Spline36Resize(716,452, 1.5, 1.5, -0.5, -0.5)
+ 
+
+CR and CB can be negative or positive and they work the same way as for AviSynth's Crop function. Positive
+numbers for CR and CB specify the width/height of the picture after any left & top cropping (before it's resized).
+Negative numbers for CR and CB specify the amount of right/bottom cropping.
+
+If CR and CB are positive, they're displayed as their negative equivalents when a cropping preview is enabled or
+for Info=true. For example, when cropping a 720x480 source:
+
+CropResize(640,480, 8, 4, 704, 472) would display as -  Specified Cropping (8, 4, -8, -4)
+CropResize(640,480, 8.5, 4, 703.2, 472) would display as - Specified Cropping (8.5, 4, -8.3, -4)
+
+=================================================================================
+             CropDAR (default, not specified)
+=================================================================================
+
+Crop Display Aspect Ratio.
+CropDAR must be float (ie 1.7778 or 16.0/9.0 etc).
+
+For CropDAR to crop correctly for anamorphic sources, an appropriate source aspect ratio (InDAR or InSAR) must
+be specified, otherwise it's assumed the source has "square pixels". The cropping display aspect ratio is based on
+both the input and output "display" aspect ratios rather than simply the input and output resolutions, therefore
+after cropping the remaining picture will have the specified display aspect ratio, even for an anamorphic input
+and/or output.
+
+The CropDAR is applied after any specified cropping, making the specified cropping the minimum cropping before
+the picture is cropped further (if necessary) for the specified CropDAR.
+
+In full resizing mode, when both OutWidth & OutHeight are specified, the script normally crops the picture
+as required before resizing. Therefore OutWidth & OutHeight together would effectively perform the same
+function as a CropDAR, so when OutWidth & OutHeight are both greater than zero and a CropDAR is specified,
+borders are automatically enabled and added as required.
+
+Borders are also enabled automatically when both a CropDAR and an OutDAR are specified together.
+
+CropDAR can't always crop exactly to the specified aspect ratio, as CropDAR has no effect on the output
+pixel/sample aspect ratio as the OutDAR argument does. Whether or not a CropDAR can be exactly achieved
+depends on the mod argument and resizing etc. If the exact CropDAR can't be achieved it'll be adjusted a little
+to prevent aspect error.
+
+The following illustrates how to use CropDAR to ensure the picture itself has a 4:3 display aspect ratio,
+before the script adds borders to the sides for a 16:9 frame (borders are automatically enabled, see above).
+CropResize(1280,720, 2,4,0,-2, CropDAR=4.0/3.0)
+
+For the following example, CropDAR can't crop to exactly 16:9, as 852 / 16 * 9 = 479.25, so CropDAR would
+be adjusted to 852:480 (1.775 or 71:40) for an output height of 480.
+CropResize(852,0, 2,4,0,-2, CropDAR=16.0/9.0)
+
+Anamorphic output examples:
+
+CropResize(720,480, CropDAR=4.0/3.0, OutSAR=10.0/11.0)
+tells CropResize to crop the picture to 4:3 dimensions, however as the final output width is 720 and the OutSAR
+(output sample aspect ratio) is 10:11, the 4:3 picture will be resized to 704x480 after cropping with 8 pixel
+borders added to each side for a width of 720. If a 10:11 sample aspect ratio is used for encoding, the 704x480
+part of the 720x480 frame will display as 4:3.
+
+704 x 10 / 11 / 480 = 1.3333333 or 4:3
+
+Specifying an OutDAR (output display aspect ratio) of 15:11 instead
+CropResize(720,480, CropDAR=4.0/3.0, OutDAR=15.0/11.0)
+would also result in an output sample aspect ratio of 10:11 (due to the 720x480 output dimensions), so the
+following would produce the same result. The picture is cropped to 4:3 and resized to 704x480 before borders
+are added each side for a width of 720. Info=true can be used to confirm the result.
+
+480 x 15 / 11 = 645.5454545 (including borders)
+645.5454545 / 720 = 0.9090909
+0.9090909 = 10:11 (sample aspect ratio)
+
+=================================================================================
+             CSplit (default, 1)
+=================================================================================
+
+Cropping Split.  Possible values are 1, 2 or 3.
+
+For full resizing mode:
+
+CSplit determines how the cropping is split between AviSynth's Crop function and the resizer cropping.
+The resizer used for cropping is the same as the one specified with the Resizer argument, otherwise the default
+resizing is Spline36Resize[MT].
+
+When CSplit=1, AviSynth's Crop() function is used for as much mod cropping as possible (ie mod2 cropping for a
+YV12 source) including any additional cropping applied by the script to prevent aspect error, and the resizer is
+only used for non-mod or sub-pixel cropping.
+
+When CSplit=2, the Crop() function is only used for the specified (mod) cropping. Any additional non-mod cropping
+or additional script cropping is applied by the resizer.
+
+When CSplit=3, the resizer is used for all cropping.
+
+As an example, if the equivalent of Crop(2.5, 0, -6, 0) was specified for CropResize and the script needed to
+crop an additional 10.5 pixels from the width to prevent aspect error (an additional 5.25 pixels from each side
+for a total width cropping of 19 pixels), the cropping would be split in the following manner (YV12 source).
+
+CropResize(704,396, 2.5, 0, -6, 0, CSplit=?)
+
+CSplit=1 would result in:   Crop(6, 0, -10, 0).Spline36Resize(704,396, 1.75 ,0, -1.25, 0)
+CSplit=2 would result in:   Crop(2, 0, -6, 0).Spline36Resize(704,396, 5.75, 0, -5.25, 0)
+CSplit=3 would result in:   Crop(0, 0, 0, 0).Spline36Resize(704,396, 7.75, 0, -11.25, 0)
+
+When resizing is disabled and non-mod cropping is specified, by default CropResize will increase the cropping for
+the appropriate mod width and/or height and only use the Crop() function to crop, however when CSplit=2 or
+CSplit=3, a resizer may also be used to crop, although the source won't be resized as such.
+
+
+For NoResize=true and height cropping when ResizeWO=true:
+
+When CSplit=1, the cropping is adjusted if necessary to output mod dimensions (default mod4).
+When CSplit=2 or 3, the cropping is still adjusted, but a resizer is also used to crop, so the video is resampled
+even though it's not resized.
+
+=================================================================================
+             AutoC (default, false)
+=================================================================================
+
+AutoC=true enables the auto-cropping of black borders with autocrop.dll.
+
+Global auto-cropping can be enabled by adding the following to a script (see the "Global Options" description
+for additional details).
+
+GCropResize(AutoC=true) 
+
+As it's usually preferable for AutoCrop to check the entire video in order to decide how much to crop, when
+there's more than one instance of CropResize in a script it can be done the following way.
+
+GCropResize(AutoC=true, InDAR=16.0/9.0)              # GCropResize outputs the auto-cropped clip
+
+Trim(0,1999).CropResize(640,480, 8,2,-8,-4) + \      # The auto-cropped clip is the source
+Trim(2000,0).CropResize(640,480, 12,2,-16,-4)         # The auto-cropped clip is the source
+
+Even though in the above example, both CropResize instances see the auto-cropped clip as the source, the
+resizing and cropping calculations are still based on the original, uncropped source dimensions and aspect ratio.
+
+Auto-cropping cannot be enabled for the CropResize function when global auto-cropping is enabled.
+
+=================================================================================
+             CThresh (default, 30)
+=================================================================================
+
+How enthusiastically AutoCrop crops. Range 1-255.
+
+=================================================================================
+             CStart (default, 250)
+=================================================================================
+
+CStart specifies the first frame checked for auto cropping.
+
+=================================================================================
+             CSample (default, 5)
+=================================================================================
+
+CSample determines the number of frames checked by AutoCrop.
+
+=================================================================================
+             CPreview (default, 0)
+=================================================================================
+
+Cropping Preview. Possible values are 0 to 4.
+
+1, 2 & 3 show previews for any specified cropping along with any additional cropping applied by the script.
+
+CPreview=0 (the default) disables the cropping preview.
+
+CPreview=1. The script draws yellow lines over the image to show any specified cropping, and light blue lines
+for any additional script cropping. The lines displayed over the image are included in the area to be cropped.
+
+CPreview=2. Transparent yellow borders are overlaid on the entire area to be cropped. Transparent light blue
+borders are overlaid for any additional script cropping.
+
+CPreview=3. The specified cropping is shown as a negative version of the picture (the same as AvsPmod's
+cropping preview) with any additional script cropping having a reddish color.
+
+CPreview=4. AutoCrop's cropping preview is displayed. The lines displayed over the image by AutoCrop's
+preview are not included in the area to be cropped.
+When CPreview=4 for the global GCropResize function (see the "Global Options" section), GCropResize outputs
+a "global" preview of the auto-cropped clip, therefore the CPreview function is disabled for any following instances
+of CropResize as they can only display the auto-cropping preview.
+
+When "p" is appended to the beginning of the function name. ie pCropResize(), a wrapper function is used to
+enable the default cropping preview globally (see "changing the default preview" below), so for the following
+example, each instance of CropResize would display the default cropping preview.
+
+Trim(0,99).pCropResize(640,480, 8, 2,-10,-4) + \
+Trim(100,199).CropResize(640,480, 16,6,-10,-4) + \
+Trim(200,299).CropResize(640,480, 8,2,-10,-4)
+
+As the cropping preview normally displays at the original source resolution, in a situation such as the example
+above, if a cropping preview isn't enabled for all instances of CropResize it would result in an error due to the
+appended videos having different resolutions. To solve this problem, there's a common resizing mode (see the
+RMode section).
+
+Changing the default cropping preview:
+The default cropping preview can be CPreview 1, 2 or 3. Should you prefer the default to be something other
+than CPreview=1, open the script with Notepad and find the 16th line from the bottom. It looks like this:
+
+function CR_CPreview() { return 1 }
+
+Change "1" to either 2 or 3 according to your preferred default for CPreview, then re-save the script.
+
+=================================================================================
+             CLine (default, 1)
+=================================================================================
+
+CLine adjusts the thickness of the lines displayed for previewing the cropping when CPreview=1.
+The default thickness is one pixel for resolutions up to 1080p, and two pixels for resolutions above 1080p.
+CLine can be any integer greater than zero.
+To have thicker cropping preview lines as the default, open the script with Notepad and find the 18th line from
+the bottom. It looks like this:
+
+function CR_CLine(int W, int H) { return (W > 1920) || (H > 1080) ? 2 : 1 }
+
+Change the return value to your desired thickness in pixels, then resave the script.
+
+If the value for CLine exceeds the number of pixels being cropped it's automatically reduced.
+For the example below, the line showing the left cropping can't be 4 pixels thick, as only two pixels are
+being cropped (assuming there's no extra script cropping to prevent aspect error), so CLine would be
+reduced to a 2 pixel width for previewing the left cropping.
+
+CropResize(640,480, 2,8,-6,-8, Cline=4)
+
+=================================================================================
+             InDAR (default, the source storage aspect ratio)
+=================================================================================
+
+Input (Source) Display Aspect Ratio.
+InDAR must be float (ie 1.7778 or 16.0/9.0 etc).
+
+A correct InDAR or InSAR is required in order to resize anamorphic sources correctly, and also for the CropDAR
+argument to crop correctly. If neither InDAR or InSAR are specified, the source is assumed to have "square pixels",
+and the source width/height are also the display aspect ratio (unless CropResize is using MeGUI's global display
+aspect ratio variables - see the MeGUI support section).
+
+Recommended DVD display aspect ratios for both PAL and NTSC, based on the generic and mpeg4 pixel aspect
+ratios specified here. https://forum.doom9.org/showthread.php?p=1058927#post1058927
+
+For 4:3 DVDs, InDAR=15.0/11 or InDAR=1.3637 is more likely to be correct. especially if there's a substantial
+amount of black down each side. Otherwise you'd use InDAR=4.0/3.0 or InDAR=1.3333.
+
+For 16:9 DVDs, InDAR=16.0/9.0 or InDAR=1.7778 is more likely to be correct unless there's a substantial amount
+of black on the sides, in which case InDAR=20.0/11.0 or InDAR=1.8182 is more likely to be correct.
+
+There's no hard and fast rule. Whatever you think looks right. The difference isn't huge.
+An alternative to specifying an input display aspect ratio is to specify an input sample (pixel) aspect ratio (see
+the InSAR section).
+
+InDAR and InSAR can't be specified at the same time.
+
+=================================================================================
+             InSAR (default, not specified)
+=================================================================================
+
+Input Sample Aspect Ratio (pixel aspect ratio).
+InSAR must be float (ie 1.4222 or 64.0/45.0 etc).
+
+A correct InDAR or InSAR is required in order to resize anamorphic sources correctly, and also for the CropDAR
+option to crop correctly. If neither InDAR or InSAR are specified the source is assumed to have "square pixels",
+and the source width/height is also it's display aspect ratio (unless CropResize is using MeGUI's global display
+aspect ratio variables - see the MeGUI support section).
+
+For the appropriate DVD pixel aspect ratios for PAL and NTSC, see the link in the InDAR section above.
+
+InDAR and InSAR can't be specified at the same time.
+
+=================================================================================
+             OutDAR (default, not specified)
+=================================================================================
+
+Output Display Aspect Ratio.
+OutDAR must be float (ie 1.7778 or 16.0/9.0 etc). It can't be used when NoResize=true.
+
+When an OutDAR is specified (assuming no CropDAR is also specified and borders are not enabled), the script
+crops the picture according to the OutDAR, then simply resizes to the specified width and height (or the default
+width and height if they're not specified). If OutDAR matches the output dimensions, the output won't be
+anamorphic and the output sample aspect ratio will be 1:1. The appropriate sample aspect ratio to use for
+encoding can be obtained with Info=true, or by enabling one of the script's cropping previews.
+As the script won't distort the picture, the source must be cropped to the OutDAR, so if OutDAR=4.0/3.0 was
+specified for a 16:9 source, it would be cropped to 4:3 regardless of the output dimensions (assuming no CropDAR
+is specified and borders aren't enabled).
+
+To prevent cropping the picture to match the OutDAR, borders can be added instead, just as they can be
+when an OuDAR isn't specified. Assuming for the following example the source is anamorphic and has a 4:3
+display aspect ratio:
+
+CropResize(720,576, InDAR=4.0/3.0, OutDAR=16.0/9.0, Borders=true)
+
+Borders would be added each side for a total a display aspect ratio of 16:9 and the output would be anamorphic
+with PAL dimensions. The appropriate sample aspect ratio to use for encoding would be obtained with Info=true
+or by enabling one of the cropping previews.
+
+
+CropDAR - is also a "display" cropping aspect ratio, but unlike OutDAR, CropDAR doesn't change the pixel/sample
+aspect ratio. OutDAR and CropDAR would normally be conflicting options as they both specify a display aspect
+ratio, however they can be used together when the script is adding borders. Therefore borders are automatically
+enabled when both an OutDAR and a CropDAR are specified.
+
+The following example crops and resizes a non-anamorphic source to 4:3 NTSC dimensions, after cropping a
+minimum of 12 pixels from each side, 2 pixels from the top, and 6 pixels from the bottom. As the entire frame
+has a 16:9 display aspect ratio, borders are added to the sides of the 4:3 picture to make up the difference
+between the CropDAR and OutDAR. Borders are automatically enabled.
+
+CropResize(720,480, 12,2,-12,-6, CropDAR=4.0/3.0, OutDAR=16.0/9.0)
+
+See the CropDAR description for an additional example of using CropDAR and OutDAR together.
+
+When using more than one instance of CropResize in a script, it's possible to specify a different OutDAR or OutSAR
+for each, but it generally makes no sense as there can be only one OutDAR/OutSAR per script. If it's necessary to
+change the way CropResize calculates cropping and resizing based on an aspect ratio, change the InDAR or InSAR
+accordingly instead.
+
+OutDAR and OutSAR can't be specified at the same time.
+
+=================================================================================
+             OutSAR (default, not specified)
+=================================================================================
+
+Output Sample Aspect Ratio (pixel aspect ratio).
+OutSAR must be specified as float (ie 64.0/45.0 or 1.4222 etc). It can't be used when NoResize=true.
+
+When an OutSAR is something other than 1.0 the output is anamorphic. The script still operates in the usual
+manner, but the resizing is based on the output sample aspect ratio, rather than the default of an OutSAR of
+1:1, or in other words, rather than resizing to "square pixel" dimensions.
+
+An OutSAR can be used with a CropDAR without borders being enabled automatically, if either OutWidth or
+OutHeight are zero (unspecified).
+
+The following two examples would crop and resize the same way, in both cases cropping to 16:9, resizing to
+704x480 and adding eight pixel borders to each side for an output width of 720. The output has NTSC DVD
+dimensions with a display aspect ratio of 16:9. In both cases it's not necessary to use Borders=true, as
+CropDAR in conjuction with both an OutWidth and OutHeight enables them automatically.
+
+CropResize(720,480, 12,2,-12,-6, CropDAR=4.0/3.0, OutDAR=16.0/9.0)
+CropResize(720,480, 12,2,-12,-6, CropDAR=4.0/3.0, OutSAR=32.0/27.0)
+
+See the CropDAR description for an additional example of using CropDAR and OutSAR together.
+
+When using more than one instance of CropResize in a script, it's possible to specify a different OutDAR or OutSAR
+for each, but it generally makes no sense as there can be only one OutDAR/OutSAR per script. If it's necessary to
+change the way CropResize calculates cropping and resizing based on an aspect ratio, change the InDAR or InSAR
+accordingly instead.
+
+OutDAR and OutSAR can't be specified at the same time.
+
+=================================================================================
+	     AutoDAR (default, false)
+=================================================================================
+
+Auto Display Aspect Ratio.
+AutoDAR refers to the aspect ratio of the picture excluding any borders. It could also be thought of as an
+automatic CropDAR. AutoDAR has no effect when an OutDAR or a CropDAR is specified.
+
+The AutoDAR option only applies in full resizing mode, and only when the script is deciding on the aspect ratio
+of the picture (when borders are added, or without borders, when only an OutWidth or OutHeight is specified,
+but not both). AutoDAR is disabled by default, but that's easy to change (see below).
+
+What AutoDAR=true does:
+When borders are disabled, if the display aspect ratio of the source after cropping is between 1.739 and 1.829,
+the script will try to adjust the cropping/resizing to output exactly 16:9, or if the aspect ratio of the cropped
+source is between 1.27 and 1.35, the script will try to adjust the cropping/resizing to output exactly 4:3.
+
+When borders are enabled, AutoDAR only decreases the aspect ratio to achieve 16:9 (increasing the height),
+and only increases the aspect ratio to achieve 4:3 (increasing the width).
+
+If either a CropDAR or OutDAR are specified, the AutoDAR option has no effect, and the auto aspect ratio is
+only applied if the specified Mod allows for exactly 16:9 or 4:3 (the default being Mod4).
+
+When AutoDAR is enabled, if another argument incompatible with AutoDAR is used such as CropDAR,
+if AutoDAR can't be achieved because it wouldn't result in the correct mod with/height, or if both an
+OutWidth and OutHeight are specified without borders being enabled, Info=true will show "Not Applicable" for
+AutoDAR. When AutoDAR could be applied, but the cropped display aspect ratio is outside the range
+outlined above, Info=true will display "Out Of Range". When AutoDAR is enabled and within range, Info=true
+will tell you the display aspect ratio before the AutoDAR adjustment.
+
+To enable AutoDAR by default, so there's no need to enable it by typing AutoDAR=true, open the script
+with Notepad and find the 19th line from the bottom. It looks like the line below. Change false to true and
+resave the script.
+
+function CR_AutoDAR() { return false }
+
+=================================================================================
+             Mod (default, 4)
+=================================================================================
+
+Possible Mod values are 1, 2, 4, 8 and 16.
+
+Mod sets the modulus for both the picture width and height (unless a value is specified for HMod).
+For sources requiring the width or height to be a minimum of mod2, the script will produce an error if Mod=1 is
+specified. Similarly, it'll produce an error if Mod is less than 4 for YV411.
+
+The Mod option is disabled when CleanBorders=true, and it doesn't override any specified OutWidth or OutHeight,
+so it only has an effect under limited circumstances. If you specify an OutWidth or OutHeight and want them to
+be mod16 (for example) you must ensure they're mod16 yourself. The Mod option only effects the picture width
+or height when they're being determined by the script, such as when OutWidth or OutHeight are unspecified, or
+when the script is calculating the output width or height before adding borders.
+
+CropResize(1280, Mod=8)
+would cause the width to be resized to 1280 and the height automatically resized (and cropped if necessary)
+for mod8.
+
+For the following example, the specified height of 720 determines the height mod, the CropDAR option crops the
+picture to as close to 4:3 as the mod setting allows (in this case it would be exactly 4:3) and it's then resized to
+960x720. Finally borders are added to the sides for an output width of 1280.
+
+CropResize(1280,720, CropDAR=4.0/3.0, Mod=16)
+
+When NoResize=true, the picture width and height are always cropped according to the Mod (or HMod) argument,
+increasing any specified cropping as required.
+
+=================================================================================
+             HMod (default, same as Mod)
+=================================================================================
+
+Possible HMod values are 1, 2, 4, 8 and 16.
+
+Allows the height mod to be set independently of the width mod. If HMod isn't specified, the Mod option applies
+to both the width and height. As with the Mod option, HMod doesn't override any specified OutHeight.
+
+=================================================================================
+             NoResize (default, false)
+=================================================================================
+
+NoResize=true disables resizing.
+
+NoResize=true prevents the script from resizing, so sources can only be cropped, although when CSplit=2 or 3
+a resizer is used for any extra cropping required for mod dimensions (default mod4) so the video is resampled
+even though it's not resized as such. When CSplit=1 (the default) only the Crop function is used for cropping,
+
+When NoResize=true, OutWidth and OutHeight are disabled for resizing, but CropDAR can be used to crop the
+picture to a specific aspect ratio instead. OutWidth/OutHeight can add borders when Borders=true and they
+exceed the source width/height (after cropping).
+
+It's not possible to specify an OutDAR or OutSAR when NoResize=true.
+If an InSAR is specified, it's also the OuSAR.
+If an InDAR is specified, it determines the OutDAR after any cropping, and therefore also the OutSAR.
+To change the OutDAR/OutSAR when NoResize=true, change the InDAR/InSAR instead.
+
+=================================================================================
+             ResizeWO (default, false)
+=================================================================================
+
+Resize Width Only.
+
+ResizeWO=true prevents the script from resizing the height (it can only be cropped), as full resizing mode can
+sometimes crop the height by a small amount and resize to prevent aspect error, even when the OutHeight
+matches source height after cropping. ResizeWO=true prevents height resizing.
+
+By default the width is resized to square pixel dimensions when ResizeWO=true (for anamorphic sources), and
+OutWidth and OutHeight are disabled, but as for NoResize=true, CropDAR can be used to crop the picture to a
+specific aspect ratio instead.
+OutWidth can be used to resize the width when an OutDAR is specified, or to add borders to the sides when
+it exceeds the (resized) picture width and Borders=true.
+OutHeight can be used to add borders to the top/bottom when it exceeds the (cropped) picture height and
+Borders=true.
+
+ResizeWO=true supports an anamorphic output, but as the height cannot be resized, it's more restricted than
+full resizing mode.
+When a CropDAR and OutDAR are specified together, the OutDAR must be equal to or greater than the CropDAR.
+OutHeight must be unspecified or zero when an OutDAR is used as the script cannot resize the height. OutHeight
+and OutSAR can be used together for adding top/bottom borders to an anamorphic output instead.
+
+=================================================================================
+             Borders (default, false)
+=================================================================================
+
+See the NoResize and ResizeWO descriptions for details on how OutWidth and OutHeight add borders in those
+modes.
+
+Borders and full resizing mode:
+Assuming the OutDAR and CropDAR arguments aren't used and Borders=false (the default), specifying both an
+OutWidth and an OutHeight determines the output display aspect ratio. When that aspect ratio doesn't match
+the aspect ratio of the source (after any specified cropping) by default CropResize applies extra cropping as
+required to prevent aspect error. When Borders=true however, instead of cropping picture to ensure the source
+and output display aspect ratios match, the script adds borders instead (although the picture can still be cropped
+by a tiny amount to prevent aspect error).
+If both an OutWidth and an OutHeight are specified and the picture aspect ratio is less than the display aspect
+ratio determined by OutWidth and OutHeight, borders are added to the sides.
+Likewise, when the the picture aspect ratio is wider than the display aspect ratio determined by OutWidth and
+OutHeight, borders are added top and bottom.
+
+When an OutDAR or OutSAR are specified, they're taken into account when calculating cropping and resizing,
+but Borders=true still works in the same manner.
+
+Borders are automatically enabled when both an OutWidth and OutHeight are specified along with a CropDAR,
+and likewise they're automatically enabled when an OutDAR and a CropDAR are specified together.
+
+=================================================================================
+             CleanBorders (default, false)
+=================================================================================
+
+CleanBorders can be enabled to crop away existing borders and replacing them with new, clean ones.
+CleanBorders forces NoResize=true, so it can be used for both anamorphic and non-anamorphic sources. The
+output width and height are always the same as the source width and height, even if auto-cropping is enabled.
+
+CleanBorders=true is similar to AviSynth's LetterBox() function, which replaces the picture edges with black
+borders (or some other color) without changing the frame size, however CleanBorders adds the borders as
+evenly as possible between left/right and top/bottom, to restore the original frame size while keeping the
+cropped picture centred in the frame.
+
+The CropDAR option can also be used to crop the picture to a particular aspect ratio before borders are
+added for the original frame size.
+
+The Mod option is ignored when CleanBorders=true. Instead, any specified cropping is adjusted according to
+the minimum permitted for the color format (mod2 for YV12), then borders are added to the top and bottom
+and/or sides to achieve the original source dimensions.
+
+=================================================================================
+             BColor (default, color_black or $000000)
+=================================================================================
+
+Border Color.
+
+Specifies the color for the borders when Borders=true or CleanBorders=true. See the "colors_rgb.avsi" script in
+the AviSynth plugins folder for a list of colours. The default is black (BColor=$000000 or BColor=color_black).
+
+BColor only applies to the CropResize function adding plain borders to the picture. When Frosty=true, the
+included FrostyBorders function adds borders and has it's own BColor argument. See the separate
+FrostyBorders help file for usage details.
+
+When NoResize or ResizeWO are true it's possible for CropResize to add borders to all four sides of the video.
+If Frosty=true, the FrostyBorders function adds the larger of the borders while CropResize adds the others,
+and the BColor argument sets the color of the plain borders being added by CropResize.
+
+=================================================================================
+             Frosty (default, false)
+=================================================================================
+
+Frosty=true enables "FrostyBorders" using the included FrostyBorders function rather than plain borders.
+"FrostyBorders" change color with the video.
+The borders must be at least 16 pixels wide for the Frosty option to work. If the borders are less than 16 pixels
+wide, they revert to plain borders.
+
+The Frosty border options are configured with the global FCropResize function.
+See the "CropResize FrostyBorders Help" file for info.
+
+The global FCropResize function also has a Frosty argument. For CropResize, Frosty=true enables the adding of
+borders with the included FrostyBorders function. For the global FCropResize function, Frosty=false disables the
+adding of FrostyBorders and plain black/color borders are added instead, but the included FrostyBorders function
+is still used to add the borders.
+
+=================================================================================
+             ColorConvert (default, "")
+=================================================================================
+
+---------------------------------------------------------------------------------
+             General Color Conversion Information
+---------------------------------------------------------------------------------
+
+For standard definition, "170m" refers to 525 line (NTSC) and "480bg" refers to 625 line (PAL).
+170m and 480bg have slightly different "color primaries" (red, green and blue). Red and blue are virtually the
+same, while green is a little different.
+Rec.709 (HD colorimetry) uses exactly the same primaries for red and blue as 480bg, while green is halfway
+between the 170m and 480bg green primaries. The difference isn't great enough too matter much.
+Rec.2020 (UHD colorimetry) uses quite different color primaries compared to both SD and HD.
+
+Each system uses a different matrix or formula for converting YUV to RGB for playback.
+170m and 480bg generally use the Rec.601 matrix for converting YUV video to RGB on playback.
+HD generally uses the Rec.709 matrix to convert YUV video to RGB.
+UHD generally uses the Rec.2020 matrix to convert YUV video to RGB.
+
+When downscaling or upscaling between HD and SD, it's arguably good practice to convert between Rec.709 and
+Rec.601 accordingly, although it's possible to leave the colorimetry unaltered and specify the original colorimetry
+when encoding (x264 or x265 etc). A media player may or may not use the specified colorimetry.
+
+When converting between HD and SD colorimetry, even in broadcast situations, it's general practice to convert
+the colors using a single formula (a matrix-only conversion), ignoring the slight difference in color primaries.
+CropResize defaults to matrix-only conversions between HD and SD colorimetry.
+
+For UHD colorimetry (Rec.2020), the red, green and blue primaries are vastly different, so to convert between
+UHD and HD, or UHD and SD, the color primaries should be converted too, and CropResize can use AVSResize,
+FMTConv or HDRTools to convert to/from UHD colorimetry while converting the primaries.
+
+---------------------------------------------------------------------------------
+Please Note:
+Only standard dynamic range color conversions are supported by CropResize, including to/from Rec.2020.
+RGB isn't supported.
+---------------------------------------------------------------------------------
+
+ColorConvert specifies the plugin used for color conversions between UHD, HD, & SD colorimetry. If ColorMode
+is not defined and CropResize is in full resizing mode, specifying a plugin for ColorConvert enables AUTOMATIC
+color conversion.
+
+The resolution assumptions for automatic conversions are as follows, and the colors are converted
+between SD, HD and UHD colorimetry when upscaling or downscaling. If you know these assumptions are
+incorrect for your source, use ColorMode to specify the correct conversion (or don't specify a plugin with
+the ColorConvert argument).
+When a particular color conversion is specified with ColorMode it's always applied whether or not CropResize
+is resizing, and ColorConvert simply specifies the plugin used.
+
+---------------------------------------------------------------------------------
+
+SD: (Display Width <= 1056) AND (Height < 600)
+HD: ((Display Width > 1056) OR (Height >= 600)) AND ((Display Width <= 1920) AND (Height <= 1080))
+UHD: (Display Width > 1920) OR (Height > 1080)
+
+SD is assumed to be Rec.601.
+HD is assumed to be Rec.709.
+UHD is assumed to be Rec.2020.
+
+---------------------------------------------------------------------------------
+
+When used for AUTOMATIC color conversion while upscaling or downscaling, each plugin performs a matrix-only
+conversion between rec.601 and rec.709, except for HDRTools. Conversions to/from rec.2020 and conversions
+with HDRTools always convert the color primaries.
+
+When a conversion is not matrix-only, the 601-625 (PAL) primaries are assumed for rec.601 unless the
+ColorMode argument specifies the 601-525 (NTSC) primaries (more info below, and in the ColorMode description).
+
+When AVSResize, DitherTools or FMTConv are color converting, they'll also do the resizing by default.
+
+---------------------------------------------------------------------------------
+
+Valid ColorConvert strings are:
+
+"AVSResize"      Color convert/resize any YUV format except YV411. Also resizes any RGB format.
+"ColorMatrix"    Matrix-only YV12, YUY2 & YV16 color conversions between rec.601 and rec.709.
+"DitherTools"    Color convert/resize any 8 bit YUV. Limited to matrix-only rec.601 <-> rec.709 conversions.
+"FMTConv"        Color convert/resize any YUV format except YV411. Also resizes any RGB format.
+"HDRMatrix"      Color convert any YUV except YV411. Limited to matrix-only rec.601 <-> rec.709 conversions.
+"HDRTools"       Color convert any YUV format except YV411.
+
+=================================================================================
+             ColorMode (default, "")
+=================================================================================
+
+ColorMode specifies the type of color conversion. ColorMode over-rides any automatic color conversion that
+would otherwise take place if the ColorConvert argument was used. Conversions between SD (rec.601),
+HD (rec.709) and UHD (rec.2020) are specified in the following manner.
+
+HD to SD:	ColorMode = "709-601"
+UHD to HD:	ColorMode = "2020-709"
+UHD to SD:	ColorMode = "2020-601"
+
+SD to HD:	ColorMode = "601-709"
+HD to UHD:	ColorMode = "709-2020"
+SD to UHD:	ColorMode = "601-2020"
+
+For conversions to/from SD, 601N and 601P can be used instead of 601.
+601N forces a conversion to/from the 170M/ 601-525/ NTSC color primaries.
+601P forces a conversion to/from the 480bg/ 601-625/ PAL color primaries.
+
+For conversions to/from UHD, the color primaries are always converted and the 480bg/ 601-625/ PAL primaries
+are used for SD unless 601N is specified.
+
+While ColorMode determines the type of color conversion, over-riding any automatic conversion, the
+ColorConvert argument (optionally) determines the conversion plugin used.
+
+---------------------------------------------------------------------------------
+
+Some examples:
+
+CropResize(ColorConvert="HDRMatrix", ColorMode="709-601")
+A matrix-only conversion from 709 to 601 with HDRMatrix.
+
+CropResize(ColorConvert="HDRMatrix", ColorMode="709-601P")
+Results in an error message as HDRMatrix cannot convert the color primaries.
+
+CropResize(ColorConvert="HDRMatrix", ColorMode="709-2020")
+Results in an error message as HDRMatrix only converts between rec.601 and rec.709.
+
+CropResize(ColorConvert="AVSResize", ColorMode="709-601")
+A matrix-only conversion from 709 to 601 with AVSResize.
+
+CropResize(ColorConvert="AVSResize", ColorMode="709-601N")
+Converts the primaries from 709 to 601N with AVSResize.
+
+CropResize(ColorConvert="AVSResize", ColorMode="601-2020")
+Converts the primaries from SD to 2020 with AVSResize as conversions to/from rec.2020 always involve
+converting the primaries, and the 480bg/ 601-625/ PAL primaries are assumed for rec.601 as neither
+601P or 601N were specified.
+
+CropResize(ColorConvert="AVSResize", ColorMode="601P-601N")
+Converts the primaries from 480bg/ 601-625/ PAL to 170M/ 601-525/ NTSC. No matrix conversion is performed.
+
+ColorConvert="FMTConv" or ColorConvert="HDRTools" works just like the AVSResize examples above, except
+HDRTools always converts the primaries. The 601-625/ PAL primaries are assumed for rec.601 unless 601N is
+specified.
+
+---------------------------------------------------------------------------------
+
+If no plugin is specified via ColorConvert and the ColorMode argument is used, CropResize attempts to find a
+loaded plugin suitable for the type of conversion. If a suitable plugin can't be found, an error message is produced.
+
+=================================================================================
+             Resizer (default, "Spline36ResizeMT" or "Spline36Resize")
+=================================================================================
+
+Specify a resizer other than the default.
+
+If the ResampleMT plugin is loaded, the default resizing method is "Spline36ResizeMT", otherwise it's
+"Spline36Resize".
+
+AVSResize can be specified for resizing by preceding the resizer name with "Z_".
+Supported resizers are the same as Avisynth's native resizers with the addition of "Z_Lanczos3", which is
+an alias for "Z_Lanczos" with taps=3 (the same as the Avisynth LanczosResize default).
+
+Resizing can be specified with or without appending "Resize".
+Resizer="Z_Bicubic"
+or
+Resizer="Z_BicubicResize"
+
+As the default resizing method is Spline36, Resizer="Z_" will resize with AVSResize and Spline36.
+Resizer="Z_Spline36"
+and
+Resizer="Z_Spline36Resize"
+are equally valid.
+
+DitherTools can be specified for resizing by preceding the resizer name with "D_" and it works just like
+"Z_" for AVSResize.
+Supported resizers are the same as Avisynth's native resizers with the addition of "D_Lanczos3", which is
+an alias for "D_Lanczos" with taps=3. Also supported are the following DitherTools-only aliases and kernels.
+D_BlackmanMinlobe, D_Box/D_Rect, D_Cubic, D_Gaussian, D_Linear and D_Spline.
+
+FMTConv can be specified for resizing by preceding the resizer name with "F_" and it works just like
+"Z_" for AVSResize.
+Supported resizers are the same as Avisynth's native resizers with the addition of "F_Lanczos3", which is
+an alias for "F_Lanczos" with taps=3. Also supported are the following FMTConv-only aliases and kernels.
+F_BlackmanMinlobe, F_Box/F_Rect, F_Cubic, F_Gaussian, F_Linear and F_Spline.
+
+Any resizer can be used if it has appropriately named arguments for cropping (all AviSynth, and most 3rd
+party resizers). Appending "resize" to the function name is unnecessary for AviSynth's native resizers.
+Bicubic resizing can be specified as Resizer="Bicubic" or Resizer="BicubicResize".
+
+If the ResampleMT plugin is loaded, it's resizers can be specified by appending MT to the resizer name.
+BicubicMT, BicubicResizeMT and even BicubicMTResize are okay.
+
+If a resizing method other than Spline36 is desired as the default, it can be changed by opening the CropResize
+script with Notepad and finding the 9th line from the bottom, it looks like this:
+
+function CR_Resizer_Default() { return "" }
+
+Specify your preferred resizing method and resave the script. For example, to make BicubicResizeMT the default,
+the above line would be changed to the following.
+
+function CR_Resizer_Default() { return "BicubicResizeMT" }
+
+CropResize also includes wrapper functions for enabling an alternative resizing method without having to use the
+Resizer argument and type a resizer name. The alternative resizer can be enabled simply by appending an "X" to
+the CropResize or GCropResize function names. ie
+
+CropResizeX()
+GCropResizeX()
+
+Appending "X" would resize with the Resize8 script by default, but it can be any compatible resizer.
+To change the alternative resizing method when "X" is appended to a function name, open the CropResize
+script with Notepad and find the 5th line from the bottom. Change "Resize8" in that line to your preferred
+alternative resizing and resave the script. ie
+
+This line:
+function CR_Resizer_X() { return "Resize8" }
+would be changed to the following to use BicubicResize instead of Resize8.
+function CR_Resizer_X() { return "BicubicResize" }
+
+=================================================================================
+             RStr (default, "")
+=================================================================================
+
+A resizer string for specify named resizer arguments.
+
+Examples.
+CropResize(1280,720, Resizer="Bicubic", RStr="b=0.5,c=0.5")
+CropResize(1280,720, Resizer="Spline36ResizeMT", RStr="prefetch=4, threads=2")
+
+When a resizer argument is a string, the triple quote method must be used.
+
+CropResize(768,576, Resizer="Resize8", RStr="""Kernel="Bicubic", a1=0.5, a2=0.5""")
+
+Similar to configuring the default resizers by modifying the functions at the end of the CropResize script,
+there's two functions for configuring the default resizer strings.
+
+function CR_RStr_Default() { return "" }
+function CR_RStr_X() { return """ Kernel="Spline36" """ }
+
+=================================================================================
+             RingRepair (default, undefined)
+=================================================================================
+
+Ringing repair can be applied when either upscaling or downscaling, although it's generally used when upscaling.
+RingRepair can be either bool (true or false) or a float value between zero and one, with 1.0 being the maximum
+repair strength. When RingRepair=true, the repair strength is calculated based on the amount of upscaling
+(or downscaling). For example:
+
+CropResize(1280,720, RingRepair=0.75) # forces 75% repair strength
+or
+CropResize(1280,720, RingRepair=true) # repair strength is determine by the amount of resizing.
+
+Resizing with DitherTools (prefexing a resizer name with "D_") works a little differently as DitherTools does
+it's own ringing repair, so when DitherTools is resizing, a value greater than zero for RingRepair is the same
+as RingRepair=true.
+
+Ringing repair would generally be applied to sharper resizers prone to ringing artefacts such as LanczosResize,
+and not to softer resizers such as BilinearResize, however ringing repair can be enabled for any resizer.
+
+For CropResize, ringing repair is acheived with a Guass resized version of the video, used by RGTools to
+repair ringing artefacts. If Avisynth is resizing, GuassResize() creates that clip.
+For "natively" supported plugins (AVSResize, DitherTools, FMTConv & ResampleMT) if a plugin is resizing
+the same plugin creates the "Guass" clip. For any other resizing method, GuassResize[MT] is used.
+
+The Resize8 function (link near the beginning of this help file) includes the same ringing repair as CropResize,
+however for Resize8 it's enabled by default, although only for sharper resizers and only when
+upscaling. It means by default Resize8 applies ringing repair in a somewhat decerning manner, whereas for
+CropResize it's up to the user to decide when to enable it.
+
+Some examples of resizing with Resize8. Naturally CropResize's ringing repair shouldn't also be enabled at the
+same time (for Resize8 the RingRepair argument is "noring").
+
+CropResize(1280,720, Resizer="Resize8")
+CropResize(1280,720, Resizer="Resize8", RStr=""" kernel="Lanczos4" """)
+
+To disable Resize8's ringing repair.
+
+CropResize(1280,720, Resizer="Resize8", RStr="""kernel="Lanczos4", noring=false""")
+
+=================================================================================
+             GMode (default, 1)
+=================================================================================
+
+Global Mode. Possible values are 1 & 2 for GCropResize, and 0, 1 & 2 for CropResize.
+
+Detailed information for GMode can be found following the "Global Options" section, as GMode mainly serves a
+purpose when the global GCropResize function is used, so understanding the GMode option requires understanding
+how the global GCropResize function works.
+
+=================================================================================
+             RMode (default, false)
+=================================================================================
+
+Resize mode enables the "common resizing" functionality.
+When multiple instances of CropResize are used in a script, sometimes it's advantageous for each instance to
+always output the same resolution. For the example below, if a cropping preview was enabled for one instance,
+it's output would change to the resolution of the source video while displaying the preview. This would cause
+AviSynth to output an error message, as each Trim instance would no longer have the same resolution
+(unless the source was actually 832x468).
+The RMode option causes each CropResize instance to be resized to the same resolution as the CropResize
+instance where RMode=true, preventing this error. It doesn't matter if the CropResize instance where RMode=2
+is displaying a cropping preview or outputting the cropped and resized video, or even if the specified OutWidth
+or OutHeight is changed temporarily, the following CropResize instances will still be resized to match.
+
+ClipA = NTSC DVD as the source
+ClipB = 1280x720 source.
+
+ClipA.Trim(0,1999).CropResize(832,468, 12,4,-8,-4, RMode=true) + \
+ClipA.Trim(2000,2999).CropResize(832,468, 8,0,-8,-2) + \
+ClipB.Trim(0,1999).CropResize(832,468, 6,4,-12,-2) + \
+ClipA.Trim(3000,3999).CropResize(832,468, 8,0,-8,-2, CPreview=1) + \
+ClipA.Trim(4000,4999).CropResize(832,468, 8,0,-8,-2) + \
+ClipB.Trim(2000,3999).CropResize(832,468, 6,4,-12,-2, CPreview=1)
+
+For the above example, enabling a cropping preview for any CropResize instance with "ClipA" as the source would
+normally cause it's resolution to change to 720x480 while displaying the preview. For any CropResize instance
+with "ClipB" as the source, the resolution would normally change to 1280x720. As the first CropResize instance has
+RMode=true though, each following instance would be automatically resized to 832x468, to match the resolution
+of the first CropResize.
+If a cropping preview was enabled for the first CropResize instance, it's output would temporarily change to
+720x480 while displaying the preview. Therefore each following CropResize instance would also be temporarily
+resized to 720x480.
+
+Text is displayed over the video to indicate when an instance of CropResize is being temporarily resized due to
+RMode=true.
+
+RMode can be true for more than one instance of CropResize in a script, and each instance will create global
+resizing variables for any CropResize instances that follow, but as a rule it'd only make sense to set RMode=true
+for the first instance of CropResize in a script.
+
+When RMode=true for the global GCropResize function (see the "Global Options" section), the first instance of
+CropResize that follows will be the one to create the global resizing variables.
+
+=================================================================================
+             PicDim (default, 0)
+=================================================================================
+
+Picture Dimming when Info=true, to make the text easier to read. The range is 0 (no dimming) to 255 (maximum
+dimming).
+
+The script can automatically dim the picture a little when Info=true, unless a cropping preview is enabled at the
+same time as Info=true, or when color conversion is being applied. It's possible to change the default dimming
+amount, and also change whether dimming is disabled by a cropping preview or when color conversion is being
+applied.
+
+Open the script with Notepad and find the 15th line from the bottom. It looks like the line below. To change
+the amount by which the picture is automatically dimmed, edit that line. It looks like the line below.
+Change the default value of 0 to any integer from 0 to 255, then resave the script.
+
+function CR_Info_AutoPicDim() { return 0 }
+
+To enable automatic dimming for Info=true even when a cropping preview is enabled at the same time, or when
+color conversion is being applied, find the 14th line from the bottom of the script, change false to true and resave
+the script.
+
+function CR_Info_AutoPicDim_CPreview_ColorConvert() { return false }
+
+=================================================================================
+             Position (default, false)
+=================================================================================
+
+When Position=true, the current frame number and position in time are displayed over the video. Position=true
+works no matter what mode the script is in, even when Info=true or a cropping preview is enabled. The location
+over the video changes according to the mode, but it's always displayed.
+
+=================================================================================
+             Info (default, false)
+=================================================================================
+
+When Info=true, information is overlaid on the video regarding the cropping being applied, the input/output
+resolutions and aspect ratios, and the resizing method. Info=true will provide the correct sample aspect ratio for
+encoding when an output display aspect ratio has been specified. If you're not sure what the script is doing or
+why, Info=true will tell you.
+
+Info=true can still be used when one of the script cropping previews is enabled, replacing the more limited
+information provided by the cropping preview. The cropping preview itself is still displayed.
+
+The AviSynth version displayed when Info=true (for AviSynth 2.6 and AviSynth+) is formatted to display neatly
+by default. To disable the formatting of the AviSynth version info, open the script with Notepad and find the 13th
+line from the bottom. It looks like the line below. Change true to false and resave the script.
+
+function CR_Info_Formatted_AVS_Version() { return true }
+
+=================================================================================
+=================================================================================
+             MeGUI Support
+=================================================================================
+=================================================================================
+
+MeGUI support is independent of the script's ability to use a specified Input or Output aspect ratio.
+MeGUI support is enabled by default, and there's generally no need to disable it, but it's possible. There's
+instructions at the end of this section.
+
+Please note: Any global MeGUI DAR in a script is ignored by all but the first instance of CropResize by default.
+CropResize will not use an MeGUI global display aspect ratio if an instance of CropResize is added to a script
+prior to any MeGUI display aspect ratio. There's very little need to work around this limitation, but it can be done
+by adding the following to a script after any MeGUI display aspect ratio:
+
+global gPriorScript=false
+
+How MeGUI support works:
+If MeGUI's anamorphic encoding is enabled, MeGUI adds a display aspect ratio to the script. ie
+
+global MeGUI_darx = 16
+global MeGUI_dary = 9
+
+When the script is loaded for encoding, MeGUI calculates the correct sample (pixel) aspect ratio based on the
+output resolution and the DAR added to the script, so the MeGUI DAR is normally the script's Output DAR,
+however when CropResize follows MeGUI's DAR in a script, it becomes the Input DAR for CropResize to use as
+the basis for it's cropping and resizing calculations. CropResize then updates the original MeGUI DAR global
+variables with new values according to it's output, and the new DAR variables become the script's Output DAR.
+
+The new DAR variables are not physically added to the script, but MeGUI will still use them to calculate the
+correct sample aspect ratio when it loads the script for encoding. This can be confirmed by opening the script
+with MeGUI's preview and checking the DAR displayed at the bottom of the preview window.
+The MeGUI DAR variables created by CropResize are shown when Info=true, or when a script cropping preview is
+enabled, they're shown as the display aspect ratio (if the output is anamorphic). ie "DAR 16:9".
+
+For a 4:3 (non-ITU) NTSC DVD, MeGUI would add the following to a script (anamorphic encoding enabled).
+
+global MeGUI_darx = 4
+global MeGUI_dary = 3
+
+If MeGUI cropped 10 pixels each side from the above 4:3 NTSC DVD, and 4 from both the top and bottom, the
+aspect ratio information would be updated to the following (any difference dependent on the acceptable aspect
+error setting in MeGUI's AviSynth Profile).
+
+global MeGUI_darx = 700
+global MeGUI_dary = 531
+Crop(10,4,-10,-4)
+
+Therefore MeGUI's script creator could be used to apply and preview cropping, and CropResize could be used
+to resize from there, basing it's calculation on the updated MeGUI DAR variables.
+
+CropResize always creates MeGUI's global aspect variables by default. It's not necessary to first create the script
+with MeGUI or use MeGUI's DAR as an input DAR for CropResize. Each CropResize instance in a script updates
+any existing DAR variables to match it's output. When CropResize resizes to square pixel dimensions, the global
+MeGUI variables are created as, or updated to, "undefined".
+
+When it's preferable for each instance of CropResize to use the same input display aspect ratio, the MeGUI DAR
+can be made global by preceding CropResize with the GCropResize function. The GCropResize function doesn't
+need to be used to specify any options, it just needs to precede CropResize.
+
+For the example below, each instance of CropResize would use 15:11 as the input display aspect ratio, and 4:3 as
+the output display aspect ratio.
+
+global MeGUI_darx = 15
+global MeGUI_dary = 11
+
+GCropResize(OutDAR=4.0/3.0)
+
+Trim(0, 1999).CropResize(720,480, 8,2,-8,-4) + \
+Trim(2000, 2999).CropResize(720,480, 18,2,-16,-4) + \
+Trim(3000, 3999).CropResize(720,480, 8,2,-8,-4) + \
+Trim(4000, 4999).CropResize(720,480, 12,2,-16,-2)
+
+Disabling MeGUI Support:
+
+Should you wish to disable MeGUI support completely, open the CropResize script with Notepad and find the 12th
+line from the bottom. It looks like the line below. Change true to false, then resave the script.
+
+function CR_MeGUI_Support() { return true }
+
+=================================================================================
+=================================================================================
+             Global Options
+=================================================================================
+=================================================================================
+
+GCropResize() is a special wrapper function for enabling CropResize arguments globally. GCropResize() only
+outputs the source video, except when global auto-cropping is enabled, in which case it outputs the
+auto-cropped clip.
+GCropResize() is designed to save some typing when there's more than one instance of CropResize in a script,
+however each following instance of CropResize can over-ride the global options.
+
+Setting global values for arguments has the potential to cause problems when more than one source video is
+used in a script. This is explained in the "GMode" section.
+
+When the global GCropResize function is used, specifying zero for Outwidth and OutHeight causes each
+CropResize instance to use any global values set by GCropResize. This makes specifying different cropping
+a little easier. ie
+
+GCropResize(1280,720, 0,8,-4,-8)
+CropResize(0,0, -16,0,0,-4) The output dimensions will still be 1280x720
+
+A few rules to note when using the global GCropResize function:
+- Auto-cropping can't be enabled (or disabled) for an individual instance of CropResize if it's previously been
+enabled globally by the GCropResize function.
+- It's possible to over-ride the OutDAR (or a global OutSAR) for each instance or CropResize, but it almost never
+makes sense to do so as there can be only a single OutDAR/OutSAR per script. To correct an aspect ratio
+problem, over-ride the global InDAR/InSAR instead.
+
+To illustrate how the global GCropResize function works, for the example below, each instance of CropResize would
+see the input display aspect ratio as 16:9, except for the second instance. The first three CropResize instances
+would apply cropping of Crop(8,2,-8,-4), while the last three would apply the cropping specified for each.
+
+GCropResize(720,576, 8,2,-8,-4, InDAR=16.0/9.0, OutDAR=20.0/11.0, AutoCrop=true)
+
+Trim(0,1999).CropResize() + \
+Trim(2000,2999).CropResize(InDAR=20.0/11.0) + \
+Trim(3000,3999).CropResize() + \
+Trim(4000,4999).CropResize(0,0, 12,8,-16,-6) + \
+Trim(5000,5999).CropResize(0,0, 12,4,-8,-4) + \
+Trim(6000,6999).CropResize(0,0, 12,8,-16,-6)
+
+
+Each argument for specifying an aspect ratio (CropDAR, InDAR, InSAR, OutDAR & OutSAR) can be reset by
+CropResize by setting it's value to zero, over-riding any global aspect ratio. For the example below, the first
+CropResize instance would use an InDAR of 16:9, while for the second instance, no InDAR is specified (the
+source would be considered non-anamorphic).
+
+GCropResize(720,576, InDAR=16.0/9.0, OutDAR=20.0/11.0)
+
+Clip1.Trim(0,1999).CropResize(0,0, 8,2,-8,-4) + \
+Clip2.Trim(0,1999).CropResize(0,0, 6,2,-2,-2, InDAR=0)
+
+
+Global auto-cropping:
+When GCropResize() enables auto-cropping, ie GCropResize(AutoC=true), it outputs an auto-cropped clip for each
+following instance of CropResize to use as the source video. This allows the AutoCrop plugin to check the entire
+video, and each instance of CropResize will have the same auto-cropping applied. GCropResize creates global
+variables for the original source width and height when global auto-cropping is enabled, and by default the
+following instances of CropResize base their cropping and resizing calculations on those global width and height
+variables, rather than the width and height of the auto-cropped clip.
+This allows the original source InDAR to be specified after global auto-cropping, rather than the user having to
+calculate a new InDAR for the auto-cropped clip.
+
+When more the one instance of GCropResize is used in a script, the second instance doesn't automatically reset
+any global variables, although it's possible to specify new values for each. By default, a second GCropResize
+instance uses the same values for global variables as the first.
+
+=================================================================================
+             GMode (default, 1)
+=================================================================================
+
+Global Mode. Possible values are 0, 1 & 2 for CropResize, and 1 & 2 for GCropResize.
+
+GMode is never set as a global variable even when used with the GCropResize function. It's used to instruct
+individual instances of CropResize and GCropResize how to behave, so each instance must have GMode configured
+accordingly. Both CropResize and GCropResize default to GMode=1.
+
+The following "rules" for using GCropResize and the GMode option only need to be strictly adhered to when global
+auto-cropping is enabled by an instance of GCropResize, and even then, only when an InDAR/InSAR is specified by
+an instance of GCropResize. This is because when global auto-cropping is enabled, GCropResize creates global
+variables for the source width and height, allowing CropResize to "see" the original source resolution and crop and
+resize correctly based on the source display aspect ratio. For non-anamorphic sources the following "rules" only
+matter for Info=true to display all the information correctly, but adhering to the following "rules" is recommended.
+
+GCropResize can create two distinct sets of global variables. When GMode=2 for a GCropResize instance other
+than the first, a second set of global variables is created. This is mainly intended to allow global variables to be
+used for two source videos in a script, but it's possible to use two sets of global variables with a single source.
+
+Specifying GMode=1 or GMode=2 for an individual instance of CropResize tells it which set of global variables to
+use, and more importantly, to see the correct source resolution when global auto-cropping is enabled.
+
+GMode=0 prevents CropResize from using any global MeGUI display aspect ratio variables for the input display
+aspect ratio, however GMode=0 does allow CropResize to use some of the global variables created by GCropResize
+(GMode=1) by default. See the table at the end of this section.
+
+
+When working with a single source video and two sets of global variables, global auto-cropping must only be
+enabled by the second GCropResize instance to work correctly, or to put it another way, by the GCropResize
+instance where GMode=2. If global auto-cropping is enabled by the first instance of GCropResize, it'd output the
+auto-cropped clip and the second GCropResize instance wouldn't see the original video resolution. The script
+can't enforce the correct usage in this scenario.
+
+SomeVideoSource("D:\Some Video.mkv")
+
+GCropResize(720,480, Info=true, InDAR=20.0/11.0, OutDAR=16.0/9.0, CPreview=1)
+GCropResize(720,480, 14,0,-16,-2, InDAR=16.0/9.0, AutoC=true, GMode=2) # global auto-cropping is okay here.
+
+Trim(0,1999).CropResize() + \
+Trim(2000,2999).CropResize() + \
+Trim(3000,3999).CropResize(0,0, 6,4,-12,-2) + \
+Trim(1000,1999).CropResize(GMode=2) + \
+Trim(2000,2999).CropResize(GMode=2) + \
+Trim(6000,6999).CropResize() + \
+Trim(4000,4999).CropResize(GMode=2) + \
+Trim(5000,5999).CropResize(GMode=2)
+
+
+The following is an example of how to use the GMode option with two source videos while appending sections
+of them with Trim(). Global auto-cropping can be enabled for either. Each GCropResize instance must "see" the
+correct source video in order to pass along the correct source dimensions. For this example we'll assume Clip1
+is a PAL DVD with a 720x576 resolution, and Clip2 is an NTSC DVD with a 720x480 resolution. The final output
+is 720x480 with a 16:9 display aspect ratio.
+
+
+Clip1 = SomeVideoSource("D:\DVD 1\Some PAL DVD.vob")
+Clip2 = SomeVideoSource("D:\DVD 2\Some NTSC DVD.vob")
+ClipA = Clip1.GCropResize(720,480, InDAR=20.0/11.0, OutDAR=16.0/9.0, CPreview=1, Info=true, AutoC=true)
+ClipB = Clip2.GCropResize(0,0, 14,0,-16,-2, InDAR=16.0/9.0, GMode=2)
+
+ClipA.Trim(0,1999).CropResize() + \
+ClipA.Trim(2000,2999).CropResize() + \
+ClipA.Trim(3000,3999).CropResize(0,0, 6,4,-12,-2) + \
+ClipA.Trim(4000,4999).CropResize() + \
+ClipA.Trim(5000,5999).CropResize() + \
+ClipB.Trim(1000,1999).CropResize(0,0, 2,0,0,-4, GMode=2) + \
+ClipB.Trim(2000,2999).CropResize(GMode=2) + \
+ClipA.Trim(6000,6999).CropResize() + \
+ClipB.Trim(4000,4999).CropResize(GMode=2)
+
+
+To explain what's happening above:
+The GCopResize instance following "Clip1" sees Clip1 as the input video and applies global auto-cropping,
+outputting an auto-cropped version of Clip1, as well as creating a set of global variables. "ClipA" therefore
+becomes the auto-cropped version of Clip1.
+The GCopResize instance following "Clip2" sees Clip2 as the input video, creates a second set of global variables
+due to GMode=2, and passes Clip2 through untouched, so "ClipB" remains the same as Clip2.
+Finally, each CropResize instance needs to be instructed as to which set of global variables to use, and naturally
+each instance of CropResize with "ClipB" as the source video would have GMode=2 specified. GMode=1 doesn't
+have to be specified for the CropResize instances with "ClipA" as the source, as GMode=1 is the default.
+
+
+The following example introduces a third source video. Only two sets of global variables can be created by
+GCropResize, however specifying GMode=0 for an individual instance of CropResize causes it to ignore any global
+variables created for the source width and height, so the width and height of the input video are used for
+cropping and resizing calculations.
+The fifth instance of CropResize below has a 720p video as it's source. Without Gmode=0, the source resolution
+would be assumed to be 720x576.
+
+
+Clip1 = SomeVideoSource("D:\DVD 1\Some PAL DVD.vob")
+Clip2 = SomeVideoSource("D:\DVD 2\Some NTSC DVD.vob")
+ClipA = Clip1.GCropResize(720,480, InDAR=20.0/11.0, OutDAR=16.0/9.0, CPreview=1, Info=true, AutoC=true)
+ClipB = Clip2.GCropResize(0,0, 14,0,-16,-2, InDAR=16.0/9.0, GMode=2)
+ClipC = SomeVideoSource("D:\Some 720p Video.mkv")
+
+ClipA.Trim(0,1999).CropResize() + \
+ClipA.Trim(2000,2999).CropResize() + \
+ClipA.Trim(3000,3999).CropResize(0,0, 6,4,-12,-2) + \
+ClipA.Trim(4000,4999).CropResize() + \
+ClipC.Trim(5000,5999).CropResize(GMode=0) + \
+ClipB.Trim(1000,1999).CropResize(0,0, 2,0,0,-4, GMode=2) + \
+ClipB.Trim(2000,2999).CropResize(GMode=2) + \
+ClipA.Trim(6000,6999).CropResize() + \
+ClipB.Trim(4000,4999).CropResize(GMode=2)
+
+When using the GCropResize function and, especially with two sets of global variables, there's one golden
+rule to always follow: Make Info=true your best friend.
+
+=================================================================================
+=================================================================================
+
+The list below shows which global variables created by GCropResize(GMode=1) are passed along to a
+second instance of GCropResize(GMode=1), or to GCropResize(GMode=2), and also when they're ignored by
+CropResize(GMode=0).
+
+(G)CropResize means GCropResize and CropResize
+GCropResize means GCropResize only
+
+---------------------------------------------------------------------------------
+
+OutWidth, OutHeight       Passed by GCropResize to any following instances of (G)CropResize, regardless of GMode.
+
+CL, CT, CR, CB            Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+CropDAR, CSplit           Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+AutoC                     Not Applicable.
+CThresh                   Not Applicable.
+CStart                    Not Applicable.
+CSample                   Not Applicable.
+
+CPreview                  Passed by GCropResize to any following instances of GCropResize, regardless of GMode.
+
+CLine                     Passed by GCropResize to any following instances of (G)CropResize, regardless of GMode.
+
+InDAR, InSAR              Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+OutDAR, OutSAR            Passed by GCropResize to any following instances of (G)CropResize regardless of GMode.
+AutoDAR                   Passed by GCropResize to any following instances of (G)CropResize regardless of GMode.
+Mod, HMod                 Passed by GCropResize to any following instances of (G)CropResize regardless of GMode.
+
+NoResize, ResizeWO        Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+Borders, CleanBorders     Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+BColor, Frosty            Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+ColorConvert, ColorMode   Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+Resizer, RStr             Passed by GCropResize to any following instances of (G)CropResize, regardless of GMode.
+
+GMode                     Not Applicable. GCropResize and CropResize always default to GMode=1.
+
+RMode                     Not Applicable.
+
+PicDim                    Passed by GCropResize to any following instances of (G)CropResize, regardless of GMode.
+
+Position                  Passed by GCropResize(GMode=1) to following instances of (G)CropResize(GMode=1).
+                          Passed by GCropResize(GMode=2) to following instances of (G)CropResize(GMode=2).
+                          Ignored by CropResize(GMode=0).
+
+Info                      Passed by GCropResize to any following instances of (G)CropResize, regardless of GMode.
+
+=================================================================================
+=================================================================================
+             Wrapper Functions
+=================================================================================
+=================================================================================
+
+---------------------------------------------------------------------------------
+The wrapper functions below require the "CropResize Wrapper Functions" script.
+---------------------------------------------------------------------------------
+
+The wrapper functions provide an easy way to enable the default alternative resizer globally, to set Info=true
+globally, and to enable and disable the default cropping preview globally.
+
+CropResizeX()  - is the same as CropResize(), but it enables the default alternative resizing method.
+See the information at the top of the "CropResize Resizer Functions" script for details.
+
+To enable the default cropping preview, each function can be appended with a "p" (lower case is used in
+the examples, but AviSynth isn't case sensitive).
+
+pCropResize()
+pCropResizeX()
+
+To set Info=true, each function can be appended with an "i".
+
+iCropResize()
+iCropResizeX()
+
+To enable the default cropping preview and set Info=true at the same time, the order they need to be
+appended is "pi".
+
+piCropResize()
+piCropResizeX()
+
+As the above wrapper functions enable the CPreview, Resizer and Info arguments globally, they're handy
+when used in the following manner, where there's multiple instances of CropResize in a script.
+
+Trim(0, 99).piCropResizeX(1280,720) + \  -  enables the default CPreview, Resizer, and Info=true (all globally)
+Trim(1000,1999).CropResize(1280,720) + \
+Trim(2000,2999).CropResize(1280,720) + \
+Trim(3000,3999).CropResize(1280,720) + \
+Trim(4000,0).CropResize(1280,720)
+
+For convenience, there are also equivalent wrapper functions for the global GCropResize function.
+
+GCropResize()
+GCropResizeX()
+pGCropResize()
+pGCropResizeX()
+iGCropResize()
+iGCropResizeX()
+piGCropResize()
+piGCropResizeX()
+
+In addition to the above, wrapper functions allowing abbreviated versions of the function names are also included.
+CR() can be used instead of CropResize()
+GCR() can be used instead of GCropResize()
+Appending letters to the abbreviated function names works the same way.
+
+CR()
+CRX()
+pCR()
+pCRX()
+iCR()
+iCRX()
+piCR()
+piCRX()
+
+GCR()
+GCRX()
+pGCR()
+pGCRX()
+iGCR()
+iGCRX()
+piGCR()
+piGCRX()
+
+=================================================================================
+=================================================================================
+             Additional OutWidth & OutHeight options since 2021-02-01
+=================================================================================
+=================================================================================
+
+The new negative Outwidth and OutHeight options can only be guaranteed to work as intended in the absence
+of CropResize arguments that would normally determine the cropping choice, such as a CropDAR, or when both an
+OutWidth and OutHeight are specified. A negative Outwidth or OutHeight can only be used in full resizing mode.
+
+The new options (for advanced users):
+
+When OutWidth=0 and OutHeight=0, and therefore CropResize is choosing the width and height
+(mostly used that way when resizing anamorphic sources), it's possible for CropResize to crop a little
+extra from the width (or height) to prevent aspect error, in addition to any "mod cropping", resulting
+in the width (or height) being cropped a little further, then resized back to the previous dimensions.
+As an example, the width may be cropped to 704, but to prevent aspect error CropResize may crop an
+additional small amount before resizing it back to 704 again. This is because, left to it's own devices,
+CropResize will crop the least amount of picture necessary to prevent aspect error. See the examples
+at the end of this section.
+
+OutWidth=-1 prevents the width being resized by ensuring the output height is always resized and the source
+height cropped to prevent aspect error, if necessary. The output width will be the (cropped) source width, but
+only if the source is cropped to a mod width (Mod=4 by default). For cropping resulting in a non-mod width,
+OutWidth=-1 can't prevent width resizing.
+
+OutHeight=-1 prevents the height being resized by ensuring the output width is always resized and the source
+width cropped to prevent aspect error, if necessary. The output height will be the (cropped) source height, but
+only if the source is cropped to a mod height (HMod=4 by default). For cropping resulting in a non-mod height,
+OutHeight=-1 can't prevent height resizing.
+
+As OutWidth=-1 and OutHeight=-1 have obviously conflicting goals, they cannot be used together.
+
+OutWidth=-1 is also useful for resizing anamorphic sources in the opposite way to the default resizing.
+For an NTSC 4:3 DVD, where the width would normally be reduced for square pixel dimensions, instead of
+reducing the width, OutWidth=-1 forces CropResize to increase the height instead.
+For any other type of DVD, where the width is normally increased for square pixel dimensions, OutWidth=-1
+causes the height to be reduced instead.
+
+In line with the new options above, OutWidth or OutHeight can now have any negative value, for example,
+OutWidth=-720 would be the same as OutWidth=720, except...
+
+If a negative OutWidth matches the width after it's cropped, CropResize behaves as though OutWidth=-1
+and prevents the width being cropped and resized further (assuming OutHeight=0).
+If the negative OutWidth doesn't match the width after it's cropped, the width is simply resized normally.
+A negative OutHeight serves the same purpose in relation to the height.
+
+As a negative OutWidth and OutHeight have obviously conflicting goals, they cannot be used together.
+
+Some examples, with the output dimensions and total cropping for each shown on the right.
+
+A 4:3 NTSC DVD, initially cropped to 700x476.         The resulting output dimensions & extra cropping.
+
+CropResize(0,   0,  10,2,-10,-2, InSAR=8.0/9.0)       624x476  (0.00, 0.68, 0.00, -0.68)
+CropResize(0, 476,  10,2,-10,-2, InSAR=8.0/9.0)       624x476  (0.00, 0.68, 0.00, -0.68)
+CropResize(0,-476,  10,2,-10,-2, InSAR=8.0/9.0)       620x476  (1.25, 0.00, -1.25, 0.00)
+CropResize(0,  -1,  10,2,-10,-2, InSAR=8.0/9.0)       620x476  (1.25, 0.00, -1.25, 0.00)
+CropResize(-1,  0,  10,2,-10,-2, InSAR=8.0/9.0)       700x532  (0.00, 1.56, 0.00, -1.56)
+CropResize(-700,0,  10,2,-10,-2, InSAR=8.0/9.0)       700x532  (0.00, 1.56, 0.00, -1.56)
+CropResize(700, 0,  10,2,-10,-2, InSAR=8.0/9.0)       700x536  (0.33, 0.00, -0.33, 0.00)
+
+=================================================================================
+=================================================================================
+             Thanks to len0x
+=================================================================================
+=================================================================================
+
+CropResize was inspired by AutoGK, a popular encoding GUI back when Xvid and AVI ruled the world.
+CropResize was initially created to duplicate AutoGK's cropping and resizing abilities, with the same goal of
+cropping and resizing without having to calculate or worry about aspect error. Even though CropResize has
+grown significantly in functionality, the initial version was based on AutoGK's scripts, so thanks to len0x,
+the author of AutoGK, for the inspiration.
+
+=================================================================================
+=================================================================================

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna;
 
 import java.io.*;
@@ -17,13 +33,14 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class PlaylistFolder extends DLNAResource {
+public final class PlaylistFolder extends DLNAResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
-	private String name;
-	private String uri;
+	private final String name;
+	private final String uri;
+	private final boolean isweb;
+	private final int defaultContent;
 	private boolean valid = true;
-	private boolean isweb = false;
-	private int defaultContent = Format.VIDEO;
 
 	public File getPlaylistfile() {
 		return isweb ? null : new File(uri);
@@ -33,7 +50,7 @@ public class PlaylistFolder extends DLNAResource {
 		this.name = name;
 		this.uri = uri;
 		isweb = FileUtil.isUrl(uri);
-		setLastModified(isweb ? 0 : getPlaylistfile().lastModified());
+		super.setLastModified(isweb ? 0 : new File(uri).lastModified());
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
 	}
 
@@ -41,7 +58,13 @@ public class PlaylistFolder extends DLNAResource {
 		name = f.getName();
 		uri = f.getAbsolutePath();
 		isweb = false;
-		setLastModified(f.lastModified());
+		super.setLastModified(f.lastModified());
+		defaultContent = Format.VIDEO;
+	}
+
+	@Override
+	public boolean allowScan() {
+		return true;
 	}
 
 	@Override
@@ -78,9 +101,12 @@ public class PlaylistFolder extends DLNAResource {
 		String extension;
 		Charset charset;
 		if (FileUtil.isUrl(uri)) {
-			extension = FileUtil.getUrlExtension(uri).toLowerCase(PMS.getLocale());
+			extension = FileUtil.getUrlExtension(uri);
 		} else {
-			extension = FileUtil.getExtension(uri).toLowerCase(PMS.getLocale());
+			extension = FileUtil.getExtension(uri);
+		}
+		if (extension != null) {
+			extension = extension.toLowerCase(PMS.getLocale());
 		}
 		if (extension != null && (extension.equals("m3u8") || extension.equals(".cue"))) {
 			charset = StandardCharsets.UTF_8;
@@ -101,7 +127,7 @@ public class PlaylistFolder extends DLNAResource {
 
 	@Override
 	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		File thumbnailImage = null;
+		File thumbnailImage;
 		if (!isweb) {
 			thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");
 			if (!thumbnailImage.exists() || thumbnailImage.isDirectory()) {
@@ -121,12 +147,20 @@ public class PlaylistFolder extends DLNAResource {
 				LOGGER.debug("PlaylistFolder albumart path : " + thumbnailImage.getAbsolutePath());
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
 			} catch (IOException e) {
-				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
+				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
+					e.getMessage());
 				LOGGER.trace("", e);
 			}
 			return result != null ? result : super.getThumbnailInputStream();
 		}
 		return null;
+	}
+
+	@Override
+	public void resolve() {
+		getChildren().clear();
+		setLastModified(getPlaylistfile().lastModified());
+		resolveOnce();
 	}
 
 	@Override
@@ -155,15 +189,15 @@ public class PlaylistFolder extends DLNAResource {
 						int eq = line.indexOf('=');
 						if (eq != -1) {
 							String value = line.substring(eq + 1);
-							String var = line.substring(0, eq).toLowerCase();
+							String valueType = line.substring(0, eq).toLowerCase();
 							fileName = null;
 							title = null;
 							int index = 0;
-							if (var.startsWith("file")) {
-								index = Integer.parseInt(var.substring(4));
+							if (valueType.startsWith("file")) {
+								index = Integer.parseInt(valueType.substring(4));
 								fileName = value;
-							} else if (var.startsWith("title")) {
-								index = Integer.parseInt(var.substring(5));
+							} else if (valueType.startsWith("title")) {
+								index = Integer.parseInt(valueType.substring(5));
 								title = value;
 							}
 							if (index > 0) {
@@ -229,16 +263,17 @@ public class PlaylistFolder extends DLNAResource {
 			} else {
 				String u = FileUtil.urlJoin(uri, entry.fileName);
 				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has a query string) it's
-					// likely not a nested playlist but a media item, for instance Twitch TV media urls:
-					//    'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+					// If the filename continues past the "extension" (i.e. has
+					// a query string) it's
+					// likely not a nested playlist but a media item, for
+					// instance Twitch TV media urls:
+					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
 				}
-				DLNAResource d =
-					type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
+				DLNAResource d = type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
 					type == Format.AUDIO ? new WebAudioStream(entry.title, u, null) :
-					type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
-					type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
+						type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
+							type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
 				if (d != null) {
 					addChild(d);
 					valid = true;
@@ -246,7 +281,7 @@ public class PlaylistFolder extends DLNAResource {
 			}
 		}
 		if (!isweb) {
-			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
+			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
@@ -258,8 +293,9 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	private static class Entry {
-		public String fileName;
-		public String title;
+
+		private String fileName;
+		private String title;
 
 		@Override
 		public String toString() {
@@ -271,16 +307,18 @@ public class PlaylistFolder extends DLNAResource {
 		Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(uri));
 		if (f != null && f.getType() == Format.PLAYLIST) {
 			switch (f.getMatchedExtension()) {
-				case "m3u":
-				case "m3u8":
-				case "pls":
+				case "m3u", "m3u8", "pls" -> {
 					return new PlaylistFolder(name, uri, type);
-				case "cue":
+				}
+				case "cue" -> {
 					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
-				case "ups":
+				}
+				case "ups" -> {
 					return new Playlist(name, uri);
-			default:
-				break;
+				}
+				default -> {
+					//nothing to do
+				}
 			}
 		}
 		return null;

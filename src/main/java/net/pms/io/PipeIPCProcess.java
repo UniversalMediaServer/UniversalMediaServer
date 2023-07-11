@@ -1,41 +1,41 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.DTSAudioOutputStream;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.IEC61937AudioOutputStream;
 import net.pms.util.PCMAudioOutputStream;
+import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeIPCProcess.class);
-	private final PipeProcess mkin;
-	private final PipeProcess mkout;
+	private final IPipeProcess mkin;
+	private final IPipeProcess mkout;
 	private StreamModifier modifier;
 
 	public StreamModifier getModifier() {
@@ -47,14 +47,14 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	}
 
 	public PipeIPCProcess(String inPipeName, String outPipeName, boolean inForceReconnect, boolean outForcereconnect) {
-		mkin = new PipeProcess(inPipeName, inForceReconnect ? "reconnect" : "dummy");
-		mkout = new PipeProcess(outPipeName, "out", outForcereconnect ? "reconnect" : "dummy");
+		mkin = PlatformUtils.INSTANCE.getPipeProcess(inPipeName, inForceReconnect ? "reconnect" : "dummy");
+		mkout = PlatformUtils.INSTANCE.getPipeProcess(outPipeName, "out", outForcereconnect ? "reconnect" : "dummy");
 	}
 
 	@Override
 	public void run() {
 		byte[] b = new byte[512 * 1024];
-		int n = -1;
+		int n;
 		InputStream in = null;
 		OutputStream out = null;
 		OutputStream debug = null;
@@ -86,7 +86,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			}
 		} catch (InterruptedIOException e) {
 			if (LOGGER.isDebugEnabled()) {
-				if (isNotBlank(e.getMessage())) {
+				if (StringUtils.isNotBlank(e.getMessage())) {
 					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down: {}", e.bytesTransferred, e.getMessage());
 				} else {
 					LOGGER.debug("IPC pipe interrupted after writing {} bytes, shutting down...", e.bytesTransferred);
@@ -94,12 +94,11 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 				LOGGER.trace("", e);
 			}
 		} catch (IOException e) {
-			LOGGER.warn("An error occurred duing IPC piping: {}", e.getMessage());
+			LOGGER.warn("An error occurred during IPC piping: {}", e.getMessage());
 			LOGGER.trace("", e);
 		} finally {
 			try {
-				// in and out may not have been initialized:
-				// http://ps3mediaserver.org/forum/viewtopic.php?f=6&t=9885&view=unread#p45142
+				// in and out may not have been initialized
 				if (in != null) {
 					in.close();
 				}
@@ -166,10 +165,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 
 			// Allow the threads some time to do their work before
 			// starting the main thread
-			try {
-				Thread.sleep(150);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(150);
 		}
 
 		start();
@@ -183,10 +179,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 
 			// Allow the threads some time to do their work before
 			// running the main thread
-			try {
-				Thread.sleep(150);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(150);
 		}
 
 		run();

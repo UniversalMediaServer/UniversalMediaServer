@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -41,7 +38,7 @@ import net.pms.util.StringUtil.LetterCase;
  *
  * @author Nadahar
  */
-public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
+public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle implements AutoCloseable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
 
@@ -318,8 +315,16 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle {
 	}
 
 	@Override
-	protected void finalize() throws Throwable {
+	public void close() throws Exception {
 		deleteLiveSubtitlesFile();
-		super.finalize();
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		try {
+			close();
+		} finally {
+			super.finalize();
+		}
 	}
 }

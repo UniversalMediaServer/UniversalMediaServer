@@ -1,35 +1,32 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.text.translate.CharSequenceTranslator;
-import org.apache.commons.lang3.text.translate.LookupTranslator;
+import org.apache.commons.text.translate.CharSequenceTranslator;
+import org.apache.commons.text.translate.LookupTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.dlna.DLNAImageProfile;
@@ -84,24 +81,22 @@ public class DeviceProtocolInfo implements Serializable {
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_UNESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{"\\\\", "\\"},
-				{"\\,", ","}
-			}
-		);
+		new LookupTranslator(Map.of(
+			"\\\\", "\\",
+			"\\,", ","
+		)
+	);
 
 	/**
 	 * A {@link CharSequenceTranslator} for escaping individual
 	 * {@code GetProtocolInfo} elements.
 	 */
 	public static final CharSequenceTranslator PROTOCOLINFO_ESCAPE =
-		new LookupTranslator(
-			new String[][] {
-				{",", "\\,"},
-				{"\\", "\\\\"},
-			}
-		);
+		new LookupTranslator(Map.of(
+			",", "\\,",
+			"\\", "\\\\"
+		)
+	);
 
 	/** The sets lock. */
 	protected final ReentrantReadWriteLock setsLock = new ReentrantReadWriteLock();
@@ -145,7 +140,7 @@ public class DeviceProtocolInfo implements Serializable {
 	 * @return {@code true} if this changed as a result of the call. Returns
 	 *         {@code false} this already contains the specified element(s).
 	 */
-	public boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
+	public final boolean add(DeviceProtocolInfoSource<?> type, String protocolInfoString) {
 		if (StringUtils.isBlank(protocolInfoString)) {
 			return false;
 		}
@@ -158,11 +153,11 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
-			SortedSet<ProtocolInfo> tempSet = null;
+			SortedSet<ProtocolInfo> tempSet;
 			for (String element : elements) {
 				try {
 					tempSet = handleSpecialCaseString(element);
@@ -172,7 +167,6 @@ public class DeviceProtocolInfo implements Serializable {
 					} else {
 						// Add the special handling results
 						result |= currentSet.addAll(tempSet);
-						tempSet = null;
 					}
 				} catch (ParseException e) {
 					LOGGER.warn(
@@ -263,7 +257,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? true : set.isEmpty();
+			return set == null || set.isEmpty();
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -304,7 +298,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? false : set.contains(protocolInfo);
+			return set != null && set.contains(protocolInfo);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -378,7 +372,7 @@ public class DeviceProtocolInfo implements Serializable {
 		} finally {
 			setsLock.readLock().unlock();
 		}
-		return result.toArray(new ProtocolInfo[result.size()]);
+		return result.toArray(ProtocolInfo[]::new);
 	}
 
 	/**
@@ -400,7 +394,7 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.readLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			return set == null ? false : set.containsAll(collection);
+			return set != null && set.containsAll(collection);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -484,7 +478,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
@@ -517,7 +511,7 @@ public class DeviceProtocolInfo implements Serializable {
 			if (protocolInfoSets.containsKey(type)) {
 				currentSet = protocolInfoSets.get(type);
 			} else {
-				currentSet = new TreeSet<ProtocolInfo>();
+				currentSet = new TreeSet<>();
 				protocolInfoSets.put(type, currentSet);
 			}
 
@@ -548,11 +542,9 @@ public class DeviceProtocolInfo implements Serializable {
 		setsLock.writeLock().lock();
 		try {
 			SortedSet<ProtocolInfo> set = protocolInfoSets.get(type);
-			if (set != null) {
-				if (set.remove(protocolInfo)) {
-					updateImageProfiles();
-					return true;
-				}
+			if (set != null && set.remove(protocolInfo)) {
+				updateImageProfiles();
+				return true;
 			}
 			return false;
 		} finally {
@@ -775,7 +767,7 @@ public class DeviceProtocolInfo implements Serializable {
 	public DLNAImageProfile[] imageProfilesToArray() {
 		setsLock.readLock().lock();
 		try {
-			return imageProfileSet.toArray(new DLNAImageProfile[imageProfileSet.size()]);
+			return imageProfileSet.toArray(DLNAImageProfile[]::new);
 		} finally {
 			setsLock.readLock().unlock();
 		}
@@ -913,18 +905,17 @@ public class DeviceProtocolInfo implements Serializable {
 	 *             parsing fails.
 	 */
 	public static SortedSet<ProtocolInfo> handleSpecialCaseString(String element) throws ParseException {
-		if (isBlank(element)) {
+		if (StringUtils.isBlank(element)) {
 			return null;
 		}
-		switch (element) {
-			/*
-			 * Seen on a LG-BP550-1, missing comma between elements
-			 */
-			case "http-get:*:audio/sonyoma:*http-get:*:audio/ogg:*":
-				SortedSet<ProtocolInfo> currentSet = new TreeSet<>();
-				currentSet.add(new ProtocolInfo("http-get:*:audio/sonyoma:*"));
-				currentSet.add(new ProtocolInfo("http-get:*:audio/ogg:*"));
-				return currentSet;
+		/*
+		 * Seen on a LG-BP550-1, missing comma between elements
+		 */
+		if (element.equals("http-get:*:audio/sonyoma:*http-get:*:audio/ogg:*")) {
+			SortedSet<ProtocolInfo> currentSet = new TreeSet<>();
+			currentSet.add(new ProtocolInfo("http-get:*:audio/sonyoma:*"));
+			currentSet.add(new ProtocolInfo("http-get:*:audio/ogg:*"));
+			return currentSet;
 		}
 		return null;
 	}

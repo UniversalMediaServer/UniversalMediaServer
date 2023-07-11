@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.image;
 
@@ -48,9 +45,10 @@ public class ImageIOTools {
 
 	protected static final IIORegistry REGISTRY = IIORegistry.getDefaultInstance();
 
-	// Not to be instantiated
-	private ImageIOTools() {
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private ImageIOTools() {}
 
 	/**
 	 * A copy of {@link ImageIO#read(InputStream)} that calls
@@ -82,14 +80,12 @@ public class ImageIOTools {
 		} catch (RuntimeException | IOException e) {
 			try {
 				inputStream.close();
-			} catch (Exception e2) {
+			} catch (IOException e2) {
 				//Do nothing
 			}
-			if (e instanceof RuntimeException) {
+			if (e instanceof RuntimeException runtimeException) {
 				throw new ImageIORuntimeException(
-					"An error occurred while trying to read image: " + e.getMessage(),
-					(RuntimeException) e
-				);
+					"An error occurred while trying to read image: " + e.getMessage(), runtimeException);
 			}
 			throw e;
 		}
@@ -113,7 +109,7 @@ public class ImageIOTools {
 			throw new IllegalArgumentException("stream == null!");
 		}
 
-		try {
+		try (stream) {
 			Iterator<?> iter = ImageIO.getImageReaders(stream);
 			if (!iter.hasNext()) {
 				throw new UnknownFormatException("Unable to find a suitable image reader");
@@ -134,8 +130,6 @@ public class ImageIOTools {
 			return bufferedImage != null ? new ImageReaderResult(bufferedImage, inputFormat) : null;
 		} catch (RuntimeException e) {
 			throw new ImageIORuntimeException("An error occurred while trying to read image: " + e.getMessage(), e);
-		} finally {
-			stream.close();
 		}
 	}
 
@@ -234,7 +228,7 @@ public class ImageIOTools {
 						param.setSourceRegion(new Rectangle(1, 1));
 						reader.read(0, param);
 						imageIOSupport = true;
-					} catch (Exception e) {
+					} catch (IOException e) {
 						// Catch anything here, we simply want to test if it fails.
 						imageIOSupport = false;
 					}
@@ -242,7 +236,7 @@ public class ImageIOTools {
 					imageIOSupport = true;
 				}
 
-				ImageInfo imageInfo = ImageInfo.create(
+				return ImageInfo.create(
 					width,
 					height,
 					format,
@@ -252,7 +246,6 @@ public class ImageIOTools {
 					applyExifOrientation,
 					imageIOSupport
 				);
-				return imageInfo;
 			} finally {
 				reader.dispose();
 			}
@@ -282,7 +275,7 @@ public class ImageIOTools {
 		}
 
 		while (iter.hasNext()) {
-			ImageInputStreamSpi spi = (ImageInputStreamSpi) iter.next();
+			ImageInputStreamSpi spi = iter.next();
 			if (spi.getInputClass().isInstance(input)) {
 				try {
 					return spi.createInputStreamInstance(input, false, null);

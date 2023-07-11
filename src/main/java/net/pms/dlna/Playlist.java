@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna;
 
 import java.io.File;
@@ -6,16 +22,15 @@ import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.UMSUtils;
-import net.pms.util.UMSUtils.IOList;
-import org.apache.commons.lang.StringUtils;
+import static net.pms.util.UMSUtils.IOList.AUTOSAVE;
+import static net.pms.util.UMSUtils.IOList.PERMANENT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
+public class Playlist extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
 	protected UMSUtils.IOList list;
 	protected int maxSize;
-	protected int mode;
 
 	public Playlist(String name) {
 		this(name, null, 0, AUTOSAVE);
@@ -28,7 +43,6 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	public Playlist(String name, String filename, int maxSize, int mode) {
 		super(name, "images/thumbnail-folder-256.png");
 		this.maxSize = maxSize > 0 ? maxSize : 0;
-		this.mode = mode;
 //		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		list = new UMSUtils.IOList(filename, mode);
 		list.save();
@@ -57,17 +71,8 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 				}
 			}
 		} else {
-			String data = resource.write();
-			if (!StringUtils.isEmpty(data) && resource.getMasterParent() != null) {
-				res1 = IOList.resolveCreateMethod(resource.getMasterParent(), data);
-				res1.setMasterParent(resource.getMasterParent());
-				res1.setMediaAudio(resource.getMediaAudio());
-				res1.setMediaSubtitle(resource.getMediaSubtitle());
-				res1.setResume(resource.getResume());
-			} else {
-				res1 = resource.clone();
-				res1.setResume(resource.getResume());
-			}
+			res1 = resource.clone();
+			res1.setResume(resource.getResume());
 		}
 		list.remove(res1);
 		if (maxSize > 0 && list.size() == maxSize) {
@@ -90,16 +95,16 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 	}
 
 	public boolean isMode(int m) {
-		return (mode & m) == m;
+		return list.isMode(m);
 	}
 
 	@Override
 	public void discoverChildren() {
-		if (list.size() > 0) {
+		if (!list.isEmpty()) {
 			final Playlist self = this;
 			// Save
 			if (!isMode(AUTOSAVE)) {
-				addChild(new VirtualVideoAction(Messages.getString("LooksFrame.9"), true) {
+				addChild(new VirtualVideoAction(Messages.getString("Save"), true, null) {
 					@Override
 					public boolean enable() {
 						self.save();
@@ -108,7 +113,7 @@ public class Playlist extends VirtualFolder implements UMSUtils.IOListModes {
 				});
 			}
 			// Clear
-			addChild(new VirtualVideoAction(Messages.getString("TracesTab.3"), true) {
+			addChild(new VirtualVideoAction(Messages.getString("Clear"), true, null) {
 				@Override
 				public boolean enable() {
 					self.clear();

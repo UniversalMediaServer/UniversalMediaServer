@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA compatible renderers
- * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
- * developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -21,9 +19,9 @@ package net.pms.dlna.protocolinfo;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.fourthline.cling.support.model.Protocol;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.jupnp.support.model.Protocol;
 
 /**
  * This class represents {@code DLNA.ORG_OP} attributes. This can be used for
@@ -88,12 +86,8 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 	 */
 	public boolean validate(DLNAOrgFlags flags) {
 		// Assuming that "null" means no FLAGS parameter
-		if (flags != null && state > 0) {
-			if (flags.isS0Increasing() || flags.isLimitedOperationsTimeBasedSeek() || flags.isLimitedOperationsByteBasedSeek()) {
-				return false;
-			}
-		}
-		return true;
+		return !(flags != null && state > 0 &&
+			(flags.isS0Increasing() || flags.isLimitedOperationsTimeBasedSeek() || flags.isLimitedOperationsByteBasedSeek()));
 	}
 
 	/**
@@ -229,23 +223,17 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 		 */
 		public DLNAOrgOperations getOperations(Protocol protocol, boolean flagA, boolean flagB) {
 			if (protocol == Protocol.HTTP_GET) {
-				switch (packFlags(flagA, flagB)) {
-					case 1:
-						return DLNAOrgOperationsHTTP.HTTP_HEADER;
-					case 2:
-						return DLNAOrgOperationsHTTP.HTTP_TIME_SEEK;
-					case 3:
-						return DLNAOrgOperationsHTTP.HTTP_BOTH;
-					default:
-						return DLNAOrgOperationsHTTP.NONE;
-				}
+				return switch (packFlags(flagA, flagB)) {
+					case 1 -> DLNAOrgOperationsHTTP.HTTP_HEADER;
+					case 2 -> DLNAOrgOperationsHTTP.HTTP_TIME_SEEK;
+					case 3 -> DLNAOrgOperationsHTTP.HTTP_BOTH;
+					default -> DLNAOrgOperationsHTTP.NONE;
+				};
 			} else if (protocol == Protocol.RTSP_RTP_UDP) {
-				switch (packFlags(flagA, flagB)) {
-					case 2:
-						return DLNAOrgOperationsRTP.RTP_HEADER;
-					default:
-						return DLNAOrgOperationsRTP.NONE;
-				}
+				return switch (packFlags(flagA, flagB)) {
+					case 2 -> DLNAOrgOperationsRTP.RTP_HEADER;
+					default -> DLNAOrgOperationsRTP.NONE;
+				};
 			}
 			return null;
 		}

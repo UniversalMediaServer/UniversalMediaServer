@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -31,11 +28,13 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.EnumSet;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import net.pms.platform.PlatformUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +205,7 @@ public class FilePermissions {
 			if (!executeChecked && checkExecute) {
 				// To conform to the fact that on Linux root always implicit
 				// execute permission regardless of explicit permissions
-				if (Platform.isLinux() && FileUtil.isAdmin()) {
+				if (Platform.isLinux() && PlatformUtils.INSTANCE.isAdmin()) {
 					flags.add(FileFlag.EXECUTE);
 				} else {
 					try {
@@ -350,37 +349,36 @@ public class FilePermissions {
 	 *         {@link EnumSet}.
 	 */
 	@Nonnull
-	public EnumSet<FileFlag> getFlags(FileFlag... checkFlag) {
+	public Set<FileFlag> getFlags(FileFlag... checkFlag) {
 		boolean checkRead = checkFlag.length == 0;
 		boolean checkWrite = checkFlag.length == 0;
 		boolean checkExecute = checkFlag.length == 0;
 		for (FileFlag flag : checkFlag) {
 			switch (flag) {
-				case BROWSE:
+				case BROWSE -> {
 					checkRead = true;
 					checkExecute = true;
-					break;
-				case EXECUTE:
+				}
+				case EXECUTE -> {
 					checkExecute = true;
-					break;
-				case FILE:
+				}
+				case FILE -> {
 					if (!isFile()) {
 						return EnumSet.noneOf(FileFlag.class);
 					}
-					break;
-				case FOLDER:
+				}
+				case FOLDER -> {
 					if (!isFolder()) {
 						return EnumSet.noneOf(FileFlag.class);
 					}
-					break;
-				case READ:
+				}
+				case READ -> {
 					checkRead = true;
-					break;
-				case WRITE:
+				}
+				case WRITE -> {
 					checkWrite = true;
-					break;
-				default:
-					throw new AssertionError("Flag " + flag.name() + "isn't implemented", null);
+				}
+				default -> throw new AssertionError("Flag " + flag.name() + "isn't implemented", null);
 			}
 		}
 		checkPermissions(checkRead, checkWrite, checkExecute);

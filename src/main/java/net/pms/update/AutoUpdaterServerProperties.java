@@ -1,8 +1,28 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.update;
 
 import java.io.IOException;
 import net.pms.util.PmsProperties;
 import net.pms.util.Version;
+import oshi.SystemInfo;
+import oshi.hardware.CentralProcessor;
+import oshi.hardware.HardwareAbstractionLayer;
+import oshi.hardware.CentralProcessor.ProcessorIdentifier;
 
 /**
  * Data provided by the server for us to update with.  Must be synchronized externally.
@@ -55,8 +75,16 @@ public class AutoUpdaterServerProperties {
 			String osVersionRaw = System.getProperty("os.version");
 			Version osVersion = new Version(osVersionRaw);
 			boolean isMacOSPreCatalina = osVersion.isLessThan(new Version("10.15"));
+
+			SystemInfo systemInfo = new SystemInfo();
+			HardwareAbstractionLayer hardware = systemInfo.getHardware();
+			CentralProcessor processor = hardware.getProcessor();
+			ProcessorIdentifier processorIdentifier = processor.getProcessorIdentifier();
+			String microarchitecture = processorIdentifier.getMicroarchitecture();
 			if (isMacOSPreCatalina) {
 				os += "-pre10.15";
+			} else if (microarchitecture.startsWith("ARM64")) {
+				os += "-arm";
 			}
 		}
 

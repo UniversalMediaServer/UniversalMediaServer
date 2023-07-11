@@ -1,21 +1,18 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.configuration;
 
@@ -33,9 +30,12 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.platform.PlatformProgramPaths;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExternalProgramInfo;
+import net.pms.util.FFmpegProgramInfo;
 import net.pms.util.FileUtil;
-
-
+import net.pms.util.ProgramExecutableType;
 /**
  * This class adds configurable/custom paths to {@link PlatformProgramPaths}.
  *
@@ -51,12 +51,6 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom MPlayer path. */
 	public static final String KEY_MPLAYER_PATH     = "mplayer_path";
 
-	/** The {@link Configuration} key for the tsMuxeRNew executable type. */
-	public static final String KEY_TSMUXER_NEW_EXECUTABLE_TYPE = "tsmuxer-new_executable_type";
-
-	/** The {@link Configuration} key for the custom tsMuxeRNew path. */
-	public static final String KEY_TSMUXER_NEW_PATH = "tsmuxer_new_path";
-
 	/** The {@link Configuration} key for the FLAC executable type. */
 	public static final String KEY_FLAC_EXECUTABLE_TYPE = "flac_executable_type";
 
@@ -69,6 +63,24 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	/** The {@link Configuration} key for the custom InterFrame path. */
 	public static final String KEY_INTERFRAME_PATH  = "interframe_path";
 
+	/** The {@link Configuration} key for the FFMS2 executable type. */
+	public static final String KEY_FFMS2_EXECUTABLE_TYPE = "ffms2_executable_type";
+
+	/** The {@link Configuration} key for the custom FFMS2 path. */
+	public static final String KEY_FFMS2_PATH  = "ffms2_path";
+
+	/** The {@link Configuration} key for the 2DTO3D executable type. */
+	public static final String KEY_2DTO3D_EXECUTABLE_TYPE = "2DTO3D_executable_type";
+
+	/** The {@link Configuration} key for the custom 2DTO3D path. */
+	public static final String KEY_2DTO3D_PATH  = "2dTo3d_path";
+
+	/** The {@link Configuration} key for the CropResize executable type. */
+	public static final String KEY_CROP_RESIZE_EXECUTABLE_TYPE = "cropResize_executable_type";
+
+	/** The {@link Configuration} key for the custom CropResize path. */
+	public static final String KEY_CROP_RESIZE_PATH  = "cropResize_path";
+
 	/** The {@link Configuration} key for the custom youtube-dl path. */
 	public static final String KEY_YOUTUBEDL_PATH  = "youtubedl_path";
 
@@ -77,7 +89,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 
 	/**
 	 * Not to be instantiated, get the {@link ExternalProgramInfo} instances
-	 * from {@link PmsConfiguration} instead.
+	 * from {@link UmsConfiguration} instead.
 	 *
 	 * @param configuration the {@link Configuration} to use for custom paths.
 	 */
@@ -86,24 +98,23 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 
 		// Read configured paths for all configurable program paths not handled by a Player.
 		setCustomPathFromConfiguration(getMPlayer(), KEY_MPLAYER_PATH);
-		setCustomPathFromConfiguration(getTsMuxeRNew(), KEY_TSMUXER_NEW_PATH);
 		setCustomPathFromConfiguration(getFLAC(), KEY_FLAC_PATH);
 		setCustomPathFromConfiguration(getInterFrame(), KEY_INTERFRAME_PATH);
 		setCustomPathFromConfiguration(getYoutubeDl(), KEY_YOUTUBEDL_PATH);
 	}
 
 	@Override
-	public FFmpegProgramInfo getFFmpeg() {
+	public final FFmpegProgramInfo getFFmpeg() {
 		return platformPaths.getFFmpeg();
 	}
 
 	@Override
-	public ExternalProgramInfo getMPlayer() {
+	public final ExternalProgramInfo getMPlayer() {
 		return platformPaths.getMPlayer();
 	}
 
 	@Override
-	public ExternalProgramInfo getVLC() {
+	public final ExternalProgramInfo getVLC() {
 		return platformPaths.getVLC();
 	}
 
@@ -113,32 +124,67 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeR() {
+	public final ExternalProgramInfo getTsMuxeR() {
 		return platformPaths.getTsMuxeR();
 	}
 
 	@Override
-	public ExternalProgramInfo getTsMuxeRNew() {
-		return platformPaths.getTsMuxeRNew();
-	}
-
-	@Override
-	public ExternalProgramInfo getFLAC() {
+	public final ExternalProgramInfo getFLAC() {
 		return platformPaths.getFLAC();
 	}
 
 	@Override
-	public ExternalProgramInfo getDCRaw() {
+	public final ExternalProgramInfo getDCRaw() {
 		return platformPaths.getDCRaw();
 	}
 
 	@Override
-	public ExternalProgramInfo getInterFrame() {
+	public final ExternalProgramInfo getAviSynth() {
+		return platformPaths.getAviSynth();
+	}
+
+	@Override
+	public final ExternalProgramInfo getInterFrame() {
 		return platformPaths.getInterFrame();
 	}
 
 	@Override
-	public ExternalProgramInfo getYoutubeDl() {
+	public final ExternalProgramInfo getFFMS2() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getDirectShowSource() {
+		return platformPaths.getFFMS2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getMvtools2() {
+		return platformPaths.getMvtools2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getDepan() {
+		return platformPaths.getDepan();
+	}
+
+	@Override
+	public final ExternalProgramInfo getMasktools2() {
+		return platformPaths.getMasktools2();
+	}
+
+	@Override
+	public final ExternalProgramInfo getConvert2dTo3d() {
+		return platformPaths.getConvert2dTo3d();
+	}
+
+	@Override
+	public final ExternalProgramInfo getCropResize() {
+		return platformPaths.getCropResize();
+	}
+
+	@Override
+	public final ExternalProgramInfo getYoutubeDl() {
 		return platformPaths.getYoutubeDl();
 	}
 
@@ -150,17 +196,6 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	public void setCustomMPlayerPath(@Nullable Path path) {
 		setCustomProgramPath(path, platformPaths.getMPlayer(), KEY_MPLAYER_PATH, true);
-	}
-
-	/**
-	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * "tsMuxeR new" both in {@link #configuration} and the
-	 * {@link ExternalProgramInfo}.
-	 *
-	 * @param path the new {@link Path} or {@code null} to clear it.
-	 */
-	public void setCustomTsMuxeRNewPath(@Nullable Path path) {
-		setCustomProgramPath(path, platformPaths.getTsMuxeRNew(), KEY_TSMUXER_NEW_PATH, true);
 	}
 
 	/**
@@ -182,6 +217,39 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	public void setCustomInterFramePath(@Nullable Path path) {
 		setCustomProgramPath(path, platformPaths.getInterFrame(), KEY_INTERFRAME_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * FFMS2 both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomFFMS2Path(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getFFMS2(), KEY_FFMS2_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * Convert2dTo3d both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomConvert2dTo3dPath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getConvert2dTo3d(), KEY_2DTO3D_PATH, true);
+	}
+
+	/**
+	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
+	 * CropResize both in {@link #configuration} and the
+	 * {@link ExternalProgramInfo}.
+	 *
+	 * @param path the new {@link Path} or {@code null} to clear it.
+	 */
+	public void setCustomCropResizePath(@Nullable Path path) {
+		setCustomProgramPath(path, platformPaths.getCropResize(), KEY_CROP_RESIZE_PATH, true);
 	}
 
 	/**
@@ -250,7 +318,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 *            the {@link ProgramExecutableType#CUSTOM} {@link Path}.
 	 * @param configurationKey the {@link Configuration} key to read.
 	 */
-	protected void setCustomPathFromConfiguration(
+	private void setCustomPathFromConfiguration(
 		@Nullable ExternalProgramInfo programInfo,
 		@Nullable String configurationKey
 	) {

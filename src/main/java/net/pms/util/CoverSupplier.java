@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -78,12 +75,13 @@ public class CoverSupplier {
 	 */
 	public Integer toInteger() {
 		switch (coverSupplierInt) {
-			case NONE_INT:
+			case NONE_INT -> {
 				return NONE_INTEGER;
-			case COVER_ART_ARCHIVE_INT:
+			}
+			case COVER_ART_ARCHIVE_INT -> {
 				return COVER_ART_ARCHIVE_INTEGER;
-			default:
-				throw new IllegalStateException("CoverSupplier " + coverSupplierStr + ", " + coverSupplierInt + " is unknown.");
+			}
+			default -> throw new IllegalStateException("CoverSupplier " + coverSupplierStr + ", " + coverSupplierInt + " is unknown.");
 		}
 	}
 
@@ -108,14 +106,11 @@ public class CoverSupplier {
 	 * conversion fails, this method returns the specified default.
 	 */
 	public static CoverSupplier toCoverSupplier(int val, CoverSupplier defaultCoverSupplier) {
-		switch (val) {
-			case NONE_INT:
-				return NONE;
-			case COVER_ART_ARCHIVE_INT:
-				return COVER_ART_ARCHIVE;
-			default:
-				return defaultCoverSupplier;
-		}
+		return switch (val) {
+			case NONE_INT -> NONE;
+			case COVER_ART_ARCHIVE_INT -> COVER_ART_ARCHIVE;
+			default -> defaultCoverSupplier;
+		};
 	}
 
 	/**
@@ -128,16 +123,11 @@ public class CoverSupplier {
 		}
 
 		sArg = sArg.toLowerCase();
-		switch (sArg.toLowerCase()) {
-			case "none":
-				return CoverSupplier.NONE;
-			case "coverartarchive":
-			case "coverartarchive.org":
-			case "cover art archive":
-				return CoverSupplier.COVER_ART_ARCHIVE;
-			default:
-				return defaultCoverSupplier;
-		}
+		return switch (sArg.toLowerCase()) {
+			case "none" -> CoverSupplier.NONE;
+			case "coverartarchive", "coverartarchive.org", "cover art archive" -> CoverSupplier.COVER_ART_ARCHIVE;
+			default -> defaultCoverSupplier;
+		};
 	}
 
 	@Override

@@ -1,6 +1,22 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -17,26 +33,6 @@ public class GlobalIdRepo {
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 	private final ArrayList<ID> ids = new ArrayList<>();
 
-	private class ID {
-		int id;
-		boolean scope;
-		WeakDLNARef dlnaRef;
-
-		private ID(DLNAResource dlnaResource, int id) {
-			this.id = id;
-			setRef(dlnaResource);
-			scope = true;
-		}
-
-		void setRef(DLNAResource dlnaResource) {
-			if (dlnaRef != null) {
-				dlnaRef.cancel();
-			}
-			dlnaRef = new WeakDLNARef(dlnaResource, id);
-			dlnaResource.setIndexId(id);
-		}
-	}
-
 	public GlobalIdRepo() {
 		startIdCleanup();
 	}
@@ -46,6 +42,7 @@ public class GlobalIdRepo {
 		try {
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
+				DLNAResource.bumpSystemUpdateId();
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -53,14 +50,15 @@ public class GlobalIdRepo {
 	}
 
 	private void delete(int index) {
-		lock.readLock().lock();
+		lock.writeLock().lock();
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
+				DLNAResource.bumpSystemUpdateId();
 				deletionsCount++;
 			}
 		} finally {
-			lock.readLock().unlock();
+			lock.writeLock().unlock();
 		}
 	}
 
@@ -68,7 +66,7 @@ public class GlobalIdRepo {
 		return id != null ? get(parseIndex(id)) : null;
 	}
 
-	public DLNAResource get(int id) {
+	private DLNAResource get(int id) {
 		ID item = getItem(id);
 		if (item != null && !item.scope) {
 			LOGGER.debug("GlobalIdRepo: id {} is not in scope, returning null", id);
@@ -77,7 +75,7 @@ public class GlobalIdRepo {
 		return item != null ? item.dlnaRef.get() : null;
 	}
 
-	public ID getItem(int id) {
+	private ID getItem(int id) {
 		lock.readLock().lock();
 		try {
 			if (id > 0) {
@@ -103,6 +101,7 @@ public class GlobalIdRepo {
 				lock.writeLock().lock();
 				try {
 					item.setRef(b);
+					DLNAResource.bumpSystemUpdateId();
 				} finally {
 					lock.writeLock().unlock();
 				}
@@ -129,7 +128,7 @@ public class GlobalIdRepo {
 		}
 	}
 
-	public static int parseIndex(String id) {
+	private static int parseIndex(String id) {
 		try {
 			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
 			return Integer.parseInt(StringUtils.substringBefore(id, "$"));
@@ -172,12 +171,12 @@ public class GlobalIdRepo {
 
 	// id cleanup
 
-	ReferenceQueue<DLNAResource> idCleanupQueue;
+	private ReferenceQueue<DLNAResource> idCleanupQueue;
 
-	class WeakDLNARef extends WeakReference<DLNAResource> {
+	private class SoftDLNARef extends SoftReference<DLNAResource> {
 		int id;
 
-		WeakDLNARef(DLNAResource dlnaResource, int id) {
+		SoftDLNARef(DLNAResource dlnaResource, int id) {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
@@ -196,7 +195,7 @@ public class GlobalIdRepo {
 				try {
 					// Once an underlying DLNAResource is ready for garbage
 					// collection, its weak reference will pop out here
-					WeakDLNARef ref = (WeakDLNARef) idCleanupQueue.remove();
+					SoftDLNARef ref = (SoftDLNARef) idCleanupQueue.remove();
 					if (ref.id > 0) {
 						// Delete the associated id from our repo list
 						LOGGER.debug("deleting invalid id {}", ref.id);
@@ -207,4 +206,25 @@ public class GlobalIdRepo {
 			}
 		}, "GlobalId cleanup").start();
 	}
+
+	private class ID {
+		int id;
+		boolean scope;
+		SoftDLNARef dlnaRef;
+
+		private ID(DLNAResource dlnaResource, int id) {
+			this.id = id;
+			setRef(dlnaResource);
+			scope = true;
+		}
+
+		final void setRef(DLNAResource dlnaResource) {
+			if (dlnaRef != null) {
+				dlnaRef.cancel();
+			}
+			dlnaRef = new SoftDLNARef(dlnaResource, id);
+			dlnaResource.setIndexId(id);
+		}
+	}
+
 }

@@ -1,13 +1,27 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
-import com.sun.jna.platform.FileUtils;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -16,24 +30,25 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.database.TableFilesStatus;
-import net.pms.database.TableTVSeries;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
+import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
-import net.pms.util.FreedesktopTrash;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
-import org.fest.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
 	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
-	private File[] dirs;
-	private PmsConfiguration config;
+	private final File[] dirs;
+	private final UmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
@@ -90,7 +105,7 @@ public class MediaMonitor extends VirtualFolder {
 	public void scanDir(File[] files, final DLNAResource res) {
 		if (files != null) {
 			final DLNAResource mm = this;
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.150"), true) {
+			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true, null) {
 				@Override
 				public boolean enable() {
 					for (DLNAResource r : res.getChildren()) {
@@ -154,6 +169,18 @@ public class MediaMonitor extends VirtualFolder {
 		return true;
 	}
 
+	/**
+	 * Performs certain actions after a video or audio file is stopped, if the file is
+	 * within a monitored directory.
+	 * These actions include:
+	 * - If the file is fully played:
+	 *   - Marking the file as fully played in the database
+	 *   - Updating the systemUpdateID to indicate to the client there is updated content
+	 * - If the file is not fully played:
+	 *   - Update the last played date for the file in the database
+	 *
+	 * @param resource
+	 */
 	public void stopped(DLNAResource resource) {
 		if (!(resource instanceof RealFile)) {
 			return;
@@ -163,10 +190,10 @@ public class MediaMonitor extends VirtualFolder {
 		String fullPathToFile = realFile.getFile().getAbsolutePath();
 
 		boolean isMonitored = false;
-		List<Path> foldersMonitored = configuration.getMonitoredFolders();
+		List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 		if (!foldersMonitored.isEmpty()) {
-			for (Path folderMonitored : foldersMonitored) {
-				if (fullPathToFile.contains(folderMonitored.toAbsolutePath().toString())) {
+			for (File folderMonitored : foldersMonitored) {
+				if (fullPathToFile.contains(folderMonitored.getAbsolutePath())) {
 					isMonitored = true;
 					break;
 				}
@@ -210,6 +237,15 @@ public class MediaMonitor extends VirtualFolder {
 		}
 
 		/**
+		 * Do not treat this as a legitimate playback attempt if the start
+		 * time was within 2 seconds of the end of the video.
+		 */
+		if (fileDuration > 2.0 && realFile.getLastStartPosition() > (fileDuration - 2.0)) {
+			LOGGER.trace("final decision: not legitimate playback");
+			return;
+		}
+
+		/**
 		 * Only mark the file as fully played if more than 92% (default) of
 		 * the duration has elapsed since it started playing.
 		 */
@@ -218,17 +254,18 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed > configuration.getMinimumWatchedPlayTimeSeconds() &&
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
+			LOGGER.trace("final decision: fully played");
 			DLNAResource fileParent = realFile.getParent();
-			if (fileParent != null && !isFullyPlayed(fullPathToFile, true)) {
-				// Only set fully played if the file will stay where it is
-				if (
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_FOLDER_AND_MARK &&
-					fullyPlayedAction != FullyPlayedAction.MOVE_TRASH
-				) {
-					setFullyPlayed(fullPathToFile, true, elapsed);
-				}
-
+			if (fileParent == null) {
+				LOGGER.trace("fileParent is null for {}", fullPathToFile);
+			} else if (isFullyPlayed(fullPathToFile, true)) {
+				LOGGER.trace("{} already marked as fully played", fullPathToFile);
+			} else {
+				/*
+				 * Set to fully played even if it will be deleted or moved, because
+				 * the entry will be cleaned up later in those cases.
+				 */
+				setFullyPlayed(fullPathToFile, true, elapsed);
 				setDiscovered(false);
 				getChildren().clear();
 
@@ -286,12 +323,8 @@ public class MediaMonitor extends VirtualFolder {
 					}
 				} else if (fullyPlayedAction == FullyPlayedAction.MOVE_TRASH) {
 					try {
-						if (Platform.isLinux()) {
-							FreedesktopTrash.moveToTrash(playedFile);
-						} else {
-							FileUtils.getInstance().moveToTrash(Arrays.array(playedFile));
-						}
-					} catch (IOException | FileUtil.InvalidFileSystemException e) {
+						PlatformUtils.INSTANCE.moveToTrash(playedFile);
+					} catch (IOException e) {
 						LOGGER.warn(
 							"Failed to move file \"{}\" to recycler/trash after it has been fully played: {}",
 							playedFile.getAbsoluteFile(),
@@ -312,7 +345,7 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.info("{} marked as fully played", playedFile.getName());
 			}
 		} else {
-			TableFilesStatus.setLastPlayed(fullPathToFile, elapsed);
+			setLastPlayed(fullPathToFile, elapsed);
 			LOGGER.trace("final decision: not fully played");
 		}
 	}
@@ -349,12 +382,19 @@ public class MediaMonitor extends VirtualFolder {
 			}
 
 			// Add the entry to the cache
-			if (isFileOrTVSeries) {
-				fullyPlayed = TableFilesStatus.isFullyPlayed(fullPathToFile);
-			} else {
-				fullyPlayed = TableTVSeries.isFullyPlayed(fullPathToFile);
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					if (isFileOrTVSeries) {
+						fullyPlayed = MediaTableFilesStatus.isFullyPlayed(connection, fullPathToFile);
+					} else {
+						fullyPlayed = MediaTableTVSeries.isFullyPlayed(connection, fullPathToFile);
+					}
+				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-
 			if (fullyPlayed == null) {
 				fullyPlayed = false;
 			}
@@ -376,14 +416,40 @@ public class MediaMonitor extends VirtualFolder {
 	 */
 	public static void setFullyPlayed(String fullPathToFile, boolean isFullyPlayed, Double lastPlaybackPosition) {
 		FULLY_PLAYED_ENTRIES_LOCK.writeLock().lock();
+		Connection connection = null;
 		try {
 			FULLY_PLAYED_ENTRIES.put(fullPathToFile, isFullyPlayed);
-			TableFilesStatus.setFullyPlayed(fullPathToFile, isFullyPlayed);
-			if (lastPlaybackPosition != null) {
-				TableFilesStatus.setLastPlayed(fullPathToFile, lastPlaybackPosition);
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFilesStatus.setFullyPlayed(connection, fullPathToFile, isFullyPlayed);
+				if (lastPlaybackPosition != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, fullPathToFile, lastPlaybackPosition);
+				}
 			}
 		} finally {
+			MediaDatabase.close(connection);
 			FULLY_PLAYED_ENTRIES_LOCK.writeLock().unlock();
+		}
+	}
+
+	/**
+	 * Sets the last played position of the given {@code fullPathToFile} both in
+	 * the database.
+	 *
+	 * @param fullPathToFile the full path to the file in question.
+	 * @param lastPlaybackPosition how many seconds were played
+	 */
+	public static void setLastPlayed(String fullPathToFile, Double lastPlaybackPosition) {
+		if (lastPlaybackPosition != null) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, fullPathToFile, lastPlaybackPosition);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 

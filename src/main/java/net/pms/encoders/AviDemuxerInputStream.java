@@ -1,28 +1,27 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
 import java.io.*;
-import java.util.ArrayList;
+import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.io.*;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.PCMAudioOutputStream;
 import net.pms.util.ProcessUtil;
@@ -31,22 +30,22 @@ import org.slf4j.LoggerFactory;
 
 public class AviDemuxerInputStream extends InputStream {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviDemuxerInputStream.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
+	private final Track[] track = new Track[2];
+	private final InputStream stream;
+	private final OutputStream vOut;
+	private final Thread parsing;
+	private final OutputParams params;
 	private Process process;
-	private InputStream stream;
-	private ArrayList<ProcessWrapper> attachedProcesses;
+	private List<ProcessWrapper> attachedProcesses;
 	private long readCount = -1;
 	private String streamVideoTag;
-	private Track[] track = new Track[2];
 	private int numberOfAudioChannels;
 	private OutputStream aOut;
-	private OutputStream vOut;
 	private long audiosize;
 	private long videosize;
 	private InputStream realIS;
-	private Thread parsing;
-	private OutputParams params;
 
 	@Override
 	public void close() throws IOException {
@@ -57,7 +56,7 @@ public class AviDemuxerInputStream extends InputStream {
 		super.close();
 	}
 
-	public AviDemuxerInputStream(InputStream fin, final OutputParams params, ArrayList<ProcessWrapper> at) throws IOException {
+	public AviDemuxerInputStream(InputStream fin, final OutputParams params, List<ProcessWrapper> at) throws IOException {
 		stream = fin;
 		LOGGER.trace("Opening AVI Stream");
 		this.attachedProcesses = at;
@@ -82,7 +81,7 @@ public class AviDemuxerInputStream extends InputStream {
 						while ((n = pin.read(b)) > -1) {
 							out.write(b, 0, n);
 						}
-					} catch (Exception e) {
+					} catch (IOException e) {
 						LOGGER.error(null, e);
 					}
 				};
@@ -95,7 +94,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 		Runnable r = () -> {
 			try {
-				TsMuxeRVideo ts = (TsMuxeRVideo) PlayerFactory.getPlayer(StandardPlayerId.TSMUXER_VIDEO, false, false);
+				TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, false);
 				File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 				try (PrintWriter pw = new PrintWriter(f)) {
 					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
@@ -122,7 +121,7 @@ public class AviDemuxerInputStream extends InputStream {
 					pw.println(audioType + ", \"" + params.getOutputPipes()[1].getOutputPipe() + "\", track=2");
 				}
 
-				PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+				IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 				ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 				attachedProcesses.add(pipeProcess);
 				pipeProcess.runInNewThread();
@@ -285,7 +284,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 			try {
 				command = getString(stream, 4);
-			} catch (Exception e) {
+			} catch (IOException e) {
 				LOGGER.trace("Error reading stream: " + e.getMessage());
 				break;
 			}
@@ -397,18 +396,21 @@ public class AviDemuxerInputStream extends InputStream {
 		 * Create integer
 		 */
 		switch (number) {
-			case 1:
+			case 1 -> {
 				return (buffer[0] & 0xff);
-			case 2:
+			}
+			case 2 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8);
-			case 3:
+			}
+			case 3 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
-					((buffer[2] & 0xff) << 16);
-			case 4:
+						((buffer[2] & 0xff) << 16);
+			}
+			case 4 -> {
 				return (buffer[0] & 0xff) | ((buffer[1] & 0xff) << 8) |
-					((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
-			default:
-				throw new IOException("Illegal Read quantity");
+						((buffer[2] & 0xff) << 16) | ((buffer[3] & 0xff) << 24);
+			}
+			default -> throw new IOException("Illegal Read quantity");
 		}
 	}
 

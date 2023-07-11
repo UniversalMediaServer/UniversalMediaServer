@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.newgui;
 
@@ -29,9 +26,6 @@ import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -47,16 +41,16 @@ import javax.swing.UIManager;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.event.HyperlinkListener;
 import javax.swing.text.html.StyleSheet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.components.CustomHTMLEditorKit;
-import net.pms.util.KeyedComboBoxModel;
+import net.pms.newgui.util.KeyedComboBoxModel;
+import net.pms.newgui.util.SwingUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.Languages;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-import net.pms.util.SwingUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,22 +65,21 @@ import org.slf4j.LoggerFactory;
 public class LanguageSelection {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LanguageSelection.class);
 
-	private JComboBox<String> jLanguage;
-	private JOptionPane pane;
-	private JPanel rootPanel = new JPanel();
-	private JPanel selectionPanel = new JPanel();
-	private JPanel languagePanel = new JPanel();
-	private JButton selectButton = new JButton();
-	private JButton applyButton = new JButton();
-	private TitledBorder selectionPanelBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-	private TitledBorder infoTextBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
-	private JTextArea descriptionText = new JTextArea();
-	private JTextArea warningText = new JTextArea();
-	private JEditorPane infoText = new JEditorPane();
 	private final Component parentComponent;
-	private KeyedComboBoxModel<String, String> keyedModel = new KeyedComboBoxModel<>();
+	private final JPanel rootPanel = new JPanel();
+	private final JPanel selectionPanel = new JPanel();
+	private final JPanel languagePanel = new JPanel();
+	private final JButton selectButton = new JButton();
+	private final JButton applyButton = new JButton();
+	private final TitledBorder selectionPanelBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+	private final TitledBorder infoTextBorder = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+	private final JTextArea descriptionText = new JTextArea();
+	private final JTextArea warningText = new JTextArea();
+	private final JEditorPane infoText = new JEditorPane();
+	private final KeyedComboBoxModel<String, String> keyedModel = new KeyedComboBoxModel<>();
+
+	private JOptionPane pane;
 	private Locale locale;
-	private int textWidth;
 	private JDialog dialog;
 	private boolean aborted = false;
 	private boolean rebootOnChange;
@@ -131,8 +124,8 @@ public class LanguageSelection {
 				if (rebootOnChange) {
 					int response = JOptionPane.showConfirmDialog(
 						parentComponent,
-						String.format(buildString("Dialog.Restart", true), PMS.NAME, PMS.NAME),
-						buildString("Dialog.Confirm"),
+						String.format(buildString("XNeedsRestartedApplyChanges", true), PMS.NAME, PMS.NAME),
+						buildString("Confirm"),
 						JOptionPane.YES_NO_CANCEL_OPTION
 					);
 					if (response != JOptionPane.CANCEL_OPTION) {
@@ -220,7 +213,7 @@ public class LanguageSelection {
 		dialog.setLocale(locale);
 		dialog.applyComponentOrientation(ComponentOrientation.getOrientation(locale));
 
-		selectionPanelBorder.setTitle(buildString("LanguageSelection.1"));
+		selectionPanelBorder.setTitle(buildString("SelectLanguage"));
 
 		selectionPanel.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createEmptyBorder(5, 5, 5, 5),
@@ -230,7 +223,7 @@ public class LanguageSelection {
 			)
 		));
 
-		String descriptionMessage = parentComponent != null ? "LanguageSelection.7" : "LanguageSelection.2";
+		String descriptionMessage = parentComponent != null ? "PleaseSelectLanguageForX" : "PleaseSelectLanguageX";
 		if (Messages.getString(descriptionMessage, locale).equals(Messages.getRootString(descriptionMessage))) {
 			if (parentComponent != null) {
 				descriptionText.setText(String.format(
@@ -241,7 +234,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					Messages.getString(descriptionMessage, locale),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale)
+					Messages.getString("GeneralSettings", locale)
 				));
 			}
 		} else {
@@ -255,7 +248,7 @@ public class LanguageSelection {
 				descriptionText.setText(String.format(
 					buildString(descriptionMessage, true),
 					PMS.NAME,
-					Messages.getString("LooksFrame.TabGeneralSettings", locale),
+					Messages.getString("GeneralSettings", locale),
 					PMS.NAME,
 					Messages.getRootString("LooksFrame.TabGeneralSettings")
 				));
@@ -263,7 +256,7 @@ public class LanguageSelection {
 		}
 		// Set the width of the text panels by font size to accommodate font scaling
 		float avgCharWidth = SwingUtils.getComponentAverageCharacterWidth(descriptionText);
-		textWidth = Math.round(avgCharWidth * 100);
+		int textWidth = Math.round(avgCharWidth * 100);
 		selectButton.setMargin(new Insets(Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth), Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth)));
 		applyButton.setMargin(new Insets(Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth), Math.round((float) 0.5 * avgCharWidth), Math.round(4 * avgCharWidth)));
 
@@ -301,9 +294,9 @@ public class LanguageSelection {
 
 		if (keyedModel.getSelectedKey() != null && Languages.warnCoverage(keyedModel.getSelectedKey())) {
 			String localizedLanguageName = Messages.getString("Language." + keyedModel.getSelectedKey(), locale);
-			if (Messages.getString("LanguageSelection.3", locale).equals(Messages.getRootString("LanguageSelection.3"))) {
+			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("XIsOnlyPercentTranslated"))) {
 				warningText.setText(String.format(
-					Messages.getString("LanguageSelection.3", locale),
+					Messages.getString("XIsOnlyPercentTranslated", locale),
 					localizedLanguageName,
 					Languages.getLanguageCoverage(keyedModel.getSelectedKey()),
 					localizedLanguageName
@@ -312,7 +305,7 @@ public class LanguageSelection {
 				int coverage = Languages.getLanguageCoverage(keyedModel.getSelectedKey());
 				String rootLanguageName = Messages.getRootString("Language." + keyedModel.getSelectedKey());
 				warningText.setText(String.format(
-					buildString("LanguageSelection.3", true),
+					buildString("XIsOnlyPercentTranslated", true),
 					localizedLanguageName,
 					coverage,
 					localizedLanguageName,
@@ -326,13 +319,13 @@ public class LanguageSelection {
 		}
 		warningText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(warningText, textWidth));
 
-		infoTextBorder.setTitle(buildString("LanguageSelection.4"));
+		infoTextBorder.setTitle(buildString("AboutTranslations"));
 
-		infoText.setText(String.format(buildString("LanguageSelection.5", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
+		infoText.setText(String.format(buildString("IfYourLanguageMissingIncomplete", true, true), PMS.CROWDIN_LINK, PMS.CROWDIN_LINK));
 		infoText.setPreferredSize(SwingUtils.getWordWrappedTextDimension(infoText, textWidth, StringUtil.stripHTML(infoText.getText())));
 
-		selectButton.setText(buildString("Dialog.Select"));
-		applyButton.setText(buildString("Dialog.Apply"));
+		selectButton.setText(buildString("Select"));
+		applyButton.setText(buildString("Apply"));
 	}
 
 	private JComponent buildComponent() {
@@ -359,7 +352,7 @@ public class LanguageSelection {
 		descriptionText.setBorder(BorderFactory.createEmptyBorder(5, 15, 10, 15));
 		selectionPanel.add(descriptionText);
 
-		jLanguage = new JComboBox<>(keyedModel);
+		JComboBox<String> jLanguage = new JComboBox<>(keyedModel);
 		jLanguage.setEditable(false);
 		jLanguage.setPreferredSize(new Dimension(50, jLanguage.getPreferredSize().height));
 		jLanguage.addActionListener(new LanguageComboBoxActionListener());
@@ -397,38 +390,27 @@ public class LanguageSelection {
 		styleSheet.addRule("a { color: #0000EE; text-decoration:underline; }");
 		editorKit.setStyleSheet(styleSheet);
 		infoText.setEditorKit(editorKit);
-		infoText.addHyperlinkListener(new HyperlinkListener() {
-
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent e) {
-				if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-					boolean error = false;
-					if (Desktop.isDesktopSupported()) {
-						try {
-							Desktop.getDesktop().browse(new URI(e.getDescription()));
-						} catch (IOException | URISyntaxException ex) {
-							LOGGER.error("Language selection failed to open translation page hyperlink: ", ex.getMessage());
-							LOGGER.trace("", ex);
-							error = true;
-						}
-					} else {
-						LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
-						error = true;
-					}
-					if (error) {
-						JOptionPane.showOptionDialog(
+		infoText.addHyperlinkListener((HyperlinkEvent e) -> {
+			if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+				boolean error;
+				if (Desktop.isDesktopSupported()) {
+					error = !PlatformUtils.INSTANCE.browseURI(e.getDescription());
+				} else {
+					LOGGER.warn("Desktop is not supported, the clicked translation page link can't be opened");
+					error = true;
+				}
+				if (error) {
+					JOptionPane.showOptionDialog(
 							dialog,
-							String.format(buildString("LanguageSelection.6", true), PMS.CROWDIN_LINK),
-							buildString("Dialog.Error"),
+							String.format(buildString("CouldNotOpenHyperlink", true), PMS.CROWDIN_LINK),
+							buildString("Error"),
 							JOptionPane.DEFAULT_OPTION,
 							JOptionPane.ERROR_MESSAGE,
 							null,
 							null,
 							null);
-					}
 				}
 			}
-
 		});
 
 		rootPanel.add(selectionPanel);

@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -37,15 +35,20 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	private String codecA;
 	private String album;
 	private String artist;
+	private String composer;
+	private String conductor;
 	private String songname;
 	private String genre;
 	private int year;
+	private int disc = 1;
 	private int track;
 	private String audioTrackTitleFromMetadata;
 	private String muxingModeAudio;
 	private String albumartist;
 	private String mbidRecord;
 	private String mbidTrack;
+	private Integer rating;
+	private int audiotrackId;
 
 	/**
 	 * Returns the sample rate for this audio media.
@@ -533,6 +536,12 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 		if (isNotBlank(getArtist())) {
 			result.append(", Artist: ").append(getArtist());
 		}
+		if (isNotBlank(getComposer())) {
+			result.append(", Composer: ").append(getComposer());
+		}
+		if (isNotBlank(getConductor())) {
+			result.append(", Conductor: ").append(getConductor());
+		}
 		if (isNotBlank(getAlbum())) {
 			result.append(", Album: ").append(getAlbum());
 		}
@@ -681,7 +690,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns the MB record ID for this track
 	 *
-	 * @return The album artist name.
+	 * @return The MB record ID.
 	 */
 	public String getMbidRecord() {
 		return this.mbidRecord;
@@ -699,7 +708,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	/**
 	 * Returns MB track id for this track.
 	 *
-	 * @return The album artist name.
+	 * @return The MB track ID.
 	 */
 	public String getMbidTrack() {
 		return this.mbidTrack;
@@ -713,6 +722,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public String getArtist() {
 		return artist;
+	}
+
+	/**
+	 * Returns the composer of the audio track.
+	 *
+	 * @return The composer name.
+	 */
+	public String getComposer() {
+		return composer;
+	}
+
+	/**
+	 * Returns the conductor of the audio track.
+	 *
+	 * @return The conductor name.
+	 */
+	public String getConductor() {
+		return conductor;
 	}
 
 	/**
@@ -742,6 +769,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setArtist(String artist) {
 		this.artist = artist;
+	}
+
+	/**
+	 * Sets the composer of the audio track.
+	 *
+	 * @param composer The composer name to set.
+	 */
+	public void setComposer(String composer) {
+		this.composer = composer;
+	}
+
+	/**
+	 * Sets the conductor of the audio track.
+	 *
+	 * @param The conductor name to set.
+	 */
+	public void setConductor(String conductor) {
+		this.conductor = conductor;
 	}
 
 	/**
@@ -815,6 +860,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Returns the disc number of an album for the audio.
+	 *
+	 * @return The disc number.
+	 */
+	public int getDisc() {
+		return disc;
+	}
+
+	/**
 	 * Sets the track number within an album for the audio.
 	 *
 	 * @param track The track number to set.
@@ -822,6 +876,10 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public void setTrack(int track) {
 		this.track = track;
+	}
+
+	public void setDisc(int disc) {
+		this.disc = disc;
 	}
 
 	public String getAudioTrackTitleFromMetadata() {
@@ -861,5 +919,29 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			throw new IllegalArgumentException("Can't set null AudioProperties.");
 		}
 		this.audioProperties = audioProperties;
+	}
+
+	/**
+	 *
+	 * @return user rating (0 - 5 stars)
+	 */
+	public Integer getRating() {
+		return rating;
+	}
+
+	/**
+	 * Set's user rating (0 - 5 stars)
+	 * @param rating
+	 */
+	public void setRating(Integer rating) {
+		this.rating = rating;
+	}
+
+	public int getAudiotrackId() {
+		return audiotrackId;
+	}
+
+	public void setAudiotrackId(int audiotrackId) {
+		this.audiotrackId = audiotrackId;
 	}
 }

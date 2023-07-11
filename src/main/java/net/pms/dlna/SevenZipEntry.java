@@ -1,20 +1,18 @@
 /*
- * Universal Media Server
- * Copyright (C) 2012  SharkHunter
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -26,7 +24,6 @@ import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
-import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.SevenZipException;
@@ -38,9 +35,9 @@ import org.slf4j.LoggerFactory;
 
 public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
-	private File file;
-	private String zeName;
-	private long length;
+	private final File file;
+	private final String zeName;
+	private final long length;
 	private IInArchive arc;
 
 	@Override
@@ -71,7 +68,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		}
 
@@ -102,8 +99,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = () -> {
-			InputStream in = null;
-
 			try {
 				// byte data[] = new byte[65536];
 				RandomAccessFile rf = new RandomAccessFile(file, "r");
@@ -124,26 +119,19 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 					return;
 				}
 
-				realItem.extractSlow(new ISequentialOutStream() {
-
-					@Override
-					public int write(byte[] data) throws SevenZipException {
-						try {
-							out.write(data);
-						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
-							throw new SevenZipException();
-						}
-						return data.length;
+				realItem.extractSlow((byte[] data) -> {
+					try {
+						out.write(data);
+					} catch (IOException e) {
+						LOGGER.debug("Caught exception", e);
+						throw new SevenZipException();
 					}
+					return data.length;
 				});
 			} catch (FileNotFoundException | SevenZipException e) {
 				LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
 			} finally {
 				try {
-					if (in != null) {
-						in.close();
-					}
 					arc.close();
 					out.close();
 				} catch (IOException e) {
@@ -161,6 +149,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			return;
 		}
 
+		// TODO: found seems not used here
 		boolean found = false;
 
 		if (!found) {

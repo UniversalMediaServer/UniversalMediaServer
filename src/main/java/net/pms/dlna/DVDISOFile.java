@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -29,12 +27,15 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.ProcessUtil;
+import net.pms.util.UMSUtils;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
+
+	private final File file;
+	private final boolean isVideoTS;
+
 	private String volumeId;
-	private File file;
-	private boolean isVideoTS;
 
 	private static String getName(File file) {
 		return String.format(NAME, getFileName(file));
@@ -77,7 +78,7 @@ public class DVDISOFile extends VirtualFolder {
 		 *
 		 *     this.isVideoTS = file.isDirectory() && file.getName().toUpperCase().equals("VIDEO_TS");
 		 */
-		isVideoTS = file.getName().toUpperCase().equals("VIDEO_TS");
+		isVideoTS = file.getName().equalsIgnoreCase("VIDEO_TS");
 
 		setLastModified(file.lastModified());
 	}
@@ -116,10 +117,7 @@ public class DVDISOFile extends VirtualFolder {
 		params.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = () -> {
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-			}
+			UMSUtils.sleep(10000);
 			pw.stopProcess();
 		};
 
@@ -163,7 +161,7 @@ public class DVDISOFile extends VirtualFolder {
 		}
 
 		if (childrenNumber() > 0) {
-			PMS.get().storeFileInCache(file, Format.ISO);
+			storeFileInCache(file, Format.ISO);
 		}
 
 	}

@@ -1,12 +1,9 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -14,17 +11,17 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.service;
 
-import java.nio.charset.Charset;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import net.pms.service.process.ProcessManager;
+import net.pms.service.sleep.SleepManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import net.pms.io.WinUtils;
 
 /**
  * This class creates and destroys global services ands offers a static way of
@@ -34,40 +31,18 @@ import net.pms.io.WinUtils;
  * use the services and destroyed after other threads have terminated. This is
  * to avoid the cost of synchronization each time a service reference is needed.
  * <p>
- * <b>Note:</b> This class holds instance references that relies on
- * {@link PmsConfiguration} being initialized. This is therefore not suitable to
- * hold instance references that must exist when {@link PmsConfiguration} itself
+ * <b>Note:</b> This class holds instance references that rely on
+ * {@link UmsConfiguration} being initialized. This is therefore not suitable to
+ * hold instance references that must exist when {@link UmsConfiguration} itself
  * is initialized.
  *
  * @author Nadahar
  */
 @NotThreadSafe
 public class Services {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(Services.class);
 
-	/**
-	 * The default {@link Charset} for Windows consoles or {@code null} for
-	 * other platforms
-	 */
-	@Nullable
-	public static final Charset WINDOWS_CONSOLE;
-
 	private static Services instance;
-
-	static {
-		if (Platform.isWindows()) {
-			Charset windowsConsole = null;
-			try {
-				windowsConsole = Charset.forName("cp" + WinUtils.getOEMCP());
-			} catch (Exception e) {
-				windowsConsole = Charset.defaultCharset();
-			}
-			WINDOWS_CONSOLE = windowsConsole;
-		} else {
-			WINDOWS_CONSOLE = null;
-		}
-	}
 
 	private ProcessManager processManager;
 
@@ -133,6 +108,17 @@ public class Services {
 	}
 
 	/**
+	 * Stops the {@link Services} {@link ProcessManager}.
+	 * This will cause its process terminator thread to terminate all managed
+	 * processes and stop.
+	 */
+	public static void stopProcessManager() {
+		if (instance != null && instance.processManager != null) {
+				instance.processManager.stop();
+		}
+	}
+
+	/**
 	 * Creates a new instance and starts the services. Isn't normally needed,
 	 * use {@link Services#create()} instead.
 	 */
@@ -141,12 +127,12 @@ public class Services {
 	}
 
 	/**
-	 * Creates and starts the services. Isn't normallyt needed, use
+	 * Creates and starts the services. Isn't normally needed, use
 	 * {@link Services#create()} instead.
 	 *
 	 * @throws IllegalStateException If the services have already been started.
 	 */
-	public void start() {
+	public final void start() {
 		if (processManager != null || sleepManager != null) {
 			throw new IllegalStateException("Services have already been started");
 		}

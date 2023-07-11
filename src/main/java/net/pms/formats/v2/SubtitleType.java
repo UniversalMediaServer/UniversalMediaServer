@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2012  I. Sokolov
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.formats.v2;
 
@@ -52,7 +50,11 @@ public enum SubtitleType {
 	EIA608      (16, "EIA-608 subtitles",                         "EIA-608",     list(),             list("EIA-608"),                                                  Category.TEXT);
 //	EIA708      (17, "EIA-708 subtitles",                         "EIA-708",     list(),             list("EIA-708"),                                                  Category.TEXT);
 
-	public static enum Category {
+	private static final Map<Integer, SubtitleType> STABLE_INDEX_TO_SUBTITLE_TYPE_MAP;
+	private static final Map<String, SubtitleType> FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP;
+	private static final Map<String, SubtitleType> LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP;
+
+	public enum Category {
 		/** Text based subtitles */
 		TEXT,
 
@@ -70,15 +72,12 @@ public enum SubtitleType {
 	private final List<String> libMediaInfoCodecs;
 	private final Category category;
 
-	private final static Map<Integer, SubtitleType> STABLE_INDEX_TO_SUBTITLE_TYPE_MAP;
-	private final static Map<String, SubtitleType> FILE_EXTENSION_TO_SUBTITLE_TYPE_MAP;
-	private final static Map<String, SubtitleType> LIBMEDIAINFO_CODEC_TO_SUBTITLE_TYPE_MAP;
 
 	/**
 	 * A constant {@link Set} of lower-case file extensions for supported
 	 * subtitles types
 	 */
-	public final static Set<String> SUPPORTED_FILE_EXTENSIONS;
+	public static final Set<String> SUPPORTED_FILE_EXTENSIONS;
 	private static List<String> list(String... args) {
 		return new ArrayList<>(Arrays.asList(args));
 	}
@@ -155,8 +154,7 @@ public enum SubtitleType {
 		int index,
 		String description,
 		String shortName,
-		List<String>
-		fileExtensions,
+		List<String> fileExtensions,
 		List<String> libMediaInfoCodecs,
 		Category category
 	) {

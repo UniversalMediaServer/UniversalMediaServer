@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
@@ -23,7 +20,6 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -91,16 +87,9 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		this.type = type == null ? ANY : type;
 		this.subtype = subtype == null ? ANY : subtype;
 		if (parameters == null) {
-			this.parameters = Collections.EMPTY_MAP;
+			this.parameters = Collections.emptyMap();
 		} else {
-			TreeMap<String, String> map = new TreeMap<String, String>(new Comparator<String>() {
-
-				@Override
-				public int compare(String o1, String o2) {
-					return o1.compareToIgnoreCase(o2);
-				}
-
-			});
+			TreeMap<String, String> map = new TreeMap<>((String o1, String o2) -> o1.compareToIgnoreCase(o2));
 			for (Entry<String, String> entry : parameters.entrySet()) {
 				map.put(entry.getKey(), entry.getValue());
 			}
@@ -332,9 +321,9 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 *
 	 * @return The generated {@link String} value.
 	 */
-	protected String generateStringValue() {
+	protected final String generateStringValue() {
 		StringBuilder sb = new StringBuilder(toStringWithoutParameters());
-		if (parameters != null && parameters.size() > 0) {
+		if (parameters != null && !parameters.isEmpty()) {
 			for (Entry<String, String> parameter : parameters.entrySet()) {
 				sb.append(";").append(parameter.getKey()).append("=").append(parameter.getValue());
 			}
@@ -343,12 +332,12 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	/**
-	 * Creates a {@link org.seamless.util.MimeType} from this instance.
+	 * Creates a {@link org.jupnp.util.MimeType} from this instance.
 	 *
-	 * @return The new {@link org.seamless.util.MimeType} instance.
+	 * @return The new {@link org.jupnp.util.MimeType} instance.
 	 */
-	public org.seamless.util.MimeType toSeamlessMimeType() {
-		return new org.seamless.util.MimeType(type, subtype, parameters);
+	public org.jupnp.util.MimeType toSeamlessMimeType() {
+		return new org.jupnp.util.MimeType(type, subtype, parameters);
 	}
 
 	/**

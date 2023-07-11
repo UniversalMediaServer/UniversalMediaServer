@@ -1,4 +1,20 @@
 /*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+/*
  * ====================================================================
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
@@ -73,7 +89,7 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
 	private long idx = -1;
 	private long fileSize;
 
-	public ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
+	protected ZeroCopyConsumerWithCallback(final File file, String uri, UriRetrieverCallback callback) throws FileNotFoundException {
 		super();
 		if (file == null) {
 			throw new IllegalArgumentException("File may nor be null");
@@ -104,8 +120,8 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
 		final ContentDecoder decoder, final IOControl ioctrl) throws IOException {
 		Asserts.notNull(this.fileChannel, "File channel");
 		final long transferred;
-		if (decoder instanceof FileContentDecoder) {
-			transferred = ((FileContentDecoder) decoder).transfer(
+		if (decoder instanceof FileContentDecoder fileContentDecoder) {
+			transferred = fileContentDecoder.transfer(
 				this.fileChannel, this.idx, Integer.MAX_VALUE);
 		} else {
 			transferred = this.fileChannel.transferFrom(

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
 import java.awt.color.ColorSpace;
@@ -13,10 +29,7 @@ import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public abstract class ExifInfo extends ImageInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);
 
@@ -151,7 +164,6 @@ public abstract class ExifInfo extends ImageInfo {
 		this.hasExifThumbnail = hasExifThumbnail;
 	}
 
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	@Override
 	protected void parseMetadata(Metadata metadata) {
 		if (metadata == null) {
@@ -208,7 +220,7 @@ public abstract class ExifInfo extends ImageInfo {
 								Arrays.toString(bytes)
 							);
 						}
-						if (i != null && i.intValue() > 0) {
+						if (i != null && i > 0) {
 							parsedInfo.bitDepth = i;
 						}
 					}
@@ -265,14 +277,15 @@ public abstract class ExifInfo extends ImageInfo {
 				) {
 					Integer i = ((ExifDirectoryBase) directory).getInteger(ExifDirectoryBase.TAG_COLOR_SPACE);
 					if (i != null) {
-						((ExifParseInfo) parsedInfo).exifColorSpace = ExifColorSpace.typeOf(i.intValue());
+						((ExifParseInfo) parsedInfo).exifColorSpace = ExifColorSpace.typeOf(i);
 					}
 				}
-			} else if (directory instanceof ExifThumbnailDirectory && !((ExifParseInfo) parsedInfo).hasExifThumbnail.booleanValue()) {
-				if (((ExifThumbnailDirectory) directory).containsTag(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH)) {
-					Integer i = ((ExifThumbnailDirectory) directory).getInteger(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH);
-					((ExifParseInfo) parsedInfo).hasExifThumbnail = Boolean.valueOf(i != null && i.intValue() > 0);
-				}
+			} else if (directory instanceof ExifThumbnailDirectory exifThumbnailDirectory &&
+					!((ExifParseInfo) parsedInfo).hasExifThumbnail &&
+					exifThumbnailDirectory.containsTag(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH)
+			) {
+				Integer i = exifThumbnailDirectory.getInteger(ExifThumbnailDirectory.TAG_THUMBNAIL_LENGTH);
+				((ExifParseInfo) parsedInfo).hasExifThumbnail = i != null && i > 0;
 			}
 		}
 	}
@@ -298,7 +311,7 @@ public abstract class ExifInfo extends ImageInfo {
 	 *         if unknown.
 	 */
 	public int getExifVersion() {
-		return exifVersion != null ? exifVersion.intValue() : UNKNOWN;
+		return exifVersion != null ? exifVersion : UNKNOWN;
 	}
 
 	/**
@@ -319,7 +332,7 @@ public abstract class ExifInfo extends ImageInfo {
 	 * @return Whether the image has an embedded Exif thumbnail.
 	 */
 	public boolean hasExifThumbnail() {
-		return hasExifThumbnail != null ? hasExifThumbnail.booleanValue() : false;
+		return hasExifThumbnail != null && hasExifThumbnail;
 	}
 
 	public enum PhotometricInterpretation {
@@ -339,38 +352,23 @@ public abstract class ExifInfo extends ImageInfo {
 		LINEAR_RAW;
 
 		public static PhotometricInterpretation typeOf(int value) {
-			switch (value) {
-				case 0:
-					return WHITE_IS_ZERO;
-				case 1:
-					return BLACK_IS_ZERO;
-				case 2:
-					return RGB;
-				case 3:
-					return RGB_PALETTE;
-				case 4:
-					return TRANSPARENCY_MASK;
-				case 5:
-					return CMYK;
-				case 6:
-					return Y_CB_CR;
-				case 8:
-					return CIE_LAB;
-				case 9:
-					return ICC_LAB;
-				case 10:
-					return ITU_LAB;
-				case 32803:
-					return COLOR_FILTER_ARRAY;
-				case 32844:
-					return PIXAR_LOG_L;
-				case 32845:
-					return PIXAR_LOG_LUV;
-				case 34892:
-					return LINEAR_RAW;
-				default:
-					return null;
-			}
+			return switch (value) {
+				case 0 -> WHITE_IS_ZERO;
+				case 1 -> BLACK_IS_ZERO;
+				case 2 -> RGB;
+				case 3 -> RGB_PALETTE;
+				case 4 -> TRANSPARENCY_MASK;
+				case 5 -> CMYK;
+				case 6 -> Y_CB_CR;
+				case 8 -> CIE_LAB;
+				case 9 -> ICC_LAB;
+				case 10 -> ITU_LAB;
+				case 32803 -> COLOR_FILTER_ARRAY;
+				case 32844 -> PIXAR_LOG_L;
+				case 32845 -> PIXAR_LOG_LUV;
+				case 34892 -> LINEAR_RAW;
+				default -> null;
+			};
 		}
 	}
 
@@ -417,92 +415,50 @@ public abstract class ExifInfo extends ImageInfo {
 		UNCOMPRESSED;
 
 		public static ExifCompression typeOf(int value) {
-			switch (value) {
-				case 1:
-					return UNCOMPRESSED;
-				case 2:
-					return CCITT_1D;
-				case 3:
-					return T4_GROUP_3_FAX;
-				case 4:
-					return T6_GROUP_4_FAX;
-				case 5:
-					return LZW;
-				case 6:
-					return JPEG_OLD_STYLE;
-				case 7:
-					return JPEG;
-				case 8:
-					return ADOBE_DEFLATE;
-				case 9:
-					return JBIG_B_W;
-				case 10:
-					return JBIG_COLOR;
-				case 99:
-					return JPEG;
-				case 262:
-					return KODAK_262;
-				case 32766:
-					return NEXT;
-				case 32767:
-					return SONY_ARW_COMPRESSED;
-				case 32769:
-					return PACKED_RAW;
-				case 32770:
-					return SAMSUNG_SRW_COMPRESSED;
-				case 32771:
-					return CCIRLEW;
-				case 32772:
-					return SAMSUNG_SRW_COMPRESSED_2;
-				case 32773:
-					return PACKBITS;
-				case 32809:
-					return THUNDERSCAN;
-				case 32867:
-					return KODAK_KDC_COMPRESSED;
-				case 32895:
-					return IT8CTPAD;
-				case 32896:
-					return IT8LW;
-				case 32897:
-					return IT8MP;
-				case 32898:
-					return IT8BL;
-				case 32908:
-					return PIXAR_FILM;
-				case 32909:
-					return PIXAR_LOG;
-				case 32946:
-					return DEFLATE;
-				case 32947:
-					return DCS;
-				case 34661:
-					return JBIG;
-				case 34676:
-					return SGILOG;
-				case 34677:
-					return SGILOG24;
-				case 34712:
-					return JPEG_2000;
-				case 34713:
-					return NIKON_NEF_COMPRESSED;
-				case 34715:
-					return JBIG2_TIFF_FX;
-				case 34718:
-					return MDI_BINARY_LEVEL_CODEC;
-				case 34719:
-					return MDI_PROGRESSIVE_TRANSFORM_CODEC;
-				case 34720:
-					return MDI_VECTOR;
-				case 34892:
-					return LOSSY_JPEG;
-				case 65000:
-					return KODAK_KDC_COMPRESSED;
-				case 65535:
-					return PENTAX_PEF_COMPRESSED;
-				default:
-					return null;
-			}
+			return switch (value) {
+				case 1 -> UNCOMPRESSED;
+				case 2 -> CCITT_1D;
+				case 3 -> T4_GROUP_3_FAX;
+				case 4 -> T6_GROUP_4_FAX;
+				case 5 -> LZW;
+				case 6 -> JPEG_OLD_STYLE;
+				case 7 -> JPEG;
+				case 8 -> ADOBE_DEFLATE;
+				case 9 -> JBIG_B_W;
+				case 10 -> JBIG_COLOR;
+				case 99 -> JPEG;
+				case 262 -> KODAK_262;
+				case 32766 -> NEXT;
+				case 32767 -> SONY_ARW_COMPRESSED;
+				case 32769 -> PACKED_RAW;
+				case 32770 -> SAMSUNG_SRW_COMPRESSED;
+				case 32771 -> CCIRLEW;
+				case 32772 -> SAMSUNG_SRW_COMPRESSED_2;
+				case 32773 -> PACKBITS;
+				case 32809 -> THUNDERSCAN;
+				case 32867 -> KODAK_KDC_COMPRESSED;
+				case 32895 -> IT8CTPAD;
+				case 32896 -> IT8LW;
+				case 32897 -> IT8MP;
+				case 32898 -> IT8BL;
+				case 32908 -> PIXAR_FILM;
+				case 32909 -> PIXAR_LOG;
+				case 32946 -> DEFLATE;
+				case 32947 -> DCS;
+				case 34661 -> JBIG;
+				case 34676 -> SGILOG;
+				case 34677 -> SGILOG24;
+				case 34712 -> JPEG_2000;
+				case 34713 -> NIKON_NEF_COMPRESSED;
+				case 34715 -> JBIG2_TIFF_FX;
+				case 34718 -> MDI_BINARY_LEVEL_CODEC;
+				case 34719 -> MDI_PROGRESSIVE_TRANSFORM_CODEC;
+				case 34720 -> MDI_VECTOR;
+				case 34892 -> LOSSY_JPEG;
+				case 65000 -> KODAK_KDC_COMPRESSED;
+				case 65535 -> PENTAX_PEF_COMPRESSED;
+				default -> null;
+			};
 		}
 	}
 
@@ -511,7 +467,7 @@ public abstract class ExifInfo extends ImageInfo {
 		UNCALIBRATED(65535),
 		UNKNOWN(0);
 
-		private int value;
+		private final int value;
 		private ExifColorSpace(int value) {
 			this.value = value;
 		}
@@ -521,14 +477,11 @@ public abstract class ExifInfo extends ImageInfo {
 		}
 
 		public static ExifColorSpace typeOf(int value) {
-			switch (value) {
-				case 1:
-					return SRGB;
-				case 65535:
-					return UNCALIBRATED;
-				default:
-					return UNKNOWN;
-			}
+			return switch (value) {
+				case 1 -> SRGB;
+				case 65535 -> UNCALIBRATED;
+				default -> UNKNOWN;
+			};
 		}
 	}
 
@@ -562,7 +515,7 @@ public abstract class ExifInfo extends ImageInfo {
 			sb.append(", Exif Color Space = ").append(exifColorSpace);
 		}
 		if (hasExifThumbnail != null) {
-			sb.append(", Has Exif Thumbnail = ").append(hasExifThumbnail.booleanValue() ? "True" : "False");
+			sb.append(", Has Exif Thumbnail = ").append(hasExifThumbnail ? "True" : "False");
 		}
 	}
 }

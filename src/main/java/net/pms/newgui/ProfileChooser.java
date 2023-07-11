@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui;
 
 import java.io.File;
@@ -6,6 +22,13 @@ import javax.swing.filechooser.FileFilter;
 import net.pms.Messages;
 
 public class ProfileChooser {
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ProfileChooser() {
+	}
+
 	private static class ProfileChooserFileFilter extends FileFilter {
 		// XXX: this is more restrictive than the environment variable/property (which accept any filename)
 		// but should simplify things in the UI
@@ -16,7 +39,7 @@ public class ProfileChooser {
 
 		@Override
 		public String getDescription() {
-			return Messages.getString("ProfileChooser.3");
+			return Messages.getString("ProfileFileOrFolder");
 		}
 	}
 
@@ -24,10 +47,10 @@ public class ProfileChooser {
 		final JFileChooser fc = new JFileChooser();
 
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		fc.setDialogTitle(Messages.getString("ProfileChooser.1"));
+		fc.setDialogTitle(Messages.getString("UniversalMediaServerProfileChooser"));
 		fc.setFileFilter(new ProfileChooserFileFilter());
 
-		int returnVal = fc.showDialog(null, Messages.getString("ProfileChooser.2"));
+		int returnVal = fc.showDialog(null, Messages.getString("Select"));
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();

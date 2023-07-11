@@ -1,16 +1,31 @@
 <!DOCTYPE html>
+<!-- 
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+-->
 <html>
 	<head>
-		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
-		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
-		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
-		<link rel="stylesheet" href="/files/functional.css" type="text/css">
+		<link rel="stylesheet" href="/files/util/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/util/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/util/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="stylesheet" href="/files/util/functional.css" type="text/css">
 		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-		<script src="/files/jquery.min.js"></script>
-		<script src="/files/js.cookie.min.js"></script>
-		<script src="/files/jquery.ums.js"></script>
-		<script src="/files/flowplayer.min.js"></script>
+		<script src="/files/util/jquery.min.js"></script>
+		<script src="/files/util/js.cookie.min.js"></script>
+		<script src="/files/util/jquery.ums.js"></script>
+		<script src="/files/util/flowplayer.min.js"></script>
 		<!-- New webUI -->
 		<script src="/files/util/bootstrap.min.js"></script>
 		<script src="/files/util/html5.js"></script>
@@ -48,9 +63,11 @@
 
 			function status(k, v, wait) {
 				//console.log('status '+JSON.stringify(arguments));
-				state[k] = v;
-				if (! wait) {
-					$.post('/playerstatus/', JSON.stringify(state));
+				if (state[k] != v) {
+					state[k] = v;
+					if (! wait) {
+						$.post('/playerstatus/', JSON.stringify(state));
+					}
 				}
 			}
 

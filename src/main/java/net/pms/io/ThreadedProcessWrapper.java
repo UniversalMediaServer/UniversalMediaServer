@@ -1,25 +1,21 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -33,10 +29,10 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
+import net.pms.service.Services;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.service.Services;
 
 /**
  * A non-blocking {@link Process} wrapper that runs the process in a new thread,
@@ -78,7 +74,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		return new ThreadedProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new ThreadedProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -101,7 +97,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		return new ThreadedProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new ThreadedProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -126,7 +122,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) {
-		return new ThreadedProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new ThreadedProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -149,7 +145,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long timeoutMS,
 		long terminateTimeoutMS
 	) {
-		return new ThreadedProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new ThreadedProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -174,7 +170,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		return new ThreadedProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new ThreadedProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -197,7 +193,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		return new ThreadedProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new ThreadedProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -222,7 +218,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) {
-		return new ThreadedProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new ThreadedProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -245,7 +241,7 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		long timeoutMS,
 		long terminateTimeoutMS
 	) {
-		return new ThreadedProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new ThreadedProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -260,14 +256,13 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 *            termination attempt before a new attempt is made.
 	 * @param command the command(s) used to create the {@link Process}.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		new ThreadedProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new ThreadedProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -281,13 +276,12 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 *            termination attempt before a new attempt is made.
 	 * @param command the command(s) used to create the {@link Process}.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeoutMS,
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) {
-		new ThreadedProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new ThreadedProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -302,14 +296,13 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 * @param terminateTimeoutMS the timeout in milliseconds for each
 	 *            termination attempt before a new attempt is made.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) {
-		new ThreadedProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new ThreadedProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -323,13 +316,12 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 	 * @param terminateTimeoutMS the timeout in milliseconds for each
 	 *            termination attempt before a new attempt is made.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeoutMS,
 		long terminateTimeoutMS
 	) {
-		new ThreadedProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new ThreadedProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -463,11 +455,11 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		final long timeoutMS,
 		final long terminateTimeoutMS
 	) {
-		if (command == null || command.isEmpty()) {
+		if (command.isEmpty()) {
 			throw new IllegalArgumentException("command can't be null or empty");
 		}
 		final String executableName;
-		if (isNotBlank(command.get(0))) {
+		if (StringUtils.isNotBlank(command.get(0))) {
 			Path executable = Paths.get(command.get(0)).getFileName();
 			if (executable != null) {
 				executableName = executable.toString();
@@ -479,67 +471,63 @@ public class ThreadedProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R ex
 		}
 		final int threadId = PROCESS_COUNTER.getAndIncrement();
 
-		Callable<R> callable = new Callable<R>() {
-
-			@Override
-			public R call() throws InterruptedException {
-				boolean manageProcess = timeoutMS > 0;
-				ProcessBuilder processBuilder = new ProcessBuilder(command);
-				processBuilder.redirectErrorStream(true);
-				if (LOGGER.isTraceEnabled()) {
-					//XXX: Replace with String.join() in Java 8
-					LOGGER.trace("Executing \"{}\"", StringUtils.join(command, " "));
-				}
-				Process process;
+		Callable<R> callable = () -> {
+			boolean manageProcess = timeoutMS > 0;
+			ProcessBuilder processBuilder = new ProcessBuilder(command);
+			processBuilder.redirectErrorStream(true);
+			if (LOGGER.isTraceEnabled()) {
+				//XXX: Replace with String.join() in Java 8
+				LOGGER.trace("Executing \"{}\"", StringUtils.join(command, " "));
+			}
+			Process process;
+			try {
+				process = processBuilder.start();
+			} catch (IOException e) {
+				LOGGER.debug("IOException when trying to start \"{}\" process: {}", executableName, e.getMessage());
+				LOGGER.trace("", e);
+				return consumer.createResult(null, Integer.MIN_VALUE, e);
+			}
+			Future<T> output = consumer.consume(process.getInputStream(), "TPW \"" + executableName + "\" consumer " + threadId);
+			if (manageProcess) {
+				Services.processManager().addProcess(process, executableName, timeoutMS, terminateTimeoutMS);
+			}
+			int exitCode = Integer.MIN_VALUE;
+			boolean interrupted;
+			boolean shutdown = false;
+			do {
+				interrupted = false;
 				try {
-					process = processBuilder.start();
-				} catch (IOException e) {
-					LOGGER.debug("IOException when trying to start \"{}\" process: {}", executableName, e.getMessage());
-					LOGGER.trace("", e);
-					return consumer.createResult(null, Integer.MIN_VALUE, e);
-				}
-				Future<T> output = consumer.consume(process.getInputStream(), "TPW \"" + executableName + "\" consumer " + threadId);
-				if (manageProcess) {
-					Services.processManager().addProcess(process, executableName, timeoutMS, terminateTimeoutMS);
-				}
-				int exitCode = Integer.MIN_VALUE;
-				boolean interrupted = false;
-				boolean shutdown = false;
-				do {
-					interrupted = false;
-					try {
-						exitCode = process.waitFor();
-					} catch (InterruptedException e) {
-						interrupted = Thread.interrupted();
-						if (!shutdown) {
-							if (manageProcess) {
-								Services.processManager().shutdownProcess(process, executableName);
-								manageProcess = false;
-							} else {
-								Services.processManager().addProcess(process, executableName, 0, terminateTimeoutMS);
-							}
-							shutdown = true;
+					exitCode = process.waitFor();
+				} catch (InterruptedException e) {
+					interrupted = Thread.interrupted();
+					if (!shutdown) {
+						if (manageProcess) {
+							Services.processManager().shutdownProcess(process, executableName);
+							manageProcess = false;
+						} else {
+							Services.processManager().addProcess(process, executableName, 0, terminateTimeoutMS);
 						}
+						shutdown = true;
 					}
-				} while (interrupted);
-				if (manageProcess) {
-					Services.processManager().removeProcess(process, executableName);
 				}
-				try {
-					return consumer.createResult(output.get(), exitCode, null);
-				} catch (ExecutionException e) {
-					Throwable cause = e.getCause() != null ? e.getCause() : e;
-					LOGGER.error(
+			} while (interrupted);
+			if (manageProcess) {
+				Services.processManager().removeProcess(process, executableName);
+			}
+			try {
+				return consumer.createResult(output.get(), exitCode, null);
+			} catch (ExecutionException e) {
+				Throwable cause = e.getCause() != null ? e.getCause() : e;
+				LOGGER.error(
 						"ExecutionException in \"{}\" consumer, no output will be returned: {}",
 						executableName,
 						cause.getMessage()
-					);
-					LOGGER.trace("", e);
-					return consumer.createResult(null, exitCode, cause);
-				}
+				);
+				LOGGER.trace("", e);
+				return consumer.createResult(null, exitCode, cause);
 			}
 		};
-		FutureTask<R> result = new FutureTask<R>(callable);
+		FutureTask<R> result = new FutureTask<>(callable);
 		Thread runner = new Thread(result, "TPW \"" + executableName + "\" " + threadId);
 		runner.start();
 		return result;

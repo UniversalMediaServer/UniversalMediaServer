@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
 import java.awt.color.ColorSpace;
@@ -13,10 +29,7 @@ import com.drew.metadata.jfif.JfifDirectory;
 import com.drew.metadata.jpeg.HuffmanTablesDirectory;
 import com.drew.metadata.jpeg.JpegComponent;
 import com.drew.metadata.jpeg.JpegDirectory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-@SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class JPEGInfo extends ExifInfo {
 	protected final Map<Integer, JpegComponent> components;
 	protected final Integer jfifVersion;
@@ -174,23 +187,23 @@ public class JPEGInfo extends ExifInfo {
 		super.parseMetadata(metadata);
 
 		for (Directory directory : metadata.getDirectories()) {
-			if (directory instanceof JpegDirectory) {
+			if (directory instanceof JpegDirectory jpegDirectory) {
 				parsedInfo.format = ImageFormat.JPEG;
 				if (
-					((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
-					((JpegDirectory) directory).containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)
+					jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_WIDTH) &&
+					jpegDirectory.containsTag(JpegDirectory.TAG_IMAGE_HEIGHT)
 				) {
-					parsedInfo.width = ((JpegDirectory) directory).getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
-					parsedInfo.height = ((JpegDirectory) directory).getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
+					parsedInfo.width = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_WIDTH);
+					parsedInfo.height = jpegDirectory.getInteger(JpegDirectory.TAG_IMAGE_HEIGHT);
 				}
-				if (((JpegDirectory) directory).containsTag(JpegDirectory.TAG_DATA_PRECISION)) {
-					Integer i = ((JpegDirectory) directory).getInteger(JpegDirectory.TAG_DATA_PRECISION);
+				if (jpegDirectory.containsTag(JpegDirectory.TAG_DATA_PRECISION)) {
+					Integer i = jpegDirectory.getInteger(JpegDirectory.TAG_DATA_PRECISION);
 					if (i != null) {
 						parsedInfo.bitDepth = i;
 					}
 				}
-				if (((JpegDirectory) directory).containsTag(JpegDirectory.TAG_NUMBER_OF_COMPONENTS)) {
-					Integer i = ((JpegDirectory) directory).getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS);
+				if (jpegDirectory.containsTag(JpegDirectory.TAG_NUMBER_OF_COMPONENTS)) {
+					Integer i = jpegDirectory.getInteger(JpegDirectory.TAG_NUMBER_OF_COMPONENTS);
 					if (i != null) {
 						parsedInfo.numComponents = i;
 						/*
@@ -212,29 +225,28 @@ public class JPEGInfo extends ExifInfo {
 						}
 
 						((JPEGParseInfo) parsedInfo).components.clear();
-						for (int j = 0; j < parsedInfo.numComponents.intValue(); j++) {
-							((JPEGParseInfo) parsedInfo).components.put(j, ((JpegDirectory) directory).getComponent(j));
+						for (int j = 0; j < parsedInfo.numComponents; j++) {
+							((JPEGParseInfo) parsedInfo).components.put(j, jpegDirectory.getComponent(j));
 						}
 					}
 				}
-				if (((JpegDirectory) directory).containsTag(JpegDirectory.TAG_COMPRESSION_TYPE)) {
-					Integer i = ((JpegDirectory) directory).getInteger(JpegDirectory.TAG_COMPRESSION_TYPE);
+				if (jpegDirectory.containsTag(JpegDirectory.TAG_COMPRESSION_TYPE)) {
+					Integer i = jpegDirectory.getInteger(JpegDirectory.TAG_COMPRESSION_TYPE);
 					if (i != null) {
-						((JPEGParseInfo) parsedInfo).compressionType = CompressionType.typeOf(i.intValue());
+						((JPEGParseInfo) parsedInfo).compressionType = CompressionType.typeOf(i);
 					}
 				}
 				((JPEGParseInfo) parsedInfo).chromaSubsampling =
-					JPEGSubsamplingNotation.calculateJPEGSubsampling((JpegDirectory) directory);
-			} else if (directory instanceof JfifDirectory) {
-				if (((JfifDirectory) directory).containsTag(JfifDirectory.TAG_VERSION)) {
-					Integer i = ((JfifDirectory) directory).getInteger(JfifDirectory.TAG_VERSION);
+					JPEGSubsamplingNotation.calculateJPEGSubsampling(jpegDirectory);
+			} else if (directory instanceof JfifDirectory jfifDirectory) {
+				if (jfifDirectory.containsTag(JfifDirectory.TAG_VERSION)) {
+					Integer i = jfifDirectory.getInteger(JfifDirectory.TAG_VERSION);
 					if (i != null) {
 						((JPEGParseInfo) parsedInfo).jfifVersion = i;
 					}
 				}
-			} else if (directory instanceof HuffmanTablesDirectory) {
-				((JPEGParseInfo) parsedInfo).isTypicalHuffman =
-					Boolean.valueOf(((HuffmanTablesDirectory) directory).isTypical());
+			} else if (directory instanceof HuffmanTablesDirectory huffmanTablesDirectory) {
+				((JPEGParseInfo) parsedInfo).isTypicalHuffman = huffmanTablesDirectory.isTypical();
 			}
 		}
 	}
@@ -263,7 +275,7 @@ public class JPEGInfo extends ExifInfo {
 	 *         if unknown.
 	 */
 	public int getJFIFVersion() {
-		return jfifVersion != null ? jfifVersion.intValue() : UNKNOWN;
+		return jfifVersion != null ? jfifVersion : UNKNOWN;
 	}
 
 	/**
@@ -278,7 +290,7 @@ public class JPEGInfo extends ExifInfo {
 	 *         tables defined in K.3 - K.3 in the JPEG standard.
 	 */
 	public boolean isTypicalHuffman() {
-		return isTypicalHuffman != null ? isTypicalHuffman.booleanValue() : false;
+		return isTypicalHuffman != null && isTypicalHuffman;
 	}
 
 	/**
@@ -332,60 +344,37 @@ public class JPEGInfo extends ExifInfo {
 		DIFFERENTIAL_LOSSLESS_ARITHMETIC;
 
 		public static CompressionType typeOf(int value) {
-			switch (value) {
-				case 0:
-					return BASELINE_HUFFMAN;
-				case 1:
-					return EXTENDED_SEQUENTIAL_HUFFMAN;
-				case 2:
-					return PROGRESSIVE_HUFFMAN;
-				case 3:
-					return LOSSLESS_HUFFMAN;
-				case 5:
-					return DIFFERENTIAL_SEQUENTIAL_HUFFMAN;
-				case 6:
-					return DIFFERENTIAL_PROGRESSIVE_HUFFMAN;
-				case 7:
-					return DIFFERENTIAL_LOSSLESS_HUFFMAN;
-				case 8:
-					return RESERVED;
-				case 9:
-					return EXTENDED_SEQUENTIAL_ARITHMETIC;
-				case 10:
-					return PROGRESSIVE_ARITHMETIC;
-				case 11:
-					return LOSSLESS_ARITHMETIC;
-				case 13:
-					return DIFFERENTIAL_SEQUENTIAL_ARITHMETIC;
-				case 14:
-					return DIFFERENTIAL_PROGRESSIVE_ARITHMETIC;
-				case 15:
-					return DIFFERENTIAL_LOSSLESS_ARITHMETIC;
-				default:
-					return null;
-			}
+			return switch (value) {
+				case 0 -> BASELINE_HUFFMAN;
+				case 1 -> EXTENDED_SEQUENTIAL_HUFFMAN;
+				case 2 -> PROGRESSIVE_HUFFMAN;
+				case 3 -> LOSSLESS_HUFFMAN;
+				case 5 -> DIFFERENTIAL_SEQUENTIAL_HUFFMAN;
+				case 6 -> DIFFERENTIAL_PROGRESSIVE_HUFFMAN;
+				case 7 -> DIFFERENTIAL_LOSSLESS_HUFFMAN;
+				case 8 -> RESERVED;
+				case 9 -> EXTENDED_SEQUENTIAL_ARITHMETIC;
+				case 10 -> PROGRESSIVE_ARITHMETIC;
+				case 11 -> LOSSLESS_ARITHMETIC;
+				case 13 -> DIFFERENTIAL_SEQUENTIAL_ARITHMETIC;
+				case 14 -> DIFFERENTIAL_PROGRESSIVE_ARITHMETIC;
+				case 15 -> DIFFERENTIAL_LOSSLESS_ARITHMETIC;
+				default -> null;
+			};
 		}
 
 		public boolean isHuffman() {
-			switch (this) {
-				case BASELINE_HUFFMAN:
-				case DIFFERENTIAL_LOSSLESS_HUFFMAN:
-				case DIFFERENTIAL_PROGRESSIVE_HUFFMAN:
-				case DIFFERENTIAL_SEQUENTIAL_HUFFMAN:
-				case EXTENDED_SEQUENTIAL_HUFFMAN:
-				case LOSSLESS_HUFFMAN:
-				case PROGRESSIVE_HUFFMAN:
-					return true;
-				default:
-					return false;
-			}
+			return switch (this) {
+				case BASELINE_HUFFMAN, DIFFERENTIAL_LOSSLESS_HUFFMAN, DIFFERENTIAL_PROGRESSIVE_HUFFMAN, DIFFERENTIAL_SEQUENTIAL_HUFFMAN, EXTENDED_SEQUENTIAL_HUFFMAN, LOSSLESS_HUFFMAN, PROGRESSIVE_HUFFMAN -> true;
+				default -> false;
+			};
 		}
 	}
 
 	protected static class JPEGParseInfo extends ExifParseInfo {
 		Integer jfifVersion;
 		CompressionType compressionType;
-		Map<Integer, JpegComponent> components = new HashMap<Integer, JpegComponent>(4);
+		Map<Integer, JpegComponent> components = new HashMap<>(4);
 		Boolean isTypicalHuffman;
 		JPEGSubsamplingNotation chromaSubsampling;
 	}
@@ -400,7 +389,7 @@ public class JPEGInfo extends ExifInfo {
 			sb.append(", Compression Type = ").append(compressionType);
 		}
 		if (isTypicalHuffman != null) {
-			sb.append(", Typical Huffman = ").append(isTypicalHuffman.booleanValue() ? "True" : "False");
+			sb.append(", Typical Huffman = ").append(isTypicalHuffman ? "True" : "False");
 		}
 		if (chromaSubsampling != null) {
 			sb.append(", Chroma Subsampling = ").append(chromaSubsampling);

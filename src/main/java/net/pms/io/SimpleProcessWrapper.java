@@ -1,25 +1,21 @@
 /*
- * Digital Media Server, for streaming digital media to DLNA compatible devices
- * based on www.ps3mediaserver.org and www.universalmediaserver.com.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.io;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
@@ -74,7 +70,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new SimpleProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -98,7 +94,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new SimpleProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -124,7 +120,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new SimpleProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -148,7 +144,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long timeoutMS,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ListProcessWrapperConsumer, ListProcessWrapperResult, List<String>>(
+		return new SimpleProcessWrapper<>(
 			new ListProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -174,7 +170,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new SimpleProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -198,7 +194,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new SimpleProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -224,7 +220,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new SimpleProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -248,7 +244,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long timeoutMS,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		return new SimpleProcessWrapper<ByteProcessWrapperConsumer, ByteProcessWrapperResult, byte[]>(
+		return new SimpleProcessWrapper<>(
 			new ByteProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -265,14 +261,13 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		new SimpleProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new SimpleProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(timeUnit.toMillis(timeout), terminateTimeoutMS, command);
 	}
@@ -288,13 +283,12 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		long timeoutMS,
 		long terminateTimeoutMS,
 		@Nonnull String... command
 	) throws InterruptedException {
-		new SimpleProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new SimpleProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(timeoutMS, terminateTimeoutMS, command);
 	}
@@ -311,14 +305,13 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeout,
 		@Nonnull TimeUnit timeUnit,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		new SimpleProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new SimpleProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(command, timeUnit.toMillis(timeout), terminateTimeoutMS);
 	}
@@ -334,13 +327,12 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 	 * @throws InterruptedException If interrupted while waiting for the
 	 *             {@link Process} to finish.
 	 */
-	@Nonnull
 	public static void runProcessNullOutput(
 		@Nonnull List<String> command,
 		long timeoutMS,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		new SimpleProcessWrapper<NullProcessWrapperConsumer, NullProcessWrapperResult, Void>(
+		new SimpleProcessWrapper<>(
 			new NullProcessWrapperConsumer()
 		).runProcess(command, timeoutMS, terminateTimeoutMS);
 	}
@@ -478,11 +470,11 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		long timeoutMS,
 		long terminateTimeoutMS
 	) throws InterruptedException {
-		if (command == null || command.isEmpty()) {
+		if (command.isEmpty()) {
 			throw new IllegalArgumentException("command can't be null or empty");
 		}
 		final String executableName;
-		if (isNotBlank(command.get(0))) {
+		if (StringUtils.isNotBlank(command.get(0))) {
 			Path executable = Paths.get(command.get(0)).getFileName();
 			if (executable != null) {
 				executableName = executable.toString();
@@ -494,6 +486,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 		}
 		boolean manageProcess = timeoutMS > 0;
 		ProcessBuilder processBuilder = new ProcessBuilder(command);
+		processBuilder.environment().put("LC_ALL", "C");
 		processBuilder.redirectErrorStream(true);
 		if (LOGGER.isTraceEnabled()) {
 			//XXX: Replace with String.join() in Java 8
@@ -512,7 +505,7 @@ public class SimpleProcessWrapper<C extends ProcessWrapperConsumer<R, T>, R exte
 			Services.processManager().addProcess(process, command.get(0), timeoutMS, terminateTimeoutMS);
 		}
 		int exitCode = Integer.MIN_VALUE;
-		boolean interrupted = false;
+		boolean interrupted;
 		boolean shutdown = false;
 		do {
 			interrupted = false;

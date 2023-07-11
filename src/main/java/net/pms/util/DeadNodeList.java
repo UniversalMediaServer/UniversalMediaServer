@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA compatible renderers
- * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
- * developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -66,22 +64,22 @@ public class DeadNodeList extends ArrayList<Node> implements NodeList {
 	 */
 	public DeadNodeList(Object nodeList) {
 		super();
-		if (nodeList instanceof Collection<?>) {
-			for (Object object : ((Collection<?>) nodeList)) {
-				if (object instanceof Node) {
-					add((Node) object);
+		if (nodeList instanceof Collection<?> collection) {
+			for (Object object : collection) {
+				if (object instanceof Node node) {
+					add(node);
 				} else {
 					LOGGER.error(
 						"Can't add \"{}\" to DeadNodeList since {} doesn't implement Node - skipping",
 						object,
-						object.getClass().getSimpleName()
+						object != null ? object.getClass().getSimpleName() : "null"
 					);
 				}
 			}
 		} else if (nodeList instanceof NodeList || nodeList instanceof Node) {
 			Node node;
-			if (nodeList instanceof Node) {
-				node = (Node) nodeList;
+			if (nodeList instanceof Node newNnode) {
+				node = newNnode;
 			} else {
 				node = ((NodeList) nodeList).item(0);
 			}

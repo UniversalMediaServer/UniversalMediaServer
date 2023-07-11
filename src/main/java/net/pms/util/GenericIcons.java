@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -142,12 +139,12 @@ public enum GenericIcons {
 		cacheLock.lock();
 		try {
 			if (!cache.containsKey(imageFormat)) {
-				cache.put(imageFormat, new HashMap<IconType, Map<String, DLNAThumbnail>>());
+				cache.put(imageFormat, new HashMap<>());
 			}
 			Map<IconType, Map<String, DLNAThumbnail>> typeCache = cache.get(imageFormat);
 
 			if (!typeCache.containsKey(iconType)) {
-				typeCache.put(iconType, new HashMap<String, DLNAThumbnail>());
+				typeCache.put(iconType, new HashMap<>());
 			}
 			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
 
@@ -165,7 +162,7 @@ public enum GenericIcons {
 			}
 
 			if (isBlank(label)) {
-				label = Messages.getString("Generic.Unknown");
+				label = Messages.getString("Unknown");
 			}
 
 			if (imageCache.containsKey(label)) {
@@ -228,24 +225,16 @@ public enum GenericIcons {
 			return null;
 		}
 		// Replace some Identifier names with prettier ones
-		switch (format.getIdentifier()) {
-			case AUDIO_AS_VIDEO:
-				return "Audio as Video";
-			case MICRODVD:
-				return "MicroDVD";
-			case SUBRIP:
-				return "SubRip";
-			case THREEG2A:
-				return "3G2A";
-			case THREEGA:
-				return "3GA";
-			case WEBVTT:
-				return "WebVTT";
-			case ISOVOB:
-				return Messages.getString("GenericIcons.DVDVideo");
-			default:
-				return format.getIdentifier().toString();
-		}
+		return switch (format.getIdentifier()) {
+			case AUDIO_AS_VIDEO -> "Audio as Video";
+			case MICRODVD -> "MicroDVD";
+			case SUBRIP -> "SubRip";
+			case THREEG2A -> "3G2A";
+			case THREEGA -> "3GA";
+			case WEBVTT -> "WebVTT";
+			case ISOVOB -> Messages.getString("DvdVideo");
+			default -> format.getIdentifier().toString();
+		};
 	}
 
 	private static String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
@@ -267,19 +256,12 @@ public enum GenericIcons {
 	private DLNAThumbnail createGenericIcon(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
 
 		BufferedImage image;
-		switch (iconType) {
-			case AUDIO:
-				image = genericAudioIcon;
-				break;
-			case IMAGE:
-				image = genericImageIcon;
-				break;
-			case VIDEO:
-				image = genericVideoIcon;
-				break;
-			default:
-				image = genericUnknownIcon;
-		}
+		image = switch (iconType) {
+			case AUDIO -> genericAudioIcon;
+			case IMAGE -> genericImageIcon;
+			case VIDEO -> genericVideoIcon;
+			default -> genericUnknownIcon;
+		};
 
 		if (image != null) {
 			// Make a copy
@@ -363,7 +345,7 @@ public enum GenericIcons {
 	/**
 	 * An {@code enum} representing the type of generic icon/thumbnail.
 	 */
-	protected static enum IconType {
+	public enum IconType {
 
 		/** Audio */
 		AUDIO,

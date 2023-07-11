@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.logging;
 
@@ -37,12 +34,12 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -50,69 +47,22 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingTest {
 
-	private static class TestAppender<E> extends AppenderBase<E> {
-
-		private final Object lastEventLock = new Object();
-		private E lastEvent = null;
-
-		public E getLastEvent() {
-			synchronized (lastEventLock) {
-				return lastEvent;
-			}
-		}
-		@Override
-		protected void append(E eventObject) {
-			synchronized (lastEventLock) {
-				lastEvent = eventObject;
-			}
-		}
-	}
-
-	private static class TestFileAppender<E> extends FileAppender<E> {
-
-		@Override
-		protected void append(E eventObject) {
-		}
-	}
-
-	@Before
+	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that is being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
 	}
 
-	private static boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
-		boolean found = false;
-		while (iterator.hasNext()) {
-			Appender<ILoggingEvent> a = iterator.next();
-			if (a == appender) {
-				found = true;
-			}
-		}
-		return found;
-	}
-
-	private static boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
-		while (iterator.hasNext()) {
-			Appender<ILoggingEvent> appender = iterator.next();
-			if (appender instanceof SyslogAppender) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	/**
-	 * Test CacheAppender and it's utility class CacheLogger
+	 * Test CacheAppender and its utility class CacheLogger
 	 */
 	@Test
 	public void testCacheLogger() {
 		final String testMessage = "Test logging event";
 
 		// Set up logging framework for testing
-		assertTrue("LogBack", LoggerFactory.getILoggerFactory() instanceof LoggerContext);
+		assertTrue(LoggerFactory.getILoggerFactory() instanceof LoggerContext, "LogBack");
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 		Logger rootLogger = context.getLogger(Logger.ROOT_LOGGER_NAME);
@@ -123,26 +73,26 @@ public class LoggingTest {
 		rootLogger.setLevel(Level.ERROR);
 
 		// Test basic functionality
-		assertFalse("CacheLoggerInactive", CacheLogger.isActive());
+		assertFalse(CacheLogger.isActive(), "CacheLoggerInactive");
 		CacheLogger.startCaching();
 		rootLogger.error(testMessage);
-		assertTrue("CacheLoggerActive", CacheLogger.isActive());
+		assertTrue(CacheLogger.isActive(), "CacheLoggerActive");
 		CacheLogger.stopAndFlush();
-		assertEquals("LoggedMessage", testAppender.getLastEvent().getMessage(), testMessage);
-		assertFalse("CacheLoggerInactive", CacheLogger.isActive());
+		assertEquals(testAppender.getLastEvent().getMessage(), testMessage, "LoggedMessage");
+		assertFalse(CacheLogger.isActive(), "CacheLoggerInactive");
 		rootLogger.setLevel(Level.OFF);
 
 		// Test other CacheLogger functions
 		CacheLogger.startCaching();
-		assertTrue("AppenderIterator", findAppender(CacheLogger.iteratorForAppenders(), testAppender));
+		assertTrue(findAppender(CacheLogger.iteratorForAppenders(), testAppender), "AppenderIterator");
 		CacheLogger.removeAppender(testAppender);
-		assertFalse("AppenderRemoval", findAppender(CacheLogger.iteratorForAppenders(), testAppender));
+		assertFalse(findAppender(CacheLogger.iteratorForAppenders(), testAppender), "AppenderRemoval");
 		TestAppender<ILoggingEvent> testAppender2 = new TestAppender<>();
 		CacheLogger.addAppender(testAppender2);
-		assertTrue("AppenderAdding", findAppender(CacheLogger.iteratorForAppenders(), testAppender2));
+		assertTrue(findAppender(CacheLogger.iteratorForAppenders(), testAppender2), "AppenderAdding");
 		CacheLogger.stopAndFlush();
-		assertTrue("AppenderTransferred", findAppender(rootLogger.iteratorForAppenders(), testAppender2));
-		assertFalse("RemovedAppenderNotTransferred", findAppender(rootLogger.iteratorForAppenders(), testAppender));
+		assertTrue(findAppender(rootLogger.iteratorForAppenders(), testAppender2), "AppenderTransferred");
+		assertFalse(findAppender(rootLogger.iteratorForAppenders(), testAppender), "RemovedAppenderNotTransferred");
 
 		// Cleanup
 		rootLogger.detachAppender(testAppender2);
@@ -150,6 +100,7 @@ public class LoggingTest {
 
 	/**
 	 * Test
+	 * @throws ConfigurationException
 	 * @throws InterruptedException
 	 *
 	 */
@@ -158,22 +109,22 @@ public class LoggingTest {
 
 		// Set up PMS configuration
 		PMS.get();
-		PMS.setConfiguration(new PmsConfiguration());
+		PMS.setConfiguration(new UmsConfiguration());
 		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();
 
 		// Test logFilePath
 		propertyDefiner.setKey("logFilePath");
 		File file = new File(propertyDefiner.getPropertyValue());
-		assertTrue("logFilePathIsDirectory", file.isDirectory());
-		assertFalse("logFilePathIsNotFile", file.isFile());
+		assertTrue(file.isDirectory(), "logFilePathIsDirectory");
+		assertFalse(file.isFile(), "logFilePathIsNotFile");
 
 		// Test rootLevel
 		propertyDefiner.setKey("rootLevel");
-		assertNotNull("ValidLevel", Level.toLevel(propertyDefiner.getPropertyValue(), null));
+		assertNotNull(Level.toLevel(propertyDefiner.getPropertyValue(), null), "ValidLevel");
 
 		// Test logFileName
 		propertyDefiner.setKey("logFileName");
-		assertTrue("ValidLogFileName", FileUtil.isValidFileName(propertyDefiner.getPropertyValue()));
+		assertTrue(FileUtil.isValidFileName(propertyDefiner.getPropertyValue()), "ValidLogFileName");
 	}
 
 	@Test
@@ -181,7 +132,7 @@ public class LoggingTest {
 
 		// Set up a test (default) configuration
 		PMS.get();
-		PmsConfiguration configuration = new PmsConfiguration(false);
+		UmsConfiguration configuration = new UmsConfiguration(false);
 		PMS.setConfiguration(configuration);
 
 		// Load logback configuration
@@ -200,26 +151,26 @@ public class LoggingTest {
 
 		// Test for a valid configuration
 		File file = new File(LoggingConfig.getConfigFilePath());
-		assertTrue("LoggingConfigIsFile", file.isFile());
-		assertFalse("LoggingConfigIsFile", file.isDirectory());
+		assertTrue(file.isFile(), "LoggingConfigIsFile");
+		assertFalse(file.isDirectory(), "LoggingConfigIsFile");
 
 		// Test getLogFilePaths() and LoggingConfigFileLoader.getLogFilePaths()
-		HashMap<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
+		Map<String, String> logFilePaths = LoggingConfig.getLogFilePaths();
 		@SuppressWarnings("deprecation")
-		HashMap<String, String> compLogFilePaths = LoggingConfigFileLoader.getLogFilePaths();
+		Map<String, String> compLogFilePaths = LoggingConfigFileLoader.getLogFilePaths();
 		Iterator<Appender<ILoggingEvent>> iterator = rootLogger.iteratorForAppenders();
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof FileAppender) {
 				FileAppender<ILoggingEvent> fa = (FileAppender<ILoggingEvent>) appender;
-				assertTrue("LogFilePathsContainsKey", logFilePaths.containsKey(fa.getName()));
-				assertEquals("LogFilePathsHasPath", logFilePaths.get(fa.getName()), fa.getFile());
+				assertTrue(logFilePaths.containsKey(fa.getName()), "LogFilePathsContainsKey");
+				assertEquals(logFilePaths.get(fa.getName()), fa.getFile(), "LogFilePathsHasPath");
 				if (fa.getName().equals("default.log")) {
-					assertTrue("CompatibleLogFilePathsContainsKey", compLogFilePaths.containsKey("debug.log"));
-					assertEquals("CompatibleLogFilePathsHasPath", compLogFilePaths.get("debug.log"), fa.getFile());
+					assertTrue(compLogFilePaths.containsKey("debug.log"), "CompatibleLogFilePathsContainsKey");
+					assertEquals(compLogFilePaths.get("debug.log"), fa.getFile(), "CompatibleLogFilePathsHasPath");
 				} else {
-					assertTrue("CompatibleLogFilePathsContainsKey", compLogFilePaths.containsKey(fa.getName()));
-					assertEquals("CompatibleLogFilePathsHasPath", compLogFilePaths.get(fa.getName()), fa.getFile());
+					assertTrue(compLogFilePaths.containsKey(fa.getName()), "CompatibleLogFilePathsContainsKey");
+					assertEquals(compLogFilePaths.get(fa.getName()), fa.getFile(), "CompatibleLogFilePathsHasPath");
 				}
 			}
 		}
@@ -257,7 +208,7 @@ public class LoggingTest {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
 				// Appender has ImmediateFlush property
-				assertFalse("LogFileIsBuffered", ((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush());
+				assertFalse(((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush(), "LogFileIsBuffered");
 			}
 		}
 		LoggingConfig.setBuffered(false);
@@ -265,19 +216,19 @@ public class LoggingTest {
 		while (iterator.hasNext()) {
 			Appender<ILoggingEvent> appender = iterator.next();
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
-				assertTrue("LogFileIsNotBuffered", ((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush());
+				assertTrue(((OutputStreamAppender<ILoggingEvent>) appender).isImmediateFlush(), "LogFileIsNotBuffered");
 				// Appender has ImmediateFlush property
 			}
 		}
 
 		// Test getRootLevel()
-		assertEquals("GetRootLevel", LoggingConfig.getRootLevel(), rootLogger.getLevel());
+		assertEquals(LoggingConfig.getRootLevel(), rootLogger.getLevel(), "GetRootLevel");
 
 		// Test setRootLevel()
 		LoggingConfig.setRootLevel(Level.ALL);
-		assertEquals("SetRootLevel", LoggingConfig.getRootLevel(), Level.ALL);
+		assertEquals(LoggingConfig.getRootLevel(), Level.ALL, "SetRootLevel");
 		LoggingConfig.setRootLevel(Level.INFO);
-		assertEquals("SetRootLevel", LoggingConfig.getRootLevel(), Level.INFO);
+		assertEquals(LoggingConfig.getRootLevel(), Level.INFO, "SetRootLevel");
 		LoggingConfig.setRootLevel(Level.OFF);
 
 		// Test setConsoleFilter()
@@ -293,58 +244,58 @@ public class LoggingTest {
 		rootLogger.addAppender(consoleAppender);
 		LoggingConfig.setConsoleFilter();
 		List<Filter<ILoggingEvent>> filterList = consoleAppender.getCopyOfAttachedFiltersList();
-		assertEquals("NumberOfConsoleFilters", filterList.size(), 1);
-		assertTrue("ConsoleFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
+		assertEquals(filterList.size(), 1, "NumberOfConsoleFilters");
+		assertTrue(filterList.get(0) instanceof ThresholdFilter, "ConsoleFilterIsThresholdFilter");
 		ThresholdFilter thresholdFilter = (ThresholdFilter) filterList.get(0);
 		Field field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("ConsoleFilterLevel", field.get(thresholdFilter), Level.WARN);
+		assertEquals(field.get(thresholdFilter), Level.WARN, "ConsoleFilterLevel");
 		configuration.setLoggingFilterConsole(Level.TRACE);
 		LoggingConfig.setConsoleFilter();
 		filterList = consoleAppender.getCopyOfAttachedFiltersList();
-		assertEquals("NumberOfConsoleFilters", filterList.size(), 1);
-		assertTrue("ConsoleFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
+		assertEquals(filterList.size(), 1, "NumberOfConsoleFilters");
+		assertTrue(filterList.get(0) instanceof ThresholdFilter, "ConsoleFilterIsThresholdFilter");
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("ConsoleFilterLevel", field.get(thresholdFilter), Level.TRACE);
+		assertEquals(field.get(thresholdFilter), Level.TRACE, "ConsoleFilterLevel");
 		rootLogger.detachAppender(consoleAppender);
 
 		// Test setTracesFilter()
 		configuration.setLoggingFilterLogsTab(Level.WARN);
-		FrameAppender<ILoggingEvent> frameAppender = new FrameAppender<>();
-		frameAppender.setContext(context);
+		GuiManagerAppender<ILoggingEvent> guiAppender = new GuiManagerAppender<>();
+		guiAppender.setContext(context);
 		patternEncoder = new PatternLayoutEncoder();
 		patternEncoder.setPattern("%msg%n");
 		patternEncoder.setContext(context);
 		patternEncoder.start();
-		frameAppender.setEncoder(patternEncoder);
-		frameAppender.start();
-		rootLogger.addAppender(frameAppender);
+		guiAppender.setEncoder(patternEncoder);
+		guiAppender.start();
+		rootLogger.addAppender(guiAppender);
 		LoggingConfig.setTracesFilter();
-		filterList = frameAppender.getCopyOfAttachedFiltersList();
-		assertEquals("NumberOfTracesFilters", filterList.size(), 1);
-		assertTrue("TracesFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
+		filterList = guiAppender.getCopyOfAttachedFiltersList();
+		assertEquals(filterList.size(), 1, "NumberOfTracesFilters");
+		assertTrue(filterList.get(0) instanceof ThresholdFilter, "TracesFilterIsThresholdFilter");
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.WARN);
+		assertEquals(field.get(thresholdFilter), Level.WARN, "TracesFilterLevel");
 		configuration.setLoggingFilterLogsTab(Level.TRACE);
 		LoggingConfig.setTracesFilter();
-		filterList = frameAppender.getCopyOfAttachedFiltersList();
-		assertEquals("NumberOfTracesFilters", filterList.size(), 1);
-		assertTrue("TracesFilterIsThresholdFilter", filterList.get(0) instanceof ThresholdFilter);
+		filterList = guiAppender.getCopyOfAttachedFiltersList();
+		assertEquals(filterList.size(), 1, "NumberOfTracesFilters");
+		assertTrue(filterList.get(0) instanceof ThresholdFilter, "TracesFilterIsThresholdFilter");
 		thresholdFilter = (ThresholdFilter) filterList.get(0);
 		field = thresholdFilter.getClass().getDeclaredField("level");
 		field.setAccessible(true);
-		assertEquals("TracesFilterLevel", field.get(thresholdFilter), Level.TRACE);
-		rootLogger.detachAppender(frameAppender);
+		assertEquals(field.get(thresholdFilter), Level.TRACE, "TracesFilterLevel");
+		rootLogger.detachAppender(guiAppender);
 
 		// Test isSyslogDisabled()
 		if (syslogAppenderFound(rootLogger.iteratorForAppenders())) {
-			assertTrue("SyslogDisabledByConfiguration", LoggingConfig.isSyslogDisabled());
+			assertTrue(LoggingConfig.isSyslogDisabled(), "SyslogDisabledByConfiguration");
 		} else {
-			assertFalse("SyslogNotDisabledByConfiguration", LoggingConfig.isSyslogDisabled());
+			assertFalse(LoggingConfig.isSyslogDisabled(), "SyslogNotDisabledByConfiguration");
 		}
 
 		// Test setSyslog() if possible
@@ -352,10 +303,10 @@ public class LoggingTest {
 			configuration.setLoggingSyslogHost("localhost");
 			configuration.setLoggingUseSyslog(true);
 			LoggingConfig.setSyslog();
-			assertTrue("SyslogEnabled", syslogAppenderFound(rootLogger.iteratorForAppenders()));
+			assertTrue(syslogAppenderFound(rootLogger.iteratorForAppenders()), "SyslogEnabled");
 			configuration.setLoggingUseSyslog(false);
 			LoggingConfig.setSyslog();
-			assertFalse("SyslogDisabled", syslogAppenderFound(rootLogger.iteratorForAppenders()));
+			assertFalse(syslogAppenderFound(rootLogger.iteratorForAppenders()), "SyslogDisabled");
 		}
 
 		// Test forceVerboseFileEncoder() given that LogBack configuration
@@ -367,15 +318,62 @@ public class LoggingTest {
 			if (appender instanceof OutputStreamAppender && !(appender instanceof ConsoleAppender<?>)) {
 				// Appender has Encoder property
 				Encoder<ILoggingEvent> encoder = ((OutputStreamAppender<ILoggingEvent>) appender).getEncoder();
-				if (encoder instanceof PatternLayoutEncoder) {
+				if (encoder instanceof PatternLayoutEncoder patternLayoutEncoder) {
 					// Encoder has pattern
-					patternEncoder = (PatternLayoutEncoder) encoder;
-					assertTrue("AppenderPatternHasCorrectTimestamp", patternEncoder.getPattern().matches(".*%(d|date)\\{yyyy-MM-dd HH:mm:ss.SSS\\}.*"));
-					assertTrue("AppenderPatternHasLogger", patternEncoder.getPattern().matches(".*%logger.*"));
+					assertTrue(patternLayoutEncoder.getPattern().matches(".*%(d|date)\\{yyyy-MM-dd HH:mm:ss.SSS\\}.*"), "AppenderPatternHasCorrectTimestamp");
+					assertTrue(patternLayoutEncoder.getPattern().matches(".*%logger.*"), "AppenderPatternHasLogger");
 				}
 			}
 		}
 
 		context.reset();
 	}
+
+	private static class TestAppender<E> extends AppenderBase<E> {
+
+		private final Object lastEventLock = new Object();
+		private E lastEvent = null;
+
+		public E getLastEvent() {
+			synchronized (lastEventLock) {
+				return lastEvent;
+			}
+		}
+		@Override
+		protected void append(E eventObject) {
+			synchronized (lastEventLock) {
+				lastEvent = eventObject;
+			}
+		}
+	}
+
+	private static class TestFileAppender<E> extends FileAppender<E> {
+
+		@Override
+		protected void append(E eventObject) {
+		}
+	}
+
+	private static boolean findAppender(Iterator<Appender<ILoggingEvent>> iterator, Appender<ILoggingEvent> appender) {
+		boolean found = false;
+		while (iterator.hasNext()) {
+			Appender<ILoggingEvent> a = iterator.next();
+			if (a == appender) {
+				found = true;
+			}
+		}
+		return found;
+	}
+
+	private static boolean syslogAppenderFound(Iterator<Appender<ILoggingEvent>> iterator) {
+		while (iterator.hasNext()) {
+			Appender<ILoggingEvent> appender = iterator.next();
+			if (appender instanceof SyslogAppender) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 }

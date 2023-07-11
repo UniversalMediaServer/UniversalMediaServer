@@ -1,26 +1,23 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.Locale;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * An {@code enum} for classifying the kind of release.
@@ -46,18 +43,13 @@ public enum VideoClassification {
 
 	@Override
 	public String toString() {
-		switch (this) {
-			case MOVIE:
-				return "Movie";
-			case SERIES:
-				return "Series";
-			case TV_PROGRAM:
-				return "TV Program";
-			case UNRELEASED:
-				return "Unreleased/Home Made";
-			default:
-				return name();
-		}
+		return switch (this) {
+			case MOVIE -> "Movie";
+			case SERIES -> "Series";
+			case TV_PROGRAM -> "TV Program";
+			case UNRELEASED -> "Unreleased/Home Made";
+			default -> name();
+		};
 	}
 
 	/**
@@ -72,7 +64,7 @@ public enum VideoClassification {
 	 * @return The {@link VideoClassification} type or {@code null}.
 	 */
 	public static VideoClassification typeOf(String videoClassification) {
-		if (isBlank(videoClassification)) {
+		if (StringUtils.isBlank(videoClassification)) {
 			return null;
 		}
 		videoClassification = videoClassification.toLowerCase(Locale.ROOT);

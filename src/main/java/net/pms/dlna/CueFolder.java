@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -23,10 +21,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.PMS;
-import net.pms.dlna.Range.Time;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
+import net.pms.encoders.Engine;
+import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
 import org.digitalmediaserver.cuelib.CueParser;
@@ -39,13 +35,13 @@ import org.slf4j.LoggerFactory;
 
 public class CueFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
-	private File playlistfile;
+	private final File playlistfile;
 
 	public File getPlaylistfile() {
 		return playlistfile;
 	}
 
-	private boolean valid = true;
+	private final boolean valid = true;
 
 	public CueFolder(File f) {
 		playlistfile = f;
@@ -96,10 +92,10 @@ public class CueFolder extends DLNAResource {
 			if (sheet != null) {
 				List<FileData> files = sheet.getFileData();
 				// only the first one
-				if (files.size() > 0) {
+				if (!files.isEmpty()) {
 					FileData f = files.get(0);
 					List<TrackData> tracks = f.getTrackData();
-					Player defaultPlayer = null;
+					Engine defaultPlayer = null;
 					DLNAMediaInfo originalMedia = null;
 					ArrayList<DLNAResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
@@ -141,12 +137,12 @@ public class CueFolder extends DLNAResource {
 						realFile.setSplitTrack(i + 1);
 
 						// Assign a splitter engine if file is natively supported by renderer
-						if (realFile.getPlayer() == null) {
+						if (realFile.getEngine() == null) {
 							if (defaultPlayer == null) {
-								defaultPlayer = PlayerFactory.getPlayer(realFile);
+								defaultPlayer = EngineFactory.getEngine(realFile);
 							}
 
-							realFile.setPlayer(defaultPlayer);
+							realFile.setEngine(defaultPlayer);
 						}
 
 						if (realFile.getMedia() != null) {
@@ -179,9 +175,9 @@ public class CueFolder extends DLNAResource {
 
 					}
 
-					if (tracks.size() > 0 && addedResources.size() > 0) {
+					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						DLNAResource lastTrack = addedResources.get(addedResources.size() - 1);
-						Time lastTrackSplitRange = lastTrack.getSplitRange();
+						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
 						DLNAMediaInfo lastTrackMedia = lastTrack.getMedia();
 
 						if (lastTrackSplitRange != null && lastTrackMedia != null) {
@@ -191,7 +187,7 @@ public class CueFolder extends DLNAResource {
 						}
 					}
 
-					PMS.get().storeFileInCache(playlistfile, Format.PLAYLIST);
+					storeFileInCache(playlistfile, Format.PLAYLIST);
 				}
 			}
 		}

@@ -1,75 +1,88 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashSet;
-import net.pms.PMS;
+import java.util.Set;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableCoverArtArchive;
+import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.io.BasicSystemUtils;
+import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.jaudiotagger.audio.AudioFile;
+import org.jaudiotagger.audio.AudioFileIO;
+import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RealFile extends MapFile {
+public class RealFile extends VirtualFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	public RealFile(File file) {
-		addFileToConfFiles(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
-		addFileToConfFiles(file);
-		getConf().setName(name);
+		addFileToFiles(file);
+		this.name = name;
 		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
-		addFileToConfFiles(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 	}
 
 	public RealFile(File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
-		getConf().getFiles().add(file);
+		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 		setIsEpisodeWithinTVSeriesFolder(isEpisodeWithinTVSeriesFolder);
 	}
 
 	/**
-	 * Add the file to MapFileConfiguration->Files.
+	 * Add the file to Files.
 	 *
 	 * @param file The file to add.
 	 */
-	private void addFileToConfFiles(File file) {
-		if (configuration.isUseSymlinksTargetFile() && FileUtil.isSymbolicLink(file)) {
-			getConf().getFiles().add(FileUtil.getRealFile(file));
+	private void addFileToFiles(File file) {
+		if (file == null) {
+			throw new NullPointerException("file shall not be empty");
+		}
+		Boolean useSymlinks = configuration != null && configuration.isUseSymlinksTargetFile();
+		if (useSymlinks && FileUtil.isSymbolicLink(file)) {
+			getFiles().add(FileUtil.getRealFile(file));
 		} else {
-			getConf().getFiles().add(file);
+			getFiles().add(file);
 		}
 	}
 
@@ -83,7 +96,7 @@ public class RealFile extends MapFile {
 
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
-			getConf().getFiles().remove(file);
+			getFiles().remove(file);
 			return false;
 		}
 
@@ -106,7 +119,7 @@ public class RealFile extends MapFile {
 					InputFile inputfile = new InputFile();
 					inputfile.setFile(file);
 					getMedia().setContainer(null);
-					getMedia().parse(inputfile, getFormat(), getType(), false, false, null);
+					getMedia().parse(inputfile, getFormat(), getType(), false);
 					if (getMedia().getContainer() == null) {
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
@@ -114,7 +127,7 @@ public class RealFile extends MapFile {
 				}
 
 				if (!valid) {
-					getConf().getFiles().remove(file);
+					getFiles().remove(file);
 				}
 			}
 
@@ -123,7 +136,7 @@ public class RealFile extends MapFile {
 				checkThumbnail();
 			}
 		} else if (this.getType() == Format.UNKNOWN && !this.isFolder()) {
-			getConf().getFiles().remove(file);
+			getFiles().remove(file);
 			return false;
 		}
 
@@ -143,7 +156,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getSize();
@@ -157,17 +170,26 @@ public class RealFile extends MapFile {
 	}
 
 	public File getFile() {
-		return getConf().getFiles().get(0);
+		if (getFiles().isEmpty()) {
+			return null;
+		}
+
+		return getFiles().get(0);
 	}
 
 	@Override
 	public String getName() {
-		if (this.getConf().getName() == null) {
-			String name = null;
+		if (name == null) {
 			File file = getFile();
+
+			// this probably happened because the file was removed after it could not be parsed by isValid()
+			if (file == null) {
+				return null;
+			}
+
 			if (file.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = BasicSystemUtils.instance.getDiskLabel(file);
+					name = PlatformUtils.INSTANCE.getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
 					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
@@ -177,9 +199,8 @@ public class RealFile extends MapFile {
 			} else {
 				name = file.getName();
 			}
-			this.getConf().setName(name);
 		}
-		return this.getConf().getName().replaceAll("_imdb([^_]+)_", "");
+		return name.replaceAll("_imdb([^_]+)_", "");
 	}
 
 	@Override
@@ -199,6 +220,10 @@ public class RealFile extends MapFile {
 	@Override
 	public synchronized void resolve() {
 		File file = getFile();
+		if (file == null) {
+			LOGGER.error("RealFile points to no physical file. ");
+			return;
+		}
 		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
 			InputFile input = new InputFile();
@@ -207,54 +232,48 @@ public class RealFile extends MapFile {
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
+			Connection connection = null;
+			try {
+				if (configuration.getUseCache()) {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						connection.setAutoCommit(false);
+						DLNAMediaInfo media;
+						try {
+							media = MediaTableFiles.getData(connection, fileName, file.lastModified());
 
-			if (configuration.getUseCache()) {
-				DLNAMediaDatabase database = PMS.get().getDatabase();
+							setExternalSubtitlesParsed();
+							if (media != null) {
+								setMedia(media);
+								if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
+									// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
+									getMedia().setSubtitlesTracks(new ArrayList<>());
+									resetSubtitlesStatus();
+								}
 
-				if (database != null) {
-					DLNAMediaInfo media;
-					try {
-						media = database.getData(fileName, file.lastModified());
-
-						setExternalSubtitlesParsed();
-						if (media != null) {
-							setMedia(media);
-							if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
-								// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-								getMedia().setSubtitlesTracks(new ArrayList<>());
-								resetSubtitlesStatus();
+								getMedia().postParse(getType(), input);
+								found = true;
 							}
-
-							getMedia().postParse(getType(), input);
-							found = true;
+						} catch (IOException | SQLException e) {
+							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
+							LOGGER.trace("", e);
 						}
-					} catch (InvalidClassException e) {
-						LOGGER.debug("Cached information about {} seems to be from a previous version, reparsing information", getName());
-						LOGGER.trace("", e);
-					} catch (IOException | SQLException e) {
-						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
-						LOGGER.trace("", e);
+					}
+				}
+
+				if (!found) {
+					if (getMedia() == null) {
+						setMedia(new DLNAMediaInfo());
 					}
 
-				}
-			}
+					if (getFormat() != null) {
+						getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
+					} else {
+						// Don't think that will ever happen
+						getMedia().parse(input, getFormat(), getType(), isResume());
+					}
 
-			if (!found) {
-				if (getMedia() == null) {
-					setMedia(new DLNAMediaInfo());
-				}
-
-				if (getFormat() != null) {
-					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
-				} else {
-					// Don't think that will ever happen
-					getMedia().parse(input, getFormat(), getType(), false, isResume(), getParent().getDefaultRenderer());
-				}
-
-				if (configuration.getUseCache() && getMedia().isMediaparsed() && !getMedia().isParsing() && getConf().isAddToMediaLibrary()) {
-					DLNAMediaDatabase database = PMS.get().getDatabase();
-
-					if (database != null) {
+					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {
 						try {
 							/*
 							 * Even though subtitles will be resolved later in
@@ -265,7 +284,7 @@ public class RealFile extends MapFile {
 							if (getMedia() != null && getMedia().isVideo()) {
 								registerExternalSubtitles(false);
 							}
-							database.insertOrUpdateData(fileName, file.lastModified(), getType(), getMedia());
+							MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), getMedia());
 						} catch (SQLException e) {
 							LOGGER.error(
 								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
@@ -284,9 +303,23 @@ public class RealFile extends MapFile {
 						}
 					}
 				}
-			}
-			if (getMedia() != null && getMedia().isSLS()) {
-				setFormat(getMedia().getAudioVariantFormat());
+				if (getMedia() != null && getMedia().isSLS()) {
+					setFormat(getMedia().getAudioVariantFormat());
+				}
+			} catch (SQLException e) {
+				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
+				LOGGER.trace("", e);
+			} finally {
+				try {
+					if (connection != null) {
+						connection.commit();
+						connection.setAutoCommit(true);
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
+					LOGGER.trace("", e);
+				}
+				MediaDatabase.close(connection);
 			}
 		}
 	}
@@ -303,7 +336,7 @@ public class RealFile extends MapFile {
 			if (file.getParentFile() != null) {
 				folders.add(null);
 			}
-			if (isNotBlank(alternativeFolder)) {
+			if (StringUtils.isNotBlank(alternativeFolder)) {
 				File thumbFolder = new File(alternativeFolder);
 				if (thumbFolder.isDirectory() && thumbFolder.exists()) {
 					folders.add(thumbFolder);
@@ -312,20 +345,20 @@ public class RealFile extends MapFile {
 
 			for (File folder : folders) {
 				File audioVideoFile = folder == null ? file : new File(folder, file.getName());
-				HashSet<File> potentials = MapFile.getPotentialFileThumbnails(audioVideoFile, true);
+				Set<File> potentials = VirtualFile.getPotentialFileThumbnails(audioVideoFile, true);
 				if (!potentials.isEmpty()) {
 					// We have no rules for how to pick a particular one if there's multiple candidates
 					cachedThumbnail = potentials.iterator().next();
 					break;
 				}
 			}
-			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() != null && getParent() instanceof MapFile) {
-				cachedThumbnail = ((MapFile) getParent()).getPotentialCover();
+			if (cachedThumbnail == null && mediaType == MediaType.AUDIO && getParent() instanceof VirtualFile virtualFile) {
+				cachedThumbnail = virtualFile.getPotentialCover();
 			}
 		}
 
 		if (file.isDirectory()) {
-			cachedThumbnail = MapFile.getFolderThumbnail(file);
+			cachedThumbnail = VirtualFile.getFolderThumbnail(file);
 		}
 
 		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
@@ -386,7 +419,7 @@ public class RealFile extends MapFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMedia(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMedia(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
 					}
 				}
 			}
@@ -404,5 +437,47 @@ public class RealFile extends MapFile {
 		}
 
 		return super.getDisplayNameBase();
+	}
+
+	@Override
+	public synchronized void syncResolve() {
+		super.syncResolve();
+		checkCoverThumb();
+	}
+
+	/**
+	 * Updates cover art archive table during scan process in case the file has already stored cover art.
+	 *
+	 * @param inputFile
+	 */
+	protected void checkCoverThumb() {
+		if (getMedia() != null && getMedia().isAudio() && getMedia().getAudioTrackCount() > 0) {
+			String mbReleaseId = getMedia().getAudioTracksList().get(0).getMbidRecord();
+			if (!StringUtils.isAllBlank(mbReleaseId)) {
+				try {
+					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
+						AudioFile af;
+						if ("mp2".equalsIgnoreCase(FileUtil.getExtension(getFile()))) {
+							af = AudioFileIO.readAs(getFile(), "mp3");
+						} else {
+							af = AudioFileIO.read(getFile());
+						}
+						Tag t = af.getTag();
+						LOGGER.trace("no artwork in MediaTableCoverArtArchive table");
+						if (t.getFirstArtwork() != null) {
+							byte[] artBytes = t.getFirstArtwork().getBinaryData();
+							MediaTableCoverArtArchive.writeMBID(mbReleaseId, new ByteArrayInputStream(artBytes));
+							LOGGER.trace("added cover to MediaTableCoverArtArchive");
+						} else {
+							LOGGER.trace("no artwork in TAG");
+						}
+					} else {
+						LOGGER.trace("cover already exists in MediaTableCoverArtArchive");
+					}
+				} catch (Exception e) {
+					LOGGER.trace("checkCoverThumb failed.", e);
+				}
+			}
+		}
 	}
 }

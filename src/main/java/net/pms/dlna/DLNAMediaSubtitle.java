@@ -1,21 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
- * Copyright (C) 2012  I. Sokolov
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna;
 
@@ -47,6 +44,8 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String subsCharacterSet;
 
 	private File convertedFile;
+	private boolean defaultFlag = false;
+	private boolean forcedFlag = false;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -67,6 +66,42 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isExternal() {
 		return !isEmbedded();
+	}
+
+	/**
+	 * Returns whether or not the subtitles are flagged Default.
+	 *
+	 * @return True if the subtitles are flagged Default, false otherwise.
+	 */
+	public boolean isDefault() {
+		return this.defaultFlag;
+	}
+
+	/**
+	 * Sets the parsed subtitles Default flag.
+	 *
+	 * @param value the subtitles Default flag.
+	 */
+	public void setDefault(boolean value) {
+		this.defaultFlag = value;
+	}
+
+	/**
+	 * Returns whether or not the subtitles are flagged Forced.
+	 *
+	 * @return True if the subtitles are flagged Forced, false otherwise.
+	 */
+	public boolean isForced() {
+		return this.forcedFlag;
+	}
+
+	/**
+	 * Sets the parsed subtitles Forced flag.
+	 *
+	 * @param value the subtitles Forced flag.
+	 */
+	public void setForced(boolean value) {
+		this.forcedFlag = value;
 	}
 
 	@Override

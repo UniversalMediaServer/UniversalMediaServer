@@ -1,21 +1,18 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
@@ -23,7 +20,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +38,8 @@ import org.w3c.dom.NodeList;
 public abstract class CoverUtil {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
+	private static final Object INSTANCE_LOCK = new Object();
 	protected static final String ENCODING = StandardCharsets.UTF_8.name();
-	protected static final DLNAMediaDatabase DATABASE = PMS.get().getDatabase();
-	private static Object instanceLock = new Object();
 	private static CoverUtil instance = null;
 
 	/**
@@ -62,16 +57,13 @@ public abstract class CoverUtil {
 
 	public static CoverUtil get() {
 		CoverSupplier supplier = PMS.getConfiguration().getAudioThumbnailMethod();
-		synchronized (instanceLock) {
-			switch (supplier.toInt()) {
-				case CoverSupplier.COVER_ART_ARCHIVE_INT:
-					if (instance == null || !(instance instanceof CoverArtArchiveUtil)) {
-						instance = new CoverArtArchiveUtil();
-					}
-					break;
-				default:
-					instance = null;
-					break;
+		synchronized (INSTANCE_LOCK) {
+			if (supplier.toInt() == CoverSupplier.COVER_ART_ARCHIVE_INT) {
+				if (!(instance instanceof CoverArtArchiveUtil)) {
+					instance = new CoverArtArchiveUtil();
+				}
+			} else {
+				instance = null;
 			}
 			return instance;
 		}
@@ -122,6 +114,6 @@ public abstract class CoverUtil {
 		return doGetThumbnail(tag, externalNetwork);
 	}
 
-	abstract protected byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
+	protected abstract byte[] doGetThumbnail(Tag tag, boolean externalNetwork);
 
 }

@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.newgui.update;
 
 import com.sun.jna.Platform;
@@ -9,21 +25,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
-import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.platform.PlatformUtils;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 import net.pms.util.FileUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
@@ -34,9 +46,8 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
-	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdateDialog.class);
-	private static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
 				instance = new AutoUpdateDialog(parent, autoUpdater);
@@ -46,7 +57,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	}
 
 	AutoUpdateDialog(Window parent, AutoUpdater autoUpdater) {
-		super(parent, Messages.getString("AutoUpdate.0"));
+		super(parent, Messages.getString("UniversalMediaServerAutoUpdate"));
 		this.autoUpdater = autoUpdater;
 		autoUpdater.addObserver(this);
 		initComponents();
@@ -59,7 +70,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		private static final long serialVersionUID = 4762020878159496712L;
 
 		DownloadButton() {
-			super(Messages.getString("AutoUpdate.10"));
+			super(Messages.getString("Download"));
 			setEnabled(false);
 			this.setRequestFocusEnabled(false);
 			addActionListener(this);
@@ -76,7 +87,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		private static final long serialVersionUID = 4762020878159496713L;
 
 		CancelButton() {
-			super(Messages.getString("AutoUpdate.11"));
+			super(Messages.getString("NotNow"));
 			setEnabled(true);
 			this.setRequestFocusEnabled(false);
 			addActionListener(this);
@@ -103,7 +114,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		private static final long serialVersionUID = 4762020878159496714L;
 
 		HyperLinkLabel() {
-			super(Messages.getString("AutoUpdate.14"));
+			super(Messages.getString("ClickHereSeeChangesRelease"));
 			setForeground(Color.BLUE.darker());
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			addMouseListener(this);
@@ -111,12 +122,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			Desktop desktop = Desktop.getDesktop();
-			try {
-				desktop.browse(new URI(Build.getReleasesPageUrl()));
-			} catch (IOException | URISyntaxException ex) {
-				LOGGER.error(ex.getMessage());
-			}
+			PlatformUtils.INSTANCE.browseURI(Build.getReleasesPageUrl());
 		}
 
 		@Override
@@ -131,12 +137,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			setText(String.format("<html><a href=''>%s</a></html>", Messages.getString("AutoUpdate.14")));
+			setText(String.format("<html><a href=''>%s</a></html>", Messages.getString("ClickHereSeeChangesRelease")));
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			setText(Messages.getString("AutoUpdate.14"));
+			setText(Messages.getString("ClickHereSeeChangesRelease"));
 		}
 	}
 
@@ -183,12 +189,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 			case ERROR:
 			case NO_UPDATE_AVAILABLE:
-				cancelButton.setText(Messages.getString("Dialog.Close"));
+				cancelButton.setText(Messages.getString("Close"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
 			case DOWNLOAD_IN_PROGRESS:
-				cancelButton.setText(Messages.getString("NetworkTab.45"));
+				cancelButton.setText(Messages.getString("Cancel"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
@@ -202,17 +208,17 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private String getStateText() {
 		switch (autoUpdater.getState()) {
 			case NOTHING_KNOWN:
-				return Messages.getString("AutoUpdate.1");
+				return Messages.getString("CheckForUpdatesNotStarted");
 			case DOWNLOAD_FINISHED:
-				return Messages.getString("AutoUpdate.2");
+				return Messages.getString("DownloadFinished");
 			case DOWNLOAD_IN_PROGRESS:
-				return Messages.getString("AutoUpdate.3");
+				return Messages.getString("DownloadInProgress");
 			case ERROR:
 				return getErrorStateText();
 			case NO_UPDATE_AVAILABLE:
-				return Messages.getString("AutoUpdate.4");
+				return Messages.getString("NoUpdateAvailable");
 			case POLLING_SERVER:
-				return Messages.getString("AutoUpdate.5");
+				return Messages.getString("ConnectingToServer");
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
 
@@ -221,25 +227,25 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				File file = new File(CONFIGURATION.getProfileDirectory());
 				try {
 					if (!FileUtil.getFilePermissions(file).isWritable()) {
-						permissionsReminder = Messages.getString("AutoUpdate.NoPermissions");
+						permissionsReminder = Messages.getString("ButCantWriteProfileFolder");
 						if (Platform.isWindows()) {
-							permissionsReminder += "<br>" + Messages.getString("AutoUpdate.13");
+							permissionsReminder += "<br>" + Messages.getString("TryRunningAsAdministrator");
 						}
-						cancelButton.setText(Messages.getString("Dialog.Close"));
+						cancelButton.setText(Messages.getString("Close"));
 						okButton.setEnabled(false);
 						okButton.setVisible(false);
 					}
 				} catch (FileNotFoundException e) {
 					// This should never happen
-					permissionsReminder = "\n" + String.format(Messages.getString("TracesTab.21"), file.getAbsolutePath());
-					cancelButton.setText(Messages.getString("Dialog.Close"));
+					permissionsReminder = "\n" + String.format(Messages.getString("XNotFound"), file.getAbsolutePath());
+					cancelButton.setText(Messages.getString("Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getString("AutoUpdate.VersionXIsAvailable"), autoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
+				return "<html>" + String.format(Messages.getString("VersionXIsAvailable"), autoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
 			default:
-				return Messages.getString("AutoUpdate.8");
+				return Messages.getString("UnknownState");
 		}
 	}
 
@@ -250,12 +256,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 		Throwable exception = autoUpdater.getErrorStateCause();
 		if (exception == null) {
-			return Messages.getString("Dialog.Error");
+			return Messages.getString("Error");
 		}
 
 		String message = exception.getMessage();
 		if (message == null) {
-			return Messages.getString("Dialog.Error");
+			return Messages.getString("Error");
 		}
 
 		return message;
