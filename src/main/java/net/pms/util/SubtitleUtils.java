@@ -40,6 +40,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
@@ -49,6 +50,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.gui.GuiManager;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.encoders.FFmpegLogLevels;
@@ -300,7 +302,7 @@ public class SubtitleUtils {
 				// We have a real file
 				if (!isBlank(dlna.getName())) {
 					LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
-					frame.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
+					GuiManager.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
 				}
 				basename = getSanitizedFilename(filename);
 			} else {
@@ -415,7 +417,7 @@ public class SubtitleUtils {
 			params.getSid().setConvertedFile(tempSubs);
 			return tempSubs;
 		} finally {
-			frame.setStatusLine("");
+			GuiManager.setStatusLine("");
 		}
 	}
 
