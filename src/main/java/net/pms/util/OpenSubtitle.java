@@ -17,7 +17,6 @@
 
 package net.pms.util;
 
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +43,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,13 +67,10 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.renderers.Renderer;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
@@ -103,7 +98,6 @@ import org.xml.sax.SAXException;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String UA = "Universal Media Server v1";
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final long TOKEN_EXPIRATION_TIME = 10 * 60 * 1000L; // 10 minutes
 
 	/** The minimum Jaro–Winkler title distance for IMDB guesses to be valid */
