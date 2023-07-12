@@ -4137,7 +4137,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Use device-specific conf
 		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 		if (deviceSpecificConfiguration.isDisableSubtitles()) {
-			LOGGER.trace("Not resolving subtitles since subtitles are disabled for renderer \"{}\"", renderer.getConfName());
+			LOGGER.trace("Not resolving subtitles since subtitles are disabled");
 			return null;
 		}
 

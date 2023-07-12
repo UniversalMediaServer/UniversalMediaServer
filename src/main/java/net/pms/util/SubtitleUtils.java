@@ -336,7 +336,6 @@ public class SubtitleUtils {
 				nameBuilder.append(".").append(extension);
 			}
 			convertedSubs = new File(nameBuilder.toString());
-			LOGGER.trace("nameBuilder.toString(): " + nameBuilder.toString());
 
 			File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
 			if (convertedSubs.canRead() || converted3DSubs.canRead()) {
@@ -417,7 +416,6 @@ public class SubtitleUtils {
 
 			PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
 			params.getSid().setConvertedFile(tempSubs);
-			LOGGER.trace("tempSubs: " + tempSubs);
 			return tempSubs;
 		} finally {
 			GuiManager.setStatusLine("");

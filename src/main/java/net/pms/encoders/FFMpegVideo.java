@@ -1050,7 +1050,7 @@ public class FFMpegVideo extends Engine {
 		// after video input is specified and before output streams are mapped.
 		List<String> videoFilterOptions = getVideoFilterOptions(dlna, media, params, isConvertedTo3d);
 		if (!videoFilterOptions.isEmpty()) {
-			cmdList.addAll(getVideoFilterOptions(dlna, media, params, isConvertedTo3d));
+			cmdList.addAll(videoFilterOptions);
 			canMuxVideoWithFFmpeg = false;
 			LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
 		}
