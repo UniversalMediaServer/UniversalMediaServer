@@ -40,7 +40,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaLang;
@@ -241,7 +243,7 @@ public class SubtitleUtils {
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
 	 * @param configuration
-	 * @param subtitleType
+	 * @param subtitleType the desired output format
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
@@ -301,7 +303,7 @@ public class SubtitleUtils {
 				// We have a real file
 				if (!isBlank(dlna.getName())) {
 					LOGGER.debug("Extracting subtitles track {} from {}", params.getSid().getId(), dlna.getName());
-					GuiManager.setStatusLine(Messages.getString("StatusBar.CachingSubtitlesFor") + " " + dlna.getName());
+					GuiManager.setStatusLine(Messages.getString("CachingSubtitlesFor") + " " + dlna.getName());
 				}
 				basename = getSanitizedFilename(filename);
 			} else {
@@ -334,10 +336,11 @@ public class SubtitleUtils {
 				nameBuilder.append(".").append(extension);
 			}
 			convertedSubs = new File(nameBuilder.toString());
+			LOGGER.trace("nameBuilder.toString(): " + nameBuilder.toString());
 
 			File converted3DSubs = new File(FileUtil.getFileNameWithoutExtension(convertedSubs.getAbsolutePath()) + "_3D.ass");
 			if (convertedSubs.canRead() || converted3DSubs.canRead()) {
-				// subs are already converted
+				LOGGER.trace("Subs are already converted");
 				if (applyFontConfig || isEmbeddedSource || is3D) {
 					params.getSid().setType(SubtitleType.ASS);
 					params.getSid().setSubCharacterSet(CHARSET_UTF_8);
@@ -414,6 +417,7 @@ public class SubtitleUtils {
 
 			PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
 			params.getSid().setConvertedFile(tempSubs);
+			LOGGER.trace("tempSubs: " + tempSubs);
 			return tempSubs;
 		} finally {
 			GuiManager.setStatusLine("");
@@ -1297,14 +1301,17 @@ public class SubtitleUtils {
 	/**
 	 * Extracts all internal subtitles in this file to the subs folder.
 	 *
+	 * Currently unused, but could be used in the future to prepare for
+	 * language priority changes while the server is idle.
+	 *
 	 * @param realFile
 	 */
-	public static void backgroundExtractAllSubtitles(final RealFile realFile) {
+	public static void backgroundExtractAllSubtitlesToFile(final RealFile realFile) {
 		Runnable r = () -> {
 			DLNAMediaInfo mediaInfo = realFile.getMedia();
-			for (DLNAMediaSubtitle subtitleTrack : mediaInfo.getSubtitlesTracks()) {
+			for (DLNAMediaSubtitle subtitlesTrack : mediaInfo.getSubtitlesTracks()) {
 				OutputParams tempParams = new OutputParams(PMS.getConfiguration());
-				tempParams.setSid(subtitleTrack);
+				tempParams.setSid(subtitlesTrack);
 				try {
 					SubtitleUtils.getSubtitles(realFile, mediaInfo, tempParams, PMS.getConfiguration(), SubtitleType.ASS);
 				} catch (FileNotFoundException ex) {
@@ -1312,6 +1319,30 @@ public class SubtitleUtils {
 				} catch (IOException ex) {
 					LOGGER.error("An error occurred when extracting subtitles: {}", ex);
 				}
+			}
+		};
+		BACKGROUND_EXECUTOR.execute(r);
+	}
+
+	/**
+	 * Extracts the specified internal subtitles in this file the subs folder.
+	 *
+	 * @param realFile
+	 */
+	public static void backgroundExtractPreferredSubtitlesToFile(final DLNAResource resource) {
+		Runnable r = () -> {
+			DLNAMediaInfo mediaInfo = resource.getMedia();
+			DLNAMediaAudio audio = resource.getMediaAudio() != null ? resource.getMediaAudio() : resource.resolveAudioStream();
+			DLNAMediaSubtitle subtitlesTrack = resource.resolveSubtitlesStream(null, audio == null ? null : audio.getLang(), false);
+
+			OutputParams tempParams = new OutputParams(PMS.getConfiguration());
+			tempParams.setSid(subtitlesTrack);
+			try {
+				SubtitleUtils.getSubtitles(resource, mediaInfo, tempParams, PMS.getConfiguration(), SubtitleType.SUBRIP);
+			} catch (FileNotFoundException ex) {
+				LOGGER.debug("File not found when extracting subtitles, it has likely been moved since it was queued: {}", ex);
+			} catch (IOException ex) {
+				LOGGER.error("An error occurred when extracting subtitles: {}", ex);
 			}
 		};
 		BACKGROUND_EXECUTOR.execute(r);
