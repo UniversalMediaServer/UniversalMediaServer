@@ -144,7 +144,6 @@ public class TsMuxeRVideo extends Engine {
 
 		boolean aacTranscode = false;
 
-		String[] ffmpegCommands;
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
 
@@ -155,7 +154,7 @@ public class TsMuxeRVideo extends Engine {
 				timeEndValue2 = "-y";
 			}
 
-			ffmpegCommands = new String[] {
+			String[] ffmpegFakeVideoCommands = new String[] {
 				EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 				timeEndValue1, timeEndValue2,
 				"-loop", "1",
@@ -174,7 +173,7 @@ public class TsMuxeRVideo extends Engine {
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.setMaxBufferSize(1);
-			ffVideo = new ProcessWrapperImpl(ffmpegCommands, ffparams);
+			ffVideo = new ProcessWrapperImpl(ffmpegFakeVideoCommands, ffparams);
 
 			if (
 				filename.toLowerCase().endsWith(".flac") &&
@@ -232,7 +231,7 @@ public class TsMuxeRVideo extends Engine {
 
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
-			ffmpegCommands = new String[] {
+			String[] ffmpegPipeVideoStreamCommands = new String[] {
 				EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 				"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 				"-i", filename,
@@ -266,7 +265,7 @@ public class TsMuxeRVideo extends Engine {
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.setMaxBufferSize(1);
 			ffparams.setStdIn(params.getStdIn());
-			ffVideo = new ProcessWrapperImpl(ffmpegCommands, ffparams);
+			ffVideo = new ProcessWrapperImpl(ffmpegPipeVideoStreamCommands, ffparams);
 
 			int numAudioTracks = 1;
 
@@ -319,6 +318,7 @@ public class TsMuxeRVideo extends Engine {
 						channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 					}
 
+					String[] ffmpegAudioStreamCommandsSingleTrack;
 					if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
@@ -329,7 +329,7 @@ public class TsMuxeRVideo extends Engine {
 						sm.setSampleFrequency(params.getAid().getSampleRate() < 48000 ? 48000 : params.getAid().getSampleRate());
 						sm.setBitsPerSample(16);
 
-						ffmpegCommands = new String[] {
+						ffmpegAudioStreamCommandsSingleTrack = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
@@ -346,7 +346,7 @@ public class TsMuxeRVideo extends Engine {
 						}
 					} else if (!ac3Remux && params.getMediaRenderer().isTranscodeToAAC()) {
 						// AAC audio
-						ffmpegCommands = new String[] {
+						ffmpegAudioStreamCommandsSingleTrack = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
@@ -360,7 +360,7 @@ public class TsMuxeRVideo extends Engine {
 						aacTranscode = true;
 					} else {
 						// AC-3 audio
-						ffmpegCommands = new String[] {
+						ffmpegAudioStreamCommandsSingleTrack = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
@@ -377,7 +377,7 @@ public class TsMuxeRVideo extends Engine {
 					ffparams.setMaxBufferSize(1);
 					ffparams.setStdIn(params.getStdIn());
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
-					ffAudio[0] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
+					ffAudio[0] = new ProcessWrapperImpl(ffmpegAudioStreamCommandsSingleTrack, ffparams);
 				} else {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
@@ -419,6 +419,7 @@ public class TsMuxeRVideo extends Engine {
 							channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 						}
 
+						String[] ffmpegAudioStreamCommandsMultipleTracks;
 						if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
@@ -432,7 +433,7 @@ public class TsMuxeRVideo extends Engine {
 								ffAudioPipe[i].setModifier(sm);
 							}
 
-							ffmpegCommands = new String[] {
+							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
 								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
@@ -445,7 +446,7 @@ public class TsMuxeRVideo extends Engine {
 							};
 						} else if (!ac3Remux && params.getMediaRenderer().isTranscodeToAAC()) {
 							// AAC audio
-							ffmpegCommands = new String[] {
+							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
 								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
@@ -460,7 +461,7 @@ public class TsMuxeRVideo extends Engine {
 							aacTranscode = true;
 						} else {
 							// AC-3 remux or encoding
-							ffmpegCommands = new String[] {
+							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
 								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 								"-i", filename,
@@ -477,7 +478,7 @@ public class TsMuxeRVideo extends Engine {
 						ffparams = new OutputParams(configuration);
 						ffparams.setMaxBufferSize(1);
 						ffparams.setStdIn(params.getStdIn());
-						ffAudio[i] = new ProcessWrapperImpl(ffmpegCommands, ffparams);
+						ffAudio[i] = new ProcessWrapperImpl(ffmpegAudioStreamCommandsMultipleTracks, ffparams);
 					}
 				}
 			}
