@@ -4083,8 +4083,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		UmsConfiguration configuration = PMS.getConfiguration();
-
 		// check for preferred audio
 		DLNAMediaAudio dtsTrack = null;
 		StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
