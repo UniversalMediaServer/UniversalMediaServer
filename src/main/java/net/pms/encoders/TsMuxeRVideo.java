@@ -537,7 +537,6 @@ public class TsMuxeRVideo extends Engine {
 								params.getAid().isMP3() ||
 								params.getAid().isAAC() ||
 								params.getAid().isVorbis() ||
-								// params.aid.isWMA() ||
 								params.getAid().isMpegAudio()
 							)
 						)
@@ -549,10 +548,10 @@ public class TsMuxeRVideo extends Engine {
 				} else if (aacTranscode) {
 					type = "A_AAC";
 				} else {
-					if (pcm || this instanceof TsMuxeRAudio) {
+					if (pcm) {
 						type = "A_LPCM";
 					}
-					if (encodedAudioPassthrough || this instanceof TsMuxeRAudio) {
+					if (encodedAudioPassthrough) {
 						type = "A_LPCM";
 					}
 					if (dtsRemux || this instanceof TsMuxeRAudio) {
