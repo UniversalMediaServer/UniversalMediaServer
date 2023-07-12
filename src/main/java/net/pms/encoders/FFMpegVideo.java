@@ -188,13 +188,13 @@ public class FFMpegVideo extends Engine {
 			if (params.getSid() != null && params.getSid().getType().isText()) {
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
-				boolean isSubsConverted = false;
+				boolean isSubsExtracted = false;
 				if (convertedSubs != null && convertedSubs.getConvertedFile() != null) {
-					isSubsConverted = true;
+					isSubsExtracted = true;
 				}
 
 				if (is3D) {
-					if (isSubsConverted) { // subs are already converted to 3D so use them
+					if (isSubsExtracted) { // subs are already converted to 3D so use them
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
 						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
@@ -223,21 +223,22 @@ public class FFMpegVideo extends Engine {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
 				} else {
-					if (isSubsConverted) {
+					if (isSubsExtracted) {
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else {
-						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.SUBRIP);
 						if (subtitlesFile != null) {
 							originalSubsFilename = subtitlesFile.getAbsolutePath();
 						} else {
-							LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
+							LOGGER.error("Extracted external subtitles file \"{}\" is unavailable, falling back to embedded");
+							originalSubsFilename = dlna.getFileName();
 						}
 					}
 				}
 
 				if (originalSubsFilename != null) {
 					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
-					if (params.getSid().isEmbedded() && !isSubsConverted) {
+					if (params.getSid().isEmbedded() && !isSubsExtracted) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
 
