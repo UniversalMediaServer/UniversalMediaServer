@@ -147,8 +147,9 @@ public class MediaInfoParser {
 		media.waitMediaParsing(5);
 		media.setParsing(true);
 		File file = inputFile.getFile();
-		ParseLogger parseLogger = LOGGER.isTraceEnabled() ? new ParseLogger() : null;
-		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.openFile(file.getAbsolutePath()) > 0) {
+		ParseLogger parseLogger = new ParseLogger();
+		Boolean fileOpened = MI.openFile(file.getAbsolutePath()) > 0;
+		if (!media.isMediaparsed() && file != null && MI.isValid() && fileOpened) {
 			StreamKind general = StreamKind.GENERAL;
 			StreamKind video = StreamKind.VIDEO;
 			StreamKind audio = StreamKind.AUDIO;

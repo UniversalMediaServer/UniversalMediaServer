@@ -318,7 +318,7 @@ public abstract class HTTPResource {
 	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
-		if (media == null || "high".equals(media.getH264Profile())) {
+		if (media == null || (media.getH264Profile() != null && media.getH264Profile().contains("high"))) {
 			orgPN += "_HP";
 		} else {
 			orgPN += "_MP";

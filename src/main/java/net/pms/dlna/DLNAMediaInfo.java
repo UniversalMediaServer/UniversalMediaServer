@@ -312,7 +312,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isMuxable(Renderer renderer) {
 		// Make sure the file is H.264 video
-		if (isH264()) {
+		if (isH264() || isH265()) {
 			muxable = true;
 		}
 
@@ -334,7 +334,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Bravia does not support AVC video at less than 288px high
-		if (renderer.isBRAVIA() && height < 288) {
+		if (renderer.isBRAVIA() && isH264() && height < 288) {
 			muxable = false;
 		}
 
@@ -1771,11 +1771,14 @@ public class DLNAMediaInfo implements Cloneable {
 			if (isNotBlank(getVideoHDRFormat())) {
 				result.append(", Video HDR Format: ").append(getVideoHDRFormat());
 			}
+			if (isNotBlank(getVideoHDRFormatForRenderer())) {
+				result.append(" (").append(getVideoHDRFormatForRenderer()).append(")");
+			}
 			if (isNotBlank(getVideoHDRFormatCompatibility())) {
 				result.append(", Video HDR Format Compatibility: ").append(getVideoHDRFormatCompatibility());
 			}
-			if (isNotBlank(getVideoHDRFormatForRenderer())) {
-				result.append(" (").append(getVideoHDRFormatForRenderer()).append(")");
+			if (isNotBlank(getVideoHDRFormatCompatibilityForRenderer())) {
+				result.append(" (").append(getVideoHDRFormatCompatibilityForRenderer()).append(")");
 			}
 			if (isNotBlank(getFileTitleFromMetadata())) {
 				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
@@ -1830,7 +1833,9 @@ public class DLNAMediaInfo implements Cloneable {
 			result.append(", ").append(getThumb());
 		}
 
-		result.append(", Mime Type: ").append(getMimeType());
+		if (getMimeType() != null) {
+			result.append(", Mime Type: ").append(getMimeType());
+		}
 
 		return result.toString();
 	}
@@ -2205,22 +2210,23 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * Uses the HDR format and HDR format compatibility information
-	 * to return a string that the renderer config can match.
+	 * Uses the HDR format compatibility information to return
+	 * a string that the renderer config can match if the format
+	 * failed to match.
 	 *
 	 * Note: Sometimes HDR files have a "SDR" compatibility, this means
 	 * that any player can play them, so we return null for that just like
 	 * any other SDR video.
 	 */
-	public String getVideoHDRFormatForRenderer() {
-		if (StringUtils.isBlank(videoHDRFormat) && StringUtils.isBlank(videoHDRFormatCompatibility)) {
+	public String getVideoHDRFormatCompatibilityForRenderer() {
+		if (StringUtils.isBlank(videoHDRFormatCompatibility)) {
 			return null;
 		}
 
-		String hdrValueInRendererFormat = null;
+		String hdrFormatCompatibilityInRendererFormat = null;
 		if (StringUtils.isNotBlank(videoHDRFormatCompatibility)) {
 			if (videoHDRFormatCompatibility.startsWith("Dolby Vision")) {
-				hdrValueInRendererFormat = "dolbyvision";
+				hdrFormatCompatibilityInRendererFormat = "dolbyvision";
 			} else if (
 				(
 					videoHDRFormatCompatibility.startsWith("HDR10") &&
@@ -2228,25 +2234,40 @@ public class DLNAMediaInfo implements Cloneable {
 				) ||
 				videoHDRFormatCompatibility.endsWith("HDR10") // match "HDR10+ Profile A / HDR10"
 			) {
-				hdrValueInRendererFormat = "hdr10";
+				hdrFormatCompatibilityInRendererFormat = "hdr10";
 			} else if (videoHDRFormatCompatibility.startsWith("HDR10+")) {
-				hdrValueInRendererFormat = "hdr10+";
+				hdrFormatCompatibilityInRendererFormat = "hdr10+";
 			} else if (videoHDRFormatCompatibility.startsWith("HLG")) {
-				hdrValueInRendererFormat = "hlg";
-			}
-		} else if (StringUtils.isNotBlank(videoHDRFormat)) {
-			if (videoHDRFormat.startsWith("Dolby Vision")) {
-				hdrValueInRendererFormat = "dolbyvision";
-			} else if (videoHDRFormat.startsWith("HDR10+")) {
-				hdrValueInRendererFormat = "hdr10+";
-			} else if (videoHDRFormat.startsWith("HDR10")) {
-				hdrValueInRendererFormat = "hdr10";
-			} else if (videoHDRFormat.startsWith("HLG")) {
-				hdrValueInRendererFormat = "hlg";
+				hdrFormatCompatibilityInRendererFormat = "hlg";
 			}
 		}
 
-		return hdrValueInRendererFormat;
+		return hdrFormatCompatibilityInRendererFormat;
+	}
+
+	/**
+	 * Uses the HDR format and HDR format information
+	 * to return a string that the renderer config can match.
+	 */
+	public String getVideoHDRFormatForRenderer() {
+		if (StringUtils.isBlank(videoHDRFormat)) {
+			return null;
+		}
+
+		String hdrFormatInRendererFormat = null;
+		if (StringUtils.isNotBlank(videoHDRFormat)) {
+			if (videoHDRFormat.startsWith("Dolby Vision")) {
+				hdrFormatInRendererFormat = "dolbyvision";
+			} else if (videoHDRFormat.startsWith("HDR10+")) {
+				hdrFormatInRendererFormat = "hdr10+";
+			} else if (videoHDRFormat.startsWith("HDR10")) {
+				hdrFormatInRendererFormat = "hdr10";
+			} else if (videoHDRFormat.startsWith("HLG")) {
+				hdrFormatInRendererFormat = "hlg";
+			}
+		}
+
+		return hdrFormatInRendererFormat;
 	}
 
 	public int getPlaybackCount() {
