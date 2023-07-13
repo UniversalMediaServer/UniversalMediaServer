@@ -42,6 +42,8 @@ import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
+
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -115,6 +117,26 @@ public class TsMuxeRVideo extends Engine {
 		} else {
 			return configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
+	}
+
+	private boolean isOutputPCM(DLNAMediaInfo media, DLNAMediaAudio audio, Renderer renderer) {
+		return configuration.isAudioUsePCM() &&
+			media.isValidForLPCMTranscoding() &&
+			(
+				audio.isLossless() ||
+				(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
+				audio.isTrueHD() ||
+				(
+					!configuration.isMencoderUsePcmForHQAudioOnly() &&
+					(
+						audio.isAC3() ||
+						audio.isMP3() ||
+						audio.isAAC() ||
+						audio.isVorbis() ||
+						audio.isMpegAudio()
+					)
+				)
+			) && renderer.isLPCMPlayable();
 	}
 
 	@Override
@@ -245,7 +267,7 @@ public class TsMuxeRVideo extends Engine {
 				"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 				"-i", filename,
 				"-c", "copy",
-				"-f", codecV.equals(FormatConfiguration.H265) ? "hevc" : "rawvideo",
+				"-f", StringUtils.equals(videoType, "V_MPEGH/ISO/HEVC") ? "hevc" : "rawvideo",
 				"-y",
 				ffVideoPipe.getInputPipe()
 			};
@@ -282,46 +304,24 @@ public class TsMuxeRVideo extends Engine {
 				numAudioTracks = media.getAudioTracksList().size();
 			}
 
-			boolean singleMediaAudio = media.getAudioTracksList().size() <= 1;
-
 			if (params.getAid() != null) {
-				boolean ac3Remux;
-				boolean dtsRemux;
-				boolean encodedAudioPassthrough;
-				boolean pcm;
-
 				ffAudioPipe = new PipeIPCProcess[numAudioTracks];
+				ffAudio = new ProcessWrapperImpl[numAudioTracks];
 
-				if (numAudioTracks == 1) {
-					DLNAMediaAudio audio = params.getAid();
+				boolean singleMediaAudio = media.getAudioTracksList().size() == 1;
 
-					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
+				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+					DLNAMediaAudio audio = media.getAudioTracksList().get(i);
+					ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
-					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && audio.isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
+					boolean encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && audio.isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
+					boolean ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+					boolean dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
 
-					pcm = configuration.isAudioUsePCM() &&
-						media.isValidForLPCMTranscoding() &&
-						(
-							audio.isLossless() ||
-							(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
-							audio.isTrueHD() ||
-							(
-								!configuration.isMencoderUsePcmForHQAudioOnly() &&
-								(
-									audio.isAC3() ||
-									audio.isMP3() ||
-									audio.isAAC() ||
-									audio.isVorbis() ||
-									audio.isMpegAudio()
-								)
-							)
-						) && renderer.isLPCMPlayable();
-
+					boolean pcm = isOutputPCM(media, audio, renderer);
 					int channels = getNumberOfAudioOutputChannels(ac3Remux, dtsRemux, encodedAudioPassthrough, pcm, audio);
 
-					String[] ffmpegAudioStreamCommandsSingleTrack;
+					String[] ffmpegAudioStreamCommands;
 					if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
@@ -331,147 +331,56 @@ public class TsMuxeRVideo extends Engine {
 						sm.setNbChannels(channels);
 						sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
 						sm.setBitsPerSample(16);
+						if (!renderer.isMuxDTSToMpeg()) {
+							ffAudioPipe[i].setModifier(sm);
+						}
 
-						ffmpegAudioStreamCommandsSingleTrack = new String[] {
+						ffmpegAudioStreamCommands = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + sm.getNbChannels(),
 							"-f", "ac3",
+							singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
 							"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
 							"-y",
-							ffAudioPipe[0].getInputPipe()
+							ffAudioPipe[i].getInputPipe()
 						};
-
-						// Use PCM trick when media renderer does not support DTS in MPEG
-						if (!renderer.isMuxDTSToMpeg()) {
-							ffAudioPipe[0].setModifier(sm);
-						}
 					} else if (!ac3Remux && renderer.isTranscodeToAAC()) {
 						// AAC audio
-						ffmpegAudioStreamCommandsSingleTrack = new String[] {
+						ffmpegAudioStreamCommands = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + channels,
 							"-f", "adts",
+							singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
 							"-c:a", "aac",
 							"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
 							"-y",
-							ffAudioPipe[0].getInputPipe()
+							ffAudioPipe[i].getInputPipe()
 						};
 						aacTranscode = true;
 					} else {
-						// AC-3 audio
-						ffmpegAudioStreamCommandsSingleTrack = new String[] {
+						// AC-3 remux or encoding
+						ffmpegAudioStreamCommands = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
 							"-ac", "" + channels,
 							"-f", "ac3",
+							singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
 							"-c:a", (ac3Remux) ? "copy" : "ac3",
 							"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, audio)) + "k",
 							"-y",
-							ffAudioPipe[0].getInputPipe()
+							ffAudioPipe[i].getInputPipe()
 						};
 					}
 
 					ffparams = new OutputParams(configuration);
 					ffparams.setMaxBufferSize(1);
 					ffparams.setStdIn(params.getStdIn());
-					ffAudio = new ProcessWrapperImpl[numAudioTracks];
-					ffAudio[0] = new ProcessWrapperImpl(ffmpegAudioStreamCommandsSingleTrack, ffparams);
-				} else {
-					ffAudio = new ProcessWrapperImpl[numAudioTracks];
-					for (int i = 0; i < media.getAudioTracksList().size(); i++) {
-						DLNAMediaAudio audio = media.getAudioTracksList().get(i);
-						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
-
-						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
-						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
-
-						pcm = configuration.isAudioUsePCM() &&
-							media.isValidForLPCMTranscoding() &&
-							(
-								audio.isLossless() ||
-								(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
-								audio.isTrueHD() ||
-								(
-									!configuration.isMencoderUsePcmForHQAudioOnly() &&
-									(
-										audio.isAC3() ||
-										audio.isMP3() ||
-										audio.isAAC() ||
-										audio.isVorbis() ||
-										audio.isMpegAudio()
-									)
-								)
-							) && renderer.isLPCMPlayable();
-
-						int channels = getNumberOfAudioOutputChannels(ac3Remux, dtsRemux, encodedAudioPassthrough, pcm, audio);
-
-						String[] ffmpegAudioStreamCommandsMultipleTracks;
-						if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
-							// DTS remux or LPCM
-							StreamModifier sm = new StreamModifier();
-							sm.setPcm(pcm);
-							sm.setDtsEmbed(dtsRemux);
-							sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
-							sm.setNbChannels(channels);
-							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
-							sm.setBitsPerSample(16);
-							if (!renderer.isMuxDTSToMpeg()) {
-								ffAudioPipe[i].setModifier(sm);
-							}
-
-							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
-								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
-								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
-								"-i", filename,
-								"-ac", "" + sm.getNbChannels(),
-								"-f", "ac3",
-								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
-								"-c:a", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
-								"-y",
-								ffAudioPipe[i].getInputPipe()
-							};
-						} else if (!ac3Remux && renderer.isTranscodeToAAC()) {
-							// AAC audio
-							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
-								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
-								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
-								"-i", filename,
-								"-ac", "" + channels,
-								"-f", "adts",
-								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
-								"-c:a", "aac",
-								"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
-								"-y",
-								ffAudioPipe[i].getInputPipe()
-							};
-							aacTranscode = true;
-						} else {
-							// AC-3 remux or encoding
-							ffmpegAudioStreamCommandsMultipleTracks = new String[] {
-								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
-								"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
-								"-i", filename,
-								"-ac", "" + channels,
-								"-f", "ac3",
-								singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
-								"-c:a", (ac3Remux) ? "copy" : "ac3",
-								"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, audio)) + "k",
-								"-y",
-								ffAudioPipe[i].getInputPipe()
-							};
-						}
-
-						ffparams = new OutputParams(configuration);
-						ffparams.setMaxBufferSize(1);
-						ffparams.setStdIn(params.getStdIn());
-						ffAudio[i] = new ProcessWrapperImpl(ffmpegAudioStreamCommandsMultipleTracks, ffparams);
-					}
+					ffAudio[i] = new ProcessWrapperImpl(ffmpegAudioStreamCommands, ffparams);
 				}
 			}
 		}
@@ -505,92 +414,21 @@ public class TsMuxeRVideo extends Engine {
 			}
 			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + videoparams);
 
-			if (ffAudioPipe != null && ffAudioPipe.length == 1) {
-				String timeshift = "";
-				boolean ac3Remux;
-				boolean dtsRemux;
-				boolean encodedAudioPassthrough;
-				boolean pcm;
-
-				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-				ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
-				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.getAid().isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
-
-				pcm = configuration.isAudioUsePCM() &&
-					media.isValidForLPCMTranscoding() &&
-					(
-						params.getAid().isLossless() ||
-						(params.getAid().isDTS() && params.getAid().getAudioProperties().getNumberOfChannels() <= 6) ||
-						params.getAid().isTrueHD() ||
-						(
-							!configuration.isMencoderUsePcmForHQAudioOnly() &&
-							(
-								params.getAid().isAC3() ||
-								params.getAid().isMP3() ||
-								params.getAid().isAAC() ||
-								params.getAid().isVorbis() ||
-								params.getAid().isMpegAudio()
-							)
-						)
-					) && renderer.isLPCMPlayable();
-				String type = "A_AC3";
-				if (ac3Remux) {
-					// AC-3 remux takes priority
-					type = "A_AC3";
-				} else if (aacTranscode) {
-					type = "A_AAC";
-				} else {
-					if (pcm) {
-						type = "A_LPCM";
-					}
-					if (encodedAudioPassthrough) {
-						type = "A_LPCM";
-					}
-					if (dtsRemux || this instanceof TsMuxeRAudio) {
-						type = "A_LPCM";
-						if (renderer.isMuxDTSToMpeg()) {
-							type = "A_DTS";
-						}
-					}
-				}
-				if (params.getAid() != null && params.getAid().getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
-					timeshift = "timeshift=" + params.getAid().getAudioProperties().getAudioDelay() + "ms, ";
-				}
-				pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
-			} else if (ffAudioPipe != null) {
+			if (ffAudioPipe != null) {
 				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
-					DLNAMediaAudio lang = media.getAudioTracksList().get(i);
-					String timeshift = "";
-					boolean ac3Remux;
-					boolean dtsRemux;
-					boolean encodedAudioPassthrough;
-					boolean pcm;
+					DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 
-					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
+					boolean encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && audio.isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
+					boolean ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+					boolean dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
+					boolean pcm = isOutputPCM(media, audio, renderer);
 
-					pcm = configuration.isAudioUsePCM() &&
-						media.isValidForLPCMTranscoding() &&
-						(
-							lang.isLossless() ||
-							(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||
-							lang.isTrueHD() ||
-							(
-								!configuration.isMencoderUsePcmForHQAudioOnly() &&
-								(
-									params.getAid().isAC3() ||
-									params.getAid().isMP3() ||
-									params.getAid().isAAC() ||
-									params.getAid().isVorbis() ||
-									params.getAid().isMpegAudio()
-								)
-							)
-						) && renderer.isLPCMPlayable();
 					String type = "A_AC3";
 					if (ac3Remux) {
 						// AC-3 remux takes priority
 						type = "A_AC3";
+					} else if (aacTranscode) {
+						type = "A_AAC";
 					} else {
 						if (pcm) {
 							type = "A_LPCM";
@@ -598,15 +436,17 @@ public class TsMuxeRVideo extends Engine {
 						if (encodedAudioPassthrough) {
 							type = "A_LPCM";
 						}
-						if (dtsRemux) {
+						if (dtsRemux || this instanceof TsMuxeRAudio) {
 							type = "A_LPCM";
 							if (renderer.isMuxDTSToMpeg()) {
 								type = "A_DTS";
 							}
 						}
 					}
-					if (lang.getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
-						timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
+
+					String timeshift = "";
+					if (audio != null && audio.getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
+						timeshift = "timeshift=" + audio.getAudioProperties().getAudioDelay() + "ms, ";
 					}
 					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
 				}
