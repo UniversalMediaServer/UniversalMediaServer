@@ -66,6 +66,7 @@ public class StatusTab {
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
 	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
 	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
+	private static final int MINIMUM_FILENAME_DISPLAY_SIZE = 200;
 
 	public static class RendererItem implements ActionListener, IRendererGuiListener {
 		private final ImagePanel icon;
@@ -86,7 +87,7 @@ public class StatusTab {
 			playingLabel = new GuiUtil.MarqueeLabel(" ");
 			playingLabel.setForeground(Color.gray);
 			int h = (int) playingLabel.getSize().getHeight();
-			playing = new GuiUtil.FixedPanel(0, h);
+			playing = new GuiUtil.FixedPanel(200, h);
 			playing.add(playingLabel);
 			time = new JLabel(" ");
 			time.setForeground(Color.gray);
@@ -113,6 +114,9 @@ public class StatusTab {
 			// Maximize the playing label width if not already done
 			if (playing.getSize().width == 0) {
 				int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
+				if (w < MINIMUM_FILENAME_DISPLAY_SIZE) {
+					w = MINIMUM_FILENAME_DISPLAY_SIZE;
+				}
 				playing.setSize(w, (int) playingLabel.getSize().getHeight());
 				playingLabel.setMaxWidth(w);
 			}
