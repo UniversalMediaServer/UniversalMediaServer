@@ -105,6 +105,18 @@ public class TsMuxeRVideo extends Engine {
 		return true;
 	}
 
+	private int getNumberOfAudioOutputChannels(boolean ac3Remux, boolean dtsRemux, boolean encodedAudioPassthrough, boolean pcm, DLNAMediaAudio audio) {
+		if (ac3Remux) {
+			return audio.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+		} else if (dtsRemux || encodedAudioPassthrough) {
+			return 2;
+		} else if (pcm) {
+			return audio.getAudioProperties().getNumberOfChannels();
+		} else {
+			return configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+		}
+	}
+
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
@@ -281,40 +293,33 @@ public class TsMuxeRVideo extends Engine {
 				ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 
 				if (numAudioTracks == 1) {
+					DLNAMediaAudio audio = params.getAid();
+
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 
-					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.getAid().isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
+					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && audio.isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
+					ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
 						media.isValidForLPCMTranscoding() &&
 						(
-							params.getAid().isLossless() ||
-							(params.getAid().isDTS() && params.getAid().getAudioProperties().getNumberOfChannels() <= 6) ||
-							params.getAid().isTrueHD() ||
+							audio.isLossless() ||
+							(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
+							audio.isTrueHD() ||
 							(
 								!configuration.isMencoderUsePcmForHQAudioOnly() &&
 								(
-									params.getAid().isAC3() ||
-									params.getAid().isMP3() ||
-									params.getAid().isAAC() ||
-									params.getAid().isVorbis() ||
-									params.getAid().isMpegAudio()
+									audio.isAC3() ||
+									audio.isMP3() ||
+									audio.isAAC() ||
+									audio.isVorbis() ||
+									audio.isMpegAudio()
 								)
 							)
 						) && renderer.isLPCMPlayable();
 
-					int channels;
-					if (ac3Remux) {
-						channels = params.getAid().getAudioProperties().getNumberOfChannels(); // AC-3 remux
-					} else if (dtsRemux || encodedAudioPassthrough) {
-						channels = 2;
-					} else if (pcm) {
-						channels = params.getAid().getAudioProperties().getNumberOfChannels();
-					} else {
-						channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-					}
+					int channels = getNumberOfAudioOutputChannels(ac3Remux, dtsRemux, encodedAudioPassthrough, pcm, audio);
 
 					String[] ffmpegAudioStreamCommandsSingleTrack;
 					if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
@@ -324,7 +329,7 @@ public class TsMuxeRVideo extends Engine {
 						sm.setDtsEmbed(dtsRemux);
 						sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 						sm.setNbChannels(channels);
-						sm.setSampleFrequency(params.getAid().getSampleRate() < 48000 ? 48000 : params.getAid().getSampleRate());
+						sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
 						sm.setBitsPerSample(16);
 
 						ffmpegAudioStreamCommandsSingleTrack = new String[] {
@@ -365,7 +370,7 @@ public class TsMuxeRVideo extends Engine {
 							"-ac", "" + channels,
 							"-f", "ac3",
 							"-c:a", (ac3Remux) ? "copy" : "ac3",
-							"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.getAid())) + "k",
+							"-ab", String.valueOf(CodecUtil.getAC3Bitrate(configuration, audio)) + "k",
 							"-y",
 							ffAudioPipe[0].getInputPipe()
 						};
@@ -404,16 +409,7 @@ public class TsMuxeRVideo extends Engine {
 								)
 							) && renderer.isLPCMPlayable();
 
-						int channels;
-						if (ac3Remux) {
-							channels = audio.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-						} else if (dtsRemux || encodedAudioPassthrough) {
-							channels = 2;
-						} else if (pcm) {
-							channels = audio.getAudioProperties().getNumberOfChannels();
-						} else {
-							channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-						}
+						int channels = getNumberOfAudioOutputChannels(ac3Remux, dtsRemux, encodedAudioPassthrough, pcm, audio);
 
 						String[] ffmpegAudioStreamCommandsMultipleTracks;
 						if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
