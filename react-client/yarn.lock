@@ -13802,7 +13802,7 @@ __metadata:
     typescript: 5.1.6
     video.js: 8.5.0
     videojs-contrib-quality-levels: 4.0.0
-    web-vitals: 3.3.2
+    web-vitals: 3.4.0
   languageName: unknown
   linkType: soft
 
@@ -14183,10 +14183,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-vitals@npm:3.3.2":
-  version: 3.3.2
-  resolution: "web-vitals@npm:3.3.2"
-  checksum: 76e832341d213d5de6f6767fef7f8c02163ab94326912a6355bbf6e194d930196ca5094b0d0d493b4c194acaaabcc96f0adc87870b913a7b9a51b225807abccf
+"web-vitals@npm:3.4.0":
+  version: 3.4.0
+  resolution: "web-vitals@npm:3.4.0"
+  checksum: 6baac515035a82f05623aa6592654af3b5fd8ca0359e368388e147c1376ca00e5f1b2256130f8e96249ee793a437b55615db21ae699d6d400bf2800f676e0114
   languageName: node
   linkType: hard
 
