@@ -159,6 +159,9 @@ public class TsMuxeRVideo extends Engine {
 		PipeIPCProcess[] ffAudioPipe = null;
 		ProcessWrapperImpl[] ffAudio = null;
 
+		PipeIPCProcess[] ffSubtitlesPipe = null;
+		ProcessWrapperImpl[] ffSubtitles = null;
+
 		String fps = null;
 
 		int width  = media.getWidth();
@@ -180,6 +183,7 @@ public class TsMuxeRVideo extends Engine {
 
 		boolean aacTranscode = false;
 
+		// this section sets up the piped streams that will be passed to tsMuxeR
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
 
@@ -230,13 +234,13 @@ public class TsMuxeRVideo extends Engine {
 				};
 			} else {
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "mlpaudio", System.currentTimeMillis() + "audioout", false, true);
-				String depth = "pcm_s16le";
-				String rate = "48000";
 
+				String depth = "pcm_s16le";
 				if (media.getFirstAudioTrack().getBitsperSample() >= 24) {
 					depth = "pcm_s24le";
 				}
 
+				String rate = "48000";
 				if (media.getFirstAudioTrack().getSampleRate() > 48000) {
 					rate = "" + media.getFirstAudioTrack().getSampleRate();
 				}
@@ -283,7 +287,7 @@ public class TsMuxeRVideo extends Engine {
 			 * videos encoded higher than that either - but it's worth acknowledging the logic discrepancy.
 			 */
 			if (!media.isVideoWithinH264LevelLimits(newInput, renderer) && renderer.isH264Level41Limited()) {
-				LOGGER.info("The video will not play or will show a black screen");
+				LOGGER.debug("The video may not play or may show a black screen");
 			}
 
 			if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
@@ -299,9 +303,14 @@ public class TsMuxeRVideo extends Engine {
 			ffVideo = new ProcessWrapperImpl(ffmpegPipeVideoStreamCommands, ffparams);
 
 			int numAudioTracks = 1;
+			int numSubtitlesTracks = 0;
 
 			if (media.getAudioTracksList() != null && media.getAudioTracksList().size() > 1 && configuration.isMuxAllAudioTracks()) {
 				numAudioTracks = media.getAudioTracksList().size();
+			}
+
+			if (media.getSubtitlesTracks() != null && media.getSubtitlesTracks().size() > 0) {
+				numSubtitlesTracks = media.getSubtitlesTracks().size();
 			}
 
 			if (params.getAid() != null) {
@@ -383,8 +392,38 @@ public class TsMuxeRVideo extends Engine {
 					ffAudio[i] = new ProcessWrapperImpl(ffmpegAudioStreamCommands, ffparams);
 				}
 			}
+
+			// define subtitle streams if the renderer supports PGS inside MPEG-TS
+			if (params.getSid() != null && renderer.getFormatConfiguration().isMpegtsPgsSupported(renderer)) {
+				ffSubtitlesPipe = new PipeIPCProcess[numSubtitlesTracks];
+				ffSubtitles = new ProcessWrapperImpl[numSubtitlesTracks];
+
+				boolean singleMediaSubtitles = media.getSubtitlesTracks().size() == 1;
+
+				for (int i = 0; i < media.getSubtitlesTracks().size(); i++) {
+					DLNAMediaSubtitle subtitlesTrack = media.getSubtitlesTracks().get(i);
+					ffSubtitlesPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "subtitlestrackout" + i, false, true);
+
+					String[] ffmpegSubtitlesStreamCommands;
+					ffmpegSubtitlesStreamCommands = new String[] {
+						EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
+						"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
+						"-i", filename,
+						"-f", "srt",
+						singleMediaSubtitles ? "-y" : "-map", singleMediaSubtitles ? "-y" : ("0:s:" + (media.getSubtitlesTracks().indexOf(subtitlesTrack))),
+						"-y",
+						ffSubtitlesPipe[i].getInputPipe()
+					};
+
+					ffparams = new OutputParams(configuration);
+					ffparams.setMaxBufferSize(1);
+					ffparams.setStdIn(params.getStdIn());
+					ffSubtitles[i] = new ProcessWrapperImpl(ffmpegSubtitlesStreamCommands, ffparams);
+				}
+			}
 		}
 
+		// this section writes the file with instructions for tsMuxeR
 		File f = new File(CONFIGURATION.getTempFolder(), "ums-tsmuxer.meta");
 		params.setLog(false);
 		try (PrintWriter pw = new PrintWriter(f)) {
@@ -483,7 +522,7 @@ public class TsMuxeRVideo extends Engine {
 		ffVideo.runInNewThread();
 		UMSUtils.sleep(50);
 
-		if (ffAudioPipe != null && params.getAid() != null) {
+		if (ffAudioPipe != null && ffAudio != null && params.getAid() != null) {
 			for (int i = 0; i < ffAudioPipe.length; i++) {
 				ffPipeProcess = ffAudioPipe[i].getPipeProcess();
 				p.attachProcess(ffPipeProcess);
@@ -492,6 +531,18 @@ public class TsMuxeRVideo extends Engine {
 				ffAudioPipe[i].deleteLater();
 				p.attachProcess(ffAudio[i]);
 				ffAudio[i].runInNewThread();
+			}
+		}
+
+		if (ffSubtitlesPipe != null && ffSubtitles != null && params.getSid() != null) {
+			for (int i = 0; i < ffSubtitlesPipe.length; i++) {
+				ffPipeProcess = ffSubtitlesPipe[i].getPipeProcess();
+				p.attachProcess(ffPipeProcess);
+				ffPipeProcess.runInNewThread();
+				UMSUtils.sleep(50);
+				ffSubtitlesPipe[i].deleteLater();
+				p.attachProcess(ffSubtitles[i]);
+				ffSubtitles[i].runInNewThread();
 			}
 		}
 

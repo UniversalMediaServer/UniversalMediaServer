@@ -183,9 +183,10 @@ public class FFMpegVideo extends Engine {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsManualTiming = true;
-			DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.getSid() != null && params.getSid().getType().isText()) {
+				DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
 				boolean isSubsExtracted = false;
@@ -223,6 +224,12 @@ public class FFMpegVideo extends Engine {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
 				} else {
+					/**
+					 * Here we have internal subs to use, and because FFmpeg can be very slow
+					 * to begin transcoding when it has to hardcode subtitles, we reference
+					 * our extracted version of the subtitles, which have hopefully been already
+					 * extracted ahead of time and ready to hardcode.
+					 */
 					if (isSubsExtracted) {
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else {

@@ -31,6 +31,7 @@ import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.renderers.Renderer;
@@ -655,6 +656,30 @@ public class FormatConfiguration {
 
 	public boolean isMpeg2Supported() {
 		return getMatchedMIMEtype(MPEGPS, MPEG2, null) != null || getMatchedMIMEtype(MPEGTS, MPEG2, null) != null;
+	}
+
+	/**
+	 * @return whether the renderer supports PGS subtitles inside MPEG-TS containers
+	 */
+	public boolean isMpegtsPgsSupported(RendererConfiguration renderer) {
+		return getMatchedMIMEtype(
+			MPEGTS,
+			null,
+			null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			8,
+			null,
+			null,
+			null,
+			SubtitleType.PGS.getShortName(),
+			true,
+			renderer
+		) != null;
 	}
 
 	/**
