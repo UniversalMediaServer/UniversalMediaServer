@@ -361,11 +361,11 @@ public class TsMuxeRVideo extends Engine {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
 							"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
 							"-i", filename,
-							"-ac", "" + channels,
+							audio.isAACLC() ? "-y" : "-ac", audio.isAACLC() ? "-y" : "" + channels,
 							"-f", "adts",
 							singleMediaAudio ? "-y" : "-map", singleMediaAudio ? "-y" : ("0:a:" + (media.getAudioTracksList().indexOf(audio))),
-							"-c:a", "aac",
-							"-ab", Math.min(configuration.getAudioBitrate(), 320) + "k",
+							"-c:a", audio.isAACLC() ? "copy" : "aac",
+							audio.isAACLC() ? "-y" : "-ab", audio.isAACLC() ? "-y" : Math.min(configuration.getAudioBitrate(), 320) + "k",
 							"-y",
 							ffAudioPipe[i].getInputPipe()
 						};
