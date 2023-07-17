@@ -436,7 +436,7 @@ public class TsMuxeRVideo extends Engine {
 			String videoparams = "";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
-			} else if (renderer.isTranscodeToH264()) {
+			} else if (StringUtils.equals(videoType, "V_MPEG4/ISO/AVC")) {
 				String sei = "insertSEI";
 				if (
 					renderer.isPS3() &&
