@@ -677,7 +677,7 @@ public class FormatConfiguration {
 			null,
 			null,
 			SubtitleType.PGS.getShortName(),
-			true,
+			false,
 			renderer
 		) != null;
 	}
@@ -863,7 +863,7 @@ public class FormatConfiguration {
 		String videoHdrFormatCompatibilityInRendererFormat,
 		Map<String, String> extras,
 		String subsFormat,
-		boolean isInternal,
+		boolean isExternalSubs,
 		RendererConfiguration renderer
 	) {
 		String matchedMimeType = null;
@@ -884,7 +884,7 @@ public class FormatConfiguration {
 				videoHdrFormatCompatibilityInRendererFormat,
 				extras,
 				subsFormat,
-				isInternal,
+				isExternalSubs,
 				renderer
 			)) {
 				matchedMimeType = supportSpec.mimeType;
