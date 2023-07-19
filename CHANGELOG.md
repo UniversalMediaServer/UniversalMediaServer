@@ -1,5 +1,41 @@
 # Changelog
 
+## [Unreleased](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.5.0...main)
+
+### General
+- Improved parsing of SDTV filenames
+- Fixed H.265 muxing via tsMuxeR
+- Fixed support for latest MediaInfo versions
+- Fixed recognition of renderers by UUID
+- Fixed name of playing file not showing up on old status tab
+- Fixed security vulnerabilities
+- Fixed thumbnail generation bugs (thanks, Chris Kroells!)
+
+### Renderers
+- Added support for Dolby Vision in MKV on LG TVs
+- Improved support for videos with opus audio on LG TVs
+- Fixed detection of VLC for macOS
+
+### Translation updates via Crowdin
+- Removed inconsistent trailing dot (thanks, Paul Furlet!)
+
+### Dependencies
+- lock file maintenance
+- Bump FFmpeg and tsMuxeR to latest
+- Bump MediaInfo to 23.06
+- Bump semver from 6.3.0 to 6.3.1
+- update dependency @types/jest to v29.5.3
+- update dependency @types/node to v18.16.19
+- update dependency com.github.eirslett:frontend-maven-plugin to v1.13.4
+- update dependency com.github.oshi:oshi-core to v6.4.4
+- update dependency eslint to v8.45.0
+- update dependency org.jupnp:org.jupnp to v2.7.1
+- update dependency web-vitals to v3.4.0
+- update mantine monorepo packages to v6.0.16
+- update react monorepo
+- update typescript-eslint monorepo to v5.62.0
+- update yarn to v3.6.1
+
 ## [13.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...13.5.0) (2023-07-04)
 
 ### General
