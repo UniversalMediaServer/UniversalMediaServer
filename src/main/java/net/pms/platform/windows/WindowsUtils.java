@@ -41,6 +41,7 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.pms.PMS;
@@ -339,33 +340,39 @@ public class WindowsUtils extends PlatformUtils {
 
 	@Override
 	public List<Path> getDefaultFolders() {
-		List<Path> result = new ArrayList<>();
-		if (OS_VERSION.isGreaterThanOrEqualTo("6.0.0")) {
-			List<GUID> knownFolders = List.of(
-				KnownFolders.FOLDERID_MUSIC,
-				KnownFolders.FOLDERID_PICTURES,
-				KnownFolders.FOLDERID_VIDEOS
-			);
-			for (GUID guid : knownFolders) {
-				Path folder = getWindowsKnownFolder(guid);
-				if (folder != null) {
-					result.add(folder);
+		synchronized (DEFAULT_FOLDERS_LOCK) {
+			if (defaultFolders == null) {
+				// Lazy initialization
+				List<Path> result = new ArrayList<>();
+				if (OS_VERSION.isGreaterThanOrEqualTo("6.0.0")) {
+					List<GUID> knownFolders = List.of(
+						KnownFolders.FOLDERID_MUSIC,
+						KnownFolders.FOLDERID_PICTURES,
+						KnownFolders.FOLDERID_VIDEOS
+					);
+					for (GUID guid : knownFolders) {
+						Path folder = getWindowsKnownFolder(guid);
+						if (folder != null) {
+							result.add(folder);
+						}
+					}
+				} else {
+					CSIDL[] csidls = {
+						CSIDL.CSIDL_MYMUSIC,
+						CSIDL.CSIDL_MYPICTURES,
+						CSIDL.CSIDL_MYVIDEO
+					};
+					for (CSIDL csidl : csidls) {
+						Path folder = getWindowsFolder(csidl);
+						if (folder != null) {
+							result.add(folder);
+						}
+					}
 				}
+				defaultFolders = Collections.unmodifiableList(result);
 			}
-		} else {
-			CSIDL[] csidls = {
-				CSIDL.CSIDL_MYMUSIC,
-				CSIDL.CSIDL_MYPICTURES,
-				CSIDL.CSIDL_MYVIDEO
-			};
-			for (CSIDL csidl : csidls) {
-				Path folder = getWindowsFolder(csidl);
-				if (folder != null) {
-					result.add(folder);
-				}
-			}
+			return defaultFolders;
 		}
-		return result;
 	}
 
 	@Override
