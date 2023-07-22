@@ -774,7 +774,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Resolve subtitles stream
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles() && hasSubtitles(false)) {
-			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
+			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 			if (mediaSubtitle == null) {
 				mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 			}
@@ -2036,7 +2036,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 */
 							if (renderer.isAccurateDLNAOrgPN()) {
 								if (mediaSubtitle == null) {
-									DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
+									DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 									mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 								}
 
@@ -4074,17 +4074,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *            configuration.
 	 * @return The resolved {@link DLNAMediaAudio} or {@code null}.
 	 */
-	public DLNAMediaAudio resolveAudioStream(Renderer renderer) {
+	public DLNAMediaAudio resolveAudioStream() {
 		if (media == null || media.getAudioTrackCount() == 0) {
 			LOGGER.trace("Found no audio track");
 			return null;
 		}
-		// Use device-specific pms conf
-		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 
 		// check for preferred audio
 		DLNAMediaAudio dtsTrack = null;
-		StringTokenizer st = new StringTokenizer(deviceSpecificConfiguration.getAudioLanguages(), ",");
+		StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 		while (st.hasMoreTokens()) {
 			String lang = st.nextToken().trim();
 			LOGGER.trace("Looking for an audio track with language \"{}\" for \"{}\"", lang, getName());
@@ -4131,7 +4129,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		// Use device-specific pms conf
+		// Use device-specific conf
 		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 		if (deviceSpecificConfiguration.isDisableSubtitles()) {
 			LOGGER.trace("Not resolving subtitles since subtitles are disabled");
