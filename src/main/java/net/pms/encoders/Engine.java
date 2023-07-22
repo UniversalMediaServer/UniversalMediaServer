@@ -759,7 +759,7 @@ public abstract class Engine {
 		}
 
 		if (params.getAid() == null) {
-			params.setAid(resource.resolveAudioStream(params.getMediaRenderer()));
+			params.setAid(resource.resolveAudioStream());
 		}
 
 		if (params.getSid() != null && params.getSid().getId() == DLNAMediaLang.DUMMY_ID) {
