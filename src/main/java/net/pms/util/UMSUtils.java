@@ -242,10 +242,6 @@ public class UMSUtils {
 		return s;
 	}
 
-	public static String getLangList(Renderer renderer) {
-		return getLangList(renderer, false);
-	}
-
 	public static String getLangList(Renderer renderer, boolean three) {
 		String res;
 		if (renderer != null) {

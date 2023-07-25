@@ -134,6 +134,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 			result.append(convertedFile.toString());
 		}
 
+		result.append(", default: ");
+		result.append(isDefault());
+
+		result.append(", forced: ");
+		result.append(isForced());
+
 		return result.toString();
 	}
 

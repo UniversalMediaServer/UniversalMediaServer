@@ -150,7 +150,11 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	}
 
 	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia) {
+		//try first the uuid if exists then ip address
 		String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(ia);
+		if (ia != null && (id == null || !RendererConfigurations.hasDeviceConfiguration(id))) {
+			id = ia.toString().substring(1);
+		}
 		if (id != null && RendererConfigurations.hasDeviceConfiguration(id)) {
 			deviceConf = RendererConfigurations.getDeviceConfiguration(id);
 			LOGGER.info("Using custom device configuration {} for {}", deviceConf.getFile().getName(), id);
