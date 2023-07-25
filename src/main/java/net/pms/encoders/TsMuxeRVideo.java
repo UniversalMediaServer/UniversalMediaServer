@@ -162,7 +162,7 @@ public class TsMuxeRVideo extends Engine {
 		PipeIPCProcess[] ffSubtitlesPipe = null;
 		ProcessWrapperImpl[] ffSubtitles = null;
 
-		String fps = null;
+		String fps = media.getValidFps(false);
 
 		int width  = media.getWidth();
 		int height = media.getHeight();
