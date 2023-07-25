@@ -16,17 +16,8 @@
  */
 package net.pms.dlna;
 
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,12 +45,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -113,7 +98,22 @@ import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -776,7 +776,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Resolve subtitles stream
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles() && hasSubtitles(false)) {
-			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
+			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 			if (mediaSubtitle == null) {
 				mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 			}
@@ -2038,7 +2038,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 */
 							if (renderer.isAccurateDLNAOrgPN()) {
 								if (mediaSubtitle == null) {
-									DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream(renderer);
+									DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 									mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 								}
 
@@ -4097,17 +4097,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *            configuration.
 	 * @return The resolved {@link DLNAMediaAudio} or {@code null}.
 	 */
-	public DLNAMediaAudio resolveAudioStream(Renderer renderer) {
+	public DLNAMediaAudio resolveAudioStream() {
 		if (media == null || media.getAudioTrackCount() == 0) {
 			LOGGER.trace("Found no audio track");
 			return null;
 		}
-		// Use device-specific pms conf
-		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 
 		// check for preferred audio
 		DLNAMediaAudio dtsTrack = null;
-		StringTokenizer st = new StringTokenizer(deviceSpecificConfiguration.getAudioLanguages(), ",");
+		StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 		while (st.hasMoreTokens()) {
 			String lang = st.nextToken().trim();
 			LOGGER.trace("Looking for an audio track with language \"{}\" for \"{}\"", lang, getName());
@@ -4154,7 +4152,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		// Use device-specific pms conf
+		// Use device-specific conf
 		UmsConfiguration deviceSpecificConfiguration = PMS.getConfiguration(renderer);
 		if (deviceSpecificConfiguration.isDisableSubtitles()) {
 			LOGGER.trace("Not resolving subtitles since subtitles are disabled");
