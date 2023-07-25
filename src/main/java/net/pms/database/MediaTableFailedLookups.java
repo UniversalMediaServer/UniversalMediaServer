@@ -30,24 +30,40 @@ import org.slf4j.LoggerFactory;
 
 public final class MediaTableFailedLookups extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFailedLookups.class);
-	public static final String TABLE_NAME = "FAILED_LOOKUPS";
-	private static final String COL_LASTATTEMPT = "LASTATTEMPT";
-	public static final String TABLE_COL_LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
-	public static final String TABLE_COL_FAILUREDETAILS = TABLE_NAME + ".FAILUREDETAILS";
-	public static final String TABLE_COL_FILENAME = TABLE_NAME + ".FILENAME";
-	public static final String TABLE_COL_VERSION = TABLE_NAME + ".VERSION";
-	private static final String SQL_GET_LASTATTEMPT = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
-	private static final String SQL_GET_LASTATTEMPT_VERSION = "SELECT " + TABLE_COL_LASTATTEMPT + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? AND " + TABLE_COL_VERSION + " = ? LIMIT 1";
-	private static final String SQL_GET_FILENAME = "SELECT " + TABLE_COL_FILENAME + ", " + TABLE_COL_FAILUREDETAILS + ", " + TABLE_COL_VERSION + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ? LIMIT 1";
-	private static final String SQL_DELETE_FILENAME = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " = ?";
-	private static final String SQL_DELETE_FILENAME_LIKE = "DELETE FROM  " + TABLE_NAME + " WHERE " + TABLE_COL_FILENAME + " LIKE ?";
+	protected static final String TABLE_NAME = "FAILED_LOOKUPS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_LASTATTEMPT = "LASTATTEMPT";
+	private static final String COL_FAILUREDETAILS = "FAILUREDETAILS";
+	private static final String COL_FILENAME = "FILENAME";
+	private static final String COL_VERSION = "VERSION";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	private static final String TABLE_COL_LASTATTEMPT = TABLE_NAME + "." + COL_LASTATTEMPT;
+	private static final String TABLE_COL_FAILUREDETAILS = TABLE_NAME + "." + COL_FAILUREDETAILS;
+	private static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	private static final String TABLE_COL_VERSION = TABLE_NAME + "." + COL_VERSION;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_LASTATTEMPT = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_LASTATTEMPT_VERSION = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_VERSION + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_FILENAME = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_FAILUREDETAILS + COMMA + TABLE_COL_VERSION + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_DELETE_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -96,20 +112,24 @@ public final class MediaTableFailedLookups extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					try (Statement statement = connection.createStatement()) {
-						if (!isColumnExist(connection, TABLE_NAME, "VERSION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD VERSION VARCHAR");
-							statement.execute("CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)");
+						if (!isColumnExist(connection, TABLE_NAME, COL_VERSION)) {
+							statement.execute(ALTER_TABLE + TABLE_NAME + ADD + COL_VERSION + VARCHAR);
+							statement.execute(CREATE_INDEX + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")");
 						}
 					} catch (SQLException e) {
 						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
 						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
 						throw new SQLException(e);
 					}
-					break;
-				default:
-					throw new IllegalStateException(
+				}
+				case 2 -> {
+					//rename indexes
+					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FAILED_" + COL_FILENAME + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER);
+					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER);
+				}
+				default -> throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
@@ -126,15 +146,15 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID               IDENTITY                   PRIMARY KEY               , " +
-				"FILENAME         VARCHAR(1024)              NOT NULL                  , " +
-				"FAILUREDETAILS   VARCHAR(20000)             NOT NULL                  , " +
-				"VERSION          VARCHAR(1024)              NOT NULL                  , " +
-				"LASTATTEMPT      TIMESTAMP WITH TIME ZONE   DEFAULT CURRENT_TIMESTAMP   " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID                 + IDENTITY                   + PRIMARY_KEY                  + COMMA +
+				COL_FILENAME           + VARCHAR_1024               + NOT_NULL                     + COMMA +
+				COL_FAILUREDETAILS     + VARCHAR_20000              + NOT_NULL                     + COMMA +
+				COL_VERSION            + VARCHAR_1024               + NOT_NULL                     + COMMA +
+				COL_LASTATTEMPT        + TIMESTAMP_WITH_TIME_ZONE   + DEFAULT + CURRENT_TIMESTAMP  +
 			")",
-			"CREATE UNIQUE INDEX FAILED_FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
-			"CREATE INDEX FILENAME_VERSION on " + TABLE_NAME + " (FILENAME, VERSION)"
+			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
 		);
 	}
 
@@ -226,14 +246,14 @@ public final class MediaTableFailedLookups extends MediaTable {
 				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", statement);
 				try (ResultSet result = statement.executeQuery()) {
 					if (result.next()) {
-						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-						result.updateString("VERSION", left(latestVersion, 1024));
+						result.updateString(COL_FAILUREDETAILS, left(failureDetails, 20000));
+						result.updateString(COL_VERSION, left(latestVersion, 1024));
 						result.updateRow();
 					} else {
 						result.moveToInsertRow();
-						result.updateString("FILENAME", left(fullPathToFile, 1024));
-						result.updateString("FAILUREDETAILS", left(failureDetails, 20000));
-						result.updateString("VERSION", left(latestVersion, 1024));
+						result.updateString(COL_FILENAME, left(fullPathToFile, 1024));
+						result.updateString(COL_FAILUREDETAILS, left(failureDetails, 20000));
+						result.updateString(COL_VERSION, left(latestVersion, 1024));
 						result.insertRow();
 					}
 				}

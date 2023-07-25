@@ -97,6 +97,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.MediaStatus;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -157,6 +158,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private Format format;
 	private DLNAMediaInfo media;
+	private MediaStatus mediaStatus;
 	private DLNAMediaAudio mediaAudio;
 	private DLNAMediaSubtitle mediaSubtitle;
 	private long lastModified;
@@ -2336,13 +2338,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
 				}
 			}
-
-			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
-			if (isNotBlank(media.getLastPlaybackTime())) {
-				addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
-			}
-			if (isNotBlank(media.getLastPlaybackPositionForUPnP())) {
-				addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPositionForUPnP()));
+			if (mediaStatus != null) {
+				addXMLTagAndAttribute(sb, "upnp:playbackCount", mediaStatus.getPlaybackCount());
+				if (isNotBlank(mediaStatus.getLastPlaybackTime())) {
+					addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(mediaStatus.getLastPlaybackTime()));
+				}
+				if (isNotBlank(mediaStatus.getLastPlaybackPositionForUPnP())) {
+					addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(mediaStatus.getLastPlaybackPositionForUPnP()));
+				}
 			}
 		}
 
@@ -3714,6 +3717,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void setMedia(DLNAMediaInfo media) {
 		this.media = media;
+	}
+
+	/**
+	 * Returns the {@link MediaStatus} object for this resource, containing
+	 * the status of this resource, e.g. the playback count.
+	 *
+	 * @return The object containing status information.
+	 */
+	public MediaStatus getMediaStatus() {
+		return mediaStatus;
+	}
+
+	/**
+	 * Sets the the {@link MediaStatus} object that contains all status for
+	 * this resource.
+	 *
+	 * @param mediaStatus The object containing status information.
+	 */
+	public void setMediaStatus(MediaStatus mediaStatus) {
+		this.mediaStatus = mediaStatus;
 	}
 
 	/**

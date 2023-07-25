@@ -648,8 +648,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				if (!directmime(mime) || transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 					mime = renderer.getVideoMimeType();
 				}
-				if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
-					media.addProperty("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
+				if (rootResource.getMediaStatus() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
+					media.addProperty("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
 				}
 			}
 
