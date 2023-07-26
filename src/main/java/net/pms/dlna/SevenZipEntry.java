@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import net.pms.formats.Format;
+import net.pms.media.MediaInfo;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
@@ -69,7 +70,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
-			return DLNAMediaInfo.TRANS_SIZE;
+			return MediaInfo.TRANS_SIZE;
 		}
 
 		return length;
@@ -154,7 +155,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 		if (!found) {
 			if (getMedia() == null) {
-				setMedia(new DLNAMediaInfo());
+				setMedia(new MediaInfo());
 			}
 
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();

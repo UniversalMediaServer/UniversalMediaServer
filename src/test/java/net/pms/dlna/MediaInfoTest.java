@@ -25,7 +25,6 @@ import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.parsers.MediaInfoParser;
-import net.pms.platform.PlatformUtils;
 import net.pms.service.Services;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -35,10 +34,10 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DLNAMediaInfoTest {
-	private static final Class<?> CLASS = DLNAMediaInfoTest.class;
+public class MediaInfoTest {
+	private static final Class<?> CLASS = MediaInfoTest.class;
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfoTest.class.getName());
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoTest.class.getName());
 
 	DLNAResource parent;
 

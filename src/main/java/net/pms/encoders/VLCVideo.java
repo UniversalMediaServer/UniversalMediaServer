@@ -26,11 +26,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -279,7 +279,7 @@ public class VLCVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
@@ -432,7 +432,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(DLNAResource dlna, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;
 		configuration = params.getMediaRenderer().getUmsConfiguration();
@@ -504,7 +504,7 @@ public class VLCVideo extends Engine {
 			} else {
 				if (
 					isBlank(params.getAid().getLang()) ||
-					DLNAMediaLang.UND.equals(params.getAid().getLang()) ||
+					MediaLang.UND.equals(params.getAid().getLang()) ||
 					"loc".equals(params.getAid().getLang())
 				) {
 					cmdList.add("--audio-track=-1");

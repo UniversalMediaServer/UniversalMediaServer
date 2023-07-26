@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.subtitle;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -25,7 +25,7 @@ import java.io.FileNotFoundException;
  *
  * @author Nadahar
  */
-public abstract class DLNAMediaOnDemandSubtitle extends DLNAMediaSubtitle {
+public abstract class MediaOnDemandSubtitle extends MediaSubtitle {
 
 	/**
 	 * Attempts to fetch the on-demand subtitles from its source.

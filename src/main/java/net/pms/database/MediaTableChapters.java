@@ -22,9 +22,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.MediaInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,7 +139,7 @@ public class MediaTableChapters extends MediaTable {
 		);
 	}
 
-	protected static void insertOrUpdateChapters(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
+	protected static void insertOrUpdateChapters(Connection connection, long fileId, MediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || !media.hasChapters()) {
 			return;
 		}
@@ -147,7 +147,7 @@ public class MediaTableChapters extends MediaTable {
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_ALL_BY_FILEID_ID_LANG, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
-			for (DLNAMediaChapter chapter : media.getChapters()) {
+			for (MediaChapter chapter : media.getChapters()) {
 				updateStatement.clearParameters();
 				updateStatement.setLong(1, fileId);
 				updateStatement.setInt(2, chapter.getId());
@@ -174,8 +174,8 @@ public class MediaTableChapters extends MediaTable {
 		}
 	}
 
-	protected static List<DLNAMediaChapter> getChapters(Connection connection, long fileId) {
-		List<DLNAMediaChapter> result = new ArrayList<>();
+	protected static List<MediaChapter> getChapters(Connection connection, long fileId) {
+		List<MediaChapter> result = new ArrayList<>();
 		if (connection == null || fileId < 0) {
 			return result;
 		}
@@ -183,7 +183,7 @@ public class MediaTableChapters extends MediaTable {
 			stmt.setLong(1, fileId);
 			try (ResultSet elements = stmt.executeQuery()) {
 				while (elements.next()) {
-					DLNAMediaChapter chapter = new DLNAMediaChapter();
+					MediaChapter chapter = new MediaChapter();
 					chapter.setId(elements.getInt(COL_ID));
 					chapter.setLang(elements.getString(COL_LANG));
 					chapter.setTitle(elements.getString(COL_TITLE));

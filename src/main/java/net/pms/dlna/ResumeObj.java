@@ -27,6 +27,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.media.MediaInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class ResumeObj {
 
 		if (originalResource.getMedia() != null) {
 			double dur = originalResource.getMedia().getDurationInSeconds();
-			if (dur == 0.0 || dur == DLNAMediaInfo.TRANS_SIZE) {
+			if (dur == 0.0 || dur == MediaInfo.TRANS_SIZE) {
 				originalResource.getMedia().setDuration(res.resDuration / 1000.0);
 			}
 		}

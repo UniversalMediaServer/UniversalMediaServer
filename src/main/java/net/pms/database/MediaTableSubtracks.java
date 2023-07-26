@@ -23,9 +23,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaSubtitle;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,7 +155,7 @@ public class MediaTableSubtracks extends MediaTable {
 		);
 	}
 
-	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
+	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
@@ -167,7 +167,7 @@ public class MediaTableSubtracks extends MediaTable {
 				ResultSet.CONCUR_UPDATABLE
 			);
 		) {
-			for (DLNAMediaSubtitle subtitleTrack : media.getSubtitlesTracks()) {
+			for (MediaSubtitle subtitleTrack : media.getSubtitlesTracks()) {
 				String externalFile;
 				if (subtitleTrack.getExternalFile() != null) {
 					externalFile = subtitleTrack.getExternalFile().getPath();
@@ -201,8 +201,8 @@ public class MediaTableSubtracks extends MediaTable {
 		}
 	}
 
-	protected static List<DLNAMediaSubtitle> getSubtitleTracks(Connection connection, long fileId) {
-		List<DLNAMediaSubtitle> result = new ArrayList<>();
+	protected static List<MediaSubtitle> getSubtitleTracks(Connection connection, long fileId) {
+		List<MediaSubtitle> result = new ArrayList<>();
 		List<String> externalFileReferencesToRemove = new ArrayList<>();
 		if (connection == null || fileId < 0) {
 			return result;
@@ -217,7 +217,7 @@ public class MediaTableSubtracks extends MediaTable {
 						externalFileReferencesToRemove.add(externalFile.getPath());
 						continue;
 					}
-					DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+					MediaSubtitle sub = new MediaSubtitle();
 					sub.setId(elements.getInt(COL_ID));
 					sub.setLang(elements.getString(COL_LANG));
 					sub.setSubtitlesTrackTitleFromMetadata(elements.getString(COL_TITLE));

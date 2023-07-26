@@ -16,7 +16,6 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -32,12 +31,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -45,6 +40,11 @@ import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.MediaInfo;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -212,7 +212,7 @@ public enum GenericIcons {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(genericFolderThumbnail);
 	}
 
-	private static String getLabelFromImageFormat(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromImageFormat(MediaInfo mediaInfo) {
 		return
 			mediaInfo != null && mediaInfo.isImage() &&
 			mediaInfo.getImageInfo() != null &&
@@ -237,7 +237,7 @@ public enum GenericIcons {
 		};
 	}
 
-	private static String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromContainer(MediaInfo mediaInfo) {
 		return mediaInfo != null ? mediaInfo.getContainer() : null;
 	}
 

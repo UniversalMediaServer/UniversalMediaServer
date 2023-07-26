@@ -27,7 +27,6 @@ import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.DCRaw;
@@ -36,6 +35,7 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.util.ParseException;
 import org.slf4j.Logger;
@@ -105,7 +105,7 @@ public class RAW extends ImageBase {
 	}
 
 	@Override
-	public void parse(DLNAMediaInfo media, InputFile file, int type, Renderer renderer) {
+	public void parse(MediaInfo media, InputFile file, int type, Renderer renderer) {
 		boolean trace = LOGGER.isTraceEnabled();
 		if (media == null || file == null || file.getFile() == null) {
 			// Parsing is impossible

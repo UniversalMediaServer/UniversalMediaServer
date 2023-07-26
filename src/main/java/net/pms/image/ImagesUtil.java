@@ -16,7 +16,27 @@
  */
 package net.pms.image;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.imaging.bmp.BmpMetadataReader;
+import com.drew.imaging.gif.GifMetadataReader;
+import com.drew.imaging.ico.IcoMetadataReader;
+import com.drew.imaging.jpeg.JpegMetadataReader;
+import com.drew.imaging.pcx.PcxMetadataReader;
+import com.drew.imaging.png.PngMetadataReader;
+import com.drew.imaging.psd.PsdMetadataReader;
+import com.drew.imaging.raf.RafMetadataReader;
+import com.drew.imaging.tiff.TiffMetadataReader;
+import com.drew.imaging.webp.WebpMetadataReader;
+import com.drew.lang.RandomAccessReader;
+import com.drew.lang.RandomAccessStreamReader;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -47,10 +67,10 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAImage;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
 import net.pms.image.ImageIOTools.ImageReaderResult;
+import net.pms.media.MediaInfo;
 import net.pms.util.BufferedImageType;
 import net.pms.util.InvalidStateException;
 import net.pms.util.Iso639;
@@ -59,29 +79,9 @@ import net.pms.util.ResettableInputStream;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.imaging.FileType;
-import com.drew.imaging.FileTypeDetector;
-import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.imaging.bmp.BmpMetadataReader;
-import com.drew.imaging.gif.GifMetadataReader;
-import com.drew.imaging.ico.IcoMetadataReader;
-import com.drew.imaging.jpeg.JpegMetadataReader;
-import com.drew.imaging.pcx.PcxMetadataReader;
-import com.drew.imaging.png.PngMetadataReader;
-import com.drew.imaging.psd.PsdMetadataReader;
-import com.drew.imaging.raf.RafMetadataReader;
-import com.drew.imaging.tiff.TiffMetadataReader;
-import com.drew.imaging.webp.WebpMetadataReader;
-import com.drew.lang.RandomAccessReader;
-import com.drew.lang.RandomAccessStreamReader;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.MetadataException;
-import com.drew.metadata.exif.ExifIFD0Directory;
-import com.drew.metadata.exif.ExifSubIFDDirectory;
 
 public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
@@ -93,7 +93,7 @@ public class ImagesUtil {
 
 	/**
 	 * Parses an image file and stores the results in the given
-	 * {@link DLNAMediaInfo}. Parsing is performed using both
+	 * {@link MediaInfo}. Parsing is performed using both
 	 * <a href=https://github.com/drewnoakes/metadata-extractor>Metadata Extractor</a>
 	 * and {@link ImageIO}. While Metadata Extractor offers more detailed
 	 * information, {@link ImageIO} offers information that is convenient for
@@ -104,12 +104,12 @@ public class ImagesUtil {
 	 * This method consumes and closes {@code inputStream}.
 	 * </b>
 	 * @param file the {@link File} to parse.
-	 * @param media the {@link DLNAMediaInfo} instance to store the parsing
+	 * @param media the {@link MediaInfo} instance to store the parsing
 	 *              results to.
 	 * @throws IOException if an IO error occurs or no information can be parsed.
 	 *
 	 */
-	public static void parseImage(File file, DLNAMediaInfo media) throws IOException {
+	public static void parseImage(File file, MediaInfo media) throws IOException {
 		final int maxBuffer = 1048576; // 1 MB
 		if (file == null) {
 			throw new IllegalArgumentException("parseImage: file cannot be null");

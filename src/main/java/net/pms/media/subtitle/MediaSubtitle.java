@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.subtitle;
 
 import com.ibm.icu.text.CharsetMatch;
 import java.io.File;
@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Locale;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.media.MediaLang;
 import static net.pms.formats.v2.SubtitleType.UNKNOWN;
 import static net.pms.util.Constants.CHARSET_UTF_8;
 import net.pms.util.FileUtil;
@@ -33,8 +34,8 @@ import org.slf4j.LoggerFactory;
 /**
  * This class keeps track of the subtitle information for media.
  */
-public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
+public class MediaSubtitle extends MediaLang implements Cloneable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaSubtitle.class);
 	private SubtitleType type = UNKNOWN;
 
 	private String subtitlesTrackTitleFromMetadata;
@@ -144,7 +145,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
 
@@ -245,7 +246,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 					}
 
 					// Set the detected language if is isn't already set
-					if (lang == null || DLNAMediaLang.UND.equals(lang)) {
+					if (lang == null || MediaLang.UND.equals(lang)) {
 						String tmpLanguage = match.getLanguage();
 						if (isNotBlank(tmpLanguage)) {
 							lang = tmpLanguage;

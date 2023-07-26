@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media;
 
 import net.pms.util.Iso639;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 /**
  * This class keeps track of the language information for subtitles or audio.
  */
-public class DLNAMediaLang {
+public abstract class MediaLang {
 	public static final String UND = "und";
 	private int id;
 	protected String lang;
@@ -45,7 +45,7 @@ public class DLNAMediaLang {
 		if (StringUtils.isNotBlank(lang)) {
 			return Iso639.getFirstName(lang);
 		}
-		return Iso639.getFirstName(DLNAMediaLang.UND);
+		return Iso639.getFirstName(MediaLang.UND);
 	}
 
 	public boolean matchCode(String code) {
