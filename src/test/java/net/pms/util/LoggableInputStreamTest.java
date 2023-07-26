@@ -18,13 +18,14 @@ package net.pms.util;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import net.pms.media.subtitle.MediaSubtitleTest;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class LoggableInputStreamTest {
 
 	public static LoggableInputStream getTestStream() {
-		return new LoggableInputStream(LoggableInputStream.class.getResourceAsStream("english-utf8-with-bom.srt"), StandardCharsets.UTF_8);
+		return new LoggableInputStream(MediaSubtitleTest.class.getResourceAsStream("english-utf8-with-bom.srt"), StandardCharsets.UTF_8);
 	}
 
 	@Test
