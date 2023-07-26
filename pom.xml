@@ -743,11 +743,18 @@
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
 			</testResource>
-			<!--*.srt files to test charset detection and *json to test filename prettification-->
+			<!--*.srt files to test charset detection-->
+			<testResource>
+				<directory>src/test/resources/net/pms/media/subtitle</directory>
+				<includes>
+					<include>*.srt</include>
+				</includes>
+				<targetPath>net/pms/media/subtitle</targetPath>
+			</testResource>
+			<!--*json file to test filename prettification-->
 			<testResource>
 				<directory>src/test/resources/net/pms/util</directory>
 				<includes>
-					<include>*.srt</include>
 					<include>*.json</include>
 				</includes>
 				<targetPath>net/pms/util</targetPath>
