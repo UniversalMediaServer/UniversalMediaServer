@@ -23,7 +23,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
+import net.pms.media.audio.MediaAudio;
 import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class CodecUtil {
 		return CODECS;
 	}
 
-	public static int getAC3Bitrate(UmsConfiguration configuration, DLNAMediaAudio media) {
+	public static int getAC3Bitrate(UmsConfiguration configuration, MediaAudio media) {
 		int defaultBitrate = configuration.getAudioBitrate();
 		if (media != null && defaultBitrate >= 384) {
 			if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {

@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.chapter;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -22,12 +22,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import net.pms.Messages;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of the chapter properties of media.
  */
-public class DLNAMediaChapter extends DLNAMediaLang {
+public class MediaChapter extends MediaLang {
 	public static final Pattern CHAPTERS_TITLE_DEFAULT = Pattern.compile("^Chapter\\s\\d\\d$");
 	public static final Pattern CHAPTERS_TITLE_TIMESTAMP = Pattern.compile("^\\d\\d:\\d\\d:\\d\\d.\\d\\d\\d$");
 	public static final DateTimeFormatter CHAPTERS_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
@@ -179,9 +183,9 @@ public class DLNAMediaChapter extends DLNAMediaLang {
 	public static String getWebVtt(DLNAResource dlna) {
 		StringBuilder chaptersVtt = new StringBuilder();
 		chaptersVtt.append("WEBVTT\n");
-		DLNAMediaInfo mediaVideo = dlna.getMedia();
+		MediaInfo mediaVideo = dlna.getMedia();
 		if (mediaVideo != null && mediaVideo.hasChapters()) {
-			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
+			for (MediaChapter chapter : mediaVideo.getChapters()) {
 				int chaptersNum = chapter.getId() + 1;
 				chaptersVtt.append("\nChapter ").append(chaptersNum).append("\n");
 				long nanoOfDay = (long) (chapter.getStart() * 1000_000_000D);
@@ -211,9 +215,9 @@ public class DLNAMediaChapter extends DLNAMediaLang {
 	public static String getHls(DLNAResource dlna) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		DLNAMediaInfo mediaVideo = dlna.getMedia();
+		MediaInfo mediaVideo = dlna.getMedia();
 		if (mediaVideo != null && mediaVideo.hasChapters()) {
-			for (DLNAMediaChapter chapter : mediaVideo.getChapters()) {
+			for (MediaChapter chapter : mediaVideo.getChapters()) {
 				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
 			}
 			sb.deleteCharAt(sb.length() - 1);

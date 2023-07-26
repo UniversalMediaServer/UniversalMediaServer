@@ -19,7 +19,7 @@ package net.pms.dlna.protocolinfo;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import net.pms.dlna.MediaType;
+import net.pms.media.MediaType;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 
 /**

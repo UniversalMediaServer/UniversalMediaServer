@@ -14,33 +14,33 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.subtitle;
 
-import static net.pms.util.Constants.*;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
+import static net.pms.util.Constants.*;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.OpenSubtitle.SubtitleItem;
 import net.pms.util.StringUtil.LetterCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class represents subtitles from OpenSubtitles.
  *
  * @author Nadahar
  */
-public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle implements AutoCloseable {
+public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoCloseable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaSubtitle.class);
 
 	/** The maximum number of download attempts */
 	public static final int DOWNLOAD_ATTEMPTS = 3;
@@ -65,7 +65,7 @@ public class DLNAMediaOpenSubtitle extends DLNAMediaOnDemandSubtitle implements 
 	 *
 	 * @param subtitleItem the {@link SubtitleItem} to use.
 	 */
-	public DLNAMediaOpenSubtitle(SubtitleItem subtitleItem) {
+	public MediaOpenSubtitle(SubtitleItem subtitleItem) {
 		if (subtitleItem == null) {
 			throw new IllegalArgumentException("subtitleItem cannot be null");
 		}

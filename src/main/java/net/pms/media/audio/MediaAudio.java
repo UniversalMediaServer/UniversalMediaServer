@@ -14,11 +14,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.audio;
 
 import java.util.Locale;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
+import net.pms.media.MediaLang;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,8 @@ import org.slf4j.LoggerFactory;
 /**
  * This class keeps track of the audio properties of media.
  */
-public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaAudio.class);
+public class MediaAudio extends MediaLang implements Cloneable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaAudio.class);
 	private AudioProperties audioProperties = new AudioProperties();
 	private int bitsperSample = 16;
 	private int bitRate;
@@ -569,7 +570,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	@Override
-	protected Object clone() throws CloneNotSupportedException {
+	public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
 

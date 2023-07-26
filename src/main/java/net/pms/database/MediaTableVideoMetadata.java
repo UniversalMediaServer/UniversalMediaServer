@@ -24,7 +24,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.media.MediaInfo;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
@@ -242,11 +242,11 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param fileId the file id from FILES table.
-	 * @param media the {@link DLNAMediaInfo} VideoMetadata row to update.
+	 * @param media the {@link MediaInfo} VideoMetadata row to update.
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final DLNAMediaInfo media, final boolean fromApi) throws SQLException {
+	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final MediaInfo media, final boolean fromApi) throws SQLException {
 		if (connection == null || fileId == null || media == null || !media.hasVideoMetadata()) {
 			return;
 		}
@@ -363,11 +363,11 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param connection the db connection
 	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @param media the {@link DLNAMediaInfo} row to update.
+	 * @param media the {@link MediaInfo} row to update.
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final boolean fromApi) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, MediaInfo media, final boolean fromApi) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;

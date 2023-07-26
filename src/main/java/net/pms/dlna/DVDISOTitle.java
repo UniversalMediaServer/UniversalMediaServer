@@ -34,6 +34,10 @@ import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
@@ -73,7 +77,7 @@ public class DVDISOTitle extends DLNAResource {
 	@Override
 	protected void resolveOnce() {
 		if (getMedia() == null) {
-			setMedia(new DLNAMediaInfo());
+			setMedia(new MediaInfo());
 		}
 
 		OutputParams params = new OutputParams(configuration);
@@ -147,19 +151,19 @@ public class DVDISOTitle extends DLNAResource {
 		String width = null;
 		String height = null;
 		String codecV = null;
-		ArrayList<DLNAMediaAudio> audioTracks = new ArrayList<>();
-		ArrayList<DLNAMediaSubtitle> subtitles = new ArrayList<>();
+		ArrayList<MediaAudio> audioTracks = new ArrayList<>();
+		ArrayList<MediaSubtitle> subtitles = new ArrayList<>();
 		if (lines != null) {
 			for (String line : lines) {
 				if (line.startsWith("DVD start=")) {
 					nbsectors = Integer.parseInt(line.substring(line.lastIndexOf('=') + 1).trim());
 				} else if (line.startsWith("audio stream:")) {
-					DLNAMediaAudio audio = parseMEncoderAudioStream(line);
+					MediaAudio audio = parseMEncoderAudioStream(line);
 					if (audio != null) {
 						audioTracks.add(audio);
 					}
 				} else if (line.startsWith("subtitle")) {
-					DLNAMediaSubtitle subtitle = parseMEncoderSubtitleStream(line);
+					MediaSubtitle subtitle = parseMEncoderSubtitleStream(line);
 					if (subtitle != null) {
 						subtitles.add(subtitle);
 					}
@@ -312,7 +316,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public long length() {
-		return DLNAMediaInfo.TRANS_SIZE;
+		return MediaInfo.TRANS_SIZE;
 	}
 
 	// Ditlew
@@ -371,13 +375,13 @@ public class DVDISOTitle extends DLNAResource {
 		}
 	}
 
-	protected DLNAMediaAudio parseMEncoderAudioStream(String line) {
+	protected MediaAudio parseMEncoderAudioStream(String line) {
 		if (isBlank(line)) {
 			return null;
 		}
 		Matcher matcher = AUDIO_STREAM_PATTERN.matcher(line);
 		if (matcher.find()) {
-			DLNAMediaAudio audio = new DLNAMediaAudio();
+			MediaAudio audio = new MediaAudio();
 			try {
 				audio.setTrack(Integer.parseInt(matcher.group("StreamNumber")));
 			} catch (NumberFormatException e) {
@@ -394,7 +398,7 @@ public class DVDISOTitle extends DLNAResource {
 				MPlayerDvdAudioStreamChannels.typeOf(matcher.group("Channels")).getNumberOfChannels()
 			);
 			String languageCode = Iso639.getISOCode(matcher.group("Language"));
-			audio.setLang(isBlank(languageCode) ? DLNAMediaLang.UND : languageCode);
+			audio.setLang(isBlank(languageCode) ? MediaLang.UND : languageCode);
 			try {
 				audio.setId(Integer.parseInt(matcher.group("AID")));
 			} catch (NumberFormatException e) {
@@ -457,13 +461,13 @@ public class DVDISOTitle extends DLNAResource {
 		return null;
 	}
 
-	protected DLNAMediaSubtitle parseMEncoderSubtitleStream(String line) {
+	protected MediaSubtitle parseMEncoderSubtitleStream(String line) {
 		if (isBlank(line)) {
 			return null;
 		}
 		Matcher matcher = SUBTITLE_STREAM_PATTERN.matcher(line);
 		if (matcher.find()) {
-			DLNAMediaSubtitle subtitle = new DLNAMediaSubtitle();
+			MediaSubtitle subtitle = new MediaSubtitle();
 			subtitle.setType(SubtitleType.UNKNOWN); // Not strictly true, but we lack a proper type
 			try {
 				subtitle.setId(Integer.parseInt(matcher.group("StreamNumber")));
@@ -476,7 +480,7 @@ public class DVDISOTitle extends DLNAResource {
 				LOGGER.trace("", e);
 			}
 			String languageCode = Iso639.getISOCode(matcher.group("Language"));
-			subtitle.setLang(isBlank(languageCode) ? DLNAMediaLang.UND : languageCode);
+			subtitle.setLang(isBlank(languageCode) ? MediaLang.UND : languageCode);
 
 			return subtitle;
 		}

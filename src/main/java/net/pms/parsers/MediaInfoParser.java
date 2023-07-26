@@ -30,11 +30,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaLang;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
@@ -42,9 +37,14 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.parsers.mediainfo.InfoKind;
-import net.pms.parsers.mediainfo.MediaInfo;
+import net.pms.parsers.mediainfo.MediaInfoHelper;
 import net.pms.parsers.mediainfo.StreamKind;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
@@ -75,11 +75,11 @@ public class MediaInfoParser {
 	// Pattern to parse the year from a string
 	private static final Pattern YEAR_PATTERN = Pattern.compile(YEAR_REGEX);
 
-	private static final MediaInfo MI;
+	private static final MediaInfoHelper MI;
 	private static final Version VERSION;
 
 	static {
-		MI = new MediaInfo();
+		MI = new MediaInfoHelper();
 
 		if (MI.isValid()) {
 			MI.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
@@ -107,7 +107,7 @@ public class MediaInfoParser {
 				}
 			}
 
-//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfo parameters
+//			LOGGER.debug(MI.Option("Info_Parameters_CSV")); // It can be used to export all current MediaInfoHelper parameters
 		} else {
 			VERSION = null;
 		}
@@ -141,9 +141,9 @@ public class MediaInfoParser {
 	}
 
 	/**
-	 * Parse media via MediaInfo.
+	 * Parse media via MediaInfoHelper.
 	 */
-	public static synchronized void parse(DLNAMediaInfo media, InputFile inputFile, int type) {
+	public static synchronized void parse(MediaInfo media, InputFile inputFile, int type) {
 		media.waitMediaParsing(5);
 		media.setParsing(true);
 		File file = inputFile.getFile();
@@ -155,8 +155,8 @@ public class MediaInfoParser {
 			StreamKind audio = StreamKind.AUDIO;
 			StreamKind image = StreamKind.IMAGE;
 			StreamKind text = StreamKind.TEXT;
-			DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
-			DLNAMediaSubtitle currentSubTrack;
+			MediaAudio currentAudioTrack = new MediaAudio();
+			MediaSubtitle currentSubTrack;
 			media.setSize(file.length());
 			String value;
 
@@ -173,12 +173,12 @@ public class MediaInfoParser {
 				if (!chaptersPosBeginStr.isEmpty() && !chaptersPosEndStr.isEmpty()) {
 					int chaptersPosBegin = Integer.parseInt(chaptersPosBeginStr);
 					int chaptersPosEnd = Integer.parseInt(chaptersPosEndStr);
-					List<DLNAMediaChapter> chapters = new ArrayList<>();
+					List<MediaChapter> chapters = new ArrayList<>();
 					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
 						String chapterName = MI.get(StreamKind.MENU, 0, i, InfoKind.NAME);
 						String chapterTitle = MI.get(StreamKind.MENU, 0, i, InfoKind.TEXT);
 						if (!chapterName.isEmpty()) {
-							DLNAMediaChapter chapter = new DLNAMediaChapter();
+							MediaChapter chapter = new MediaChapter();
 							LocalTime lt;
 							try {
 								lt = LocalTime.parse(chapterName, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
@@ -193,7 +193,7 @@ public class MediaInfoParser {
 								chapters.get(chapters.size() - 1).setEnd(chapter.getStart());
 							}
 							if (!chapterTitle.isEmpty()) {
-								String lang = DLNAMediaLang.UND;
+								String lang = MediaLang.UND;
 								chapter.setLang(lang);
 								if (chapterTitle.startsWith(":")) {
 									chapterTitle = chapterTitle.substring(1);
@@ -202,7 +202,7 @@ public class MediaInfoParser {
 									chapterTitle = chapterTitle.substring(3);
 								}
 								//do not set title if it is default, it will be filled automatically later
-								if (!DLNAMediaChapter.isTitleDefault(chapterTitle)) {
+								if (!MediaChapter.isTitleDefault(chapterTitle)) {
 									chapter.setLang(lang);
 									chapter.setTitle(chapterTitle);
 								}
@@ -262,7 +262,7 @@ public class MediaInfoParser {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
 					if (MI.get(video, i, "Title").startsWith("Subtitle")) {
-						currentSubTrack = new DLNAMediaSubtitle();
+						currentSubTrack = new MediaSubtitle();
 						// First attempt to detect subtitle track format
 						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.get(video, i, "Format")));
 						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
@@ -354,7 +354,7 @@ public class MediaInfoParser {
 
 			if (audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
-					currentAudioTrack = new DLNAMediaAudio();
+					currentAudioTrack = new MediaAudio();
 					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format/String"), file);
 					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format_Version"), file);
 					setFormat(audio, media, currentAudioTrack, MI.get(audio, i, "Format_Profile"), file);
@@ -379,7 +379,7 @@ public class MediaInfoParser {
 					if (languageCode == null && isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value, true);
 						if (languageCode == null) {
-							languageCode = DLNAMediaLang.UND;
+							languageCode = MediaLang.UND;
 						}
 
 						currentAudioTrack.setLang(languageCode);
@@ -441,7 +441,7 @@ public class MediaInfoParser {
 						}
 					}
 
-					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while MEncoder does not
+					// Special check for OGM: MediaInfoHelper reports specific Audio/Subs IDs (0xn) while MEncoder does not
 					value = MI.get(audio, i, "ID/String");
 					if (!value.isEmpty()) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
@@ -477,10 +477,10 @@ public class MediaInfoParser {
 			media.setImageCount(imageCount);
 			if (imageCount > 0 || type == Format.IMAGE) {
 				boolean parseByMediainfo = false;
-				// For images use our own parser instead of MediaInfo which doesn't provide enough information
+				// For images use our own parser instead of MediaInfoHelper which doesn't provide enough information
 				try {
 					ImagesUtil.parseImage(file, media);
-					// This is a little hack. MediaInfo only recognizes a few image formats
+					// This is a little hack. MediaInfoHelper only recognizes a few image formats
 					// so that MI.Count_Get(image) might return 0 even if there is an image.
 					if (media.getImageCount() == 0) {
 						media.setImageCount(1);
@@ -517,7 +517,7 @@ public class MediaInfoParser {
 
 			if (subTracks > 0) {
 				for (int i = 0; i < subTracks; i++) {
-					currentSubTrack = new DLNAMediaSubtitle();
+					currentSubTrack = new MediaSubtitle();
 					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(MI.get(text, i, "CodecID"),
 						SubtitleType.valueOfMediaInfoValue(MI.get(text, i, "Format"))
 					));
@@ -537,13 +537,13 @@ public class MediaInfoParser {
 					if (languageCode == null && isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value, true);
 						if (languageCode == null) {
-							languageCode = DLNAMediaLang.UND;
+							languageCode = MediaLang.UND;
 						}
 
 						currentSubTrack.setLang(languageCode);
 					}
 
-					// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
+					// Special check for OGM: MediaInfoHelper reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
 					value = MI.get(text, i, "ID/String");
 					if (isNotBlank(value)) {
 						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
@@ -588,7 +588,7 @@ public class MediaInfoParser {
 				) {
 					media.setContainer(FormatConfiguration.ASF);
 				} else {
-					for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+					for (MediaAudio audioTrack : media.getAudioTracksList()) {
 						if (
 							audioTrack.getCodecA() != null &&
 							!audioTrack.getCodecA().equals(FormatConfiguration.WMA) &&
@@ -669,11 +669,11 @@ public class MediaInfoParser {
 
 			MI.closeFile();
 			if (media.getContainer() == null) {
-				media.setContainer(DLNAMediaLang.UND);
+				media.setContainer(MediaLang.UND);
 			}
 
 			if (media.getCodecV() == null) {
-				media.setCodecV(DLNAMediaLang.UND);
+				media.setCodecV(MediaLang.UND);
 			}
 
 			media.setMediaparsed(true);
@@ -695,7 +695,7 @@ public class MediaInfoParser {
 		return artist;
 	}
 
-	private static void addMusicBrainzIDs(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+	private static void addMusicBrainzIDs(AudioFile af, File file, MediaAudio currentAudioTrack) {
 		try {
 			Tag t = af.getTag();
 			if (t != null) {
@@ -709,7 +709,7 @@ public class MediaInfoParser {
 		}
 	}
 
-	private static void addAudioTrackRating(AudioFile af, File file, DLNAMediaAudio currentAudioTrack) {
+	private static void addAudioTrackRating(AudioFile af, File file, MediaAudio currentAudioTrack) {
 		try {
 			Tag t = af.getTag();
 			if (t != null) {
@@ -720,25 +720,25 @@ public class MediaInfoParser {
 		}
 	}
 
-	public static void addAudio(DLNAMediaAudio currentAudioTrack, DLNAMediaInfo media) {
+	public static void addAudio(MediaAudio currentAudioTrack, MediaInfo media) {
 		if (isBlank(currentAudioTrack.getLang())) {
-			currentAudioTrack.setLang(DLNAMediaLang.UND);
+			currentAudioTrack.setLang(MediaLang.UND);
 		}
 
 		if (isBlank(currentAudioTrack.getCodecA())) {
-			currentAudioTrack.setCodecA(DLNAMediaLang.UND);
+			currentAudioTrack.setCodecA(MediaLang.UND);
 		}
 
 		media.getAudioTracksList().add(currentAudioTrack);
 	}
 
-	public static void addSub(DLNAMediaSubtitle currentSubTrack, DLNAMediaInfo media) {
+	public static void addSub(MediaSubtitle currentSubTrack, MediaInfo media) {
 		if (currentSubTrack.getType() == SubtitleType.UNSUPPORTED) {
 			return;
 		}
 
 		if (isBlank(currentSubTrack.getLang())) {
-			currentSubTrack.setLang(DLNAMediaLang.UND);
+			currentSubTrack.setLang(MediaLang.UND);
 		}
 
 		media.addSubtitlesTrack(currentSubTrack);
@@ -763,7 +763,7 @@ public class MediaInfoParser {
 	 * @todo Split the values by streamType to make the logic more clear
 	 *       with less negative statements.
 	 */
-	protected static void setFormat(StreamKind streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+	protected static void setFormat(StreamKind streamType, MediaInfo media, MediaAudio audio, String value, File file) {
 		if (isBlank(value)) {
 			return;
 		}

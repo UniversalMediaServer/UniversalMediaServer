@@ -17,7 +17,7 @@
 package net.pms.test;
 
 import ch.qos.logback.classic.LoggerContext;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.media.MediaInfo;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ public class Issue1278 {
 
 	@Test
 	public void dlnaMediaInfoDoubleParseWithDot() {
-		DLNAMediaInfo info = new DLNAMediaInfo();
+		MediaInfo info = new MediaInfo();
 		info.setFrameRate("23.976");
 		String validFps = info.getValidFps(true);
 		assertNotNull(validFps, "validFps");
@@ -45,7 +45,7 @@ public class Issue1278 {
 
 	@Test
 	public void dlnaMediaInfoDoubleParseWithComma() {
-		DLNAMediaInfo info = new DLNAMediaInfo();
+		MediaInfo info = new MediaInfo();
 		info.setFrameRate("23,976");
 		String validFps = info.getValidFps(true);
 		assertNotNull(validFps, "validFps");
@@ -57,7 +57,7 @@ public class Issue1278 {
 
 	@Test
 	public void testNullFrameRate() {
-		DLNAMediaInfo info = new DLNAMediaInfo();
+		MediaInfo info = new MediaInfo();
 		assertNull(info.getValidFps(true), "valid fps");
 	}
 

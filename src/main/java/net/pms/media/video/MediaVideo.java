@@ -14,24 +14,39 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.video;
 
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
+/**
+ * This class keeps track of the video properties of media.
+ */
+public class MediaVideo {
 
-public class DLNAMediaAudioTest {
-
-	@Test
-	public void testDefaultAudioProperties() {
-		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-		assertNotNull(dlnaMediaAudio.getAudioProperties());
+	/**
+	 * Used by FFmpeg for 3D video format naming
+	 */
+	public enum Mode3D {
+		ML,
+		MR,
+		SBSL,
+		SBSR,
+		SBS2L,
+		SBS2R,
+		ABL,
+		ABR,
+		AB2L,
+		AB2R,
+		ARCG,
+		ARCH,
+		ARCC,
+		ARCD,
+		AGMG,
+		AGMH,
+		AGMC,
+		AGMD,
+		AYBG,
+		AYBH,
+		AYBC,
+		AYBD
 	}
 
-	@Test
-	public void testSetAudioProperties_withNullAudioProperties() {
-		assertThrows(IllegalArgumentException.class, () -> {
-			DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
-			dlnaMediaAudio.setAudioProperties(null);
-		});
-	}
 }

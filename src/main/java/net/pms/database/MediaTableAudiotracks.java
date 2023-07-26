@@ -16,8 +16,6 @@
  */
 package net.pms.database;
 
-import static org.apache.commons.lang3.StringUtils.left;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,11 +24,13 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
 import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang3.StringUtils.left;
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
 
 /**
  * This class is responsible for managing the Audiotracks releases table. It
@@ -318,7 +318,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MEDIA_YEAR + IDX_MARKER + ON + TABLE_NAME + " (" + COL_MEDIA_YEAR + ")");
 	}
 
-	protected static void insertOrUpdateAudioTracks(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
+	protected static void insertOrUpdateAudioTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || media.getAudioTrackCount() < 1) {
 			return;
 		}
@@ -326,7 +326,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(SQL_GET_ALL_FILEID_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
-			for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
+			for (MediaAudio audioTrack : media.getAudioTracksList()) {
 				updateStatment.clearParameters();
 				updateStatment.setLong(1, fileId);
 				updateStatment.setInt(2, audioTrack.getId());
@@ -410,8 +410,8 @@ public class MediaTableAudiotracks extends MediaTable {
 		}
 	}
 
-	protected static List<DLNAMediaAudio> getAudioTracks(Connection connection, long fileId) {
-		List<DLNAMediaAudio> result = new ArrayList<>();
+	protected static List<MediaAudio> getAudioTracks(Connection connection, long fileId) {
+		List<MediaAudio> result = new ArrayList<>();
 		if (connection == null || fileId < 0) {
 			return result;
 		}
@@ -419,7 +419,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			stmt.setLong(1, fileId);
 			try (ResultSet elements = stmt.executeQuery()) {
 				while (elements.next()) {
-					DLNAMediaAudio audio = new DLNAMediaAudio();
+					MediaAudio audio = new MediaAudio();
 					audio.setId(elements.getInt(COL_ID));
 					audio.setLang(elements.getString(COL_LANG));
 					audio.setAudioTrackTitleFromMetadata(elements.getString(COL_TITLE));

@@ -16,7 +16,6 @@
  */
 package net.pms.encoders;
 
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
@@ -28,9 +27,13 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
@@ -42,6 +45,7 @@ import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,7 +112,7 @@ public class TsMuxeRVideo extends Engine {
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		DLNAMediaInfo media,
+		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 		// Use device-specific ums conf
@@ -382,7 +386,7 @@ public class TsMuxeRVideo extends Engine {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
 					for (int i = 0; i < media.getAudioTracksList().size(); i++) {
-						DLNAMediaAudio audio = media.getAudioTracksList().get(i);
+						MediaAudio audio = media.getAudioTracksList().get(i);
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
 						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && params.getMediaRenderer().isWrapEncodedAudioIntoPCM();
@@ -567,7 +571,7 @@ public class TsMuxeRVideo extends Engine {
 				pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
 			} else if (ffAudioPipe != null) {
 				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
-					DLNAMediaAudio lang = media.getAudioTracksList().get(i);
+					MediaAudio lang = media.getAudioTracksList().get(i);
 					String timeshift = "";
 					boolean ac3Remux;
 					boolean dtsRemux;
@@ -703,10 +707,10 @@ public class TsMuxeRVideo extends Engine {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		MediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
+		// uninitialized MediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// The resource needs a subtitle, but we do not support subtitles for tsMuxeR.
 			// @todo add subtitles support for tsMuxeR

@@ -24,10 +24,10 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -70,7 +70,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, UmsConfiguration configuration) throws IOException {
+	public static File getAVSScript(String fileName, MediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, UmsConfiguration configuration) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(CONFIGURATION.getTempFolder(), "ums-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
@@ -223,10 +223,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			return false;
 		}
 
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		MediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
-		// Uninitialized DLNAMediaSubtitle objects have a null language.
+		// Uninitialized MediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// This engine only supports external subtitles
 			return subtitle.isExternal();
