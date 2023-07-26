@@ -19,7 +19,7 @@ package net.pms.media.audio;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public class DLNAMediaAudioTest {
+public class MediaAudioTest {
 
 	@Test
 	public void testDefaultAudioProperties() {
