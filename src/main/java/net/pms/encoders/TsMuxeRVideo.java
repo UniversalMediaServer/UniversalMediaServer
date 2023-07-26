@@ -260,9 +260,9 @@ public class TsMuxeRVideo extends Engine {
 				LOGGER.info("The video will not play or will show a black screen");
 			}
 
-			if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
+			if (media.getH264AnnexB(newInput) != null && media.getH264AnnexB(newInput).length > 0) {
 				StreamModifier sm = new StreamModifier();
-				sm.setHeader(media.getH264AnnexB());
+				sm.setHeader(media.getH264AnnexB(newInput));
 				sm.setH264AnnexB(true);
 				ffVideoPipe.setModifier(sm);
 			}

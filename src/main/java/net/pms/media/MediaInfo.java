@@ -53,6 +53,7 @@ import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
+import net.pms.parsers.FFmpegParser;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
 import net.pms.util.CoverSupplier;
@@ -126,9 +127,6 @@ public class MediaInfo implements Cloneable {
 		AUDIO_OR_VIDEO_CONTAINERS = Collections.unmodifiableMap(mutableAudioOrVideoContainers);
 	}
 
-	private final Object videoWithinH264LevelLimitsLock = new Object();
-	private Boolean videoWithinH264LevelLimits = null;
-
 	// Stored in database
 	private Double durationSec;
 	private int bitrate;
@@ -178,6 +176,7 @@ public class MediaInfo implements Cloneable {
 	private String container;
 
 	private final Object h264AnnexBLock = new Object();
+	private boolean h264AnnexBParsed;
 	private byte[] h264AnnexB;
 
 	/**
@@ -202,8 +201,6 @@ public class MediaInfo implements Cloneable {
 	private final Object ffmpegFailureLock = new Object();
 	private boolean ffmpegFailure = false;
 
-	private final Object ffmpegAnnexbFailureLock = new Object();
-	private boolean ffmpegAnnexbFailure;
 	private Map<String, String> extras;
 	private boolean encrypted;
 	private String matrixCoefficients;
@@ -1601,110 +1598,83 @@ public class MediaInfo implements Cloneable {
 	 * @return
 	 */
 	public boolean isVideoWithinH264LevelLimits(InputFile f, Renderer renderer) {
-		synchronized (videoWithinH264LevelLimitsLock) {
-			if (videoWithinH264LevelLimits == null) {
-				if (isH264()) {
-					videoWithinH264LevelLimits = true;
+		if (isH264()) {
+			boolean videoWithinH264LevelLimits = true;
+			if (
+				container != null &&
+				(
+					container.equals("matroska") ||
+					container.equals("mkv") ||
+					container.equals("mov") ||
+					container.equals("mp4")
+				)
+			) {
+				avcLevelLock.readLock().lock();
+				referenceFrameCountLock.readLock().lock();
+				try {
 					if (
-						container != null &&
+						referenceFrameCount > -1 &&
 						(
-							container.equals("matroska") ||
-							container.equals("mkv") ||
-							container.equals("mov") ||
-							container.equals("mp4")
-						)
-					) { // Containers without h264_annexB
-						byte[][] headers = getAnnexBFrameHeader(f);
-						synchronized (ffmpegAnnexbFailureLock) {
-							if (ffmpegAnnexbFailure) {
-								LOGGER.info("Error parsing information from the file: " + f.getFilename());
-							}
+							"4.1".equals(avcLevel) ||
+							"4.2".equals(avcLevel) ||
+							"5".equals(avcLevel) ||
+							"5.0".equals(avcLevel) ||
+							"5.1".equals(avcLevel) ||
+							"5.2".equals(avcLevel)
+						) &&
+						width > 0 &&
+						height > 0
+					) {
+						int maxref;
+						if (renderer == null || renderer.isPS3()) {
+							/**
+							 * 2013-01-25: Confirmed maximum reference frames on PS3:
+							 *    - 4 for 1920x1080
+							 *    - 11 for 1280x720
+							 * Meaning this math is correct
+							 */
+							maxref = (int) Math.floor(10252743 / (double) (width * height));
+						} else {
+							/**
+							 * This is the math for level 4.1, which results in:
+							 *    - 4 for 1920x1080
+							 *    - 9 for 1280x720
+							 */
+							maxref = (int) Math.floor(8388608 / (double) (width * height));
 						}
 
-						if (headers != null) {
-							synchronized (h264AnnexBLock) {
-								h264AnnexB = headers[1];
-								if (h264AnnexB != null) {
-									int skip = 5;
-									if (h264AnnexB[2] == 1) {
-										skip = 4;
-									}
-									byte[] header = new byte[h264AnnexB.length - skip];
-									System.arraycopy(h264AnnexB, skip, header, 0, header.length);
-
-									avcLevelLock.readLock().lock();
-									referenceFrameCountLock.readLock().lock();
-									try {
-										if (
-											referenceFrameCount > -1 &&
-											(
-												"4.1".equals(avcLevel) ||
-												"4.2".equals(avcLevel) ||
-												"5".equals(avcLevel) ||
-												"5.0".equals(avcLevel) ||
-												"5.1".equals(avcLevel) ||
-												"5.2".equals(avcLevel)
-											) &&
-											width > 0 &&
-											height > 0
-										) {
-											int maxref;
-											if (renderer == null || renderer.isPS3()) {
-												/**
-												 * 2013-01-25: Confirmed maximum reference frames on PS3:
-												 *    - 4 for 1920x1080
-												 *    - 11 for 1280x720
-												 * Meaning this math is correct
-												 */
-												maxref = (int) Math.floor(10252743 / (double) (width * height));
-											} else {
-												/**
-												 * This is the math for level 4.1, which results in:
-												 *    - 4 for 1920x1080
-												 *    - 9 for 1280x720
-												 */
-												maxref = (int) Math.floor(8388608 / (double) (width * height));
-											}
-
-											if (referenceFrameCount > maxref) {
-												LOGGER.debug(
-													"The file \"{}\" is not compatible with this renderer because it " +
-													"can only take {} reference frames at this resolution while this " +
-													"file has {} reference frames",
-													f.getFilename(),
-													maxref, referenceFrameCount
-												);
-												videoWithinH264LevelLimits = false;
-											} else if (referenceFrameCount == -1) {
-												LOGGER.debug(
-													"The file \"{}\" may not be compatible with this renderer because " +
-													"we can't get its number of reference frames",
-													f.getFilename()
-												);
-												videoWithinH264LevelLimits = false;
-											}
-										}
-									} finally {
-										referenceFrameCountLock.readLock().unlock();
-										avcLevelLock.readLock().unlock();
-									}
-								} else {
-									LOGGER.debug(
-										"The H.264 stream inside the file \"{}\" is not compatible with this renderer",
-										f.getFilename()
-									);
-									videoWithinH264LevelLimits = false;
-								}
-							}
-						} else {
+						if (referenceFrameCount > maxref) {
+							LOGGER.debug(
+								"The file \"{}\" is not compatible with this renderer because it " +
+								"can only take {} reference frames at this resolution while this " +
+								"file has {} reference frames",
+								f.getFilename(),
+								maxref, referenceFrameCount
+							);
+							videoWithinH264LevelLimits = false;
+						} else if (referenceFrameCount == -1) {
+							LOGGER.debug(
+								"The file \"{}\" may not be compatible with this renderer because " +
+								"we can't get its number of reference frames",
+								f.getFilename()
+							);
 							videoWithinH264LevelLimits = false;
 						}
+					} else {
+						LOGGER.debug(
+							"The H.264 stream inside the file \"{}\" is not compatible with this renderer",
+							f.getFilename()
+						);
+						videoWithinH264LevelLimits = false;
 					}
-				} else {
-					videoWithinH264LevelLimits = false;
+				} finally {
+					referenceFrameCountLock.readLock().unlock();
+					avcLevelLock.readLock().unlock();
 				}
 			}
 			return videoWithinH264LevelLimits;
+		} else {
+			return false;
 		}
 	}
 
@@ -1921,95 +1891,6 @@ public class MediaInfo implements Cloneable {
 
 	public boolean isMpegTS() {
 		return container != null && container.equals("mpegts");
-	}
-
-	public byte[][] getAnnexBFrameHeader(InputFile f) {
-		String[] cmdArray = new String[14];
-		cmdArray[0] = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
-		if (cmdArray[0] == null) {
-			LOGGER.warn("Cannot process Annex B Frame Header is FFmpeg executable is undefined");
-			return null;
-		}
-		cmdArray[1] = "-i";
-
-		if (f.getPush() == null && f.getFilename() != null) {
-			cmdArray[2] = f.getFilename();
-		} else {
-			cmdArray[2] = "-";
-		}
-
-		cmdArray[3] = "-vframes";
-		cmdArray[4] = "1";
-		cmdArray[5] = "-c:v";
-		cmdArray[6] = "copy";
-		cmdArray[7] = "-f";
-		cmdArray[8] = "h264";
-		cmdArray[9] = "-bsf";
-		cmdArray[10] = "h264_mp4toannexb";
-		cmdArray[11] = "-an";
-		cmdArray[12] = "-y";
-		cmdArray[13] = "pipe:";
-
-		byte[][] returnData = new byte[2][];
-		OutputParams params = new OutputParams(CONFIGURATION);
-		params.setMaxBufferSize(1);
-		params.setStdIn(f.getPush());
-
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, true, params);
-
-		Runnable r = () -> {
-			try {
-				Thread.sleep(3000);
-				synchronized (ffmpegAnnexbFailureLock) {
-					ffmpegAnnexbFailure = true;
-				}
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-			}
-			pw.stopProcess();
-		};
-
-		Thread failsafe = new Thread(r, "FFMpeg AnnexB Frame Header Failsafe");
-		failsafe.start();
-		pw.runInSameThread();
-
-		synchronized (ffmpegAnnexbFailureLock) {
-			if (ffmpegAnnexbFailure) {
-				return null;
-			}
-		}
-
-		byte[] data = pw.getOutputByteArray().toByteArray();
-		returnData[0] = data;
-		int kf = 0;
-
-		for (int i = 3; i < data.length; i++) {
-			if (data[i - 3] == 1 && (data[i - 2] & 37) == 37 && (data[i - 1] & -120) == -120) {
-				kf = i - 2;
-				break;
-			}
-		}
-
-		int st = 0;
-		boolean found = false;
-
-		if (kf > 0) {
-			for (int i = kf; i >= 5; i--) {
-				if (data[i - 5] == 0 && data[i - 4] == 0 && data[i - 3] == 0 && (data[i - 2] & 1) == 1 && (data[i - 1] & 39) == 39) {
-					st = i - 5;
-					found = true;
-					break;
-				}
-			}
-		}
-
-		if (found) {
-			byte[] header = new byte[kf - st];
-			System.arraycopy(data, st, header, 0, kf - st);
-			returnData[1] = header;
-		}
-
-		return returnData;
 	}
 
 	@Override
@@ -2803,8 +2684,15 @@ public class MediaInfo implements Cloneable {
 	 * @return the h264_annexB
 	 * @since 1.50.0
 	 */
-	public byte[] getH264AnnexB() {
+	public byte[] getH264AnnexB(InputFile f) {
 		synchronized (h264AnnexBLock) {
+			if (!h264AnnexBParsed) {
+				byte[][] headers = FFmpegParser.getAnnexBFrameHeader(f);
+				if (headers != null) {
+					h264AnnexB = headers[1];
+				}
+				h264AnnexBParsed = true;
+			}
 			if (h264AnnexB == null) {
 				return null;
 			}
