@@ -132,9 +132,6 @@ public class DLNAMediaInfo implements Cloneable {
 	private String pixelAspectRatio;
 	private ScanType scanType;
 	private ScanOrder scanOrder;
-	private Double lastPlaybackPosition = null;
-	private String lastPlaybackTime;
-	private int playbackCount = 0;
 
 	/**
 	 * The frame rate mode as read from the parser
@@ -2270,56 +2267,86 @@ public class DLNAMediaInfo implements Cloneable {
 		return hdrFormatInRendererFormat;
 	}
 
-	public int getPlaybackCount() {
-		return playbackCount;
+/*
+	public String getIMDbID() {
+		return imdbID;
 	}
 
-	public void setPlaybackCount(int value) {
-		this.playbackCount = value;
+	public void setIMDbID(String value) {
+		this.imdbID = value;
 	}
 
-	public Double getLastPlaybackPosition() {
-		return lastPlaybackPosition;
+	public String getYear() {
+		return year;
 	}
 
-	public String getLastPlaybackPositionForUPnP() {
-		if (lastPlaybackPosition == null) {
-			return null;
+	public void setYear(String value) {
+		this.year = value;
+	}
+
+	public String getTVSeriesStartYear() {
+		return tvSeriesStartYear;
+	}
+
+	public void setTVSeriesStartYear(String value) {
+		this.tvSeriesStartYear = value;
+	}
+
+	public String getMovieOrShowName() {
+		return tvShowName;
+	}
+
+	public void setMovieOrShowName(String value) {
+		this.tvShowName = value;
+	}
+
+	public String getSimplifiedMovieOrShowName() {
+		return simplifiedTvShowName;
+	}
+
+	public void setSimplifiedMovieOrShowName(String value) {
+		this.simplifiedTvShowName = value;
+	}
+
+	public String getTVSeason() {
+		return tvSeason;
+	}
+
+	public void setTVSeason(String value) {
+		this.tvSeason = value;
+	}
+
+	public String getTVEpisodeNumber() {
+		return tvEpisodeNumber;
+	}
+
+	public String getTVEpisodeNumberUnpadded() {
+		if (isNotBlank(tvEpisodeNumber) && tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
+			return tvEpisodeNumber.substring(1);
 		}
-
-		int secondsValue = lastPlaybackPosition.intValue();
-
-		int seconds = secondsValue % 60;
-		int hours = secondsValue / 60;
-		int minutes = hours % 60;
-		hours = hours / 60;
-
-		String hoursString = String.valueOf(hours);
-		String minutesString = String.valueOf(minutes);
-		String secondsString = String.valueOf(seconds);
-
-		if (minutesString.length() == 1) {
-			minutesString = "0" + minutesString;
-		}
-
-		if (secondsString.length() == 1) {
-			secondsString = "0" + secondsString;
-		}
-
-		return hoursString + ":" + minutesString + ":" + secondsString + ".000";
+		return tvEpisodeNumber;
 	}
 
-	public void setLastPlaybackPosition(double value) {
-		this.lastPlaybackPosition = value;
+	public void setTVEpisodeNumber(String value) {
+		this.tvEpisodeNumber = value;
 	}
 
-	public String getLastPlaybackTime() {
-		return lastPlaybackTime;
+	public String getTVEpisodeName() {
+		return tvEpisodeName;
 	}
 
-	public void setLastPlaybackTime(String value) {
-		this.lastPlaybackTime = value;
+	public void setTVEpisodeName(String value) {
+		this.tvEpisodeName = value;
 	}
+
+	public boolean isTVEpisode() {
+		return isTVEpisode;
+	}
+
+	public void setIsTVEpisode(boolean value) {
+		this.isTVEpisode = value;
+	}
+*/
 
 	public boolean hasVideoMetadata() {
 		return videoMetadata != null;

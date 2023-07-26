@@ -16,17 +16,8 @@
  */
 package net.pms.dlna;
 
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,12 +45,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -97,6 +82,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.MediaStatus;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -112,7 +98,22 @@ import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -157,6 +158,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private Format format;
 	private DLNAMediaInfo media;
+	private MediaStatus mediaStatus;
 	private DLNAMediaAudio mediaAudio;
 	private DLNAMediaSubtitle mediaSubtitle;
 	private long lastModified;
@@ -2336,13 +2338,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
 				}
 			}
-
-			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
-			if (isNotBlank(media.getLastPlaybackTime())) {
-				addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
-			}
-			if (isNotBlank(media.getLastPlaybackPositionForUPnP())) {
-				addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPositionForUPnP()));
+			if (mediaStatus != null) {
+				addXMLTagAndAttribute(sb, "upnp:playbackCount", mediaStatus.getPlaybackCount());
+				if (isNotBlank(mediaStatus.getLastPlaybackTime())) {
+					addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(mediaStatus.getLastPlaybackTime()));
+				}
+				if (isNotBlank(mediaStatus.getLastPlaybackPositionForUPnP())) {
+					addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(mediaStatus.getLastPlaybackPositionForUPnP()));
+				}
 			}
 		}
 
@@ -3714,6 +3717,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void setMedia(DLNAMediaInfo media) {
 		this.media = media;
+	}
+
+	/**
+	 * Returns the {@link MediaStatus} object for this resource, containing
+	 * the status of this resource, e.g. the playback count.
+	 *
+	 * @return The object containing status information.
+	 */
+	public MediaStatus getMediaStatus() {
+		return mediaStatus;
+	}
+
+	/**
+	 * Sets the the {@link MediaStatus} object that contains all status for
+	 * this resource.
+	 *
+	 * @param mediaStatus The object containing status information.
+	 */
+	public void setMediaStatus(MediaStatus mediaStatus) {
+		this.mediaStatus = mediaStatus;
 	}
 
 	/**

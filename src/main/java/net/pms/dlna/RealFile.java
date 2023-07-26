@@ -30,6 +30,7 @@ import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableFilesStatus;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.platform.PlatformUtils;
@@ -238,9 +239,8 @@ public class RealFile extends VirtualFile {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
 						connection.setAutoCommit(false);
-						DLNAMediaInfo media;
 						try {
-							media = MediaTableFiles.getData(connection, fileName, file.lastModified());
+							DLNAMediaInfo media = MediaTableFiles.getData(connection, fileName, file.lastModified());
 
 							setExternalSubtitlesParsed();
 							if (media != null) {
@@ -253,6 +253,7 @@ public class RealFile extends VirtualFile {
 
 								getMedia().postParse(getType(), input);
 								found = true;
+								setMediaStatus(MediaTableFilesStatus.getData(connection, fileName));
 							}
 						} catch (IOException | SQLException e) {
 							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
