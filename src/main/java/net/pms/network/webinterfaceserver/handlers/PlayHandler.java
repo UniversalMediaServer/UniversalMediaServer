@@ -174,7 +174,7 @@ public class PlayHandler implements HttpHandler {
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lock();
+		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			HashMap<String, Object> mustacheVars = new HashMap<>();
 			mustacheVars.put("serverName", CONFIGURATION.getServerDisplayName());
