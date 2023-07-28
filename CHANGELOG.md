@@ -18,6 +18,18 @@
 
 ### Translation updates via Crowdin
 - Removed inconsistent trailing dot (thanks, Paul Furlet!)
+- Afrikaans (13%) (thanks, HencoSmit!)
+- Bulgarian (49%) (thanks, Dremski!)
+- Catalan (57%) (thanks, Antoni Grau i Quellos!)
+- Czech (82%)
+- Danish (64%) (thanks, GurliGebis!)
+- Finnish (64%) (thanks, Esko Gardner!)
+- Korean (63%) (thanks, VenusGirl!)
+- Polish (62%) (thanks, Karol Szastok!)
+- Portuguese, Brazilian (66%) (thanks, Mauro.A and Vyctor Oliveira!)
+- Russian (77%) (thanks, Олег Лойко!)
+- Turkish (87%) (thanks, Burak Yavuz!)
+- Ukrainian (20%) (thanks, Paul Furlet!)
 
 ### Dependencies
 - lock file maintenance
