@@ -82,7 +82,7 @@ public class BrowseHandler implements HttpHandler {
 	}
 
 	private void mkBrowsePage(String id, HttpExchange t) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lock();
+		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make browse page " + id);
 			String user = WebInterfaceServerUtil.userName(t);
