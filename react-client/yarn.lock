@@ -13858,7 +13858,7 @@ __metadata:
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.1.6
-    video.js: 8.5.0
+    video.js: 8.5.1
     videojs-contrib-quality-levels: 4.0.0
     web-vitals: 3.4.0
   languageName: unknown
@@ -14135,7 +14135,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.5.0, video.js@npm:^7 || ^8, video.js@npm:^8.3.0":
+"video.js@npm:8.5.1":
+  version: 8.5.1
+  resolution: "video.js@npm:8.5.1"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    "@videojs/http-streaming": 3.3.1
+    "@videojs/vhs-utils": ^4.0.0
+    "@videojs/xhr": 2.6.0
+    aes-decrypter: ^4.0.1
+    global: 4.4.0
+    keycode: 2.2.0
+    m3u8-parser: ^6.0.0
+    mpd-parser: ^1.0.1
+    mux.js: ^6.2.0
+    safe-json-parse: 4.0.0
+    videojs-contrib-quality-levels: 4.0.0
+    videojs-font: 4.1.0
+    videojs-vtt.js: 0.15.5
+  checksum: 2ee3b41282f6b1a423d93fdf90f3f0834a948514dc4b36543456643064bf22d300349c6dec4c662da88c86921a5b170cfebda987e8f2d79aff3eb4a8ea51798b
+  languageName: node
+  linkType: hard
+
+"video.js@npm:^7 || ^8, video.js@npm:^8.3.0":
   version: 8.5.0
   resolution: "video.js@npm:8.5.0"
   dependencies:
@@ -14192,6 +14214,15 @@ __metadata:
   dependencies:
     global: ^4.3.1
   checksum: 10c6c861621d4314e7d4b60b7bef1afc60f1ac438879f6b3f22e8944d694c8e9dfc809a8187ed72f44e06c39a159044d8fa15e80695b9bf7b9bef99ea2740b70
+  languageName: node
+  linkType: hard
+
+"videojs-vtt.js@npm:0.15.5":
+  version: 0.15.5
+  resolution: "videojs-vtt.js@npm:0.15.5"
+  dependencies:
+    global: ^4.3.1
+  checksum: 2658de26830e412f7539f2674019348374d36f05fcdae548be001d596798f50c0d2e026163afdeff34286919de7aae08cb97af612925164167204b301d246241
   languageName: node
   linkType: hard
 
