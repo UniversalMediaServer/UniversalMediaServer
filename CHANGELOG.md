@@ -1,20 +1,28 @@
 # Changelog
 
-## [Unreleased](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.5.0...main)
+## [13.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.5.0...13.6.0) (2023-07-29)
 
 ### General
+- Added support for automatic muxing of HDR streams for better video quality (e.g. Dolby Vision in MKV on LG TVs)
 - Improved parsing of SDTV filenames
+- Improved FFmpeg engine performance
+- Improved support for video playback on Safari
 - Fixed H.265 muxing via tsMuxeR
 - Fixed support for latest MediaInfo versions
 - Fixed recognition of renderers by UUID
 - Fixed name of playing file not showing up on old status tab
 - Fixed security vulnerabilities
 - Fixed thumbnail generation bugs (thanks, Chris Kroells!)
+- Fixed deferring to tsMuxeR when FFmpeg can mux the video
+- Fixed frozen media browsing
+- Fixed RTL language support in web settings
+- Added logging of subtitles default and forced details
 
 ### Renderers
 - Added support for Dolby Vision in MKV on LG TVs
-- Improved support for videos with opus audio on LG TVs
 - Fixed detection of VLC for macOS
+- Fixed native Opus audio support on LG TVs
+- Fixed native AVI/XviD support on Fetch TV, LG TVs, Panasonic DMR, and Sony TVs
 
 ### Translation updates via Crowdin
 - Removed inconsistent trailing dot (thanks, Paul Furlet!)
@@ -36,16 +44,25 @@
 - Bump FFmpeg and tsMuxeR to latest
 - Bump MediaInfo to 23.06
 - Bump semver from 6.3.0 to 6.3.1
+- update dependency @testing-library/jest-dom to v5.17.0
 - update dependency @types/jest to v29.5.3
-- update dependency @types/node to v18.16.19
+- update dependency @types/lodash to v4.14.196
+- update dependency @types/node to v18.17.1
+- update dependency @types/react to v18.2.17
 - update dependency com.github.eirslett:frontend-maven-plugin to v1.13.4
+- update dependency com.github.junrar:junrar to v7.5.5
 - update dependency com.github.oshi:oshi-core to v6.4.4
-- update dependency eslint to v8.45.0
+- update dependency eslint to v8.46.0
+- update dependency eslint-plugin-react to v7.33.0
+- update dependency org.apache.commons:commons-lang3 to v3.13.0
 - update dependency org.jupnp:org.jupnp to v2.7.1
+- update dependency react-router-dom to v6.14.2
 - update dependency web-vitals to v3.4.0
-- update mantine monorepo packages to v6.0.16
+- update junit5 monorepo to v5.10.0
+- update mantine monorepo packages to v6.0.17
 - update react monorepo
-- update typescript-eslint monorepo to v5.62.0
+- update typescript-eslint monorepo to v6.2.0
+- update dependency video.js to v8.5.1
 - update yarn to v3.6.1
 
 ## [13.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.4.1...13.5.0) (2023-07-04)
