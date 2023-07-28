@@ -3409,10 +3409,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.16.19":
-  version: 18.16.19
-  resolution: "@types/node@npm:18.16.19"
-  checksum: 63c31f09616508aa7135380a4c79470a897b75f9ff3a70eb069e534dfabdec3f32fb0f9df5939127f1086614d980ddea0fa5e8cc29a49103c4f74cd687618aaf
+"@types/node@npm:18.17.1":
+  version: 18.17.1
+  resolution: "@types/node@npm:18.17.1"
+  checksum: 56201bda9a2d05d68602df63b4e67b0545ac8c6d0280bd5fb31701350a978a577a027501fbf49db99bf177f2242ebd1244896bfd35e89042d5bd7dfebff28d4e
   languageName: node
   linkType: hard
 
@@ -13834,7 +13834,7 @@ __metadata:
     "@testing-library/user-event": 14.4.3
     "@types/jest": 29.5.3
     "@types/lodash": 4.14.196
-    "@types/node": 18.16.19
+    "@types/node": 18.17.1
     "@types/react": 18.2.15
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.2.7
