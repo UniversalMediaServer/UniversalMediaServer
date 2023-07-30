@@ -288,7 +288,7 @@ public class SubtitleUtils {
 
 			if (convertedFile != null && convertedFile.canRead()) {
 				// subs are already converted and exists
-				params.getSid().setType(SubtitleType.ASS);
+				params.getSid().setType(subtitleType);
 				params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 				return convertedFile;
 			}
@@ -340,7 +340,7 @@ public class SubtitleUtils {
 			if (convertedSubs.canRead() || converted3DSubs.canRead()) {
 				LOGGER.trace("Subs are already converted");
 				if (applyFontConfig || isEmbeddedSource || is3D) {
-					params.getSid().setType(SubtitleType.ASS);
+					params.getSid().setType(subtitleType);
 					params.getSid().setSubCharacterSet(CHARSET_UTF_8);
 					if (converted3DSubs.canRead()) {
 						convertedSubs = converted3DSubs;
@@ -410,7 +410,7 @@ public class SubtitleUtils {
 			}
 
 			if (isEmbeddedSource) {
-				params.getSid().setType(SubtitleType.ASS);
+				params.getSid().setType(subtitleType);
 			}
 
 			PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
@@ -453,7 +453,7 @@ public class SubtitleUtils {
 		File[] matches = subsPath.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith(basename) && name.endsWith(".ass");
+				return name.startsWith(basename);
 			}
 		});
 
@@ -480,7 +480,7 @@ public class SubtitleUtils {
 		File[] matches = subsPath.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.startsWith(basename) && name.endsWith(".ass");
+				return name.startsWith(basename);
 			}
 		});
 
