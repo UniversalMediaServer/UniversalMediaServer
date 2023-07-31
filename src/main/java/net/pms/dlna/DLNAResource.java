@@ -2405,7 +2405,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-
 					}
 
 					if (isNotBlank(media.getFrameRate())) {
