@@ -1533,12 +1533,30 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * renderer supports subs streaming for the given media video.
 	 */
 	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAResource dlna) {
-		if (subtitle == null || dlna == null) {
+		if (subtitle == null || subtitle.getType() == null || dlna == null) {
 			return false;
 		}
 
-		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " is supported by the renderer");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
+		LOGGER.trace("Checking whether the external subtitles format " + subtitle.getType().toString() + " is supported by the renderer");
+
+		return getFormatConfiguration().getMatchedMIMEtype(
+			dlna.getMedia().getContainer(),
+			null,
+			null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			8,
+			null,
+			null,
+			null,
+			subtitle.getType().getShortName().toUpperCase(Locale.ROOT),
+			true,
+			this
+		) != null;
 	}
 
 	/**
