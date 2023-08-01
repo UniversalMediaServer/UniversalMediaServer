@@ -400,26 +400,25 @@ public class TsMuxeRVideo extends Engine {
 
 				boolean singleMediaSubtitles = media.getSubtitlesTracks().size() == 1;
 
-				for (int i = 0; i < media.getSubtitlesTracks().size(); i++) {
-					DLNAMediaSubtitle subtitlesTrack = media.getSubtitlesTracks().get(i);
-					ffSubtitlesPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "subtitlestrackout" + i, false, true);
+				DLNAMediaSubtitle subtitlesTrack = params.getSid();
+				ffSubtitlesPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg", System.currentTimeMillis() + "subtitlestrackout", false, true);
 
-					String[] ffmpegSubtitlesStreamCommands;
-					ffmpegSubtitlesStreamCommands = new String[] {
-						EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
-						"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
-						"-i", filename,
-						"-f", "srt",
-						singleMediaSubtitles ? "-y" : "-map", singleMediaSubtitles ? "-y" : ("0:s:" + (media.getSubtitlesTracks().indexOf(subtitlesTrack))),
-						"-y",
-						ffSubtitlesPipe[i].getInputPipe()
-					};
+				String[] ffmpegSubtitlesStreamCommands;
+				ffmpegSubtitlesStreamCommands = new String[] {
+					EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
+					"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
+					"-i", filename,
+					"-f", "srt",
+					"-c:s", "copy",
+					singleMediaSubtitles ? "-y" : "-map", singleMediaSubtitles ? "-y" : ("0:s:" + (media.getSubtitlesTracks().indexOf(subtitlesTrack))),
+					"-y",
+					ffSubtitlesPipe[0].getInputPipe()
+				};
 
-					ffparams = new OutputParams(configuration);
-					ffparams.setMaxBufferSize(1);
-					ffparams.setStdIn(params.getStdIn());
-					ffSubtitles[i] = new ProcessWrapperImpl(ffmpegSubtitlesStreamCommands, ffparams);
-				}
+				ffparams = new OutputParams(configuration);
+				ffparams.setMaxBufferSize(1);
+				ffparams.setStdIn(params.getStdIn());
+				ffSubtitles[0] = new ProcessWrapperImpl(ffmpegSubtitlesStreamCommands, ffparams);
 			}
 		}
 
@@ -433,6 +432,7 @@ public class TsMuxeRVideo extends Engine {
 			pw.print(" --vbr");
 			pw.println(" --vbv-len=500");
 
+			int trackCounter = 1;
 			String videoparams = "";
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
@@ -444,9 +444,9 @@ public class TsMuxeRVideo extends Engine {
 				) {
 					sei = "forceSEI";
 				}
-				videoparams = "level=4.1, " + sei + ", contSPS, track=1";
+				videoparams = "level=4.1, " + sei + ", contSPS, track=" + trackCounter++;
 			} else {
-				videoparams = "track=1";
+				videoparams = "track=" + trackCounter++;
 			}
 			if (configuration.isFix25FPSAvMismatch()) {
 				fps = "25";
@@ -487,7 +487,20 @@ public class TsMuxeRVideo extends Engine {
 					if (audio != null && audio.getAudioProperties().getAudioDelay() != 0 && params.getTimeSeek() == 0) {
 						timeshift = "timeshift=" + audio.getAudioProperties().getAudioDelay() + "ms, ";
 					}
-					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
+					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + trackCounter++);
+				}
+			}
+
+			if (ffSubtitlesPipe != null) {
+				String fontDisplay = ",font-name=\"Arial\",font-size=65,font-color=0xffffffff,bottom-offset=24,font-border=5,text-align=center";
+				String dimensions = ",video-width=" + media.getWidth() + ",video-height=" + media.getHeight();
+				String fpsString = ",fps=" + (fps != null ? fps : media.getFrameRate());
+
+				DLNAMediaSubtitle subtitlesTrack = params.getSid();
+				if (subtitlesTrack != null) {
+					String language = ",lang=" + subtitlesTrack.getLang();
+
+					pw.println("S_TEXT/UTF8, \"" + ffSubtitlesPipe[0].getOutputPipe() + "\", track=" +  + trackCounter++ + fontDisplay + dimensions + fpsString + language);
 				}
 			}
 		}
