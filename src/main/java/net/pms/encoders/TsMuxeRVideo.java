@@ -182,6 +182,7 @@ public class TsMuxeRVideo extends Engine {
 		}
 
 		boolean aacTranscode = false;
+		int numAudioTracks = 1;
 
 		// this section sets up the piped streams that will be passed to tsMuxeR
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
@@ -302,7 +303,6 @@ public class TsMuxeRVideo extends Engine {
 			ffparams.setStdIn(params.getStdIn());
 			ffVideo = new ProcessWrapperImpl(ffmpegPipeVideoStreamCommands, ffparams);
 
-			int numAudioTracks = 1;
 			int numSubtitlesTracks = 0;
 
 			if (media.getAudioTracksList() != null && media.getAudioTracksList().size() > 1 && configuration.isMuxAllAudioTracks()) {
@@ -319,7 +319,7 @@ public class TsMuxeRVideo extends Engine {
 
 				boolean singleMediaAudio = media.getAudioTracksList().size() == 1;
 
-				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+				for (int i = 0; i < numAudioTracks; i++) {
 					DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 					ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
@@ -454,7 +454,7 @@ public class TsMuxeRVideo extends Engine {
 			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + videoparams);
 
 			if (ffAudioPipe != null) {
-				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+				for (int i = 0; i < numAudioTracks; i++) {
 					DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 
 					boolean encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && audio.isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
