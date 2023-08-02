@@ -47,6 +47,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_NAME = "FILES";
 	public static final String COL_ID = "ID";
 	public static final String COL_THUMBID = "THUMBID";
+	public static final String TABLE_COL_DURATION = TABLE_NAME + ".DURATION";
 	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + ".FORMAT_TYPE";
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + ".FILENAME";
@@ -103,8 +104,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 32: Added an index for the Media Library Movies folder that includes duration
 	 * - 34: Added HDRFORMAT column
 	 * - 35: Added HDRFORMATCOMPATIBILITY column
+	 * - 36: Added FORMAT_TYPE_DURATION index
 	 */
-	private static final int TABLE_VERSION = 35;
+	private static final int TABLE_VERSION = 36;
 
 	// Database column sizes
 	private static final int SIZE_CODECV = 32;
@@ -364,6 +366,10 @@ public class MediaTableFiles extends MediaTable {
 						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMATCOMPATIBILITY VARCHAR");
 					}
+					case 35 -> {
+						LOGGER.trace("Adding FORMAT_TYPE_DURATION index");
+						executeUpdate(connection, "CREATE INDEX IF NOT EXISTS FORMAT_TYPE_DURATION ON " + TABLE_NAME + "(" + TABLE_COL_FORMAT_TYPE + ", " + TABLE_COL_DURATION + ")");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -456,6 +462,9 @@ public class MediaTableFiles extends MediaTable {
 
 			LOGGER.trace("Creating index FORMAT_TYPE");
 			statement.execute("CREATE INDEX FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
+
+			LOGGER.trace("Creating index FORMAT_TYPE_DURATION");
+			statement.execute("CREATE INDEX FORMAT_TYPE_DURATION on " + TABLE_NAME + " (FORMAT_TYPE, DURATION)");
 
 			LOGGER.trace("Creating index FORMAT_TYPE_WIDTH_HEIGHT");
 			statement.execute("CREATE INDEX FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
