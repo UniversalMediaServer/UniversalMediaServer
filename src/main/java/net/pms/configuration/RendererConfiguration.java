@@ -530,6 +530,17 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return whether to use the MPEG-TS container for transcoded video
+	 */
+	private String getTranscodingContainer() {
+		String transcodingContainer = FormatConfiguration.MPEGPS;
+		if (isTranscodeToMPEGTS()) {
+			transcodingContainer = FormatConfiguration.MPEGTS;
+		}
+		return transcodingContainer;
+	}
+
+	/**
 	 * @return whether to use the MPEG-2 video codec for transcoded video
 	 */
 	public boolean isTranscodeToMPEG2() {
@@ -587,10 +598,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media) {
-		return (
-			(isTranscodeToH264() && media.isH264()) ||
-			(isTranscodeToH265() && media.isH265())
-		);
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getCodecV(), null) != null;
 	}
 
 	/**
@@ -605,10 +613,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isAudioStreamTypeSupportedInTranscodingContainer(MediaAudio audio) {
-		return (
-			(isTranscodeToAAC() && audio.isAACLC()) ||
-			(isTranscodeToAC3() && audio.isAC3())
-		);
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodecA()) != null;
 	}
 
 	/**
