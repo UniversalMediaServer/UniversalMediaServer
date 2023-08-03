@@ -306,7 +306,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private JsonObject getBrowsePage(Renderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lock();
+		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make browse page " + id);
 			JsonObject result = new JsonObject();
@@ -601,7 +601,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lock();
+		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make play page " + id);
 			JsonObject result = new JsonObject();
