@@ -639,15 +639,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					media.add("metadata", metadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
-				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-					if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
-						mime = rootResource.getMedia().getMimeType();
-					}
-				}
-
-				if (!directmime(mime) || transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
-					mime = renderer.getVideoMimeType();
-				}
+				mime = renderer.getVideoMimeType();
 				if (rootResource.getMediaStatus() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
 					media.addProperty("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
 				}
@@ -951,18 +943,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 		resource.setDefaultRenderer(renderer);
 		if (resource.getFormat().isVideo()) {
-			if (!directmime(mimeType) || transMp4(mimeType, media)) {
-				mimeType = renderer.getVideoMimeType();
-				// TODO: Use normal engine priorities instead of the following hacks
-				if (FileUtil.isUrl(resource.getSystemName())) {
-					if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
-						resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
-					} else {
-						resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
-					}
-				} else if (!(resource instanceof DVDISOTitle)) {
-					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
+			mimeType = renderer.getVideoMimeType();
+			if (FileUtil.isUrl(resource.getSystemName())) {
+				if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
+					resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
+				} else {
+					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
 				}
+			} else if (!(resource instanceof DVDISOTitle)) {
+				resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 			}
 			if (
 				PMS.getConfiguration().getWebPlayerSubs() &&
@@ -975,7 +964,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 		}
 
-		if (!directmime(mimeType) && resource.getFormat().isAudio()) {
+		if (resource.getFormat().isAudio()) {
 			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 		}
 
@@ -1212,39 +1201,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
 		return new ByteRange(start, end);
-	}
-
-	/**
-	 * Whether the MIME type is supported by all browsers.
-	 * Note: This is a flawed approach because while browsers
-	 * may support the container format, they may not support
-	 * the codecs within. For example, most browsers support
-	 * MP4 with H.264, but do not support it with H.265 (HEVC)
-	 *
-	 * @param mime
-	 * @return
-	 * @todo refactor to be more specific
-	 */
-	private static boolean directmime(String mime) {
-		return mime != null &&
-		(
-			mime.equals(HTTPResource.MP4_TYPEMIME) ||
-			mime.equals(HTTPResource.WEBM_TYPEMIME) ||
-			mime.equals(HTTPResource.OGG_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
-			mime.equals(HTTPResource.BMP_TYPEMIME) ||
-			mime.equals(HTTPResource.PNG_TYPEMIME) ||
-			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
-			mime.equals(HTTPResource.GIF_TYPEMIME)
-		);
-	}
-
-	private static boolean transMp4(String mime, MediaInfo media) {
-		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 }

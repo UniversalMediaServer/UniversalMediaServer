@@ -171,7 +171,7 @@ public class StarRating implements ApiResponseHandler {
 		try {
 			DLNAResource cachedObj = PMS.getGlobalRepo().get("" + (request.getGlobalID()));
 			if (cachedObj != null) {
-				cachedObj.getMedia().getFirstAudioTrack().setRating(request.getStars());
+				cachedObj.getMedia().getAudioMetadata().setRating(request.getStars());
 				LOG.trace("updated GlobalRepo cache object successfully.");
 			}
 		} catch (NullPointerException e) {

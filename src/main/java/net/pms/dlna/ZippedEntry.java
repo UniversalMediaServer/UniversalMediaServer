@@ -24,6 +24,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
+import net.pms.parsers.Parser;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,24 +126,17 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 			return;
 		}
 
-		// TODO: found seems not used here
-		boolean found = false;
+		if (getMedia() == null) {
+			setMedia(new MediaInfo());
+		}
 
-		if (!found) {
-			if (getMedia() == null) {
-				setMedia(new MediaInfo());
-			}
-
-			found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-
-			if (getFormat() != null) {
-				InputFile input = new InputFile();
-				input.setPush(this);
-				input.setSize(length());
-				getFormat().parse(getMedia(), input, getType(), null);
-				if (getMedia() != null && getMedia().isSLS()) {
-					setFormat(getMedia().getAudioVariantFormat());
-				}
+		if (getFormat() != null) {
+			InputFile input = new InputFile();
+			input.setPush(this);
+			input.setSize(length());
+			Parser.parse(getMedia(), input, getFormat(), getType());
+			if (getMedia() != null && getMedia().isSLS()) {
+				setFormat(getMedia().getAudioVariantFormat());
 			}
 		}
 	}

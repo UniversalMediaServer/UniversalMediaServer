@@ -274,9 +274,9 @@ public abstract class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public static final String getMpegTsMpeg2OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
+	private static final String getMpegTsMpeg2OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
-		if (media != null && media.isHDVideo()) {
+		if (media != null && media.getDefaultVideoTrack() == null && media.getDefaultVideoTrack().isHDVideo()) {
 			orgPN += "HD";
 		} else {
 			orgPN += "SD";
@@ -318,7 +318,9 @@ public abstract class HTTPResource {
 	public static final String getMkvH264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
-		if (media == null || (media.getH264Profile() != null && media.getH264Profile().contains("high"))) {
+		if (media == null || media.getDefaultVideoTrack() == null ||
+			media.getDefaultVideoTrack().getFormatProfile() == null ||
+			media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
 			orgPN += "_HP";
 		} else {
 			orgPN += "_MP";
@@ -326,11 +328,11 @@ public abstract class HTTPResource {
 
 		orgPN += "_HD";
 
-		if (media != null && media.getFirstAudioTrack() != null) {
+		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
 				(
 					isStreaming &&
-					media.getFirstAudioTrack().isAACLC()
+					media.getDefaultAudioTrack().isAACLC()
 				) || (
 					!isStreaming &&
 					renderer.isTranscodeToAAC()
@@ -340,7 +342,7 @@ public abstract class HTTPResource {
 			} else if (
 				(
 					isStreaming &&
-					media.getFirstAudioTrack().isAC3()
+					media.getDefaultAudioTrack().isAC3()
 				) || (
 					!isStreaming &&
 					renderer.isTranscodeToAC3()
@@ -349,17 +351,17 @@ public abstract class HTTPResource {
 				orgPN += "_AC3";
 			} else if (
 				isStreaming &&
-				media.getFirstAudioTrack().isDTS()
+				media.getDefaultAudioTrack().isDTS()
 			) {
 				orgPN += "_DTS";
 			} else if (
 				isStreaming &&
-				media.getFirstAudioTrack().isEAC3()
+				media.getDefaultAudioTrack().isEAC3()
 			) {
 				orgPN += "_EAC3";
 			} else if (
 				isStreaming &&
-				media.getFirstAudioTrack().isHEAAC()
+				media.getDefaultAudioTrack().isHEAAC()
 			) {
 				orgPN += "_HEAAC_L4";
 			}
@@ -370,17 +372,17 @@ public abstract class HTTPResource {
 
 	public static final String getWmvOrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "WMV";
-		if (media != null && media.isHDVideo()) {
+		if (media != null && media.getDefaultVideoTrack() != null &&  media.getDefaultVideoTrack().isHDVideo()) {
 			orgPN += "HIGH";
 		} else {
 			orgPN += "MED";
 		}
 
-		if (media != null && media.getFirstAudioTrack() != null) {
+		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
 				(
 					isStreaming &&
-					media.getFirstAudioTrack().isWMA()
+					media.getDefaultAudioTrack().isWMA()
 				) || (
 					!isStreaming &&
 					renderer.isTranscodeToWMV()
@@ -390,8 +392,8 @@ public abstract class HTTPResource {
 			} else if (
 				isStreaming &&
 				(
-					media.getFirstAudioTrack().isWMAPro() ||
-					media.getFirstAudioTrack().isWMA10()
+					media.getDefaultAudioTrack().isWMAPro() ||
+					media.getDefaultAudioTrack().isWMA10()
 				)
 			) {
 				orgPN += "_PRO";

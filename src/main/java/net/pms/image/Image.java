@@ -29,6 +29,7 @@ import com.drew.metadata.Metadata;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.parsers.MetadataExtractorParser;
 import net.pms.util.ParseException;
 
 /**
@@ -116,7 +117,7 @@ public class Image implements Serializable {
 		}
 		if (metadata == null) {
 			try {
-				metadata = ImagesUtil.getMetadata(this.bytes, format);
+				metadata = MetadataExtractorParser.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
 				LOGGER.error("Error reading image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -170,7 +171,7 @@ public class Image implements Serializable {
 
 		if (metadata == null) {
 			try {
-				metadata = ImagesUtil.getMetadata(this.bytes, format);
+				metadata = MetadataExtractorParser.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
 				LOGGER.error("Error while reading image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);

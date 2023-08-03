@@ -761,11 +761,11 @@
 			</testResource>
 			<!--*media files to test transcoding and identification-->
 			<testResource>
-				<directory>src/test/resources/net/pms/dlna</directory>
+				<directory>src/test/resources/net/pms/parsers</directory>
 				<includes>
 					<include>*.*</include>
 				</includes>
-				<targetPath>net/pms/dlna</targetPath>
+				<targetPath>net/pms/parsers</targetPath>
 			</testResource>
 		</testResources>
 		<pluginManagement>

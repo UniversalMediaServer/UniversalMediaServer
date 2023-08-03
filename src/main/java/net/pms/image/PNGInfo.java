@@ -300,6 +300,6 @@ public class PNGInfo extends ImageInfo {
 			sb.append(", Interlace Method = ").append(interlaceMethod);
 		}
 		sb.append(", Has Transparency Chunk = ").append(hasTransparencyChunk ? "True" : "False")
-			.append("Has Modified Bit Depth = ").append(isModifiedBitDepth ? "True" : "False");
+			.append(", Has Modified Bit Depth = ").append(isModifiedBitDepth ? "True" : "False");
 	}
 }
