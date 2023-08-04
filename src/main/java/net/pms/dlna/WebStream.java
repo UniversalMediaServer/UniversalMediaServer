@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.util.FileUtil;
 
@@ -80,7 +81,7 @@ public class WebStream extends DLNAResource {
 
 	@Override
 	public long length() {
-		return DLNAMediaInfo.TRANS_SIZE;
+		return MediaInfo.TRANS_SIZE;
 	}
 
 	@Override

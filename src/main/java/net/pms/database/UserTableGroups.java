@@ -17,6 +17,7 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -25,6 +26,7 @@ import java.util.List;
 import net.pms.iam.AccountService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +40,28 @@ public final class UserTableGroups extends UserTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 3;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_DISPLAY_NAME = "DISPLAY_NAME";
+	private static final String COL_PERMISSIONS = "PERMISSIONS";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	private static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL = SELECT_ALL + FROM + TABLE_NAME;
+	private static final String SQL_GET_BY_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_INSERT_GROUP = INSERT_INTO + TABLE_NAME + " (" + COL_DISPLAY_NAME + ", " + COL_PERMISSIONS + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
+	private static final String SQL_UPDATE_DISPLAY_NAME_BY_ID = UPDATE + TABLE_NAME + SET + COL_DISPLAY_NAME + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_PERMISSIONS_BY_ID = UPDATE + TABLE_NAME + SET + COL_PERMISSIONS + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -83,14 +107,14 @@ public final class UserTableGroups extends UserTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN IF EXISTS NAME RENAME TO DISPLAY_NAME");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "NAME" + RENAME_TO + COL_DISPLAY_NAME);
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 				}
 				case 2 -> {
-					dropTableAndConstraint(connection, "PERMISSIONS");
-					UserTableTablesVersions.removeTableVersion(connection, "PERMISSIONS");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD IF NOT EXISTS PERMISSIONS INTEGER DEFAULT 0");
-					executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET PERMISSIONS = " + Permissions.ALL + " WHERE ID = 1");
+					dropTableAndConstraint(connection, COL_PERMISSIONS);
+					UserTableTablesVersions.removeTableVersion(connection, COL_PERMISSIONS);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + IF_NOT_EXISTS + COL_PERMISSIONS + INTEGER + DEFAULT + "0");
+					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_PERMISSIONS + EQUAL + Permissions.ALL + WHERE + COL_ID + EQUAL + "1");
 					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 				}
 				default -> throw new IllegalStateException(
@@ -104,10 +128,10 @@ public final class UserTableGroups extends UserTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                 INTEGER         PRIMARY KEY AUTO_INCREMENT, " +
-				"DISPLAY_NAME       VARCHAR2(255)   UNIQUE                    , " +
-				"PERMISSIONS        INTEGER         DEFAULT 0                   " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID              + INTEGER           + PRIMARY_KEY + AUTO_INCREMENT + COMMA +
+				COL_DISPLAY_NAME    + VARCHAR_SIZE_MAX  + UNIQUE                       + COMMA +
+				COL_PERMISSIONS     + INTEGER           + DEFAULT_0                    +
 			")"
 		);
 		// create an initial group for admin in the table
@@ -118,12 +142,13 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || displayName == null || "".equals(displayName)) {
 			return;
 		}
-		String query = "INSERT INTO " + TABLE_NAME + " (DISPLAY_NAME, PERMISSIONS) VALUES (" + sqlQuote(displayName) + ", " + permissions + ")";
-		try {
-			execute(connection, query);
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(displayName), TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_GROUP)) {
+			statement.setString(1, StringUtils.left(displayName, 255));
+			statement.setInt(2, permissions);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(displayName), TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
 		}
 	}
 
@@ -131,13 +156,14 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || id < 1 || name == null || "".equals(name)) {
 			return false;
 		}
-		String query = "UPDATE " + TABLE_NAME + " SET DISPLAY_NAME = " + sqlQuote(name) + " WHERE ID = " + id;
-		try {
-			execute(connection, query);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_DISPLAY_NAME_BY_ID)) {
+			statement.setString(1, StringUtils.left(name, 255));
+			statement.setInt(2, id);
+			statement.executeUpdate();
 			return true;
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "updating value", sqlEscape(name), TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "updating name", name, TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
 			return false;
 		}
 	}
@@ -146,13 +172,14 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || id < 1) {
 			return false;
 		}
-		String query = "UPDATE " + TABLE_NAME + " SET PERMISSIONS = " + permissions + " WHERE ID = " + id;
-		try {
-			execute(connection, query);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_PERMISSIONS_BY_ID)) {
+			statement.setInt(1, permissions);
+			statement.setInt(2, id);
+			statement.executeUpdate();
 			return true;
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "updating permissions", permissions, TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "updating permissions", permissions, TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
 			return false;
 		}
 	}
@@ -162,38 +189,29 @@ public final class UserTableGroups extends UserTable {
 		if (connection == null || id < 2) {
 			return false;
 		}
-		String query = "DELETE FROM " + TABLE_NAME + " WHERE ID = " + id;
-		try {
-			execute(connection, query);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_ID)) {
+			statement.setInt(1, id);
+			statement.executeUpdate();
 			return true;
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting value", id, TABLE_NAME, se.getMessage());
-			LOGGER.trace("", se);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "deleting value", id, TABLE_NAME, e.getMessage());
+			LOGGER.trace("", e);
 			return false;
 		}
 	}
 
 	public static Group getGroupById(final Connection connection, final int id) {
-		Group result = new Group();
-		try {
-			String sql = "SELECT * " +
-					"FROM " + TABLE_NAME + " " +
-					"WHERE ID='" + id + "' " +
-					"LIMIT 1";
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql);
-			) {
-				while (resultSet.next()) {
-					result.setId(resultSet.getInt("ID"));
-					result.setDisplayName(resultSet.getString("DISPLAY_NAME"));
-					result.setPermissions(resultSet.getInt("PERMISSIONS"));
-					return result;
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_BY_ID)) {
+			statement.setInt(1, id);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSetToGroup(resultSet);
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Error finding group: " + e);
 		}
+		Group result = new Group();
 		result.setId(0);
 		result.setDisplayName("");
 		result.setPermissions(0);
@@ -203,24 +221,26 @@ public final class UserTableGroups extends UserTable {
 	public static List<Group> getAllGroups(final Connection connection) {
 		List<Group> result = new ArrayList<>();
 		try {
-			String sql = "SELECT * " +
-					"FROM " + TABLE_NAME;
 			try (
 				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(sql);
+				ResultSet resultSet = statement.executeQuery(SQL_GET_ALL);
 			) {
 				while (resultSet.next()) {
-					Group group = new Group();
-					group.setId(resultSet.getInt("ID"));
-					group.setDisplayName(resultSet.getString("DISPLAY_NAME"));
-					group.setPermissions(resultSet.getInt("PERMISSIONS"));
-					result.add(group);
+					result.add(resultSetToGroup(resultSet));
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Error listing groups: " + e);
 		}
 		return result;
+	}
+
+	private static Group resultSetToGroup(ResultSet resultSet) throws SQLException {
+		Group group = new Group();
+		group.setId(resultSet.getInt(COL_ID));
+		group.setDisplayName(resultSet.getString(COL_DISPLAY_NAME));
+		group.setPermissions(resultSet.getInt(COL_PERMISSIONS));
+		return group;
 	}
 
 }

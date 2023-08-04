@@ -195,6 +195,11 @@ public class StatusTab {
 		public void setActive(final boolean active) {
 			icon.setGrey(!active);
 		}
+
+		@Override
+		public void setAllowed(boolean allowed) {
+			// not implemented on Java GUI
+		}
 	}
 
 	private JPanel renderers;

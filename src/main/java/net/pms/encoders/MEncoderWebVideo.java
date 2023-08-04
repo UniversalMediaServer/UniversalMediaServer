@@ -18,12 +18,12 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
@@ -86,7 +86,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		DLNAMediaInfo media,
+		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;

@@ -22,9 +22,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.MediaInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,13 +37,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MediaTableChapters extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableChapters.class);
-	private static final int SIZE_LANG = 3;
-
-	public static final String TABLE_NAME = "CHAPTERS";
-	public static final String COL_FILEID = "FILEID";
-	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
-
-	private static final String SQL_GET_ALL_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
+	protected static final String TABLE_NAME = "CHAPTERS";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -51,6 +45,30 @@ public class MediaTableChapters extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 2;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	protected static final String COL_FILEID = "FILEID";
+	private static final String COL_LANG = "LANG";
+	private static final String COL_TITLE = "TITLE";
+	private static final String COL_START_TIME = "START_TIME";
+	private static final String COL_END_TIME = "END_TIME";
+	private static final String COL_THUMBNAIL = "THUMBNAIL";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	private static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	private static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
+	private static final String TABLE_COL_LANG = TABLE_NAME + "." + COL_LANG;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_BY_FILEID_ID_LANG = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + EQUAL + PARAMETER + AND + TABLE_COL_LANG + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -83,7 +101,7 @@ public class MediaTableChapters extends MediaTable {
 			switch (version) {
 				case 1 -> {
 					try {
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " RENAME CONSTRAINT PKCHAP TO " + TABLE_NAME + "_PK");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + RENAME + CONSTRAINT + "PKCHAP TO " + TABLE_NAME + PK_MARKER);
 					} catch (SQLException e) {
 						//PKCHAP not found, nothing to update.
 					}
@@ -107,85 +125,71 @@ public class MediaTableChapters extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + " (" +
-				"ID             INTEGER                             NOT NULL            , " +
-				"FILEID         BIGINT                              NOT NULL            , " +
-				"LANG           VARCHAR(" + SIZE_LANG + ")                              , " +
-				"TITLE          VARCHAR(" + SIZE_MAX + ")                               , " +
-				"START_TIME     DOUBLE PRECISION                                        , " +
-				"END_TIME       DOUBLE PRECISION                                        , " +
-				"THUMBNAIL      OTHER                                                   , " +
-				"CONSTRAINT " + TABLE_NAME + "_PK PRIMARY KEY (FILEID, ID, LANG)        , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE" +
+			CREATE_TABLE + TABLE_NAME + " (" +
+				COL_ID              + INTEGER                           + NOT_NULL          + COMMA +
+				COL_FILEID          + BIGINT                            + NOT_NULL          + COMMA +
+				COL_LANG            + VARCHAR_SIZE_LANG                                     + COMMA +
+				COL_TITLE           + VARCHAR_SIZE_MAX                                      + COMMA +
+				COL_START_TIME      + DOUBLE_PRECISION                                      + COMMA +
+				COL_END_TIME        + DOUBLE_PRECISION                                      + COMMA +
+				COL_THUMBNAIL       + OTHER                                                 + COMMA +
+				CONSTRAINT + TABLE_NAME + PK_MARKER + PRIMARY_KEY +  "(" + COL_FILEID + COMMA + COL_ID + COMMA + COL_LANG + ")" + COMMA +
+				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")"
 		);
 	}
 
-	protected static void insertOrUpdateChapters(Connection connection, long fileId, DLNAMediaInfo media) throws SQLException {
+	protected static void insertOrUpdateChapters(Connection connection, long fileId, MediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null || !media.hasChapters()) {
 			return;
 		}
 
-		String columns = "FILEID, ID, LANG, TITLE, START_TIME, END_TIME, THUMBNAIL ";
-
 		try (
-			PreparedStatement updateStatement = connection.prepareStatement(
-				"SELECT " + columns +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE " +
-					"FILEID = ? AND ID = ? AND LANG = ?",
-				ResultSet.TYPE_FORWARD_ONLY,
-				ResultSet.CONCUR_UPDATABLE
-			);
-			PreparedStatement insertStatement = connection.prepareStatement(
-				"INSERT INTO " + TABLE_NAME + " (" + columns +	")" +
-				createDefaultValueForInsertStatement(columns)
-			);
+			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_ALL_BY_FILEID_ID_LANG, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
-			for (DLNAMediaChapter chapter : media.getChapters()) {
+			for (MediaChapter chapter : media.getChapters()) {
+				updateStatement.clearParameters();
 				updateStatement.setLong(1, fileId);
 				updateStatement.setInt(2, chapter.getId());
 				updateStatement.setString(3, chapter.getLang());
-				try (ResultSet rs = updateStatement.executeQuery()) {
-					if (rs.next()) {
-						rs.updateString("TITLE", StringUtils.left(chapter.getTitle(), SIZE_MAX));
-						rs.updateDouble("START_TIME", chapter.getStart());
-						rs.updateDouble("END_TIME", chapter.getEnd());
-						rs.updateObject("THUMBNAIL", chapter.getThumbnail());
-						rs.updateRow();
+				try (ResultSet result = updateStatement.executeQuery()) {
+					boolean isCreatingNewRecord = !result.next();
+					if (isCreatingNewRecord) {
+						result.moveToInsertRow();
+						result.updateLong(COL_FILEID, fileId);
+						result.updateInt(COL_ID, chapter.getId());
+						result.updateString(COL_LANG, chapter.getLang());
+					}
+					result.updateString(COL_TITLE, StringUtils.left(chapter.getTitle(), SIZE_MAX));
+					result.updateDouble(COL_START_TIME, chapter.getStart());
+					result.updateDouble(COL_END_TIME, chapter.getEnd());
+					result.updateObject(COL_THUMBNAIL, chapter.getThumbnail());
+					if (isCreatingNewRecord) {
+						result.insertRow();
 					} else {
-						insertStatement.clearParameters();
-						int databaseColumnIterator = 0;
-						insertStatement.setLong(++databaseColumnIterator, fileId);
-						insertStatement.setInt(++databaseColumnIterator, chapter.getId());
-						insertStatement.setString(++databaseColumnIterator, StringUtils.left(chapter.getLang(), SIZE_LANG));
-						insertStatement.setString(++databaseColumnIterator, StringUtils.left(chapter.getTitle(), SIZE_MAX));
-						insertStatement.setDouble(++databaseColumnIterator, chapter.getStart());
-						insertStatement.setDouble(++databaseColumnIterator, chapter.getEnd());
-						insertStatement.setObject(++databaseColumnIterator, chapter.getThumbnail());
-						insertStatement.executeUpdate();
+						result.updateRow();
 					}
 				}
 			}
 		}
 	}
 
-	protected static List<DLNAMediaChapter> getChapters(Connection connection, long fileId) {
-		List<DLNAMediaChapter> result = new ArrayList<>();
+	protected static List<MediaChapter> getChapters(Connection connection, long fileId) {
+		List<MediaChapter> result = new ArrayList<>();
 		if (connection == null || fileId < 0) {
 			return result;
 		}
-		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILEID)) {
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_BY_FILEID)) {
 			stmt.setLong(1, fileId);
 			try (ResultSet elements = stmt.executeQuery()) {
 				while (elements.next()) {
-					DLNAMediaChapter chapter = new DLNAMediaChapter();
-					chapter.setId(elements.getInt("ID"));
-					chapter.setLang(elements.getString("LANG"));
-					chapter.setTitle(elements.getString("TITLE"));
-					chapter.setStart(elements.getDouble("START_TIME"));
-					chapter.setEnd(elements.getDouble("END_TIME"));
-					chapter.setThumbnail((DLNAThumbnail) elements.getObject("THUMBNAIL"));
+					MediaChapter chapter = new MediaChapter();
+					chapter.setId(elements.getInt(COL_ID));
+					chapter.setLang(elements.getString(COL_LANG));
+					chapter.setTitle(elements.getString(COL_TITLE));
+					chapter.setStart(elements.getDouble(COL_START_TIME));
+					chapter.setEnd(elements.getDouble(COL_END_TIME));
+					chapter.setThumbnail((DLNAThumbnail) elements.getObject(COL_THUMBNAIL));
 					LOGGER.trace("Adding chapter from the database: {}", chapter.toString());
 					result.add(chapter);
 				}
@@ -196,4 +200,5 @@ public class MediaTableChapters extends MediaTable {
 		}
 		return result;
 	}
+
 }

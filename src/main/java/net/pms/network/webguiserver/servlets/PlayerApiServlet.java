@@ -40,9 +40,6 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.ByteRange;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DVDISOTitle;
@@ -67,6 +64,9 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
@@ -648,8 +648,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				if (!directmime(mime) || transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
 					mime = renderer.getVideoMimeType();
 				}
-				if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
-					media.addProperty("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
+				if (rootResource.getMediaStatus() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
+					media.addProperty("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
 				}
 			}
 
@@ -939,11 +939,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			LOGGER.debug("media unkonwn");
 			return false;
 		}
-		DLNAMediaSubtitle sid = null;
+		MediaSubtitle sid = null;
 		String mimeType = renderer.getMimeType(resource);
-		DLNAMediaInfo media = resource.getMedia();
+		MediaInfo media = resource.getMedia();
 		if (media == null) {
-			media = new DLNAMediaInfo();
+			media = new MediaInfo();
 			resource.setMedia(media);
 		}
 		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
@@ -984,10 +984,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (resource.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(renderer.getVideoMimeType())) {
 				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
-					String response = DLNAMediaChapter.getWebVtt(resource);
+					String response = MediaChapter.getWebVtt(resource);
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
-					String response = DLNAMediaChapter.getHls(resource);
+					String response = MediaChapter.getHls(resource);
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
@@ -1032,7 +1032,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
 				InputStream in = resource.getInputStream(range, renderer);
 				long len = resource.length();
-				boolean isTranscoding = len == DLNAMediaInfo.TRANS_SIZE;
+				boolean isTranscoding = len == MediaInfo.TRANS_SIZE;
 				resp.setContentType(mimeType);
 				resp.setHeader("Server", PMS.get().getServerName());
 				resp.setHeader("Connection", "keep-alive");
@@ -1242,7 +1242,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		);
 	}
 
-	private static boolean transMp4(String mime, DLNAMediaInfo media) {
+	private static boolean transMp4(String mime, MediaInfo media) {
 		LOGGER.debug("mp4 profile " + media.getH264Profile());
 		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}

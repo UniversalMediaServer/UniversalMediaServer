@@ -24,8 +24,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.media.MediaInfo;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
@@ -98,22 +97,38 @@ public class MediaTableVideoMetadata extends MediaTable {
 	public static final String TABLE_COL_MEDIA_YEAR = TABLE_NAME + "." + COL_MEDIA_YEAR;
 	public static final String TABLE_COL_MOVIEORSHOWNAME = TABLE_NAME + "." + COL_MOVIEORSHOWNAME;
 	public static final String TABLE_COL_MOVIEORSHOWNAMESIMPLE = TABLE_NAME + "." + COL_MOVIEORSHOWNAMESIMPLE;
-	public static final String TABLE_COL_TVEPISODENAME = TABLE_NAME + ".TVEPISODENAME";
+	public static final String TABLE_COL_TVEPISODENAME = TABLE_NAME + "." + COL_TVEPISODENAME;
 	public static final String TABLE_COL_TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
 	public static final String TABLE_COL_TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
-	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = "SELECT " + COL_FILEID + ", " + BASIC_COLUMNS + " FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
-	private static final String SQL_GET_VIDEO_ALL_METADATA_BY_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + COL_FILEID + " = ?";
-	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_WITH_IMDBID_OR_TMDBID_EXIST = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND (" + TABLE_COL_IMDBID + " IS NOT NULL OR " + TABLE_COL_TMDBID + " IS NOT NULL) LIMIT 1";
-	private static final String SQL_GET_API_METADATA_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? LIMIT 1";
-	private static final String SQL_GET_API_METADATA_IMDBID_OR_TMDBID_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " " + " WHERE " + TABLE_COL_FILEID + " = ? AND (" + TABLE_COL_IMDBID + " IS NOT NULL OR " + TABLE_COL_TMDBID + " IS NOT NULL) LIMIT 1";
-	private static final String SQL_GET_API_METADATA_API_VERSION_IMDBID_OR_TMDBID_EXIST = "SELECT " + TABLE_COL_FILEID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ? AND (" + TABLE_COL_IMDBID + " IS NOT NULL OR " + TABLE_COL_TMDBID + " IS NOT NULL) AND " + TABLE_COL_API_VERSION + " = ? LIMIT 1";
 
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = "LEFT JOIN " + MediaTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING = "LEFT JOIN " + MediaTableVideoMetadataIMDbRating.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataIMDbRating.TABLE_COL_FILEID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED = "LEFT JOIN " + MediaTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadataRated.TABLE_COL_FILEID + " ";
+	/**
+	 * SQL Jointures
+	 */
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = LEFT_JOIN + MediaTableVideoMetadataGenres.TABLE_NAME + ON + TABLE_COL_FILEID + EQUAL + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING = LEFT_JOIN + MediaTableVideoMetadataIMDbRating.TABLE_NAME + ON + TABLE_COL_FILEID + EQUAL + MediaTableVideoMetadataIMDbRating.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED = LEFT_JOIN + MediaTableVideoMetadataRated.TABLE_NAME + ON + TABLE_COL_FILEID + EQUAL + MediaTableVideoMetadataRated.TABLE_COL_FILEID + " ";
 
+	/**
+	 * SQL References
+	 */
 	public static final String REFERENCE_TABLE_COL_FILE_ID = TABLE_NAME + "(" + COL_FILEID + ")";
 
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID = SELECT + COL_FILEID + COMMA + BASIC_COLUMNS + FROM + TABLE_NAME + WHERE + COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_VIDEO_ALL_METADATA_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_VIDEO_METADATA_BY_FILEID_WITH_IMDBID_OR_TMDBID_EXIST = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + "(" + TABLE_COL_IMDBID + IS_NOT_NULL + OR + TABLE_COL_TMDBID + IS_NOT_NULL + ")" + LIMIT_1;
+	private static final String SQL_GET_API_METADATA_EXIST = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_API_METADATA_IMDBID_OR_TMDBID_EXIST = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + "(" + TABLE_COL_IMDBID + IS_NOT_NULL + OR + TABLE_COL_TMDBID + IS_NOT_NULL + ")" + LIMIT_1;
+	private static final String SQL_GET_API_METADATA_API_VERSION_IMDBID_OR_TMDBID_EXIST = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + "(" + TABLE_COL_IMDBID + IS_NOT_NULL + OR + TABLE_COL_TMDBID + IS_NOT_NULL + ")" + AND + TABLE_COL_API_VERSION + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_UPDATE_MOVIEORSHOWNAME = UPDATE + TABLE_NAME + SET + COL_MOVIEORSHOWNAME + EQUAL + PARAMETER + WHERE + COL_MOVIEORSHOWNAME + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_TMDBTVID = UPDATE + TABLE_NAME + SET + COL_TMDBTVID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_TMDBID = UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+
+	/**
+	 * Database column sizes
+	 */
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_YEAR = 4;
 	private static final int SIZE_TVSEASON = 4;
@@ -149,23 +164,23 @@ public class MediaTableVideoMetadata extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_OVERVIEW + " CLOB");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TAGLINE + " VARCHAR");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_VOTES + " VARCHAR");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_OVERVIEW + " CLOB");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_TAGLINE + VARCHAR);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_VOTES + VARCHAR);
 				}
 				case 2 -> {
 					//add tmdb id
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TMDBID + " BIGINT");
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_TMDBTVID + " BIGINT");
-					executeUpdate(connection, "DROP INDEX IF EXISTS " + TABLE_NAME + "_IMDBID_API_VERSION_IDX");
-					executeUpdate(connection, "CREATE INDEX IF NOT EXISTS " + TABLE_NAME + "_" + COL_TMDBID  + "_" + COL_IMDBID  + "_" + COL_API_VERSION + "_IDX ON " + TABLE_NAME + "(" + COL_TMDBID + ", " + COL_IMDBID + ", " + COL_API_VERSION + ")");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_TMDBID + BIGINT);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_TMDBTVID + BIGINT);
+					executeUpdate(connection, "DROP INDEX " + IF_EXISTS + TABLE_NAME + "_IMDBID_API_VERSION_IDX");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + "_" + COL_TMDBID  + "_" + COL_IMDBID  + "_" + COL_API_VERSION + "_IDX" + ON + TABLE_NAME + "(" + COL_TMDBID + ", " + COL_IMDBID + ", " + COL_API_VERSION + ")");
 					//change PLOT to OVERVIEW
 					if (!isColumnExist(connection, TABLE_NAME, COL_OVERVIEW)) {
-						executeUpdate(connection, "ALTER TABLE IF EXISTS " + TABLE_NAME + " ALTER COLUMN IF EXISTS PLOT RENAME TO " + COL_OVERVIEW);
+						executeUpdate(connection, ALTER_TABLE + IF_EXISTS + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "PLOT" + RENAME_TO + COL_OVERVIEW);
 					}
 				}
 				case 3 -> {
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MODIFIED + BIGINT);
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -186,38 +201,38 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + " (" +
-				COL_FILEID + "                INTEGER                              PRIMARY KEY , " +
-				COL_MODIFIED + "              BIGINT                                           , " +
-				COL_IMDBID + "                VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				COL_TMDBID + "                BIGINT                                           , " +
-				COL_TMDBTVID + "              BIGINT                                           , " +
-				COL_MEDIA_YEAR + "            VARCHAR(" + SIZE_YEAR + ")                       , " +
-				COL_MOVIEORSHOWNAME + "       VARCHAR(" + SIZE_MAX + ")                        , " +
-				COL_MOVIEORSHOWNAMESIMPLE + " VARCHAR(" + SIZE_MAX + ")                        , " +
-				COL_TVSEASON + "              VARCHAR(" + SIZE_TVSEASON + ")                   , " +
-				COL_TVEPISODENUMBER + "       VARCHAR(" + SIZE_TVEPISODENUMBER + ")            , " +
-				COL_TVEPISODENAME + "         VARCHAR(" + SIZE_MAX + ")                        , " +
-				COL_ISTVEPISODE + "           BOOLEAN                                          , " +
-				COL_EXTRAINFORMATION + "      VARCHAR(" + SIZE_MAX + ")                        , " +
-				COL_API_VERSION + "           VARCHAR(" + SIZE_IMDBID + ")                     , " +
-				COL_BUDGET + "                BIGINT                                           , " +
-				COL_CREDITS + "               CLOB                                             , " +
-				COL_EXTERNALIDS + "           CLOB                                             , " +
-				COL_HOMEPAGE + "              VARCHAR                                          , " +
-				COL_IMAGES + "                CLOB                                             , " +
-				COL_ORIGINALLANGUAGE + "      VARCHAR                                          , " +
-				COL_ORIGINALTITLE + "         VARCHAR                                          , " +
-				COL_OVERVIEW + "              CLOB                                             , " +
-				COL_PRODUCTIONCOMPANIES + "   CLOB                                             , " +
-				COL_PRODUCTIONCOUNTRIES + "   CLOB                                             , " +
-				COL_REVENUE + "               BIGINT                                           , " +
-				COL_TAGLINE + "               VARCHAR                                          , " +
-				COL_VOTES + "                 VARCHAR                                          , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY(" + COL_FILEID + ") REFERENCES " + MediaTableFiles.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE" +
+			CREATE_TABLE + TABLE_NAME + " (" +
+				COL_FILEID                  + INTEGER                            + PRIMARY_KEY + COMMA +
+				COL_MODIFIED                + BIGINT                                           + COMMA +
+				COL_IMDBID                  + VARCHAR + "(" + SIZE_IMDBID + ")"                + COMMA +
+				COL_TMDBID                  + BIGINT                                           + COMMA +
+				COL_TMDBTVID                + BIGINT                                           + COMMA +
+				COL_MEDIA_YEAR              + VARCHAR + "(" + SIZE_YEAR + ")"                  + COMMA +
+				COL_MOVIEORSHOWNAME         + VARCHAR_SIZE_MAX                                 + COMMA +
+				COL_MOVIEORSHOWNAMESIMPLE   + VARCHAR_SIZE_MAX                                 + COMMA +
+				COL_TVSEASON                + VARCHAR + "(" + SIZE_TVSEASON + ")"              + COMMA +
+				COL_TVEPISODENUMBER         + VARCHAR + "(" + SIZE_TVEPISODENUMBER + ")"       + COMMA +
+				COL_TVEPISODENAME           + VARCHAR_SIZE_MAX                                 + COMMA +
+				COL_ISTVEPISODE             + BOOLEAN                                          + COMMA +
+				COL_EXTRAINFORMATION        + VARCHAR_SIZE_MAX                                 + COMMA +
+				COL_API_VERSION             + VARCHAR_16                                       + COMMA +
+				COL_BUDGET                  + BIGINT                                           + COMMA +
+				COL_CREDITS                 + CLOB                                             + COMMA +
+				COL_EXTERNALIDS             + CLOB                                             + COMMA +
+				COL_HOMEPAGE                + VARCHAR                                          + COMMA +
+				COL_IMAGES                  + CLOB                                             + COMMA +
+				COL_ORIGINALLANGUAGE        + VARCHAR                                          + COMMA +
+				COL_ORIGINALTITLE           + VARCHAR                                          + COMMA +
+				COL_OVERVIEW                + CLOB                                             + COMMA +
+				COL_PRODUCTIONCOMPANIES     + CLOB                                             + COMMA +
+				COL_PRODUCTIONCOUNTRIES     + CLOB                                             + COMMA +
+				COL_REVENUE                 + BIGINT                                           + COMMA +
+				COL_TAGLINE                 + VARCHAR                                          + COMMA +
+				COL_VOTES                   + VARCHAR                                          + COMMA +
+				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
-			"CREATE INDEX " + TABLE_NAME + "_BASIC_COLUMNS_IDX ON " + TABLE_NAME + "(" + BASIC_COLUMNS + ")",
-			"CREATE INDEX " + TABLE_NAME + "_" + COL_TMDBID  + "_" + COL_IMDBID  + "_" + COL_API_VERSION + "_IDX ON " + TABLE_NAME + "(" + COL_TMDBID + ", " + COL_IMDBID + ", " + COL_API_VERSION + ")"
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + "BASIC_COLUMNS" + IDX_MARKER + ON + TABLE_NAME + "(" + BASIC_COLUMNS + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + CONSTRAINT_SEPARATOR + COL_IMDBID  + CONSTRAINT_SEPARATOR + COL_API_VERSION + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + COMMA + COL_IMDBID + COMMA + COL_API_VERSION + ")"
 		);
 	}
 
@@ -227,11 +242,11 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param fileId the file id from FILES table.
-	 * @param media the {@link DLNAMediaInfo} VideoMetadata row to update.
+	 * @param media the {@link MediaInfo} VideoMetadata row to update.
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final DLNAMediaInfo media, final boolean fromApi) throws SQLException {
+	public static void insertOrUpdateVideoMetadata(final Connection connection, final Long fileId, final MediaInfo media, final boolean fromApi) throws SQLException {
 		if (connection == null || fileId == null || media == null || !media.hasVideoMetadata()) {
 			return;
 		}
@@ -348,11 +363,11 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param connection the db connection
 	 * @param path the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @param media the {@link DLNAMediaInfo} row to update.
+	 * @param media the {@link MediaInfo} row to update.
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media, final boolean fromApi) throws SQLException {
+	public static void insertVideoMetadata(final Connection connection, String path, long modified, MediaInfo media, final boolean fromApi) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;
@@ -608,11 +623,10 @@ public class MediaTableVideoMetadata extends MediaTable {
 	}
 
 	private static void updateTmdbId(final Connection connection, long fileId, long tmdbId, boolean isEpisode) {
-		try (Statement statement = connection.createStatement()) {
-			statement.executeUpdate(
-				"UPDATE " + TABLE_NAME + " SET " + (isEpisode ? COL_TMDBTVID : COL_TMDBID) + " = " + tmdbId +
-				" WHERE " + TABLE_COL_FILEID + " = " + fileId
-			);
+		try (PreparedStatement statement = connection.prepareStatement(isEpisode ? SQL_UPDATE_TMDBTVID : SQL_UPDATE_TMDBID)) {
+			statement.setLong(1, tmdbId);
+			statement.setLong(2, fileId);
+			statement.execute();
 		} catch (SQLException e) {
 			LOGGER.error("Failed to update TMDB ID for \"{}\" to \"{}\": {}", fileId, tmdbId, e.getMessage());
 			LOGGER.trace("", e);
@@ -627,8 +641,15 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param newName the new movie or show name.
 	 */
 	public static void updateMovieOrShowName(final Connection connection, String oldName, String newName) {
+		if (StringUtils.isEmpty(newName)) {
+			return;
+		}
 		try {
-			updateRowsInTable(connection, oldName, newName, COL_MOVIEORSHOWNAME, SIZE_MAX, true);
+			try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_MOVIEORSHOWNAME)) {
+				statement.setString(1,  StringUtils.left(newName, SIZE_MAX));
+				statement.setString(2,  StringUtils.left(oldName, SIZE_MAX));
+				statement.execute();
+			}
 		} catch (SQLException e) {
 			LOGGER.error(
 				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
@@ -637,49 +658,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-		}
-	}
-
-	/**
-	 * Updates a row or rows in the table.
-	 *
-	 * @param connection the db connection
-	 * @param oldValue the value to match, can be {@code null}.
-	 * @param newValue the value to store, can be {@code null}.
-	 * @param columnName the column to update.
-	 * @param size the maximum size of the data if {@code isString} is
-	 *            {@code true}.
-	 * @param isString whether or not the value is a SQL char/string and should
-	 *            be quoted and length limited.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 */
-	private static void updateRowsInTable(final Connection connection, String oldValue, String newValue, String columnName, int size, boolean isString) throws SQLException {
-		if (isString && size < 1) {
-			throw new IllegalArgumentException("size must be positive");
-		}
-		if (StringUtils.isEmpty(columnName)) {
-			LOGGER.error("Couldn't update rows in " + TABLE_NAME + " table because columnName is blank");
-			return;
-		}
-
-		// Sanitize values
-		oldValue = isString ? sqlQuote(oldValue) : sqlEscape(oldValue);
-		newValue = isString ? sqlQuote(newValue) : sqlEscape(newValue);
-
-		LOGGER.trace(
-			"Updating rows in " + TABLE_NAME + " table from \"{}\" to \"{}\" in column {}",
-			oldValue,
-			newValue,
-			columnName
-		);
-		try (Statement statement = connection.createStatement()) {
-			int rows = statement.executeUpdate(
-				"UPDATE " + TABLE_NAME + " SET " +
-					columnName +  " = " + (newValue == null ? "NULL" : (isString ? StringUtils.left(newValue, size) : newValue)) +
-				" WHERE " +
-					columnName + (oldValue == null ? " IS NULL" : " = " + (isString ? StringUtils.left(oldValue, size) : oldValue))
-			);
-			LOGGER.trace("Updated {} rows in " + TABLE_NAME + " table", rows);
 		}
 	}
 

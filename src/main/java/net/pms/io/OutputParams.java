@@ -20,10 +20,10 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.IPushOutput;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 
 public final class OutputParams {
@@ -40,8 +40,8 @@ public final class OutputParams {
 	private int waitbeforestart;
 	private IPipeProcess[] inputpipes = new IPipeProcess[2];
 	private IPipeProcess[] outputpipes = new IPipeProcess[2];
-	private DLNAMediaAudio aid;
-	private DLNAMediaSubtitle sid;
+	private MediaAudio aid;
+	private MediaSubtitle sid;
 	private int secondReadMinSize;
 	private int outputByteArrayStreamBufferSize;
 	private boolean noexitcheck;
@@ -222,19 +222,19 @@ public final class OutputParams {
 		this.inputpipes = inputpipes;
 	}
 
-	public DLNAMediaAudio getAid() {
+	public MediaAudio getAid() {
 		return aid;
 	}
 
-	public void setAid(DLNAMediaAudio aid) {
+	public void setAid(MediaAudio aid) {
 		this.aid = aid;
 	}
 
-	public DLNAMediaSubtitle getSid() {
+	public MediaSubtitle getSid() {
 		return sid;
 	}
 
-	public void setSid(DLNAMediaSubtitle sid) {
+	public void setSid(MediaSubtitle sid) {
 		this.sid = sid;
 	}
 

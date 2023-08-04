@@ -51,15 +51,15 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNAMediaChapter;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaOnDemandSubtitle;
-import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
-import net.pms.dlna.MediaType;
+import net.pms.media.MediaType;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
@@ -353,10 +353,10 @@ public class RequestV2 extends HTTPResource {
 					// DLNAresource was found.
 					if (fileName.endsWith("/chapters.vtt")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
-						response.append(DLNAMediaChapter.getWebVtt(dlna));
+						response.append(MediaChapter.getWebVtt(dlna));
 					} else if (fileName.endsWith("/chapters.json")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
-						response.append(DLNAMediaChapter.getHls(dlna));
+						response.append(MediaChapter.getHls(dlna));
 					} else if (fileName.startsWith("hls/")) {
 						//HLS
 						if (fileName.endsWith(".m3u8")) {
@@ -368,7 +368,7 @@ public class RequestV2 extends HTTPResource {
 							}
 						} else {
 							//HLS stream request
-							cLoverride = DLNAMediaInfo.TRANS_SIZE;
+							cLoverride = MediaInfo.TRANS_SIZE;
 							inputStream = HlsHelper.getInputStream("/" + fileName, dlna, mediaRenderer);
 							if (fileName.endsWith(".ts")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
@@ -512,13 +512,13 @@ public class RequestV2 extends HTTPResource {
 						// This is a request for a subtitles file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-						DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+						MediaSubtitle sub = dlna.getMediaSubtitle();
 						if (sub != null) {
 							// XXX external file is null if the first subtitle track is embedded
 							if (sub.isExternal()) {
-								if (sub.getExternalFile() == null && sub instanceof DLNAMediaOnDemandSubtitle) {
+								if (sub.getExternalFile() == null && sub instanceof MediaOnDemandSubtitle) {
 									// Try to fetch subtitles
-									((DLNAMediaOnDemandSubtitle) sub).fetch();
+									((MediaOnDemandSubtitle) sub).fetch();
 								}
 								if (sub.getExternalFile() == null) {
 									LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
@@ -568,11 +568,11 @@ public class RequestV2 extends HTTPResource {
 						// Ignore ByteRangeRequests while media is transcoded
 						if (
 							!ignoreTranscodeByteRangeRequests ||
-							totalsize != DLNAMediaInfo.TRANS_SIZE ||
+							totalsize != MediaInfo.TRANS_SIZE ||
 							(
 								ignoreTranscodeByteRangeRequests &&
 								lowRange == 0 &&
-								totalsize == DLNAMediaInfo.TRANS_SIZE
+								totalsize == MediaInfo.TRANS_SIZE
 							)
 						) {
 							inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
@@ -596,7 +596,7 @@ public class RequestV2 extends HTTPResource {
 									String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 									if (isNotBlank(subtitleHttpHeader)  && (dlna.getEngine() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
-										DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+										MediaSubtitle sub = dlna.getMediaSubtitle();
 										String subtitleUrl;
 										String subExtension = sub.getType().getExtension();
 										if (isNotBlank(subExtension)) {
@@ -660,8 +660,8 @@ public class RequestV2 extends HTTPResource {
 							boolean chunked = mediaRenderer.isChunkedTransfer();
 
 							// Determine the total size. Note: when transcoding the length is
-							// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-							if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
+							// not known in advance, so MediaInfo.TRANS_SIZE will be returned instead.
+							if (chunked && totalsize == MediaInfo.TRANS_SIZE) {
 								// In chunked mode we try to avoid arbitrary values.
 								totalsize = -1;
 							}
@@ -770,7 +770,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (cLoverride > -2) {
 					// Content-Length override has been set, send or omit as appropriate
-					if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
+					if (cLoverride > -1 && cLoverride != MediaInfo.TRANS_SIZE) {
 						// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 						// as the PS3 will display a network error and request the last seconds of the
 						// transcoded video. Better to send no Content-Length at all.
@@ -794,7 +794,7 @@ public class RequestV2 extends HTTPResource {
 				// Send the response headers to the client.
 				future = event.getChannel().write(output);
 
-				if (lowRange != DLNAMediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
+				if (lowRange != MediaInfo.ENDFILE_POS && !HEAD.equals(method)) {
 					// Send the response body to the client in chunks.
 					ChannelFuture chunkWriteFuture = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 

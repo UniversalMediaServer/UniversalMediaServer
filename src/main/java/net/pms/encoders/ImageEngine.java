@@ -17,10 +17,10 @@
 package net.pms.encoders;
 
 import java.io.File;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
 import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
+import net.pms.media.MediaInfo;
 import net.pms.util.ExternalProgramInfo;
 
 public abstract class ImageEngine extends Engine {
@@ -57,9 +57,9 @@ public abstract class ImageEngine extends Engine {
 	/**
 	 * Parses {@code file} and stores the result in {@code media}.
 	 *
-	 * @param media the {@link DLNAMediaInfo} instance to store the parse
+	 * @param media the {@link MediaInfo} instance to store the parse
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
-	public abstract void parse(DLNAMediaInfo media, File file);
+	public abstract void parse(MediaInfo media, File file);
 }

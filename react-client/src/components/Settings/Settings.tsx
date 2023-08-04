@@ -29,6 +29,7 @@ import { havePermission, Permissions } from '../../services/accounts-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
+import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
 
 export default function Settings() {
@@ -132,7 +133,6 @@ export default function Settings() {
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationHasNoChanges']
         })
-      } else {
         await axios.post(settingsApiUrl, changedValues)
           .then(function() {
             setConfiguration(values);
@@ -179,6 +179,9 @@ export default function Settings() {
           <Tabs.List>
             <Tabs.Tab value='GeneralSettings'>{i18n.get['GeneralSettings']}</Tabs.Tab>
             {advancedSettings &&
+              <Tabs.Tab value='RenderersSettings'>{i18n.get['RenderersSettings']}</Tabs.Tab>
+            }
+            {advancedSettings &&
               <Tabs.Tab value='NavigationSettings'>{i18n.get['NavigationSettings']}</Tabs.Tab>
             }
             <Tabs.Tab value='TranscodingSettings'>{i18n.get['TranscodingSettings']}</Tabs.Tab>
@@ -186,6 +189,11 @@ export default function Settings() {
           <Tabs.Panel value='GeneralSettings'>
             {GeneralSettings(form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
+          {advancedSettings &&
+            <Tabs.Panel value='RenderersSettings'>
+              {RenderersSettings(form, selectionSettings)}
+            </Tabs.Panel>
+          }
           {advancedSettings &&
             <Tabs.Panel value='NavigationSettings'>
               {NavigationSettings(form, defaultConfiguration, selectionSettings)}

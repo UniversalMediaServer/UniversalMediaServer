@@ -46,12 +46,14 @@ public class RendererItem implements IRendererGuiListener {
 	private final Renderer renderer;
 	private String name;
 	private String address;
+	private String uuid;
 	private String icon;
 	private String iconOverlays;
 	private String playing;
 	private String time;
 	private int progressPercent;
 	private boolean isActive;
+	private boolean isAllowed;
 	private int controls;
 	private PlayerState state;
 
@@ -73,6 +75,15 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isActive != renderer.isActive()) {
 			isActive = renderer.isActive();
+			sendRendererAction("renderer_update");
+		}
+	}
+
+	@Override
+	public void setAllowed(boolean allowed) {
+		//we can use renderer itself as it's a pointer to real renderer object
+		if (isAllowed != renderer.isAllowed()) {
+			isAllowed = renderer.isAllowed();
 			sendRendererAction("renderer_update");
 		}
 	}
@@ -147,9 +158,11 @@ public class RendererItem implements IRendererGuiListener {
 	private void updateRendererValues() {
 		name = renderer.getRendererName();
 		address = (renderer.getAddress() != null) ? renderer.getAddress().getHostAddress() : "";
+		uuid = (renderer.getUUID() != null) ? renderer.getUUID() : "";
 		icon = renderer.getRendererIcon();
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
+		isAllowed = renderer.isAllowed();
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
@@ -206,12 +219,14 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("id", id);
 		result.addProperty("name", name);
 		result.addProperty("address", address);
+		result.addProperty("uuid", uuid);
 		result.addProperty("icon", icon);
 		result.addProperty("iconOverlays", iconOverlays);
 		result.addProperty("playing", playing);
 		result.addProperty("time", time);
 		result.addProperty("progressPercent", progressPercent);
 		result.addProperty("isActive", isActive);
+		result.addProperty("isAllowed", isAllowed);
 		result.addProperty("controls", controls);
 		result.add("state", GSON.toJsonTree(state));
 		return result;

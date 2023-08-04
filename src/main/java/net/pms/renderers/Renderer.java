@@ -84,6 +84,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	protected Map<String, String> details;
 	private Thread monitorThread;
 	private volatile boolean active;
+	private volatile boolean allowed;
 	private volatile boolean renew;
 
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
@@ -120,6 +121,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				uuid = id;
 			}
 		}
+		allowed = RendererFilter.isAllowed(uuid);
 		controls = 0;
 		active = false;
 		details = null;
@@ -155,6 +157,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		super.reset();
 		// update gui
 		updateRendererGui();
+		allowed = RendererFilter.isAllowed(uuid);
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
 			renderer.updateRendererGui();
 		}
@@ -436,6 +439,17 @@ public class Renderer extends RendererDeviceConfiguration {
 		}
 	}
 
+	public void refreshAllowedGui(boolean b) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setAllowed(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
 	public void refreshPlayerStateGui(PlayerState state) {
 		listenersLock.readLock().lock();
 		try {
@@ -580,6 +594,15 @@ public class Renderer extends RendererDeviceConfiguration {
 	public void setActive(boolean b) {
 		active = b;
 		refreshActiveGui(b);
+	}
+
+	public boolean isAllowed() {
+		return allowed;
+	}
+
+	public void setAllowed(boolean b) {
+		allowed = b;
+		refreshAllowedGui(b);
 	}
 
 	public void setRenew(boolean b) {

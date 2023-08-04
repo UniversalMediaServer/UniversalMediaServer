@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
@@ -86,7 +86,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		DLNAMediaInfo media,
+		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 		UmsConfiguration prev = configuration;

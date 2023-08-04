@@ -18,10 +18,11 @@ package net.pms.database;
 
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,14 +37,33 @@ import org.slf4j.LoggerFactory;
 
 public final class MediaTableCoverArtArchive extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableCoverArtArchive.class);
-	public static final String TABLE_NAME = "COVER_ART_ARCHIVE";
+	protected static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_MBID = "MBID";
+	private static final String COL_COVER = "COVER";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	private static final String TABLE_COL_MBID = TABLE_NAME + "." + COL_MBID;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL_BY_MBID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_MBID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_COVER_MODIFIED_BY_MBID = SELECT + COL_COVER + COMMA + COL_MODIFIED + FROM + TABLE_NAME + WHERE + TABLE_COL_MBID + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -88,27 +108,32 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				//case 1: Alter table to version 2
-				default:
+				case 1 -> {
+					//rename indexes
+					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_MBID + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MBID + IDX_MARKER);
+				}
+				default -> {
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, TABLE_VERSION);
 					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
-		}
+			//case 1: Alter table to version 2
+					}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID              IDENTITY       PRIMARY KEY , " +
-				"MODIFIED        TIMESTAMP                  , " +
-				"MBID            VARCHAR(36)                , " +
-				"COVER           BLOB                         " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID           + IDENTITY          + PRIMARY_KEY + COMMA +
+				COL_MODIFIED     + TIMESTAMP                       + COMMA +
+				COL_MBID         + VARCHAR_36                      + COMMA +
+				COL_COVER        + BLOB                            +
 			")",
-			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)"
+			CREATE_INDEX + TABLE_NAME + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")"
 		);
 	}
 
@@ -144,10 +169,6 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 		}
 	}
 
-	private static String contructMBIDWhere(final String mBID) {
-		return " WHERE MBID" + sqlNullIfBlank(mBID, true, false);
-	}
-
 	/**
 	 * Stores the cover {@link Blob} with the given mBID in the database
 	 *
@@ -155,45 +176,43 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @param cover the cover as a {@link Blob}
 	 */
 	public static void writeMBID(final String mBID, InputStream cover) {
+		if (StringUtils.isBlank(mBID)) {
+			return;
+		}
 		boolean trace = LOGGER.isTraceEnabled();
-
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			String query = "SELECT * FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				if (result.next()) {
-					if (cover != null || result.getBlob("COVER") == null) {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, mBID);
+				if (trace) {
+					LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", statement);
+				}
+				try (ResultSet result = statement.executeQuery()) {
+					boolean isCreatingNewRecord = !result.next();
+					if (isCreatingNewRecord) {
+						if (trace) {
+							LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
+						}
+						result.moveToInsertRow();
+						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+						result.updateString(COL_MBID, mBID);
+						if (cover != null) {
+							result.updateBinaryStream(COL_COVER, cover);
+						}
+						result.insertRow();
+					} else if (cover != null || result.getBlob(COL_COVER) == null) {
 						if (trace) {
 							LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
 						}
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
 						if (cover != null) {
-							result.updateBinaryStream("COVER", cover);
+							result.updateBinaryStream(COL_COVER, cover);
 						} else {
-							result.updateNull("COVER");
+							result.updateNull(COL_COVER);
 						}
 						result.updateRow();
 					} else if (trace) {
-						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt("ID"));
+						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt(COL_ID));
 					}
-				} else {
-					if (trace) {
-						LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
-					}
-
-					result.moveToInsertRow();
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateString("MBID", mBID);
-					if (cover != null) {
-						result.updateBinaryStream("COVER", cover);
-					}
-					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {
@@ -218,24 +237,21 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @return The result of the search, never <code>null</code>
 	 */
 	public static CoverArtArchiveResult findMBID(final String mBID) {
+		if (StringUtils.isBlank(mBID)) {
+			return new CoverArtArchiveResult(false, null, null);
+		}
 		boolean trace = LOGGER.isTraceEnabled();
-		CoverArtArchiveResult result;
 
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			String query = "SELECT COVER, MODIFIED FROM " + TABLE_NAME + contructMBIDWhere(mBID) + " LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching for cover with \"{}\"", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				if (resultSet.next()) {
-					result = new CoverArtArchiveResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getBytes("COVER"));
-				} else {
-					result = new CoverArtArchiveResult(false, null, null);
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, mBID);
+				if (trace) {
+					LOGGER.trace("Searching for Cover Art Archive cover with \"{}\"", statement);
+				}
+				try (ResultSet result = statement.executeQuery()) {
+					if (result.next()) {
+						return new CoverArtArchiveResult(true, result.getTimestamp(COL_MODIFIED), result.getBytes(COL_COVER));
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -248,10 +264,8 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 				e.getMessage()
 			);
 			LOGGER.trace("", e);
-			result = new CoverArtArchiveResult(false, null, null);
 		}
-
-		return result;
+		return new CoverArtArchiveResult(false, null, null);
 	}
 
 	/**
@@ -261,23 +275,19 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @return
 	 */
 	public static boolean hasCover(String mbReleaseId) {
+		if (StringUtils.isBlank(mbReleaseId)) {
+			return false;
+		}
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			String query = "SELECT count(*) FROM " + TABLE_NAME + contructMBIDWhere(mbReleaseId);
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				if (resultSet.next()) {
-					int selected = resultSet.getInt(1);
-					return selected > 0;
-				} else {
-					return false;
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, mbReleaseId);
+				try (ResultSet result = statement.executeQuery()) {
+					return result.next();
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("", e);
-			return false;
 		}
+		return false;
 	}
 }

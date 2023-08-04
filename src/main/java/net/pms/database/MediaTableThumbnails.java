@@ -40,20 +40,6 @@ import org.apache.commons.codec.digest.DigestUtils;
 public final class MediaTableThumbnails extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableThumbnails.class);
 	public static final String TABLE_NAME = "THUMBNAILS";
-	/**
-	 * COLUMNS NAMES
-	 */
-	private static final String COL_THUMBNAIL = "THUMBNAIL";
-	private static final String COL_ID = "ID";
-	private static final String COL_MD5 = "MD5";
-	private static final String COL_MODIFIED = "MODIFIED";
-	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
-	public static final String TABLE_COL_THUMBNAIL = TABLE_NAME + "." + COL_THUMBNAIL;
-	private static final String TABLE_COL_MD5 = TABLE_NAME + "." + COL_MD5;
-
-	private static final String SQL_GET_ID_MD5 = "SELECT " + TABLE_COL_ID + " FROM " + TABLE_NAME + " WHERE " + TABLE_COL_MD5 + " = ? LIMIT 1";
-	private static final String SQL_INSERT_ID_MD5 = "INSERT INTO " + TABLE_NAME + " (" + COL_THUMBNAIL + ", " + COL_MODIFIED + ", " + COL_MD5 + ") VALUES (?, ?, ?)";
-	private static final String SQL_DELETE_ID = "DELETE FROM " + TABLE_NAME + " WHERE " + TABLE_COL_ID + " = ?";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -61,6 +47,28 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * {@link #upgradeTable()}
 	 */
 	private static final int TABLE_VERSION = 1;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	protected static final String COL_THUMBNAIL = "THUMBNAIL";
+	private static final String COL_ID = "ID";
+	private static final String COL_MD5 = "MD5";
+	private static final String COL_MODIFIED = "MODIFIED";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	public static final String TABLE_COL_THUMBNAIL = TABLE_NAME + "." + COL_THUMBNAIL;
+	private static final String TABLE_COL_MD5 = TABLE_NAME + "." + COL_MD5;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ID_MD5 = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_MD5 + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_INSERT_ID_MD5 = INSERT_INTO + TABLE_NAME + " (" + COL_THUMBNAIL + COMMA + COL_MODIFIED + COMMA + COL_MD5 + ") VALUES (" + PARAMETER + COMMA + PARAMETER + COMMA + PARAMETER + ")";
+	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -106,11 +114,10 @@ public final class MediaTableThumbnails extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
-					version = 2;
-					break;
-				default:
-					throw new IllegalStateException(
+				case 1 -> {
+					//nothing to do
+				}
+				default -> throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
@@ -121,11 +128,11 @@ public final class MediaTableThumbnails extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID              IDENTITY       PRIMARY KEY     , " +
-				"THUMBNAIL       OTHER          NOT NULL        , " +
-				"MODIFIED        TIMESTAMP                      , " +
-				"MD5             VARCHAR        UNIQUE NOT NULL   " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID                + IDENTITY                       + COMMA +
+				COL_THUMBNAIL         + OTHER      + NOT_NULL          + COMMA +
+				COL_MODIFIED          + TIMESTAMP                      + COMMA +
+				COL_MD5               + VARCHAR    + UNIQUE_NOT_NULL   +
 			")"
 		);
 	}
@@ -190,7 +197,7 @@ public final class MediaTableThumbnails extends MediaTable {
 				statement.setString(1, md5Hash);
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
-						existingId = resultSet.getInt("ID");
+						existingId = resultSet.getInt(COL_ID);
 						if (!forceNew) {
 							if (fullPathToFile != null) {
 								LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", existingId, TABLE_NAME);
@@ -255,4 +262,5 @@ public final class MediaTableThumbnails extends MediaTable {
 			LOGGER.trace("", e);
 		}
 	}
+
 }
