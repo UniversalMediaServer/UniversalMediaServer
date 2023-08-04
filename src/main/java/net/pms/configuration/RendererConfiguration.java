@@ -527,6 +527,17 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
+	 * @return whether to use the MPEG-TS container for transcoded video
+	 */
+	private String getTranscodingContainer() {
+		String transcodingContainer = FormatConfiguration.MPEGPS;
+		if (isTranscodeToMPEGTS()) {
+			transcodingContainer = FormatConfiguration.MPEGTS;
+		}
+		return transcodingContainer;
+	}
+
+	/**
 	 * @return whether to use the MPEG-2 video codec for transcoded video
 	 */
 	public boolean isTranscodeToMPEG2() {
@@ -584,10 +595,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(DLNAMediaInfo media) {
-		return (
-			(isTranscodeToH264() && media.isH264()) ||
-			(isTranscodeToH265() && media.isH265())
-		);
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getCodecV(), null) != null;
 	}
 
 	/**
@@ -602,10 +610,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isAudioStreamTypeSupportedInTranscodingContainer(DLNAMediaAudio audio) {
-		return (
-			(isTranscodeToAAC() && audio.isAACLC()) ||
-			(isTranscodeToAC3() && audio.isAC3())
-		);
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodecA()) != null;
 	}
 
 	/**
@@ -1533,12 +1538,30 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * renderer supports subs streaming for the given media video.
 	 */
 	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle, DLNAResource dlna) {
-		if (subtitle == null || dlna == null) {
+		if (subtitle == null || subtitle.getType() == null || dlna == null) {
 			return false;
 		}
 
-		LOGGER.trace("Checking whether the external subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " is supported by the renderer");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
+		LOGGER.trace("Checking whether the external subtitles format " + subtitle.getType().toString() + " is supported by the renderer");
+
+		return getFormatConfiguration().getMatchedMIMEtype(
+			dlna.getMedia().getContainer(),
+			null,
+			null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			8,
+			null,
+			null,
+			null,
+			subtitle.getType().getShortName().toUpperCase(Locale.ROOT),
+			true,
+			this
+		) != null;
 	}
 
 	/**

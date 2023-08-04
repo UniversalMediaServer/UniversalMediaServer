@@ -1526,6 +1526,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (this instanceof RealFile && ((RealFile) this).getFile() != null) {
 				setMetadataFromFileName(((RealFile) this).getFile());
 			}
+
+			// Now that we have parsed the file, add to the subtitles extraction factory
+			SubtitleUtils.backgroundExtractPreferredSubtitlesToFile(this);
 		}
 	}
 
@@ -2396,7 +2399,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else {
 							addAttribute(sb, "resolution", media.getResolution());
 						}
-
 					}
 
 					if (isNotBlank(media.getFrameRate())) {
@@ -2419,11 +2421,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 					if (media.getVideoBitDepth() > 0) {
-						if (engine == null) {
-							addAttribute(sb, "colorDepth", media.getVideoBitDepth());
-						} else {
-							addAttribute(sb, "colorDepth", "8");
-						}
+						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (media != null && media.isMediaparsed()) {

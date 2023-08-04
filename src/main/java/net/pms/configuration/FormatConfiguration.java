@@ -31,6 +31,7 @@ import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.renderers.Renderer;
@@ -658,6 +659,30 @@ public class FormatConfiguration {
 	}
 
 	/**
+	 * @return whether the renderer supports PGS subtitles inside MPEG-TS containers
+	 */
+	public boolean isMpegtsPgsSupported(RendererConfiguration renderer) {
+		return getMatchedMIMEtype(
+			MPEGTS,
+			null,
+			null,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			8,
+			null,
+			null,
+			null,
+			SubtitleType.PGS.getShortName(),
+			false,
+			renderer
+		) != null;
+	}
+
+	/**
 	 * Match media information to audio codecs supported by the renderer and
 	 * return its MIME type if the match is successful.Returns null if the
 	 * media is not natively supported by the renderer, which means it has
@@ -838,7 +863,7 @@ public class FormatConfiguration {
 		String videoHdrFormatCompatibilityInRendererFormat,
 		Map<String, String> extras,
 		String subsFormat,
-		boolean isInternal,
+		boolean isExternalSubs,
 		RendererConfiguration renderer
 	) {
 		String matchedMimeType = null;
@@ -859,7 +884,7 @@ public class FormatConfiguration {
 				videoHdrFormatCompatibilityInRendererFormat,
 				extras,
 				subsFormat,
-				isInternal,
+				isExternalSubs,
 				renderer
 			)) {
 				matchedMimeType = supportSpec.mimeType;

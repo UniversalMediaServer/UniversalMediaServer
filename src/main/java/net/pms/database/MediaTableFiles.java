@@ -32,6 +32,7 @@ import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.util.FileUtil;
+import net.pms.util.SubtitleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1004,6 +1005,11 @@ public class MediaTableFiles extends MediaTable {
 		return list;
 	}
 
+	/**
+	 * Cleans up the database and filesystem by:
+	 * - Removing rows that relate to files that do not exist
+	 * - Removing extracted subtitles from the subs directory
+	 */
 	public static synchronized void cleanup(final Connection connection) {
 		try {
 			/*
@@ -1036,6 +1042,7 @@ public class MediaTableFiles extends MediaTable {
 						if (!file.exists() || file.lastModified() != modified) {
 							LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
 							rs.deleteRow();
+							SubtitleUtils.removeExtractedSubtitles(filename);
 						} else {
 							// the file exists on the hard drive, but now check if we are still sharing it
 							boolean isFileStillShared = false;

@@ -123,7 +123,7 @@ public class FFMpegVideo extends Engine {
 		final Renderer renderer = params.getMediaRenderer();
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = isMediaValid && !params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
+		boolean isResolutionTooHighForRenderer = isMediaValid && !renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
@@ -183,13 +183,19 @@ public class FFMpegVideo extends Engine {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsManualTiming = true;
-			DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.getSid() != null && params.getSid().getType().isText()) {
+				DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
 				String originalSubsFilename = null;
+				boolean isSubsExtracted = false;
+				if (convertedSubs != null && convertedSubs.getConvertedFile() != null) {
+					isSubsExtracted = true;
+				}
+
 				if (is3D) {
-					if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
+					if (isSubsExtracted) { // subs are already converted to 3D so use them
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
 						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
@@ -218,12 +224,28 @@ public class FFMpegVideo extends Engine {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
 				} else {
-					originalSubsFilename = dlna.getFileName();
+					/**
+					 * Here we have internal subs to use, and because FFmpeg can be very slow
+					 * to begin transcoding when it has to hardcode subtitles, we reference
+					 * our extracted version of the subtitles, which have hopefully been already
+					 * extracted ahead of time and ready to hardcode.
+					 */
+					if (isSubsExtracted) {
+						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
+					} else {
+						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.SUBRIP);
+						if (subtitlesFile != null) {
+							originalSubsFilename = subtitlesFile.getAbsolutePath();
+						} else {
+							LOGGER.error("Extracted external subtitles file \"{}\" is unavailable, falling back to embedded");
+							originalSubsFilename = dlna.getFileName();
+						}
+					}
 				}
 
 				if (originalSubsFilename != null) {
 					subsFilter.append("subtitles=").append(StringUtil.ffmpegEscape(originalSubsFilename));
-					if (params.getSid().isEmbedded()) {
+					if (params.getSid().isEmbedded() && !isSubsExtracted) {
 						subsFilter.append(":si=").append(params.getSid().getId());
 					}
 
@@ -294,7 +316,7 @@ public class FFMpegVideo extends Engine {
 		String renderer3DOutputFormat = null;
 		if (media.get3DLayout() != null) {
 			stereoLayout = media.get3DLayout().toString().toLowerCase(Locale.ROOT);
-			renderer3DOutputFormat = params.getMediaRenderer().getOutput3DFormat();
+			renderer3DOutputFormat = renderer.getOutput3DFormat();
 		}
 
 		if (
@@ -812,7 +834,7 @@ public class FFMpegVideo extends Engine {
 		newInput.setPush(params.getStdIn());
 		// Use device-specific pms conf
 		UmsConfiguration prev = configuration;
-		configuration = params.getMediaRenderer().getUmsConfiguration();
+		configuration = renderer.getUmsConfiguration();
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -846,7 +868,7 @@ public class FFMpegVideo extends Engine {
 		setDecodingOptions(cmdList, configuration, avisynth);
 
 		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
+		final boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		ac3Remux = false;
 		dtsRemux = false;
@@ -869,7 +891,7 @@ public class FFMpegVideo extends Engine {
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
 				!isAviSynthEngine() &&
-				params.getMediaRenderer().isDTSPlayable();
+				renderer.isDTSPlayable();
 		}
 
 		String frameRateRatio = media.getValidFps(true);
@@ -901,7 +923,8 @@ public class FFMpegVideo extends Engine {
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
 		 * - The setting is enabled
-		 * - There are subtitles to transcode
+		 * - There are embedded subtitles to transcode that have not been extracted
+		 * - There are VOBSUB subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 * - The file is not Dolby Vision, because our MEncoder implementation can't handle that yet
 		 */
@@ -913,20 +936,27 @@ public class FFMpegVideo extends Engine {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
-				params.getSid().getType().isText() ||
+				(
+					params.getSid().getType().isText() &&
+					!SubtitleUtils.hasExtractedSubtitles(filename, params.getSid().getId())
+				) ||
 				params.getSid().getType() == SubtitleType.VOBSUB
 			) &&
 			!(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))
 		) {
-			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
-			return mv.launchTranscode(dlna, media, params);
+			if (mv != null) {
+				LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
+				return mv.launchTranscode(dlna, media, params);
+			} else {
+				LOGGER.trace("Not switching from FFmpeg to MEncoder to transcode subtitles because the MEncoder player was null.");
+			}
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (dlna.isInsideTranscodeFolder()) {
@@ -938,16 +968,16 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we are using AviSynth.");
-			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+			} else if (media.isH264() && renderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, renderer)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision")) {
@@ -964,7 +994,7 @@ public class FFMpegVideo extends Engine {
 			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (media.isH264() && !params.getMediaRenderer().isMuxH264MpegTS()) {
+			} else if (media.isH264() && !renderer.isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
 			} else if (params.getSid() != null && !(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))) {
@@ -980,10 +1010,10 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we are using AviSynth.");
-			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+			} else if (media.isH264() && renderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-			} else if (!media.isMuxable(params.getMediaRenderer())) {
+			} else if (!media.isMuxable(renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not muxable to this renderer");
 			} else if (!aspectRatiosMatch) {
@@ -992,10 +1022,10 @@ public class FFMpegVideo extends Engine {
 			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
@@ -1110,10 +1140,10 @@ public class FFMpegVideo extends Engine {
 				if (
 					!customFFmpegOptions.contains("-ar ") &&
 					params.getAid() != null &&
-					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate()
+					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate()
 				) {
 					cmdList.add("-ar");
-					cmdList.add("" + params.getMediaRenderer().getTranscodedVideoAudioSampleRate());
+					cmdList.add("" + renderer.getTranscodedVideoAudioSampleRate());
 				}
 
 				// Use high quality resampler
@@ -1121,7 +1151,7 @@ public class FFMpegVideo extends Engine {
 				if (
 					!customFFmpegOptions.contains("--resampler") &&
 					params.getAid() != null &&
-					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate() &&
+					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate() &&
 					configuration.isFFmpegSoX()
 				) {
 					cmdList.add("-resampler");
