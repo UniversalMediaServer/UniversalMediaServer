@@ -122,7 +122,7 @@ public class FFMpegVideo extends Engine {
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
-		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		MediaVideo defaultVideoTrack = media != null ? media.getDefaultVideoTrack() : null;
 
 		boolean isMediaValid = media != null && media.isMediaParsed() && defaultVideoTrack != null && defaultVideoTrack.getHeight() != 0;

@@ -226,7 +226,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 
 	private static void updateAudioMetadata(ResultSet result, MediaAudioMetadata audioMetadata) throws SQLException {
 		//make sure mbid are uuids
-		if (org.apache.commons.lang.StringUtils.isEmpty(audioMetadata.getMbidRecord())) {
+		if (StringUtils.isEmpty(audioMetadata.getMbidRecord())) {
 			result.updateNull(COL_MBID_RECORD);
 		} else {
 			try {
@@ -237,7 +237,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 				result.updateNull(COL_MBID_RECORD);
 			}
 		}
-		if (org.apache.commons.lang.StringUtils.isEmpty(audioMetadata.getMbidTrack())) {
+		if (StringUtils.isEmpty(audioMetadata.getMbidTrack())) {
 			result.updateNull(COL_MBID_TRACK);
 		} else {
 			try {

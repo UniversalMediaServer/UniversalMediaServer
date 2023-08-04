@@ -174,7 +174,8 @@ public class MediaTableVideotracks extends MediaTable {
 				CONSTRAINT + TABLE_NAME + PK_MARKER + PRIMARY_KEY + "(" + COL_FILEID + COMMA + COL_ID + ")" + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
-			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_WIDTH + CONSTRAINT_SEPARATOR + COL_HEIGHT + IDX_MARKER + ON + TABLE_NAME + "(" + COL_WIDTH + COMMA + COL_HEIGHT + ")"
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_WIDTH + CONSTRAINT_SEPARATOR + COL_HEIGHT + IDX_MARKER + ON + TABLE_NAME + "(" + COL_WIDTH + COMMA + COL_HEIGHT + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MULTIVIEW_LAYOUT + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MULTIVIEW_LAYOUT + ")"
 		);
 	}
 
@@ -197,7 +198,7 @@ public class MediaTableVideotracks extends MediaTable {
 						result.updateLong(COL_FILEID, fileId);
 						result.updateInt(COL_ID, videoTrack.getId());
 					}
-					updateVideoTracks(result, videoTrack);
+					updateVideoTrack(result, videoTrack);
 					if (isCreatingNewRecord) {
 						result.insertRow();
 					} else {
@@ -208,7 +209,7 @@ public class MediaTableVideotracks extends MediaTable {
 		}
 	}
 
-	private static void updateVideoTracks(ResultSet result, MediaVideo videoTrack) throws SQLException {
+	private static void updateVideoTrack(ResultSet result, MediaVideo videoTrack) throws SQLException {
 		result.updateString(COL_LANG, StringUtils.left(videoTrack.getLang(), SIZE_LANG));
 		updateInteger(result, COL_STREAMID, videoTrack.getStreamOrder());
 		result.updateBoolean(COL_DEFAULT_FLAG, videoTrack.isDefault());

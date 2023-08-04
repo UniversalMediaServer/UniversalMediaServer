@@ -717,7 +717,7 @@ public class TsMuxeRVideo extends Engine {
 
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getAudioTracks().get(0).toString();
+			String defaultAudioTrackName = resource.getMedia().getDefaultAudioTrack().toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// We only support playback of the default audio track for tsMuxeR

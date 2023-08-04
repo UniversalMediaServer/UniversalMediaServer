@@ -64,8 +64,8 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.media.chapter.MediaChapter;
 import net.pms.media.MediaInfo;
+import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
@@ -962,9 +962,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				sid = resource.getMediaSubtitle();
 				resource.setMediaSubtitle(null);
 			}
-		}
-
-		if (resource.getFormat().isAudio()) {
+		} else if (resource.getFormat().isAudio() && !directmime(mimeType)) {
 			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 		}
 
@@ -1201,6 +1199,34 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		long start = Long.parseLong(tmp[0]);
 		long end = tmp.length == 1 ? len : Long.parseLong(tmp[1]);
 		return new ByteRange(start, end);
+	}
+
+	/**
+	 * Whether the MIME type is supported by all browsers.
+	 * Note: This is a flawed approach because while browsers
+	 * may support the container format, they may not support
+	 * the codecs within. For example, most browsers support
+	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 *
+	 * @param mime
+	 * @return
+	 * @todo refactor to be more specific
+	 */
+	private static boolean directmime(String mime) {
+		return mime != null &&
+		(
+			mime.equals(HTTPResource.MP4_TYPEMIME) ||
+			mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+			mime.equals(HTTPResource.OGG_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+			mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+			mime.equals(HTTPResource.BMP_TYPEMIME) ||
+			mime.equals(HTTPResource.PNG_TYPEMIME) ||
+			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+			mime.equals(HTTPResource.GIF_TYPEMIME)
+		);
 	}
 
 }

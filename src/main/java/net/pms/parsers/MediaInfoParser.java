@@ -80,7 +80,7 @@ public class MediaInfoParser {
 		MI = new MediaInfoHelper();
 
 		if (MI.isValid()) {
-			//by default, MEdiaInfo will ignore not known option, so do not check for version.
+			//by default, MediaInfo will ignore not known option, so do not check for version.
 			MI.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
 			MI.option("Complete", "1");
 			MI.option("Language", "en");

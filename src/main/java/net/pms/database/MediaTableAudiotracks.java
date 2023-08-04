@@ -242,7 +242,7 @@ public class MediaTableAudiotracks extends MediaTable {
 						result.updateLong(COL_FILEID, fileId);
 						result.updateInt(COL_ID, audioTrack.getId());
 					}
-					updateAudioTracks(result, audioTrack);
+					updateAudioTrack(result, audioTrack);
 					if (isCreatingNewRecord) {
 						result.insertRow();
 					} else {
@@ -253,7 +253,7 @@ public class MediaTableAudiotracks extends MediaTable {
 		}
 	}
 
-	private static void updateAudioTracks(ResultSet result, MediaAudio audioTrack) throws SQLException {
+	private static void updateAudioTrack(ResultSet result, MediaAudio audioTrack) throws SQLException {
 		updateInteger(result, COL_STREAMID, audioTrack.getStreamOrder());
 		result.updateBoolean(COL_DEFAULT_FLAG, audioTrack.isDefault());
 		result.updateBoolean(COL_FORCED_FLAG, audioTrack.isForced());
