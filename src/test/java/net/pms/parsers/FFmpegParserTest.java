@@ -24,8 +24,12 @@ import net.pms.media.MediaInfo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FFmpegParserTest {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegParserTest.class.getName());
 
 	@BeforeAll
 	public static void SetUPClass() {
@@ -46,16 +50,19 @@ public class FFmpegParserTest {
 	public void testParser() throws Exception {
 		if (!FFmpegParser.isValid()) {
 			//the executable was not found
+			LOGGER.info("FFmpegParser test skipped");
 			return;
+		} else {
+			LOGGER.info("FFmpegParser will test on ffmpeg version {}", FFmpegParser.getVersion());
 		}
 
 		//video
 		assertEquals(
-			"Container: MP4, Size: 1325017, Overall Bitrate: 692224, Duration: 0:00:15.660, Video Tracks: 1 [Video Id: 0, Codec: h264, Format Profile: high, Stream Order: 0, Duration: null, Resolution: 640 x 360, Frame Rate: 23.98], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Optional Id: 2, Stream Order: 0, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			"Container: MP4, Size: 1325017, Overall Bitrate: 692224, Duration: 0:00:15.660, Video Tracks: 1 [Video Id: 0, Codec: h264, Format Profile: high, Stream Order: 0, Resolution: 640 x 360, Frame Rate: 23.98], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Optional Id: 2, Stream Order: 1, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-aac.mp4").toString()
 		);
 		assertEquals(
-			"Container: MATROSKA, Size: 11413502, Overall Bitrate: 6256640, Duration: 0:00:14.940, Video Tracks: 1 [Video Id: 0, Codec: hevc, Format Profile: main 10, Stream Order: 0, Duration: null, Resolution: 3840 x 2160, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MATROSKA, Size: 11413502, Overall Bitrate: 6256640, Duration: 0:00:14.940, Video Tracks: 1 [Video Id: 0, Codec: hevc, Format Profile: main 10, Stream Order: 0, Resolution: 3840 x 2160, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv").toString()
 		);
 

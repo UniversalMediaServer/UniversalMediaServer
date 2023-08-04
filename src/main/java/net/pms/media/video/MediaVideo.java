@@ -829,7 +829,9 @@ public class MediaVideo extends MediaLang implements Cloneable {
 		if (getStreamOrder() != null) {
 			result.append(", Stream Order: ").append(getStreamOrder());
 		}
-		result.append(", Duration: ").append(getDurationString());
+		if (durationSec != null) {
+			result.append(", Duration: ").append(getDurationString());
+		}
 		result.append(", Resolution: ").append(getWidth()).append(" x ").append(getHeight());
 		if (displayAspectRatio != null) {
 			result.append(", Display Aspect Ratio: ").append(getDisplayAspectRatio());

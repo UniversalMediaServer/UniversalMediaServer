@@ -52,6 +52,8 @@ public class FFmpegParser {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final String PARSER_NAME = "FFmpeg";
 
+	private static String version;
+
 	/**
 	 * This class is not meant to be instantiated.
 	 */
@@ -644,6 +646,10 @@ public class FFmpegParser {
 		if (pos != -1) {
 			idStr = idStr.substring(0, pos);
 		}
+		pos = idStr.indexOf('[');
+		if (pos != -1) {
+			idStr = idStr.substring(0, pos);
+		}
 		pos = idStr.lastIndexOf(':');
 		if (pos == idStr.length() - 1) {
 			idStr = idStr.substring(0, idStr.length() - 2);
@@ -757,6 +763,44 @@ public class FFmpegParser {
 		}
 
 		return returnData;
+	}
+
+	protected static String getVersion() {
+		if (version != null) {
+			return version;
+		}
+		String[] cmdArray = new String[2];
+		cmdArray[0] = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
+		if (cmdArray[0] == null) {
+			LOGGER.warn("Cannot check version if FFmpeg executable is undefined");
+			return null;
+		}
+		cmdArray[1] = "-version";
+
+		OutputParams params = new OutputParams(null);
+		params.setLog(true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, true, false);
+		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 3000);
+		fspw.runInSameThread();
+
+		if (fspw.hasFail()) {
+			LOGGER.info("Error checking version");
+			return null;
+		}
+
+		List<String> lines = pw.getOtherResults();
+		for (String line : lines) {
+			if (line.startsWith("ffmpeg version")) {
+				int index = line.indexOf(" ", 15);
+				if (index > 0) {
+					version = line.substring(15, index);
+				} else {
+					version = line.substring(15);
+				}
+				return version;
+			}
+		}
+		return version;
 	}
 
 	public static boolean isValid() {
