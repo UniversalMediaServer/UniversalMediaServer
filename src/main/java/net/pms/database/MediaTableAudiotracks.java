@@ -75,6 +75,7 @@ public class MediaTableAudiotracks extends MediaTable {
 	 */
 	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_FILEID_ID = SQL_GET_ALL_FILEID + AND + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + GREATER_OR_EQUAL_THAN + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -173,7 +174,7 @@ public class MediaTableAudiotracks extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "BITSPERSAMPLE" + RENAME_TO + COL_BITDEPTH);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_SAMPLERATE + INTEGER);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_STREAMID + INTEGER);
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_OPTIONALID + INTEGER);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_OPTIONALID + BIGINT);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DEFAULT_FLAG + BOOLEAN + DEFAULT + FALSE);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_FORCED_FLAG + BOOLEAN + DEFAULT + FALSE);
 					//put back data from SAMPLEFREQ if exists
@@ -206,7 +207,7 @@ public class MediaTableAudiotracks extends MediaTable {
 				COL_FILEID              + BIGINT                          + NOT_NULL         + COMMA +
 				COL_LANG                + VARCHAR + "(" + SIZE_LANG + ")"                    + COMMA +
 				COL_STREAMID            + INTEGER                                            + COMMA +
-				COL_OPTIONALID          + INTEGER                                            + COMMA +
+				COL_OPTIONALID          + BIGINT                                             + COMMA +
 				COL_DEFAULT_FLAG        + BOOLEAN                         + DEFAULT + FALSE  + COMMA +
 				COL_FORCED_FLAG         + BOOLEAN                         + DEFAULT + FALSE  + COMMA +
 				COL_TITLE               + VARCHAR + "(" + SIZE_MAX + ")"                     + COMMA +
@@ -224,7 +225,20 @@ public class MediaTableAudiotracks extends MediaTable {
 	}
 
 	protected static void insertOrUpdateAudioTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
-		if (connection == null || fileId < 0 || media == null || media.getAudioTrackCount() < 1) {
+		if (connection == null || fileId < 0 || media == null) {
+			return;
+		}
+
+		int trackCount = media.getSubtitleTrackCount();
+		try (
+			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
+		) {
+			updateStatment.setLong(1, fileId);
+			updateStatment.setInt(2, trackCount);
+			updateStatment.executeUpdate();
+		}
+
+		if (trackCount == 0) {
 			return;
 		}
 

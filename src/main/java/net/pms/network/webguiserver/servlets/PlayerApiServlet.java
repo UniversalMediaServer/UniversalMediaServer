@@ -994,13 +994,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							} else if (uri.endsWith(".vtt")) {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
+							resp.setHeader("Transfer-Encoding", "chunked");
 							resp.setStatus(200);
-							resp.setContentLength(in.available());
 							renderer.start(resource);
 							if (LOGGER.isTraceEnabled()) {
 								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
-							OutputStream os = resp.getOutputStream();
+							OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 							WebGuiServletHelper.copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);

@@ -1360,7 +1360,7 @@ public class FFMpegVideo extends Engine {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		params.setWaitBeforeStart(1000);
+		params.setWaitBeforeStart(0);
 		// Use device-specific conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		HlsHelper.HlsConfiguration hlsConfiguration = params.getHlsConfiguration();

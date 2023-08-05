@@ -56,6 +56,7 @@ public class MediaTableSubtracks extends MediaTable {
 	private static final String COL_STREAMID = "STREAMID";
 	private static final String COL_DEFAULT_FLAG = "DEFAULT_FLAG";
 	private static final String COL_FORCED_FLAG = "FORCED_FLAG";
+	private static final String COL_OPTIONALID = "OPTIONALID";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	private static final String COL_EXTERNALFILE = "EXTERNALFILE";
@@ -74,6 +75,7 @@ public class MediaTableSubtracks extends MediaTable {
 	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_FILEID_ID_EXTERNALFILE = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + EQUAL + PARAMETER + AND + TABLE_COL_EXTERNALFILE + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_EXTERNALFILE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_EXTERNALFILE + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + GREATER_OR_EQUAL_THAN + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -123,6 +125,7 @@ public class MediaTableSubtracks extends MediaTable {
 				}
 				case 4 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_STREAMID + INTEGER);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_OPTIONALID + BIGINT);
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -148,6 +151,7 @@ public class MediaTableSubtracks extends MediaTable {
 				COL_FILEID           + BIGINT                + NOT_NULL                      + COMMA +
 				COL_LANG             + VARCHAR_SIZE_LANG                                     + COMMA +
 				COL_STREAMID         + INTEGER                                               + COMMA +
+				COL_OPTIONALID       + BIGINT                                                + COMMA +
 				COL_DEFAULT_FLAG     + BOOLEAN                                               + COMMA +
 				COL_FORCED_FLAG      + BOOLEAN                                               + COMMA +
 				COL_TITLE            + VARCHAR_SIZE_MAX                                      + COMMA +
@@ -161,7 +165,20 @@ public class MediaTableSubtracks extends MediaTable {
 	}
 
 	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
-		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
+		if (connection == null || fileId < 0 || media == null) {
+			return;
+		}
+
+		int trackCount = media.getSubtitleTrackCount();
+		try (
+			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
+		) {
+			updateStatment.setLong(1, fileId);
+			updateStatment.setInt(2, trackCount);
+			updateStatment.executeUpdate();
+		}
+
+		if (trackCount == 0) {
 			return;
 		}
 
@@ -192,6 +209,7 @@ public class MediaTableSubtracks extends MediaTable {
 					}
 					rs.updateString(COL_LANG, StringUtils.left(subtitleTrack.getLang(), SIZE_LANG));
 					updateInteger(rs, COL_STREAMID, subtitleTrack.getStreamOrder());
+					updateLong(rs, COL_OPTIONALID, subtitleTrack.getOptionalId());
 					rs.updateBoolean(COL_DEFAULT_FLAG, subtitleTrack.isDefault());
 					rs.updateBoolean(COL_FORCED_FLAG, subtitleTrack.isForced());
 					rs.updateString(COL_TITLE, StringUtils.left(subtitleTrack.getTitle(), SIZE_MAX));
@@ -227,6 +245,7 @@ public class MediaTableSubtracks extends MediaTable {
 					sub.setId(elements.getInt(COL_ID));
 					sub.setLang(elements.getString(COL_LANG));
 					sub.setStreamOrder(toInteger(elements, COL_STREAMID));
+					sub.setOptionalId(toLong(elements, COL_OPTIONALID));
 					sub.setDefault(elements.getBoolean(COL_DEFAULT_FLAG));
 					sub.setForced(elements.getBoolean(COL_FORCED_FLAG));
 					sub.setTitle(elements.getString(COL_TITLE));

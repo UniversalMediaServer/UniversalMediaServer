@@ -135,7 +135,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265-aac.mkv").toString()
 		);
 		assertEquals(
-			"Container: OGG, Size: 1734919, Overall Bitrate: 454643, Duration: 0:00:30.528, Video Tracks: 1 [Video Id: 0, Codec: theora, Duration: 0:00:30.533, Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.0], Audio Tracks: 1 [Audio Id: 0, Codec: Vorbis, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/ogg",
+			"Container: OGG, Size: 1734919, Overall Bitrate: 454643, Duration: 0:00:30.528, Video Tracks: 1 [Video Id: 0, Codec: theora, Duration: 0:00:30.533, Resolution: 480 x 270, Display Aspect Ratio: 16:9, Frame Rate: 30.0], Audio Tracks: 1 [Audio Id: 0, Codec: Vorbis, Optional Id: 2227160962, Bitrate: 112000, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/ogg",
 			getTestFileMediaInfo("video-theora-vorbis.ogg").toString()
 		);
 		assertEquals(
@@ -241,7 +241,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("audio-lpcm.wav").toString()
 		);
 		assertEquals(
-			"Container: OGA, Size: 1089524, Overall Bitrate: 117233, Duration: 0:01:14.349, Audio Tracks: 1 [Audio Id: 0, Codec: Vorbis, Bitrate: 120000, Channels: 2, Sample Frequency: 32000 Hz], Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic, Mime Type: audio/ogg",
+			"Container: OGA, Size: 1089524, Overall Bitrate: 117233, Duration: 0:01:14.349, Audio Tracks: 1 [Audio Id: 0, Codec: Vorbis, Optional Id: 24942, Bitrate: 120000, Channels: 2, Sample Frequency: 32000 Hz], Artist: Kevin MacLeod, Album: YouTube Audio Library, Track Name: Impact Moderato, Genre: Cinematic, Mime Type: audio/ogg",
 			getTestFileMediaInfo("audio-vorbis.oga").toString()
 		);
 		assertEquals(

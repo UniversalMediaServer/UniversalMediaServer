@@ -145,6 +145,7 @@ public class MediaInfoParser {
 			MediaAudio currentAudioTrack = new MediaAudio();
 			MediaVideo currentVideoTrack = new MediaVideo();
 			MediaSubtitle currentSubTrack;
+			media.resetParser();
 			media.setSize(file.length());
 			String value;
 			Double doubleValue;
@@ -355,6 +356,11 @@ public class MediaInfoParser {
 							currentVideoTrack.setLang(Iso639.getISO639_2Code(value));
 						}
 
+						value = StreamVideo.getID(MI, i);
+						if (StringUtils.isNotBlank(value)) {
+							currentVideoTrack.setOptionalId(getSpecificID(value));
+						}
+
 						addVideoTrack(currentVideoTrack, media);
 						if (parseLogger != null) {
 							parseLogger.logVideoTrackColumns(i);
@@ -403,6 +409,10 @@ public class MediaInfoParser {
 					currentAudioTrack.setBitRate(getIntValue(StreamAudio.getBitRate(MI, i), 0));
 					currentAudioTrack.setVideoDelay(getIntValue(StreamAudio.getVideoDelay(MI, i), 0));
 					currentAudioTrack.setBitDepth(getIntValue(StreamAudio.getBitDepth(MI, i), MediaAudio.DEFAULT_BIT_DEPTH));
+					value = StreamAudio.getID(MI, i);
+					if (StringUtils.isNotBlank(value)) {
+						currentAudioTrack.setOptionalId(getSpecificID(value));
+					}
 					addAudioTrack(currentAudioTrack, media);
 					if (parseLogger != null) {
 						parseLogger.logAudioTrackColumns(i);
@@ -450,7 +460,7 @@ public class MediaInfoParser {
 					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getCodecID(MI, i),
 						SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getFormat(MI, i))
 					));
-
+					currentSubTrack.setId(media.getSubtitlesTracks().size());
 					String languageCode = null;
 					value = StreamSubtitle.getLanguageString(MI, i);
 					if (StringUtils.isNotBlank(value)) {
@@ -469,11 +479,7 @@ public class MediaInfoParser {
 					// Special check for OGM: MediaInfoHelper reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
 					value = StreamSubtitle.getID(MI, i);
 					if (StringUtils.isNotBlank(value)) {
-						if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
-							currentSubTrack.setId(getSpecificID(value));
-						} else {
-							currentSubTrack.setId(media.getSubtitlesTracks().size());
-						}
+						currentSubTrack.setOptionalId(getSpecificID(value));
 					}
 					currentSubTrack.setDefault("Yes".equals(StreamSubtitle.getDefault(MI, i)));
 					currentSubTrack.setForced("Yes".equals(StreamSubtitle.getForced(MI, i)));
@@ -1032,7 +1038,7 @@ public class MediaInfoParser {
 		}
 	}
 
-	public static int getSpecificID(String value) {
+	public static Long getSpecificID(String value) {
 		// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
 		// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
 		int end = value.lastIndexOf("(0x");
@@ -1042,7 +1048,7 @@ public class MediaInfoParser {
 		}
 
 		value = value.trim();
-		return Integer.parseInt(value);
+		return Long.valueOf(value);
 	}
 
 	public static String getFrameRateModeValue(String value) {

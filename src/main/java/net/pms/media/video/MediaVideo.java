@@ -36,6 +36,7 @@ public class MediaVideo extends MediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaVideo.class);
 
 	private Integer streamOrder;
+	private Long optionalId;
 	private boolean defaultFlag;
 	private boolean forcedFlag;
 	private int width;
@@ -83,6 +84,24 @@ public class MediaVideo extends MediaLang implements Cloneable {
 	 */
 	public void setStreamOrder(Integer streamIndex) {
 		this.streamOrder = streamIndex;
+	}
+
+	/**
+	 * Returns the optional id for this video stream.
+	 *
+	 * @return The optional id.
+	 */
+	public Long getOptionalId() {
+		return optionalId;
+	}
+
+	/**
+	 * Sets an optional id for this video stream.
+	 *
+	 * @param uid the optional id to set.
+	 */
+	public void setOptionalId(Long optionalId) {
+		this.optionalId = optionalId;
 	}
 
 	/**

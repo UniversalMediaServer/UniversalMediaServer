@@ -229,8 +229,10 @@ public abstract class DatabaseHelper {
 	protected static final String EMPTY_STRING = "''";
 	protected static final String EXISTS = "EXISTS ";
 	protected static final String FROM = " FROM ";
+	protected static final String GREATER_OR_EQUAL_THAN = " >= ";
 	protected static final String IF = "IF ";
 	protected static final String INDEX = "INDEX ";
+	protected static final String LESS_OR_EQUAL_THAN = " <= ";
 	protected static final String NOT = "NOT ";
 	protected static final String NOT_EQUAL = " != ";
 	protected static final String IS = " IS ";

@@ -51,6 +51,12 @@ public class Parser {
 	 * Chooses which parsing method to parse the file with.
 	 */
 	public static void parse(MediaInfo media, InputFile file, Format ext, int type) {
+		//ensure media is not already parsing or is parsed
+		media.waitMediaParsing(5);
+		if (media.isMediaParsed()) {
+			return;
+		}
+		media.resetParser();
 		if (file.getFile() != null) {
 			// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
 			if (ext.getIdentifier() == Format.Identifier.RA && RealAudioParser.parse(media, file, type)) {

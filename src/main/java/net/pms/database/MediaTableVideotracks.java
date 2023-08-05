@@ -54,6 +54,7 @@ public class MediaTableVideotracks extends MediaTable {
 	private static final String COL_STREAMID = "STREAMID";
 	private static final String COL_DEFAULT_FLAG = "DEFAULT_FLAG";
 	private static final String COL_FORCED_FLAG = "FORCED_FLAG";
+	private static final String COL_OPTIONALID = "OPTIONALID";
 	private static final String COL_WIDTH = "WIDTH";
 	private static final String COL_HEIGHT = "HEIGHT";
 	private static final String COL_DISPLAYASPECTRATIO = "DISPLAYASPECTRATIO";
@@ -90,6 +91,7 @@ public class MediaTableVideotracks extends MediaTable {
 	 */
 	private static final String SQL_GET_ALL_BY_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_BY_FILEID_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + GREATER_OR_EQUAL_THAN + PARAMETER;
 	public static final String SQL_GET_FILEID_BY_VIDEOHD = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + TABLE_COL_WIDTH + " > 864" + OR + TABLE_COL_HEIGHT + " > 576";
 	public static final String SQL_GET_FILEID_BY_VIDEOSD = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + TABLE_COL_WIDTH + " < 865" + AND + TABLE_COL_HEIGHT + " < 577";
 	public static final String SQL_GET_FILEID_BY_IS3D = SELECT + TABLE_COL_FILEID + FROM + TABLE_NAME + WHERE + COL_MULTIVIEW_LAYOUT + " != ''";
@@ -147,6 +149,7 @@ public class MediaTableVideotracks extends MediaTable {
 				COL_FILEID                  + BIGINT                + NOT_NULL               + COMMA +
 				COL_LANG                    + VARCHAR                                        + COMMA +
 				COL_STREAMID                + INTEGER                                        + COMMA +
+				COL_OPTIONALID              + BIGINT                                         + COMMA +
 				COL_DEFAULT_FLAG            + BOOLEAN               + DEFAULT + FALSE        + COMMA +
 				COL_FORCED_FLAG             + BOOLEAN               + DEFAULT + FALSE        + COMMA +
 				COL_TITLE                   + VARCHAR                                        + COMMA +
@@ -184,6 +187,19 @@ public class MediaTableVideotracks extends MediaTable {
 			return;
 		}
 
+		int trackCount = media.getVideoTrackCount();
+		try (
+			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
+		) {
+			updateStatment.setLong(1, fileId);
+			updateStatment.setInt(2, trackCount);
+			updateStatment.executeUpdate();
+		}
+
+		if (trackCount == 0) {
+			return;
+		}
+
 		try (
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_ALL_BY_FILEID_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
@@ -212,6 +228,7 @@ public class MediaTableVideotracks extends MediaTable {
 	private static void updateVideoTrack(ResultSet result, MediaVideo videoTrack) throws SQLException {
 		result.updateString(COL_LANG, StringUtils.left(videoTrack.getLang(), SIZE_LANG));
 		updateInteger(result, COL_STREAMID, videoTrack.getStreamOrder());
+		updateLong(result, COL_OPTIONALID, videoTrack.getOptionalId());
 		result.updateBoolean(COL_DEFAULT_FLAG, videoTrack.isDefault());
 		result.updateBoolean(COL_FORCED_FLAG, videoTrack.isForced());
 		result.updateInt(COL_WIDTH, videoTrack.getWidth());
@@ -266,6 +283,7 @@ public class MediaTableVideotracks extends MediaTable {
 		result.setId(resultset.getInt(COL_ID));
 		result.setLang(resultset.getString(COL_LANG));
 		result.setStreamOrder(toInteger(resultset, COL_STREAMID));
+		result.setOptionalId(toLong(resultset, COL_OPTIONALID));
 		result.setDefault(resultset.getBoolean(COL_DEFAULT_FLAG));
 		result.setForced(resultset.getBoolean(COL_FORCED_FLAG));
 		result.setWidth(resultset.getInt(COL_WIDTH));

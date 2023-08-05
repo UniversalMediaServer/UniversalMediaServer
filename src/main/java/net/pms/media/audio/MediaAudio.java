@@ -43,8 +43,6 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	private int sampleRate = DEFAULT_SAMPLE_RATE;
 	private int videoDelay = 0;
 
-
-
 	/**
 	 * @return the container stream index.
 	 */
@@ -105,8 +103,8 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	 *
 	 * @param uid the optional id to set.
 	 */
-	public void setOptionalId(Long specialId) {
-		this.optionalId = specialId;
+	public void setOptionalId(Long optionalId) {
+		this.optionalId = optionalId;
 	}
 
 	/**
@@ -709,7 +707,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 			result.append(", Language Code: ").append(getLang());
 		}
 		result.append(", Codec: ").append(getAudioCodec());
-		if (getOptionalId() != null) {
+		if (getOptionalId() != null && getOptionalId() > 10) {
 			result.append(", Optional Id: ").append(getOptionalId());
 		}
 		if (getStreamOrder() != null) {

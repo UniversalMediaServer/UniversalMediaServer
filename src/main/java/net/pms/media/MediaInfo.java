@@ -135,6 +135,10 @@ public class MediaInfo implements Cloneable {
 		return audioTracks.size();
 	}
 
+	public int getSubtitleTrackCount() {
+		return subtitleTracks.size();
+	}
+
 	public int getImageCount() {
 		return imageCount;
 	}
@@ -789,6 +793,18 @@ public class MediaInfo implements Cloneable {
 	 */
 	public boolean isMediaParsed() {
 		return this.lastParser != null;
+	}
+
+	public void resetParser() {
+		this.lastParser = null;
+		this.defaultAudioTrack = null;
+		this.defaultVideoTrack = null;
+		this.videoTracks.clear();
+		this.audioTracks.clear();
+		this.subtitleTracks.clear();
+		this.chapters.clear();
+		this.imageInfo = null;
+		this.imageCount = 0;
 	}
 
 	/**
