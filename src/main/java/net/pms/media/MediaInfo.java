@@ -212,10 +212,7 @@ public class MediaInfo implements Cloneable {
 	 * Thumbnail is linked to status, renderer, ...
 	 */
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
-		waitMediaParsing(5);
-		setParsing(true);
 		thumb = Parser.getThumbnail(this, input, ext, type, seekPosition);
-		setParsing(false);
 	}
 
 	/**

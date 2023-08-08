@@ -1031,11 +1031,10 @@ public class MediaTableFiles extends MediaTable {
 	//TODO : review this
 	public static List<File> getFiles(final Connection connection, String sql) {
 		List<File> list = new ArrayList<>();
+		String psSql = sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : (SELECT + COL_FILENAME + COMMA + COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement(
-					sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : ("SELECT FILENAME, MODIFIED FROM " + TABLE_NAME + WHERE + sql)
-				);
+				PreparedStatement ps = connection.prepareStatement(psSql);
 				ResultSet rs = ps.executeQuery();
 			) {
 				while (rs.next()) {
@@ -1048,6 +1047,7 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
+			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
 			return null;
 		}

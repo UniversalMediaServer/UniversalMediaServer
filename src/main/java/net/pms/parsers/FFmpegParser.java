@@ -215,12 +215,12 @@ public class FFmpegParser {
 		params.setNoExitCheck(true); // not serious if anything happens during the thumbnailer
 
 		// true: consume stderr on behalf of the caller i.e. parse()
-		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params);
 
 		// FAILSAFE
 		media.waitMediaParsing(5);
 		media.setParsing(true);
-		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 3000);
 		fspw.runInSameThread();
 
 		if (fspw.hasFail()) {

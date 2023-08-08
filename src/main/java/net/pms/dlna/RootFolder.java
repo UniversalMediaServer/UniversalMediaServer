@@ -319,8 +319,8 @@ public class RootFolder extends MediaResource {
 
 	public void stopScan() {
 		if (running) {
-			GuiManager.setScanLibraryStatus(false, true);
 			running = false;
+			GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 		}
 	}
 
