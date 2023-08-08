@@ -33,7 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
@@ -142,21 +142,21 @@ public abstract class Engine {
 	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public abstract ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		MediaResource dlna,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException;
 
 	/**
 	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link DLNAResource}. If {@code resource} is {@code null} {@code false}
+	 * {@link MediaResource}. If {@code resource} is {@code null} {@code false}
 	 * will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to be matched.
+	 * @param resource the {@link MediaResource} to be matched.
 	 * @return {@code true} if {@code resource} can be handled, {@code false}
 	 *         otherwise.
 	 */
-	public abstract boolean isCompatible(DLNAResource resource);
+	public abstract boolean isCompatible(MediaResource resource);
 
 	protected abstract boolean isSpecificTest();
 
@@ -964,7 +964,7 @@ public abstract class Engine {
 	 * @param media The MediaInfo metadata for the file.
 	 * @param params The parameters to populate.
 	 */
-	public static void setAudioAndSubs(DLNAResource resource, OutputParams params) {
+	public static void setAudioAndSubs(MediaResource resource, OutputParams params) {
 		if (resource == null || params == null || resource.getMedia() == null) {
 			return;
 		}

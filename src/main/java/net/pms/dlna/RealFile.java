@@ -40,6 +40,7 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -56,24 +57,28 @@ import org.slf4j.LoggerFactory;
 public class RealFile extends VirtualFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
-	public RealFile(File file) {
+	public RealFile(Renderer renderer, File file) {
+		super(renderer);
 		addFileToFiles(file);
 		setLastModified(file.lastModified());
 	}
 
-	public RealFile(File file, String name) {
+	public RealFile(Renderer renderer, File file, String name) {
+		super(renderer);
 		addFileToFiles(file);
 		this.name = name;
 		setLastModified(file.lastModified());
 	}
 
-	public RealFile(File file, boolean isEpisodeWithinSeasonFolder) {
+	public RealFile(Renderer renderer, File file, boolean isEpisodeWithinSeasonFolder) {
+		super(renderer);
 		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
 	}
 
-	public RealFile(File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
+	public RealFile(Renderer renderer, File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
+		super(renderer);
 		addFileToFiles(file);
 		setLastModified(file.lastModified());
 		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
@@ -293,7 +298,7 @@ public class RealFile extends VirtualFile {
 						try {
 							/*
 							 * Even though subtitles will be resolved later in
-							 * DLNAResource.syncResolve, we must make sure that
+							 * MediaResource.syncResolve, we must make sure that
 							 * they are resolved before insertion into the
 							 * database
 							 */

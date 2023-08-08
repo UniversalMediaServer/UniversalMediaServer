@@ -20,13 +20,14 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import net.pms.renderers.Renderer;
 
 public class DynamicPlaylist extends Playlist {
 	private final String savePath;
 	private long start;
 
-	public DynamicPlaylist(String name, String dir, int mode) {
-		super(name, null, 0, mode);
+	public DynamicPlaylist(Renderer renderer, String name, String dir, int mode) {
+		super(renderer, name, null, 0, mode);
 		savePath = dir;
 		start = 0;
 	}

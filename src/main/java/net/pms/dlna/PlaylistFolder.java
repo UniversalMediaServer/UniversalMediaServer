@@ -25,6 +25,7 @@ import java.util.Collections;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
@@ -33,7 +34,7 @@ import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class PlaylistFolder extends DLNAResource {
+public final class PlaylistFolder extends MediaResource {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 	private final String name;
@@ -46,7 +47,8 @@ public final class PlaylistFolder extends DLNAResource {
 		return isweb ? null : new File(uri);
 	}
 
-	public PlaylistFolder(String name, String uri, int type) {
+	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
+		super(renderer);
 		this.name = name;
 		this.uri = uri;
 		isweb = FileUtil.isUrl(uri);
@@ -54,7 +56,8 @@ public final class PlaylistFolder extends DLNAResource {
 		defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
 	}
 
-	public PlaylistFolder(File f) {
+	public PlaylistFolder(Renderer renderer, File f) {
+		super(renderer);
 		name = f.getName();
 		uri = f.getAbsolutePath();
 		isweb = false;
@@ -257,7 +260,7 @@ public final class PlaylistFolder extends DLNAResource {
 			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
 				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
 				if (en.exists()) {
-					addChild(type == Format.PLAYLIST ? new PlaylistFolder(en) : new RealFile(en, entry.title));
+					addChild(type == Format.PLAYLIST ? new PlaylistFolder(defaultRenderer, en) : new RealFile(defaultRenderer, en, entry.title));
 					valid = true;
 				}
 			} else {
@@ -270,10 +273,10 @@ public final class PlaylistFolder extends DLNAResource {
 					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
 				}
-				DLNAResource d = type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
-					type == Format.AUDIO ? new WebAudioStream(entry.title, u, null) :
-						type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
-							type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
+				MediaResource d = type == Format.VIDEO ? new WebVideoStream(defaultRenderer, entry.title, u, null) :
+					type == Format.AUDIO ? new WebAudioStream(defaultRenderer, entry.title, u, null) :
+						type == Format.IMAGE ? new FeedItem(defaultRenderer, entry.title, u, null, null, Format.IMAGE) :
+							type == Format.PLAYLIST ? getPlaylist(defaultRenderer, entry.title, u, 0) : null;
 				if (d != null) {
 					addChild(d);
 					valid = true;
@@ -287,7 +290,7 @@ public final class PlaylistFolder extends DLNAResource {
 			Collections.shuffle(getChildren());
 		}
 
-		for (DLNAResource r : getChildren()) {
+		for (MediaResource r : getChildren()) {
 			r.syncResolve();
 		}
 	}
@@ -303,18 +306,18 @@ public final class PlaylistFolder extends DLNAResource {
 		}
 	}
 
-	public static DLNAResource getPlaylist(String name, String uri, int type) {
+	public static MediaResource getPlaylist(Renderer renderer, String name, String uri, int type) {
 		Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(uri));
 		if (f != null && f.getType() == Format.PLAYLIST) {
 			switch (f.getMatchedExtension()) {
 				case "m3u", "m3u8", "pls" -> {
-					return new PlaylistFolder(name, uri, type);
+					return new PlaylistFolder(renderer, name, uri, type);
 				}
 				case "cue" -> {
-					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
+					return FileUtil.isUrl(uri) ? null : new CueFolder(renderer, new File(uri));
 				}
 				case "ups" -> {
-					return new Playlist(name, uri);
+					return new Playlist(renderer, name, uri);
 				}
 				default -> {
 					//nothing to do

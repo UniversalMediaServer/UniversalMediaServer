@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import net.pms.renderers.Renderer;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
@@ -28,12 +29,13 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SevenZipFile extends DLNAResource {
+public class SevenZipFile extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipFile.class);
 	private File file;
 	private IInArchive arc;
 
-	public SevenZipFile(File f) {
+	public SevenZipFile(Renderer renderer, File f) {
+		super(renderer);
 		file = f;
 		setLastModified(file.lastModified());
 		try {
@@ -48,7 +50,7 @@ public class SevenZipFile extends DLNAResource {
 				if (item.isFolder()) {
 					continue;
 				}
-				addChild(new SevenZipEntry(f, item.getPath(), item.getSize()));
+				addChild(new SevenZipEntry(renderer, f, item.getPath(), item.getSize()));
 			}
 		} catch (IOException e) {
 			LOGGER.error("Error reading archive file", e);

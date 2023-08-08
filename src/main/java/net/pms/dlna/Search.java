@@ -17,18 +17,19 @@
 package net.pms.dlna;
 
 import net.pms.dlna.virtual.*;
+import net.pms.renderers.Renderer;
 
 public class Search extends VirtualFolder {
 	private SearchObj sobj;
 	private StringBuilder sb;
 	private boolean searched;
 
-	public Search(SearchObj obj) {
-		this(obj, "");
+	public Search(Renderer renderer, SearchObj obj) {
+		this(renderer, obj, "");
 	}
 
-	public Search(SearchObj obj, String str) {
-		super(str, null);
+	public Search(Renderer renderer, SearchObj obj, String str) {
+		super(renderer, str, null);
 		this.sobj = obj;
 		this.sb = new StringBuilder(str);
 		searched = false;

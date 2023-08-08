@@ -26,7 +26,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.media.MediaInfo;
@@ -427,7 +427,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(DLNAResource dlna, MediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(MediaResource dlna, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = dlna.getFileName();
@@ -617,7 +617,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(MediaResource resource) {
 		// Only handle local video - not web video or audio
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

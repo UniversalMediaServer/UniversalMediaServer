@@ -17,7 +17,7 @@
 package net.pms.renderers.devices.players;
 
 import java.io.IOException;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +41,7 @@ public class ChromecastPlayer extends LogicalPlayer {
 		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
 			// this is a bit circular but what the heck
-			DLNAResource r = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
+			MediaResource r = MediaResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (r == null) {
 				LOGGER.debug("Bad media in cc seturi: " + uri);
 				return;

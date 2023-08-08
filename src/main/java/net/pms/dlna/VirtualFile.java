@@ -28,13 +28,14 @@ import java.util.Map.Entry;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class VirtualFile extends DLNAResource {
+public class VirtualFile extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFile.class);
 
 	/**
@@ -62,14 +63,16 @@ public class VirtualFile extends DLNAResource {
 	private ArrayList<RealFile> searchList;
 	private File potentialCover;
 
-	public VirtualFile() {
+	public VirtualFile(Renderer renderer) {
+		super(renderer);
 		setLastModified(0);
 		files = new ArrayList<>();
 		virtualFolders = new ArrayList<>();
 		forcedName = null;
 	}
 
-	public VirtualFile(VirtualFolderContent virtualFolder) {
+	public VirtualFile(Renderer renderer, VirtualFolderContent virtualFolder) {
+		super(renderer);
 		name = virtualFolder.getName();
 		addToMediaLibrary = virtualFolder.isAddToMediaLibrary();
 		files = virtualFolder.getFiles();
@@ -78,7 +81,8 @@ public class VirtualFile extends DLNAResource {
 		forcedName = null;
 	}
 
-	public VirtualFile(VirtualFile virtualFile, List<File> list, String forcedName) {
+	public VirtualFile(Renderer renderer, VirtualFile virtualFile, List<File> list, String forcedName) {
+		super(renderer);
 		addToMediaLibrary = virtualFile.isAddToMediaLibrary();
 		files = virtualFile.getFiles();
 		virtualFolders = new ArrayList<>();
@@ -97,9 +101,9 @@ public class VirtualFile extends DLNAResource {
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
-					addChild(new ZippedFile(f), true, isAddGlobally);
+					addChild(new ZippedFile(defaultRenderer, f), true, isAddGlobally);
 				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f), true, isAddGlobally);
+					addChild(new RarredFile(defaultRenderer, f), true, isAddGlobally);
 				} else if (
 					configuration.isArchiveBrowsing() && (
 						lcFilename.endsWith(".tar") ||
@@ -108,7 +112,7 @@ public class VirtualFile extends DLNAResource {
 						lcFilename.endsWith(".7z")
 					)
 				) {
-					addChild(new SevenZipFile(f), true, isAddGlobally);
+					addChild(new SevenZipFile(defaultRenderer, f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".iso") ||
 					lcFilename.endsWith(".img") || (
@@ -116,7 +120,7 @@ public class VirtualFile extends DLNAResource {
 						f.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS")
 					)
 				) {
-					addChild(new DVDISOFile(f), true, isAddGlobally);
+					addChild(new DVDISOFile(defaultRenderer, f), true, isAddGlobally);
 				} else if (
 					lcFilename.endsWith(".m3u") ||
 					lcFilename.endsWith(".m3u8") ||
@@ -124,7 +128,7 @@ public class VirtualFile extends DLNAResource {
 					lcFilename.endsWith(".cue") ||
 					lcFilename.endsWith(".ups")
 				) {
-					DLNAResource d = PlaylistFolder.getPlaylist(lcFilename, f.getAbsolutePath(), 0);
+					MediaResource d = PlaylistFolder.getPlaylist(defaultRenderer, lcFilename, f.getAbsolutePath(), 0);
 					if (d != null) {
 						addChild(d, true, isAddGlobally);
 					}
@@ -146,7 +150,7 @@ public class VirtualFile extends DLNAResource {
 						LOGGER.debug("Ignoring {} because it is in the ignored folders list", f.getName());
 					} else {
 						// Otherwise add the file
-						RealFile rf = new RealFile(f);
+						RealFile rf = new RealFile(defaultRenderer, f);
 						if (rf.length() == 0  && !rf.isFolder()) {
 							LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", f.getName());
 							return;
@@ -231,13 +235,13 @@ public class VirtualFile extends DLNAResource {
 		if (!discoverable.isEmpty() && configuration.getSearchInFolder()) {
 			searchList = new ArrayList<>();
 			fs = new FileSearch(searchList);
-			addChild(new SearchFolder(fs));
+			addChild(new SearchFolder(defaultRenderer, fs));
 		}
 		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < virtualFolders.size()) {
 				VirtualFolderContent virtualFolder = virtualFolders.get(vfolder);
-				DLNAResource parent = getSharedContentParent(virtualFolder.getParent());
-				parent.addChild(new VirtualFile(virtualFolder), true, isAddGlobally);
+				MediaResource parent = getSharedContentParent(virtualFolder.getParent());
+				parent.addChild(new VirtualFile(defaultRenderer, virtualFolder), true, isAddGlobally);
 				++vfolder;
 			} else {
 				if (discoverable.isEmpty()) {
@@ -361,7 +365,7 @@ public class VirtualFile extends DLNAResource {
 				// loop over all letters, this avoids adding
 				// empty letters
 				UMSUtils.sortFiles(entry.getValue(), sm);
-				VirtualFile mf = new VirtualFile(this, entry.getValue(), entry.getKey());
+				VirtualFile mf = new VirtualFile(defaultRenderer, this, entry.getValue(), entry.getKey());
 				addChild(mf, true, isAddGlobally);
 			}
 			return;

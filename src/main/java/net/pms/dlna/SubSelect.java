@@ -19,10 +19,12 @@ package net.pms.dlna;
 import java.io.IOException;
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 
 public class SubSelect extends VirtualFolder {
-	public SubSelect() {
-		super(Messages.getString("LiveSubtitles_FolderName"), null);
+
+	public SubSelect(Renderer renderer) {
+		super(renderer, Messages.getString("LiveSubtitles_FolderName"), null);
 	}
 
 	@Override
@@ -33,4 +35,5 @@ public class SubSelect extends VirtualFolder {
 			return super.getThumbnailInputStream();
 		}
 	}
+
 }

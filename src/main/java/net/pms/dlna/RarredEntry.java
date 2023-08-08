@@ -27,16 +27,25 @@ import java.io.OutputStream;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.Parser;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RarredEntry extends DLNAResource implements IPushOutput {
+public class RarredEntry extends MediaResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RarredEntry.class);
 	private final String name;
 	private final File file;
 	private final String fileHeaderName;
 	private final long length;
+
+	public RarredEntry(Renderer renderer, String name, File file, String fileHeaderName, long length) {
+		super(renderer);
+		this.fileHeaderName = fileHeaderName;
+		this.name = name;
+		this.file = file;
+		this.length = length;
+	}
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
@@ -45,13 +54,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 		}
 
 		return super.getThumbnailURL(profile);
-	}
-
-	public RarredEntry(String name, File file, String fileHeaderName, long length) {
-		this.fileHeaderName = fileHeaderName;
-		this.name = name;
-		this.file = file;
-		this.length = length;
 	}
 
 	@Override

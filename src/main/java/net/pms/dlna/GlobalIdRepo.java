@@ -37,12 +37,12 @@ public class GlobalIdRepo {
 		startIdCleanup();
 	}
 
-	public void add(DLNAResource dlnaResource) {
+	public void add(MediaResource dlnaResource) {
 		lock.writeLock().lock();
 		try {
 			if (dlnaResource.getId() == null || get(dlnaResource.getId()) != dlnaResource) {
 				ids.add(new ID(dlnaResource, curGlobalId++));
-				DLNAResource.bumpSystemUpdateId();
+				MediaResource.bumpSystemUpdateId();
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -54,7 +54,7 @@ public class GlobalIdRepo {
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
-				DLNAResource.bumpSystemUpdateId();
+				MediaResource.bumpSystemUpdateId();
 				deletionsCount++;
 			}
 		} finally {
@@ -62,11 +62,11 @@ public class GlobalIdRepo {
 		}
 	}
 
-	public DLNAResource get(String id) {
+	public MediaResource get(String id) {
 		return id != null ? get(parseIndex(id)) : null;
 	}
 
-	private DLNAResource get(int id) {
+	private MediaResource get(int id) {
 		ID item = getItem(id);
 		if (item != null && !item.scope) {
 			LOGGER.debug("GlobalIdRepo: id {} is not in scope, returning null", id);
@@ -94,14 +94,14 @@ public class GlobalIdRepo {
 		return get(id) != null;
 	}
 
-	public void replace(DLNAResource a, DLNAResource b) {
+	public void replace(MediaResource a, MediaResource b) {
 		ID item = getItem(parseIndex(a.getId()));
 		if (item != null) {
 			synchronized (lock) {
 				lock.writeLock().lock();
 				try {
 					item.setRef(b);
-					DLNAResource.bumpSystemUpdateId();
+					MediaResource.bumpSystemUpdateId();
 				} finally {
 					lock.writeLock().unlock();
 				}
@@ -110,12 +110,12 @@ public class GlobalIdRepo {
 	}
 
 	// Here scope=false means util.DLNAList is telling us the underlying
-	// DLNAResource has been removed and we should ignore its id, i.e. not
+	// MediaResource has been removed and we should ignore its id, i.e. not
 	// share any hard references to it via get(), between now and whenever
 	// garbage collection actually happens (or whenever the item is re-added,
 	// in the case of items that are just being moved).
 
-	public void setScope(DLNAResource dlnaResource, boolean scope) {
+	public void setScope(MediaResource dlnaResource, boolean scope) {
 		lock.writeLock().lock();
 		try {
 			ID item = getItem(parseIndex(dlnaResource.getId()));
@@ -171,12 +171,12 @@ public class GlobalIdRepo {
 
 	// id cleanup
 
-	private ReferenceQueue<DLNAResource> idCleanupQueue;
+	private ReferenceQueue<MediaResource> idCleanupQueue;
 
-	private class SoftDLNARef extends SoftReference<DLNAResource> {
+	private class SoftDLNARef extends SoftReference<MediaResource> {
 		int id;
 
-		SoftDLNARef(DLNAResource dlnaResource, int id) {
+		SoftDLNARef(MediaResource dlnaResource, int id) {
 			super(dlnaResource, idCleanupQueue);
 			this.id = id;
 		}
@@ -193,7 +193,7 @@ public class GlobalIdRepo {
 		new Thread(() -> {
 			while (true) {
 				try {
-					// Once an underlying DLNAResource is ready for garbage
+					// Once an underlying MediaResource is ready for garbage
 					// collection, its weak reference will pop out here
 					SoftDLNARef ref = (SoftDLNARef) idCleanupQueue.remove();
 					if (ref.id > 0) {
@@ -212,13 +212,13 @@ public class GlobalIdRepo {
 		boolean scope;
 		SoftDLNARef dlnaRef;
 
-		private ID(DLNAResource dlnaResource, int id) {
+		private ID(MediaResource dlnaResource, int id) {
 			this.id = id;
 			setRef(dlnaResource);
 			scope = true;
 		}
 
-		final void setRef(DLNAResource dlnaResource) {
+		final void setRef(MediaResource dlnaResource) {
 			if (dlnaRef != null) {
 				dlnaRef.cancel();
 			}

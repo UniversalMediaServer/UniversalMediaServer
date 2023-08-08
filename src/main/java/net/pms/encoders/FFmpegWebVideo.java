@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FFmpegWebFilters;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
@@ -75,7 +75,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		MediaResource dlna,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -276,7 +276,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(MediaResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
 			String url = resource.getFileName();
 
@@ -311,7 +311,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * Parse media info from ffmpeg headers during playback
 	 */
-	public static void parseMediaInfo(String filename, final DLNAResource dlna, final ProcessWrapperImpl pw) {
+	public static void parseMediaInfo(String filename, final MediaResource dlna, final ProcessWrapperImpl pw) {
 		if (dlna.getMedia() == null) {
 			dlna.setMedia(new MediaInfo());
 		} else if (dlna.getMedia().isMediaParsed()) {

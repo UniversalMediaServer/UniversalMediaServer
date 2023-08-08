@@ -17,15 +17,18 @@
 package net.pms.dlna;
 
 import net.pms.formats.Format;
+import net.pms.renderers.Renderer;
 
 public class AudiosFeed extends Feed {
+
+	public AudiosFeed(Renderer renderer, String url) {
+		super(renderer, "" + System.currentTimeMillis(), url, Format.AUDIO);
+	}
+
 	@Override
 	protected void manageItem() {
-		WebAudioStream fi = new WebAudioStream(getTempItemTitle(), getTempItemLink(), getTempItemThumbURL());
+		WebAudioStream fi = new WebAudioStream(defaultRenderer, getTempItemTitle(), getTempItemLink(), getTempItemThumbURL());
 		addChild(fi);
 	}
 
-	public AudiosFeed(String url) {
-		super("" + System.currentTimeMillis(), url, Format.AUDIO);
-	}
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.parsers.MPlayerParser;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 
 public class DVDISOFile extends VirtualFolder {
@@ -31,6 +32,32 @@ public class DVDISOFile extends VirtualFolder {
 	private final boolean isVideoTS;
 
 	private String volumeId;
+
+	public DVDISOFile(Renderer renderer, File file) {
+		super(renderer, getName(file), "images/thumbnail-disc.png");
+		this.file = file;
+
+		/*
+		 * XXX this is the logic used in the old (pre 1.90.0) getDisplayName override,
+		 * though it should probably be:
+		 *
+		 *     this.isVideoTS = file.isDirectory() && file.getName().toUpperCase().equals("VIDEO_TS");
+		 */
+		isVideoTS = file.getName().equalsIgnoreCase("VIDEO_TS");
+
+		setLastModified(file.lastModified());
+	}
+
+	protected void finalizeDisplayNameVars(Map<String, Object> vars) {
+		if (isVideoTS) {
+			vars.put("isVTS", true);
+
+			File dvdFolder = file.getParentFile();
+			if (dvdFolder != null) {
+				vars.put("vtsDVD", dvdFolder.getName());
+			}
+		}
+	}
 
 	private static String getName(File file) {
 		return String.format(NAME, getFileName(file));
@@ -63,32 +90,6 @@ public class DVDISOFile extends VirtualFolder {
 		return file == null ? "Unknown" : file.getAbsolutePath();
 	}
 
-	public DVDISOFile(File file) {
-		super(getName(file), "images/thumbnail-disc.png");
-		this.file = file;
-
-		/*
-		 * XXX this is the logic used in the old (pre 1.90.0) getDisplayName override,
-		 * though it should probably be:
-		 *
-		 *     this.isVideoTS = file.isDirectory() && file.getName().toUpperCase().equals("VIDEO_TS");
-		 */
-		isVideoTS = file.getName().equalsIgnoreCase("VIDEO_TS");
-
-		setLastModified(file.lastModified());
-	}
-
-	protected void finalizeDisplayNameVars(Map<String, Object> vars) {
-		if (isVideoTS) {
-			vars.put("isVTS", true);
-
-			File dvdFolder = file.getParentFile();
-			if (dvdFolder != null) {
-				vars.put("vtsDVD", dvdFolder.getName());
-			}
-		}
-	}
-
 	@Override
 	protected void resolveOnce() {
 		Map<Integer, Double> titles = new HashMap<>();
@@ -105,7 +106,7 @@ public class DVDISOFile extends VirtualFolder {
 			 */
 			Double duration = titles.get(i);
 			if (duration != null && duration > 10 && (duration != oldduration || oldduration < 3600)) {
-				DVDISOTitle dvd = new DVDISOTitle(file, volumeId, i);
+				DVDISOTitle dvd = new DVDISOTitle(defaultRenderer, file, volumeId, i);
 				addChild(dvd);
 				oldduration = duration;
 			}

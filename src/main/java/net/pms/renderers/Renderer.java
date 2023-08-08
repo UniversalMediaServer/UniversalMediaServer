@@ -33,7 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererDeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
@@ -91,7 +91,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private DLNAResource playingRes;
+	private MediaResource playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
 
@@ -174,7 +174,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 */
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			rootFolder = new RootFolder();
+			rootFolder = new RootFolder(this);
 			rootFolder.setDefaultRenderer(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
@@ -184,7 +184,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		return rootFolder;
 	}
 
-	public void addFolderLimit(DLNAResource res) {
+	public void addFolderLimit(MediaResource res) {
 		if (rootFolder != null) {
 			rootFolder.setFolderLim(res);
 		}
@@ -374,11 +374,11 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public DLNAResource getPlayingRes() {
+	public MediaResource getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(DLNAResource dlna) {
+	public void setPlayingRes(MediaResource dlna) {
 		playingRes = dlna;
 		getPlayer();
 		if (dlna != null) {

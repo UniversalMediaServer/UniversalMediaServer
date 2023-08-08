@@ -33,7 +33,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
@@ -82,11 +82,11 @@ public enum GenericIcons {
 	 * Retrieves or creates the appropriate generic icon/thumbnail for
 	 * {@code resource}.
 	 *
-	 * @param resource the {@link DLNAResource} the return a generic icon for.
+	 * @param resource the {@link MediaResource} the return a generic icon for.
 	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if one couldn't be generated.
 	 */
-	public DLNAThumbnailInputStream getGenericIcon(DLNAResource resource) {
+	public DLNAThumbnailInputStream getGenericIcon(MediaResource resource) {
 		/*
 		 * This should be the same format as the source images since OpenJDK
 		 * will fail to write JPEGs if the cached BufferedImage has 4 color

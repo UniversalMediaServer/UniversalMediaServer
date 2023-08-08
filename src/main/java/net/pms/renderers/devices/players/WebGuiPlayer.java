@@ -19,7 +19,7 @@ package net.pms.renderers.devices.players;
 import com.google.gson.Gson;
 import java.util.HashMap;
 import java.util.Map;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.StringUtil;
@@ -39,7 +39,7 @@ public class WebGuiPlayer extends LogicalPlayer {
 	public void setURI(String uri, String metadata) {
 		PlaylistItem item = resolveURI(uri, metadata);
 		if (item != null) {
-			DLNAResource r = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
+			MediaResource r = MediaResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (r != null) {
 				((WebGuiRenderer) renderer).sendMessage("setPlayId", r.getId());
 				return;
@@ -80,7 +80,7 @@ public class WebGuiPlayer extends LogicalPlayer {
 
 	@Override
 	public void start() {
-		DLNAResource d = renderer.getPlayingRes();
+		MediaResource d = renderer.getPlayingRes();
 		state.setName(d.getDisplayName());
 		if (d.getMedia() != null) {
 			state.setDuration(StringUtil.shortTime(d.getMedia().getDurationString(), 4));

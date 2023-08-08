@@ -18,12 +18,13 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.MediaVideo;
 import net.pms.parsers.Parser;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -33,7 +34,7 @@ import org.apache.commons.lang.StringUtils;
  * videos are shown after the value is toggled.<p>
  * However this is just cosmetic. Any action can be performed.
  */
-public abstract class VirtualVideoAction extends DLNAResource {
+public abstract class VirtualVideoAction extends MediaResource {
 	private final String name;
 	private final String thumbnailIconOK;
 	private final String thumbnailIconKO;
@@ -52,7 +53,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 *                is usually changed via the {@link #enable()} function.
 	 * @param enabledIconOverride path to an icon to use for the enabled thumbnail
 	 */
-	protected VirtualVideoAction(String name, boolean enabled, String enabledIconOverride) {
+	protected VirtualVideoAction(Renderer renderer, String name, boolean enabled, String enabledIconOverride) {
+		super(renderer);
 		this.name = name;
 		if (StringUtils.isNotBlank(enabledIconOverride)) {
 			thumbnailIconOK = enabledIconOverride;
@@ -96,7 +98,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * 1s) is shown with the results of the action.
 	 *
 	 * @see #enable()
-	 * @see net.pms.dlna.DLNAResource#getInputStream()
+	 * @see net.pms.dlna.MediaResource#getInputStream()
 	 */
 	@Override
 	public InputStream getInputStream() throws IOException {
@@ -140,7 +142,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * As this item is not a container, returns false.
 	 *
 	 * @return false
-	 * @see net.pms.dlna.DLNAResource#isFolder()
+	 * @see net.pms.dlna.MediaResource#isFolder()
 	 */
 	@Override
 	public boolean isFolder() {
@@ -151,7 +153,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * Returns an invalid length as this item is not
 	 * TODO: (botijo) VirtualFolder returns 0 instead of -1.
 	 * @return -1, an invalid length for an item.
-	 * @see net.pms.dlna.DLNAResource#length()
+	 * @see net.pms.dlna.MediaResource#length()
 	 */
 	@Override
 	public long length() {
@@ -168,7 +170,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	 * actual value of this item
 	 * @throws IOException
 	 *
-	 * @see net.pms.dlna.DLNAResource#getThumbnailInputStream()
+	 * @see net.pms.dlna.MediaResource#getThumbnailInputStream()
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
@@ -177,7 +179,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 
 	/**
 	 * @return True, as this kind of item is always valid.
-	 * @see net.pms.dlna.DLNAResource#isValid()
+	 * @see net.pms.dlna.MediaResource#isValid()
 	 */
 	@Override
 	public boolean isValid() {

@@ -37,6 +37,7 @@ import net.pms.database.MediaTableVideoMetadataIMDbRating;
 import net.pms.database.MediaTableVideoMetadataRated;
 import net.pms.database.MediaTableVideoMetadataReleased;
 import net.pms.dlna.*;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,24 +88,24 @@ public class MediaLibraryFolder extends VirtualFolder {
 	private List<String> populatedFilesListFromDb;
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
-	public MediaLibraryFolder(String name, String sql, int expectedOutput) {
-		this(name, new String[]{sql}, new int[]{expectedOutput}, null, false, false);
+	public MediaLibraryFolder(Renderer renderer, String name, String sql, int expectedOutput) {
+		this(renderer, name, new String[]{sql}, new int[]{expectedOutput}, null, false, false);
 	}
 
-	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput) {
-		this(name, sql, expectedOutput, null, false, false);
+	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput) {
+		this(renderer, name, sql, expectedOutput, null, false, false);
 	}
 
-	public MediaLibraryFolder(String name, String sql, int expectedOutput, String nameToDisplay) {
-		this(name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay, false, false);
+	public MediaLibraryFolder(Renderer renderer, String name, String sql, int expectedOutput, String nameToDisplay) {
+		this(renderer, name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay, false, false);
 	}
 
-	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput, String nameToDisplay) {
-		this(name, sql, expectedOutput, nameToDisplay, false, false);
+	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput, String nameToDisplay) {
+		this(renderer, name, sql, expectedOutput, nameToDisplay, false, false);
 	}
 
-	public MediaLibraryFolder(String name, String[] sql, int[] expectedOutput, String nameToDisplay, boolean isTVSeriesFolder, boolean isMoviesFolder) {
-		super(name, null);
+	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput, String nameToDisplay, boolean isTVSeriesFolder, boolean isMoviesFolder) {
+		super(renderer, name, null);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
 		if (nameToDisplay != null) {
@@ -126,7 +127,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 	private String transformSQL(String sql) {
 		int i = 1;
-		DLNAResource resource = this;
+		MediaResource resource = this;
 		sql = sql.replace("${0}", transformName(getName()));
 		while (resource.getParent() != null) {
 			resource = resource.getParent();
@@ -405,8 +406,8 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 		List<File> newFiles = new ArrayList<>();
 		List<String> newVirtualFolders = new ArrayList<>();
-		List<DLNAResource> oldFiles = new ArrayList<>();
-		List<DLNAResource> oldVirtualFolders = new ArrayList<>();
+		List<MediaResource> oldFiles = new ArrayList<>();
+		List<MediaResource> oldVirtualFolders = new ArrayList<>();
 
 		if (filesListFromDb != null) {
 			if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED) {
@@ -468,13 +469,15 @@ public class MediaLibraryFolder extends VirtualFolder {
 			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
 			if (!unwatchedSqls.isEmpty() && !watchedSqls.isEmpty()) {
-				VirtualFolder filterByProgress = new VirtualFolder(Messages.getString("FilterByProgress"), null);
+				VirtualFolder filterByProgress = new VirtualFolder(defaultRenderer, Messages.getString("FilterByProgress"), null);
 				filterByProgress.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Unwatched"),
 					unwatchedSqls.toArray(String[]::new),
 					filteredExpectedOutputs
 				));
 				filterByProgress.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Watched"),
 					watchedSqls.toArray(String[]::new),
 					filteredExpectedOutputs
@@ -482,33 +485,39 @@ public class MediaLibraryFolder extends VirtualFolder {
 				addChild(filterByProgress);
 			}
 			if (!genresSqls.isEmpty()) {
-				VirtualFolder filterByInformation = new VirtualFolder(Messages.getString("FilterByInformation"), null);
+				VirtualFolder filterByInformation = new VirtualFolder(defaultRenderer, Messages.getString("FilterByInformation"), null);
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Actors"),
 					actorsSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Country"),
 					countriesSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Director"),
 					directorsSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Genres"),
 					genresSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Rated"),
 					ratedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Released"),
 					releasedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
@@ -552,7 +561,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					 * @todo this doesn't work for TV series because we are querying by the external tables. fix that
 					 */
 					if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
-						DLNAResource resource = this;
+						MediaResource resource = this;
 
 						if (resource.getName() != null && "###".equals(virtualFolderName)) {
 							if (resource.getName().equals(Messages.getString("Actors"))) {
@@ -590,7 +599,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 					}
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
-					addChild(new MediaLibraryFolder(virtualFolderName, sqls2, expectedOutputs2, nameToDisplay, isExpectedTVSeries, isExpectedMovieFolder));
+					addChild(new MediaLibraryFolder(defaultRenderer, virtualFolderName, sqls2, expectedOutputs2, nameToDisplay, isExpectedTVSeries, isExpectedMovieFolder));
 				}
 			}
 		}
@@ -598,6 +607,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 		// Recommendations for TV series, episodes and movies
 		if (expectedOutput == EPISODES) {
 			VirtualFolder recommendations = new MediaLibraryFolder(
+				defaultRenderer,
 				Messages.getString("Recommendations"),
 				new String[]{
 					"WITH ratedSubquery AS (" +
@@ -640,6 +650,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				}
 
 				VirtualFolder recommendations = new MediaLibraryFolder(
+					defaultRenderer,
 					Messages.getString("Recommendations"),
 					new String[]{
 						firstSql,
@@ -683,11 +694,11 @@ public class MediaLibraryFolder extends VirtualFolder {
 
 		for (File file : newFiles) {
 			switch (expectedOutput) {
-				case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> addChild(new RealFile(file));
-				case EPISODES -> addChild(new RealFile(file, false, true));
-				case EPISODES_WITHIN_SEASON -> addChild(new RealFile(file, true));
-				case PLAYLISTS -> addChild(new PlaylistFolder(file));
-				case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(file));
+				case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> addChild(new RealFile(defaultRenderer, file));
+				case EPISODES -> addChild(new RealFile(defaultRenderer, file, false, true));
+				case EPISODES_WITHIN_SEASON -> addChild(new RealFile(defaultRenderer, file, true));
+				case PLAYLISTS -> addChild(new PlaylistFolder(defaultRenderer, file));
+				case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(defaultRenderer, file));
 			}
 		}
 
@@ -742,7 +753,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	 * @return a {@link InputStream} that represents the thumbnail used.
 	 * @throws IOException
 	 *
-	 * @see DLNAResource#getThumbnailInputStream()
+	 * @see MediaResource#getThumbnailInputStream()
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {

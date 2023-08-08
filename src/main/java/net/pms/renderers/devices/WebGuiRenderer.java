@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.image.ImageFormat;
@@ -231,7 +231,7 @@ public class WebGuiRenderer extends Renderer {
 		}
 	}
 
-	public void start(DLNAResource dlna) {
+	public void start(MediaResource dlna) {
 		// Stop playing any previous media on the renderer
 		if (getPlayingRes() != null && getPlayingRes() != dlna) {
 			stop();

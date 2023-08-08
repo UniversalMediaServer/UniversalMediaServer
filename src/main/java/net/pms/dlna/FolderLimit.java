@@ -18,6 +18,7 @@ package net.pms.dlna;
 
 import java.util.ArrayList;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,14 +27,14 @@ public class FolderLimit extends VirtualFolder {
 	private final ArrayList<FolderLimitLevel> levels;
 	private boolean discover;
 
-	public FolderLimit() {
-		super("Folder Limit", null);
+	public FolderLimit(Renderer renderer) {
+		super(renderer, "Folder Limit", null);
 		discover = false;
 		levels = new ArrayList<>();
-		levels.add(new FolderLimitLevel(0)); // create level 0
+		levels.add(new FolderLimitLevel(renderer, 0)); // create level 0
 	}
 
-	public void setStart(DLNAResource res) {
+	public void setStart(MediaResource res) {
 		LOGGER.debug("setting folder lim " + res);
 		if (res == null) {
 			return;
@@ -42,7 +43,7 @@ public class FolderLimit extends VirtualFolder {
 			return;
 		}
 		int level = -1;
-		DLNAResource tmp = res;
+		MediaResource tmp = res;
 		while (tmp != null) {
 			if (tmp instanceof FolderLimit) {
 				return;
@@ -63,7 +64,7 @@ public class FolderLimit extends VirtualFolder {
 				levels.add(fll);
 			}
 		} catch (IndexOutOfBoundsException e) { // create new level
-			FolderLimitLevel fll = new FolderLimitLevel(level + 1);
+			FolderLimitLevel fll = new FolderLimitLevel(defaultRenderer, level + 1);
 			fll.setStart(res);
 			levels.add(fll);
 		}
@@ -72,7 +73,7 @@ public class FolderLimit extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		discover = true;
-		for (DLNAResource res : levels) {
+		for (MediaResource res : levels) {
 			addChild(res);
 		}
 		discover = false;

@@ -17,13 +17,14 @@
 package net.pms.dlna;
 
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 
 public class FolderLimitLevel extends VirtualFolder {
 	private final int level;
-	private DLNAResource start;
+	private MediaResource start;
 
-	public FolderLimitLevel(int level) {
-		super("Level " + level, null);
+	public FolderLimitLevel(Renderer renderer, int level) {
+		super(renderer, "Level " + level, null);
 		this.level = level;
 		this.start = null;
 	}
@@ -32,7 +33,7 @@ public class FolderLimitLevel extends VirtualFolder {
 		return level;
 	}
 
-	public void setStart(DLNAResource r) {
+	public void setStart(MediaResource r) {
 		if (r.getParent() == null) {
 			start = r.clone();
 		} else {

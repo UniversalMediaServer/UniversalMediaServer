@@ -21,6 +21,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import static net.pms.util.UMSUtils.IOList.AUTOSAVE;
 import static net.pms.util.UMSUtils.IOList.PERMANENT;
@@ -32,19 +33,19 @@ public class Playlist extends VirtualFolder {
 	protected UMSUtils.IOList list;
 	protected int maxSize;
 
-	public Playlist(String name) {
-		this(name, null, 0, AUTOSAVE);
+	public Playlist(Renderer renderer, String name) {
+		this(renderer, name, null, 0, AUTOSAVE);
 	}
 
-	public Playlist(String name, String filename) {
-		this(name, filename, 0, AUTOSAVE);
+	public Playlist(Renderer renderer, String name, String filename) {
+		this(renderer, name, filename, 0, AUTOSAVE);
 	}
 
-	public Playlist(String name, String filename, int maxSize, int mode) {
-		super(name, "images/thumbnail-folder-256.png");
+	public Playlist(Renderer renderer, String name, String filename, int maxSize, int mode) {
+		super(renderer, name, "images/thumbnail-folder-256.png");
 		this.maxSize = maxSize > 0 ? maxSize : 0;
 //		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
-		list = new UMSUtils.IOList(filename, mode);
+		list = new UMSUtils.IOList(renderer, filename, mode);
 		list.save();
 	}
 
@@ -52,8 +53,8 @@ public class Playlist extends VirtualFolder {
 		return list.getFile();
 	}
 
-	public void add(DLNAResource resource) {
-		DLNAResource res1;
+	public void add(MediaResource resource) {
+		MediaResource res1;
 		LOGGER.debug("Adding \"{}\" to playlist \"{}\"", resource.getDisplayName(), getName());
 		if (resource instanceof VirtualVideoAction) {
 			// don't add these
@@ -61,7 +62,7 @@ public class Playlist extends VirtualFolder {
 		}
 		if (resource.getParent() == this) {
 			res1 = resource; // best guess
-			for (DLNAResource r : list) {
+			for (MediaResource r : list) {
 				if (
 					r.getName().equals(resource.getName()) &&
 					r.getSystemName().equals(resource.getSystemName())
@@ -82,7 +83,7 @@ public class Playlist extends VirtualFolder {
 		update();
 	}
 
-	public void remove(DLNAResource res) {
+	public void remove(MediaResource res) {
 		LOGGER.debug("Removing \"{}\" from playlist \"{}\"", res.getName(), getName());
 		list.remove(res);
 		update();
@@ -104,7 +105,7 @@ public class Playlist extends VirtualFolder {
 			final Playlist self = this;
 			// Save
 			if (!isMode(AUTOSAVE)) {
-				addChild(new VirtualVideoAction(Messages.getString("Save"), true, null) {
+				addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("Save"), true, null) {
 					@Override
 					public boolean enable() {
 						self.save();
@@ -113,7 +114,7 @@ public class Playlist extends VirtualFolder {
 				});
 			}
 			// Clear
-			addChild(new VirtualVideoAction(Messages.getString("Clear"), true, null) {
+			addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("Clear"), true, null) {
 				@Override
 				public boolean enable() {
 					self.clear();
@@ -121,18 +122,18 @@ public class Playlist extends VirtualFolder {
 				}
 			});
 		}
-		for (DLNAResource r : list) {
+		for (MediaResource r : list) {
 			addChild(r);
 			if (r.isResume()) {
 				// add this non resume after
-				DLNAResource clone = r.clone();
+				MediaResource clone = r.clone();
 				clone.setResume(null);
 				addChild(clone);
 			}
 		}
 	}
 
-	public List<DLNAResource> getList() {
+	public List<MediaResource> getList() {
 		return list;
 	}
 

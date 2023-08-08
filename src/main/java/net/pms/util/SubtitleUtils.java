@@ -38,7 +38,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
@@ -210,7 +210,7 @@ public class SubtitleUtils {
 	 * fontconfig setting to that converted file and applies timeseeking when
 	 * required.
 	 *
-	 * @param dlna DLNAResource
+	 * @param dlna MediaResource
 	 * @param media MediaInfo
 	 * @param params Output parameters
 	 * @param configuration
@@ -219,7 +219,7 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File getSubtitles(
-		DLNAResource dlna,
+		MediaResource dlna,
 		MediaInfo media,
 		OutputParams params,
 		UmsConfiguration configuration,

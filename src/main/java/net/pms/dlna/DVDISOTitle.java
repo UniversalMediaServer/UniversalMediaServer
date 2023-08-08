@@ -31,7 +31,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 
-public class DVDISOTitle extends DLNAResource {
+public class DVDISOTitle extends MediaResource {
 
 	private final File file;
 	private final int title;
@@ -39,7 +39,8 @@ public class DVDISOTitle extends DLNAResource {
 
 	private long length;
 
-	public DVDISOTitle(File file, String parentName, int title) {
+	public DVDISOTitle(Renderer renderer, File file, String parentName, int title) {
+		super(renderer);
 		this.file = file;
 		this.title = title;
 		this.parentName = parentName;

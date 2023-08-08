@@ -18,8 +18,7 @@ package net.pms.renderers.devices.players;
 
 import java.io.File;
 import java.util.List;
-import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
@@ -69,7 +68,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 			} else {
 				// It's new to us, find or create the resource as required.
 				// Note: here metadata (if any) is actually the resource name
-				DLNAResource resource = DLNAResource.getValidResource(uri, metadata, renderer);
+				MediaResource resource = MediaResource.getValidResource(uri, metadata, renderer);
 				if (resource != null) {
 					return new PlaylistItem(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
 				}
@@ -151,10 +150,10 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void add(int index, String uri, String name, String metadata, boolean select) {
 		if (!StringUtils.isBlank(uri)) {
-			if (addAllSiblings && DLNAResource.isResourceUrl(uri)) {
-				DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+			if (addAllSiblings && MediaResource.isResourceUrl(uri)) {
+				MediaResource d = renderer.getRootFolder().getGlobalRepo().get(MediaResource.parseResourceId(uri));
 				if (d != null && d.getParent() != null) {
-					List<DLNAResource> list = d.getParent().getChildren();
+					List<MediaResource> list = d.getParent().getChildren();
 					addAll(index, list, list.indexOf(d));
 					return;
 				}
@@ -163,9 +162,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 		}
 	}
 
-	public void addAll(int index, List<DLNAResource> list, int selIndex) {
+	public void addAll(int index, List<MediaResource> list, int selIndex) {
 		for (int i = 0; i < list.size(); i++) {
-			DLNAResource r = list.get(i);
+			MediaResource r = list.get(i);
 			if ((r instanceof VirtualVideoAction) || r.isFolder()) {
 				// skip these
 				continue;
@@ -208,7 +207,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 						return;
 					}
 				}
-				RealFile f = new RealFile(new File(folder));
+				RealFile f = new RealFile(player.getRenderer(), new File(folder));
 				f.discoverChildren();
 				f.analyzeChildren(-1);
 				player.addAll(-1, f.getChildren(), -1);

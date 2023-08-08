@@ -23,9 +23,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResourceAuthenticator;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 
-public class WebStream extends DLNAResource {
+public class WebStream extends MediaResource {
 	@Override
 	public boolean isValid() {
 		resolveFormat();
@@ -36,8 +37,8 @@ public class WebStream extends DLNAResource {
 	private String fluxName;
 	private String thumbURL;
 
-	public WebStream(String fluxName, String url, String thumbURL, int type) {
-		super(type);
+	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type) {
+		super(renderer, type);
 
 		try {
 			URL tmpUrl = new URL(url);

@@ -25,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 
@@ -105,11 +105,11 @@ public class FileNamePrettifier {
 	private String episodeName;
 
 	/**
-	 * Creates a new instance for the specified {@link DLNAResource}.
+	 * Creates a new instance for the specified {@link MediaResource}.
 	 *
-	 * @param resource the {@link DLNAResource} whose name to prettify.
+	 * @param resource the {@link MediaResource} whose name to prettify.
 	 */
-	public FileNamePrettifier(DLNAResource resource) {
+	public FileNamePrettifier(MediaResource resource) {
 		if (resource == null) {
 			throw new IllegalArgumentException("resource cannot be null");
 		}

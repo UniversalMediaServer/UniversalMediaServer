@@ -20,6 +20,7 @@ import java.io.File;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.formats.Format;
 import net.pms.formats.PLAYLIST;
+import net.pms.renderers.Renderer;
 
 /**
  * This RealFile implementation uses database IDs as unique identifiers and does
@@ -27,28 +28,28 @@ import net.pms.formats.PLAYLIST;
  */
 public final class RealFileDbId extends RealFile {
 
-	public RealFileDbId(File file) {
-		super(file);
+	public RealFileDbId(Renderer renderer, File file) {
+		super(renderer, file);
 	}
 
-	public RealFileDbId(DbIdTypeAndIdent typeIdent, File file) {
-		super(file);
+	public RealFileDbId(Renderer renderer, DbIdTypeAndIdent typeIdent, File file) {
+		super(renderer, file);
 		setId(DbIdResourceLocator.encodeDbid(typeIdent));
 	}
 
-	public RealFileDbId(DbIdTypeAndIdent typeIdent, File file, String name) {
-		super(file, name);
+	public RealFileDbId(Renderer renderer, DbIdTypeAndIdent typeIdent, File file, String name) {
+		super(renderer, file, name);
 		setId(DbIdResourceLocator.encodeDbid(typeIdent));
 	}
 
 	@Override
-	public void addChild(DLNAResource child) {
+	public void addChild(MediaResource child) {
 		addChild(child, false, false);
 	}
 
 	@Override
-	public DLNAResource getParent() {
-		DLNAResource parent = super.getParent();
+	public MediaResource getParent() {
+		MediaResource parent = super.getParent();
 		if (parent == null) {
 			parent = RendererConfigurations.getDefaultRenderer().getRootFolder();
 			setParent(parent);

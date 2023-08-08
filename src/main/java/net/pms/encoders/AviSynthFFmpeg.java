@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -122,7 +122,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(MediaResource resource) {
 		Format format = resource.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {

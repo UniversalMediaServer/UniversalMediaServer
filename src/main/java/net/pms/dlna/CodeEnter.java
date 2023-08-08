@@ -20,9 +20,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.renderers.Renderer;
 
 public class CodeEnter extends VirtualFolder {
-	private final DLNAResource resource;
+	private final MediaResource resource;
 	private String enteredCode;
 	private String code;
 	private long changed;
@@ -33,8 +34,8 @@ public class CodeEnter extends VirtualFolder {
 	public static final int BOTH = 2;
 
 	private abstract class CodeAction extends VirtualVideoAction {
-		public CodeAction(String name, boolean enable) {
-			super(name, enable, null);
+		public CodeAction(Renderer renderer, String name, boolean enable) {
+			super(renderer, name, enable, null);
 		}
 
 		@Override
@@ -43,8 +44,8 @@ public class CodeEnter extends VirtualFolder {
 		}
 	}
 
-	public CodeEnter(DLNAResource r) {
-		super(r.getName(), r.getThumbnailURL(DLNAImageProfile.JPEG_TN));
+	public CodeEnter(MediaResource r) {
+		super(r.getDefaultRenderer(), r.getName(), r.getThumbnailURL(DLNAImageProfile.JPEG_TN));
 		resource = r;
 		code = "";
 		enteredCode = "";
@@ -76,12 +77,12 @@ public class CodeEnter extends VirtualFolder {
 		return code;
 	}
 
-	public DLNAResource getResource() {
+	public MediaResource getResource() {
 		return resource;
 	}
 
 	private void addCharVVA(final String ch) {
-		super.addChild(new CodeAction(ch, true) {
+		super.addChild(new CodeAction(defaultRenderer, ch, true) {
 			@Override
 			public boolean enable() {
 				if (preventAutoPlay()) {
@@ -115,7 +116,7 @@ public class CodeEnter extends VirtualFolder {
 				addCharVVA(String.valueOf(i));
 			}
 		}
-		super.addChild(new CodeAction(Messages.getString("Clear"), true) {
+		super.addChild(new CodeAction(defaultRenderer, Messages.getString("Clear"), true) {
 			@Override
 			public boolean enable() {
 				if (preventAutoPlay()) {
@@ -141,7 +142,7 @@ public class CodeEnter extends VirtualFolder {
 		analyzeChildren(-1);
 	}
 
-	public boolean validCode(DLNAResource r) {
+	public boolean validCode(MediaResource r) {
 		if (r instanceof CodeAction) {
 			// always ok
 			return true;

@@ -33,10 +33,10 @@ import org.slf4j.LoggerFactory;
 
 public class SubSelFile extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubSelFile.class);
-	private final DLNAResource originalResource;
+	private final MediaResource originalResource;
 
-	public SubSelFile(DLNAResource resource) {
-		super(resource.getDisplayNameBase(), null);
+	public SubSelFile(Renderer renderer, MediaResource resource) {
+		super(renderer, resource.getDisplayNameBase(), null);
 		originalResource = resource;
 	}
 
@@ -72,7 +72,7 @@ public class SubSelFile extends VirtualFolder {
 			for (SubtitleItem subtitleItem : subtitleItems) {
 				LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
 				MediaOpenSubtitle subtitle = new MediaOpenSubtitle(subtitleItem);
-				DLNAResource liveResource = originalResource.clone();
+				MediaResource liveResource = originalResource.clone();
 				if (liveResource.getMedia() != null) {
 					liveResource.getMedia().setSubtitlesTracks(new ArrayList<>());
 					liveResource.getMedia().addSubtitlesTrack(subtitle);

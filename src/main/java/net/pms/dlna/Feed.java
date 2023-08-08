@@ -31,13 +31,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import net.pms.network.HTTPResource;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Content;
 import org.jdom2.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Feed extends DLNAResource {
+public class Feed extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Feed.class);
 	private static final int REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
 	private static final Map<String, String> FEED_TITLES_CACHE = Collections.synchronizedMap(new HashMap<>());
@@ -50,17 +51,8 @@ public class Feed extends DLNAResource {
 	private String tempCategory;
 	private String tempItemThumbURL;
 
-	@Override
-	protected void resolveOnce() {
-		try {
-			parse();
-		} catch (Exception e) {
-			LOGGER.error("Error in parsing stream: " + url, e);
-		}
-	}
-
-	public Feed(String name, String url, int type) {
-		super(type);
+	public Feed(Renderer renderer, String name, String url, int type) {
+		super(renderer, type);
 		this.url = url;
 		this.name = name;
 	}
@@ -125,56 +117,6 @@ public class Feed extends DLNAResource {
 		if ("image".equals(elt.getName()) && "exInfo".equals(elt.getNamespacePrefix()) &&
 				tempItemThumbURL == null) {
 			tempItemThumbURL = elt.getValue();
-		}
-	}
-
-	@Override
-	public InputStream getInputStream() throws IOException {
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public boolean isFolder() {
-		return true;
-	}
-
-	@Override
-	public long length() {
-		return 0;
-	}
-
-	@Override
-	public String getSystemName() {
-		return url;
-	}
-
-	@Override
-	public boolean isValid() {
-		return true;
-	}
-
-	protected void manageItem() {
-		FeedItem fi = new FeedItem(tempItemTitle, tempItemLink, tempItemThumbURL, null, getSpecificType());
-		addChild(fi);
-	}
-
-	@Override
-	public boolean isRefreshNeeded() {
-		return (System.currentTimeMillis() - getLastModified() > REFRESH_INTERVAL);
-	}
-
-	@Override
-	public void doRefreshChildren() {
-		try {
-			getChildren().clear();
-			parse();
-		} catch (Exception e) {
-			LOGGER.error("Error in parsing stream: " + url, e);
 		}
 	}
 
@@ -311,6 +253,66 @@ public class Feed extends DLNAResource {
 		}
 
 		return null;
+	}
+
+
+	@Override
+	protected void resolveOnce() {
+		try {
+			parse();
+		} catch (Exception e) {
+			LOGGER.error("Error in parsing stream: " + url, e);
+		}
+	}
+
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public boolean isFolder() {
+		return true;
+	}
+
+	@Override
+	public long length() {
+		return 0;
+	}
+
+	@Override
+	public String getSystemName() {
+		return url;
+	}
+
+	@Override
+	public boolean isValid() {
+		return true;
+	}
+
+	protected void manageItem() {
+		FeedItem fi = new FeedItem(defaultRenderer, tempItemTitle, tempItemLink, tempItemThumbURL, null, getSpecificType());
+		addChild(fi);
+	}
+
+	@Override
+	public boolean isRefreshNeeded() {
+		return (System.currentTimeMillis() - getLastModified() > REFRESH_INTERVAL);
+	}
+
+	@Override
+	public void doRefreshChildren() {
+		try {
+			getChildren().clear();
+			parse();
+		} catch (Exception e) {
+			LOGGER.error("Error in parsing stream: " + url, e);
+		}
 	}
 
 }

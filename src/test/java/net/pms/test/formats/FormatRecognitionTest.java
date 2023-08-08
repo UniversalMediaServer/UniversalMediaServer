@@ -19,14 +19,14 @@ package net.pms.test.formats;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.RealFile;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
@@ -46,6 +46,7 @@ import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.parsers.Parser;
+import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -93,6 +94,15 @@ public class FormatRecognitionTest {
 			"With nothing provided isCompatible() should return false");
 	}
 
+	private Renderer getRenderer(RendererConfiguration conf) {
+		Renderer renderer = null;
+		try {
+			renderer = new Renderer(conf);
+		} catch (ConfigurationException | InterruptedException ex) {
+		}
+		return renderer;
+	}
+
 	/**
 	 * Test the compatibility of the Playstation 3 with the MP3 format.
 	 */
@@ -103,17 +113,17 @@ public class FormatRecognitionTest {
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
+		Renderer renderer = getRenderer(conf);
+		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
 		// Construct regular two channel MP3 information
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		MediaResource dlna = new RealFile(renderer, new File("test.mkv"));
 		MediaInfo info = new MediaInfo();
 		info.setContainer(FormatConfiguration.MP3);
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
 		MediaAudio audio = new MediaAudio();
 		audio.setNumberOfChannels(2);
-		List<MediaAudio> audioCodes = new ArrayList<>();
-		audioCodes.add(audio);
-		info.setAudioTracks(audioCodes);
+		info.addAudioTrack(audio);
 		dlna.setMedia(info);
 		Format format = new MP3();
 		format.match("test.mp3");
@@ -136,8 +146,10 @@ public class FormatRecognitionTest {
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
+		Renderer renderer = getRenderer(conf);
+		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		MediaResource dlna = new RealFile(renderer, new File("test.mkv"));
 		// Construct regular two channel MPG information
 		MediaInfo info = new MediaInfo();
 		info.setContainer(FormatConfiguration.AVI);
@@ -170,8 +182,10 @@ public class FormatRecognitionTest {
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
+		Renderer renderer = getRenderer(conf);
+		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		MediaResource dlna = new RealFile(renderer, new File("test.mkv"));
 		// Construct MKV information
 		MediaInfo info = new MediaInfo();
 		MediaVideo video = new MediaVideo();
@@ -200,8 +214,10 @@ public class FormatRecognitionTest {
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
+		Renderer renderer = getRenderer(conf);
+		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		MediaResource dlna = new RealFile(renderer, new File("test.mkv"));
 		// DVRMS: false
 		MediaInfo info = new MediaInfo();
 		info.setContainer("dvr");
@@ -296,7 +312,7 @@ public class FormatRecognitionTest {
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
 		assumeTrue(MediaInfoParser.isValid());
 
-		DLNAResource dlna = new RealFile(new File("test.mkv"));
+		MediaResource dlna = new RealFile(RendererConfigurations.getDefaultRenderer(), new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does
 		MediaInfo info = new MediaInfo();
 		info.setContainer("mpegps");
@@ -326,10 +342,12 @@ public class FormatRecognitionTest {
 	public void testSubtitlesRecognition() throws FileNotFoundException {
     	// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
-		RendererConfiguration renderer = RendererConfigurations.getRendererConfigurationByName("Panasonic TX-L32V10E");
-		assertNotNull(renderer, "Renderer named \"Panasonic TX-L32V10E\" not found.");
-		
-		DLNAResource dlna = new RealFile(new File("test.avi"));
+		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Panasonic TX-L32V10E");
+		assertNotNull(conf, "Renderer named \"Panasonic TX-L32V10E\" not found.");
+		Renderer renderer = getRenderer(conf);
+		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
+
+		MediaResource dlna = new RealFile(renderer, new File("test.avi"));
 		MediaInfo info = new MediaInfo();
 		MediaVideo video = new MediaVideo();
 		MediaAudio audio = new MediaAudio();
@@ -345,24 +363,24 @@ public class FormatRecognitionTest {
 		subs.setExternalFileOnly(new File("test.srt"));
 		subs.setType(SubtitleType.SUBRIP);
 		dlna.setMediaSubtitle(subs);
-		assertTrue(renderer.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"false\" for external SUBRIP format");
+		assertTrue(conf.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"false\" for external SUBRIP format");
 
 		//ASS external: false
 		subs.setExternalFileOnly(new File("test.ass"));
 		subs.setType(SubtitleType.ASS);
 		dlna.setMediaSubtitle(subs);
-		assertFalse(renderer.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"true\" for external ASS format");
+		assertFalse(conf.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"true\" for external ASS format");
 		
 		//DIVX internal: true
 		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.DIVX);
 		dlna.setMediaSubtitle(subs);
-		assertTrue(renderer.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"false\" for embedded DIVX format");
+		assertTrue(conf.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"false\" for embedded DIVX format");
 
 		//PGS internal: false
 		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.PGS);
 		dlna.setMediaSubtitle(subs);
-		assertFalse(renderer.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"true\" for embedded PGS format");
+		assertFalse(conf.isCompatible(dlna, null), "isCompatible() gives the wrong outcome \"true\" for embedded PGS format");
 	}
 }

@@ -18,13 +18,14 @@ package net.pms.dlna;
 
 import java.io.File;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 
 public class MonitorEntry extends VirtualFolder {
 	private final MediaMonitor mm;
 	private final File f;
 
-	public MonitorEntry(File f, MediaMonitor mm) {
-		super(f.getName(), null);
+	public MonitorEntry(Renderer renderer, File f, MediaMonitor mm) {
+		super(renderer, f.getName(), null);
 		this.mm = mm;
 		this.f = f;
 	}

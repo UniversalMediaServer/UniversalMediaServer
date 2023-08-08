@@ -17,15 +17,18 @@
 package net.pms.dlna;
 
 import net.pms.formats.Format;
+import net.pms.renderers.Renderer;
 
 public class VideosFeed extends Feed {
+
+	public VideosFeed(Renderer renderer, String url) {
+		super(renderer, "" + System.currentTimeMillis(), url, Format.VIDEO);
+	}
+
 	@Override
 	protected void manageItem() {
-		WebVideoStream fi = new WebVideoStream(getTempItemTitle(), getTempItemLink(), getTempItemThumbURL());
+		WebVideoStream fi = new WebVideoStream(defaultRenderer, getTempItemTitle(), getTempItemLink(), getTempItemThumbURL());
 		addChild(fi);
 	}
 
-	public VideosFeed(String url) {
-		super("" + System.currentTimeMillis(), url, Format.VIDEO);
-	}
 }

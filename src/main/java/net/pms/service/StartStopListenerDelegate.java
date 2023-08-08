@@ -16,14 +16,14 @@
  */
 package net.pms.service;
 
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
 
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
 public class StartStopListenerDelegate {
 	private final String rendererId;
-	private DLNAResource dlna;
+	private MediaResource dlna;
 	private boolean started = false;
 	private boolean stopped = false;
 	private Renderer renderer;
@@ -43,7 +43,7 @@ public class StartStopListenerDelegate {
 
 	// technically, these don't need to be synchronized as there should be
 	// one thread per request/response, but it doesn't hurt to enforce the contract
-	public synchronized void start(DLNAResource dlna) {
+	public synchronized void start(MediaResource dlna) {
 		assert this.dlna == null;
 		this.dlna = dlna;
 		Format ext = dlna.getFormat();

@@ -47,17 +47,20 @@ import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.virtual.UnattachedFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.gui.GuiManager;
 import net.pms.io.StreamGobbler;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.service.LibraryScanner;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import net.pms.util.ProcessUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -67,20 +70,56 @@ import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
 
-public class RootFolder extends DLNAResource {
+public class RootFolder extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
+
+	// A temp folder for non-xmb items
+	private final UnattachedFolder tempFolder;
+	private DynamicPlaylist dynamicPls;
+	private MediaLibrary mediaLibrary;
+	private GlobalIdRepo globalRepo;
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
 
-	public RootFolder() {
+	public RootFolder(Renderer renderer) {
+		super(renderer);
+		tempFolder = new UnattachedFolder(renderer, "Temp");
+		globalRepo = new GlobalIdRepo();
 		setIndexId(0);
 		addVirtualMyMusicFolder();
+		mediaLibrary = new MediaLibrary(renderer);
+	}
+
+	public UnattachedFolder getTemp() {
+		return tempFolder;
+	}
+
+	public Playlist getDynamicPls() {
+		if (dynamicPls == null) {
+			dynamicPls = new DynamicPlaylist(defaultRenderer, Messages.getString("DynamicPlaylist"),
+				configuration.getDynamicPlsSavePath(),
+				(configuration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+		}
+		return dynamicPls;
+	}
+
+	/**
+	 * Returns the MediaLibrary.
+	 *
+	 * @return The current {@link MediaLibrary}.
+	 */
+	public MediaLibrary getLibrary() {
+		return mediaLibrary;
+	}
+
+	public GlobalIdRepo getGlobalRepo() {
+		return globalRepo;
 	}
 
 	private void addVirtualMyMusicFolder() {
 		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(Messages.getString("MyAlbums"), myAlbums, "");
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(defaultRenderer, Messages.getString("MyAlbums"), myAlbums, "");
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (!getChildren().contains(myMusicFolder)) {
 				myMusicFolder.setFakeParentId("0");
@@ -89,13 +128,13 @@ public class RootFolder extends DLNAResource {
 			}
 		} else {
 			if (
-				PMS.get().getLibrary().isEnabled() &&
-				PMS.get().getLibrary().getAudioFolder() != null &&
-				PMS.get().getLibrary().getAudioFolder().getChildren() != null &&
-				!PMS.get().getLibrary().getAudioFolder().getChildren().contains(myMusicFolder)
+				mediaLibrary.isEnabled() &&
+				mediaLibrary.getAudioFolder() != null &&
+				mediaLibrary.getAudioFolder().getChildren() != null &&
+				!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)
 			) {
-				myMusicFolder.setFakeParentId(PMS.get().getLibrary().getAudioFolder().getId());
-				PMS.get().getLibrary().getAudioFolder().addChild(myMusicFolder, true, false);
+				myMusicFolder.setFakeParentId(mediaLibrary.getAudioFolder().getId());
+				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, false);
 				LOGGER.debug("adding My Music folder to 'Audio' folder");
 			} else {
 				LOGGER.debug("couldn't add 'My Music' folder because the media library is not initialized.");
@@ -144,9 +183,8 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (isAddGlobally && configuration.isShowMediaLibraryFolder()) {
-			MediaLibrary libraryRes = PMS.get().getLibrary();
-			if (libraryRes.isEnabled()) {
-				addChild(libraryRes, true);
+			if (mediaLibrary.isEnabled()) {
+				addChild(mediaLibrary, true);
 			}
 		}
 
@@ -154,7 +192,7 @@ public class RootFolder extends DLNAResource {
 			List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 			if (!foldersMonitored.isEmpty()) {
 				File[] dirs = foldersMonitored.toArray(File[]::new);
-				mon = new MediaMonitor(dirs);
+				mon = new MediaMonitor(defaultRenderer, dirs);
 			}
 		}
 
@@ -164,20 +202,20 @@ public class RootFolder extends DLNAResource {
 				getDefaultRenderer() != null &&
 				getDefaultRenderer().isLimitFolders()
 			) {
-				lim = new FolderLimit();
+				lim = new FolderLimit(defaultRenderer);
 				addChild(lim, true);
 			}
 
 			if (configuration.isDynamicPls()) {
-				addChild(PMS.get().getDynamicPls(), true);
+				addChild(getDynamicPls(), true);
 				if (!configuration.isHideSavedPlaylistFolder()) {
 					File plsdir = new File(configuration.getDynamicPlsSavePath());
-					addChild(new RealFile(plsdir, Messages.getString("SavedPlaylists")), true);
+					addChild(new RealFile(defaultRenderer, plsdir, Messages.getString("SavedPlaylists")), true);
 				}
 			}
 		}
 
-		for (DLNAResource r : getFolderContents()) {
+		for (MediaResource r : getFolderContents()) {
 			addChild(r, true, isAddGlobally);
 		}
 
@@ -210,13 +248,13 @@ public class RootFolder extends DLNAResource {
 			int osType = Platform.getOSType();
 			if (osType == Platform.MAC) {
 				if (configuration.isShowIphotoLibrary()) {
-					DLNAResource iPhotoRes = getiPhotoFolder();
+					MediaResource iPhotoRes = getiPhotoFolder();
 					if (iPhotoRes != null) {
 						addChild(iPhotoRes);
 					}
 				}
 				if (configuration.isShowApertureLibrary()) {
-					DLNAResource apertureRes = getApertureFolder();
+					MediaResource apertureRes = getApertureFolder();
 					if (apertureRes != null) {
 						addChild(apertureRes);
 					}
@@ -224,7 +262,7 @@ public class RootFolder extends DLNAResource {
 			}
 			if (osType == Platform.MAC || osType == Platform.WINDOWS) {
 				if (configuration.isShowItunesLibrary()) {
-					DLNAResource iTunesRes = getiTunesFolder();
+					MediaResource iTunesRes = getiTunesFolder();
 					if (iTunesRes != null) {
 						addChild(iTunesRes);
 					}
@@ -239,7 +277,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public void setFolderLim(DLNAResource r) {
+	public void setFolderLim(MediaResource r) {
 		if (lim != null) {
 			lim.setStart(r);
 		}
@@ -286,9 +324,9 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public void scan(DLNAResource resource) {
+	public void scan(MediaResource resource) {
 		if (running) {
-			for (DLNAResource child : resource.getChildren()) {
+			for (MediaResource child : resource.getChildren()) {
 				// wait until the realtime lock is released before starting
 				PMS.REALTIME_LOCK.lock();
 				PMS.REALTIME_LOCK.unlock();
@@ -359,12 +397,12 @@ public class RootFolder extends DLNAResource {
 
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
-				resources.add(new RealFile(folder.getFile()));
+				resources.add(new RealFile(defaultRenderer, folder.getFile()));
 			}
 		}
 
 		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(Messages.getString("SearchDiscFolders"), new FileSearch(resources));
+			SearchFolder sf = new SearchFolder(defaultRenderer, Messages.getString("SearchDiscFolders"), new FileSearch(resources));
 			addChild(sf);
 		}
 
@@ -375,8 +413,8 @@ public class RootFolder extends DLNAResource {
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof VirtualFolderContent virtualFolder && virtualFolder.isActive()) {
-				DLNAResource parent = getSharedContentParent(virtualFolder.getParent());
-				parent.addChild(new VirtualFile(virtualFolder));
+				MediaResource parent = getSharedContentParent(virtualFolder.getParent());
+				parent.addChild(new VirtualFile(defaultRenderer, virtualFolder));
 			}
 		}
 	}
@@ -390,25 +428,25 @@ public class RootFolder extends DLNAResource {
 		}
 		for (SharedContent sharedContent : SharedContentConfiguration.getSharedContentArray()) {
 			if (sharedContent instanceof SharedContentWithPath sharedContentWithPath && sharedContentWithPath.isExternalContent() && sharedContentWithPath.isActive()) {
-				DLNAResource parent = getSharedContentParent(sharedContentWithPath.getParent());
+				MediaResource parent = getSharedContentParent(sharedContentWithPath.getParent());
 				// Handle web playlists stream
 				if (sharedContent instanceof StreamContent streamContent) {
-					DLNAResource playlist = PlaylistFolder.getPlaylist(streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
+					MediaResource playlist = PlaylistFolder.getPlaylist(defaultRenderer, streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
 					if (playlist != null) {
 						parent.addChild(playlist);
 						continue;
 					}
 				}
 				if (sharedContent instanceof FeedAudioContent feedAudioContent) {
-					parent.addChild(new AudiosFeed(feedAudioContent.getUri()));
+					parent.addChild(new AudiosFeed(defaultRenderer, feedAudioContent.getUri()));
 				} else if (sharedContent instanceof FeedImageContent feedImageContent) {
-					parent.addChild(new ImagesFeed(feedImageContent.getUri()));
+					parent.addChild(new ImagesFeed(defaultRenderer, feedImageContent.getUri()));
 				} else if (sharedContent instanceof FeedVideoContent feedVideoContent) {
-					parent.addChild(new VideosFeed(feedVideoContent.getUri()));
+					parent.addChild(new VideosFeed(defaultRenderer, feedVideoContent.getUri()));
 				} else if (sharedContent instanceof StreamAudioContent streamAudioContent) {
-					parent.addChild(new WebAudioStream(streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
+					parent.addChild(new WebAudioStream(defaultRenderer, streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
 				} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
-					parent.addChild(new WebVideoStream(streamVideoContent.getName(), streamVideoContent.getUri(), streamVideoContent.getThumbnail()));
+					parent.addChild(new WebVideoStream(defaultRenderer, streamVideoContent.getName(), streamVideoContent.getUri(), streamVideoContent.getThumbnail()));
 				}
 			}
 		}
@@ -422,7 +460,7 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @return iPhotoVirtualFolder the populated <code>VirtualFolder</code>, or null if one couldn't be created.
 	 */
-	private static DLNAResource getiPhotoFolder() {
+	private MediaResource getiPhotoFolder() {
 		VirtualFolder iPhotoVirtualFolder = null;
 
 		if (Platform.isMac()) {
@@ -464,13 +502,13 @@ public class RootFolder extends DLNAResource {
 					// The list of events (rolls)
 					List<Map<?, ?>> listOfRolls = (List<Map<?, ?>>) iPhotoLib.get("List of Rolls");
 
-					iPhotoVirtualFolder = new VirtualFolder("iPhoto Library", null);
+					iPhotoVirtualFolder = new VirtualFolder(defaultRenderer, "iPhoto Library", null);
 
 					for (Map<?, ?> roll : listOfRolls) {
 						Object rollName = roll.get("RollName");
 
 						if (rollName != null) {
-							VirtualFolder virtualFolder = new VirtualFolder(rollName.toString(), null);
+							VirtualFolder virtualFolder = new VirtualFolder(defaultRenderer, rollName.toString(), null);
 
 							// List of photos in an event (roll)
 							List<?> rollPhotos = (List<?>) roll.get("KeyList");
@@ -482,7 +520,7 @@ public class RootFolder extends DLNAResource {
 									Object imagePath = photoProperties.get("ImagePath");
 
 									if (imagePath != null) {
-										RealFile realFile = new RealFile(new File(imagePath.toString()));
+										RealFile realFile = new RealFile(defaultRenderer, new File(imagePath.toString()));
 										virtualFolder.addChild(realFile);
 									}
 								}
@@ -507,7 +545,7 @@ public class RootFolder extends DLNAResource {
 	 * a folder at the root folder. Only works when UMS is run on Mac OS X.
 	 * TODO: Requirements for Aperture.
 	 */
-	private DLNAResource getApertureFolder() {
+	private MediaResource getApertureFolder() {
 		VirtualFolder res = null;
 
 		if (Platform.isMac()) {
@@ -518,7 +556,7 @@ public class RootFolder extends DLNAResource {
 				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 					// Every line entry is one aperture library. We want all of them as a dlna folder.
 					String line;
-					res = new VirtualFolder("Aperture libraries", null);
+					res = new VirtualFolder(defaultRenderer, "Aperture libraries", null);
 
 					while ((line = in.readLine()) != null) {
 						if (line.startsWith("(") || line.startsWith(")")) {
@@ -601,7 +639,7 @@ public class RootFolder extends DLNAResource {
 			}
 
 			LOGGER.info("Going to parse aperture library: " + mediaName);
-			res = new VirtualFolder(mediaName, null);
+			res = new VirtualFolder(defaultRenderer, mediaName, null);
 			listOfAlbums = (List<?>) iPhotoLib.get("List of Albums"); // the list of events (rolls)
 
 			for (Object item : listOfAlbums) {
@@ -625,7 +663,7 @@ public class RootFolder extends DLNAResource {
 
 		List<?> albumPhotos;
 		int albumId = (Integer) album.get("AlbumId");
-		VirtualFolder vAlbum = new VirtualFolder(album.get("AlbumName").toString(), null);
+		VirtualFolder vAlbum = new VirtualFolder(defaultRenderer, album.get("AlbumName").toString(), null);
 
 		for (Object item : listOfAlbums) {
 			Map<?, ?> sub = (Map<?, ?>) item;
@@ -662,7 +700,7 @@ public class RootFolder extends DLNAResource {
 				firstPhoto = false;
 			}
 
-			RealFile file = new RealFile(new File(photo.get("ImagePath").toString()));
+			RealFile file = new RealFile(defaultRenderer, new File(photo.get("ImagePath").toString()));
 			vAlbum.addChild(file);
 		}
 
@@ -706,8 +744,8 @@ public class RootFolder extends DLNAResource {
 	 *
 	 * @see RootFolder#getiTunesFile()
 	 */
-	private DLNAResource getiTunesFolder() {
-		DLNAResource res = null;
+	private MediaResource getiTunesFolder() {
+		MediaResource res = null;
 
 		if (Platform.isMac() || Platform.isWindows()) {
 			Map<String, Object> iTunesLib;
@@ -724,7 +762,7 @@ public class RootFolder extends DLNAResource {
 					iTunesLib = Plist.load(URLDecoder.decode(iTunesFile, System.getProperty("file.encoding"))); // loads the (nested) properties.
 					tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
 					playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
-					res = new VirtualFolder("iTunes Library", null);
+					res = new VirtualFolder(defaultRenderer, "iTunes Library", null);
 
 					VirtualFolder playlistsFolder = null;
 
@@ -738,13 +776,13 @@ public class RootFolder extends DLNAResource {
 						if (playlist.containsKey("Music") && playlist.get("Music").equals(Boolean.TRUE)) {
 							// Create virtual folders for artists, albums and genres
 
-							VirtualFolder musicFolder = new VirtualFolder(playlist.get("Name").toString(), null);
+							VirtualFolder musicFolder = new VirtualFolder(defaultRenderer, playlist.get("Name").toString(), null);
 							res.addChild(musicFolder);
 
-							VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("BrowseByArtist"), null);
-							VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("BrowseByAlbum"), null);
-							VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("BrowseByGenre"), null);
-							VirtualFolder virtualFolderAllTracks = new VirtualFolder(Messages.getString("AllAudioTracks"), null);
+							VirtualFolder virtualFolderArtists = new VirtualFolder(defaultRenderer, Messages.getString("BrowseByArtist"), null);
+							VirtualFolder virtualFolderAlbums = new VirtualFolder(defaultRenderer, Messages.getString("BrowseByAlbum"), null);
+							VirtualFolder virtualFolderGenres = new VirtualFolder(defaultRenderer, Messages.getString("BrowseByGenre"), null);
+							VirtualFolder virtualFolderAllTracks = new VirtualFolder(defaultRenderer, Messages.getString("AllAudioTracks"), null);
 							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							String artistName;
@@ -806,17 +844,17 @@ public class RootFolder extends DLNAResource {
 
 										URI tURI2 = new URI(track.get("Location").toString());
 										File refFile = new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8));
-										RealFile file = new RealFile(refFile, name);
+										RealFile file = new RealFile(defaultRenderer, refFile, name);
 
 										// Put the track into the artist's album folder and the artist's "All tracks" folder
 										VirtualFolder individualArtistFolder = null;
 										VirtualFolder individualArtistAllTracksFolder;
 										VirtualFolder individualArtistAlbumFolder = null;
 
-										for (DLNAResource artist : virtualFolderArtists.getChildren()) {
+										for (MediaResource artist : virtualFolderArtists.getChildren()) {
 											if (areNamesEqual(artist.getName(), artistName)) {
 												individualArtistFolder = (VirtualFolder) artist;
-												for (DLNAResource album : individualArtistFolder.getChildren()) {
+												for (MediaResource album : individualArtistFolder.getChildren()) {
 													if (areNamesEqual(album.getName(), albumName)) {
 														individualArtistAlbumFolder = (VirtualFolder) album;
 													}
@@ -826,16 +864,16 @@ public class RootFolder extends DLNAResource {
 										}
 
 										if (individualArtistFolder == null) {
-											individualArtistFolder = new VirtualFolder(artistName, null);
+											individualArtistFolder = new VirtualFolder(defaultRenderer, artistName, null);
 											virtualFolderArtists.addChild(individualArtistFolder);
-											individualArtistAllTracksFolder = new VirtualFolder(Messages.getString("AllAudioTracks"), null);
+											individualArtistAllTracksFolder = new VirtualFolder(defaultRenderer, Messages.getString("AllAudioTracks"), null);
 											individualArtistFolder.addChild(individualArtistAllTracksFolder);
 										} else {
 											individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
 										}
 
 										if (individualArtistAlbumFolder == null) {
-											individualArtistAlbumFolder = new VirtualFolder(albumName, null);
+											individualArtistAlbumFolder = new VirtualFolder(defaultRenderer, albumName, null);
 											individualArtistFolder.addChild(individualArtistAlbumFolder);
 										}
 
@@ -848,28 +886,28 @@ public class RootFolder extends DLNAResource {
 										}
 
 										VirtualFolder individualAlbumFolder = null;
-										for (DLNAResource album : virtualFolderAlbums.getChildren()) {
+										for (MediaResource album : virtualFolderAlbums.getChildren()) {
 											if (areNamesEqual(album.getName(), albumName)) {
 												individualAlbumFolder = (VirtualFolder) album;
 												break;
 											}
 										}
 										if (individualAlbumFolder == null) {
-											individualAlbumFolder = new VirtualFolder(albumName, null);
+											individualAlbumFolder = new VirtualFolder(defaultRenderer, albumName, null);
 											virtualFolderAlbums.addChild(individualAlbumFolder);
 										}
 										individualAlbumFolder.addChild(file.clone());
 
 										// Put the track into its genre folder
 										VirtualFolder individualGenreFolder = null;
-										for (DLNAResource genre : virtualFolderGenres.getChildren()) {
+										for (MediaResource genre : virtualFolderGenres.getChildren()) {
 											if (areNamesEqual(genre.getName(), genreName)) {
 												individualGenreFolder = (VirtualFolder) genre;
 												break;
 											}
 										}
 										if (individualGenreFolder == null) {
-											individualGenreFolder = new VirtualFolder(genreName, null);
+											individualGenreFolder = new VirtualFolder(defaultRenderer, genreName, null);
 											virtualFolderGenres.addChild(individualGenreFolder);
 										}
 										individualGenreFolder.addChild(file.clone());
@@ -886,26 +924,26 @@ public class RootFolder extends DLNAResource {
 							musicFolder.addChild(virtualFolderAllTracks);
 
 							// Sort the virtual folders alphabetically
-							Collections.sort(virtualFolderArtists.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+							Collections.sort(virtualFolderArtists.getChildren(), (MediaResource o1, MediaResource o2) -> {
 								VirtualFolder a = (VirtualFolder) o1;
 								VirtualFolder b = (VirtualFolder) o2;
 								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderAlbums.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+							Collections.sort(virtualFolderAlbums.getChildren(), (MediaResource o1, MediaResource o2) -> {
 								VirtualFolder a = (VirtualFolder) o1;
 								VirtualFolder b = (VirtualFolder) o2;
 								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderGenres.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+							Collections.sort(virtualFolderGenres.getChildren(), (MediaResource o1, MediaResource o2) -> {
 								VirtualFolder a = (VirtualFolder) o1;
 								VirtualFolder b = (VirtualFolder) o2;
 								return a.getName().compareToIgnoreCase(b.getName());
 							});
 						} else {
 							// Add all playlists
-							VirtualFolder pf = new VirtualFolder(playlist.get("Name").toString(), null);
+							VirtualFolder pf = new VirtualFolder(defaultRenderer, playlist.get("Name").toString(), null);
 							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							if (playlistTracks != null) {
@@ -927,7 +965,7 @@ public class RootFolder extends DLNAResource {
 										}
 
 										URI tURI2 = new URI(track.get("Location").toString());
-										RealFile file = new RealFile(new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8)), name);
+										RealFile file = new RealFile(defaultRenderer, new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8)), name);
 										pf.addChild(file);
 									}
 								}
@@ -940,7 +978,7 @@ public class RootFolder extends DLNAResource {
 							} else {
 								// User playlist or playlist folder
 								if (playlistsFolder == null) {
-									playlistsFolder = new VirtualFolder("Playlists", null);
+									playlistsFolder = new VirtualFolder(defaultRenderer, "Playlists", null);
 									res.addChild(playlistsFolder);
 								}
 								playlistsFolder.addChild(pf);
@@ -959,8 +997,8 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private void addAdminFolder() {
-		DLNAResource res = new VirtualFolder(Messages.getString("ServerSettings"), null);
-		DLNAResource vsf = getVideoSettingsFolder();
+		MediaResource res = new VirtualFolder(defaultRenderer, Messages.getString("ServerSettings"), null);
+		MediaResource vsf = getVideoSettingsFolder();
 
 		if (vsf != null) {
 			res.addChild(vsf);
@@ -970,7 +1008,7 @@ public class RootFolder extends DLNAResource {
 			final File scriptDir = new File(configuration.getScriptDir());
 
 			if (scriptDir.exists()) {
-				res.addChild(new VirtualFolder(Messages.getString("Scripts"), null) {
+				res.addChild(new VirtualFolder(defaultRenderer, Messages.getString("Scripts"), null) {
 					@Override
 					public void discoverChildren() {
 						File[] files = scriptDir.listFiles();
@@ -985,7 +1023,7 @@ public class RootFolder extends DLNAResource {
 
 								final File f = file;
 
-								addChild(new VirtualVideoAction(childrenName, true, null) {
+								addChild(new VirtualVideoAction(defaultRenderer, childrenName, true, null) {
 									@Override
 									public boolean enable() {
 										try {
@@ -1010,11 +1048,11 @@ public class RootFolder extends DLNAResource {
 
 		// Resume file management
 		if (configuration.isResumeEnabled()) {
-			res.addChild(new VirtualFolder(Messages.getString("ManageResumeFiles"), null) {
+			res.addChild(new VirtualFolder(defaultRenderer, Messages.getString("ManageResumeFiles"), null) {
 				@Override
 				public void discoverChildren() {
 					final File[] files = ResumeObj.resumeFiles();
-					addChild(new VirtualVideoAction(Messages.getString("DeleteAllFiles"), true, null) {
+					addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("DeleteAllFiles"), true, null) {
 						@Override
 						public boolean enable() {
 							for (File f : files) {
@@ -1027,7 +1065,7 @@ public class RootFolder extends DLNAResource {
 					for (final File f : files) {
 						String childrenName = FileUtil.getFileNameWithoutExtension(f.getName());
 						childrenName = childrenName.replaceAll(ResumeObj.CLEAN_REG, "");
-						addChild(new VirtualVideoAction(childrenName, false, null) {
+						addChild(new VirtualVideoAction(defaultRenderer, childrenName, false, null) {
 							@Override
 							public boolean enable() {
 								f.delete();
@@ -1041,7 +1079,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		// Restart UMS
-		res.addChild(new VirtualVideoAction(Messages.getString("RestartUms"), true, "images/icon-videothumbnail-restart.png") {
+		res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("RestartUms"), true, "images/icon-videothumbnail-restart.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.reboot();
@@ -1051,7 +1089,7 @@ public class RootFolder extends DLNAResource {
 		});
 
 		// Shut down computer
-		res.addChild(new VirtualVideoAction(Messages.getString("ShutDownComputer"), true, "images/icon-videothumbnail-shutdown.png") {
+		res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("ShutDownComputer"), true, "images/icon-videothumbnail-shutdown.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.shutDownComputer();
@@ -1068,18 +1106,18 @@ public class RootFolder extends DLNAResource {
 	 * used as a folder at the root folder. Child objects are created when
 	 * this folder is created.
 	 */
-	private DLNAResource getVideoSettingsFolder() {
-		DLNAResource res = null;
+	private MediaResource getVideoSettingsFolder() {
+		MediaResource res = null;
 
 		if (configuration.isShowServerSettingsFolder()) {
-			res = new VirtualFolder(Messages.getString("VideoSettings_FolderName"), null);
-			VirtualFolder vfSub = new VirtualFolder(Messages.getString("Subtitles"), null);
+			res = new VirtualFolder(defaultRenderer, Messages.getString("VideoSettings_FolderName"), null);
+			VirtualFolder vfSub = new VirtualFolder(defaultRenderer, Messages.getString("Subtitles"), null);
 			res.addChild(vfSub);
 
 			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
 				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
 				// if the master code is valid we don't add this
-				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true, null) {
+				VirtualVideoAction vva = new VirtualVideoAction(defaultRenderer, "MasterCode", true, null) {
 					@Override
 					public boolean enable() {
 						CodeEnter ce = (CodeEnter) getParent();
@@ -1095,7 +1133,7 @@ public class RootFolder extends DLNAResource {
 				res.addChild(ce1);
 			}
 
-			res.addChild(new VirtualVideoAction(Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("AvSyncAlternativeMethod"), configuration.isMencoderNoOutOfSync(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderNoOutOfSync(!configuration.isMencoderNoOutOfSync());
@@ -1103,7 +1141,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("DefaultH264RemuxMencoder"), configuration.isMencoderMuxWhenCompatible(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("DefaultH264RemuxMencoder"), configuration.isMencoderMuxWhenCompatible(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderMuxWhenCompatible(!configuration.isMencoderMuxWhenCompatible());
@@ -1112,7 +1150,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction("  !!-- Fix 23.976/25fps A/V Mismatch --!!", configuration.isFix25FPSAvMismatch(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, "  !!-- Fix 23.976/25fps A/V Mismatch --!!", configuration.isFix25FPSAvMismatch(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderForceFps(!configuration.isFix25FPSAvMismatch());
@@ -1121,7 +1159,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("DeinterlaceFilter"), configuration.isMencoderYadif(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setMencoderYadif(!configuration.isMencoderYadif());
@@ -1130,7 +1168,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles(), null) {
+			vfSub.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isDisableSubtitles();
@@ -1140,7 +1178,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles(), null) {
+			vfSub.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isAutoloadExternalSubtitles();
@@ -1150,7 +1188,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle(), null) {
+			vfSub.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isUseEmbeddedSubtitlesStyle();
@@ -1160,7 +1198,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("SkipLoopFilterDeblocking"), configuration.getSkipLoopFilterEnabled(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("SkipLoopFilterDeblocking"), configuration.getSkipLoopFilterEnabled(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setSkipLoopFilterEnabled(!configuration.getSkipLoopFilterEnabled());
@@ -1168,7 +1206,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setAudioEmbedDtsInPcm(!configuration.isAudioEmbedDtsInPcm());
@@ -1176,7 +1214,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("SaveConfiguration"), true, null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("SaveConfiguration"), true, null) {
 				@Override
 				public boolean enable() {
 					try {
@@ -1188,7 +1226,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("RestartServer"), true, null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("RestartServer"), true, null) {
 				@Override
 				public boolean enable() {
 					PMS.get().resetMediaServer();
@@ -1196,7 +1234,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder(), null) {
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder(), null) {
 				@Override
 				public boolean enable() {
 					configuration.setShowLiveSubtitlesFolder(configuration.isShowLiveSubtitlesFolder());
@@ -1217,7 +1255,7 @@ public class RootFolder extends DLNAResource {
 		setDiscovered(false);
 	}
 
-	public void stopPlaying(DLNAResource res) {
+	public void stopPlaying(MediaResource res) {
 		if (mon != null) {
 			mon.stopped(res);
 		}
@@ -1299,7 +1337,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		// TODO: Can this use UnattachedFolder and add instead?
-		RealFile rf = new RealFile(file);
+		RealFile rf = new RealFile(RendererConfigurations.getDefaultRenderer(), file);
 		rf.setParent(rf);
 		rf.getParent().setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 		rf.resolveFormat();
@@ -1345,7 +1383,7 @@ public class RootFolder extends DLNAResource {
 					if (file.isFile()) {
 						file = file.getParentFile();
 					}
-					DLNAResource dir = new RealFile(file);
+					MediaResource dir = new RealFile(RendererConfigurations.getDefaultRenderer(), file);
 					dir.setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 					dir.doRefreshChildren();
 					PMS.get().getRootFolder(null).scan(dir);

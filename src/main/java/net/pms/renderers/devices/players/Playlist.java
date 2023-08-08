@@ -18,8 +18,7 @@ package net.pms.renderers.devices.players;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
-import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -134,13 +133,13 @@ public class Playlist extends DefaultComboBoxModel {
 	}
 
 	public static boolean isValid(PlaylistItem item, Renderer renderer) {
-		if (DLNAResource.isResourceUrl(item.getUri())) {
+		if (MediaResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
-			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.getUri()))) {
+			if (renderer.getRootFolder().getGlobalRepo().exists(MediaResource.parseResourceId(item.getUri()))) {
 				return true;
 			}
 			// Repair the item if possible
-			DLNAResource d = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
+			MediaResource d = MediaResource.getValidResource(item.getUri(), item.getName(), renderer);
 			if (d != null) {
 				item.setUri(d.getURL("", true));
 				item.setMetadata(d.getDidlString(renderer));

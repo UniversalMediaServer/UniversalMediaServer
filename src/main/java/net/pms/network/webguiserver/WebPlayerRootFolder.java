@@ -19,12 +19,13 @@ package net.pms.network.webguiserver;
 import net.pms.dlna.RootFolder;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
+import net.pms.renderers.Renderer;
 
 public class WebPlayerRootFolder extends RootFolder {
 	private final int userId;
 
-	public WebPlayerRootFolder(int userId) {
-		super();
+	public WebPlayerRootFolder(Renderer renderer, int userId) {
+		super(renderer);
 		this.userId = userId;
 	}
 

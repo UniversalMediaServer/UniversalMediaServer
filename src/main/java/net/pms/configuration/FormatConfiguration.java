@@ -25,7 +25,7 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.io.OutputParams;
@@ -619,11 +619,11 @@ public class FormatConfiguration {
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param dlna The DLNAResource
+	 * @param dlna The MediaResource
 	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(DLNAResource dlna, RendererConfiguration renderer) {
+	public String getMatchedMIMEtype(MediaResource dlna, RendererConfiguration renderer) {
 		MediaInfo media = dlna.getMedia();
 		if (media == null) {
 			return null;

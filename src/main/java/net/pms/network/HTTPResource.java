@@ -29,7 +29,7 @@ import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Implements any item that can be transfered through the HTTP pipes.
  * In the PMS case, this item represents media files.
- * @see DLNAResource
+ * @see MediaResource
  */
 public abstract class HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPResource.class);
@@ -258,7 +258,7 @@ public abstract class HTTPResource {
 	 * @param resource the resource
 	 * @return The MIME type
 	 */
-	public static String getRendererMimeType(Renderer renderer, DLNAResource resource) {
+	public static String getRendererMimeType(Renderer renderer, MediaResource resource) {
 		return renderer.getMimeType(resource);
 	}
 

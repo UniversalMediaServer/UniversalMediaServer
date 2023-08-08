@@ -14,50 +14,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.formats;
+package net.pms.media;
 
-import net.pms.dlna.MediaResource;
-import net.pms.renderers.Renderer;
+public class MediaStore {
 
-public class PLAYLIST extends Format {
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Identifier getIdentifier() {
-		return Identifier.PLAYLIST;
-	}
-
-	@Override
-	public boolean transcodable() {
-		return false;
-	}
-
-	public PLAYLIST() {
-		type = PLAYLIST;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(MediaResource dlna, Renderer renderer) {
-		// TODO: manage via renderer conf setting
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String[] getSupportedExtensions() {
-		return new String[] {
-			"pls",
-			"m3u",
-			"m3u8",
-			"cue",
-			"ups"
-		};
-	}
 }

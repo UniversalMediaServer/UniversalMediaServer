@@ -24,8 +24,9 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.PlaylistFolder;
+import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
@@ -153,7 +154,7 @@ public class UmsContentDirectoryService {
 	@UpnpAction(out = @UpnpOutputArgument(name = "Id"))
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
 		//maybe use the provided systemUpdateID ?
-		return new UnsignedIntegerFourBytes(DLNAResource.getSystemUpdateId());
+		return new UnsignedIntegerFourBytes(MediaResource.getSystemUpdateId());
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
@@ -330,7 +331,7 @@ public class UmsContentDirectoryService {
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
-		List<DLNAResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<MediaResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
 				objectID,
 				browseDirectChildren,
 				(int) startingIndex,
@@ -344,7 +345,7 @@ public class UmsContentDirectoryService {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		if (files != null) {
-			for (DLNAResource uf : files) {
+			for (MediaResource uf : files) {
 				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
@@ -388,7 +389,7 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else if (browseDirectChildren) {
-			DLNAResource parentFolder;
+			MediaResource parentFolder;
 			if (files != null && filessize > 0) {
 				parentFolder = files.get(0).getParent();
 			} else {
@@ -404,7 +405,7 @@ public class UmsContentDirectoryService {
 			totalMatches = 1;
 		}
 
-		long containerUpdateID = DLNAResource.getSystemUpdateId();
+		long containerUpdateID = MediaResource.getSystemUpdateId();
 		//jupnp will escape DIDL result itself
 		//this will not be necessary when UMS will build results from DIDL objects
 		String result = StringEscapeUtils.unescapeXml(filesData.toString());
@@ -473,28 +474,29 @@ public class UmsContentDirectoryService {
 		}
 
 		// Xbox 360 virtual containers ... d'oh!
-		if (xbox360 && PMS.getConfiguration().getUseCache() && PMS.get().getLibrary().isEnabled() && xboxId != null) {
+		if (xbox360 && PMS.getConfiguration().getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && xboxId != null) {
 			searchCriteria = null;
-			if (xboxId.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
-				containerId = PMS.get().getLibrary().getAlbumFolder().getResourceId();
-			} else if (xboxId.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
-				containerId = PMS.get().getLibrary().getArtistFolder().getResourceId();
-			} else if (xboxId.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
-				containerId = PMS.get().getLibrary().getGenreFolder().getResourceId();
-			} else if (xboxId.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
-				containerId = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
-			} else if (xboxId.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
-				containerId = PMS.get().getLibrary().getAllFolder().getResourceId();
+			MediaLibrary library = renderer.getRootFolder().getLibrary();
+			if (xboxId.equals("7") && library.getAlbumFolder() != null) {
+				containerId = library.getAlbumFolder().getResourceId();
+			} else if (xboxId.equals("6") && library.getArtistFolder() != null) {
+				containerId = library.getArtistFolder().getResourceId();
+			} else if (xboxId.equals("5") && library.getGenreFolder() != null) {
+				containerId = library.getGenreFolder().getResourceId();
+			} else if (xboxId.equals("F") && library.getPlaylistFolder() != null) {
+				containerId = library.getPlaylistFolder().getResourceId();
+			} else if (xboxId.equals("4") && library.getAllFolder() != null) {
+				containerId = library.getAllFolder().getResourceId();
 			} else if (xboxId.equals("1")) {
 				String artist = getEnclosingValue(searchCriteria, "upnp:artist = &quot;", "&quot;)");
 				if (artist != null) {
-					containerId = PMS.get().getLibrary().getArtistFolder().getResourceId();
+					containerId = library.getArtistFolder().getResourceId();
 					searchCriteria = artist;
 				}
 			}
 		}
 
-		List<DLNAResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<MediaResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
 			containerId,
 			true,
 			(int) startingIndex,
@@ -514,7 +516,7 @@ public class UmsContentDirectoryService {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		if (files != null) {
-			for (DLNAResource uf : files) {
+			for (MediaResource uf : files) {
 				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
@@ -563,7 +565,7 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else {
-			DLNAResource parentFolder;
+			MediaResource parentFolder;
 			if (files != null && filessize > 0) {
 				parentFolder = files.get(0).getParent();
 			} else {
@@ -576,7 +578,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long containerUpdateID = DLNAResource.getSystemUpdateId();
+		long containerUpdateID = MediaResource.getSystemUpdateId();
 		//jupnp will escape DIDL result itself
 		//this will not be necessary when UMS will build results from DIDL objects
 		String result = StringEscapeUtils.unescapeXml(filesData.toString());
@@ -609,7 +611,7 @@ public class UmsContentDirectoryService {
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					DLNAResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
+					MediaResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
 					File file = new File(dlna.getFileName());
 					String path = file.getCanonicalPath();
 					MediaTableFilesStatus.setBookmark(connection, path, (int) posSecond);

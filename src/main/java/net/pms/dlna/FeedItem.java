@@ -19,16 +19,17 @@ package net.pms.dlna;
 import java.io.IOException;
 import java.io.InputStream;
 import net.pms.media.MediaInfo;
+import net.pms.renderers.Renderer;
 
-public class FeedItem extends DLNAResource {
+public class FeedItem extends MediaResource {
 	private final String title;
 	private final String itemURL;
 	private final String thumbURL;
 
 	private long length;
 
-	public FeedItem(String title, String itemURL, String thumbURL, MediaInfo media, int type) {
-		super(type);
+	public FeedItem(Renderer renderer, String title, String itemURL, String thumbURL, MediaInfo media, int type) {
+		super(renderer, type);
 		this.title = title;
 		this.itemURL = itemURL;
 		this.thumbURL = thumbURL;

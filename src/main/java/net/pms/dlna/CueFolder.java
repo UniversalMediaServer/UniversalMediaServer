@@ -25,6 +25,7 @@ import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.digitalmediaserver.cuelib.CueParser;
 import org.digitalmediaserver.cuelib.CueSheet;
@@ -34,7 +35,7 @@ import org.digitalmediaserver.cuelib.TrackData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CueFolder extends DLNAResource {
+public class CueFolder extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
 	private final File playlistfile;
 
@@ -42,9 +43,8 @@ public class CueFolder extends DLNAResource {
 		return playlistfile;
 	}
 
-	private final boolean valid = true;
-
-	public CueFolder(File f) {
+	public CueFolder(Renderer renderer, File f) {
+		super(renderer);
 		playlistfile = f;
 		setLastModified(playlistfile.lastModified());
 	}
@@ -71,7 +71,7 @@ public class CueFolder extends DLNAResource {
 
 	@Override
 	public boolean isValid() {
-		return valid;
+		return true;
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class CueFolder extends DLNAResource {
 					List<TrackData> tracks = f.getTrackData();
 					Engine defaultPlayer = null;
 					MediaInfo originalMedia = null;
-					ArrayList<DLNAResource> addedResources = new ArrayList<>();
+					ArrayList<MediaResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
 						TrackData track = tracks.get(i);
 						if (i > 0) {
@@ -107,7 +107,7 @@ public class CueFolder extends DLNAResource {
 								// seems the first file was invalid or non existent
 								return;
 							}
-							DLNAResource prec = addedResources.get(i - 1);
+							MediaResource prec = addedResources.get(i - 1);
 							int count = 0;
 							while (prec.isFolder() && i + count < addedResources.size()) { // not used anymore
 								prec = addedResources.get(i + count);
@@ -118,7 +118,7 @@ public class CueFolder extends DLNAResource {
 							LOGGER.debug("Track #" + i + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
 						}
 						Position start = track.getIndices().get(0).getPosition();
-						RealFile realFile = new RealFile(new File(playlistfile.getParentFile(), f.getFile()));
+						RealFile realFile = new RealFile(defaultRenderer, new File(playlistfile.getParentFile(), f.getFile()));
 						addChild(realFile);
 						addedResources.add(realFile);
 
@@ -177,7 +177,7 @@ public class CueFolder extends DLNAResource {
 					}
 
 					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
-						DLNAResource lastTrack = addedResources.get(addedResources.size() - 1);
+						MediaResource lastTrack = addedResources.get(addedResources.size() - 1);
 						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
 						MediaInfo lastTrackMedia = lastTrack.getMedia();
 

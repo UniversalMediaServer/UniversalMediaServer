@@ -23,15 +23,17 @@ import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 import net.pms.formats.Format;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZippedFile extends DLNAResource {
+public class ZippedFile extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedFile.class);
 	private final File file;
 	private ZipFile zip;
 
-	public ZippedFile(File file) {
+	public ZippedFile(Renderer renderer, File file) {
+		super(renderer);
 		this.file = file;
 		setLastModified(file.lastModified());
 
@@ -41,7 +43,7 @@ public class ZippedFile extends DLNAResource {
 
 			while (enm.hasMoreElements()) {
 				ZipEntry ze = enm.nextElement();
-				addChild(new ZippedEntry(file, ze.getName(), ze.getSize()));
+				addChild(new ZippedEntry(renderer, file, ze.getName(), ze.getSize()));
 			}
 
 			zip.close();

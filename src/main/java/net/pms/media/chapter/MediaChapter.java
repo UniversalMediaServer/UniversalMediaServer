@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import net.pms.Messages;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
@@ -180,7 +180,7 @@ public class MediaChapter extends MediaLang {
 	 * @param dlna The dlna resource.
 	 * @return The WebVtt representation of the chapter list.
 	 */
-	public static String getWebVtt(DLNAResource dlna) {
+	public static String getWebVtt(MediaResource dlna) {
 		StringBuilder chaptersVtt = new StringBuilder();
 		chaptersVtt.append("WEBVTT\n");
 		MediaInfo mediaVideo = dlna.getMedia();
@@ -212,7 +212,7 @@ public class MediaChapter extends MediaLang {
 	 * @param dlna The dlna resource.
 	 * @return The HLS json representation of the chapter list.
 	 */
-	public static String getHls(DLNAResource dlna) {
+	public static String getHls(MediaResource dlna) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		MediaInfo mediaVideo = dlna.getMedia();

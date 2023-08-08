@@ -25,15 +25,17 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RarredFile extends DLNAResource {
+public class RarredFile extends MediaResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RarredFile.class);
 	private File f;
 	private Archive rarFile;
 
-	public RarredFile(File f) {
+	public RarredFile(Renderer renderer, File f) {
+		super(renderer);
 		this.f = f;
 		setLastModified(f.lastModified());
 
@@ -43,7 +45,7 @@ public class RarredFile extends DLNAResource {
 
 			for (FileHeader fh : headers) {
 				// if (fh.getFullUnpackSize() < MAX_ARCHIVE_ENTRY_SIZE && fh.getFullPackSize() < MAX_ARCHIVE_ENTRY_SIZE)
-				addChild(new RarredEntry(fh.getFileName(), f, fh.getFileName(), fh.getFullUnpackSize()));
+				addChild(new RarredEntry(renderer, fh.getFileName(), f, fh.getFileName(), fh.getFullUnpackSize()));
 			}
 
 			rarFile.close();

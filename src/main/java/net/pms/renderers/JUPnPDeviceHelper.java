@@ -33,7 +33,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
@@ -680,7 +680,7 @@ public class JUPnPDeviceHelper {
 	 * Seems not used.
 	 */
 	public static void play(String uri, String name, Renderer renderer) {
-		DLNAResource d = DLNAResource.getValidResource(uri, name, renderer);
+		MediaResource d = MediaResource.getValidResource(uri, name, renderer);
 		if (d != null) {
 			play(d, renderer);
 		}
@@ -689,8 +689,8 @@ public class JUPnPDeviceHelper {
 	/**
 	 * Seems not used.
 	 */
-	public static void play(DLNAResource d, Renderer renderer) {
-		DLNAResource d1 = d.getParent() == null ? DLNAResource.TEMP.add(d) : d;
+	public static void play(MediaResource d, Renderer renderer) {
+		MediaResource d1 = d.getParent() == null ? renderer.getRootFolder().getTemp().add(d) : d;
 		if (d1 != null) {
 			Device dev = getDevice(renderer.getUUID());
 			setAVTransportURI(dev, d1.getURL(""), renderer.isPushMetadata() ? d1.getDidlString(renderer) : null);

@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.media.MediaInfo;
@@ -624,7 +624,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return The renderer specific mime type  for given resource. If the generic mime
 	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(DLNAResource resource) {
+	public String getMimeType(MediaResource resource) {
 		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
@@ -1246,14 +1246,14 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param dlna The {@link DLNAResource} information parsed from the
+	 * @param dlna The {@link MediaResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAResource dlna, Format format, UmsConfiguration configuration) {
+	public boolean isCompatible(MediaResource dlna, Format format, UmsConfiguration configuration) {
 		MediaInfo mediaInfo;
 		if (dlna != null) {
 			mediaInfo = dlna.getMedia();
@@ -1317,13 +1317,13 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param dlna The {@link DLNAResource} information parsed from the
+	 * @param dlna The {@link MediaResource} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAResource dlna, Format format) {
+	public boolean isCompatible(MediaResource dlna, Format format) {
 		return isCompatible(dlna, format, null);
 	}
 
@@ -1418,7 +1418,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
-	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+	public String getDcTitle(String name, String suffix, MediaResource dlna) {
 		// Wrap + truncate
 		int len = 0;
 		if (suffix == null) {
@@ -1539,7 +1539,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, DLNAResource dlna) {
+	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, MediaResource dlna) {
 		if (subtitle == null || dlna == null) {
 			return false;
 		}
@@ -1576,7 +1576,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param dlna The dlna resource
 	 * @return whether the renderer specifies support for the subtitles
 	 */
-	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, DLNAResource dlna) {
+	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, MediaResource dlna) {
 		if (subtitle == null) {
 			return false;
 		}
@@ -1734,7 +1734,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param dlna the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(DLNAResource dlna) {
+	public boolean isVideoBitDepthSupported(MediaResource dlna) {
 		Integer videoBitDepth = null;
 		if (dlna.getMedia() != null && dlna.getMedia().getDefaultVideoTrack() != null) {
 			videoBitDepth = dlna.getMedia().getDefaultVideoTrack().getBitDepth();

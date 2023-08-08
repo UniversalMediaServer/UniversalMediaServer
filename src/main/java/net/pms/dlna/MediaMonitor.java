@@ -38,6 +38,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.platform.PlatformUtils;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
@@ -52,8 +53,8 @@ public class MediaMonitor extends VirtualFolder {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
-	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("Unused"), "images/thumbnail-folder-256.png");
+	public MediaMonitor(Renderer renderer, File[] dirs) {
+		super(renderer, Messages.getString("Unused"), "images/thumbnail-folder-256.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 		config = PMS.getConfiguration();
@@ -102,13 +103,13 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-	public void scanDir(File[] files, final DLNAResource res) {
+	public void scanDir(File[] files, final MediaResource res) {
 		if (files != null) {
-			final DLNAResource mm = this;
-			res.addChild(new VirtualVideoAction(Messages.getString("MarkAllAsPlayed"), true, null) {
+			final MediaResource mm = this;
+			res.addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("MarkAllAsPlayed"), true, null) {
 				@Override
 				public boolean enable() {
-					for (DLNAResource r : res.getChildren()) {
+					for (MediaResource r : res.getChildren()) {
 						if (!(r instanceof RealFile)) {
 							continue;
 						}
@@ -140,7 +141,7 @@ public class MediaMonitor extends VirtualFolder {
 					if (isFullyPlayed(fileEntry.getAbsolutePath(), true)) {
 						continue;
 					}
-					res.addChild(new RealFile(fileEntry));
+					res.addChild(new RealFile(defaultRenderer, fileEntry));
 				}
 				if (fileEntry.isDirectory()) {
 					boolean add = !config.isHideEmptyFolders();
@@ -148,7 +149,7 @@ public class MediaMonitor extends VirtualFolder {
 						add = FileUtil.isFolderRelevant(fileEntry, config, fullyPlayedPaths);
 					}
 					if (add) {
-						res.addChild(new MonitorEntry(fileEntry, this));
+						res.addChild(new MonitorEntry(defaultRenderer, fileEntry, this));
 					}
 				}
 			}
@@ -181,7 +182,7 @@ public class MediaMonitor extends VirtualFolder {
 	 *
 	 * @param resource
 	 */
-	public void stopped(DLNAResource resource) {
+	public void stopped(MediaResource resource) {
 		if (!(resource instanceof RealFile)) {
 			return;
 		}
@@ -255,7 +256,7 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			LOGGER.trace("final decision: fully played");
-			DLNAResource fileParent = realFile.getParent();
+			MediaResource fileParent = realFile.getParent();
 			if (fileParent == null) {
 				LOGGER.trace("fileParent is null for {}", fullPathToFile);
 			} else if (isFullyPlayed(fullPathToFile, true)) {

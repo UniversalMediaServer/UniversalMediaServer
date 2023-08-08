@@ -17,14 +17,15 @@
 package net.pms.dlna.virtual;
 
 import net.pms.configuration.UmsConfiguration;
+import net.pms.renderers.Renderer;
 
 public class TranscodeVirtualFolder extends VirtualFolder {
-	public TranscodeVirtualFolder(String thumbnailIcon, UmsConfiguration configuration) { // XXX thumbnailIcon is always null
-		super(configuration.getTranscodeFolderName(), thumbnailIcon);
+	public TranscodeVirtualFolder(Renderer renderer, String thumbnailIcon, UmsConfiguration configuration) { // XXX thumbnailIcon is always null
+		super(renderer, configuration.getTranscodeFolderName(), thumbnailIcon);
 	}
 
 	// Sub class constructor
-	protected TranscodeVirtualFolder(String name, String thumbnailIcon) {
-		super(name, thumbnailIcon);
+	protected TranscodeVirtualFolder(Renderer renderer, String name, String thumbnailIcon) {
+		super(renderer, name, thumbnailIcon);
 	}
 }

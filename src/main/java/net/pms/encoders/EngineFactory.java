@@ -32,7 +32,7 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.FormatFactory;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExternalProgramInfo;
@@ -403,15 +403,15 @@ public final class EngineFactory {
 
 	/**
 	 * Returns the first {@link Engine} that matches the given
-	 * {@link DLNAResource}. Each of the available {@link Engine} instances are
+	 * {@link MediaResource}. Each of the available {@link Engine} instances are
 	 * passed the provided information and the first that reports that it is
 	 * compatible will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
+	 * @param resource the {@link MediaResource} to match.
 	 * @return The {@link Engine} if a match could be found, {@code null}
 	 *         otherwise.
 	 */
-	public static Engine getEngine(final DLNAResource resource) {
+	public static Engine getEngine(final MediaResource resource) {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no engine found");
 			return null;
@@ -486,11 +486,11 @@ public final class EngineFactory {
 	 * information and each {@link Engine} that reports that it is compatible
 	 * will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
+	 * @param resource the {@link MediaResource} to match.
 	 * @return A list of compatible {@link Engine}s if a match could be found,
 	 *         {@code null} otherwise.
 	 */
-	public static List<Engine> getEngines(final DLNAResource resource) {
+	public static List<Engine> getEngines(final MediaResource resource) {
 		if (resource == null) {
 			return null;
 		}

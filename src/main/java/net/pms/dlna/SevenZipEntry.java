@@ -25,6 +25,7 @@ import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.Parser;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.IInArchive;
 import net.sf.sevenzipjbinding.SevenZip;
@@ -35,12 +36,19 @@ import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SevenZipEntry extends DLNAResource implements IPushOutput {
+public class SevenZipEntry extends MediaResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
 	private final File file;
 	private final String zeName;
 	private final long length;
 	private IInArchive arc;
+
+	public SevenZipEntry(Renderer renderer, File file, String zeName, long length) {
+		super(renderer);
+		this.zeName = zeName;
+		this.file = file;
+		this.length = length;
+	}
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
@@ -50,12 +58,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		}
 
 		return super.getThumbnailURL(profile);
-	}
-
-	public SevenZipEntry(File file, String zeName, long length) {
-		this.zeName = zeName;
-		this.file = file;
-		this.length = length;
 	}
 
 	@Override

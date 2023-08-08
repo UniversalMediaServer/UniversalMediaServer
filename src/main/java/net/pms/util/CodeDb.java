@@ -19,7 +19,7 @@ package net.pms.util;
 import java.io.File;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import org.apache.commons.lang3.StringUtils;
 
 public class CodeDb implements DbHandler {
@@ -45,7 +45,7 @@ public class CodeDb implements DbHandler {
 		return null;
 	}
 
-	public String getCode(DLNAResource r) {
+	public String getCode(MediaResource r) {
 		String res = getCode(r.getName());
 		if (StringUtils.isEmpty(res)) {
 			res = getCode(r.getSystemName());

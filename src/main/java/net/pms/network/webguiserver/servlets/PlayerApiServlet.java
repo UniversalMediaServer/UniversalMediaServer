@@ -40,7 +40,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.ByteRange;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DVDISOTitle;
 import net.pms.dlna.DbIdMediaType;
@@ -136,7 +136,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				if (thumbData.length == 4) {
 					WebGuiRenderer renderer = getRenderer(req, thumbData[2]);
 					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-						DLNAResource resource = renderer.getRootFolder().getDLNAResource(thumbData[3], null);
+						MediaResource resource = renderer.getRootFolder().getDLNAResource(thumbData[3], null);
 						AsyncContext async = req.startAsync();
 						DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
 						if (thumb != null) {
@@ -315,9 +315,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			JsonArray jFolders = new JsonArray();
 			JsonArray mediaLibraryFolders = new JsonArray();
 			JsonArray jMedias = new JsonArray();
-			DLNAResource rootResource = id.equals("0") ? null : renderer.getRootFolder().getDLNAResource(id, null);
+			MediaResource rootResource = id.equals("0") ? null : renderer.getRootFolder().getDLNAResource(id, null);
 
-			List<DLNAResource> resources = renderer.getRootFolder().getDLNAResources(id, true, 0, 0, renderer, search);
+			List<MediaResource> resources = renderer.getRootFolder().getDLNAResources(id, true, 0, 0, renderer, search);
 			if (
 				!resources.isEmpty() &&
 				resources.get(0).getParent() != null &&
@@ -335,10 +335,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resources.get(0).getParent() != null &&
 				resources.get(0).getParent().isFolder()
 			) {
-				DLNAResource thisResourceFromResources = resources.get(0).getParent();
+				MediaResource thisResourceFromResources = resources.get(0).getParent();
 				String thisName = thisResourceFromResources.getDisplayName();
 				if (thisName.equals(Messages.getString("MediaLibrary"))) {
-					for (DLNAResource resource : resources) {
+					for (MediaResource resource : resources) {
 						String icon = switch (resource.resumeName()) {
 							case "Video" -> "video";
 							case "Audio" -> "audio";
@@ -356,7 +356,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				jBreadcrumbs = getBreadcrumbs(thisResourceFromResources);
 
 				if (resources.get(0).getParent().getParent() != null) {
-					DLNAResource parentFromResources = resources.get(0).getParent().getParent();
+					MediaResource parentFromResources = resources.get(0).getParent().getParent();
 					JsonObject jFolder = new JsonObject();
 					jFolder.addProperty("id", parentFromResources.getResourceId());
 					jFolder.addProperty("name", "..");
@@ -367,7 +367,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (resources.isEmpty() && rootResource != null && rootResource.isFolder()) {
 				jBreadcrumbs = getBreadcrumbs(rootResource);
 				if (rootResource.getParent() != null) {
-					DLNAResource parentFromResources = rootResource.getParent();
+					MediaResource parentFromResources = rootResource.getParent();
 					JsonObject jFolder = new JsonObject();
 					jFolder.addProperty("id", parentFromResources.getResourceId());
 					jFolder.addProperty("name", "..");
@@ -377,7 +377,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			// Generate innerHtml snippets for folders and media items
-			for (DLNAResource resource : resources) {
+			for (MediaResource resource : resources) {
 				if (resource == null) {
 					continue;
 				}
@@ -420,27 +420,27 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 						// Populate the front page
 						if (id.equals("0") && resource.getName().equals(Messages.getString("MediaLibrary"))) {
-							List<DLNAResource> videoSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Video"));
+							List<MediaResource> videoSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Video"));
 							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("Video"), true, true);
-							DLNAResource videoFolder = videoSearchResults.get(0);
+							MediaResource videoFolder = videoSearchResults.get(0);
 							JsonObject mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", videoFolder.resumeName());
 							mediaLibraryFolder.addProperty("icon", "video");
 							mediaLibraryFolders.add(mediaLibraryFolder);
 
-							List<DLNAResource> audioSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Audio"));
+							List<MediaResource> audioSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Audio"));
 							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("Audio"), true, true);
-							DLNAResource audioFolder = audioSearchResults.get(0);
+							MediaResource audioFolder = audioSearchResults.get(0);
 							mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", audioFolder.resumeName());
 							mediaLibraryFolder.addProperty("icon", "audio");
 							mediaLibraryFolders.add(mediaLibraryFolder);
 
-							List<DLNAResource> imageSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Photo"));
+							List<MediaResource> imageSearchResults = renderer.getRootFolder().getDLNAResources(resource.getId(), true, 0, 0, renderer, Messages.getString("Photo"));
 							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("Photo"), true, true);
-							DLNAResource imagesFolder = imageSearchResults.get(0);
+							MediaResource imagesFolder = imageSearchResults.get(0);
 							mediaLibraryFolder = new JsonObject();
 							mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
 							mediaLibraryFolder.addProperty("name", imagesFolder.resumeName());
@@ -497,7 +497,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
 					)
 				) {
-					for (DLNAResource resource : resources) {
+					for (MediaResource resource : resources) {
 						if (resource instanceof MediaLibraryFolder) {
 							hasFile = true;
 							jMedias.add(getMediaJsonObject(resource));
@@ -506,10 +506,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 
-			DLNAResource dlna = null;
+			MediaResource dlna = null;
 			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(id, renderer); // id.substring(0, id.indexOf('/'))
+					dlna = DbIdResourceLocator.locateResource(renderer, id); // id.substring(0, id.indexOf('/'))
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
@@ -531,7 +531,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getMediaJsonObject(DLNAResource resource) {
+	private JsonObject getMediaJsonObject(MediaResource resource) {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
@@ -545,13 +545,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jMedia;
 	}
 
-	private JsonArray getBreadcrumbs(DLNAResource resource) {
+	private JsonArray getBreadcrumbs(MediaResource resource) {
 		JsonArray jBreadcrumbs = new JsonArray();
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
 		jBreadcrumb.addProperty("name", resource.getDisplayName());
 		jBreadcrumbs.add(jBreadcrumb);
-		DLNAResource thisResourceFromResources = resource;
+		MediaResource thisResourceFromResources = resource;
 		while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 			thisResourceFromResources = thisResourceFromResources.getParent();
 			jBreadcrumb = new JsonObject();
@@ -567,21 +567,21 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private JsonArray getMediaLibraryFolderChilds(
-		DLNAResource videoFolder,
+		MediaResource videoFolder,
 		Renderer renderer,
 		String folderName
 	) throws IOException {
-		List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, renderer, folderName);
+		List<MediaResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, renderer, folderName);
 		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 		if (videoFolderChildren.isEmpty()) {
 			LOGGER.trace("The videoFolderChildren folder was empty after filtering for " + folderName);
 			return null;
 		}
 		JsonArray jLibraryVideos = new JsonArray();
-		DLNAResource librayFolder = videoFolderChildren.get(0);
-		List<DLNAResource> libraryVideos = renderer.getRootFolder().getDLNAResources(librayFolder.getId(), true, 0, 6, renderer);
+		MediaResource librayFolder = videoFolderChildren.get(0);
+		List<MediaResource> libraryVideos = renderer.getRootFolder().getDLNAResources(librayFolder.getId(), true, 0, 6, renderer);
 
-		for (DLNAResource libraryVideo : libraryVideos) {
+		for (MediaResource libraryVideo : libraryVideos) {
 			// Skip the #--TRANSCODE--# entry
 			if (libraryVideo.resumeName().equals(Messages.getString("Transcode_FolderName"))) {
 				continue;
@@ -610,7 +610,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			JsonArray medias = new JsonArray();
 			JsonObject media = new JsonObject();
 
-			DLNAResource rootResource = renderer.getRootFolder().getDLNAResource(id, renderer);
+			MediaResource rootResource = renderer.getRootFolder().getDLNAResource(id, renderer);
 			if (rootResource == null) {
 				LOGGER.debug("Bad web play id: " + id);
 				throw new IOException("Bad Id");
@@ -681,9 +681,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static JsonObject getSurroundingByType(DLNAResource resource) {
+	private static JsonObject getSurroundingByType(MediaResource resource) {
 		JsonObject result = new JsonObject();
-		List<DLNAResource> children = resource.getParent().getChildren();
+		List<MediaResource> children = resource.getParent().getChildren();
 		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(resource.getFormat());
 		int type = resource.getType();
 		int size = children.size();
@@ -692,7 +692,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		for (int step = -1; step < 2; step += 2) {
 			int i = self;
 			int offset = (step < 0 && looping) ? size : 0;
-			DLNAResource next = null;
+			MediaResource next = null;
 			while (true) {
 				i = (offset + i + step) % mod;
 				if (i >= size || i < 0 || i == self) {
@@ -714,7 +714,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private DLNAThumbnailInputStream getMediaThumbImage(DLNAResource resource) {
+	private DLNAThumbnailInputStream getMediaThumbImage(MediaResource resource) {
 		if (resource == null) {
 			return null;
 		}
@@ -754,7 +754,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private boolean sendRawMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id, boolean isDownload) {
-		List<DLNAResource> res;
+		List<MediaResource> res;
 		try {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
@@ -762,7 +762,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			DLNAResource dlna = res.get(0);
+			MediaResource dlna = res.get(0);
 			long len = dlna.length();
 			dlna.setEngine(null);
 			ByteRange range = parseRange(req, len);
@@ -808,7 +808,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private boolean sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id) {
-		List<DLNAResource> res;
+		List<MediaResource> res;
 		try {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
@@ -816,7 +816,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			DLNAResource dlna = res.get(0);
+			MediaResource dlna = res.get(0);
 			File media = new File(dlna.getFileName());
 			String mime = renderer.getMimeType(dlna);
 			resp.setContentType(mime);
@@ -839,7 +839,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private boolean sendImageMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id) {
-		List<DLNAResource> res;
+		List<MediaResource> res;
 		try {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
@@ -847,7 +847,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			DLNAResource dlna = res.get(0);
+			MediaResource dlna = res.get(0);
 			String mime;
 			InputStream in;
 			long len;
@@ -925,7 +925,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (renderer == null || !renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 			return false;
 		}
-		DLNAResource resource = renderer.getRootFolder().getDLNAResource(resourceId, renderer);
+		MediaResource resource = renderer.getRootFolder().getDLNAResource(resourceId, renderer);
 		if (resource == null) {
 			// another error
 			LOGGER.debug("media unkonwn");
@@ -1071,7 +1071,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 *         metadata names and when applicable, associated IDs, or null
 	 *         when there is no metadata
 	 */
-	private static JsonObject getMetadataAsJsonObject(DLNAResource resource, boolean isTVSeries, Renderer renderer, String lang) {
+	private static JsonObject getMetadataAsJsonObject(MediaResource resource, boolean isTVSeries, Renderer renderer, String lang) {
 		JsonObject result = null;
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection != null) {
@@ -1089,37 +1089,37 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (result == null) {
 			return null;
 		}
-		DLNAResource actorsFolder = null;
-		DLNAResource countriesFolder = null;
-		DLNAResource directorsFolder = null;
-		DLNAResource genresFolder = null;
-		DLNAResource ratedFolder = null;
+		MediaResource actorsFolder = null;
+		MediaResource countriesFolder = null;
+		MediaResource directorsFolder = null;
+		MediaResource genresFolder = null;
+		MediaResource ratedFolder = null;
 		if (CONFIGURATION.isShowMediaLibraryFolder()) {
 			// prepare to get IDs of certain metadata resources, to make them clickable
-			List<DLNAResource> rootFolderChildren = renderer.getRootFolder().getDLNAResources("0", true, 0, 0, renderer, Messages.getString("MediaLibrary"));
+			List<MediaResource> rootFolderChildren = renderer.getRootFolder().getDLNAResources("0", true, 0, 0, renderer, Messages.getString("MediaLibrary"));
 			UMSUtils.filterResourcesByName(rootFolderChildren, Messages.getString("MediaLibrary"), true, true);
 			if (rootFolderChildren.isEmpty()) {
 				return null;
 			}
-			DLNAResource mediaLibraryFolder = rootFolderChildren.get(0);
-			List<DLNAResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, renderer, Messages.getString("Video"));
+			MediaResource mediaLibraryFolder = rootFolderChildren.get(0);
+			List<MediaResource> mediaLibraryChildren = mediaLibraryFolder.getDLNAResources(mediaLibraryFolder.getId(), true, 0, 0, renderer, Messages.getString("Video"));
 			UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
-			DLNAResource videoFolder = mediaLibraryChildren.get(0);
+			MediaResource videoFolder = mediaLibraryChildren.get(0);
 
 			boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
 			String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-			List<DLNAResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, renderer, folderName);
+			List<MediaResource> videoFolderChildren = videoFolder.getDLNAResources(videoFolder.getId(), true, 0, 0, renderer, folderName);
 			UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
-			DLNAResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
+			MediaResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-			List<DLNAResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, renderer, Messages.getString("FilterByInformation"));
+			List<MediaResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getDLNAResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, renderer, Messages.getString("FilterByInformation"));
 			UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
-			DLNAResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
+			MediaResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-			List<DLNAResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, renderer, Messages.getString("Genres"));
+			List<MediaResource> filterByInformationChildren = filterByInformationFolder.getDLNAResources(filterByInformationFolder.getId(), true, 0, 0, renderer, Messages.getString("Genres"));
 
 			for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-				DLNAResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+				MediaResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
 				if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
 					actorsFolder = filterByInformationChild;
 				} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
@@ -1143,7 +1143,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final DLNAResource folder, final Renderer renderer) {
+	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final MediaResource folder, final Renderer renderer) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonArray()) {
@@ -1156,7 +1156,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							JsonObject dlnaChild = new JsonObject();
 							dlnaChild.addProperty("name", value);
 							if (folder != null) {
-								List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, renderer, value);
+								List<MediaResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, renderer, value);
 								UMSUtils.filterResourcesByName(folderChildren, value, true, true);
 								if (!folderChildren.isEmpty()) {
 									dlnaChild.addProperty("id", folderChildren.get(0).getId());
@@ -1171,7 +1171,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static void addStringDlnaId(final JsonObject object, final String memberName, final DLNAResource folder, final Renderer renderer) {
+	private static void addStringDlnaId(final JsonObject object, final String memberName, final MediaResource folder, final Renderer renderer) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonPrimitive()) {
@@ -1179,7 +1179,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				JsonObject dlnaChild = new JsonObject();
 				dlnaChild.addProperty("name", value);
 				if (folder != null) {
-					List<DLNAResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, renderer, value);
+					List<MediaResource> folderChildren = folder.getDLNAResources(folder.getId(), true, 0, 0, renderer, value);
 					UMSUtils.filterResourcesByName(folderChildren, value, true, true);
 					if (!folderChildren.isEmpty()) {
 						dlnaChild.addProperty("id", folderChildren.get(0).getId());

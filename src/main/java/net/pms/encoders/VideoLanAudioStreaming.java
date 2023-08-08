@@ -16,7 +16,7 @@
  */
 package net.pms.encoders;
 
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.util.PlayerUtil;
 
@@ -73,7 +73,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(MediaResource resource) {
 		return PlayerUtil.isWebAudio(resource);
 	}
 }

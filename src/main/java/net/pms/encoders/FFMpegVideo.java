@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
 import net.pms.formats.Format;
@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
  *
  *     public List<String> getAudioBitrateOptions(
  *         String filename,
- *         DLNAResource dlna,
+ *         MediaResource dlna,
  *         MediaInfo media,
  *         OutputParams params
  *     )
@@ -117,7 +117,7 @@ public class FFMpegVideo extends Engine {
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
+	public List<String> getVideoFilterOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
@@ -331,7 +331,7 @@ public class FFMpegVideo extends Engine {
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
+	public synchronized List<String> getVideoTranscodeOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = dlna.getFileName();
 		final Renderer renderer = params.getMediaRenderer();
@@ -500,7 +500,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean dtsRemux) {
+	public List<String> getVideoBitrateOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean dtsRemux) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 		Renderer renderer = params.getMediaRenderer();
@@ -702,7 +702,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
+	public List<String> getAudioBitrateOptions(MediaResource dlna, MediaInfo media, OutputParams params) {
 		Renderer renderer = params.getMediaRenderer();
 		List<String> audioBitrateOptions = new ArrayList<>();
 
@@ -799,7 +799,7 @@ public class FFMpegVideo extends Engine {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		MediaResource dlna,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -1354,7 +1354,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	public synchronized ProcessWrapper launchHlsTranscode(
-		DLNAResource dlna,
+		MediaResource dlna,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -1745,7 +1745,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(MediaResource resource) {
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
@@ -1761,7 +1761,7 @@ public class FFMpegVideo extends Engine {
 	 * Set up a filter to parse ffmpeg's stderr output for info
 	 * (e.g. duration) if required.
 	 */
-	public void setOutputParsing(UmsConfiguration configuration, final DLNAResource dlna, ProcessWrapperImpl pw, boolean force) {
+	public void setOutputParsing(UmsConfiguration configuration, final MediaResource dlna, ProcessWrapperImpl pw, boolean force) {
 		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
 			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
 			if (duration == 0 || duration == MediaInfo.TRANS_SIZE) {

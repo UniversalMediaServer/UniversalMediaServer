@@ -25,16 +25,24 @@ import java.util.zip.ZipFile;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.Parser;
+import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZippedEntry extends DLNAResource implements IPushOutput {
+public class ZippedEntry extends MediaResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedEntry.class);
 	private final File file;
 	private final String zeName;
 	private final long length;
 	private ZipFile zipFile;
+
+	public ZippedEntry(Renderer renderer, File file, String zeName, long length) {
+		super(renderer);
+		this.zeName = zeName;
+		this.file = file;
+		this.length = length;
+	}
 
 	@Override
 	protected String getThumbnailURL(DLNAImageProfile profile) {
@@ -44,12 +52,6 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		}
 
 		return super.getThumbnailURL(profile);
-	}
-
-	public ZippedEntry(File file, String zeName, long length) {
-		this.zeName = zeName;
-		this.file = file;
-		this.length = length;
 	}
 
 	@Override

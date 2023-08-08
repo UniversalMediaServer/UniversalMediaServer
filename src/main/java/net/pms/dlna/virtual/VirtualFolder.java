@@ -18,14 +18,15 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.
  */
-public class VirtualFolder extends DLNAResource {
+public class VirtualFolder extends MediaResource {
 	protected String name;
 	protected String thumbnailIcon;
 
@@ -39,7 +40,8 @@ public class VirtualFolder extends DLNAResource {
 	 *                      available or desired.
 	 * @see #addChild(DLNAResource)
 	 */
-	public VirtualFolder(String name, String thumbnailIcon) {
+	public VirtualFolder(Renderer renderer, String name, String thumbnailIcon) {
+		super(renderer);
 		this.name = name;
 		this.thumbnailIcon = thumbnailIcon;
 	}
@@ -49,7 +51,7 @@ public class VirtualFolder extends DLNAResource {
 	 *
 	 * @return null
 	 * @throws java.io.IOException
-	 * @see net.pms.dlna.DLNAResource#getInputStream()
+	 * @see net.pms.dlna.MediaResource#getInputStream()
 	 */
 	@Override
 	public InputStream getInputStream() throws IOException {
@@ -60,7 +62,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Returns a string representing the container. This string is used in
 	 * the UPNP ContentBrowser service.
 	 *
-	 * @see net.pms.dlna.DLNAResource#getName()
+	 * @see net.pms.dlna.MediaResource#getName()
 	 */
 	@Override
 	public String getName() {
@@ -71,7 +73,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Returns true in this case, as this is a folder.
 	 *
 	 * @return true
-	 * @see net.pms.dlna.DLNAResource#isFolder()
+	 * @see net.pms.dlna.MediaResource#isFolder()
 	 */
 	@Override
 	public boolean isFolder() {
@@ -82,7 +84,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Returns zero as this is a folder (container).
 	 *
 	 * @return 0
-	 * @see net.pms.dlna.DLNAResource#length()
+	 * @see net.pms.dlna.MediaResource#length()
 	 */
 	@Override
 	public long length() {
@@ -98,7 +100,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Returns a {@link InputStream} that represents the thumbnail used.
 	 * @throws IOException
 	 *
-	 * @see DLNAResource#getThumbnailInputStream()
+	 * @see MediaResource#getThumbnailInputStream()
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
@@ -116,7 +118,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Returns true, as a container is always a valid item to add to another
 	 * container.
 	 *
-	 * @see net.pms.dlna.DLNAResource#isValid()
+	 * @see net.pms.dlna.MediaResource#isValid()
 	 */
 	@Override
 	public boolean isValid() {

@@ -49,7 +49,7 @@ public class ResumeObj {
 		return path;
 	}
 
-	private static File resumeFile(DLNAResource r) {
+	private static File resumeFile(MediaResource r) {
 		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").trim();
 		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath(), fName);
@@ -67,7 +67,7 @@ public class ResumeObj {
 	 * @param originalResource
 	 * @return
 	 */
-	public static ResumeObj create(DLNAResource originalResource) {
+	public static ResumeObj create(MediaResource originalResource) {
 		// resume is off bail early
 		if (!originalResource.configuration.isResumeEnabled()) {
 			return null;
@@ -97,7 +97,7 @@ public class ResumeObj {
 		return res;
 	}
 
-	public static ResumeObj store(DLNAResource r, long startTime) {
+	public static ResumeObj store(MediaResource r, long startTime) {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
 		obj.setMinDuration(r.minPlayTime());
@@ -171,7 +171,7 @@ public class ResumeObj {
 		return !file.exists();
 	}
 
-	public void update(TimeRange range, DLNAResource r) {
+	public void update(TimeRange range, MediaResource r) {
 		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
 			long now = System.currentTimeMillis();
 			if (r.getMedia() != null) {

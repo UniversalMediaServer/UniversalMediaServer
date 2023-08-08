@@ -44,12 +44,8 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.dlna.CodeEnter;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DynamicPlaylist;
-import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.Playlist;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.RootFolder;
-import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.YoutubeDl;
@@ -105,8 +101,6 @@ public class PMS {
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	private boolean ready = false;
-
-	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
 
@@ -409,7 +403,7 @@ public class PMS {
 		 * different resource IDs than last time UMS ran. It also populates our
 		 * in-memory value with the database value if the database is enabled.
 		 */
-		DLNAResource.bumpSystemUpdateId();
+		MediaResource.bumpSystemUpdateId();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -445,9 +439,6 @@ public class PMS {
 				splash.setVisible(true);
 			}
 		}
-
-		globalRepo = new GlobalIdRepo();
-		LOGGER.trace("Initialized globalRepo");
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -622,9 +613,6 @@ public class PMS {
 			LOGGER.info("Web player is available at: " + webPlayerServer.getUrl());
 		}
 
-		// initialize the cache
-		mediaLibrary = new MediaLibrary();
-
 		// XXX: this must be called *after* mediaLibrary is initialized, if enabled (above)
 		getRootFolder(null);
 
@@ -665,17 +653,6 @@ public class PMS {
 		}
 
 		return true;
-	}
-
-	private MediaLibrary mediaLibrary;
-
-	/**
-	 * Returns the MediaLibrary.
-	 *
-	 * @return The current {@link MediaLibrary}.
-	 */
-	public MediaLibrary getLibrary() {
-		return mediaLibrary;
 	}
 
 	/**
@@ -721,9 +698,6 @@ public class PMS {
 	 * The trigger is configuration change.
 	 */
 	public void resetMediaLibrary() {
-		if (mediaLibrary != null) {
-			mediaLibrary.reset();
-		}
 		resetRenderersRoot();
 	}
 
@@ -733,7 +707,7 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		DLNAResource.bumpSystemUpdateId();
+		MediaResource.bumpSystemUpdateId();
 	}
 
 	/**
@@ -1091,7 +1065,7 @@ public class PMS {
 	}
 
 	// Note: this should be used only when no Renderer or OutputParams is available
-	public static UmsConfiguration getConfiguration(DLNAResource dlna) {
+	public static UmsConfiguration getConfiguration(MediaResource dlna) {
 		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}
 
@@ -1485,10 +1459,6 @@ public class PMS {
 		return get().ready;
 	}
 
-	public static GlobalIdRepo getGlobalRepo() {
-		return get().globalRepo;
-	}
-
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
@@ -1502,17 +1472,6 @@ public class PMS {
 
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
-	}
-
-	private DynamicPlaylist dynamicPls;
-
-	public Playlist getDynamicPls() {
-		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
-				umsConfiguration.getDynamicPlsSavePath(),
-				(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
-		}
-		return dynamicPls;
 	}
 
 	private static int traceMode = 0;

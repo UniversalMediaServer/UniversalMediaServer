@@ -33,7 +33,7 @@ public class FileSearch implements SearchObj {
 	}
 
 	@Override
-	public void search(String searchString, DLNAResource searcher) {
+	public void search(String searchString, MediaResource searcher) {
 		searchString = searchString.toLowerCase();
 		for (RealFile res : folders) {
 			String name = res.getName().toLowerCase();
@@ -50,14 +50,14 @@ public class FileSearch implements SearchObj {
 		}
 	}
 
-	private void searchFiles(File[] files, String str, DLNAResource searcher, int cnt) {
+	private void searchFiles(File[] files, String str, MediaResource searcher, int cnt) {
 		if (files == null) {
 			return;
 		}
 		for (File f : files) {
 			String name = f.getName().toLowerCase();
 			if (name.contains(str)) {
-				searcher.addChild(new RealFile(f));
+				searcher.addChild(new RealFile(searcher.getDefaultRenderer(), f));
 				continue;
 			}
 			if (f.isDirectory()) {

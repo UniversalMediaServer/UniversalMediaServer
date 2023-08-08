@@ -23,11 +23,12 @@ import org.slf4j.LoggerFactory;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdTypeAndIdent;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
+import net.pms.renderers.Renderer;
 
 /**
  * This VirtualFolder implements support for RealFileDbId's database backed IDs.
@@ -37,8 +38,8 @@ public class VirtualFolderDbId extends VirtualFolder {
 
 	private final DbIdTypeAndIdent typeIdent;
 
-	public VirtualFolderDbId(String folderName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
-		super(folderName, thumbnailIcon);
+	public VirtualFolderDbId(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
+		super(renderer, folderName, thumbnailIcon);
 		this.typeIdent = typeIdent;
 		String id = DbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
@@ -64,7 +65,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	@Override
-	public void addChild(DLNAResource child) {
+	public void addChild(MediaResource child) {
 		addChild(child, false, false);
 		getChildren().add(child);
 		child.setParent(this);
@@ -79,7 +80,7 @@ public class VirtualFolderDbId extends VirtualFolder {
 	}
 
 	@Override
-	protected final void setId(String id) {
+	public final void setId(String id) {
 		if (id != null && id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			super.setId(id);
 		} else {

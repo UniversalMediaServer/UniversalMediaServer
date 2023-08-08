@@ -18,31 +18,32 @@ package net.pms.dlna;
 
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 
 public class SearchFolder extends VirtualFolder {
 	private SearchObj sobj;
 
-	public SearchFolder(SearchObj sobj) {
-		this(Messages.getString("Search"), sobj);
+	public SearchFolder(Renderer renderer, SearchObj sobj) {
+		this(renderer, Messages.getString("Search"), sobj);
 	}
 
-	public SearchFolder(String name, SearchObj sobj) {
-		super(name, null);
+	public SearchFolder(Renderer renderer, String name, SearchObj sobj) {
+		super(renderer, name, null);
 		this.sobj = sobj;
 	}
 
 	private void createSearcher(SearchObj obj, String initStr) {
 		char i;
-		Search s = new Search(obj, initStr);
+		Search s = new Search(defaultRenderer, obj, initStr);
 		addChild(s);
-		addChild(new SearchAction(s, '\0', "Clear"));
-		addChild(new SearchAction(s, ' ', "Space"));
-		addChild(new SearchAction(s, '\b', "Delete"));
+		addChild(new SearchAction(defaultRenderer, s, '\0', "Clear"));
+		addChild(new SearchAction(defaultRenderer, s, ' ', "Space"));
+		addChild(new SearchAction(defaultRenderer, s, '\b', "Delete"));
 		for (i = 'A'; i <= 'Z'; i++) {
-			addChild(new SearchAction(s, i));
+			addChild(new SearchAction(defaultRenderer, s, i));
 		}
 		for (i = '0'; i <= '9'; i++) {
-			addChild(new SearchAction(s, i));
+			addChild(new SearchAction(defaultRenderer, s, i));
 		}
 	}
 

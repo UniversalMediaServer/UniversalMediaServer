@@ -59,7 +59,7 @@ import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.ByteRange;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
@@ -69,6 +69,7 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.TimeRange;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
+import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
@@ -352,7 +353,7 @@ public class RequestHandler implements HttpHandler {
 		ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
 		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		StartStopListenerDelegate startStopListenerDelegate = null;
-		DLNAResource dlna = null;
+		MediaResource dlna = null;
 		InputStream inputStream = null;
 		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		/**
@@ -375,7 +376,7 @@ public class RequestHandler implements HttpHandler {
 		// Retrieve the DLNAresource itself.
 		if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
-				dlna = DbIdResourceLocator.locateResource(id.substring(0, id.indexOf('/')), renderer);
+				dlna = DbIdResourceLocator.locateResource(renderer, id.substring(0, id.indexOf('/')));
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
@@ -486,7 +487,7 @@ public class RequestHandler implements HttpHandler {
 					if (range.getStart() > 0) {
 						inputStream.skip(range.getStart());
 					}
-					inputStream = DLNAResource.wrap(inputStream, range.getEnd(), range.getStart());
+					inputStream = MediaResource.wrap(inputStream, range.getEnd(), range.getStart());
 				}
 			} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 				// This is a request for an image
@@ -538,7 +539,7 @@ public class RequestHandler implements HttpHandler {
 							if (range.getStart() > 0) {
 								inputStream.skip(range.getStart());
 							}
-							inputStream = DLNAResource.wrap(inputStream, range.getEnd(), range.getStart());
+							inputStream = MediaResource.wrap(inputStream, range.getEnd(), range.getStart());
 						}
 					}
 				} catch (IOException ie) {
@@ -583,12 +584,12 @@ public class RequestHandler implements HttpHandler {
 				}
 			} else if (dlna.isCodeValid(dlna)) {
 				// This is a request for a regular file.
-				DLNAResource.Rendering origRendering = null;
+				MediaResource.Rendering origRendering = null;
 				if (!renderer.equals(dlna.getDefaultRenderer())) {
 					// Adjust rendering details for this renderer
 					origRendering = dlna.updateRendering(renderer);
 				}
-				// If range has not been initialized yet and the DLNAResource has its
+				// If range has not been initialized yet and the MediaResource has its
 				// own start and end defined, initialize range with those values before
 				// requesting the input stream.
 				TimeRange splitRange = dlna.getSplitRange();
@@ -887,7 +888,7 @@ public class RequestHandler implements HttpHandler {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(MediaResource.getSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -905,7 +906,7 @@ public class RequestHandler implements HttpHandler {
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					DLNAResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(payload.getObjectId(), renderer);
+					MediaResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(payload.getObjectId(), renderer);
 					File file = new File(dlna.getFileName());
 					String path = file.getCanonicalPath();
 					MediaTableFilesStatus.setBookmark(connection, path, payload.getPosSecond());
@@ -1025,21 +1026,22 @@ public class RequestHandler implements HttpHandler {
 
 		// Xbox 360 virtual containers ... d'oh!
 		String searchCriteria = null;
-		if (xbox360 && CONFIGURATION.getUseCache() && PMS.get().getLibrary().isEnabled() && containerID != null) {
-			if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
-				objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
-			} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
-				objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
-			} else if (containerID.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
-				objectID = PMS.get().getLibrary().getGenreFolder().getResourceId();
-			} else if (containerID.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
-				objectID = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
-			} else if (containerID.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
-				objectID = PMS.get().getLibrary().getAllFolder().getResourceId();
+		if (xbox360 && CONFIGURATION.getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && containerID != null) {
+			MediaLibrary library = renderer.getRootFolder().getLibrary();
+			if (containerID.equals("7") && library.getAlbumFolder() != null) {
+				objectID = library.getAlbumFolder().getResourceId();
+			} else if (containerID.equals("6") && library.getArtistFolder() != null) {
+				objectID = library.getArtistFolder().getResourceId();
+			} else if (containerID.equals("5") && library.getGenreFolder() != null) {
+				objectID = library.getGenreFolder().getResourceId();
+			} else if (containerID.equals("F") && library.getPlaylistFolder() != null) {
+				objectID = library.getPlaylistFolder().getResourceId();
+			} else if (containerID.equals("4") && library.getAllFolder() != null) {
+				objectID = library.getAllFolder().getResourceId();
 			} else if (containerID.equals("1")) {
 				String artist = getEnclosingValue(requestBody, "upnp:artist = &quot;", "&quot;)");
 				if (artist != null) {
-					objectID = PMS.get().getLibrary().getArtistFolder().getResourceId();
+					objectID = library.getArtistFolder().getResourceId();
 					searchCriteria = artist;
 				}
 			}
@@ -1047,7 +1049,7 @@ public class RequestHandler implements HttpHandler {
 			searchCriteria = requestMessage.getSearchCriteria();
 		}
 
-		List<DLNAResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<MediaResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
 				objectID,
 				browseDirectChildren,
 				startingIndex,
@@ -1066,7 +1068,7 @@ public class RequestHandler implements HttpHandler {
 		int minus = 0;
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
-			for (DLNAResource uf : files) {
+			for (MediaResource uf : files) {
 				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
@@ -1113,7 +1115,7 @@ public class RequestHandler implements HttpHandler {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		DLNAResource parentFolder;
+		MediaResource parentFolder;
 
 		if (files != null && filessize > 0) {
 			parentFolder = files.get(0).getParent();
@@ -1168,7 +1170,7 @@ public class RequestHandler implements HttpHandler {
 		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(DLNAResource.getSystemUpdateId());
+		response.append(MediaResource.getSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -1253,7 +1255,7 @@ public class RequestHandler implements HttpHandler {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + DLNAResource.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + MediaResource.getSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -1272,7 +1274,7 @@ public class RequestHandler implements HttpHandler {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(DLNAResource.getSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(MediaResource.getSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

@@ -26,7 +26,7 @@ import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.MediaMonitor;
 import net.pms.media.MediaType;
 import net.pms.formats.Format;
@@ -50,7 +50,7 @@ public class FullyPlayed {
 	public static final BufferedImage THUMBNAIL_OVERLAY_IMAGE;
 
 	/** A static cache of the fully played overlay {@link BufferedImageFilter} */
-	public static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(DLNAResource.THUMBNAIL_HINTS);
+	public static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(MediaResource.THUMBNAIL_HINTS);
 
 	static {
 		BufferedImage tmpThumbnailOverlayImage = null;
@@ -104,7 +104,7 @@ public class FullyPlayed {
 	 * @param resource the resource the be evaluated
 	 * @return The result
 	 */
-	public static boolean isHideFullyPlayed(DLNAResource resource) {
+	public static boolean isHideFullyPlayed(MediaResource resource) {
 		return
 			resource != null &&
 			configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
@@ -124,10 +124,10 @@ public class FullyPlayed {
 	 * Prefixes the specified string with a "fully played" text.
 	 *
 	 * @param displayName the {@link String} to prefix.
-	 * @param resource the {@link DLNAResource} representing the media.
+	 * @param resource the {@link MediaResource} representing the media.
 	 * @return The prefixed {@link String}.
 	 */
-	public static String addFullyPlayedNamePrefix(String displayName, DLNAResource resource) {
+	public static String addFullyPlayedNamePrefix(String displayName, MediaResource resource) {
 		MediaType mediaType;
 		if (resource.getMedia() != null) {
 			mediaType = resource.getMedia().getMediaType();

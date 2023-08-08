@@ -17,9 +17,10 @@
 package net.pms.dlna;
 
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.renderers.Renderer;
 
 /**
- * The ChapterFileTranscodeVirtualFolder is a {@link DLNAResource} container that
+ * The ChapterFileTranscodeVirtualFolder is a {@link MediaResource} container that
  * examines the media to be transcoded and creates several virtual children. This
  * is done by taking the full length of the media and creating virtual chapters
  * by means of a specified interval length. These virtual chapters are presented
@@ -39,25 +40,25 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	 * @param interval The interval (in minutes) at which a chapter marker will be
 	 * 			placed.
 	 */
-	public ChapterFileTranscodeVirtualFolder(String name, String thumbnailIcon, int interval) {
-		super(name, thumbnailIcon);
+	public ChapterFileTranscodeVirtualFolder(Renderer renderer, String name, String thumbnailIcon, int interval) {
+		super(renderer, name, thumbnailIcon);
 		this.interval = interval;
 	}
 
 	/* (non-Javadoc)
-	 * @see net.pms.dlna.DLNAResource#resolve()
+	 * @see net.pms.dlna.MediaResource#resolve()
 	 */
 	@Override
 	protected void resolveOnce() {
 		if (getChildren().size() == 1) { // OK
-			DLNAResource child = getChildren().get(0);
+			MediaResource child = getChildren().get(0);
 			child.syncResolve();
 			int nbMinutes = (int) (child.getMedia().getDurationInSeconds() / 60);
 			int nbIntervals = nbMinutes / interval;
 
 			for (int i = 1; i <= nbIntervals; i++) {
 				// TODO: Remove clone(), instead create a new object from scratch to avoid unwanted cross references.
-				DLNAResource newChildNoSub = child.clone();
+				MediaResource newChildNoSub = child.clone();
 				newChildNoSub.setEngine(child.getEngine());
 				newChildNoSub.setMedia(child.getMedia());
 				newChildNoSub.setNoName(true);

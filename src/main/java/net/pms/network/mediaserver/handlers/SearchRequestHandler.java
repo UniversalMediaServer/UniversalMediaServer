@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
 import net.pms.dlna.DbIdTypeAndIdent;
@@ -127,14 +127,14 @@ public class SearchRequestHandler {
 
 		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbIdTypeAndIdent(requestType, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
-		for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
+		for (MediaResource resource : getDLNAResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
 		}
 
 		folder.discoverChildren();
-		for (DLNAResource uf : folder.getChildren()) {
+		for (MediaResource uf : folder.getChildren()) {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
@@ -154,14 +154,14 @@ public class SearchRequestHandler {
 
 		int totalMatches = getDLNAResourceCountFromSQL(convertToCountSql(searchCriteria, requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId("Search Result", new DbIdTypeAndIdent(requestType, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
 		String sqlFiles = convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-		for (DLNAResource resource : getDLNAResourceFromSQL(sqlFiles, requestType)) {
+		for (MediaResource resource : getDLNAResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
 		}
 
 		folder.discoverChildren();
-		for (DLNAResource uf : folder.getChildren()) {
+		for (MediaResource uf : folder.getChildren()) {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
@@ -513,8 +513,8 @@ public class SearchRequestHandler {
 	 * @param query
 	 * @return
 	 */
-	private List<DLNAResource> getDLNAResourceFromSQL(String query, DbIdMediaType type) {
-		ArrayList<DLNAResource> filesList = new ArrayList<>();
+	private List<MediaResource> getDLNAResourceFromSQL(Renderer renderer, String query, DbIdMediaType type) {
+		ArrayList<MediaResource> filesList = new ArrayList<>();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
@@ -532,10 +532,10 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										filesList.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
+										filesList.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											VirtualFolderDbId albumFolder = new VirtualFolderDbId(filenameField,
+											VirtualFolderDbId albumFolder = new VirtualFolderDbId(renderer, filenameField,
 												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
 												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
@@ -547,19 +547,19 @@ public class SearchRequestHandler {
 									}
 								}
 								case TYPE_PERSON -> filesList
-									.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
-								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbId(filenameField,
+									.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
+								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField), ""));
-								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbId(filenameField,
+								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField), ""));
-								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbId(filenameField,
+								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField), ""));
 								case TYPE_PLAYLIST -> filesList
-									.add(new VirtualFolderDbId(filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
+									.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										filesList.add(new RealFileDbId(new DbIdTypeAndIdent(type, resultSet.getString("FID")),
+										filesList.add(new RealFileDbId(renderer, new DbIdTypeAndIdent(type, resultSet.getString("FID")),
 											new File(realFileName)));
 									}
 								}

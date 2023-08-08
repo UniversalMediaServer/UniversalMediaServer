@@ -18,17 +18,18 @@ package net.pms.dlna;
 
 import java.io.IOException;
 import net.pms.dlna.virtual.*;
+import net.pms.renderers.Renderer;
 
 public class SearchAction extends VirtualFolder {
 	private Search sobj;
 	private char ch;
 
-	public SearchAction(Search sobj, char ch) {
-		this(sobj, ch, String.valueOf(ch));
+	public SearchAction(Renderer renderer, Search sobj, char ch) {
+		this(renderer, sobj, ch, String.valueOf(ch));
 	}
 
-	public SearchAction(Search sobj, char ch, String name) {
-		super(name, "images/Play1Hot_120.jpg");
+	public SearchAction(Renderer renderer, Search sobj, char ch, String name) {
+		super(renderer, name, "images/Play1Hot_120.jpg");
 		this.sobj = sobj;
 		this.ch = ch;
 		this.name = name;

@@ -38,10 +38,10 @@ import org.slf4j.LoggerFactory;
  */
 public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
-	private final DLNAResource originalResource;
+	private final MediaResource originalResource;
 
-	public FileTranscodeVirtualFolder(DLNAResource resource) {
-		super(resource.getDisplayNameBase(), (String) null);
+	public FileTranscodeVirtualFolder(Renderer renderer, MediaResource resource) {
+		super(renderer, resource.getDisplayNameBase(), (String) null);
 		originalResource = resource;
 	}
 
@@ -49,19 +49,19 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 * Create a copy of the provided original resource and optionally set
 	 * the copy's audio track, subtitle track and engine.
 	 *
-	 * @param original The original {@link DLNAResource} to create a copy of.
+	 * @param original The original {@link MediaResource} to create a copy of.
 	 * @param audio The audio track to use.
 	 * @param subtitle The subtitle track to use.
 	 * @param engine The engine to use.
 	 * @return The copy.
 	 */
-	private static DLNAResource createResourceWithAudioSubtitleEngine(
-		DLNAResource original,
+	private static MediaResource createResourceWithAudioSubtitleEngine(
+		MediaResource original,
 		MediaAudio audio,
 		MediaSubtitle subtitle,
 		Engine engine) {
 		// FIXME clone is broken. should be e.g. original.newInstance()
-		DLNAResource copy = original.clone();
+		MediaResource copy = original.clone();
 		copy.setMedia(original.getMedia());
 		copy.setNoName(true);
 		copy.setMediaAudio(audio);
@@ -75,7 +75,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 * Helper class to take care of sorting the resources correctly. Resources
 	 * are sorted by engine, then by audio track, then by subtitle.
 	 */
-	private static class ResourceSort implements Comparator<DLNAResource> {
+	private static class ResourceSort implements Comparator<MediaResource> {
 
 		private final List<Engine> engines;
 
@@ -83,11 +83,11 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			this.engines = engines;
 		}
 
-		private static String getMediaAudioLanguage(DLNAResource dlna) {
+		private static String getMediaAudioLanguage(MediaResource dlna) {
 			return dlna.getMediaAudio() == null ? null : dlna.getMediaAudio().getLang();
 		}
 
-		private static String getMediaSubtitleLanguage(DLNAResource dlna) {
+		private static String getMediaSubtitleLanguage(MediaResource dlna) {
 			return dlna.getMediaSubtitle() == null ? null : dlna.getMediaSubtitle().getLang();
 		}
 
@@ -105,7 +105,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		}
 
 		@Override
-		public int compare(DLNAResource dlna1, DLNAResource dlna2) {
+		public int compare(MediaResource dlna1, MediaResource dlna2) {
 			Integer engineIndex1 = engines.indexOf(dlna1.getEngine());
 			Integer engineIndex2 = engines.indexOf(dlna2.getEngine());
 
@@ -127,13 +127,13 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		}
 	}
 
-	private static boolean isSeekable(DLNAResource dlna) {
+	private static boolean isSeekable(MediaResource dlna) {
 		Engine engine = dlna.getEngine();
 
 		return (engine == null) || engine.isTimeSeekable();
 	}
 
-	private void addChapterFolder(DLNAResource dlna) {
+	private void addChapterFolder(MediaResource dlna) {
 		if (!dlna.getFormat().isVideo()) {
 			return;
 		}
@@ -150,12 +150,13 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			}
 
 			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
+				defaultRenderer,
 				String.format(
 				Messages.getString("ChapterX"),
 				dlna.getDisplayName()),
 				null,
 				chapterInterval);
-			DLNAResource copy = dlna.clone();
+			MediaResource copy = dlna.clone();
 			copy.setNoName(true);
 			chapterFolder.addChildInternal(copy);
 			addChildInternal(chapterFolder);
@@ -209,7 +210,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			MediaAudio singleAudioTrack = audioTracks.size() == 1 ? audioTracks.get(0) : null;
 
 			// assemble copies for each combination of audio, subtitle and engine
-			ArrayList<DLNAResource> entries = new ArrayList<>();
+			ArrayList<MediaResource> entries = new ArrayList<>();
 
 			// First, add the option to simply stream the resource.
 			if (renderer != null) {
@@ -220,7 +221,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				);
 			}
 
-			DLNAResource noTranscode = createResourceWithAudioSubtitleEngine(originalResource, singleAudioTrack, null, null);
+			MediaResource noTranscode = createResourceWithAudioSubtitleEngine(originalResource, singleAudioTrack, null, null);
 			addChildInternal(noTranscode);
 			addChapterFolder(noTranscode);
 
@@ -276,14 +277,14 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				for (MediaSubtitle subtitle : subtitlesTracks) {
 					// Create a temporary copy of the child with the audio and
 					// subtitle modified in order to be able to match engines to it.
-					DLNAResource temp = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, null);
+					MediaResource temp = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, null);
 
 					// Determine which engines match this audio track and subtitle
 					List<Engine> engines = EngineFactory.getEngines(temp);
 
 					// create a copy for each compatible engine
 					for (Engine engine : engines) {
-						DLNAResource copy = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, engine);
+						MediaResource copy = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, engine);
 						entries.add(copy);
 					}
 				}
@@ -296,7 +297,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
 						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource)
 					) {
-						DLNAResource copy = createResourceWithAudioSubtitleEngine(originalResource, singleAudioTrack, subtitlesTrack, null);
+						MediaResource copy = createResourceWithAudioSubtitleEngine(originalResource, singleAudioTrack, subtitlesTrack, null);
 						entries.add(copy);
 					}
 
@@ -307,7 +308,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			Collections.sort(entries, new ResourceSort(EngineFactory.getEngines()));
 
 			// Now add the sorted list of combinations to the folder
-			for (DLNAResource dlna : entries) {
+			for (MediaResource dlna : entries) {
 				LOGGER.trace(
 					"Adding {}: audio: {}, subtitle: {}, engine: {}",
 					dlna.getName(),
