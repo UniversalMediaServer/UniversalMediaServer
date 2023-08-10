@@ -1824,12 +1824,25 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 *         response, as some renderers might not have enough memory to hold
 	 *         the list for all children.
 	 */
-	public int childrenNumber() {
+	public int childrenCount() {
 		if (children == null) {
 			return 0;
 		}
 
 		return children.size();
+	}
+
+	/**
+	 * Clear all resources in children.
+	 */
+	public void clearChildren() {
+		if (children == null) {
+			return;
+		}
+		for (MediaResource resource : children) {
+			resource.clearChildren();
+		}
+		children.clear();
 	}
 
 	/**
@@ -2159,7 +2172,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 
 		addAttribute(sb, "id", resourceId);
 		if (isFolder) {
-			if (!isDiscovered() && childrenNumber() == 0) {
+			if (!isDiscovered() && childrenCount() == 0) {
 				// When a folder has not been scanned for resources, it will
 				// automatically have zero children.
 				// Some renderers like XBMC will assume a folder is empty when
@@ -2167,11 +2180,11 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 				// will not display the folder. By returning childCount="1"
 				// these renderers will still display
 				// the folder. When it is opened, its children will be
-				// discovered and childrenNumber() will be
+				// discovered and childrenCount() will be
 				// set to the right value.
 				addAttribute(sb, "childCount", 1);
 			} else {
-				addAttribute(sb, "childCount", childrenNumber());
+				addAttribute(sb, "childCount", childrenCount());
 			}
 		}
 

@@ -78,7 +78,6 @@ public class Renderer extends RendererDeviceConfiguration {
 	public final Map<String, String> data = new HashMap<>();
 	private final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 	public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
-	private final GlobalIdRepo globalRepo = new GlobalIdRepo();
 
 	private int controls;
 	protected ActionEvent event;
@@ -96,9 +95,10 @@ public class Renderer extends RendererDeviceConfiguration {
 	private MediaResource playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
+	private String automaticVideoQuality;
 
 	private volatile RootFolder rootFolder;
-	private String automaticVideoQuality;
+	private GlobalIdRepo globalRepo;
 
 	public Renderer(String uuid) throws ConfigurationException, InterruptedException {
 		super(uuid);
@@ -116,7 +116,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	private void setup() {
-		setRootFolder(null);
+		resetRootFolder();
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
 			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
@@ -176,6 +176,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 */
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
+			getGlobalRepo();
 			rootFolder = new RootFolder(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
@@ -186,17 +187,27 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	public GlobalIdRepo getGlobalRepo() {
+		if (globalRepo == null) {
+			globalRepo = new GlobalIdRepo();
+		}
 		return globalRepo;
+	}
+
+	public void resetRootFolder() {
+		if (rootFolder != null) {
+			rootFolder.clearChildren();
+			rootFolder = null;
+		}
+		if (globalRepo != null) {
+			globalRepo.clear();
+			globalRepo = null;
+		}
 	}
 
 	public void addFolderLimit(MediaResource res) {
 		if (rootFolder != null) {
 			rootFolder.setFolderLim(res);
 		}
-	}
-
-	public synchronized void setRootFolder(RootFolder r) {
-		rootFolder = r;
 	}
 
 	/**

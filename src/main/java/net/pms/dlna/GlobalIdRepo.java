@@ -93,6 +93,17 @@ public class GlobalIdRepo {
 		}
 	}
 
+	public void clear() {
+		lock.writeLock().lock();
+		try {
+			ids.clear();
+			curGlobalId = 1;
+			deletionsCount = 0;
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
 	private void delete(int index) {
 		lock.writeLock().lock();
 		try {

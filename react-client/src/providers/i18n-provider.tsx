@@ -18,9 +18,9 @@ import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
-import { i18nContext, LanguageValue } from '../contexts/i18n-context';
-import { i18nApiUrl } from '../utils';
 import { ExclamationMark } from 'tabler-icons-react';
+import I18nContext, { LanguageValue } from '../contexts/i18n-context';
+import { i18nApiUrl } from '../utils';
 
 interface Props {
   children?: ReactNode,
@@ -92,7 +92,7 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
       });
   }, [language]);
 
-  const { Provider } = i18nContext;
+  const { Provider } = I18nContext;
   return (
     <Provider value={{
       get: i18n,

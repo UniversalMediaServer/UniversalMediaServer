@@ -16,15 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const PlayerEventContext: Context<{
-  connectionStatus: number;
-  reqId: string;
-  reqType: string;
-  askReqId: (id: string, type: string) => void;
-  askBrowseId: (id: string) => void;
-  askPlayId: (id: string) => void;
-  askShowId: (id: string) => void;
-}> = createContext({
+export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   connectionStatus: 0,
   reqId: '0',
   reqType: 'browse',
@@ -33,5 +25,15 @@ export const PlayerEventContext: Context<{
   askPlayId: (id: string) => { },
   askShowId: (id: string) => { },
 });
+
+export interface PlayerEventInterface {
+  connectionStatus: number;
+  reqId: string;
+  reqType: string;
+  askReqId: (id: string, type: string) => void;
+  askBrowseId: (id: string) => void;
+  askPlayId: (id: string) => void;
+  askShowId: (id: string) => void;
+}
 
 export default PlayerEventContext;

@@ -112,7 +112,7 @@ public class DVDISOFile extends VirtualFolder {
 			}
 		}
 
-		if (childrenNumber() > 0) {
+		if (childrenCount() > 0) {
 			storeFileInCache(file, Format.ISO);
 		}
 

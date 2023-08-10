@@ -64,7 +64,8 @@ import org.slf4j.LoggerFactory;
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
-	private static final Color BUF_COLOR = new Color(75, 140, 181, 128);
+	private static final Color DB_COLOR = new Color(75, 140, 181, 128);
+	private static final Color BUF_COLOR = new Color(255, 128, 0, 128);
 	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
 	private static final int MINIMUM_FILENAME_DISPLAY_SIZE = 200;
 
@@ -332,7 +333,7 @@ public class StatusTab {
 
 		builder.add(rsp, cc.xyw(1, 3, 5));
 
-		cmp = builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
+		builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
 		connectedIcon.start();
 		searchingIcon.start();
@@ -368,6 +369,7 @@ public class StatusTab {
 		memBarUI.setActiveLabel("{}", Color.white, 0);
 		memBarUI.setActiveLabel("{}", Color.red, 90);
 		memBarUI.addSegment("", MEM_COLOR);
+		memBarUI.addSegment("", DB_COLOR);
 		memBarUI.addSegment("", BUF_COLOR);
 		memBarUI.setTickMarks(getTickMarks(), "{}");
 		JProgressBar memoryProgressBar = new GuiUtil.CustomUIProgressBar(0, 100, memBarUI);
@@ -575,10 +577,8 @@ public class StatusTab {
 		return mb < 1000 ? 100 : mb < 2500 ? 250 : mb < 5000 ? 500 : 1000;
 	}
 
-	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
-		SwingUtilities.invokeLater(() -> {
-			memBarUI.setValues(0, maxMemory, (usedMemory - bufferMemory), bufferMemory);
-		});
+	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
+		SwingUtilities.invokeLater(() -> memBarUI.setValues(0, maxMemory, Math.max(0, usedMemory - dbCacheMemory - bufferMemory), dbCacheMemory, bufferMemory));
 	}
 
 }

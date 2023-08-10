@@ -1196,7 +1196,7 @@ public class RequestV2 extends HTTPResource {
 
 			response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
 		} else if (browseDirectChildren) {
-			response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
+			response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenCount() : filessize) - minus).append("</TotalMatches>");
 		} else {
 			// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
 			response.append("<TotalMatches>1</TotalMatches>");

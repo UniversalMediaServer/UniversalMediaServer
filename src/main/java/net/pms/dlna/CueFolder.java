@@ -185,7 +185,7 @@ public class CueFolder extends MediaResource {
 						if (lastTrackSplitRange != null && lastTrackMedia != null) {
 							lastTrackSplitRange.setEnd(lastTrackMedia.getDurationInSeconds());
 							lastTrackMedia.setDuration(lastTrackSplitRange.getDuration());
-							LOGGER.debug("Track #" + childrenNumber() + " split range: " + lastTrackSplitRange.getStartOrZero() + " - " + lastTrackSplitRange.getDuration());
+							LOGGER.debug("Track #" + childrenCount() + " split range: " + lastTrackSplitRange.getStartOrZero() + " - " + lastTrackSplitRange.getDuration());
 						}
 					}
 

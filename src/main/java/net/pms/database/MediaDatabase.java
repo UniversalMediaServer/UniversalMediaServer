@@ -262,4 +262,19 @@ public class MediaDatabase extends Database {
 		}
 	}
 
+	public static int getCacheSize() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					return DatabaseEmbedded.getCacheSize(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return 0;
+	}
+
 }

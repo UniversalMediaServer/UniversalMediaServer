@@ -51,8 +51,8 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
-		SseApiServlet.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
+		SseApiServlet.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 	}
 
 	@Override

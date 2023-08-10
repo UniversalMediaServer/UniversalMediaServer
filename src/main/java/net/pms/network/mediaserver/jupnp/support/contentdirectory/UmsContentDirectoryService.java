@@ -395,7 +395,7 @@ public class UmsContentDirectoryService {
 				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
 			}
 			if (parentFolder != null) {
-				totalMatches = parentFolder.childrenNumber() - minus;
+				totalMatches = parentFolder.childrenCount() - minus;
 			} else {
 				totalMatches = filessize - minus;
 			}
@@ -570,7 +570,7 @@ public class UmsContentDirectoryService {
 				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(containerId, renderer);
 			}
 			if (parentFolder != null) {
-				totalMatches = parentFolder.childrenNumber() - minus;
+				totalMatches = parentFolder.childrenCount() - minus;
 			} else {
 				totalMatches = filessize - minus;
 			}
