@@ -62,14 +62,6 @@ public class DoubleRecordFilter {
 		return mbidGenres.get(album);
 	}
 
-	/**
-	 * Adds song genres to current musicbrainz-release genere field.
-	 *
-	 * @param album
-	 */
-	private void addGenres(MusicBrainzAlbum album) {
-	}
-
 	public Set<MusicBrainzAlbum> getUniqueAlbumSet() {
 		return albumObjects;
 	}

@@ -393,6 +393,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 								}
 							}
 							default -> {
+								// nothing to do
 							}
 						}
 						// Output is files
@@ -433,13 +434,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 			}
 		}
 
-		oldFiles.forEach(fileResource -> {
-			getChildren().remove(fileResource);
-		});
+		oldFiles.forEach(fileResource -> getChildren().remove(fileResource));
 
-		oldVirtualFolders.forEach(virtualFolderResource -> {
-			getChildren().remove(virtualFolderResource);
-		});
+		oldVirtualFolders.forEach(virtualFolderResource -> getChildren().remove(virtualFolderResource));
 
 		// Add filters at the top
 		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
@@ -699,6 +696,9 @@ public class MediaLibraryFolder extends VirtualFolder {
 				case EPISODES_WITHIN_SEASON -> addChild(new RealFile(defaultRenderer, file, true));
 				case PLAYLISTS -> addChild(new PlaylistFolder(defaultRenderer, file));
 				case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(defaultRenderer, file));
+				default -> {
+					// nothing to do
+				}
 			}
 		}
 

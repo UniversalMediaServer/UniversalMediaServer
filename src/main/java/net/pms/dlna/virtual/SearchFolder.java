@@ -48,6 +48,7 @@ public class SearchFolder extends VirtualFolder {
 
 	@Override
 	public synchronized void resolve() {
+		//this resource never resolve
 	}
 
 	@Override

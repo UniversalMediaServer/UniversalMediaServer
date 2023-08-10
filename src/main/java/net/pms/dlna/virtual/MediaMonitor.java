@@ -81,7 +81,7 @@ public class MediaMonitor extends VirtualFolder {
 				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
 					for (Entry<String, Boolean> entry : FULLY_PLAYED_ENTRIES.entrySet()) {
-						if (entry.getValue()) {
+						if (Boolean.TRUE.equals(entry.getValue())) {
 							fullyPlayedPaths.add(entry.getKey());
 						}
 					}
