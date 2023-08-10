@@ -59,7 +59,9 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.virtual.ChapterFileTranscodeVirtualFolder;
 import net.pms.dlna.virtual.CodeEnter;
+import net.pms.dlna.virtual.FileTranscodeVirtualFolder;
 import net.pms.dlna.virtual.SubSelFile;
 import net.pms.dlna.virtual.SubSelect;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -3676,7 +3678,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @param mediaAudio The audio object containing detailed information.
 	 * @since 1.50
 	 */
-	protected void setMediaAudio(MediaAudio mediaAudio) {
+	public void setMediaAudio(MediaAudio mediaAudio) {
 		this.mediaAudio = mediaAudio;
 	}
 
@@ -4311,7 +4313,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @param noName Set to true if the resource is nameless.
 	 * @since 1.50
 	 */
-	protected void setNoName(boolean noName) {
+	public void setNoName(boolean noName) {
 		this.noName = noName;
 	}
 

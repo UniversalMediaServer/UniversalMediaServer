@@ -16,7 +16,6 @@
  */
 package net.pms.dlna;
 
-import net.pms.dlna.virtual.Playlist;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -24,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import net.pms.PMS;
+import net.pms.dlna.virtual.Playlist;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.renderers.Renderer;
@@ -152,7 +152,7 @@ public final class PlaylistFolder extends MediaResource {
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
 			} catch (IOException e) {
 				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
-					e.getMessage());
+						e.getMessage());
 				LOGGER.trace("", e);
 			}
 			return result != null ? result : super.getThumbnailInputStream();

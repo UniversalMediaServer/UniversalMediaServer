@@ -18,8 +18,8 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.MediaResource;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.MediaVideo;

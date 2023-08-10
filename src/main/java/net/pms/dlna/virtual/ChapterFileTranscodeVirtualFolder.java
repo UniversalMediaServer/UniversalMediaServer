@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
-import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.TimeRange;
 
@@ -37,13 +37,14 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	 * icon for a thumbnail and the interval at which chapter markers must be placed
 	 * when the children are created by {@link #syncResolve()}.
 	 * @param name The name of this instance.
-	 * @param thumbnailIcon The thumbnail for this instance.
+	 * @param child The chapter folder for this instance.
 	 * @param interval The interval (in minutes) at which a chapter marker will be
 	 * 			placed.
 	 */
-	public ChapterFileTranscodeVirtualFolder(Renderer renderer, String name, String thumbnailIcon, int interval) {
-		super(renderer, name, thumbnailIcon);
+	public ChapterFileTranscodeVirtualFolder(Renderer renderer, String name, MediaResource child, int interval) {
+		super(renderer, name, null);
 		this.interval = interval;
+		addChildInternal(child);
 	}
 
 	/* (non-Javadoc)

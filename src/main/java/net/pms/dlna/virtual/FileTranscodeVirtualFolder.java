@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,7 +23,8 @@ import java.util.Comparator;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.virtual.TranscodeVirtualFolder;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.MediaResource;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.media.audio.MediaAudio;
@@ -133,32 +134,30 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		return (engine == null) || engine.isTimeSeekable();
 	}
 
-	private void addChapterFolder(MediaResource dlna) {
-		if (!dlna.getFormat().isVideo()) {
+	private void addChapterFolder(MediaResource resource) {
+		if (!resource.getFormat().isVideo()) {
 			return;
 		}
 
 		int chapterInterval = configuration.isChapterSupport() ?
 			configuration.getChapterInterval() : -1;
 
-		if ((chapterInterval > 0) && isSeekable(dlna)) {
+		if ((chapterInterval > 0) && isSeekable(resource)) {
 			// don't add a chapter folder if the duration of the video
 			// is less than the chapter length.
-			double duration = dlna.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
+			double duration = resource.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
 			if (duration != 0 && duration <= (chapterInterval * 60)) {
 				return;
 			}
 
+			MediaResource copy = resource.clone();
+			copy.setNoName(true);
 			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
 				defaultRenderer,
-				String.format(
-				Messages.getString("ChapterX"),
-				dlna.getDisplayName()),
-				null,
+				String.format(Messages.getString("ChapterX"), resource.getDisplayName()),
+				copy,
 				chapterInterval);
-			MediaResource copy = dlna.clone();
-			copy.setNoName(true);
-			chapterFolder.addChildInternal(copy);
+
 			addChildInternal(chapterFolder);
 		}
 	}
