@@ -40,7 +40,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -76,7 +75,7 @@ public class SubtitleUtils {
 	private static final char[] SUBTITLES_UPPER_CASE;
 	private static final char[] SUBTITLES_LOWER_CASE;
 	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
-	public static File EXTRACTED_SUBTITLES_FOLDER = new File(PMS.getConfiguration().getDataFile(SubtitleUtils.SUB_DIR));
+	public static File extractedSubtitlesFolder = new File(PMS.getConfiguration().getDataFile(SubtitleUtils.SUB_DIR));
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -136,8 +135,8 @@ public class SubtitleUtils {
 			}
 		}
 
-		if (!EXTRACTED_SUBTITLES_FOLDER.isDirectory()) {
-			EXTRACTED_SUBTITLES_FOLDER = null;
+		if (!extractedSubtitlesFolder.isDirectory()) {
+			extractedSubtitlesFolder = null;
 		}
 	}
 
@@ -1050,8 +1049,8 @@ public class SubtitleUtils {
 			}
 		}
 
-		if (EXTRACTED_SUBTITLES_FOLDER != null) {
-			folders.add(EXTRACTED_SUBTITLES_FOLDER);
+		if (extractedSubtitlesFolder != null) {
+			folders.add(extractedSubtitlesFolder);
 		}
 
 		if (folders.isEmpty()) {

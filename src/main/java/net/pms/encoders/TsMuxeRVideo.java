@@ -159,9 +159,6 @@ public class TsMuxeRVideo extends Engine {
 		PipeIPCProcess[] ffAudioPipe = null;
 		ProcessWrapperImpl[] ffAudio = null;
 
-		PipeIPCProcess[] ffSubtitlesPipe = null;
-		ProcessWrapperImpl[] ffSubtitles = null;
-
 		String fps = media.getValidFps(false);
 
 		int width  = media.getWidth();
@@ -303,14 +300,9 @@ public class TsMuxeRVideo extends Engine {
 			ffparams.setStdIn(params.getStdIn());
 			ffVideo = new ProcessWrapperImpl(ffmpegPipeVideoStreamCommands, ffparams);
 
-			int numSubtitlesTracks = 0;
 
 			if (media.getAudioTracksList() != null && media.getAudioTracksList().size() > 1 && configuration.isMuxAllAudioTracks()) {
 				numAudioTracks = media.getAudioTracksList().size();
-			}
-
-			if (media.getSubtitlesTracks() != null && media.getSubtitlesTracks().size() > 0) {
-				numSubtitlesTracks = media.getSubtitlesTracks().size();
 			}
 
 			if (params.getAid() != null) {
@@ -392,34 +384,6 @@ public class TsMuxeRVideo extends Engine {
 					ffAudio[i] = new ProcessWrapperImpl(ffmpegAudioStreamCommands, ffparams);
 				}
 			}
-
-			// define subtitle streams if the renderer supports PGS inside MPEG-TS
-			if (params.getSid() != null && renderer.getFormatConfiguration().isMpegtsPgsSupported(renderer)) {
-				ffSubtitlesPipe = new PipeIPCProcess[numSubtitlesTracks];
-				ffSubtitles = new ProcessWrapperImpl[numSubtitlesTracks];
-
-				boolean singleMediaSubtitles = media.getSubtitlesTracks().size() == 1;
-
-				DLNAMediaSubtitle subtitlesTrack = params.getSid();
-				ffSubtitlesPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg", System.currentTimeMillis() + "subtitlestrackout", false, true);
-
-				String[] ffmpegSubtitlesStreamCommands;
-				ffmpegSubtitlesStreamCommands = new String[] {
-					EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
-					"-ss", params.getTimeSeek() > 0 ? "" + params.getTimeSeek() : "0",
-					"-i", filename,
-					"-f", "srt",
-					"-c:s", "copy",
-					singleMediaSubtitles ? "-y" : "-map", singleMediaSubtitles ? "-y" : ("0:s:" + (media.getSubtitlesTracks().indexOf(subtitlesTrack))),
-					"-y",
-					ffSubtitlesPipe[0].getInputPipe()
-				};
-
-				ffparams = new OutputParams(configuration);
-				ffparams.setMaxBufferSize(1);
-				ffparams.setStdIn(params.getStdIn());
-				ffSubtitles[0] = new ProcessWrapperImpl(ffmpegSubtitlesStreamCommands, ffparams);
-			}
 		}
 
 		// this section writes the file with instructions for tsMuxeR
@@ -490,19 +454,6 @@ public class TsMuxeRVideo extends Engine {
 					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + trackCounter++);
 				}
 			}
-
-			if (ffSubtitlesPipe != null) {
-				String fontDisplay = ",font-name=\"Arial\",font-size=65,font-color=0xffffffff,bottom-offset=24,font-border=5,text-align=center";
-				String dimensions = ",video-width=" + media.getWidth() + ",video-height=" + media.getHeight();
-				String fpsString = ",fps=" + (fps != null ? fps : media.getFrameRate());
-
-				DLNAMediaSubtitle subtitlesTrack = params.getSid();
-				if (subtitlesTrack != null) {
-					String language = ",lang=" + subtitlesTrack.getLang();
-
-					pw.println("S_TEXT/UTF8, \"" + ffSubtitlesPipe[0].getOutputPipe() + "\", track=" +  + trackCounter++ + fontDisplay + dimensions + fpsString + language);
-				}
-			}
 		}
 
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -544,18 +495,6 @@ public class TsMuxeRVideo extends Engine {
 				ffAudioPipe[i].deleteLater();
 				p.attachProcess(ffAudio[i]);
 				ffAudio[i].runInNewThread();
-			}
-		}
-
-		if (ffSubtitlesPipe != null && ffSubtitles != null && params.getSid() != null) {
-			for (int i = 0; i < ffSubtitlesPipe.length; i++) {
-				ffPipeProcess = ffSubtitlesPipe[i].getPipeProcess();
-				p.attachProcess(ffPipeProcess);
-				ffPipeProcess.runInNewThread();
-				UMSUtils.sleep(50);
-				ffSubtitlesPipe[i].deleteLater();
-				p.attachProcess(ffSubtitles[i]);
-				ffSubtitles[i].runInNewThread();
 			}
 		}
 
