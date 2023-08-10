@@ -14,37 +14,32 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.renderers.devices;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.Renderer;
+import org.apache.commons.configuration.ConfigurationException;
 
-public class DynamicPlaylist extends Playlist {
-	private final String savePath;
-	private long start;
+public final class MediaScannerDevice extends Renderer {
 
-	public DynamicPlaylist(Renderer renderer, String name, String dir, int mode) {
-		super(renderer, name, null, 0, mode);
-		savePath = dir;
-		start = 0;
+	public MediaScannerDevice() throws ConfigurationException, InterruptedException {
+		super((RendererConfiguration) null);
 	}
 
 	@Override
-	public void clear() {
-		super.clear();
-		start = 0;
+	public String getRendererName() {
+		return "MediaScanner";
 	}
 
-	@Override
-	public void save() {
-		if (start == 0) {
-			start = System.currentTimeMillis();
+	public static MediaScannerDevice getMediaScannerDevice() {
+		try {
+			return new MediaScannerDevice();
+		} catch (ConfigurationException e) {
+			// should not log
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
-		Date d = new Date(start);
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
-		list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
+		return null;
 	}
+
 }

@@ -18,7 +18,6 @@ package net.pms.dlna.virtual;
 
 import java.util.List;
 import net.pms.dlna.MediaResource;
-import static net.pms.dlna.MediaResource.autoMatch;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,17 +44,9 @@ public class UnattachedFolder extends VirtualFolder {
 	public MediaResource add(String uri, String name, Renderer r) {
 		MediaResource d = autoMatch(r, uri, name);
 		if (d != null) {
-			// Set the auto-matched item's renderer
-			d.setDefaultRenderer(r);
-			// Cache our previous renderer and
-			// pretend to be a parent with the same renderer
-			Renderer prev = getDefaultRenderer();
-			setDefaultRenderer(r);
 			// Now add the item and resolve its rendering details
 			add(d);
 			d.syncResolve();
-			// Restore our previous renderer
-			setDefaultRenderer(prev);
 		}
 
 		return d;
@@ -76,12 +67,7 @@ public class UnattachedFolder extends VirtualFolder {
 
 	public MediaResource get(String objectId, Renderer r) {
 		int index = getIndex(objectId, r);
-		MediaResource d = index > -1 ? getChildren().get(index) : null;
-		if (d != null && r != null && !r.equals(d.getDefaultRenderer())) {
-			d.updateRendering(r);
-		}
-
-		return d;
+		return index > -1 ? getChildren().get(index) : null;
 	}
 
 	public List<MediaResource> asList(String objectId) {

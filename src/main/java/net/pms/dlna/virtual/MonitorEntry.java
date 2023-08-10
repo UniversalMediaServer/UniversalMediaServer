@@ -14,8 +14,23 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
-public interface SearchObj {
-	void search(String searchString, MediaResource searcher);
+import java.io.File;
+import net.pms.renderers.Renderer;
+
+public class MonitorEntry extends VirtualFolder {
+	private final MediaMonitor mm;
+	private final File f;
+
+	public MonitorEntry(Renderer renderer, File f, MediaMonitor mm) {
+		super(renderer, f.getName(), null);
+		this.mm = mm;
+		this.f = f;
+	}
+
+	@Override
+	public void discoverChildren() {
+		mm.scanDir(f.listFiles(), this);
+	}
 }

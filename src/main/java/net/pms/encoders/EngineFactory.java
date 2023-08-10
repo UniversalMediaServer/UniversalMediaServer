@@ -417,7 +417,7 @@ public final class EngineFactory {
 			return null;
 		}
 		LOGGER.trace("Getting engine for resource \"{}\"", resource.getName());
-		boolean isImage = resource.getMedia() != null && resource.getMedia().isImage();
+		boolean isImage = resource.getMediaInfo() != null && resource.getMediaInfo().isImage();
 
 		ENGINES_LOCK.readLock().lock();
 		try {

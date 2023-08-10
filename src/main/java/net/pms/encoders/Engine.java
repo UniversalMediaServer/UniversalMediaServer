@@ -965,7 +965,7 @@ public abstract class Engine {
 	 * @param params The parameters to populate.
 	 */
 	public static void setAudioAndSubs(MediaResource resource, OutputParams params) {
-		if (resource == null || params == null || resource.getMedia() == null) {
+		if (resource == null || params == null || resource.getMediaInfo() == null) {
 			return;
 		}
 

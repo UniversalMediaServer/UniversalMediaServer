@@ -30,9 +30,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererDeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.RendererDeviceConfiguration;
+import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
@@ -77,6 +78,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	public final Map<String, String> data = new HashMap<>();
 	private final LinkedHashSet<ActionListener> listeners = new LinkedHashSet<>();
 	public final DeviceProtocolInfo deviceProtocolInfo = new DeviceProtocolInfo();
+	private final GlobalIdRepo globalRepo = new GlobalIdRepo();
 
 	private int controls;
 	protected ActionEvent event;
@@ -175,13 +177,16 @@ public class Renderer extends RendererDeviceConfiguration {
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder(this);
-			rootFolder.setDefaultRenderer(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
 		}
 
 		return rootFolder;
+	}
+
+	public GlobalIdRepo getGlobalRepo() {
+		return globalRepo;
 	}
 
 	public void addFolderLimit(MediaResource res) {

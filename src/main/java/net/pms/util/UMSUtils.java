@@ -91,7 +91,7 @@ public class UMSUtils {
 				keep = res.getName().toLowerCase().contains(searchString);
 			}
 
-			final MediaInfo media = res.getMedia();
+			final MediaInfo media = res.getMediaInfo();
 
 			if (keep && isExpectOneResult) {
 				resources.clear();

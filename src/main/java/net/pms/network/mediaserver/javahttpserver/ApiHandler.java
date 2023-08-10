@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.service.LibraryScanner;
-import net.pms.dlna.RootFolder;
 import net.pms.network.NetworkDeviceFilter;
 import org.apache.commons.io.IOUtils;
 
@@ -71,7 +70,7 @@ public class ApiHandler implements HttpHandler {
 							break;
 						case "rescanFileOrFolder":
 							String filename = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-							RootFolder.rescanLibraryFileOrFolder(filename);
+							LibraryScanner.scanFileOrFolder(filename);
 							break;
 					}
 					exchange.sendResponseHeaders(204, 0); //No Content

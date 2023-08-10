@@ -43,9 +43,9 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
-import net.pms.dlna.CodeEnter;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.CodeEnter;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.YoutubeDl;
@@ -613,9 +613,6 @@ public class PMS {
 			LOGGER.info("Web player is available at: " + webPlayerServer.getUrl());
 		}
 
-		// XXX: this must be called *after* mediaLibrary is initialized, if enabled (above)
-		getRootFolder(null);
-
 		// Ensure up-to-date API metadata versions
 		if (umsConfiguration.getExternalNetwork() && umsConfiguration.isUseInfoFromIMDb()) {
 			APIUtils.setApiMetadataVersions();
@@ -1065,8 +1062,8 @@ public class PMS {
 	}
 
 	// Note: this should be used only when no Renderer or OutputParams is available
-	public static UmsConfiguration getConfiguration(MediaResource dlna) {
-		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
+	public static UmsConfiguration getConfiguration(MediaResource resource) {
+		return getConfiguration(resource != null ? resource.getDefaultRenderer() : null);
 	}
 
 	/**

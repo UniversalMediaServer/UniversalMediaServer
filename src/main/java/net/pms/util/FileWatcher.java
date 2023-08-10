@@ -49,6 +49,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jna.Platform;
 import com.sun.nio.file.ExtendedWatchEventModifier;
+import java.nio.file.ClosedWatchServiceException;
 
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
@@ -209,13 +210,6 @@ public class FileWatcher {
 					// take() will block until events occur in our subscribed
 					// directories
 					WatchKey key = watchService.take();
-					try {
-						// Wait a bit in case there are a few repeats
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						LOGGER.debug("Sleep interrupted {}", e);
-						Thread.currentThread().interrupt();
-					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
 						final WatchEvent.Kind<?> kind = e.kind();
@@ -260,12 +254,23 @@ public class FileWatcher {
 					if (!key.reset()) {
 						keys.remove(key);
 					}
+					try {
+						// Wait a bit in case there are a few repeats
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				} while (!keys.isEmpty());
+			} catch (ClosedWatchServiceException e) {
+				if (running) {
+					LOGGER.debug("Event process error: " + e, e);
+				}
 			} catch (InterruptedException e) {
 				//only log if running as InterruptedException will throw on shutdown
 				if (running) {
 					LOGGER.debug("Event process error: " + e, e);
 				}
+				Thread.currentThread().interrupt();
 			}
 		}, "File watcher").start();
 	}

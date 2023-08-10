@@ -624,7 +624,7 @@ public class FormatConfiguration {
 	 * @return The MIME type or null if no match was found.
 	 */
 	public String getMatchedMIMEtype(MediaResource dlna, RendererConfiguration renderer) {
-		MediaInfo media = dlna.getMedia();
+		MediaInfo media = dlna.getMediaInfo();
 		if (media == null) {
 			return null;
 		}

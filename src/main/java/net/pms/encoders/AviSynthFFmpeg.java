@@ -140,7 +140,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getDefaultAudioTrack().toString();
+			String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// This engine implementation only supports playback of the default audio track at this time

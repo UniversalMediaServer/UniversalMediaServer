@@ -312,9 +312,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 * Parse media info from ffmpeg headers during playback
 	 */
 	public static void parseMediaInfo(String filename, final MediaResource dlna, final ProcessWrapperImpl pw) {
-		if (dlna.getMedia() == null) {
-			dlna.setMedia(new MediaInfo());
-		} else if (dlna.getMedia().isMediaParsed()) {
+		if (dlna.getMediaInfo() == null) {
+			dlna.setMediaInfo(new MediaInfo());
+		} else if (dlna.getMediaInfo().isMediaParsed()) {
 			return;
 		}
 		OutputTextLogger ffParser = new OutputTextLogger(null) {
@@ -324,8 +324,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (END_OF_HEADER.reset(line).find()) {
-					FFmpegParser.parseFFmpegInfo(dlna.getMedia(), lines, input);
-					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
+					FFmpegParser.parseFFmpegInfo(dlna.getMediaInfo(), lines, input);
+					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMediaInfo());
 					dlna.getParent().updateChild(dlna);
 					return false; // done, stop filtering
 				}

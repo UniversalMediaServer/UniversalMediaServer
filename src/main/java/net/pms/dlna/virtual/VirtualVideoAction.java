@@ -76,7 +76,7 @@ public abstract class VirtualVideoAction extends MediaResource {
 		video.setCodec("mpeg2");
 		mediaInfo.addVideoTrack(video);
 		mediaInfo.setMediaParser(Parser.MANUAL_PARSER);
-		setMedia(mediaInfo);
+		setMediaInfo(mediaInfo);
 	}
 
 	/**

@@ -65,7 +65,6 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.RealFile;
-import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.media.MediaInfo;
@@ -830,7 +829,7 @@ public class OpenSubtitle {
 				// No data
 				return new ArrayList<>();
 			}
-			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
+			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMediaInfo());
 
 			if (LOGGER.isDebugEnabled()) {
 				if (results.isEmpty()) {

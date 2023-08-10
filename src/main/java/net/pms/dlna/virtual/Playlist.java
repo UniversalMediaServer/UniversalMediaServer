@@ -14,17 +14,15 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
-import static net.pms.util.UMSUtils.IOList.AUTOSAVE;
-import static net.pms.util.UMSUtils.IOList.PERMANENT;
+import net.pms.util.UMSUtils.IOList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +32,11 @@ public class Playlist extends VirtualFolder {
 	protected int maxSize;
 
 	public Playlist(Renderer renderer, String name) {
-		this(renderer, name, null, 0, AUTOSAVE);
+		this(renderer, name, null, 0, IOList.AUTOSAVE);
 	}
 
 	public Playlist(Renderer renderer, String name, String filename) {
-		this(renderer, name, filename, 0, AUTOSAVE);
+		this(renderer, name, filename, 0, IOList.AUTOSAVE);
 	}
 
 	public Playlist(Renderer renderer, String name, String filename, int maxSize, int mode) {
@@ -104,7 +102,7 @@ public class Playlist extends VirtualFolder {
 		if (!list.isEmpty()) {
 			final Playlist self = this;
 			// Save
-			if (!isMode(AUTOSAVE)) {
+			if (!isMode(IOList.AUTOSAVE)) {
 				addChild(new VirtualVideoAction(defaultRenderer, Messages.getString("Save"), true, null) {
 					@Override
 					public boolean enable() {
@@ -138,12 +136,12 @@ public class Playlist extends VirtualFolder {
 	}
 
 	public void update() {
-		if (isMode(AUTOSAVE)) {
+		if (isMode(IOList.AUTOSAVE)) {
 			save();
 		}
 		getChildren().clear();
 		setDiscovered(false);
-		if (list.size() < 1 && !isMode(PERMANENT)) {
+		if (list.size() < 1 && !isMode(IOList.PERMANENT)) {
 			// Self-delete if empty
 			getParent().getChildren().remove(this);
 		}

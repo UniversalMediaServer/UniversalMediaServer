@@ -14,8 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.media;
+package net.pms.util;
 
-public class MediaStore {
+import java.io.IOException;
+import java.io.OutputStream;
 
+public interface IPushOutput {
+	public void push(OutputStream out) throws IOException;
+
+	public boolean isUnderlyingSeekSupported();
 }

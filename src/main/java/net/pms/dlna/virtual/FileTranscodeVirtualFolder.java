@@ -62,7 +62,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		Engine engine) {
 		// FIXME clone is broken. should be e.g. original.newInstance()
 		MediaResource copy = original.clone();
-		copy.setMedia(original.getMedia());
+		copy.setMediaInfo(original.getMediaInfo());
 		copy.setNoName(true);
 		copy.setMediaAudio(audio);
 		copy.setMediaSubtitle(subtitle);
@@ -144,7 +144,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		if ((chapterInterval > 0) && isSeekable(dlna)) {
 			// don't add a chapter folder if the duration of the video
 			// is less than the chapter length.
-			double duration = dlna.getMedia().getDurationInSeconds(); // 0 if the duration is unknown
+			double duration = dlna.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
 			if (duration != 0 && duration <= (chapterInterval * 60)) {
 				return;
 			}
@@ -185,7 +185,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	protected void resolveOnce() {
 		if (getChildren().isEmpty()) { // OK
 			originalResource.syncResolve();
-			if (originalResource.getMedia() != null && originalResource.getMedia().isVideo()) {
+			if (originalResource.getMediaInfo() != null && originalResource.getMediaInfo().isVideo()) {
 				originalResource.registerExternalSubtitles(true);
 			}
 
@@ -196,13 +196,13 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
-			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracks());
+			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMediaInfo().getAudioTracks());
 			List<MediaSubtitle> subtitlesTracks;
 			if (getMediaSubtitle() != null) {
 				// Transcode folder of live subtitles folder
 				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
 			} else {
-				subtitlesTracks = new ArrayList<>(originalResource.getMedia().getSubtitlesTracks());
+				subtitlesTracks = new ArrayList<>(originalResource.getMediaInfo().getSubtitlesTracks());
 			}
 
 			// If there is a single audio track, set that as audio track

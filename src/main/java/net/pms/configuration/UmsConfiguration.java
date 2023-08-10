@@ -46,7 +46,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.CodeEnter;
+import net.pms.dlna.virtual.CodeEnter;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.EngineId;

@@ -30,7 +30,6 @@ import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.MediaResource;
-import net.pms.dlna.InputFile;
 import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -56,6 +55,7 @@ import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.FFmpegExecutableInfo.FFmpegExecutableInfoBuilder;
+import net.pms.util.InputFile;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
@@ -416,10 +416,10 @@ public class FFMpegVideo extends Engine {
 //			} else {
 //				media.setContainer("mpegps");
 //			}
-//			dlna.setMedia(media);
+//			dlna.setMediaInfo(media);
 //			if (renderer.getFormatConfiguration().getMatchedMIMEtype(dlna) != null) {
 //				media.setContainer(originalContainer);
-//				dlna.setMedia(media);
+//				dlna.setMediaInfo(media);
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
@@ -1762,8 +1762,8 @@ public class FFMpegVideo extends Engine {
 	 * (e.g. duration) if required.
 	 */
 	public void setOutputParsing(UmsConfiguration configuration, final MediaResource dlna, ProcessWrapperImpl pw, boolean force) {
-		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
-			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
+		if (configuration.isResumeEnabled() && dlna.getMediaInfo() != null) {
+			long duration = force ? 0 : (long) dlna.getMediaInfo().getDurationInSeconds();
 			if (duration == 0 || duration == MediaInfo.TRANS_SIZE) {
 				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
@@ -1771,7 +1771,7 @@ public class FFMpegVideo extends Engine {
 						if (RE_DURATION.reset(line).find()) {
 							String d = RE_DURATION.group(1);
 							LOGGER.trace("[{}] setting duration: {}", ID, d);
-							dlna.getMedia().setDuration(StringUtil.convertStringToTime(d));
+							dlna.getMediaInfo().setDuration(StringUtil.convertStringToTime(d));
 							return false; // done, stop filtering
 						}
 						return true; // keep filtering

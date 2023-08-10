@@ -27,11 +27,13 @@ import org.slf4j.LoggerFactory;
 public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+	private final ArrayList<ID> ids = new ArrayList<>();
+	private final ReferenceQueue<MediaResource> idCleanupQueue = new ReferenceQueue<>();
+
 	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
 	private int curGlobalId = 1;
 	private int deletionsCount = 0;
-	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
-	private final ArrayList<ID> ids = new ArrayList<>();
 
 	public GlobalIdRepo() {
 		startIdCleanup();
@@ -49,45 +51,8 @@ public class GlobalIdRepo {
 		}
 	}
 
-	private void delete(int index) {
-		lock.writeLock().lock();
-		try {
-			if (index > -1 && index < ids.size()) {
-				ids.remove(index);
-				MediaResource.bumpSystemUpdateId();
-				deletionsCount++;
-			}
-		} finally {
-			lock.writeLock().unlock();
-		}
-	}
-
 	public MediaResource get(String id) {
 		return id != null ? get(parseIndex(id)) : null;
-	}
-
-	private MediaResource get(int id) {
-		ID item = getItem(id);
-		if (item != null && !item.scope) {
-			LOGGER.debug("GlobalIdRepo: id {} is not in scope, returning null", id);
-			return null;
-		}
-		return item != null ? item.dlnaRef.get() : null;
-	}
-
-	private ID getItem(int id) {
-		lock.readLock().lock();
-		try {
-			if (id > 0) {
-				int index = indexOf(id);
-				if (index > -1) {
-					return ids.get(index);
-				}
-			}
-			return null;
-		} finally {
-			lock.readLock().unlock();
-		}
 	}
 
 	public boolean exists(String id) {
@@ -128,12 +93,40 @@ public class GlobalIdRepo {
 		}
 	}
 
-	private static int parseIndex(String id) {
+	private void delete(int index) {
+		lock.writeLock().lock();
 		try {
-			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
-			return Integer.parseInt(StringUtils.substringBefore(id, "$"));
-		} catch (NumberFormatException e) {
-			return -1;
+			if (index > -1 && index < ids.size()) {
+				ids.remove(index);
+				MediaResource.bumpSystemUpdateId();
+				deletionsCount++;
+			}
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	private MediaResource get(int id) {
+		ID item = getItem(id);
+		if (item != null && !item.scope) {
+			LOGGER.debug("GlobalIdRepo: id {} is not in scope, returning null", id);
+			return null;
+		}
+		return item != null ? item.dlnaRef.get() : null;
+	}
+
+	private ID getItem(int id) {
+		lock.readLock().lock();
+		try {
+			if (id > 0) {
+				int index = indexOf(id);
+				if (index > -1) {
+					return ids.get(index);
+				}
+			}
+			return null;
+		} finally {
+			lock.readLock().unlock();
 		}
 	}
 
@@ -170,8 +163,33 @@ public class GlobalIdRepo {
 	}
 
 	// id cleanup
+	private void startIdCleanup() {
+		new Thread(() -> {
+			while (true) {
+				try {
+					// Once an underlying MediaResource is ready for garbage
+					// collection, its weak reference will pop out here
+					SoftDLNARef ref = (SoftDLNARef) idCleanupQueue.remove();
+					if (ref.id > 0) {
+						// Delete the associated id from our repo list
+						LOGGER.debug("deleting invalid id {}", ref.id);
+						delete(indexOf(ref.id));
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		}, "GlobalId cleanup").start();
+	}
 
-	private ReferenceQueue<MediaResource> idCleanupQueue;
+	private static int parseIndex(String id) {
+		try {
+			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
+			return Integer.parseInt(StringUtils.substringBefore(id, "$"));
+		} catch (NumberFormatException e) {
+			return -1;
+		}
+	}
 
 	private class SoftDLNARef extends SoftReference<MediaResource> {
 		int id;
@@ -186,25 +204,6 @@ public class GlobalIdRepo {
 			// id, and it will trigger id cleanup at garbage collection time
 			id = -1;
 		}
-	}
-
-	private void startIdCleanup() {
-		idCleanupQueue = new ReferenceQueue<>();
-		new Thread(() -> {
-			while (true) {
-				try {
-					// Once an underlying MediaResource is ready for garbage
-					// collection, its weak reference will pop out here
-					SoftDLNARef ref = (SoftDLNARef) idCleanupQueue.remove();
-					if (ref.id > 0) {
-						// Delete the associated id from our repo list
-						LOGGER.debug("deleting invalid id {}", ref.id);
-						delete(indexOf(ref.id));
-					}
-				} catch (InterruptedException e) {
-				}
-			}
-		}, "GlobalId cleanup").start();
 	}
 
 	private class ID {

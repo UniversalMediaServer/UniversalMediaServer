@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.media.MediaInfo;
+import net.pms.util.TimeRange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +43,90 @@ public class ResumeObj {
 	private long offsetTime;
 	private long resDuration;
 	private long minDur;
+
+	public ResumeObj(File f) {
+		offsetTime = 0;
+		resDuration = 0;
+		file = f;
+		minDur = CONFIGURATION.getMinimumWatchedPlayTime();
+	}
+
+	public void setMinDuration(long dur) {
+		if (dur == 0) {
+			dur = CONFIGURATION.getMinimumWatchedPlayTime();
+		}
+		minDur = dur;
+	}
+
+	public void read() {
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+			String str;
+			while ((str = in.readLine()) != null) {
+				String[] tmp = str.split(",");
+				offsetTime = Long.parseLong(tmp[0]);
+				if (tmp.length > 1) {
+					resDuration = Long.parseLong(tmp[1]);
+				}
+				break;
+			}
+		} catch (IOException e) {
+		}
+	}
+
+	public File getResumeFile() {
+		return file;
+	}
+
+	public boolean noResume() {
+		return (offsetTime == 0);
+	}
+
+	public long getTimeOffset() {
+		if (isDone()) {
+			return 0;
+		}
+		read();
+		return offsetTime;
+	}
+
+	public boolean isDone() {
+		return !file.exists();
+	}
+
+	public void update(TimeRange range, MediaResource r) {
+		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
+			long now = System.currentTimeMillis();
+			if (r.getMediaInfo() != null) {
+				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), (long) (r.getMediaInfo().getDuration() * 1000));
+			} else {
+				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), 0);
+			}
+		}
+	}
+
+	public void stop(long startTime, long expDuration) {
+		long now = System.currentTimeMillis();
+		long thisPlay = now - startTime;
+		long duration = thisPlay + offsetTime;
+
+		if (expDuration > minDur && duration >= (expDuration * CONFIGURATION.getResumeBackFactor())) {
+			// We've seen the whole video (likely)
+			file.delete();
+			return;
+		}
+		if (thisPlay < CONFIGURATION.getResumeRewind()) {
+			return;
+		}
+		if (thisPlay < minDur) {
+			// too short to resume (at all)
+			return;
+		}
+
+		offsetTime = duration - CONFIGURATION.getResumeRewind();
+		resDuration = expDuration;
+		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
+		write(offsetTime, expDuration, file);
+	}
 
 	private static File resumePath() {
 		File path = new File(CONFIGURATION.getDataFile("resume"));
@@ -85,10 +170,10 @@ public class ResumeObj {
 			return null;
 		}
 
-		if (originalResource.getMedia() != null) {
-			double dur = originalResource.getMedia().getDurationInSeconds();
+		if (originalResource.getMediaInfo() != null) {
+			double dur = originalResource.getMediaInfo().getDurationInSeconds();
 			if (dur == 0.0 || dur == MediaInfo.TRANS_SIZE) {
-				originalResource.getMedia().setDuration(res.resDuration / 1000.0);
+				originalResource.getMediaInfo().setDuration(res.resDuration / 1000.0);
 			}
 		}
 
@@ -101,40 +186,11 @@ public class ResumeObj {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
 		obj.setMinDuration(r.minPlayTime());
-		obj.stop(startTime, (long) r.getMedia().getDurationInSeconds() * 1000);
+		obj.stop(startTime, (long) r.getMediaInfo().getDurationInSeconds() * 1000);
 		if (obj.noResume()) {
 			return null;
 		}
 		return obj;
-	}
-
-	public ResumeObj(File f) {
-		offsetTime = 0;
-		resDuration = 0;
-		file = f;
-		minDur = CONFIGURATION.getMinimumWatchedPlayTime();
-	}
-
-	public void setMinDuration(long dur) {
-		if (dur == 0) {
-			dur = CONFIGURATION.getMinimumWatchedPlayTime();
-		}
-		minDur = dur;
-	}
-
-	public void read() {
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
-			String str;
-			while ((str = in.readLine()) != null) {
-				String[] tmp = str.split(",");
-				offsetTime = Long.parseLong(tmp[0]);
-				if (tmp.length > 1) {
-					resDuration = Long.parseLong(tmp[1]);
-				}
-				break;
-			}
-		} catch (IOException e) {
-		}
 	}
 
 	private static void write(long time, long duration, File f) {
@@ -151,58 +207,4 @@ public class ResumeObj {
 		}
 	}
 
-	public File getResumeFile() {
-		return file;
-	}
-
-	public boolean noResume() {
-		return (offsetTime == 0);
-	}
-
-	public long getTimeOffset() {
-		if (isDone()) {
-			return 0;
-		}
-		read();
-		return offsetTime;
-	}
-
-	public boolean isDone() {
-		return !file.exists();
-	}
-
-	public void update(TimeRange range, MediaResource r) {
-		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
-			long now = System.currentTimeMillis();
-			if (r.getMedia() != null) {
-				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), (long) (r.getMedia().getDuration() * 1000));
-			} else {
-				stop(now + getTimeOffset() - (long) (range.getStart() * 1000), 0);
-			}
-		}
-	}
-
-	public void stop(long startTime, long expDuration) {
-		long now = System.currentTimeMillis();
-		long thisPlay = now - startTime;
-		long duration = thisPlay + offsetTime;
-
-		if (expDuration > minDur && duration >= (expDuration * CONFIGURATION.getResumeBackFactor())) {
-			// We've seen the whole video (likely)
-			file.delete();
-			return;
-		}
-		if (thisPlay < CONFIGURATION.getResumeRewind()) {
-			return;
-		}
-		if (thisPlay < minDur) {
-			// too short to resume (at all)
-			return;
-		}
-
-		offsetTime = duration - CONFIGURATION.getResumeRewind();
-		resDuration = expDuration;
-		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
-		write(offsetTime, expDuration, file);
-	}
 }

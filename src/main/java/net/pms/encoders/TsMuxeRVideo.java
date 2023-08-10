@@ -28,7 +28,6 @@ import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.MediaResource;
-import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.media.MediaInfo;
@@ -44,6 +43,7 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.InputFile;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
@@ -717,7 +717,7 @@ public class TsMuxeRVideo extends Engine {
 
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getDefaultAudioTrack().toString();
+			String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// We only support playback of the default audio track for tsMuxeR

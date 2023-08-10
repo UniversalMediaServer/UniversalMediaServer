@@ -28,7 +28,7 @@ import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
 import net.pms.Messages;
-import net.pms.dlna.MediaMonitor;
+import net.pms.dlna.virtual.MediaMonitor;
 import net.pms.gui.GuiManager;
 import net.pms.media.MediaStatus;
 

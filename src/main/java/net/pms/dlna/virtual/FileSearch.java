@@ -14,12 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.dlna.MediaResource;
+import net.pms.dlna.RealFile;
 
 public class FileSearch implements SearchObj {
 	private ArrayList<RealFile> folders;

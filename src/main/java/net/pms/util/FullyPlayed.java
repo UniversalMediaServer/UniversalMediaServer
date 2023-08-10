@@ -27,7 +27,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.MediaResource;
-import net.pms.dlna.MediaMonitor;
+import net.pms.dlna.virtual.MediaMonitor;
 import net.pms.media.MediaType;
 import net.pms.formats.Format;
 import net.pms.image.BufferedImageFilter;
@@ -108,8 +108,8 @@ public class FullyPlayed {
 		return
 			resource != null &&
 			configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
-			resource.getMedia() != null &&
-			resource.getMedia().isVideo() &&
+			resource.getMediaInfo() != null &&
+			resource.getMediaInfo().isVideo() &&
 			MediaMonitor.isFullyPlayed(resource.getSystemName(), true);
 	}
 
@@ -129,8 +129,8 @@ public class FullyPlayed {
 	 */
 	public static String addFullyPlayedNamePrefix(String displayName, MediaResource resource) {
 		MediaType mediaType;
-		if (resource.getMedia() != null) {
-			mediaType = resource.getMedia().getMediaType();
+		if (resource.getMediaInfo() != null) {
+			mediaType = resource.getMediaInfo().getMediaType();
 		} else if (resource.getFormat() != null) {
 			switch (resource.getFormat().getType()) {
 				case Format.AUDIO:

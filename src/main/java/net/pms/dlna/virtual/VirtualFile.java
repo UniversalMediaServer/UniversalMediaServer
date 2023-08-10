@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,13 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
+import net.pms.dlna.DVDISOFile;
+import net.pms.dlna.MediaResource;
+import net.pms.dlna.PlaylistFolder;
+import net.pms.dlna.RarredFile;
+import net.pms.dlna.RealFile;
+import net.pms.dlna.SevenZipFile;
+import net.pms.dlna.ZippedFile;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.renderers.Renderer;

@@ -18,6 +18,8 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,15 +27,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.MediaResource;
-import net.pms.dlna.Range;
-import net.pms.dlna.TimeRange;
-import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
+import net.pms.util.Range;
+import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -47,9 +51,10 @@ import org.apache.commons.lang3.StringUtils;
  * You SHOULD NOT use HE-AAC if your audio bit rate is above 64 kbit/s.
  */
 public class HlsHelper {
-	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String NONE_CONF_NAME = "NONE";
 	private static final String COPY_CONF_NAME = "COPY";
+	private static final DateTimeFormatter CHAPTERS_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -116,9 +121,9 @@ public class HlsHelper {
 	*/
 
 	public static String getHLSm3u8(MediaResource dlna, Renderer renderer, String baseUrl) {
-		if (dlna.getMedia() != null) {
+		if (dlna.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			MediaInfo mediaVideo = dlna.getMedia();
+			MediaInfo mediaVideo = dlna.getMediaInfo();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaVideo.getHeight() * 1.05);
 			String id = dlna.getResourceId();
@@ -271,9 +276,9 @@ public class HlsHelper {
 	public static final double DEFAULT_TARGETDURATION = 6;
 
 	public static String getHLSm3u8ForRendition(MediaResource dlna, Renderer renderer, String baseUrl, String rendition) {
-		if (dlna.getMedia() != null) {
+		if (dlna.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			Double duration = dlna.getMedia().getDuration();
+			Double duration = dlna.getMediaInfo().getDuration();
 			double partLen = duration;
 			String id = dlna.getResourceId();
 			String targetDurationStr = String.valueOf(Double.valueOf(Math.ceil(DEFAULT_TARGETDURATION)).intValue());
@@ -401,6 +406,58 @@ public class HlsHelper {
 			case "High 4:4:4 Predictive" -> 244;
 			default -> 255;
 		};
+	}
+
+	/**
+	 * Return a WebVtt from a resource.
+	 *
+	 * @param dlna The dlna resource.
+	 * @return The WebVtt representation of the chapter list.
+	 */
+	public static String getChaptersWebVtt(MediaResource dlna) {
+		StringBuilder chaptersVtt = new StringBuilder();
+		chaptersVtt.append("WEBVTT\n");
+		MediaInfo mediaInfo = dlna.getMediaInfo();
+		if (mediaInfo != null && mediaInfo.hasChapters()) {
+			for (MediaChapter chapter : mediaInfo.getChapters()) {
+				int chaptersNum = chapter.getId() + 1;
+				chaptersVtt.append("\nChapter ").append(chaptersNum).append("\n");
+				long nanoOfDay = (long) (chapter.getStart() * 1000_000_000D);
+				LocalTime lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER));
+				chaptersVtt.append(" --> ");
+				nanoOfDay = (long) (chapter.getEnd() * 1000_000_000D);
+				lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER)).append("\n");
+				if (StringUtils.isNotBlank(chapter.getTitle())) {
+					chaptersVtt.append(chapter.getTitle());
+				} else {
+					chaptersVtt.append(Messages.getString("Chapter")).append(" ").append(String.format("%02d", chaptersNum));
+				}
+				chaptersVtt.append("\n");
+			}
+		}
+		return chaptersVtt.toString();
+	}
+
+	/**
+	 * Return a HLS json representation of a dlna resource's chapters.
+	 *
+	 * @param dlna The dlna resource.
+	 * @return The HLS json representation of the chapter list.
+	 */
+	public static String getChaptersHls(MediaResource dlna) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		MediaInfo mediaInfo = dlna.getMediaInfo();
+		if (mediaInfo != null && mediaInfo.hasChapters()) {
+			for (MediaChapter chapter : mediaInfo.getChapters()) {
+				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 
 	public static class HlsConfiguration {
@@ -535,4 +592,5 @@ public class HlsHelper {
 			this.isTranscodable = isTranscodable;
 		}
 	}
+
 }

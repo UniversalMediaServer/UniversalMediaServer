@@ -336,7 +336,6 @@ public class UmsContentDirectoryService {
 				browseDirectChildren,
 				(int) startingIndex,
 				(int) requestedCount,
-				renderer,
 				null
 		);
 
@@ -501,7 +500,6 @@ public class UmsContentDirectoryService {
 			true,
 			(int) startingIndex,
 			(int) requestedCount,
-			renderer,
 			searchCriteria
 		);
 

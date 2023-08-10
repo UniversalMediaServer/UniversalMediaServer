@@ -49,10 +49,10 @@ public class DVDISOTitle extends MediaResource {
 
 	@Override
 	protected void resolveOnce() {
-		if (getMedia() == null) {
+		if (getMediaInfo() == null) {
 			MediaInfo media = new MediaInfo();
 			MPlayerParser.parseDvdTitle(media, file, title);
-			setMedia(media);
+			setMediaInfo(media);
 			length = media.getSize();
 		}
 	}
@@ -104,7 +104,7 @@ public class DVDISOTitle extends MediaResource {
 	public long length(Renderer renderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
-		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
+		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMediaInfo().getDurationInSeconds()) : length();
 	}
 
 	@Override
@@ -148,8 +148,8 @@ public class DVDISOTitle extends MediaResource {
 
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-		} else if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
+		} else if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+			return getMediaInfo().getThumbnailInputStream();
 		} else {
 			return getGenericThumbnailInputStream(null);
 		}
@@ -159,12 +159,12 @@ public class DVDISOTitle extends MediaResource {
 	protected String getDisplayNameSuffix(Renderer renderer, UmsConfiguration configuration) {
 		String nameSuffix = super.getDisplayNameSuffix(renderer, configuration);
 		if (
-			getMedia() != null &&
+			getMediaInfo() != null &&
 			renderer != null &&
-			getMedia().getDurationInSeconds() > 0 &&
+			getMediaInfo().getDurationInSeconds() > 0 &&
 			renderer.isShowDVDTitleDuration()
 		) {
-			nameSuffix += " (" + StringUtil.convertTimeToString(getMedia().getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
+			nameSuffix += " (" + StringUtil.convertTimeToString(getMediaInfo().getDurationInSeconds(), "%01d:%02d:%02.0f") + ")";
 		}
 
 		return nameSuffix;

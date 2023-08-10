@@ -137,11 +137,11 @@ public class UPNPPlayer extends LogicalPlayer {
 	public void start() {
 		MediaResource d = renderer.getPlayingRes();
 		state.setName(d.getDisplayName());
-		if (d.getMedia() != null) {
-			String duration = d.getMedia().getDurationString();
+		if (d.getMediaInfo() != null) {
+			String duration = d.getMediaInfo().getDurationString();
 			ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 			if (ignoreUpnpDuration) {
-				state.setDuration(StringUtil.shortTime(d.getMedia().getDurationString(), 4));
+				state.setDuration(StringUtil.shortTime(d.getMediaInfo().getDurationString(), 4));
 			}
 		}
 	}

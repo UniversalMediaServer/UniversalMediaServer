@@ -33,11 +33,11 @@ public class FeedItem extends MediaResource {
 		this.title = title;
 		this.itemURL = itemURL;
 		this.thumbURL = thumbURL;
-		this.setMedia(media);
+		this.setMediaInfo(media);
 	}
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	public String getThumbnailURL(DLNAImageProfile profile) {
 		if (thumbURL == null) {
 			return null;
 		}

@@ -18,6 +18,7 @@ package net.pms.dlna;
 
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.renderers.Renderer;
+import net.pms.util.TimeRange;
 
 /**
  * The ChapterFileTranscodeVirtualFolder is a {@link MediaResource} container that
@@ -53,18 +54,18 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 		if (getChildren().size() == 1) { // OK
 			MediaResource child = getChildren().get(0);
 			child.syncResolve();
-			int nbMinutes = (int) (child.getMedia().getDurationInSeconds() / 60);
+			int nbMinutes = (int) (child.getMediaInfo().getDurationInSeconds() / 60);
 			int nbIntervals = nbMinutes / interval;
 
 			for (int i = 1; i <= nbIntervals; i++) {
 				// TODO: Remove clone(), instead create a new object from scratch to avoid unwanted cross references.
 				MediaResource newChildNoSub = child.clone();
 				newChildNoSub.setEngine(child.getEngine());
-				newChildNoSub.setMedia(child.getMedia());
+				newChildNoSub.setMediaInfo(child.getMediaInfo());
 				newChildNoSub.setNoName(true);
 				newChildNoSub.setMediaAudio(child.getMediaAudio());
 				newChildNoSub.setMediaSubtitle(child.getMediaSubtitle());
-				newChildNoSub.setSplitRange(new TimeRange(60.0 * i * interval, newChildNoSub.getMedia().getDurationInSeconds()));
+				newChildNoSub.setSplitRange(new TimeRange(60.0 * i * interval, newChildNoSub.getMediaInfo().getDurationInSeconds()));
 
 				addChildInternal(newChildNoSub);
 			}

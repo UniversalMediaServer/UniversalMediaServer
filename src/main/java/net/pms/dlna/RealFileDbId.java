@@ -16,6 +16,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.media.DbIdResourceLocator;
 import java.io.File;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.formats.Format;

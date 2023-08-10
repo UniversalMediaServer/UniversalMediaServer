@@ -151,7 +151,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	public void add(int index, String uri, String name, String metadata, boolean select) {
 		if (!StringUtils.isBlank(uri)) {
 			if (addAllSiblings && MediaResource.isResourceUrl(uri)) {
-				MediaResource d = renderer.getRootFolder().getGlobalRepo().get(MediaResource.parseResourceId(uri));
+				MediaResource d = renderer.getGlobalRepo().get(MediaResource.parseResourceId(uri));
 				if (d != null && d.getParent() != null) {
 					List<MediaResource> list = d.getParent().getChildren();
 					addAll(index, list, list.indexOf(d));

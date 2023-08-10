@@ -631,7 +631,7 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		String matchedMimeType = null;
-		MediaInfo media = resource.getMedia();
+		MediaInfo media = resource.getMediaInfo();
 
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
@@ -1256,7 +1256,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	public boolean isCompatible(MediaResource dlna, Format format, UmsConfiguration configuration) {
 		MediaInfo mediaInfo;
 		if (dlna != null) {
-			mediaInfo = dlna.getMedia();
+			mediaInfo = dlna.getMediaInfo();
 		} else {
 			mediaInfo = null;
 		}
@@ -1736,8 +1736,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	 */
 	public boolean isVideoBitDepthSupported(MediaResource dlna) {
 		Integer videoBitDepth = null;
-		if (dlna.getMedia() != null && dlna.getMedia().getDefaultVideoTrack() != null) {
-			videoBitDepth = dlna.getMedia().getDefaultVideoTrack().getBitDepth();
+		if (dlna.getMediaInfo() != null && dlna.getMediaInfo().getDefaultVideoTrack() != null) {
+			videoBitDepth = dlna.getMediaInfo().getDefaultVideoTrack().getBitDepth();
 		}
 
 		if (videoBitDepth != null) {

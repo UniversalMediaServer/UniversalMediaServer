@@ -20,11 +20,11 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.IPushOutput;
 import net.pms.encoders.HlsHelper.HlsConfiguration;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
+import net.pms.util.IPushOutput;
 
 public final class OutputParams {
 

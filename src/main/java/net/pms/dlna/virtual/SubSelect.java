@@ -14,11 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import net.pms.Messages;
-import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 
 public class SubSelect extends VirtualFolder {

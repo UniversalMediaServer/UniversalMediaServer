@@ -19,22 +19,23 @@ package net.pms.service;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import net.pms.database.MediaDatabase;
+import net.pms.dlna.MediaScanner;
+import net.pms.gui.GuiManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.gui.GuiManager;
 
 public class LibraryScanner {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibraryScanner.class);
-	private static Thread scanner;
+	private static Thread scannerThread;
+	private static MediaScanner mediaScanner;
 
 	private LibraryScanner() {
 		//should not be instantiated
 	}
 
 	public static boolean isScanLibraryRunning() {
-		return scanner != null && scanner.isAlive();
+		return scannerThread != null && scannerThread.isAlive();
 	}
 
 	public static void scanLibrary() {
@@ -43,9 +44,13 @@ public class LibraryScanner {
 		} else {
 			Runnable scan = () -> {
 				try {
-					if (PMS.get().getRootFolder(null) != null) {
+					if (mediaScanner == null || mediaScanner.getDefaultRenderer() == null) {
+						mediaScanner = new MediaScanner();
+					}
+					if (mediaScanner.getDefaultRenderer() != null) {
+						LOGGER.info("Library scan started");
 						long start = System.currentTimeMillis();
-						PMS.get().getRootFolder(null).startScan();
+						mediaScanner.startScan();
 						LOGGER.info("Library scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
 						analyzeDb();
 					}
@@ -54,10 +59,31 @@ public class LibraryScanner {
 					LOGGER.trace("", e);
 				}
 			};
-			scanner = new Thread(scan, "Library Scanner");
-			scanner.setPriority(Thread.MIN_PRIORITY);
-			scanner.start();
+			scannerThread = new Thread(scan, "Library Scanner");
+			scannerThread.setPriority(Thread.MIN_PRIORITY);
+			scannerThread.start();
 			GuiManager.setScanLibraryStatus(true, true);
+		}
+	}
+
+	public static void scanFileOrFolder(String filename) {
+		if (!LibraryScanner.isScanLibraryRunning()) {
+			Runnable scan = () -> {
+				if (mediaScanner == null || mediaScanner.getDefaultRenderer() == null) {
+					mediaScanner = new MediaScanner();
+				}
+				if (mediaScanner.getDefaultRenderer() != null) {
+					mediaScanner.scanFileOrFolder(filename);
+				}
+			};
+			Thread scanThread = new Thread(scan, "rescanLibraryFileOrFolder");
+			scanThread.start();
+		}
+	}
+
+	public static void stopScanLibrary() {
+		if (isScanLibraryRunning() && mediaScanner != null) {
+			mediaScanner.stopScan();
 		}
 	}
 
@@ -73,9 +99,4 @@ public class LibraryScanner {
 		}
 	}
 
-	public static void stopScanLibrary() {
-		if (isScanLibraryRunning()) {
-			PMS.get().getRootFolder(null).stopScan();
-		}
-	}
 }

@@ -206,7 +206,7 @@ public class RendererItem implements IRendererGuiListener {
 	private void playerSetMediaId(String id) {
 		try {
 			MediaResource root = renderer.getRootFolder();
-			List<MediaResource> resources = root.getDLNAResources(id, false, 0, 0, renderer);
+			List<MediaResource> resources = root.getDLNAResources(id, false, 0, 0);
 			if (!resources.isEmpty()) {
 				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
 			}
@@ -312,7 +312,7 @@ public class RendererItem implements IRendererGuiListener {
 				JsonObject result = new JsonObject();
 				JsonArray parents = new JsonArray();
 				JsonArray childrens = new JsonArray();
-				List<MediaResource> resources = root.getDLNAResources(media, true, 0, 0, renderer.renderer);
+				List<MediaResource> resources = root.getDLNAResources(media, true, 0, 0);
 				if (!resources.isEmpty()) {
 					MediaResource parentFromResources = resources.get(0).getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {

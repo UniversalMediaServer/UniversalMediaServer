@@ -14,12 +14,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.MediaResource;
 import net.pms.renderers.Renderer;
 
 public class CodeEnter extends VirtualFolder {
@@ -57,8 +57,8 @@ public class CodeEnter extends VirtualFolder {
 		// Normally changed is 0 and 0+15000 is never larger
 		// then now.
 		int tmo;
-		if (getDefaultRenderer() != null) {
-			tmo = getDefaultRenderer().getAutoPlayTmo();
+		if (defaultRenderer != null) {
+			tmo = defaultRenderer.getAutoPlayTmo();
 		} else {
 			tmo = 5000;
 		}

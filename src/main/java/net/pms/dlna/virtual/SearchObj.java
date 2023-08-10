@@ -14,13 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import net.pms.dlna.MediaResource;
 
-public interface IPushOutput {
-	public void push(OutputStream out) throws IOException;
-
-	public boolean isUnderlyingSeekSupported();
+public interface SearchObj {
+	void search(String searchString, MediaResource searcher);
 }

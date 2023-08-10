@@ -26,6 +26,7 @@ import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
+import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 import org.digitalmediaserver.cuelib.CueParser;
 import org.digitalmediaserver.cuelib.CueSheet;
@@ -114,7 +115,7 @@ public class CueFolder extends MediaResource {
 								count++;
 							}
 							prec.getSplitRange().setEnd(end);
-							prec.getMedia().setDuration(prec.getSplitRange().getDuration());
+							prec.getMediaInfo().setDuration(prec.getSplitRange().getDuration());
 							LOGGER.debug("Track #" + i + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
 						}
 						Position start = track.getIndices().get(0).getPosition();
@@ -122,13 +123,13 @@ public class CueFolder extends MediaResource {
 						addChild(realFile);
 						addedResources.add(realFile);
 
-						if (i > 0 && realFile.getMedia() == null) {
-							realFile.setMedia(new MediaInfo());
-							realFile.getMedia().setMediaParser("CueLib");
+						if (i > 0 && realFile.getMediaInfo() == null) {
+							realFile.setMediaInfo(new MediaInfo());
+							realFile.getMediaInfo().setMediaParser("CueLib");
 						}
 						realFile.syncResolve();
 						if (i == 0) {
-							originalMedia = realFile.getMedia();
+							originalMedia = realFile.getMediaInfo();
 						}
 						if (originalMedia == null) {
 							LOGGER.trace("Couldn't resolve media \"{}\" for cue file \"{}\" - aborting", realFile.getName(), playlistfile.getAbsolutePath());
@@ -146,29 +147,29 @@ public class CueFolder extends MediaResource {
 							realFile.setEngine(defaultPlayer);
 						}
 
-						if (realFile.getMedia() != null) {
+						if (realFile.getMediaInfo() != null) {
 							try {
-								realFile.setMedia(originalMedia.clone());
+								realFile.setMediaInfo(originalMedia.clone());
 							} catch (CloneNotSupportedException e) {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
 
-							if (realFile.getMedia() != null && realFile.getMedia().hasAudioMetadata()) {
+							if (realFile.getMediaInfo() != null && realFile.getMediaInfo().hasAudioMetadata()) {
 								if (realFile.getFormat().isAudio()) {
-									realFile.getMedia().getAudioMetadata().setSongname(track.getTitle());
+									realFile.getMediaInfo().getAudioMetadata().setSongname(track.getTitle());
 								} else {
-									realFile.getMedia().getDefaultAudioTrack().setTitle("Chapter #" + (i + 1));
+									realFile.getMediaInfo().getDefaultAudioTrack().setTitle("Chapter #" + (i + 1));
 								}
-								realFile.getMedia().getAudioMetadata().setTrack(i + 1);
-								realFile.getMedia().setSize(-1);
+								realFile.getMediaInfo().getAudioMetadata().setTrack(i + 1);
+								realFile.getMediaInfo().setSize(-1);
 								if (StringUtils.isNotBlank(sheet.getTitle())) {
-									realFile.getMedia().getAudioMetadata().setAlbum(sheet.getTitle());
+									realFile.getMediaInfo().getAudioMetadata().setAlbum(sheet.getTitle());
 								}
 								if (StringUtils.isNotBlank(sheet.getPerformer())) {
-									realFile.getMedia().getAudioMetadata().setArtist(sheet.getPerformer());
+									realFile.getMediaInfo().getAudioMetadata().setArtist(sheet.getPerformer());
 								}
 								if (StringUtils.isNotBlank(track.getPerformer())) {
-									realFile.getMedia().getAudioMetadata().setArtist(track.getPerformer());
+									realFile.getMediaInfo().getAudioMetadata().setArtist(track.getPerformer());
 								}
 							}
 
@@ -179,7 +180,7 @@ public class CueFolder extends MediaResource {
 					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						MediaResource lastTrack = addedResources.get(addedResources.size() - 1);
 						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
-						MediaInfo lastTrackMedia = lastTrack.getMedia();
+						MediaInfo lastTrackMedia = lastTrack.getMediaInfo();
 
 						if (lastTrackSplitRange != null && lastTrackMedia != null) {
 							lastTrackSplitRange.setEnd(lastTrackMedia.getDurationInSeconds());

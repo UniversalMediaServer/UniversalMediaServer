@@ -16,22 +16,36 @@
  */
 package net.pms.dlna;
 
+import net.pms.dlna.virtual.Playlist;
 import java.io.File;
-import net.pms.dlna.virtual.VirtualFolder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import net.pms.renderers.Renderer;
 
-public class MonitorEntry extends VirtualFolder {
-	private final MediaMonitor mm;
-	private final File f;
+public class DynamicPlaylist extends Playlist {
+	private final String savePath;
+	private long start;
 
-	public MonitorEntry(Renderer renderer, File f, MediaMonitor mm) {
-		super(renderer, f.getName(), null);
-		this.mm = mm;
-		this.f = f;
+	public DynamicPlaylist(Renderer renderer, String name, String dir, int mode) {
+		super(renderer, name, null, 0, mode);
+		savePath = dir;
+		start = 0;
 	}
 
 	@Override
-	public void discoverChildren() {
-		mm.scanDir(f.listFiles(), this);
+	public void clear() {
+		super.clear();
+		start = 0;
+	}
+
+	@Override
+	public void save() {
+		if (start == 0) {
+			start = System.currentTimeMillis();
+		}
+		Date d = new Date(start);
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH_mm", Locale.US);
+		list.save(new File(savePath, "dynamic_" + sdf.format(d) + ".ups"));
 	}
 }

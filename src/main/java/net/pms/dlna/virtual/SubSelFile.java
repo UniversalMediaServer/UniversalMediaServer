@@ -14,20 +14,21 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.dlna.MediaResource;
 import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.renderers.Renderer;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.OpenSubtitle.SubtitleItem;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,11 +58,11 @@ public class SubSelFile extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		try {
-			List<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, getDefaultRenderer());
+			List<SubtitleItem> subtitleItems = OpenSubtitle.findSubtitles(originalResource, defaultRenderer);
 			if (subtitleItems == null || subtitleItems.isEmpty()) {
 				return;
 			}
-			Collections.sort(subtitleItems, new SubSort(getDefaultRenderer()));
+			Collections.sort(subtitleItems, new SubSort(defaultRenderer));
 			reduceSubtitles(subtitleItems, configuration.getLiveSubtitlesLimit());
 			LOGGER.trace(
 				"Discovery of OpenSubtitles subtitles for \"{}\" resulted in the following after sorting and reduction:\n{}",
@@ -73,9 +74,9 @@ public class SubSelFile extends VirtualFolder {
 				LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
 				MediaOpenSubtitle subtitle = new MediaOpenSubtitle(subtitleItem);
 				MediaResource liveResource = originalResource.clone();
-				if (liveResource.getMedia() != null) {
-					liveResource.getMedia().setSubtitlesTracks(new ArrayList<>());
-					liveResource.getMedia().addSubtitlesTrack(subtitle);
+				if (liveResource.getMediaInfo() != null) {
+					liveResource.getMediaInfo().setSubtitlesTracks(new ArrayList<>());
+					liveResource.getMediaInfo().addSubtitlesTrack(subtitle);
 				}
 				liveResource.setMediaSubtitle(subtitle);
 				liveResource.resetSubtitlesStatus();
@@ -129,7 +130,7 @@ public class SubSelFile extends VirtualFolder {
 
 		Map<String, Integer> languages = new LinkedHashMap<>();
 		for (SubtitleItem subtitle : subtitles) {
-			String languageCode = isBlank(subtitle.getLanguageCode()) ? null : subtitle.getLanguageCode();
+			String languageCode = StringUtils.isBlank(subtitle.getLanguageCode()) ? null : subtitle.getLanguageCode();
 			if (!languages.containsKey(languageCode)) {
 				languages.put(languageCode, 1);
 			} else {

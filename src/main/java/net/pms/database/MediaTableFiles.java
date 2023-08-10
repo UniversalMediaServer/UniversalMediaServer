@@ -579,12 +579,12 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static MediaInfo getMediaInfo(final Connection connection, String name, long modified) throws IOException, SQLException {
+	public static MediaInfo getMediaInfo(final Connection connection, String filename, long modified) throws IOException, SQLException {
 		MediaInfo media = null;
 		try (
 			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
 		) {
-			stmt.setString(1, name);
+			stmt.setString(1, filename);
 			stmt.setTimestamp(2, new Timestamp(modified));
 			try (
 				ResultSet rs = stmt.executeQuery();
@@ -630,14 +630,14 @@ public class MediaTableFiles extends MediaTable {
 	 * in the caller.
 	 *
 	 * @param connection the db connection
-	 * @param name the full path of the media.
+	 * @param filename the full path of the media.
 	 * @return The {@link MediaInfo} instance matching
 	 *         {@code name} and {@code modified}.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static MediaInfo getFileMetadata(final Connection connection, String name) throws IOException, SQLException {
-		Long id = getFileId(connection, name);
+	public static MediaInfo getFileMetadata(final Connection connection, String filename) throws IOException, SQLException {
+		Long id = getFileId(connection, filename);
 		if (id != null) {
 			MediaInfo media = new MediaInfo();
 			media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));

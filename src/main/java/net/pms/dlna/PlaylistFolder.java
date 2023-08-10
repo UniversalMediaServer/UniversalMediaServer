@@ -16,6 +16,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.dlna.virtual.Playlist;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
@@ -129,7 +130,7 @@ public final class PlaylistFolder extends MediaResource {
 	}
 
 	@Override
-	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File thumbnailImage;
 		if (!isweb) {
 			thumbnailImage = new File(FilenameUtils.removeExtension(uri) + ".png");

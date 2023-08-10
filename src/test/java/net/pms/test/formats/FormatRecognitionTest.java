@@ -124,7 +124,7 @@ public class FormatRecognitionTest {
 		MediaAudio audio = new MediaAudio();
 		audio.setNumberOfChannels(2);
 		info.addAudioTrack(audio);
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertTrue(conf.isCompatible(dlna, format, configuration),
@@ -162,7 +162,7 @@ public class FormatRecognitionTest {
 		info.addAudioTrack(audio);
 		Format format = new MPG();
 		format.match("test.avi");
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 		assertTrue(conf.isCompatible(dlna, format, configuration),
 			"PS3 is compatible with MPG");
 
@@ -198,7 +198,7 @@ public class FormatRecognitionTest {
 		info.addAudioTrack(audio);
 		Format format = new MPG();
 		format.match("test.mkv");
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 		assertFalse(conf.isCompatible(dlna, format, configuration), "PS3 is incompatible with MKV");
 	}
 
@@ -222,7 +222,7 @@ public class FormatRecognitionTest {
 		MediaInfo info = new MediaInfo();
 		info.setContainer("dvr");
 		Format format = new DVRMS();
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 		assertTrue(format.match("test.dvr"), "Format \"test.dvr\" not matches DVRMS");
 		assertFalse(conf.isCompatible(dlna, format, configuration),
 			"isCompatible() gives the wrong outcome \"true\" for DVRMS");
@@ -323,7 +323,7 @@ public class FormatRecognitionTest {
 		info.setMediaParser(Parser.MANUAL_PARSER);
 		Format format = new MPG();
 		format.match("test.mpg");
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 
 		// Test without rendererConfiguration, as can happen when plugins
 		// create virtual video actions under a folder.
@@ -357,7 +357,7 @@ public class FormatRecognitionTest {
 		audio.setCodec(FormatConfiguration.AC3);
 		info.addVideoTrack(video);
 		info.addAudioTrack(audio);
-		dlna.setMedia(info);
+		dlna.setMediaInfo(info);
 
 		// SUBRIP external: true
 		subs.setExternalFileOnly(new File("test.srt"));

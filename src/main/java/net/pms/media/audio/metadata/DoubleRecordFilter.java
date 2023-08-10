@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna.api;
+package net.pms.media.audio.metadata;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class DoubleRecordFilter {
 
-	private Map<MusicBrainzAlbum, HashSet<String>> mbidGenres = new HashMap<>();
+	private final Map<MusicBrainzAlbum, HashSet<String>> mbidGenres = new HashMap<>();
 	private final Set<MusicBrainzAlbum> albumObjects = new HashSet<>();
 
 	public void addAlbum(MusicBrainzAlbum album) {

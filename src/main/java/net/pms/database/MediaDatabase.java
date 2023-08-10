@@ -17,10 +17,9 @@
 package net.pms.database;
 
 import java.sql.*;
-import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.RootFolder;
+import net.pms.service.LibraryScanner;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -61,10 +60,7 @@ public class MediaDatabase extends Database {
 
 	@Override
 	public final void onOpeningFail(boolean force) {
-		RootFolder rootFolder = PMS.get().getRootFolder(null);
-		if (rootFolder != null) {
-			rootFolder.stopScan();
-		}
+		LibraryScanner.stopScanLibrary();
 	}
 
 	/**

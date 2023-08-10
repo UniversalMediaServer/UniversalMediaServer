@@ -20,13 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdTypeAndIdent;
-import net.pms.dlna.DbIdResourceLocator;
+import net.pms.media.DbIdResourceLocator;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.renderers.Renderer;
 
@@ -43,7 +42,6 @@ public class VirtualFolderDbId extends VirtualFolder {
 		this.typeIdent = typeIdent;
 		String id = DbIdResourceLocator.encodeDbid(typeIdent);
 		setId(id);
-		setDefaultRenderer(RendererConfigurations.getDefaultRenderer());
 	}
 
 	@Override

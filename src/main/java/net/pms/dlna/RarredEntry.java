@@ -29,6 +29,8 @@ import net.pms.media.MediaInfo;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
+import net.pms.util.IPushOutput;
+import net.pms.util.InputFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +50,7 @@ public class RarredEntry extends MediaResource implements IPushOutput {
 	}
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	public String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
 			return null;
 		}
@@ -136,25 +138,25 @@ public class RarredEntry extends MediaResource implements IPushOutput {
 			return;
 		}
 
-		if (getMedia() == null) {
-			setMedia(new MediaInfo());
+		if (getMediaInfo() == null) {
+			setMediaInfo(new MediaInfo());
 		}
 
 		if (getFormat() != null) {
 			InputFile input = new InputFile();
 			input.setPush(this);
 			input.setSize(length());
-			Parser.parse(getMedia(), input, getFormat(), getType());
-			if (getMedia() != null && getMedia().isSLS()) {
-				setFormat(getMedia().getAudioVariantFormat());
+			Parser.parse(getMediaInfo(), input, getFormat(), getType());
+			if (getMediaInfo() != null && getMediaInfo().isSLS()) {
+				setFormat(getMediaInfo().getAudioVariantFormat());
 			}
 		}
 	}
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (getMedia() != null && getMedia().getThumb() != null) {
-			return getMedia().getThumbnailInputStream();
+		if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+			return getMediaInfo().getThumbnailInputStream();
 		} else {
 			return super.getThumbnailInputStream();
 		}

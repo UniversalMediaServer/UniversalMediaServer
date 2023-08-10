@@ -135,7 +135,7 @@ public class Playlist extends DefaultComboBoxModel {
 	public static boolean isValid(PlaylistItem item, Renderer renderer) {
 		if (MediaResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
-			if (renderer.getRootFolder().getGlobalRepo().exists(MediaResource.parseResourceId(item.getUri()))) {
+			if (renderer.getGlobalRepo().exists(MediaResource.parseResourceId(item.getUri()))) {
 				return true;
 			}
 			// Repair the item if possible

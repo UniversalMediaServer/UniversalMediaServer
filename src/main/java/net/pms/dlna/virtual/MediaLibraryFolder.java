@@ -725,7 +725,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 	}
 
 	@Override
-	protected String getDisplayNameBase() {
+	public String getDisplayNameBase() {
 		if (StringUtils.isNotBlank(displayNameOverride)) {
 			return displayNameOverride;
 		}

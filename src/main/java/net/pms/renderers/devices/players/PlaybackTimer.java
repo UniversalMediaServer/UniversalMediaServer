@@ -35,8 +35,8 @@ public class PlaybackTimer extends MinimalPlayer {
 		final MediaResource res = renderer.getPlayingRes();
 		state.setName(res.getDisplayName());
 		final long duration;
-		if (res.getMedia() != null) {
-			duration = (long) res.getMedia().getDurationInSeconds() * 1000;
+		if (res.getMediaInfo() != null) {
+			duration = (long) res.getMediaInfo().getDurationInSeconds() * 1000;
 			state.setDuration(duration);
 		} else {
 			duration = 0;

@@ -14,10 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.dlna.virtual;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -29,14 +28,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
-import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.MediaResource;
+import net.pms.dlna.RealFile;
+import net.pms.dlna.RootFolder;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
@@ -49,7 +47,6 @@ public class MediaMonitor extends VirtualFolder {
 	private static final ReentrantReadWriteLock FULLY_PLAYED_ENTRIES_LOCK = new ReentrantReadWriteLock();
 	private static final HashMap<String, Boolean> FULLY_PLAYED_ENTRIES = new HashMap<>();
 	private final File[] dirs;
-	private final UmsConfiguration config;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
@@ -57,50 +54,6 @@ public class MediaMonitor extends VirtualFolder {
 		super(renderer, Messages.getString("Unused"), "images/thumbnail-folder-256.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
-		config = PMS.getConfiguration();
-		parseMonitorFile();
-	}
-
-	/**
-	 * The UTF-8 encoded file containing fully played entries.
-	 * @return The file
-	 */
-	private File monitorFile() {
-		return new File(config.getDataFile("UMS.mon"));
-	}
-
-	private void parseMonitorFile() {
-		File f = monitorFile();
-		if (!f.exists()) {
-			return;
-		}
-		try {
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8))) {
-				String str;
-
-				while ((str = in.readLine()) != null) {
-					if (StringUtils.isEmpty(str)) {
-						continue;
-					}
-					str = str.trim();
-					if (str.startsWith("#")) {
-						continue;
-					}
-					if (str.startsWith("entry=")) {
-						String entry = str.substring(6);
-						if (!new File(entry.trim()).exists()) {
-							continue;
-						}
-
-						entry = entry.trim();
-						setFullyPlayed(entry, true, null);
-					}
-				}
-			}
-		} catch (IOException e) {
-			LOGGER.error("Error reading monitor file \"{}\": {}", f.getAbsolutePath(), e.getMessage());
-			LOGGER.trace("", e);
-		}
 	}
 
 	public void scanDir(File[] files, final MediaResource res) {
@@ -123,7 +76,7 @@ public class MediaMonitor extends VirtualFolder {
 			});
 
 			Set<String> fullyPlayedPaths = null;
-			if (config.isHideEmptyFolders()) {
+			if (configuration.isHideEmptyFolders()) {
 				fullyPlayedPaths = new HashSet<>();
 				FULLY_PLAYED_ENTRIES_LOCK.readLock().lock();
 				try {
@@ -144,9 +97,9 @@ public class MediaMonitor extends VirtualFolder {
 					res.addChild(new RealFile(defaultRenderer, fileEntry));
 				}
 				if (fileEntry.isDirectory()) {
-					boolean add = !config.isHideEmptyFolders();
+					boolean add = !configuration.isHideEmptyFolders();
 					if (!add) {
-						add = FileUtil.isFolderRelevant(fileEntry, config, fullyPlayedPaths);
+						add = FileUtil.isFolderRelevant(fileEntry, configuration, fullyPlayedPaths);
 					}
 					if (add) {
 						res.addChild(new MonitorEntry(defaultRenderer, fileEntry, this));
@@ -208,8 +161,8 @@ public class MediaMonitor extends VirtualFolder {
 
 		// The total video duration in seconds
 		double fileDuration = 0;
-		if (realFile.getMedia() != null && (realFile.getMedia().isAudio() || realFile.getMedia().isVideo())) {
-			fileDuration = realFile.getMedia().getDurationInSeconds();
+		if (realFile.getMediaInfo() != null && (realFile.getMediaInfo().isAudio() || realFile.getMediaInfo().isVideo())) {
+			fileDuration = realFile.getMediaInfo().getDurationInSeconds();
 		}
 
 		/**
@@ -225,7 +178,7 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed += realFile.getLastStartPosition();
 		}
 
-		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
+		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
 
 		if (LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
 			LOGGER.trace("Fully Played feature logging:");
@@ -234,7 +187,7 @@ public class MediaMonitor extends VirtualFolder {
 			LOGGER.trace("   getStartTime: " + realFile.getStartTime());
 			LOGGER.trace("   getLastStartSystemTime: " + realFile.getLastStartSystemTime());
 			LOGGER.trace("   elapsed: " + elapsed);
-			LOGGER.trace("   minimum play time needed: " + (fileDuration * configuration.getResumeBackFactor()));
+			LOGGER.trace("   minimum play time needed: " + (fileDuration * CONFIGURATION.getResumeBackFactor()));
 		}
 
 		/**
@@ -252,8 +205,8 @@ public class MediaMonitor extends VirtualFolder {
 		 */
 		if (
 			fileDuration == 0 ||
-			elapsed > configuration.getMinimumWatchedPlayTimeSeconds() &&
-			elapsed >= (fileDuration * configuration.getResumeBackFactor())
+			elapsed > CONFIGURATION.getMinimumWatchedPlayTimeSeconds() &&
+			elapsed >= (fileDuration * CONFIGURATION.getResumeBackFactor())
 		) {
 			LOGGER.trace("final decision: fully played");
 			MediaResource fileParent = realFile.getParent();
@@ -274,7 +227,7 @@ public class MediaMonitor extends VirtualFolder {
 
 				if (fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER || fullyPlayedAction == FullyPlayedAction.MOVE_FOLDER_AND_MARK) {
 					String oldDirectory = FileUtil.appendPathSeparator(playedFile.getAbsoluteFile().getParent());
-					String newDirectory = FileUtil.appendPathSeparator(configuration.getFullyPlayedOutputDirectory());
+					String newDirectory = FileUtil.appendPathSeparator(CONFIGURATION.getFullyPlayedOutputDirectory());
 					if (!StringUtils.isBlank(newDirectory) && !newDirectory.equals(oldDirectory)) {
 						// Move the video to a different folder
 						boolean moved = false;

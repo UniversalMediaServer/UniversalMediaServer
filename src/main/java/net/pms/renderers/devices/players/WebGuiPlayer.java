@@ -82,8 +82,8 @@ public class WebGuiPlayer extends LogicalPlayer {
 	public void start() {
 		MediaResource d = renderer.getPlayingRes();
 		state.setName(d.getDisplayName());
-		if (d.getMedia() != null) {
-			state.setDuration(StringUtil.shortTime(d.getMedia().getDurationString(), 4));
+		if (d.getMediaInfo() != null) {
+			state.setDuration(StringUtil.shortTime(d.getMediaInfo().getDurationString(), 4));
 		}
 	}
 

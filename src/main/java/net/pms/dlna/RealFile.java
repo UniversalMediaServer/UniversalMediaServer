@@ -16,7 +16,6 @@
  */
 package net.pms.dlna;
 
-import net.pms.media.MediaType;
 import com.sun.jna.Platform;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -24,24 +23,24 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Set;
-import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
-import net.pms.database.MediaTableFiles;
-import net.pms.database.MediaTableFilesStatus;
+import net.pms.dlna.virtual.SubSelFile;
+import net.pms.dlna.virtual.VirtualFile;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
+import net.pms.media.MediaInfoStore;
 import net.pms.media.MediaLang;
+import net.pms.media.MediaStatusStore;
+import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.parsers.FFmpegParser;
-import net.pms.parsers.Parser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
+import net.pms.util.InputFile;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -124,19 +123,19 @@ public class RealFile extends VirtualFile {
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (this.getType() != Format.UNKNOWN && getMedia() != null) {
-				if (getMedia().getDefaultVideoTrack() != null && getMedia().getDefaultVideoTrack().isEncrypted()) {
+			if (this.getType() != Format.UNKNOWN && getMediaInfo() != null) {
+				if (getMediaInfo().getDefaultVideoTrack() != null && getMediaInfo().getDefaultVideoTrack().isEncrypted()) {
 					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
-				} else if (getMedia().getContainer() == null || getMedia().getContainer().equals(MediaLang.UND)) {
+				} else if (getMediaInfo().getContainer() == null || getMediaInfo().getContainer().equals(MediaLang.UND)) {
 					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
 					// this is a quick fix for the MediaInfo insufficient parsing method
-					getMedia().setMediaParser(null);
+					getMediaInfo().setMediaParser(null);
 					InputFile inputfile = new InputFile();
 					inputfile.setFile(file);
-					getMedia().setContainer(null);
-					FFmpegParser.parse(getMedia(), inputfile, getFormat(), getType());
-					if (getMedia().getContainer() == null) {
+					getMediaInfo().setContainer(null);
+					FFmpegParser.parse(getMediaInfo(), inputfile, getFormat(), getType());
+					if (getMediaInfo().getContainer() == null) {
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
 					}
@@ -174,8 +173,8 @@ public class RealFile extends VirtualFile {
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return MediaInfo.TRANS_SIZE;
-		} else if (getMedia() != null && getMedia().isMediaParsed()) {
-			return getMedia().getSize();
+		} else if (getMediaInfo() != null && getMediaInfo().isMediaParsed()) {
+			return getMediaInfo().getSize();
 		}
 		return getFile().length();
 	}
@@ -240,108 +239,16 @@ public class RealFile extends VirtualFile {
 			LOGGER.error("RealFile points to no physical file. ");
 			return;
 		}
-		if (file.isFile() && (getMedia() == null || !getMedia().isMediaParsed())) {
-			boolean found = false;
+
+		if (file.isFile() && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
+			String filename = file.getAbsolutePath();
+			if (getSplitTrack() > 0) {
+				filename += "#SplitTrack" + getSplitTrack();
+			}
 			InputFile input = new InputFile();
 			input.setFile(file);
-			String fileName = file.getAbsolutePath();
-			if (getSplitTrack() > 0) {
-				fileName += "#SplitTrack" + getSplitTrack();
-			}
-			Connection connection = null;
-			try {
-				if (configuration.getUseCache()) {
-					connection = MediaDatabase.getConnectionIfAvailable();
-					if (connection != null) {
-						connection.setAutoCommit(false);
-						try {
-							MediaInfo media = MediaTableFiles.getMediaInfo(connection, fileName, file.lastModified());
-
-							setExternalSubtitlesParsed();
-							if (media != null) {
-								setMedia(media);
-								if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
-									// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-									// FIXME this hack should not be done
-									// media info are immutable
-									getMedia().setSubtitlesTracks(new ArrayList<>());
-									resetSubtitlesStatus();
-								}
-								if (!media.isMediaParsed()) {
-									Parser.parse(media, input, getFormat(), getType());
-									MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), media);
-								}
-								getMedia().postParse(getType());
-								found = true;
-								setMediaStatus(MediaTableFilesStatus.getData(connection, fileName));
-							}
-						} catch (IOException | SQLException e) {
-							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
-							LOGGER.trace("", e);
-						}
-					}
-				}
-
-				if (!found) {
-					if (getMedia() == null) {
-						setMedia(new MediaInfo());
-					}
-
-					if (getFormat() != null) {
-						Parser.parse(getMedia(), input, getFormat(), getType());
-					} else {
-						// Don't think that will ever happen
-						FFmpegParser.parse(getMedia(), input, getFormat(), getType());
-					}
-
-					if (connection != null && getMedia().isMediaParsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {
-						try {
-							/*
-							 * Even though subtitles will be resolved later in
-							 * MediaResource.syncResolve, we must make sure that
-							 * they are resolved before insertion into the
-							 * database
-							 */
-							if (getMedia() != null && getMedia().isVideo()) {
-								registerExternalSubtitles(false);
-							}
-							MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), getMedia());
-						} catch (SQLException e) {
-							LOGGER.error(
-								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
-								fileName,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (
-									e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
-								) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-								}
-								LOGGER.trace("", e);
-							}
-						}
-					}
-				}
-				if (getMedia() != null && getMedia().isSLS()) {
-					setFormat(getMedia().getAudioVariantFormat());
-				}
-			} catch (SQLException e) {
-				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
-				LOGGER.trace("", e);
-			} finally {
-				try {
-					if (connection != null) {
-						connection.commit();
-						connection.setAutoCommit(true);
-					}
-				} catch (SQLException e) {
-					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
-					LOGGER.trace("", e);
-				}
-				MediaDatabase.close(connection);
-			}
+			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
+			setMediaStatus(MediaStatusStore.getMediaStatus(0, filename));
 		}
 	}
 
@@ -349,7 +256,7 @@ public class RealFile extends VirtualFile {
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		File file = getFile();
 		File cachedThumbnail = null;
-		MediaType mediaType = getMedia() != null ? getMedia().getMediaType() : MediaType.UNKNOWN;
+		MediaType mediaType = getMediaInfo() != null ? getMediaInfo().getMediaType() : MediaType.UNKNOWN;
 
 		if (mediaType == MediaType.AUDIO || mediaType == MediaType.VIDEO) {
 			String alternativeFolder = configuration.getAlternateThumbFolder();
@@ -382,14 +289,14 @@ public class RealFile extends VirtualFile {
 			cachedThumbnail = VirtualFile.getFolderThumbnail(file);
 		}
 
-		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMedia() != null && getMedia().getThumb() != null;
+		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumb() != null;
 
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null && (!hasAlreadyEmbeddedCoverArt || file.isDirectory())) {
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-			} else if (getMedia() != null && getMedia().getThumb() != null) {
-				result = getMedia().getThumbnailInputStream();
+			} else if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+				result = getMediaInfo().getThumbnailInputStream();
 			}
 		} catch (IOException e) {
 			LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(), e.getMessage());
@@ -406,7 +313,7 @@ public class RealFile extends VirtualFile {
 	}
 
 	@Override
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	public String getThumbnailURL(DLNAImageProfile profile) {
 		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
@@ -428,7 +335,7 @@ public class RealFile extends VirtualFile {
 	private final Object displayNameBaseLock = new Object();
 
 	@Override
-	protected String getDisplayNameBase() {
+	public String getDisplayNameBase() {
 		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
 			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
 		}
@@ -440,7 +347,7 @@ public class RealFile extends VirtualFile {
 			if (baseNamePrettified == null) {
 				synchronized (displayNameBaseLock) {
 					if (baseNamePrettified == null) {
-						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMedia(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
+						baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMediaInfo(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
 					}
 				}
 			}
@@ -472,8 +379,8 @@ public class RealFile extends VirtualFile {
 	 * @param inputFile
 	 */
 	protected void checkCoverThumb() {
-		if (getMedia() != null && getMedia().isAudio() && getMedia().hasAudioMetadata()) {
-			String mbReleaseId = getMedia().getAudioMetadata().getMbidRecord();
+		if (getMediaInfo() != null && getMediaInfo().isAudio() && getMediaInfo().hasAudioMetadata()) {
+			String mbReleaseId = getMediaInfo().getAudioMetadata().getMbidRecord();
 			if (!StringUtils.isAllBlank(mbReleaseId)) {
 				try {
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {

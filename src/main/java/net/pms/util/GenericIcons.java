@@ -112,12 +112,12 @@ public enum GenericIcons {
 		}
 
 		IconType iconType = IconType.UNKNOWN;
-		if (resource.getMedia() != null) {
-			if (resource.getMedia().isAudio()) {
+		if (resource.getMediaInfo() != null) {
+			if (resource.getMediaInfo().isAudio()) {
 				iconType = IconType.AUDIO;
-			} else if (resource.getMedia().isImage()) {
+			} else if (resource.getMediaInfo().isImage()) {
 				iconType = IconType.IMAGE;
-			} else if (resource.getMedia().isVideo()) {
+			} else if (resource.getMediaInfo().isVideo()) {
 				// FFmpeg parses images as video, try to rectify
 				if (resource.getFormat() != null && resource.getFormat().isImage()) {
 					iconType = IconType.IMAGE;
@@ -148,12 +148,12 @@ public enum GenericIcons {
 			}
 			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
 
-			String label = getLabelFromImageFormat(resource.getMedia());
+			String label = getLabelFromImageFormat(resource.getMediaInfo());
 			if (label == null) {
 				label = getLabelFromFormat(resource.getFormat());
 			}
 			if (label == null) {
-				label = getLabelFromContainer(resource.getMedia());
+				label = getLabelFromContainer(resource.getMediaInfo());
 			}
 			if (label != null && label.length() < 5) {
 				label = label.toUpperCase(Locale.ROOT);

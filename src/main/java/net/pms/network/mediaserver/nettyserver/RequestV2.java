@@ -51,19 +51,12 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
-import net.pms.media.chapter.MediaChapter;
-import net.pms.media.MediaInfo;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
-import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdMediaType;
-import net.pms.dlna.DbIdResourceLocator;
-import net.pms.media.MediaType;
+import net.pms.media.DbIdResourceLocator;
+import net.pms.dlna.MediaResource;
 import net.pms.dlna.PlaylistFolder;
-import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
-import net.pms.dlna.TimeRange;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.dlna.virtual.MediaLibraryFolder;
 import net.pms.encoders.HlsHelper;
@@ -74,6 +67,10 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaType;
+import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
@@ -87,8 +84,10 @@ import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.util.FullyPlayed;
+import net.pms.util.Range;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
+import net.pms.util.TimeRange;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -354,10 +353,10 @@ public class RequestV2 extends HTTPResource {
 					// DLNAresource was found.
 					if (fileName.endsWith("/chapters.vtt")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
-						response.append(MediaChapter.getWebVtt(dlna));
+						response.append(HlsHelper.getChaptersWebVtt(dlna));
 					} else if (fileName.endsWith("/chapters.json")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
-						response.append(MediaChapter.getHls(dlna));
+						response.append(HlsHelper.getChaptersHls(dlna));
 					} else if (fileName.startsWith("hls/")) {
 						//HLS
 						if (fileName.endsWith(".m3u8")) {
@@ -383,8 +382,8 @@ public class RequestV2 extends HTTPResource {
 						response.append(HlsHelper.getHLSm3u8(dlna, mediaRenderer, "/get/"));
 						if (contentFeatures != null) {
 							//output.headers().set("transferMode.dlna.org", "Streaming");
-							if (dlna.getMedia().getDurationInSeconds() > 0) {
-								String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMedia().getDurationInSeconds());
+							if (dlna.getMediaInfo().getDurationInSeconds() > 0) {
+								String durationStr = String.format(Locale.ENGLISH, "%.3f", dlna.getMediaInfo().getDurationInSeconds());
 								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
 								//only time seek, transcoded
@@ -442,14 +441,14 @@ public class RequestV2 extends HTTPResource {
 						}
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-					} else if (dlna.getMedia() != null && dlna.getMedia().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
+					} else if (dlna.getMediaInfo() != null && dlna.getMediaInfo().getMediaType() == MediaType.IMAGE && dlna.isCodeValid(dlna)) {
 						// This is a request for an image
 						Services.sleepManager().postponeSleep();
 						DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
 						if (imageProfile == null) {
 							// Parsing failed for some reason, we'll have to pick a profile
-							if (dlna.getMedia().getImageInfo() != null && dlna.getMedia().getImageInfo().getFormat() != null) {
-								imageProfile = switch (dlna.getMedia().getImageInfo().getFormat()) {
+							if (dlna.getMediaInfo().getImageInfo() != null && dlna.getMediaInfo().getImageInfo().getFormat() != null) {
+								imageProfile = switch (dlna.getMediaInfo().getImageInfo().getFormat()) {
 									case GIF -> DLNAImageProfile.GIF_LRG;
 									case PNG -> DLNAImageProfile.PNG_LRG;
 									default -> DLNAImageProfile.JPEG_LRG;
@@ -467,7 +466,7 @@ public class RequestV2 extends HTTPResource {
 							if (dlna.getEngine() instanceof ImageEngine) {
 								ProcessWrapper transcodeProcess = dlna.getEngine().launchTranscode(
 									dlna,
-									dlna.getMedia(),
+									dlna.getMediaInfo(),
 									new OutputParams(configuration)
 								);
 								imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
@@ -509,7 +508,7 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.trace("", ie);
 							return future;
 						}
-					} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
+					} else if (dlna.getMediaInfo() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 						// This is a request for a subtitles file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
@@ -545,11 +544,7 @@ public class RequestV2 extends HTTPResource {
 						}
 					} else if (dlna.isCodeValid(dlna)) {
 						// This is a request for a regular file.
-						MediaResource.Rendering origRendering = null;
-						if (!mediaRenderer.equals(dlna.getDefaultRenderer())) {
-							// Adjust rendering details for this renderer
-							origRendering = dlna.updateRendering(mediaRenderer);
-						}
+
 						// If range has not been initialized yet and the MediaResource has its
 						// own start and end defined, initialize range with those values before
 						// requesting the input stream.
@@ -585,10 +580,10 @@ public class RequestV2 extends HTTPResource {
 
 						Format format = dlna.getFormat();
 						if (!isVideoThumbnailRequest && format != null && format.isVideo()) {
-							MediaType mediaType = dlna.getMedia() == null ? null : dlna.getMedia().getMediaType();
+							MediaType mediaType = dlna.getMediaInfo() == null ? null : dlna.getMediaInfo().getMediaType();
 							if (mediaType == MediaType.VIDEO) {
 								if (
-									dlna.getMedia() != null &&
+									dlna.getMediaInfo() != null &&
 									dlna.getMediaSubtitle() != null &&
 									dlna.getMediaSubtitle().isExternal() &&
 									!configuration.isDisableSubtitles() &&
@@ -615,7 +610,7 @@ public class RequestV2 extends HTTPResource {
 									}
 								} else {
 									ArrayList<String> reasons = new ArrayList<>();
-									if (dlna.getMedia() == null) {
+									if (dlna.getMediaInfo() == null) {
 										reasons.add("dlna.getMedia() is null");
 									}
 									if (configuration.isDisableSubtitles()) {
@@ -707,10 +702,6 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						}
-						if (origRendering != null) {
-							// Restore original rendering details
-							dlna.updateRendering(origRendering);
-						}
 					}
 				}
 			} else if ((GET.equals(method) || HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
@@ -786,7 +777,7 @@ public class RequestV2 extends HTTPResource {
 				if (range.isStartOffsetAvailable() && dlna != null) {
 					// Add timeseek information headers.
 					String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
-					String timetotalValue = dlna.getMedia().getDurationString();
+					String timetotalValue = dlna.getMediaInfo().getDurationString();
 					String timeEndValue = range.isEndLimitAvailable() ? StringUtil.formatDLNADuration(range.getEnd()) : timetotalValue;
 					output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 					output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
@@ -1118,7 +1109,6 @@ public class RequestV2 extends HTTPResource {
 			browseDirectChildren,
 			startingIndex,
 			requestCount,
-			mediaRenderer,
 			searchCriteria
 		);
 

@@ -59,6 +59,9 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAImageProfile.HypotheticalResult;
+import net.pms.dlna.virtual.CodeEnter;
+import net.pms.dlna.virtual.SubSelFile;
+import net.pms.dlna.virtual.SubSelect;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.UnattachedFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -83,6 +86,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.DbIdResourceLocator;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaStatus;
@@ -98,12 +102,16 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.APIUtils;
+import net.pms.util.ByteRange;
 import net.pms.util.Debouncer;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.GenericIcons;
+import net.pms.util.IPushOutput;
+import net.pms.util.InputFile;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.Range;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
@@ -116,6 +124,7 @@ import static net.pms.util.StringUtil.encodeXML;
 import static net.pms.util.StringUtil.endTag;
 import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
+import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -235,7 +244,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 
 	protected MediaResource(Renderer renderer, int specificType) {
 		this.defaultRenderer = renderer;
-		this.configuration = PMS.getConfiguration();
+		this.configuration = PMS.getConfiguration(renderer);
 		this.specificType = specificType;
 		this.children = new ArrayList<>();
 		resHash = 0;
@@ -501,10 +510,6 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 
 		child.parent = this;
 
-		if (parent != null) {
-			defaultRenderer = parent.getDefaultRenderer();
-		}
-
 		if (isAddGlobally && configuration.useCode() && !PMS.get().masterCodeValid()) {
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
@@ -513,7 +518,6 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 					LOGGER.debug("Resource {} is coded add code folder", child);
 					CodeEnter ce = new CodeEnter(child);
 					ce.setParent(this);
-					ce.setDefaultRenderer(this.getDefaultRenderer());
 					ce.setCode(code);
 					addChildInternal(ce);
 					return;
@@ -615,8 +619,6 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 						}
 
 						if (!allChildrenAreFolders) {
-							child.setDefaultRenderer(defaultRenderer);
-
 							// Should the child be added to the #--TRANSCODE--# folder?
 							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
 								VirtualFolder transcodeFolder = getTranscodeFolder();
@@ -698,7 +700,6 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 				}
 
 				if (resumeRes != null) {
-					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
 				}
 			}
@@ -939,7 +940,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 			if (child != found) {
 				// Replace
 				child.parent = this;
-				defaultRenderer.getRootFolder().getGlobalRepo().replace(found, child);
+				defaultRenderer.getGlobalRepo().replace(found, child);
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -980,7 +981,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		child.parent = this;
 
 		if (isAddGlobally) {
-			defaultRenderer.getRootFolder().getGlobalRepo().add(child);
+			defaultRenderer.getGlobalRepo().add(child);
 		}
 	}
 
@@ -997,24 +998,20 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		MediaResource dlna;
+		MediaResource resource;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
 			if (renderer == null) {
-				dlna = PMS.get().getRootFolder(null);
+				resource = PMS.get().getRootFolder(null);
 			} else {
-				dlna = renderer.getRootFolder();
+				resource = renderer.getRootFolder();
 			}
 		} else {
 			// only allow the last one here
-			dlna = defaultRenderer.getRootFolder().getGlobalRepo().get(ids[ids.length - 1]);
+			resource = defaultRenderer.getGlobalRepo().get(ids[ids.length - 1]);
 		}
 
-		if (dlna == null) {
-			return null;
-		}
-
-		return dlna;
+		return resource;
 	}
 
 	/**
@@ -1032,69 +1029,67 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @return List of MediaResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<MediaResource> getDLNAResources(String objectId, boolean children, int start, int count,
-		Renderer renderer) throws IOException {
-		return getDLNAResources(objectId, children, start, count, renderer, null);
+	public synchronized List<MediaResource> getDLNAResources(String objectId, boolean children, int start, int count) throws IOException {
+		return getDLNAResources(objectId, children, start, count, null);
 	}
 
 	public synchronized List<MediaResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count,
-		Renderer renderer, String searchStr) {
+		String searchStr) {
 		ArrayList<MediaResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
-			List<MediaResource> items = renderer.getRootFolder().getTemp().asList(objectId);
+			List<MediaResource> items = defaultRenderer.getRootFolder().getTemp().asList(objectId);
 			return items != null ? items : resources;
 		}
 
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		MediaResource dlna = null;
+		MediaResource resource = null;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
-			dlna = renderer.getRootFolder();
+			resource = defaultRenderer.getRootFolder();
 		} else {
 			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 				try {
-					dlna = DbIdResourceLocator.locateResource(renderer, objectId);
+					resource = DbIdResourceLocator.locateResource(defaultRenderer, objectId);
 				} catch (Exception e) {
 					LOGGER.error("", e);
 				}
 			} else {
-				dlna = defaultRenderer.getRootFolder().getGlobalRepo().get(ids[ids.length - 1]);
+				resource = defaultRenderer.getGlobalRepo().get(ids[ids.length - 1]);
 			}
 		}
 
-		if (dlna == null) {
+		if (resource == null) {
 			// nothing in the cache do a traditional search
-			dlna = search(ids, renderer);
+			resource = search(ids, defaultRenderer);
 			// dlna = search(objectId, count, renderer, searchStr);
 		}
 
-		if (dlna != null) {
-			if (!(dlna instanceof CodeEnter) && !isCodeValid(dlna)) {
+		if (resource != null) {
+			if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
 				LOGGER.debug("code is not valid any longer");
 				return resources;
 			}
-			String systemName = dlna.getSystemName();
-			dlna.setDefaultRenderer(renderer);
+			String systemName = resource.getSystemName();
 
 			if (!returnChildren) {
-				resources.add(dlna);
-				dlna.refreshChildrenIfNeeded(searchStr);
+				resources.add(resource);
+				resource.refreshChildrenIfNeeded(searchStr);
 			} else {
-				dlna.discoverWithRenderer(renderer, count, true, searchStr);
+				resource.discoverWithRenderer(count, true, searchStr);
 
 				if (count == 0) {
-					count = dlna.getChildren().size();
+					count = resource.getChildren().size();
 				}
 
 				if (count > 0) {
 					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 					int nParallelThreads = 3;
-					if (dlna instanceof DVDISOFile) {
+					if (resource instanceof DVDISOFile) {
 						// Some DVD drives die with 3 parallel threads
 						nParallelThreads = 1;
 					}
@@ -1102,11 +1097,11 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
 						new SimpleThreadFactory("DLNAResource resolver thread", true));
 
-					if (shouldDoAudioTrackSorting(dlna)) {
-						sortChildrenWithAudioElements(dlna);
+					if (shouldDoAudioTrackSorting(resource)) {
+						sortChildrenWithAudioElements(resource);
 					}
-					for (int i = start; i < start + count && i < dlna.getChildren().size(); i++) {
-						final MediaResource child = dlna.getChildren().get(i);
+					for (int i = start; i < start + count && i < resource.getChildren().size(); i++) {
+						final MediaResource child = resource.getChildren().get(i);
 						if (child != null) {
 							tpe.execute(child);
 							resources.add(child);
@@ -1153,11 +1148,11 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		boolean audioExists = false;
 		for (MediaResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
-				if (res.getMedia() == null || !res.getMedia().hasAudioMetadata()) {
+				if (res.getMediaInfo() == null || !res.getMediaInfo().hasAudioMetadata()) {
 					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
 					continue;
 				}
-				MediaAudioMetadata metadata = res.getMedia().getAudioMetadata();
+				MediaAudioMetadata metadata = res.getMediaInfo().getAudioMetadata();
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
@@ -1202,15 +1197,15 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	}
 
 	private static Integer getTrackNum(MediaResource res) {
-		if (res != null && res.getMedia() != null && res.getMedia().hasAudioMetadata()) {
-			return res.getMedia().getAudioMetadata().getTrack();
+		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
+			return res.getMediaInfo().getAudioMetadata().getTrack();
 		}
 		return 0;
 	}
 
 	private static Integer getDiscNum(MediaResource res) {
-		if (res != null && res.getMedia() != null && res.getMedia().hasAudioMetadata()) {
-			return res.getMedia().getAudioMetadata().getDisc();
+		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
+			return res.getMediaInfo().getAudioMetadata().getDisc();
 		}
 		return 0;
 	}
@@ -1230,30 +1225,28 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		MediaResource.bumpSystemUpdateId();
 	}
 
-	protected final void discoverWithRenderer(Renderer renderer, int count, boolean forced, String searchStr) {
-		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(renderer);
+	protected final void discoverWithRenderer(int count, boolean forced, String searchStr) {
+		UmsConfiguration configurationSpecificToRenderer = PMS.getConfiguration(defaultRenderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configurationSpecificToRenderer.getFolderLimit() && depthLimit()) {
-				if (renderer.isPS3() || renderer.isXbox360()) {
+				if (defaultRenderer.isPS3() || defaultRenderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
 
-				if (defaultRenderer != null) {
-					defaultRenderer.addFolderLimit(this);
-				}
+				defaultRenderer.addFolderLimit(this);
 			}
 
 			discoverChildren(searchStr);
 			boolean ready;
 
-			if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+			if (defaultRenderer.isUseMediaInfo() && defaultRenderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
 				ready = analyzeChildren(-1);
 			}
 
-			if (!renderer.isUseMediaInfo() || ready) {
+			if (!defaultRenderer.isUseMediaInfo() || ready) {
 				setDiscovered(true);
 			}
 
@@ -1314,17 +1307,17 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @return Item found, or null otherwise.
 	 * @see #getId()
 	 */
-	public MediaResource search(String searchId, int count, Renderer renderer, String searchStr) {
+	public MediaResource search(String searchId, int count, String searchStr) {
 		if (id != null && searchId != null) {
 			String[] indexPath = searchId.split("\\$", 2);
 			if (id.equals(indexPath[0])) {
 				if (indexPath.length == 1 || indexPath[1].length() == 0) {
 					return this;
 				}
-				discoverWithRenderer(renderer, count, false, null);
+				discoverWithRenderer(count, false, null);
 
 				for (MediaResource file : children) {
-					MediaResource found = file.search(indexPath[1], count, renderer, null);
+					MediaResource found = file.search(indexPath[1], count, null);
 					if (found != null) {
 						// Make sure it's ready
 						// found.resolve();
@@ -1340,23 +1333,23 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	}
 
 	private static MediaResource search(String[] searchIds, Renderer renderer) {
-		MediaResource dlna;
+		MediaResource resource;
 		for (String searchId : searchIds) {
 			if (searchId.equals("0")) {
-				dlna = renderer.getRootFolder();
+				resource = renderer.getRootFolder();
 			} else {
-				dlna = renderer.getRootFolder().getGlobalRepo().get(searchId);
+				resource = renderer.getGlobalRepo().get(searchId);
 			}
 
-			if (dlna == null) {
+			if (resource == null) {
 				LOGGER.debug("Bad id {} found in path", searchId);
 				return null;
 			}
 
-			dlna.discoverWithRenderer(renderer, 0, false, null);
+			resource.discoverWithRenderer(0, false, null);
 		}
 
-		return renderer.getRootFolder().getGlobalRepo().get(searchIds[searchIds.length - 1]);
+		return renderer.getGlobalRepo().get(searchIds[searchIds.length - 1]);
 	}
 
 	public MediaResource search(String searchId) {
@@ -1543,7 +1536,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 *
 	 * @return The base display name or {@code ""}.
 	 */
-	protected String getDisplayNameBase() {
+	public String getDisplayNameBase() {
 		// this unescape trick is to solve the problem of a name containing
 		// unicode stuff like \u005e
 		// if it's done here it will fix this for all objects
@@ -1742,7 +1735,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @return Returns an URL pointing to an image representing the item. If
 	 *         none is available, "thumbnail0000.png" is used.
 	 */
-	protected String getThumbnailURL(DLNAImageProfile profile) {
+	public String getThumbnailURL(DLNAImageProfile profile) {
 		StringBuilder sb = new StringBuilder(MediaServer.getURL());
 		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
 		if (profile != null) {
@@ -2632,7 +2625,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 
 		ImageInfo imageInfo = media.getImageInfo();
 		ImageInfo thumbnailImageInf = this.thumbnailImageInfo != null ? this.thumbnailImageInfo :
-			getMedia() != null && getMedia().getThumb() != null ? getMedia().getThumb().getImageInfo() : null;
+			getMediaInfo() != null && getMediaInfo().getThumb() != null ? getMediaInfo().getThumb().getImageInfo() : null;
 
 		// Only include GIF elements if the source is a GIF and it's supported
 		// by the renderer.
@@ -2786,8 +2779,8 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		// appendImage()
 		if (MediaType.IMAGE != mediaType) {
 			ImageInfo imageInfo = thumbnailImageInfo != null ? thumbnailImageInfo :
-				getMedia() != null && getMedia().getThumb() != null && getMedia().getThumb().getImageInfo() != null ?
-					getMedia().getThumb().getImageInfo() :
+				getMediaInfo() != null && getMediaInfo().getThumb() != null && getMediaInfo().getThumb().getImageInfo() != null ?
+					getMediaInfo().getThumb().getImageInfo() :
 					null;
 
 			// Only include GIF elements if the source is a GIF and it's
@@ -3490,7 +3483,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @return The {@link DLNAThumbnailInputStream}.
 	 * @throws IOException
 	 */
-	protected DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
+	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
 		if (isAvisynth()) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"));
 		}
@@ -3628,7 +3621,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 *
 	 * @return The object containing detailed information.
 	 */
-	public MediaInfo getMedia() {
+	public MediaInfo getMediaInfo() {
 		return media;
 	}
 
@@ -3639,7 +3632,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 * @param media The object containing detailed information.
 	 * @since 1.50
 	 */
-	public void setMedia(MediaInfo media) {
+	public void setMediaInfo(MediaInfo media) {
 		this.media = media;
 	}
 
@@ -3806,7 +3799,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 *            otherwise.
 	 * @since 1.50
 	 */
-	protected void setDiscovered(boolean discovered) {
+	public void setDiscovered(boolean discovered) {
 		this.discovered = discovered;
 	}
 
@@ -4372,17 +4365,6 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	}
 
 	/**
-	 * Sets the default renderer configuration for this resource.
-	 *
-	 * @param renderer The default renderer configuration to set.
-	 * @since 1.50
-	 */
-	public void setDefaultRenderer(Renderer renderer) {
-		this.defaultRenderer = renderer;
-		configuration = PMS.getConfiguration(renderer);
-	}
-
-	/**
 	 * Returns whether or not this resource is handled by AviSynth.
 	 *
 	 * @return True if handled by AviSynth, otherwise false.
@@ -4467,7 +4449,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 	 *
 	 * @return The timestamp.
 	 */
-	long getLastRefreshTime() {
+	protected long getLastRefreshTime() {
 		return lastRefreshTime;
 	}
 
@@ -4597,7 +4579,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 			resume.stop(startTime, (long) (media.getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				parent.getChildren().remove(this);
-			} else if (getMedia() != null) {
+			} else if (getMediaInfo() != null) {
 				media.setThumbready(false);
 			}
 		} else {
@@ -4609,7 +4591,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 						return null;
 					}
 
-					if (res.getMedia() != null) {
+					if (res.getMediaInfo() != null) {
 						res.media.setThumbready(false);
 					}
 
@@ -4752,50 +4734,13 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 		if (isResourceUrl(uri)) {
 			// Check existence
 			// TODO:attempt repair
-			return renderer.getRootFolder().getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO:attempt repair
+			return renderer.getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO:attempt repair
 		}
 		MediaResource d = renderer.getRootFolder().getTemp().add(uri, name, renderer);
 		if (d != null) {
 			return d.getURL("", true);
 		}
 		return null;
-	}
-
-	public static class Rendering {
-		Renderer renderer;
-		Engine engine;
-		MediaSubtitle mediaSubtitle;
-		String mimeType;
-
-		Rendering(MediaResource d) {
-			renderer = d.getDefaultRenderer();
-			engine = d.getEngine();
-			mediaSubtitle = d.getMediaSubtitle();
-			if (d.getMedia() != null) {
-				mimeType = d.getMedia().getMimeType();
-			}
-		}
-	}
-
-	public Rendering updateRendering(Renderer renderer) {
-		Rendering rendering = new Rendering(this);
-		Engine resolvedEngine = resolveEngine(renderer);
-		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", renderer, resolvedEngine, rendering.renderer, rendering.engine);
-		setDefaultRenderer(renderer);
-		setEngine(resolvedEngine);
-		setPreferredMimeType(renderer);
-		return rendering;
-	}
-
-	public void updateRendering(Rendering rendering) {
-		LOGGER.debug("Switching rendering context to '{} [{}]' from '{} [{}]'", rendering.renderer, rendering.engine, getDefaultRenderer(),
-			getEngine());
-		setDefaultRenderer(rendering.renderer);
-		setEngine(rendering.engine);
-		mediaSubtitle = rendering.mediaSubtitle;
-		if (media != null) {
-			media.setMimeType(rendering.mimeType);
-		}
 	}
 
 	public MediaResource isCoded() {
@@ -5054,7 +4999,7 @@ public abstract class MediaResource extends HTTPResource implements Cloneable, R
 			sb.append("DLNA.ORG_PN=").append(profile);
 		}
 		ImageInfo thumbnailImageInf = this.thumbnailImageInfo != null ? this.thumbnailImageInfo :
-			getMedia() != null && getMedia().getThumb() != null ? getMedia().getThumb().getImageInfo() : null;
+			getMediaInfo() != null && getMediaInfo().getThumb() != null ? getMediaInfo().getThumb().getImageInfo() : null;
 		ImageInfo imageInfo = thumbnailRequest ? thumbnailImageInf : media != null ? media.getImageInfo() : null;
 
 		if (profile != null && !thumbnailRequest && thumbnailImageInf != null && profile.useThumbnailSource(imageInfo, thumbnailImageInf)) {

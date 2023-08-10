@@ -16,18 +16,17 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.RealFile;
-import net.pms.dlna.VideoClassification;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.WordUtils;
 
 
 /**
