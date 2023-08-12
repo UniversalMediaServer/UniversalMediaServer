@@ -83,12 +83,8 @@ public class FolderContent extends SharedContent {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof FolderContent other) {
-			if (file == null && other.file != null) {
-				return false;
-			}
-			return (active == other.active &&
-				metadata == other.metadata &&
+		if (super.equals(o) && o instanceof FolderContent other) {
+			return (metadata == other.metadata &&
 				monitored == other.monitored &&
 				((file == null && other.file == null) ||
 				file != null && file.equals(other.file)));
@@ -98,8 +94,7 @@ public class FolderContent extends SharedContent {
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 83 * hash + (this.active ? 1 : 0);
+		int hash = super.hashCode();
 		hash = 83 * hash + (this.file != null ? Objects.hashCode(this.file.getPath()) : 0);
 		hash = 83 * hash + (this.monitored ? 1 : 0);
 		hash = 83 * hash + (this.metadata ? 1 : 0);
@@ -110,4 +105,5 @@ public class FolderContent extends SharedContent {
 	public String toString() {
 		return this.file != null ? this.file.getPath() : "Empty Folder";
 	}
+
 }

@@ -114,6 +114,10 @@ public class JUPnPDeviceHelper {
 
 	private static DocumentBuilder db;
 
+	private JUPnPDeviceHelper() {
+		//not to be instanciated
+	}
+
 	public static void remoteDeviceAdded(RemoteDevice device) {
 		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
 			LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);

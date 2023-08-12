@@ -131,7 +131,7 @@ public class SharedContentConfiguration {
 				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
 				//check viability
-				Boolean wasFolderUpdate = false;
+				boolean wasFolderUpdate = false;
 				for (SharedContent sharedContent : values) {
 					if (sharedContent instanceof FolderContent folderContent) {
 						if (folderContent.getFile() != null) {
@@ -151,12 +151,10 @@ public class SharedContentConfiguration {
 				}
 				updated = true;
 
-				if (wasFolderUpdate && save) {
+				if (wasFolderUpdate && save && CONFIGURATION.getUseCache()) {
 					// Rescan to add/remove Media Library content
-					if (CONFIGURATION.getUseCache()) {
-						LibraryScanner.stopScanLibrary();
-						LibraryScanner.scanLibrary();
-					}
+					LibraryScanner.stopScanLibrary();
+					LibraryScanner.scanLibrary();
 				}
 			} else {
 				LOGGER.debug("Current shared content configuration is already up to date.");

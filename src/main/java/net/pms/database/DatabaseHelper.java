@@ -695,6 +695,14 @@ public abstract class DatabaseHelper {
 		}
 	}
 
+	protected static void updateBytes(ResultSet rs, String columnLabel, byte[] value) throws SQLException {
+		if (value != null) {
+			rs.updateBytes(columnLabel, value);
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
 	public static void close(ResultSet rs) {
 		try {
 			if (rs != null) {

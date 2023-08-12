@@ -144,6 +144,11 @@ export default function GeneralSettings(
             <Stack mt='sm'>
               <Checkbox
                 disabled={!canModify}
+                label={i18n.get['ShowUserChoice']}
+                {...form.getInputProps('show_user_choice', { type: 'checkbox' })}
+              />
+              <Checkbox
+                disabled={!canModify}
                 label={i18n.get['UPnPDlnaService']}
                 {...form.getInputProps('upnp_enable', { type: 'checkbox' })}
               />

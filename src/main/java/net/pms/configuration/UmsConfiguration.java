@@ -406,6 +406,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	private static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	private static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
+	private static final String KEY_SHOW_USER_CHOICE = "show_user_choice";
 	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -4287,6 +4288,24 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_SHOW_TRANSCODE_FOLDER, value);
 	}
 
+	/**
+	 * Whether to show user choice on non affiliate renderer.
+	 *
+	 * @return whether the user choice is shown
+	 */
+	public boolean isShowUserChoice() {
+		return getBoolean(KEY_SHOW_USER_CHOICE, true);
+	}
+
+	/**
+	 * Whether to show user choice on non affiliate renderer.
+	 *
+	 * @param value whether the user choice is shown
+	 */
+	public void setShowUserChoice(boolean value) {
+		configuration.setProperty(KEY_SHOW_USER_CHOICE, value);
+	}
+
 	public boolean isDvdIsoThumbnails() {
 		return getBoolean(KEY_DVDISO_THUMBNAILS, true);
 	}
@@ -5651,6 +5670,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_SPLASH_SCREEN, true);
 		jObj.addProperty(KEY_SHOW_TRANSCODE_FOLDER, true);
+		jObj.addProperty(KEY_SHOW_USER_CHOICE, true);
 		jObj.addProperty(KEY_SORT_METHOD, "4");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");

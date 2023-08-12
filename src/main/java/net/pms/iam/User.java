@@ -16,10 +16,14 @@
  */
 package net.pms.iam;
 
+import net.pms.image.Image;
+
 public class User extends UsernamePassword {
 	private int id;
 	private String displayName;
 	private int groupId;
+	private Image avatar;
+	private String pinCode;
 	private long lastLoginTime;
 	private long loginFailedTime;
 	private int loginFailedCount;
@@ -46,6 +50,22 @@ public class User extends UsernamePassword {
 
 	public void setGroupId(int groupId) {
 		this.groupId = groupId;
+	}
+
+	public Image getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(Image avatar) {
+		this.avatar = avatar;
+	}
+
+	public String getPinCode() {
+		return pinCode;
+	}
+
+	public void setPinCode(String pinCode) {
+		this.pinCode = pinCode;
 	}
 
 	public long getLastLoginTime() {

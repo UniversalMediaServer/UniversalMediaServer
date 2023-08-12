@@ -265,10 +265,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 
 			}
-		} catch (RuntimeException | InterruptedException e) {
+		} catch (RuntimeException e) {
 			LOGGER.error("Exception in PlayerApiServlet: {}", e.getMessage());
 			LOGGER.trace("{}", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
+		} catch (InterruptedException e) {
+			WebGuiServletHelper.respondInternalServerError(req, resp);
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -291,16 +294,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			int userId = account.getUser().getId();
 			String userAgent = req.getHeader("User-agent");
 			String langs = WebGuiServletHelper.getLangs(req);
-			WebGuiRenderer renderer = new WebGuiRenderer(uuid, userId, userAgent, langs);
+			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account, userAgent, langs);
 			renderer.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
 			renderer.setActive(true);
 			renderer.getRootFolder().discoverChildren();
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
-		} catch (ConfigurationException | InterruptedException ex) {
+		} catch (ConfigurationException ex) {
 			LOGGER.info("Error in loading configuration of WebPlayerRenderer");
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
 		}
 	}
 

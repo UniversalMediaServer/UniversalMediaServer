@@ -26,6 +26,7 @@ import java.util.Map;
 import net.pms.database.UserDatabase;
 import net.pms.database.UserTableGroups;
 import net.pms.database.UserTableUsers;
+import net.pms.image.Image;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,11 +167,13 @@ public class AccountService {
 		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(displayName, 255), groupId);
 	}
 
-	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId) {
+	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId, final Image avatar, final String pinCode) {
 		LOGGER.info("Updating user id : {}", userId);
-		if (UserTableUsers.updateUser(connection, userId, displayName, groupId) && USERS.containsKey(userId)) {
+		if (UserTableUsers.updateUser(connection, userId, displayName, groupId, avatar, pinCode) && USERS.containsKey(userId)) {
 			USERS.get(userId).setDisplayName(displayName);
 			USERS.get(userId).setGroupId(groupId);
+			USERS.get(userId).setAvatar(avatar);
+			USERS.get(userId).setPinCode(pinCode);
 		}
 	}
 

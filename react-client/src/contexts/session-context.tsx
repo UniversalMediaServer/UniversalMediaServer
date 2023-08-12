@@ -30,6 +30,8 @@ export interface UmsUser {
   username: string,
   displayName: string,
   groupId: number,
+  avatar?: string,
+  pinCode?: string,
   lastLoginTime: number,
   loginFailedTime: number,
   loginFailedCount: number,

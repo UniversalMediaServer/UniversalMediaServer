@@ -22,7 +22,6 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.MediaResource;
 import net.pms.iam.Account;
-import net.pms.iam.AccountService;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
@@ -50,15 +49,14 @@ public class WebGuiRenderer extends Renderer {
 	private static final int CHROMIUM = 9;
 	private static final int VIVALDI = 10;
 
-	private final int userId;
 	private final int browser;
 	private final String subLang;
 	private IServerSentEvents sse;
 	private StartStopListenerDelegate startStop;
 
-	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
+	public WebGuiRenderer(String uuid, Account account, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
-		this.userId = userId;
+		this.account = account;
 		this.browser = getBrowser(userAgent);
 		this.subLang = subLang;
 		setFileless(true);
@@ -77,12 +75,7 @@ public class WebGuiRenderer extends Renderer {
 	}
 
 	public boolean havePermission(int permission) {
-		if (userId == Integer.MAX_VALUE) {
-			return true;
-		} else {
-			Account account = AccountService.getAccountByUserId(userId);
-			return (account != null && account.havePermission(permission));
-		}
+		return account.havePermission(permission);
 	}
 
 	public boolean isImageFormatSupported(ImageFormat format) {
@@ -121,17 +114,19 @@ public class WebGuiRenderer extends Renderer {
 	}
 
 	public String getUserName() {
-		if (userId != Integer.MAX_VALUE) {
-			Account account = AccountService.getAccountByUserId(userId);
-			if (account != null && account.getUser() != null) {
-				if (StringUtils.isNotEmpty(account.getUser().getDisplayName())) {
-					return account.getUser().getDisplayName();
-				} else if (StringUtils.isNotEmpty(account.getUser().getUsername())) {
-					return account.getUser().getUsername();
-				}
+		if (account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE) {
+			if (StringUtils.isNotEmpty(account.getUser().getDisplayName())) {
+				return account.getUser().getDisplayName();
+			} else if (StringUtils.isNotEmpty(account.getUser().getUsername())) {
+				return account.getUser().getUsername();
 			}
 		}
 		return null;
+	}
+
+	@Override
+	public boolean hasUserId() {
+		return true;
 	}
 
 	@Override

@@ -24,12 +24,17 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import net.pms.image.Image;
+import net.pms.image.ImageTypeAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GuiHttpServlet extends HttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuiHttpServlet.class);
-	protected static final Gson GSON = new GsonBuilder().setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE).create();
+	protected static final Gson GSON = new GsonBuilder()
+		.setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
+		.registerTypeAdapter(Image.class, new ImageTypeAdapter())
+		.create();
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {

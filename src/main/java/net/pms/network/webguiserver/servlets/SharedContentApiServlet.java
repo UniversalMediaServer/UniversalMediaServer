@@ -34,7 +34,9 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.Feed;
 import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
+import net.pms.iam.Group;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
@@ -69,6 +71,11 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 				// immutable data
 				jsonResponse.addProperty("use_cache", CONFIGURATION.getUseCache());
 				jsonResponse.add("shared_content", SharedContentConfiguration.getAsJsonArray());
+				JsonArray jGroups = new JsonArray();
+				for (Group group : AccountService.getAllGroups()) {
+					jGroups.add(groupToJsonObject(group));
+				}
+				jsonResponse.add("groups", jGroups);
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
 				LOGGER.trace("SharedContentApiServlet request not available : {}", path);
@@ -77,7 +84,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SharedContentApiServlet.doGet(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -156,6 +163,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 						WebGuiServletHelper.respondUnauthorized(req, resp);
 						return;
 					}
+					//TODO -> mark for user only
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
@@ -183,7 +191,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -266,6 +274,12 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 		jsonResponse.add("parents", new JsonArray());
 		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
+	}
+
+	private static JsonObject groupToJsonObject(Group group) {
+		JsonObject jObject = GSON.toJsonTree(group).getAsJsonObject();
+		jObject.remove("permissions");
+		return jObject;
 	}
 
 }

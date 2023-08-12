@@ -690,14 +690,16 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 
 		for (File file : newFiles) {
-			switch (expectedOutput) {
-				case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> addChild(new RealFile(defaultRenderer, file));
-				case EPISODES -> addChild(new RealFile(defaultRenderer, file, false, true));
-				case EPISODES_WITHIN_SEASON -> addChild(new RealFile(defaultRenderer, file, true));
-				case PLAYLISTS -> addChild(new PlaylistFolder(defaultRenderer, file));
-				case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(defaultRenderer, file));
-				default -> {
-					// nothing to do
+			if (defaultRenderer.hasShareAccess(file)) {
+				switch (expectedOutput) {
+					case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> addChild(new RealFile(defaultRenderer, file));
+					case EPISODES -> addChild(new RealFile(defaultRenderer, file, false, true));
+					case EPISODES_WITHIN_SEASON -> addChild(new RealFile(defaultRenderer, file, true));
+					case PLAYLISTS -> addChild(new PlaylistFolder(defaultRenderer, file));
+					case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(defaultRenderer, file));
+					default -> {
+						// nothing to do
+					}
 				}
 			}
 		}

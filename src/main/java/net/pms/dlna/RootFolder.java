@@ -149,10 +149,8 @@ public class RootFolder extends MediaResource {
 			return;
 		}
 
-		if (configuration.isShowMediaLibraryFolder()) {
-			if (mediaLibrary.isEnabled()) {
-				addChild(mediaLibrary, true);
-			}
+		if (configuration.isShowMediaLibraryFolder() && mediaLibrary.isEnabled()) {
+			addChild(mediaLibrary, true);
 		}
 
 		if (configuration.getUseCache()) {
@@ -250,7 +248,11 @@ public class RootFolder extends MediaResource {
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 
 		for (SharedContent sharedContent : sharedContents) {
-			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
+			if (sharedContent instanceof FolderContent folder &&
+				folder.getFile() != null &&
+				folder.isActive() &&
+				folder.isGroupAllowed(defaultRenderer.getAccountGroupId())
+			) {
 				resources.add(new RealFile(defaultRenderer, folder.getFile()));
 			}
 		}

@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -33,12 +34,17 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.RendererDeviceConfiguration;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.MediaResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
@@ -99,6 +105,10 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	private volatile RootFolder rootFolder;
 	private GlobalIdRepo globalRepo;
+	private List<String> sharedPath;
+	protected Account account;
+
+	private volatile int upnpMode = UPNP_NONE;
 
 	public Renderer(String uuid) throws ConfigurationException, InterruptedException {
 		super(uuid);
@@ -124,6 +134,7 @@ public class Renderer extends RendererDeviceConfiguration {
 			}
 		}
 		allowed = RendererFilter.isAllowed(uuid);
+		account = AccountService.getAccountByUserId(getUserId());
 		controls = 0;
 		active = false;
 		details = null;
@@ -152,6 +163,54 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public String getId() {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
+	}
+
+	public Account getAccount() {
+		return account;
+	}
+
+	public void setAccount(Account account) {
+		this.account = account;
+		clearSharedFolders();
+	}
+
+	public int getAccountGroupId() {
+		return account != null && account.getGroup() != null && account.getGroup().getId() != Integer.MAX_VALUE ? account.getGroup().getId() : 0;
+	}
+
+	public int getAccountUserId() {
+		return account != null && account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE ? account.getUser().getId() : 0;
+	}
+
+	public void setAccountUserId(int value) {
+		account = AccountService.getAccountByUserId(value);
+		rootFolder.reset();
+	}
+
+	public boolean hasShareAccess(File value) {
+		return hasSameBasePath(getSharedFolders(), value.getAbsolutePath());
+	}
+
+	private synchronized void clearSharedFolders() {
+		sharedPath = null;
+	}
+
+	private synchronized List<String> getSharedFolders() {
+		if (sharedPath == null) {
+			// Lazy initialization
+			sharedPath = new ArrayList<>();
+			List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+			for (SharedContent sharedContent : sharedContents) {
+				if (sharedContent instanceof FolderContent folder &&
+					folder.getFile() != null &&
+					folder.isActive() &&
+					folder.isGroupAllowed(getAccountGroupId())
+				) {
+					sharedPath.add(folder.getFile().getAbsolutePath());
+				}
+			}
+		}
+		return sharedPath;
 	}
 
 	@Override
@@ -186,14 +245,14 @@ public class Renderer extends RendererDeviceConfiguration {
 		return rootFolder;
 	}
 
-	public GlobalIdRepo getGlobalRepo() {
+	public synchronized GlobalIdRepo getGlobalRepo() {
 		if (globalRepo == null) {
 			globalRepo = new GlobalIdRepo();
 		}
 		return globalRepo;
 	}
 
-	public void resetRootFolder() {
+	public synchronized void resetRootFolder() {
 		if (rootFolder != null) {
 			rootFolder.clearChildren();
 			rootFolder = null;
@@ -204,7 +263,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		}
 	}
 
-	public void addFolderLimit(MediaResource res) {
+	public synchronized void addFolderLimit(MediaResource res) {
 		if (rootFolder != null) {
 			rootFolder.setFolderLim(res);
 		}
@@ -713,7 +772,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		return file;
 	}
 
-	private volatile int upnpMode = UPNP_NONE;
 	public int getUpnpMode() {
 		if (upnpMode == UPNP_NONE) {
 			upnpMode = getUpnpMode(getUpnpAllow());
@@ -768,6 +826,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			case UPNP_NONE -> "unknown";
 			default -> "allowed";
 		};
+	}
+
+	private static boolean hasSameBasePath(List<String> paths, String filename) {
+		for (String path : paths) {
+			if (filename.startsWith(path)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

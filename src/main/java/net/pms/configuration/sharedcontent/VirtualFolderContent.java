@@ -45,7 +45,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 	}
 
 	public VirtualFolderContent(String parent, String name, List<SharedContent> childs, boolean addToMediaLibrary) {
-		this.parent = parent;
+		setParent(parent);
 		this.name = name;
 		this.childs = childs;
 		this.addToMediaLibrary = addToMediaLibrary;
@@ -114,7 +114,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof VirtualFolderContent other) {
+		if (super.equals(o) && o instanceof VirtualFolderContent other) {
 			if (childs == null) {
 				if (other.childs != null) {
 					return false;
@@ -129,10 +129,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 					}
 				}
 			}
-			return (active == other.active &&
-				addToMediaLibrary == other.addToMediaLibrary &&
-				((parent == null && other.parent == null) ||
-				parent != null && parent.equals(other.parent)) &&
+			return (addToMediaLibrary == other.addToMediaLibrary &&
 				((name == null && other.name == null) ||
 				name != null && name.equals(other.name)));
 		}
@@ -141,12 +138,11 @@ public class VirtualFolderContent extends SharedContentWithPath {
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 83 * hash + (this.active ? 1 : 0);
+		int hash = super.hashCode();
 		hash = 83 * hash + (Objects.hashCode(this.name));
-		hash = 83 * hash + (Objects.hashCode(this.parent));
 		hash = 83 * hash + (Objects.hashCode(this.childs));
 		hash = 83 * hash + (this.addToMediaLibrary ? 1 : 0);
 		return hash;
 	}
+
 }

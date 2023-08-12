@@ -50,18 +50,19 @@ export const havePermission = (session: UmsSession, permission: number) => {
 }
 
 export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
-  accounts.groups.forEach((group) => {
-    if (group.id === user.groupId) {
-      return group;
-    }
-  });
-  return { id: 0, displayName: '' } as UmsGroup;
+  const group = accounts.groups && accounts.groups.find((group) => group.id === user.groupId);
+  return group !== undefined ? group : { id: 0, displayName: '' } as UmsGroup;
 };
 
-export const getUserGroupsSelection = (accounts: UmsAccounts, none: string) => {
+export const getGroupName = (groupId: number, groups: UmsGroup[]) => {
+  const group = groups && groups.find((group) => group.id === groupId);
+  return group !== undefined ? group.displayName : null;
+};
+
+export const getUserGroupsSelection = (groups: UmsGroup[], none?: string) => {
   const result = [];
-  result.push({ value: '0', label: none });
-  accounts.groups.forEach((group) => {
+  none && result.push({ value: '0', label: none });
+  groups && groups.forEach((group) => {
     if (group.id > 0) {
       result.push({ value: group.id.toString(), label: group.displayName });
     }
