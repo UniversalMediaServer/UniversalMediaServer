@@ -70,10 +70,10 @@
     "@types/react-dom": "18.2.7",
     "@types/video.js": "7.3.52",
     "@types/videojs-hls-quality-selector": "1.1.0",
-    "@typescript-eslint/eslint-plugin": "6.2.1",
-    "@typescript-eslint/parser": "6.2.1",
+    "@typescript-eslint/eslint-plugin": "6.3.0",
+    "@typescript-eslint/parser": "6.3.0",
     "eslint": "8.46.0",
-    "eslint-plugin-react": "7.33.0",
+    "eslint-plugin-react": "7.33.1",
     "react-scripts": "5.0.1"
   }
 }

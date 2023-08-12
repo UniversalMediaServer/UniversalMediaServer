@@ -31,6 +31,7 @@ import net.pms.io.OutputTextLogger;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
+import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.OutputOverride;
 import net.pms.renderers.Renderer;
@@ -81,12 +82,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 
-		// Backup the existing configuration, to be restored at the end
-		// TODO: stop doing that
-		UmsConfiguration existingConfiguration = configuration;
-
-		configuration = params.getMediaRenderer().getUmsConfiguration();
 		Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 
@@ -205,7 +202,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params, false));
 
 			// Add video bitrate options
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params, false));
 
 			// Add audio bitrate options
 			cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
@@ -267,7 +264,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
-		configuration = existingConfiguration;
 		return pw;
 	}
 
@@ -318,7 +314,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public static void parseMediaInfo(String filename, final DLNAResource dlna, final ProcessWrapperImpl pw) {
 		if (dlna.getMedia() == null) {
 			dlna.setMedia(new MediaInfo());
-		} else if (dlna.getMedia().isFFmpegparsed()) {
+		} else if (dlna.getMedia().isMediaParsed()) {
 			return;
 		}
 		OutputTextLogger ffParser = new OutputTextLogger(null) {
@@ -328,7 +324,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (END_OF_HEADER.reset(line).find()) {
-					dlna.getMedia().parseFFmpegInfo(lines, input);
+					FFmpegParser.parseFFmpegInfo(dlna.getMedia(), lines, input);
 					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
 					dlna.getParent().updateChild(dlna);
 					return false; // done, stop filtering
