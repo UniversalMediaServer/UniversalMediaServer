@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 
 public class SpinnerIntModelTest {
 
-
 	@BeforeEach
 	public void setUp() throws ConfigurationException {
 		// Silence all log messages from the UMS code that are being tested
