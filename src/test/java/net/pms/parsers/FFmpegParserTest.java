@@ -36,7 +36,7 @@ public class FFmpegParserTest {
 		ParserTest.SetUPClass();
 	}
 
-	private static MediaInfo getTestFileMediaInfo(String testFile) {
+	private MediaInfo getTestFileMediaInfo(String testFile) {
 		File file = ParserTest.getTestFile(testFile);
 		InputFile inputFile = new InputFile();
 		inputFile.setFile(file);

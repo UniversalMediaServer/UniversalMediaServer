@@ -16,7 +16,6 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
@@ -120,7 +119,7 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *         Returns {@code false} this already contains the specified
 	 *         elements.
 	 */
-	public boolean add(String dmpProfilesString) {
+	private boolean add(String dmpProfilesString) {
 		if (StringUtils.isBlank(dmpProfilesString)) {
 			return false;
 		}
@@ -399,7 +398,7 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *             {@code dmpProfile}.
 	 */
 	public static ProtocolInfo dmpProfileToProtocolInfo(String dmpProfile) throws ParseException {
-		if (isBlank(dmpProfile)) {
+		if (StringUtils.isBlank(dmpProfile)) {
 			return null;
 		}
 		dmpProfile = dmpProfile.trim();
@@ -448,26 +447,20 @@ public class PanasonicDmpProfiles implements Serializable {
 		attribute = PanasonicComProfileName.FACTORY.getProfileName(dmpProfile);
 		if (attribute != null) {
 			// Mime-types must be mapped manually, as this information is missing from X-PANASONIC-DMP-Profile
-			if (attribute instanceof KnownPanasonicComProfileName) {
+			if (attribute instanceof KnownPanasonicComProfileName knownPanasonicComProfileName) {
 				MimeType mimeType;
-				switch ((KnownPanasonicComProfileName) attribute) {
-					case MPO_3D:
+				switch (knownPanasonicComProfileName) {
+					case MPO_3D -> {
 						mimeType = new MimeType("image", "mpo");
-						break;
-					case PV_DIVX_DIV3:
-					case PV_DIVX_DIV4:
-					case PV_DIVX_DIVX:
-					case PV_DIVX_DX50:
+					}
+					case PV_DIVX_DIV3, PV_DIVX_DIV4, PV_DIVX_DIVX, PV_DIVX_DX50 -> {
 						mimeType = new MimeType("video", "divx");
-						break;
-					case PV_DRM_DIVX_DIV3:
-					case PV_DRM_DIVX_DIV4:
-					case PV_DRM_DIVX_DIVX:
-					case PV_DRM_DIVX_DX50:
+					}
+					case PV_DRM_DIVX_DIV3, PV_DRM_DIVX_DIV4, PV_DRM_DIVX_DIVX, PV_DRM_DIVX_DX50 -> {
 						// No idea what mime-type they use for DRM, or how to handle them
 						return null;
-					default:
-						throw new ParseException("Unimplemented PANASONIC.COM_PN profile \"" + attribute + "\"");
+					}
+					default -> throw new ParseException("Unimplemented PANASONIC.COM_PN profile \"" + attribute + "\"");
 				}
 				return new ProtocolInfo(
 					Protocol.HTTP_GET,

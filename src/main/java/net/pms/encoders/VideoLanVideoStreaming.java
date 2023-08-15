@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.IPipeProcess;
 import net.pms.io.ListProcessWrapperResult;
@@ -34,6 +33,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -125,13 +125,13 @@ public class VideoLanVideoStreaming extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		boolean isWindows = Platform.isWindows();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
 		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
 
@@ -201,7 +201,7 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 

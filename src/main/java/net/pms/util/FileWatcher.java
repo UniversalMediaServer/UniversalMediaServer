@@ -16,20 +16,22 @@
  */
 package net.pms.util;
 
-import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-
+import com.sun.jna.Platform;
+import com.sun.nio.file.ExtendedWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.ClosedWatchServiceException;
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
@@ -42,14 +44,9 @@ import java.util.Iterator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
-import com.sun.nio.file.ExtendedWatchEventModifier;
-import java.nio.file.ClosedWatchServiceException;
 
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system

@@ -20,8 +20,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -36,7 +38,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,13 +47,16 @@ public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
 	private final Class<?> SUBTITLE_CLASS = MediaSubtitleTest.class;
 
-	@BeforeAll
-	public static void SetUPClass() throws ConfigurationException, InterruptedException {
+	@BeforeEach
+	public void setUp() throws ConfigurationException, InterruptedException {
 		// Silence all log messages from the code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
-		PMS.get();
-		PMS.setConfiguration(new UmsConfiguration(false));
+		try {
+			PMS.setConfiguration(new UmsConfiguration(false));
+		} catch (InterruptedException | ConfigurationException ex) {
+			throw new AssertionError(ex);
+		}
 	}
 
 	@Test
@@ -112,7 +117,7 @@ public class FileUtilTest {
 				String fileNamePrettified = FileUtil.getFileNamePrettified(original, absolutePath);
 				assertEquals(fileNamePrettified, expectedOutput, o.get("comment").getAsString());
 			}
-		} catch (Exception ex) {
+		} catch (JsonIOException | JsonSyntaxException | FileNotFoundException ex) {
 			throw (new AssertionError(ex));
 		}
 	}

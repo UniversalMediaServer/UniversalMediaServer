@@ -20,8 +20,8 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.database.MediaDatabase;
-import net.pms.dlna.MediaScanner;
 import net.pms.gui.GuiManager;
+import net.pms.library.MediaScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

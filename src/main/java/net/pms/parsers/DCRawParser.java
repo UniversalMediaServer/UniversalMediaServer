@@ -129,7 +129,7 @@ public class DCRawParser {
 		media.setImageInfo(imageInfo);
 		media.setSize(file.getSize());
 		media.setImageCount(1);
-		media.postParse(type);
+		Parser.postParse(media, type);
 		media.setMediaParser(PARSER_NAME);
 		return true;
 	}

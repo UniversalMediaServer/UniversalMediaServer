@@ -16,7 +16,6 @@
  */
 package net.pms.newgui.components;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.GraphicsConfiguration;
@@ -44,6 +43,7 @@ import java.util.Arrays;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -494,7 +494,7 @@ public class WindowProperties implements WindowListener, ComponentListener {
 		 */
 		@Nullable
 		public GraphicsConfiguration getGraphicsConfiguration() {
-			if (isBlank(graphicsDevice) || screenBounds == null) {
+			if (StringUtils.isBlank(graphicsDevice) || screenBounds == null) {
 				LOGGER.debug("No stored graphics device, using the default");
 				return null;
 			}

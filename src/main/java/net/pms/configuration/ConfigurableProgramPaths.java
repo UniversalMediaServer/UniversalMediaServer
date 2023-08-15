@@ -16,7 +16,6 @@
  */
 package net.pms.configuration;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
@@ -25,17 +24,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.ConversionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
 import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
+import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.ConversionException;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 /**
  * This class adds configurable/custom paths to {@link PlatformProgramPaths}.
  *
@@ -301,7 +301,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 		@Nullable String configurationKey,
 		@Nullable ProgramExecutableType defaultExecutableType
 	) {
-		if (configuration == null || isBlank(configurationKey)) {
+		if (configuration == null || StringUtils.isBlank(configurationKey)) {
 			return null;
 		}
 		return ProgramExecutableType.toProgramExecutableType(
@@ -325,7 +325,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 		if (programInfo == null || configuration == null) {
 			return;
 		}
-		if (isBlank(configurationKey)) {
+		if (StringUtils.isBlank(configurationKey)) {
 			throw new IllegalArgumentException("configurationKey can't be blank");
 		}
 
@@ -350,13 +350,13 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 */
 	@Nullable
 	public Path getCustomProgramPath(@Nullable String configurationKey) throws ConfigurationException {
-		if (isBlank(configurationKey) || configuration == null) {
+		if (StringUtils.isBlank(configurationKey) || configuration == null) {
 			return null;
 		}
 
 		try {
 			String configuredPath = configuration.getString(configurationKey);
-			if (isBlank(configuredPath)) {
+			if (StringUtils.isBlank(configuredPath)) {
 				return null;
 			}
 			return Paths.get(configuredPath);
@@ -381,7 +381,7 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 	 * @return {@code true} if a change was made, {@code false} otherwise.
 	 */
 	public boolean setCustomProgramPathConfiguration(@Nullable Path customPath, @Nonnull String configurationKey) {
-		if (isBlank(configurationKey)) {
+		if (StringUtils.isBlank(configurationKey)) {
 			throw new IllegalArgumentException("configurationKey can't be blank");
 		}
 		if (configuration == null) {
@@ -430,11 +430,11 @@ public class ConfigurableProgramPaths extends PlatformProgramPaths {
 			return;
 		}
 
-		if (setConfiguration && isBlank(configurationKey)) {
+		if (setConfiguration && StringUtils.isBlank(configurationKey)) {
 			throw new IllegalArgumentException("configurationKey can't be blank if setConfiguration is true");
 		}
 
-		if (setConfiguration) {
+		if (setConfiguration && configurationKey != null) {
 			setCustomProgramPathConfiguration(customPath, configurationKey);
 		}
 

@@ -16,10 +16,9 @@
  */
 package net.pms.platform.jna;
 
+import com.sun.jna.Pointer;
 import java.util.ArrayList;
 import java.util.Collection;
-import com.sun.jna.Pointer;
-
 
 /**
  * An abstract {@code Integer} implementation of {@link TerminatedArray}.
@@ -58,7 +57,7 @@ public abstract class TerminatedIntArray extends TerminatedArray<Integer> {
 	 * @param source the {@link Collection} of {@link Integer}s.
 	 */
 	protected TerminatedIntArray(Collection<? extends Integer> source) {
-		buffer = new ArrayList<Integer>(source);
+		buffer = new ArrayList<>(source);
 	}
 
 	@Override

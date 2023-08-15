@@ -46,7 +46,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.virtual.CodeEnter;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.EngineId;
@@ -54,6 +53,7 @@ import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.library.virtual.CodeEnter;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
@@ -4714,26 +4714,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	/* Credential path handling */
 	public static final String KEY_CRED_PATH = "cred.path";
 
-	public void initCred() throws IOException {
+	public void initCred() {
 		File credFile = getCredFile();
 
 		if (!credFile.exists()) {
 			// Create an empty file and save the path if needed
-			try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
-				writer.write("# Add credentials to the file");
-				writer.newLine();
-				writer.write("# on the format tag=user,password");
-				writer.newLine();
-				writer.write("# For example:");
-				writer.newLine();
-				writer.write("# channels.xxx=name,secret");
-				writer.newLine();
-			}
-
-			// Save the path if we got here
-			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
+				try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
+					writer.write("# Add credentials to the file");
+					writer.newLine();
+					writer.write("# on the format tag=user,password");
+					writer.newLine();
+					writer.write("# For example:");
+					writer.newLine();
+					writer.write("# channels.xxx=name,secret");
+					writer.newLine();
+				}
+
+				// Save the path if we got here
+				configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 				((PropertiesConfiguration) configuration).save();
+			} catch (IOException e) {
+				LOGGER.debug("Error initializing credentials file: {}", e);
 			} catch (ConfigurationException e) {
 				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}

@@ -33,16 +33,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.MediaResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,11 +81,11 @@ public enum GenericIcons {
 	 * Retrieves or creates the appropriate generic icon/thumbnail for
 	 * {@code resource}.
 	 *
-	 * @param resource the {@link MediaResource} the return a generic icon for.
+	 * @param resource the {@link LibraryResource} the return a generic icon for.
 	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if one couldn't be generated.
 	 */
-	public DLNAThumbnailInputStream getGenericIcon(MediaResource resource) {
+	public DLNAThumbnailInputStream getGenericIcon(LibraryResource resource) {
 		/*
 		 * This should be the same format as the source images since OpenJDK
 		 * will fail to write JPEGs if the cached BufferedImage has 4 color
@@ -161,7 +160,7 @@ public enum GenericIcons {
 				label = StringUtils.capitalize(label);
 			}
 
-			if (isBlank(label)) {
+			if (StringUtils.isBlank(label)) {
 				label = Messages.getString("Unknown");
 			}
 

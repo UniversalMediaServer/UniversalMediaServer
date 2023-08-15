@@ -114,7 +114,7 @@ public class FFmpegParser {
 					}
 				}
 			}
-			media.postParse(type);
+			Parser.postParse(media, type);
 		}
 	}
 

@@ -19,10 +19,13 @@ package net.pms.media;
 import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
+import net.pms.gui.GuiManager;
 
 public class MediaStatusStore {
 
@@ -42,7 +45,7 @@ public class MediaStatusStore {
 			if (CONFIGURATION.getUseCache()) {
 				Connection connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					mediaStatus = MediaTableFilesStatus.getData(connection, filename);
+					mediaStatus = MediaTableFilesStatus.getMediaStatus(connection, filename, userId);
 				}
 				MediaDatabase.close(connection);
 			}
@@ -66,6 +69,113 @@ public class MediaStatusStore {
 	public static void clear() {
 		synchronized (STORE) {
 			STORE.clear();
+		}
+	}
+
+	/**
+	 * Checks if {@code filename} is registered as fully played.
+	 *
+	 * @param filename the full path to the file whose status to retrieve.
+	 * @return {@code true} if {@code filename} is fully played,
+	 *         {@code false} otherwise.
+	 */
+	public static boolean isFullyPlayed(String filename, int userId) {
+		MediaStatus mediaStatus = getMediaStatus(userId, filename);
+		return mediaStatus.isFullyPlayed();
+	}
+
+	/**
+	 * Sets the fully played status of the given {@code filename} both in
+	 * the memory cache and in the database.
+	 *
+	 * @param filename the full path to the file in question.
+	 * @param isFullyPlayed {@code true} if {@code fullPathToFile} is fully
+	 *            played, {@code false} otherwise.
+	 * @param lastPlaybackPosition how many seconds were played
+	 */
+	public static void setFullyPlayed(String filename, int userId, boolean isFullyPlayed, Double lastPlaybackPosition) {
+		//update store
+		MediaStatus mediaStatus = getMediaStatus(userId, filename);
+		mediaStatus.setFullyPlayed(isFullyPlayed);
+		if (lastPlaybackPosition != null) {
+			mediaStatus.setLastPlaybackPosition(lastPlaybackPosition);
+			mediaStatus.setPlaybackCount(mediaStatus.getPlaybackCount() + 1);
+		}
+		//update db
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFilesStatus.setFullyPlayed(connection, filename, userId, isFullyPlayed);
+				if (lastPlaybackPosition != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, filename, userId, lastPlaybackPosition);
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Sets the last played position of the given {@code filename} both in
+	 * the memory cache and in the database.
+	 *
+	 * @param filename the full path to the file in question.
+	 * @param lastPlaybackPosition how many seconds were played
+	 */
+	public static void setLastPlayed(String filename, int userId, Double lastPlaybackPosition) {
+		if (lastPlaybackPosition != null) {
+			//update store
+			MediaStatus mediaStatus = getMediaStatus(userId, filename);
+			mediaStatus.setLastPlaybackPosition(lastPlaybackPosition);
+			mediaStatus.setPlaybackCount(mediaStatus.getPlaybackCount() + 1);
+			//update db
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFilesStatus.setLastPlayed(connection, filename, userId, lastPlaybackPosition);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+	}
+
+	public static void setBookmark(final String filename, final int userId, final int bookmark) {
+		//update store
+		MediaStatus mediaStatus = getMediaStatus(userId, filename);
+		mediaStatus.setBookmark(bookmark);
+		//update db
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFilesStatus.setBookmark(connection, filename, userId, bookmark);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Sets whether each file within the folder is fully played.
+	 *
+	 * @param connection the db connection
+	 * @param fullPathToFolder the full path to the folder.
+	 * @param isFullyPlayed whether to mark the folder content as fully played
+	 *            or not fully played.
+	 */
+	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final int userId, final boolean isFullyPlayed) {
+		String statusLineString = isFullyPlayed ? Messages.getString("MarkContentsFullyPlayed") : Messages.getString("MarkContentsUnplayed");
+		GuiManager.setStatusLine(statusLineString + ": " + fullPathToFolder);
+
+		try {
+			for (String fullPathToFile : MediaTableFiles.getFilenamesInFolder(connection, fullPathToFolder)) {
+				setFullyPlayed(fullPathToFile, userId, isFullyPlayed, null);
+			}
+		} finally {
+			GuiManager.setStatusLine(null);
 		}
 	}
 

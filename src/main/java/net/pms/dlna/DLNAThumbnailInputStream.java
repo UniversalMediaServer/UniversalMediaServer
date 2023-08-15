@@ -16,11 +16,11 @@
  */
 package net.pms.dlna;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.color.ColorSpace;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ColorSpaceType;
 import net.pms.image.ImageFormat;

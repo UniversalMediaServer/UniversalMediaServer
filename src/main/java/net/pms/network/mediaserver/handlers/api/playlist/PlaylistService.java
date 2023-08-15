@@ -16,14 +16,16 @@
  */
 package net.pms.network.mediaserver.handlers.api.playlist;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.sql.SQLException;
+import net.pms.Messages;
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import net.pms.Messages;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class PlaylistService implements ApiResponseHandler {
 
@@ -78,7 +80,7 @@ public class PlaylistService implements ApiResponseHandler {
 					return Messages.getString("NoServiceAvailableForPath") + " : " + uri;
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException | RuntimeException | SQLException e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return e.getMessage();
 		}
@@ -88,7 +90,7 @@ public class PlaylistService implements ApiResponseHandler {
 		try {
 			String[] contentArray = content.split("/");
 			return new AudioPlaylistVO(Integer.valueOf(contentArray[0]), contentArray[1]);
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			throw new RuntimeException("incorrect input parameter supplied to method");
 		}
 	}

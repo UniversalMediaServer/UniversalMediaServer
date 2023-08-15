@@ -23,12 +23,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.iam.AccountService;
 import net.pms.iam.User;
 import net.pms.image.Image;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class UserTableUsers extends UserTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UserTableUsers.class);

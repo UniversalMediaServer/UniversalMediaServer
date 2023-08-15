@@ -28,12 +28,12 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
+import net.pms.newgui.components.CheckTreeManager;
 import net.pms.newgui.components.IllegalChildException;
 import net.pms.newgui.components.SearchableMutableTreeNode;
-import net.pms.newgui.components.CheckTreeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

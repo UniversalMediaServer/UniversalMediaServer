@@ -27,9 +27,9 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -113,7 +113,7 @@ public class TsMuxeRVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -121,8 +121,8 @@ public class TsMuxeRVideo extends Engine {
 		// Use device-specific ums conf
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 
-		final String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		final String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;
@@ -704,7 +704,7 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		MediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,

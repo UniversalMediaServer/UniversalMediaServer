@@ -37,14 +37,14 @@ import net.pms.configuration.RendererDeviceConfiguration;
 import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
-import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.RootFolder;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
+import net.pms.library.GlobalIdRepo;
+import net.pms.library.LibraryResource;
+import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
@@ -98,7 +98,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private MediaResource playingRes;
+	private LibraryResource playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
 	private String automaticVideoQuality;
@@ -263,7 +263,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		}
 	}
 
-	public synchronized void addFolderLimit(MediaResource res) {
+	public synchronized void addFolderLimit(LibraryResource res) {
 		if (rootFolder != null) {
 			rootFolder.setFolderLim(res);
 		}
@@ -449,15 +449,15 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public MediaResource getPlayingRes() {
+	public LibraryResource getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(MediaResource dlna) {
-		playingRes = dlna;
+	public void setPlayingRes(LibraryResource resource) {
+		playingRes = resource;
 		getPlayer();
-		if (dlna != null) {
-			player.getState().setName(dlna.getDisplayName());
+		if (resource != null) {
+			player.getState().setName(resource.getDisplayName());
 			player.start();
 		} else {
 			player.reset();

@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.library.LibraryResource;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -205,8 +205,7 @@ public class RendererItem implements IRendererGuiListener {
 
 	private void playerSetMediaId(String id) {
 		try {
-			MediaResource root = renderer.getRootFolder();
-			List<MediaResource> resources = root.getDLNAResources(id, false, 0, 0);
+			List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
 			if (!resources.isEmpty()) {
 				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
 			}
@@ -308,13 +307,12 @@ public class RendererItem implements IRendererGuiListener {
 					return null;
 				}
 				String media = post.get("media").getAsString();
-				MediaResource root = renderer.renderer.getRootFolder();
 				JsonObject result = new JsonObject();
 				JsonArray parents = new JsonArray();
 				JsonArray childrens = new JsonArray();
-				List<MediaResource> resources = root.getDLNAResources(media, true, 0, 0);
+				List<LibraryResource> resources = renderer.renderer.getRootFolder().getLibraryResources(media, true, 0, 0);
 				if (!resources.isEmpty()) {
-					MediaResource parentFromResources = resources.get(0).getParent();
+					LibraryResource parentFromResources = resources.get(0).getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
 						JsonObject parent = new JsonObject();
 						parent.addProperty("value", parentFromResources.getResourceId());
@@ -328,7 +326,7 @@ public class RendererItem implements IRendererGuiListener {
 							parents.add(parent);
 						}
 					}
-					for (MediaResource resource : resources) {
+					for (LibraryResource resource : resources) {
 						if (resource == null) {
 							continue;
 						}

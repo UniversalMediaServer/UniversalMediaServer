@@ -16,10 +16,11 @@
  */
 package net.pms.database;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import net.pms.service.LibraryScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.service.LibraryScanner;
 
 /**
  * This class provides methods for creating and maintaining the database where

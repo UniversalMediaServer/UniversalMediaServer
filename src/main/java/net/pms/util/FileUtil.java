@@ -30,8 +30,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,12 +41,10 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.PMS;
-import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
+import net.pms.media.MediaInfoStore;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
 import static net.pms.util.Constants.*;
@@ -401,7 +397,7 @@ public class FileUtil {
 	 */
 	@Nullable
 	public static String getExtension(@Nullable String fileName, LetterCase convertTo, Locale locale) {
-		if (isBlank(fileName)) {
+		if (fileName == null || isBlank(fileName)) {
 			return null;
 		}
 
@@ -706,7 +702,7 @@ public class FileUtil {
 	 * standardized filename.
 	 *
 	 * @param f The filename
-	 * @param media
+	 * @param mediaInfo
 	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
 	 *                                    a season folder in the Media Library
 	 * @param isEpisodeWithinTVSeriesFolder whether this is an episode within
@@ -715,7 +711,7 @@ public class FileUtil {
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, MediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
+	public static String getFileNamePrettified(String f, MediaInfo mediaInfo, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
 		String formattedName;
 
 		String title;
@@ -728,24 +724,18 @@ public class FileUtil {
 		String tvSeriesStartYear = "";
 		boolean isTVEpisode = false;
 
-		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
-		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					media = MediaTableFiles.getFileMetadata(connection, absolutePath);
-				}
-			} catch (IOException | SQLException e) {
-				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
-			} finally {
-				MediaDatabase.close(connection);
+		// Attempt to get API metadata from the database if it wasn't passed via the mediaInfo parameter
+		MediaVideoMetadata videoMetadata = null;
+		if (PMS.getConfiguration().getUseCache()) {
+			if (mediaInfo == null && absolutePath != null) {
+				videoMetadata = MediaInfoStore.getMediaVideoMetadata(absolutePath);
+			} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && isNotBlank(mediaInfo.getVideoMetadata().getMovieOrShowName())) {
+				videoMetadata = mediaInfo.getVideoMetadata();
 			}
 		}
 
 		// Populate the variables from the data if we can, otherwise from the filename
-		if (media != null && getConfiguration().getUseCache() && media.hasVideoMetadata() && isNotBlank(media.getVideoMetadata().getMovieOrShowName())) {
-			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
+		if (videoMetadata != null) {
 			title             = videoMetadata.getMovieOrShowName();
 			year              = isNotBlank(videoMetadata.getYear())              ? videoMetadata.getYear()              : "";
 			extraInformation  = isNotBlank(videoMetadata.getExtraInformation())  ? videoMetadata.getExtraInformation()  : "";

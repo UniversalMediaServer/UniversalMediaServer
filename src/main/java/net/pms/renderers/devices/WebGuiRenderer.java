@@ -20,9 +20,9 @@ import com.google.gson.JsonObject;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.iam.Account;
 import net.pms.image.ImageFormat;
+import net.pms.library.LibraryResource;
 import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
 import net.pms.renderers.Renderer;
@@ -226,17 +226,16 @@ public class WebGuiRenderer extends Renderer {
 		}
 	}
 
-	public void start(MediaResource dlna) {
+	public void start(LibraryResource resource) {
 		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != dlna) {
+		if (getPlayingRes() != null && getPlayingRes() != resource) {
 			stop();
 		}
 
-		setPlayingRes(dlna);
+		setPlayingRes(resource);
 		if (startStop == null) {
 			startStop = new StartStopListenerDelegate(getAddress().getHostAddress());
 		}
-		startStop.setRenderer(this);
 		startStop.start(getPlayingRes());
 	}
 

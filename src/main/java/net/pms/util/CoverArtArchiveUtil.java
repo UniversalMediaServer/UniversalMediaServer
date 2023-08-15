@@ -16,8 +16,6 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import fm.last.musicbrainz.coverart.CoverArt;
 import fm.last.musicbrainz.coverart.CoverArtException;
 import fm.last.musicbrainz.coverart.CoverArtImage;
@@ -43,6 +41,8 @@ import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.database.MediaTableMusicBrainzReleases.MusicBrainzReleasesResult;
 import org.apache.commons.io.IOUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.http.client.HttpResponseException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;

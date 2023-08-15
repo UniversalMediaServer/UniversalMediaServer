@@ -24,9 +24,9 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.library.LibraryResource;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -216,7 +216,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		Format format = resource.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {

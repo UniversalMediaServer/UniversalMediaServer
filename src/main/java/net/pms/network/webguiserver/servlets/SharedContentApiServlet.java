@@ -31,13 +31,13 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.Feed;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
+import net.pms.library.Feed;
+import net.pms.media.MediaStatusStore;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -163,20 +163,22 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 						WebGuiServletHelper.respondUnauthorized(req, resp);
 						return;
 					}
-					//TODO -> mark for user only
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
+					if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
 						WebGuiServletHelper.respondForbidden(req, resp);
 						return;
 					}
 					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
-
 					String directory = request.get("directory").getAsString();
-					Boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					int userId = account.getUser().getId();
+					if (userId == Integer.MAX_VALUE) {
+						userId = 0;
+					}
 					Connection connection = null;
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							MediaTableFilesStatus.setDirectoryFullyPlayed(connection, directory, isPlayed);
+							MediaStatusStore.setDirectoryFullyPlayed(connection, directory, userId, isPlayed);
 						}
 					} finally {
 						MediaDatabase.close(connection);

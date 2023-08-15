@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.chapter.MediaChapter;
@@ -120,13 +120,13 @@ public class HlsHelper {
 	    You must use at least protocol version 8 if you use variable substitution.
 	*/
 
-	public static String getHLSm3u8(MediaResource dlna, Renderer renderer, String baseUrl) {
-		if (dlna.getMediaInfo() != null) {
+	public static String getHLSm3u8(LibraryResource resource, Renderer renderer, String baseUrl) {
+		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			MediaInfo mediaVideo = dlna.getMediaInfo();
+			MediaInfo mediaVideo = resource.getMediaInfo();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaVideo.getHeight() * 1.05);
-			String id = dlna.getResourceId();
+			String id = resource.getResourceId();
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
 			if (hlsVersion > 1) {
@@ -275,12 +275,12 @@ public class HlsHelper {
 	*/
 	public static final double DEFAULT_TARGETDURATION = 6;
 
-	public static String getHLSm3u8ForRendition(MediaResource dlna, Renderer renderer, String baseUrl, String rendition) {
-		if (dlna.getMediaInfo() != null) {
+	public static String getHLSm3u8ForRendition(LibraryResource resource, Renderer renderer, String baseUrl, String rendition) {
+		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			Double duration = dlna.getMediaInfo().getDuration();
+			Double duration = resource.getMediaInfo().getDuration();
 			double partLen = duration;
-			String id = dlna.getResourceId();
+			String id = resource.getResourceId();
 			String targetDurationStr = String.valueOf(Double.valueOf(Math.ceil(DEFAULT_TARGETDURATION)).intValue());
 			String defaultDurationStr = hlsVersion > 2 ? String.format(Locale.ENGLISH, "%.6f", DEFAULT_TARGETDURATION) : targetDurationStr;
 			String filename = rendition.startsWith(NONE_CONF_NAME + "_" + NONE_CONF_NAME + "_") ? "vtt" : "ts";
@@ -333,7 +333,7 @@ public class HlsHelper {
 		return new TimeRange(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
 	}
 
-	public static InputStream getInputStream(String url, MediaResource resource, Renderer renderer) throws IOException {
+	public static InputStream getInputStream(String url, LibraryResource resource) throws IOException {
 		if (!url.contains("/hls/")) {
 			return null;
 		}
@@ -343,7 +343,7 @@ public class HlsHelper {
 		HlsHelper.HlsConfiguration hlsConfiguration = getByKey(rendition);
 		Range timeRange = getTimeRange(url);
 		if (hlsConfiguration != null && timeRange != null) {
-			return resource.getInputStream(timeRange, renderer, hlsConfiguration);
+			return resource.getInputStream(timeRange, hlsConfiguration);
 		}
 		return null;
 	}
@@ -409,15 +409,15 @@ public class HlsHelper {
 	}
 
 	/**
-	 * Return a WebVtt from a resource.
+	 * Return a WebVtt from a HlsHelper.
 	 *
-	 * @param dlna The dlna resource.
+	 * @param resource The resource.
 	 * @return The WebVtt representation of the chapter list.
 	 */
-	public static String getChaptersWebVtt(MediaResource dlna) {
+	public static String getChaptersWebVtt(LibraryResource resource) {
 		StringBuilder chaptersVtt = new StringBuilder();
 		chaptersVtt.append("WEBVTT\n");
-		MediaInfo mediaInfo = dlna.getMediaInfo();
+		MediaInfo mediaInfo = resource.getMediaInfo();
 		if (mediaInfo != null && mediaInfo.hasChapters()) {
 			for (MediaChapter chapter : mediaInfo.getChapters()) {
 				int chaptersNum = chapter.getId() + 1;
@@ -441,15 +441,15 @@ public class HlsHelper {
 	}
 
 	/**
-	 * Return a HLS json representation of a dlna resource's chapters.
+	 * Return a HLS json representation of a resource HlsHelper's chapters.
 	 *
-	 * @param dlna The dlna resource.
+	 * @param resource The resource.
 	 * @return The HLS json representation of the chapter list.
 	 */
-	public static String getChaptersHls(MediaResource dlna) {
+	public static String getChaptersHls(LibraryResource resource) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		MediaInfo mediaInfo = dlna.getMediaInfo();
+		MediaInfo mediaInfo = resource.getMediaInfo();
 		if (mediaInfo != null && mediaInfo.hasChapters()) {
 			for (MediaChapter chapter : mediaInfo.getChapters()) {
 				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");

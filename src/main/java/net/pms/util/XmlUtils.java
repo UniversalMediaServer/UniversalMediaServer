@@ -21,10 +21,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.transform.TransformerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class XmlUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(XmlUtils.class);

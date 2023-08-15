@@ -24,12 +24,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.configuration.FFmpegWebFilters;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
@@ -75,7 +75,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -84,8 +84,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
-		String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		// Workaround an FFmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		// Also see static init
@@ -110,7 +110,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
-		String attached = (String) dlna.getAttachment(ID.toString());
+		String attached = (String) resource.getAttachment(ID.toString());
 		if (attached != null) {
 			customOptions.addAll(parseOptions(attached));
 		}
@@ -180,7 +180,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params, false));
+		cmdList.addAll(getVideoFilterOptions(resource, media, params, false));
 
 		// Encoder threads
 		if (nThreads > 0) {
@@ -194,18 +194,18 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof OutputOverride outputOverride) {
-			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
+			override = outputOverride.getOutputOptions(cmdList, resource, this, params);
 		}
 
 		if (!override) {
 			// TODO: See if that last boolean can be set more carefully to disable unnecessary transcoding
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params, false));
+			cmdList.addAll(getVideoTranscodeOptions(resource, media, params, false));
 
 			// Add video bitrate options
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params, false));
+			cmdList.addAll(getVideoBitrateOptions(resource, media, params, false));
 
 			// Add audio bitrate options
-			cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
+			cmdList.addAll(getAudioBitrateOptions(resource, media, params));
 
 			// Add any remaining custom options
 			if (!customOptions.isEmpty()) {
@@ -245,7 +245,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		parseMediaInfo(filename, dlna, pw); // Better late than never
+		parseMediaInfo(filename, resource, pw); // Better late than never
 		pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
 
 		// Give the mkfifo process a little time
@@ -276,7 +276,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
 			String url = resource.getFileName();
 
@@ -311,10 +311,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * Parse media info from ffmpeg headers during playback
 	 */
-	public static void parseMediaInfo(String filename, final MediaResource dlna, final ProcessWrapperImpl pw) {
-		if (dlna.getMediaInfo() == null) {
-			dlna.setMediaInfo(new MediaInfo());
-		} else if (dlna.getMediaInfo().isMediaParsed()) {
+	public static void parseMediaInfo(String filename, final LibraryResource resource, final ProcessWrapperImpl pw) {
+		if (resource.getMediaInfo() == null) {
+			resource.setMediaInfo(new MediaInfo());
+		} else if (resource.getMediaInfo().isMediaParsed()) {
 			return;
 		}
 		OutputTextLogger ffParser = new OutputTextLogger(null) {
@@ -324,9 +324,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (END_OF_HEADER.reset(line).find()) {
-					FFmpegParser.parseFFmpegInfo(dlna.getMediaInfo(), lines, input);
-					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMediaInfo());
-					dlna.getParent().updateChild(dlna);
+					FFmpegParser.parseFFmpegInfo(resource.getMediaInfo(), lines, input);
+					LOGGER.trace("[{}] parsed media from headers: {}", ID, resource.getMediaInfo());
+					resource.getParent().updateChild(resource);
 					return false; // done, stop filtering
 				}
 				lines.add(line);

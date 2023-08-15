@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
@@ -86,13 +86,13 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 		Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
 		params.setWaitBeforeStart(2000);
 		params.manageFastStart();
@@ -200,7 +200,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		// XXX Matching on file format isn't really enough, codec should also be evaluated
 		return (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||

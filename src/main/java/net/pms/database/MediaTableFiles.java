@@ -30,7 +30,6 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
-import net.pms.parsers.Parser;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,8 +76,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 35: Added HDRFORMATCOMPATIBILITY column
 	 * - 36: rename indexes
 	 * - 37: remove video infos
+	 * - 38: added Mime type
 	 */
-	private static final int TABLE_VERSION = 37;
+	private static final int TABLE_VERSION = 38;
 
 	/**
 	 * COLUMNS NAMES
@@ -91,6 +91,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
+	private static final String COL_MIMETYPE = "COL_MIMETYPE";
 	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
 	private static final String COL_DURATION = "DURATION";
 	private static final String COL_BITRATE = "BITRATE";
@@ -108,13 +109,14 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
+	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
 
 	/**
 	 * SQL Jointures
 	 */
-	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = LEFT_JOIN + MediaTableFilesStatus.TABLE_NAME + ON + TABLE_COL_FILENAME + EQUAL + MediaTableFilesStatus.TABLE_COL_FILENAME + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = LEFT_JOIN + MediaTableThumbnails.TABLE_NAME + ON + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = LEFT_JOIN + MediaTableFilesStatus.TABLE_NAME + ON + TABLE_COL_FILENAME + EQUAL + MediaTableFilesStatus.TABLE_COL_FILENAME;
+	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = LEFT_JOIN + MediaTableThumbnails.TABLE_NAME + ON + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID;
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadata.TABLE_COL_FILEID;
 
 	/**
 	 * SQL References
@@ -422,6 +424,9 @@ public class MediaTableFiles extends MediaTable {
 						ensureCascadeConstraint(connection, MediaTableVideotracks.TABLE_NAME, MediaTableVideotracks.COL_FILEID, TABLE_NAME, COL_ID);
 						ensureCascadeConstraint(connection, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.COL_FILEID, TABLE_NAME, COL_ID);
 					}
+					case 37 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MIMETYPE + VARCHAR_32);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -479,6 +484,7 @@ public class MediaTableFiles extends MediaTable {
 				COL_FORMAT_TYPE             + INTEGER                                        + COMMA +
 				COL_MEDIA_SIZE              + NUMERIC                                        + COMMA +
 				COL_CONTAINER               + VARCHAR_32                                     + COMMA +
+				COL_MIMETYPE                + VARCHAR_32                                     + COMMA +
 				COL_TITLECONTAINER          + VARCHAR_SIZE_MAX                               + COMMA +
 				COL_DURATION                + DOUBLE_PRECISION                               + COMMA +
 				COL_BITRATE                 + INTEGER                                        + COMMA +
@@ -595,6 +601,7 @@ public class MediaTableFiles extends MediaTable {
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));
+					media.setMimeType(rs.getString(COL_MIMETYPE));
 					media.setTitle(rs.getString(COL_TITLECONTAINER));
 					media.setDuration(toDouble(rs, COL_DURATION));
 					media.setBitRate(rs.getInt(COL_BITRATE));
@@ -619,32 +626,6 @@ public class MediaTableFiles extends MediaTable {
 			}
 		}
 		return media;
-	}
-
-	/**
-	 * Gets a row of {@link MediaDatabase} from the database and returns it
-	 * as a {@link MediaInfo} instance.
-	 * This is the same as getData above, but is a much smaller query because it
-	 * does not fetch thumbnails, status and tracks, and does not require a
-	 * modified value to be passed, which means we can avoid touching the filesystem
-	 * in the caller.
-	 *
-	 * @param connection the db connection
-	 * @param filename the full path of the media.
-	 * @return The {@link MediaInfo} instance matching
-	 *         {@code name} and {@code modified}.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 * @throws IOException if an IO error occurs during the operation.
-	 */
-	public static MediaInfo getFileMetadata(final Connection connection, String filename) throws IOException, SQLException {
-		Long id = getFileId(connection, filename);
-		if (id != null) {
-			MediaInfo media = new MediaInfo();
-			media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
-			media.setMediaParser(Parser.MANUAL_PARSER);
-			return media;
-		}
-		return null;
 	}
 
 	/**
@@ -680,10 +661,11 @@ public class MediaTableFiles extends MediaTable {
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
-						result.updateString(COL_PARSER, media.getMediaParser());
+						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
 						result.updateLong(COL_MEDIA_SIZE, media.getSize());
-						result.updateString(COL_CONTAINER, StringUtils.left(media.getContainer(), SIZE_CONTAINER));
-						result.updateString(COL_TITLECONTAINER, StringUtils.left(media.getFileTitleFromMetadata(), SIZE_MAX));
+						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
+						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
+						result.updateString(COL_TITLECONTAINER, StringUtils.left(media.getTitle(), SIZE_MAX));
 						updateDouble(result, COL_DURATION, media.getDurationInSeconds());
 						updateInteger(result, COL_BITRATE, media.getBitRate());
 						updateDouble(result, COL_FRAMERATE, media.getFrameRate());
@@ -979,7 +961,7 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	protected static List<String> getFilenamesInFolder(final Connection connection, final String fullPathToFolder) {
+	public static List<String> getFilenamesInFolder(final Connection connection, final String fullPathToFolder) {
 		List<String> result = new ArrayList<>();
 		if (StringUtils.isBlank(fullPathToFolder)) {
 			return result;

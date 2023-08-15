@@ -29,7 +29,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
@@ -42,6 +41,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.io.StreamModifier;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
  *
  *     public List<String> getAudioBitrateOptions(
  *         String filename,
- *         MediaResource dlna,
+ *         LibraryResource resource,
  *         MediaInfo media,
  *         OutputParams params
  *     )
@@ -110,23 +110,23 @@ public class FFMpegVideo extends Engine {
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
-	 * @param dlna
-	 * @param media metadata for the DLNA resource which is being transcoded
+	 * @param resource
+	 * @param mediaInfo metadata for the DLNA HlsHelper which is being transcoded
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
+	public List<String> getVideoFilterOptions(LibraryResource resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
-		MediaVideo defaultVideoTrack = media != null ? media.getDefaultVideoTrack() : null;
+		MediaVideo defaultVideoTrack = mediaInfo != null ? mediaInfo.getDefaultVideoTrack() : null;
 
-		boolean isMediaValid = media != null && media.isMediaParsed() && defaultVideoTrack != null && defaultVideoTrack.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = isMediaValid && !renderer.isResolutionCompatibleWithRenderer(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight());
+		boolean isMediaValid = mediaInfo != null && mediaInfo.isMediaParsed() && defaultVideoTrack != null && defaultVideoTrack.getHeight() != 0;
+		boolean isResolutionTooHighForRenderer = isMediaValid && defaultVideoTrack != null && !renderer.isResolutionCompatibleWithRenderer(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight());
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
@@ -143,7 +143,7 @@ public class FFMpegVideo extends Engine {
 				!"16:9".equals(defaultVideoTrack.getDisplayAspectRatio());
 
 		// Scale and pad the video if necessary
-		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && mediaInfo.getWidth() < 720)) { // Do not rescale for SD video and higher
 			if (defaultVideoTrack.is3dFullSbsOrOu()) {
 				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
@@ -154,7 +154,7 @@ public class FFMpegVideo extends Engine {
 				}
 			}
 		} else if (keepAR && isMediaValid) {
-			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+			if ((mediaInfo.getWidth() / (double) mediaInfo.getHeight()) >= (16 / (double) 9)) {
 				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 			} else {
@@ -186,7 +186,7 @@ public class FFMpegVideo extends Engine {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsManualTiming = true;
-			MediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+			MediaSubtitle convertedSubs = resource.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.getSid() != null && params.getSid().getType().isText()) {
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
@@ -195,7 +195,7 @@ public class FFMpegVideo extends Engine {
 					if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
 						originalSubsFilename = convertedSubs.getConvertedFile().getAbsolutePath();
 					} else if (!isSubsASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
-						File subtitlesFile = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						File subtitlesFile = SubtitleUtils.getSubtitles(resource, mediaInfo, params, configuration, SubtitleType.ASS);
 						if (subtitlesFile != null) {
 							originalSubsFilename = subtitlesFile.getAbsolutePath();
 						} else {
@@ -212,7 +212,7 @@ public class FFMpegVideo extends Engine {
 					if (params.getSid().getExternalFile() != null) {
 						if (
 							!renderer.streamSubsForTranscodedVideo() ||
-							!renderer.isExternalSubtitlesFormatSupported(params.getSid(), dlna)
+							!renderer.isExternalSubtitlesFormatSupported(params.getSid(), resource)
 						) {
 							// Only transcode subtitles if they aren't streamable
 							originalSubsFilename = params.getSid().getExternalFile().getPath();
@@ -221,7 +221,7 @@ public class FFMpegVideo extends Engine {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
 				} else {
-					originalSubsFilename = dlna.getFileName();
+					originalSubsFilename = resource.getFileName();
 				}
 
 				if (originalSubsFilename != null) {
@@ -264,7 +264,7 @@ public class FFMpegVideo extends Engine {
 				StringBuilder subsPictureFilter = new StringBuilder();
 				if (params.getSid().isEmbedded()) {
 					// Embedded
-					subsPictureFilter.append("[0:v][0:s:").append(media.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay");
+					subsPictureFilter.append("[0:v][0:s:").append(mediaInfo.getSubtitlesTracks().indexOf(params.getSid())).append("]overlay");
 					isSubsManualTiming = false;
 				} else if (params.getSid().getExternalFile() != null) {
 					// External
@@ -323,7 +323,7 @@ public class FFMpegVideo extends Engine {
 	 * audio codec and container) compatible with the renderer's
 	 * <code>TranscodeVideo</code> profile.
 	 *
-	 * @param dlna
+	 * @param resource
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
 	 * @param canMuxVideoWithFFmpeg
@@ -331,9 +331,9 @@ public class FFMpegVideo extends Engine {
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public synchronized List<String> getVideoTranscodeOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
+	public synchronized List<String> getVideoTranscodeOptions(LibraryResource resource, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
 		List<String> transcodeOptions = new ArrayList<>();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
@@ -416,10 +416,10 @@ public class FFMpegVideo extends Engine {
 //			} else {
 //				media.setContainer("mpegps");
 //			}
-//			dlna.setMediaInfo(media);
-//			if (renderer.getFormatConfiguration().getMatchedMIMEtype(dlna) != null) {
+//			resource.setMediaInfo(media);
+//			if (renderer.getFormatConfiguration().getMatchedMIMEtype(resource) != null) {
 //				media.setContainer(originalContainer);
-//				dlna.setMediaInfo(media);
+//				resource.setMediaInfo(media);
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
@@ -495,12 +495,12 @@ public class FFMpegVideo extends Engine {
 	 * Returns the video bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer and the user's settings.
 	 *
-	 * @param dlna
+	 * @param resource
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(MediaResource dlna, MediaInfo media, OutputParams params, boolean dtsRemux) {
+	public List<String> getVideoBitrateOptions(LibraryResource resource, MediaInfo media, OutputParams params, boolean dtsRemux) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 		Renderer renderer = params.getMediaRenderer();
@@ -697,12 +697,12 @@ public class FFMpegVideo extends Engine {
 	 * Returns the audio bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param dlna
+	 * @param resource
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(MediaResource dlna, MediaInfo media, OutputParams params) {
+	public List<String> getAudioBitrateOptions(LibraryResource resource, MediaInfo media, OutputParams params) {
 		Renderer renderer = params.getMediaRenderer();
 		List<String> audioBitrateOptions = new ArrayList<>();
 
@@ -799,21 +799,21 @@ public class FFMpegVideo extends Engine {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 
 		if (params.isHlsConfigured()) {
 			LOGGER.trace("Switching from FFmpeg to Hls FFmpeg to transcode.");
-			return launchHlsTranscode(dlna, media, params);
+			return launchHlsTranscode(resource, media, params);
 		}
 
 		Renderer renderer = params.getMediaRenderer();
 		// Use device-specific pms conf
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
@@ -828,7 +828,7 @@ public class FFMpegVideo extends Engine {
 			params.setWaitBeforeStart(2500);
 		}
 
-		setAudioAndSubs(dlna, params);
+		setAudioAndSubs(resource, params);
 		cmdList.add(getExecutable());
 
 		// Prevent FFmpeg timeout
@@ -901,7 +901,7 @@ public class FFMpegVideo extends Engine {
 			EngineFactory.isEngineActive(MEncoderVideo.ID) &&
 			!(renderer instanceof OutputOverride) &&
 			params.getSid() != null &&
-			!dlna.isInsideTranscodeFolder() &&
+			!resource.isInsideTranscodeFolder() &&
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
@@ -912,7 +912,7 @@ public class FFMpegVideo extends Engine {
 		) {
 			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
-			return mv.launchTranscode(dlna, media, params);
+			return mv.launchTranscode(resource, media, params);
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
@@ -921,7 +921,7 @@ public class FFMpegVideo extends Engine {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
-			} else if (dlna.isInsideTranscodeFolder()) {
+			} else if (resource.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (params.getSid() != null) {
@@ -953,7 +953,7 @@ public class FFMpegVideo extends Engine {
 		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-			if (dlna.isInsideTranscodeFolder()) {
+			if (resource.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
 			} else if (defaultVideoTrack.isH264() && !renderer.isMuxH264MpegTS()) {
@@ -1012,13 +1012,13 @@ public class FFMpegVideo extends Engine {
 
 				LOGGER.debug("Deferring from FFmpeg to tsMuxeR");
 
-				return tsMuxeRVideoInstance.launchTranscode(dlna, media, params);
+				return tsMuxeRVideoInstance.launchTranscode(resource, media, params);
 			}
 		}
 
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
-		List<String> videoFilterOptions = getVideoFilterOptions(dlna, media, params, isConvertedTo3d);
+		List<String> videoFilterOptions = getVideoFilterOptions(resource, media, params, isConvertedTo3d);
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(videoFilterOptions);
 			canMuxVideoWithFFmpeg = false;
@@ -1059,11 +1059,11 @@ public class FFMpegVideo extends Engine {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof OutputOverride outputOverride) {
-			override = outputOverride.getOutputOptions(cmdList, dlna, this, params);
+			override = outputOverride.getOutputOptions(cmdList, resource, this, params);
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params, dtsRemux));
+			cmdList.addAll(getVideoBitrateOptions(resource, media, params, dtsRemux));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -1126,7 +1126,7 @@ public class FFMpegVideo extends Engine {
 			}
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
-			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params, canMuxVideoWithFFmpeg));
+			cmdList.addAll(getVideoTranscodeOptions(resource, media, params, canMuxVideoWithFFmpeg));
 
 			// Add custom options
 			if (StringUtils.isNotEmpty(customFFmpegOptions)) {
@@ -1162,7 +1162,7 @@ public class FFMpegVideo extends Engine {
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
-		setOutputParsing(configuration, dlna, pw, false);
+		setOutputParsing(configuration, resource, pw, false);
 
 		if (!dtsRemux) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
@@ -1354,7 +1354,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	public synchronized ProcessWrapper launchHlsTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -1367,7 +1367,7 @@ public class FFMpegVideo extends Engine {
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
 		boolean needAudio = hlsConfiguration.audioStream > -1;
 		boolean needSubtitle = hlsConfiguration.subtitle > -1;
-		String filename = dlna.getFileName();
+		String filename = resource.getFileName();
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
@@ -1745,7 +1745,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
@@ -1761,17 +1761,17 @@ public class FFMpegVideo extends Engine {
 	 * Set up a filter to parse ffmpeg's stderr output for info
 	 * (e.g. duration) if required.
 	 */
-	public void setOutputParsing(UmsConfiguration configuration, final MediaResource dlna, ProcessWrapperImpl pw, boolean force) {
-		if (configuration.isResumeEnabled() && dlna.getMediaInfo() != null) {
-			long duration = force ? 0 : (long) dlna.getMediaInfo().getDurationInSeconds();
-			if (duration == 0 || duration == MediaInfo.TRANS_SIZE) {
+	public void setOutputParsing(UmsConfiguration configuration, final LibraryResource resource, ProcessWrapperImpl pw, boolean force) {
+		if (configuration.isResumeEnabled() && resource.getMediaInfo() != null) {
+			long duration = force ? 0 : (long) resource.getMediaInfo().getDurationInSeconds();
+			if (duration == 0 || duration == LibraryResource.TRANS_SIZE) {
 				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
 					public boolean filter(String line) {
 						if (RE_DURATION.reset(line).find()) {
 							String d = RE_DURATION.group(1);
 							LOGGER.trace("[{}] setting duration: {}", ID, d);
-							dlna.getMediaInfo().setDuration(StringUtil.convertStringToTime(d));
+							resource.getMediaInfo().setDuration(StringUtil.convertStringToTime(d));
 							return false; // done, stop filtering
 						}
 						return true; // keep filtering

@@ -20,9 +20,9 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.WebStream;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
+import net.pms.library.WebStream;
 import net.pms.formats.Format;
 import static net.pms.util.PlayerUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,12 +32,12 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
-	private static MediaResource video;
-	private static MediaResource audio;
-	private static MediaResource image;
-	private static MediaResource webImage;
-	private static MediaResource webVideo;
-	private static MediaResource webAudio;
+	private static LibraryResource video;
+	private static LibraryResource audio;
+	private static LibraryResource image;
+	private static LibraryResource webImage;
+	private static LibraryResource webVideo;
+	private static LibraryResource webAudio;
 
 	@BeforeAll
 	public static void setUpClass() {

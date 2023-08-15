@@ -33,10 +33,9 @@ import net.pms.image.ImageInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.chapter.MediaChapter;
-import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
-import net.pms.network.HTTPResource;
+import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.parsers.Parser;
 import net.pms.util.InputFile;
 import net.pms.util.StringUtil;
@@ -51,40 +50,11 @@ public class MediaInfo implements Cloneable {
 	public static final long ENDFILE_POS = 99999475712L;
 
 	/**
-	 * Maximum size of a stream, taking into account that some renderers (like
-	 * the PS3) will convert this <code>long</code> to <code>int</code>.
-	 * Truncating this value will still return the maximum value that an
-	 * <code>int</code> can contain.
-	 */
-	public static final long TRANS_SIZE = Long.MAX_VALUE - Integer.MAX_VALUE - 1;
-
-	/**
 	 * Containers that can represent audio or video media is by default
 	 * considered to be video. This {@link Map} maps such containers to the type
 	 * to use if they represent audio media.
 	 */
-	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS;
-
-	static {
-		Map<String, AudioVariantInfo> mutableAudioOrVideoContainers = new HashMap<>();
-
-		// Map container formats to their "audio variant".
-		mutableAudioOrVideoContainers.put(FormatConfiguration.MP4, new AudioVariantInfo(new M4A(), FormatConfiguration.M4A));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.MKV, new AudioVariantInfo(new MKA(), FormatConfiguration.MKA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.OGG, new AudioVariantInfo(new OGA(), FormatConfiguration.OGA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.RM, new AudioVariantInfo(new RA(), FormatConfiguration.RA));
-		// XXX Not technically correct, but should work until MPA is implemented
-		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG1, new AudioVariantInfo(new MP3(), FormatConfiguration.MPA));
-		// XXX Not technically correct, but should work until MPA is implemented
-		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG2, new AudioVariantInfo(new MP3(), FormatConfiguration.MPA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP, new AudioVariantInfo(new THREEGA(), FormatConfiguration.THREEGA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP2, new AudioVariantInfo(new THREEG2A(), FormatConfiguration.THREEGA));
-		// XXX WEBM Audio is NOT MKA, but it will have to stay this way until WEBM Audio is implemented.
-		mutableAudioOrVideoContainers.put(FormatConfiguration.WEBM, new AudioVariantInfo(new MKA(), FormatConfiguration.WEBA));
-		mutableAudioOrVideoContainers.put(FormatConfiguration.WMV, new AudioVariantInfo(new WMA(), FormatConfiguration.WMA));
-
-		AUDIO_OR_VIDEO_CONTAINERS = Collections.unmodifiableMap(mutableAudioOrVideoContainers);
-	}
+	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS = getAudioOrVideoContainers();
 
 	// Stored in database
 	private String lastParser;
@@ -93,7 +63,7 @@ public class MediaInfo implements Cloneable {
 	private long size;
 	private Double frameRate;
 	private String container;
-	private String fileTitleFromMetadata;
+	private String title;
 	private String aspectRatioDvdIso;
 
 	private volatile DLNAThumbnail thumb = null;
@@ -122,10 +92,21 @@ public class MediaInfo implements Cloneable {
 	private volatile boolean thumbready;
 
 	private Integer dvdtrack;
-	private boolean secondaryFormatValid = true;
 
 	private final Object parsingLock = new Object();
 	private boolean parsing = false;
+
+	public void resetParser() {
+		this.lastParser = null;
+		this.defaultAudioTrack = null;
+		this.defaultVideoTrack = null;
+		this.videoTracks.clear();
+		this.audioTracks.clear();
+		this.subtitleTracks.clear();
+		this.chapters.clear();
+		this.imageInfo = null;
+		this.imageCount = 0;
+	}
 
 	public int getVideoTrackCount() {
 		return videoTracks.size();
@@ -259,162 +240,6 @@ public class MediaInfo implements Cloneable {
 
 	public String getDurationString() {
 		return durationSec != null ? StringUtil.formatDLNADuration(durationSec) : null;
-	}
-
-	public void postParse(int type) {
-		String codecA = defaultAudioTrack != null ? defaultAudioTrack.getCodec() : null;
-		String codecV = defaultVideoTrack != null ? defaultVideoTrack.getCodec() : null;
-
-		if (container != null) {
-			mimeType = switch (container) {
-				case FormatConfiguration.AVI -> HTTPResource.AVI_TYPEMIME;
-				case FormatConfiguration.ASF -> HTTPResource.ASF_TYPEMIME;
-				case FormatConfiguration.FLV -> HTTPResource.FLV_TYPEMIME;
-				case FormatConfiguration.M4V -> HTTPResource.M4V_TYPEMIME;
-				case FormatConfiguration.MP4 -> HTTPResource.MP4_TYPEMIME;
-				case FormatConfiguration.MPEGPS -> HTTPResource.MPEG_TYPEMIME;
-				case FormatConfiguration.MPEGTS -> HTTPResource.MPEGTS_TYPEMIME;
-				case FormatConfiguration.MPEGTS_HLS -> HTTPResource.HLS_TYPEMIME;
-				case FormatConfiguration.WMV -> HTTPResource.WMV_TYPEMIME;
-				case FormatConfiguration.MOV -> HTTPResource.MOV_TYPEMIME;
-				case FormatConfiguration.ADPCM -> HTTPResource.AUDIO_ADPCM_TYPEMIME;
-				case FormatConfiguration.ADTS -> HTTPResource.AUDIO_ADTS_TYPEMIME;
-				case FormatConfiguration.M4A -> HTTPResource.AUDIO_M4A_TYPEMIME;
-				case FormatConfiguration.AC3 -> HTTPResource.AUDIO_AC3_TYPEMIME;
-				case FormatConfiguration.AU -> HTTPResource.AUDIO_AU_TYPEMIME;
-				case FormatConfiguration.DFF -> HTTPResource.AUDIO_DFF_TYPEMIME;
-				case FormatConfiguration.DSF -> HTTPResource.AUDIO_DSF_TYPEMIME;
-				case FormatConfiguration.EAC3 -> HTTPResource.AUDIO_EAC3_TYPEMIME;
-				case FormatConfiguration.MPA -> HTTPResource.AUDIO_MPA_TYPEMIME;
-				case FormatConfiguration.MP2 -> HTTPResource.AUDIO_MP2_TYPEMIME;
-				case FormatConfiguration.AIFF -> HTTPResource.AUDIO_AIFF_TYPEMIME;
-				case FormatConfiguration.ATRAC -> HTTPResource.AUDIO_ATRAC_TYPEMIME;
-				case FormatConfiguration.MKA -> HTTPResource.AUDIO_MKA_TYPEMIME;
-				case FormatConfiguration.MLP -> HTTPResource.AUDIO_MLP_TYPEMIME;
-				case FormatConfiguration.MONKEYS_AUDIO -> HTTPResource.AUDIO_APE_TYPEMIME;
-				case FormatConfiguration.MPC -> HTTPResource.AUDIO_MPC_TYPEMIME;
-				case FormatConfiguration.OGG -> HTTPResource.OGG_TYPEMIME;
-				case FormatConfiguration.OGA -> HTTPResource.AUDIO_OGA_TYPEMIME;
-				case FormatConfiguration.RA -> HTTPResource.AUDIO_RA_TYPEMIME;
-				case FormatConfiguration.RM -> HTTPResource.RM_TYPEMIME;
-				case FormatConfiguration.SHORTEN -> HTTPResource.AUDIO_SHN_TYPEMIME;
-				case FormatConfiguration.THREEGA -> HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
-				case FormatConfiguration.TRUEHD -> HTTPResource.AUDIO_TRUEHD_TYPEMIME;
-				case FormatConfiguration.TTA -> HTTPResource.AUDIO_TTA_TYPEMIME;
-				case FormatConfiguration.WAVPACK -> HTTPResource.AUDIO_WV_TYPEMIME;
-				case FormatConfiguration.WEBA -> HTTPResource.AUDIO_WEBM_TYPEMIME;
-				case FormatConfiguration.WEBP -> HTTPResource.WEBP_TYPEMIME;
-				case FormatConfiguration.WMA, FormatConfiguration.WMA10 -> HTTPResource.AUDIO_WMA_TYPEMIME;
-				case FormatConfiguration.BMP -> HTTPResource.BMP_TYPEMIME;
-				case FormatConfiguration.GIF -> HTTPResource.GIF_TYPEMIME;
-				case FormatConfiguration.JPEG -> HTTPResource.JPEG_TYPEMIME;
-				case FormatConfiguration.PNG -> HTTPResource.PNG_TYPEMIME;
-				case FormatConfiguration.TIFF -> HTTPResource.TIFF_TYPEMIME;
-				default -> mimeType;
-			};
-		}
-
-		if (mimeType == null) {
-			if (codecV != null && !codecV.equals(MediaLang.UND)) {
-				if ("matroska".equals(container) || "mkv".equals(container)) {
-					mimeType = HTTPResource.MATROSKA_TYPEMIME;
-				} else if ("ogg".equals(container)) {
-					mimeType = HTTPResource.OGG_TYPEMIME;
-				} else if ("3gp".equals(container)) {
-					mimeType = HTTPResource.THREEGPP_TYPEMIME;
-				} else if ("3g2".equals(container)) {
-					mimeType = HTTPResource.THREEGPP2_TYPEMIME;
-				} else if ("webm".equals(container)) {
-					mimeType = HTTPResource.WEBM_TYPEMIME;
-				} else if (container.startsWith("flash")) {
-					mimeType = HTTPResource.FLV_TYPEMIME;
-				} else if (codecV.startsWith("h264") || codecV.equals("h263") || codecV.equals("mpeg4") || codecV.equals("mp4")) {
-					mimeType = HTTPResource.MP4_TYPEMIME;
-				} else if (codecV.contains("mpeg") || codecV.contains("mpg")) {
-					mimeType = HTTPResource.MPEG_TYPEMIME;
-				}
-			} else if ((codecV == null || codecV.equals(MediaLang.UND)) && codecA != null) {
-				if ("ogg".equals(container) || "oga".equals(container)) {
-					mimeType = HTTPResource.AUDIO_OGA_TYPEMIME;
-				} else if ("3gp".equals(container)) {
-					mimeType = HTTPResource.AUDIO_THREEGPPA_TYPEMIME;
-				} else if ("3g2".equals(container)) {
-					mimeType = HTTPResource.AUDIO_THREEGPP2A_TYPEMIME;
-				} else if ("adts".equals(container)) {
-					mimeType = HTTPResource.AUDIO_ADTS_TYPEMIME;
-				} else if ("matroska".equals(container) || "mkv".equals(container)) {
-					mimeType = HTTPResource.AUDIO_MKA_TYPEMIME;
-				} else if ("webm".equals(container)) {
-					mimeType = HTTPResource.AUDIO_WEBM_TYPEMIME;
-				} else if (codecA.contains("mp3")) {
-					mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.MPA)) {
-					mimeType = HTTPResource.AUDIO_MPA_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.MP2)) {
-					mimeType = HTTPResource.AUDIO_MP2_TYPEMIME;
-				} else if (codecA.contains("flac")) {
-					mimeType = HTTPResource.AUDIO_FLAC_TYPEMIME;
-				} else if (codecA.contains("vorbis")) {
-					mimeType = HTTPResource.AUDIO_VORBIS_TYPEMIME;
-				} else if (codecA.contains("asf") || codecA.startsWith("wm")) {
-					mimeType = HTTPResource.AUDIO_WMA_TYPEMIME;
-				} else if (codecA.contains("pcm") || codecA.contains("wav") || codecA.contains("dts")) {
-					mimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.TRUEHD)) {
-					mimeType = HTTPResource.AUDIO_TRUEHD_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DTS)) {
-					mimeType = HTTPResource.AUDIO_DTS_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DTSHD)) {
-					mimeType = HTTPResource.AUDIO_DTSHD_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.EAC3)) {
-					mimeType = HTTPResource.AUDIO_EAC3_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.ADPCM)) {
-					mimeType = HTTPResource.AUDIO_ADPCM_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DFF)) {
-					mimeType = HTTPResource.AUDIO_DFF_TYPEMIME;
-				} else if (codecA.equals(FormatConfiguration.DSF)) {
-					mimeType = HTTPResource.AUDIO_DSF_TYPEMIME;
-				}
-			}
-
-			if (mimeType == null) {
-				mimeType = HTTPResource.getDefaultMimeType(type);
-			}
-		}
-
-		if (defaultAudioTrack == null || !(type == Format.AUDIO && defaultAudioTrack.getBitDepth() == 24 && defaultAudioTrack.getSampleRate() > 48000)) {
-			secondaryFormatValid = false;
-		}
-	}
-
-	private void appendVideoTracks(StringBuilder sb) {
-		sb.append(", Video Tracks: ").append(getVideoTrackCount());
-		for (MediaVideo video : videoTracks) {
-			if (!video.equals(videoTracks.get(0))) {
-				sb.append(",");
-			}
-			sb.append(" [").append(video).append("]");
-		}
-	}
-
-	private void appendAudioTracks(StringBuilder sb) {
-		sb.append(", Audio Tracks: ").append(getAudioTrackCount());
-		for (MediaAudio audio : audioTracks) {
-			if (!audio.equals(audioTracks.get(0))) {
-				sb.append(",");
-			}
-			sb.append(" [").append(audio).append("]");
-		}
-	}
-
-	private void appendSubtitleTracks(StringBuilder sb) {
-		sb.append(", Subtitle Tracks: ").append(getSubTrackCount());
-		for (MediaSubtitle subtitleTrack : subtitleTracks) {
-			if (!subtitleTrack.equals(subtitleTracks.get(0))) {
-				sb.append(",");
-			}
-			sb.append(" [").append(subtitleTrack).append("]");
-		}
 	}
 
 	/**
@@ -577,12 +402,12 @@ public class MediaInfo implements Cloneable {
 		this.mimeType = mimeType;
 	}
 
-	public String getFileTitleFromMetadata() {
-		return fileTitleFromMetadata;
+	public String getTitle() {
+		return title;
 	}
 
 	public void setTitle(String value) {
-		this.fileTitleFromMetadata = value;
+		this.title = value;
 	}
 
 	/**
@@ -734,14 +559,6 @@ public class MediaInfo implements Cloneable {
 
 	/**
 	 *
-	 * @param chapter the chapter to add
-	 */
-	public synchronized void addChapter(MediaChapter chapter) {
-		this.chapters.add(chapter);
-	}
-
-	/**
-	 *
 	 * @return true if has chapter
 	 */
 	public synchronized boolean hasChapters() {
@@ -792,18 +609,6 @@ public class MediaInfo implements Cloneable {
 		return this.lastParser != null;
 	}
 
-	public void resetParser() {
-		this.lastParser = null;
-		this.defaultAudioTrack = null;
-		this.defaultVideoTrack = null;
-		this.videoTracks.clear();
-		this.audioTracks.clear();
-		this.subtitleTracks.clear();
-		this.chapters.clear();
-		this.imageInfo = null;
-		this.imageCount = 0;
-	}
-
 	/**
 	 * @return the dvdtrack
 	 * @since 1.50.0
@@ -825,15 +630,7 @@ public class MediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public boolean isSecondaryFormatValid() {
-		return secondaryFormatValid;
-	}
-
-	/**
-	 * @param secondaryFormatValid the secondaryFormatValid to set
-	 * @since 1.50.0
-	 */
-	public void setSecondaryFormatValid(boolean secondaryFormatValid) {
-		this.secondaryFormatValid = secondaryFormatValid;
+		return (isAudio() && defaultAudioTrack.getBitDepth() == 24 && defaultAudioTrack.getSampleRate() > 48000);
 	}
 
 	/**
@@ -926,13 +723,44 @@ public class MediaInfo implements Cloneable {
 	 * This returns {@code null} unless {@link #isAudioOrVideoContainer}
 	 * is {@code true}.
 	 *
+	 *  TODO : seems not used
 	 * @see #isAudioOrVideoContainer()
 	 *
 	 * @return The {@link AudioVariantInfo} for this container, or {@code null}
 	 *         if it doesn't apply.
 	 */
-	public AudioVariantInfo getAudioVariant() {
+	private AudioVariantInfo getAudioVariant() {
 		return getAudioVariant(container);
+	}
+
+	private void appendVideoTracks(StringBuilder sb) {
+		sb.append(", Video Tracks: ").append(getVideoTrackCount());
+		for (MediaVideo video : videoTracks) {
+			if (!video.equals(videoTracks.get(0))) {
+				sb.append(",");
+			}
+			sb.append(" [").append(video).append("]");
+		}
+	}
+
+	private void appendAudioTracks(StringBuilder sb) {
+		sb.append(", Audio Tracks: ").append(getAudioTrackCount());
+		for (MediaAudio audio : audioTracks) {
+			if (!audio.equals(audioTracks.get(0))) {
+				sb.append(",");
+			}
+			sb.append(" [").append(audio).append("]");
+		}
+	}
+
+	private void appendSubtitleTracks(StringBuilder sb) {
+		sb.append(", Subtitle Tracks: ").append(getSubTrackCount());
+		for (MediaSubtitle subtitleTrack : subtitleTracks) {
+			if (!subtitleTrack.equals(subtitleTracks.get(0))) {
+				sb.append(",");
+			}
+			sb.append(" [").append(subtitleTrack).append("]");
+		}
 	}
 
 	@Override
@@ -944,8 +772,8 @@ public class MediaInfo implements Cloneable {
 		result.append("Size: ").append(getSize());
 		if (isVideo()) {
 			result.append(", Overall Bitrate: ").append(getBitRate());
-			if (StringUtils.isNotBlank(getFileTitleFromMetadata())) {
-				result.append(", File Title from Metadata: ").append(getFileTitleFromMetadata());
+			if (StringUtils.isNotBlank(getTitle())) {
+				result.append(", File Title from Metadata: ").append(getTitle());
 			}
 			if (frameRate != null) {
 				result.append(", Frame Rate: ").append(getFrameRate());
@@ -1105,6 +933,7 @@ public class MediaInfo implements Cloneable {
 		return null;
 	}
 
+	// TODO : seems not used
 	private static AudioVariantInfo getAudioVariant(String container) {
 		if (StringUtils.isBlank(container)) {
 			return null;
@@ -1154,6 +983,27 @@ public class MediaInfo implements Cloneable {
 		public String getFormatConfiguration() {
 			return formatConfiguration;
 		}
+	}
+
+	private static Map<String, AudioVariantInfo> getAudioOrVideoContainers() {
+		Map<String, AudioVariantInfo> mutableAudioOrVideoContainers = new HashMap<>();
+
+		// Map container formats to their "audio variant".
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MP4, new AudioVariantInfo(new M4A(), FormatConfiguration.M4A));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MKV, new AudioVariantInfo(new MKA(), FormatConfiguration.MKA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.OGG, new AudioVariantInfo(new OGA(), FormatConfiguration.OGA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.RM, new AudioVariantInfo(new RA(), FormatConfiguration.RA));
+		// XXX Not technically correct, but should work until MPA is implemented
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG1, new AudioVariantInfo(new MP3(), FormatConfiguration.MPA));
+		// XXX Not technically correct, but should work until MPA is implemented
+		mutableAudioOrVideoContainers.put(FormatConfiguration.MPEG2, new AudioVariantInfo(new MP3(), FormatConfiguration.MPA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP, new AudioVariantInfo(new THREEGA(), FormatConfiguration.THREEGA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.THREEGPP2, new AudioVariantInfo(new THREEG2A(), FormatConfiguration.THREEGA));
+		// XXX WEBM Audio is NOT MKA, but it will have to stay this way until WEBM Audio is implemented.
+		mutableAudioOrVideoContainers.put(FormatConfiguration.WEBM, new AudioVariantInfo(new MKA(), FormatConfiguration.WEBA));
+		mutableAudioOrVideoContainers.put(FormatConfiguration.WMV, new AudioVariantInfo(new WMA(), FormatConfiguration.WMA));
+
+		return Collections.unmodifiableMap(mutableAudioOrVideoContainers);
 	}
 
 }

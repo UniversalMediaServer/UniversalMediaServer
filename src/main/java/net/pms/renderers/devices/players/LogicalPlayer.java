@@ -18,9 +18,10 @@ package net.pms.renderers.devices.players;
 
 import java.io.File;
 import java.util.List;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.DidlHelper;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
+import net.pms.library.virtual.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
@@ -68,9 +69,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 			} else {
 				// It's new to us, find or create the resource as required.
 				// Note: here metadata (if any) is actually the resource name
-				MediaResource resource = MediaResource.getValidResource(uri, metadata, renderer);
+				LibraryResource resource = renderer.getRootFolder().getValidResource(uri, metadata);
 				if (resource != null) {
-					return new PlaylistItem(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
+					return new PlaylistItem(resource.getURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
 				}
 			}
 		}
@@ -150,10 +151,10 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void add(int index, String uri, String name, String metadata, boolean select) {
 		if (!StringUtils.isBlank(uri)) {
-			if (addAllSiblings && MediaResource.isResourceUrl(uri)) {
-				MediaResource d = renderer.getGlobalRepo().get(MediaResource.parseResourceId(uri));
+			if (addAllSiblings && LibraryResource.isResourceUrl(uri)) {
+				LibraryResource d = renderer.getGlobalRepo().get(LibraryResource.parseResourceId(uri));
 				if (d != null && d.getParent() != null) {
-					List<MediaResource> list = d.getParent().getChildren();
+					List<LibraryResource> list = d.getParent().getChildren();
 					addAll(index, list, list.indexOf(d));
 					return;
 				}
@@ -162,14 +163,14 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 		}
 	}
 
-	public void addAll(int index, List<MediaResource> list, int selIndex) {
+	public void addAll(int index, List<LibraryResource> list, int selIndex) {
 		for (int i = 0; i < list.size(); i++) {
-			MediaResource r = list.get(i);
-			if ((r instanceof VirtualVideoAction) || r.isFolder()) {
+			LibraryResource r = list.get(i);
+			if ((r instanceof VirtualVideoAction) || r == null || r.isFolder()) {
 				// skip these
 				continue;
 			}
-			playlist.add(index, r.getURL("", true), r.getDisplayName(), r.getDidlString(renderer), i == selIndex);
+			playlist.add(index, r.getURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
 		}
 	}
 

@@ -30,15 +30,15 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
-import net.pms.dlna.DbIdMediaType;
-import net.pms.dlna.DbIdTypeAndIdent;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.PlaylistFolder;
-import net.pms.dlna.RealFileDbId;
+import net.pms.library.DbIdMediaType;
+import net.pms.library.DbIdTypeAndIdent;
+import net.pms.library.LibraryResource;
+import net.pms.library.PlaylistFolder;
+import net.pms.library.RealFileDbId;
+import net.pms.library.virtual.VirtualFolderDbId;
 import net.pms.media.audio.metadata.DoubleRecordFilter;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
-import net.pms.dlna.virtual.VirtualFolderDbId;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -57,8 +57,8 @@ public class DbIdResourceLocator {
 	private DbIdResourceLocator() {
 	}
 
-	public static MediaResource locateResource(Renderer renderer, String id) {
-		return getDLNAResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(id));
+	public static LibraryResource locateResource(Renderer renderer, String id) {
+		return getLibraryResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(id));
 	}
 
 	public static String encodeDbid(DbIdTypeAndIdent typeIdent) {
@@ -79,8 +79,8 @@ public class DbIdResourceLocator {
 	 *         and resolved. In case of a container, the container will be
 	 *         created and populated.
 	 */
-	private static MediaResource getDLNAResourceByDBID(Renderer renderer, DbIdTypeAndIdent typeAndIdent) {
-		MediaResource res = null;
+	private static LibraryResource getLibraryResourceByDBID(Renderer renderer, DbIdTypeAndIdent typeAndIdent) {
+		LibraryResource res = null;
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -129,7 +129,7 @@ public class DbIdResourceLocator {
 								res = new VirtualFolderDbId(renderer, typeAndIdent.ident,
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
-									MediaResource item = new RealFileDbId(
+									LibraryResource item = new RealFileDbId(
 										renderer,
 										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
@@ -162,7 +162,7 @@ public class DbIdResourceLocator {
 										String currentUuidTrack = resultSet.getString("MBID_TRACK");
 										if (!currentUuidTrack.equals(lastUuidTrack)) {
 											lastUuidTrack = currentUuidTrack;
-											MediaResource item = new RealFileDbId(
+											LibraryResource item = new RealFileDbId(
 												renderer,
 												new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 												new File(resultSet.getString("FILENAME")));
@@ -216,7 +216,7 @@ public class DbIdResourceLocator {
 								res = new VirtualFolderDbId(renderer, typeAndIdent.ident,
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
-									MediaResource item = new RealFileDbId(
+									LibraryResource item = new RealFileDbId(
 										renderer,
 										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
@@ -229,10 +229,10 @@ public class DbIdResourceLocator {
 						case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 							res = new VirtualFolderDbId(renderer, typeAndIdent.ident, new DbIdTypeAndIdent(typeAndIdent.type, typeAndIdent.ident),
 								"");
-							MediaResource allFiles = new VirtualFolderDbId(renderer, Messages.getString("AllFiles"),
+							LibraryResource allFiles = new VirtualFolderDbId(renderer, Messages.getString("AllFiles"),
 								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident), "");
 							res.addChild(allFiles);
-							MediaResource albums = new VirtualFolderDbId(renderer, Messages.getString("ByAlbum_lowercase"),
+							LibraryResource albums = new VirtualFolderDbId(renderer, Messages.getString("ByAlbum_lowercase"),
 								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident), "");
 							res.addChild(albums);
 						}
@@ -256,7 +256,7 @@ public class DbIdResourceLocator {
 								res = new VirtualFolderDbId(renderer, identSplitted[1],
 									new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident), "");
 								while (resultSet.next()) {
-									MediaResource item = new RealFileDbId(
+									LibraryResource item = new RealFileDbId(
 										renderer,
 										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")),
 										new File(resultSet.getString("FILENAME")));
@@ -273,7 +273,7 @@ public class DbIdResourceLocator {
 				LOGGER.error("database not available !");
 			}
 		} catch (SQLException e) {
-			LOGGER.warn("getDLNAResourceByDBID", e);
+			LOGGER.warn("getLibraryResourceByDBID", e);
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -345,14 +345,14 @@ public class DbIdResourceLocator {
 	 */
 	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
 		LOGGER.debug("adding music album information");
-		MediaAudioMetadata audioInf = new MediaAudioMetadata();
-		audioInf.setAlbum(album.getAlbum());
-		audioInf.setArtist(album.getArtist());
-		audioInf.setYear(album.getYear());
-		audioInf.setGenre(album.getGenre());
-		MediaInfo mi = new MediaInfo();
-		mi.setAudioMetadata(audioInf);
-		albumFolder.setMediaInfo(mi);
+		MediaInfo fakeMediaInfo = new MediaInfo();
+		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();
+		fakeAudioMetadata.setAlbum(album.getAlbum());
+		fakeAudioMetadata.setArtist(album.getArtist());
+		fakeAudioMetadata.setYear(album.getYear());
+		fakeAudioMetadata.setGenre(album.getGenre());
+		fakeMediaInfo.setAudioMetadata(fakeAudioMetadata);
+		albumFolder.setMediaInfo(fakeMediaInfo);
 	}
 
 }

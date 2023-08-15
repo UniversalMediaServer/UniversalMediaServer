@@ -19,13 +19,28 @@ package net.pms;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import com.sun.jna.Platform;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.BindException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -39,23 +54,24 @@ import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import net.pms.configuration.Build;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.RootFolder;
-import net.pms.dlna.virtual.CodeEnter;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.YoutubeDl;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
-import net.pms.io.*;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.ThreadedProcessWrapper;
+import net.pms.library.virtual.CodeEnter;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
@@ -77,7 +93,18 @@ import net.pms.renderers.RendererFilter;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
-import net.pms.util.*;
+import net.pms.util.APIUtils;
+import net.pms.util.CodeDb;
+import net.pms.util.CredMgr;
+import net.pms.util.FileUtil;
+import net.pms.util.Languages;
+import net.pms.util.LogSystemInformationMode;
+import net.pms.util.PropertiesUtil;
+import net.pms.util.SystemErrWrapper;
+import net.pms.util.SystemInformation;
+import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
+import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.lang3.StringUtils;
@@ -132,28 +159,6 @@ public class PMS {
 	 * blocking the next realtime task from starting.
 	 */
 	public static final Lock REALTIME_LOCK = new ReentrantLock();
-
-	/**
-	 * Returns the root folder for a given renderer. There could be the case
-	 * where a given media renderer needs a different root structure.
-	 *
-	 * @param renderer {@link Renderer}
-	 * is the renderer for which to get the RootFolder structure. If <code>null</code>,
-	 * then the default renderer is used.
-	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
-	 */
-	public RootFolder getRootFolder(Renderer renderer) {
-		// something to do here for multiple directories views for each renderer
-		if (renderer == null) {
-			renderer = RendererConfigurations.getDefaultRenderer();
-		}
-
-		if (renderer == null) {
-			return null;
-		}
-
-		return renderer.getRootFolder();
-	}
 
 	/**
 	 * Pointer to a running UMS server.
@@ -403,7 +408,7 @@ public class PMS {
 		 * different resource IDs than last time UMS ran. It also populates our
 		 * in-memory value with the database value if the database is enabled.
 		 */
-		MediaResource.bumpSystemUpdateId();
+		ContentDirectory.bumpSystemUpdateId();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -704,7 +709,7 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		MediaResource.bumpSystemUpdateId();
+		ContentDirectory.bumpSystemUpdateId();
 	}
 
 	/**
@@ -979,11 +984,7 @@ public class PMS {
 
 			LOGGER.debug(new Date().toString());
 
-			try {
-				umsConfiguration.initCred();
-			} catch (IOException e) {
-				LOGGER.debug("Error initializing credentials file: {}", e);
-			}
+			umsConfiguration.initCred();
 
 			if (umsConfiguration.isRunSingleInstance()) {
 				killOld();
@@ -1005,6 +1006,7 @@ public class PMS {
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -1059,11 +1061,6 @@ public class PMS {
 
 	public static UmsConfiguration getConfiguration(OutputParams params) {
 		return getConfiguration(params != null ? params.getMediaRenderer() : null);
-	}
-
-	// Note: this should be used only when no Renderer or OutputParams is available
-	public static UmsConfiguration getConfiguration(MediaResource resource) {
-		return getConfiguration(resource != null ? resource.getDefaultRenderer() : null);
 	}
 
 	/**

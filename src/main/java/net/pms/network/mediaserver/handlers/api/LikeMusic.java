@@ -24,6 +24,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableMusicBrainzReleaseLike;
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.h2.tools.RunScript;
@@ -33,11 +38,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
-import net.pms.database.MediaTableMusicBrainzReleaseLike;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class LikeMusic implements ApiResponseHandler {
 

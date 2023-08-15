@@ -17,7 +17,6 @@
 package net.pms.newgui.update;
 
 import com.sun.jna.Platform;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,11 +39,11 @@ import net.pms.util.FileUtil;
 public class AutoUpdateDialog extends JDialog implements Observer {
 	private static final long serialVersionUID = 3809427933990495309L;
 	private final AutoUpdater autoUpdater;
-	private JLabel stateLabel = new JLabel();
-	private JLabel hyperLinkLabel = new HyperLinkLabel();
-	private JButton okButton = new DownloadButton();
-	private JButton cancelButton = new CancelButton();
-	private JProgressBar downloadProgressBar = new JProgressBar();
+	private final JLabel stateLabel = new JLabel();
+	private final JLabel hyperLinkLabel = new HyperLinkLabel();
+	private final JButton okButton = new DownloadButton();
+	private final JButton cancelButton = new CancelButton();
+	private final JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static synchronized void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {

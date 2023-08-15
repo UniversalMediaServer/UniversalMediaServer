@@ -21,8 +21,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.RealFile;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -104,11 +104,11 @@ public class FileNamePrettifier {
 	private String episodeName;
 
 	/**
-	 * Creates a new instance for the specified {@link MediaResource}.
+	 * Creates a new instance for the specified {@link LibraryResource}.
 	 *
-	 * @param resource the {@link MediaResource} whose name to prettify.
+	 * @param resource the {@link LibraryResource} whose name to prettify.
 	 */
-	public FileNamePrettifier(MediaResource resource) {
+	public FileNamePrettifier(LibraryResource resource) {
 		if (resource == null) {
 			throw new IllegalArgumentException("resource cannot be null");
 		}

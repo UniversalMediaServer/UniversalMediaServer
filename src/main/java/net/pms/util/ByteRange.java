@@ -35,6 +35,10 @@ public class ByteRange implements Range {
 		return start;
 	}
 
+	public long getStartOrZero() {
+		return start != null ? (long) start : 0;
+	}
+
 	/**
 	 * @param start the start to set
 	 */

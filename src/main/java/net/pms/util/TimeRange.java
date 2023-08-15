@@ -36,7 +36,7 @@ public class TimeRange implements Range {
 	}
 
 	public double getStartOrZero() {
-		return start != null ? start : 0;
+		return start != null ? (double) start : 0;
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class TimeRange implements Range {
 	}
 
 	public double getEndOrZero() {
-		return end != null ? end : 0;
+		return end != null ? (double) end : 0;
 	}
 
 	/**

@@ -16,14 +16,14 @@
  */
 package net.pms.image;
 
-import java.awt.color.ColorSpace;
-import java.awt.image.ColorModel;
-import net.pms.util.ParseException;
 import com.drew.imaging.png.PngChunkType;
 import com.drew.imaging.png.PngColorType;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.png.PngDirectory;
+import java.awt.color.ColorSpace;
+import java.awt.image.ColorModel;
+import net.pms.util.ParseException;
 
 public class PNGInfo extends ImageInfo {
 	private static final long serialVersionUID = 1L;

@@ -30,11 +30,11 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.DVDISOTitle;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
+import net.pms.library.DVDISOTitle;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -418,7 +418,7 @@ public class MEncoderVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -430,8 +430,8 @@ public class MEncoderVideo extends Engine {
 
 		boolean avisynth = isAviSynthEngine();
 
-		final String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		final String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 
@@ -456,7 +456,7 @@ public class MEncoderVideo extends Engine {
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
 
-		boolean isDVD = dlna instanceof DVDISOTitle;
+		boolean isDVD = resource instanceof DVDISOTitle;
 
 		encodeOptions.ovccopy  = false;
 		encodeOptions.pcm      = false;
@@ -485,7 +485,7 @@ public class MEncoderVideo extends Engine {
 		if (!configuration.isMencoderMuxWhenCompatible()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		} else if (dlna.isInsideTranscodeFolder()) {
+		} else if (resource.isInsideTranscodeFolder()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the TRANSCODE folder.");
 		} else if (!renderer.isMuxH264MpegTS()) {
@@ -561,7 +561,7 @@ public class MEncoderVideo extends Engine {
 					}
 				}
 
-				return tv.launchTranscode(dlna, media, params);
+				return tv.launchTranscode(resource, media, params);
 			}
 		} else if (params.getSid() == null && isDVD && configuration.isMencoderRemuxMPEG2() && renderer.isMpeg2Supported()) {
 			String[] expertOptions = getSpecificCodecOptions(
@@ -1286,16 +1286,16 @@ public class MEncoderVideo extends Engine {
 					cmdList.add("" + params.getSid().getLang());
 				} else if (
 					!renderer.streamSubsForTranscodedVideo() ||
-					!renderer.isExternalSubtitlesFormatSupported(params.getSid(), dlna)
+					!renderer.isExternalSubtitlesFormatSupported(params.getSid(), resource)
 				) {
 					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
-					MediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+					MediaSubtitle convertedSubs = resource.getMediaSubtitle();
 					if (defaultVideoTrack.is3d()) {
 						if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
 							cmdList.add(convertedSubs.getConvertedFile().getAbsolutePath().replace(",", "\\,"));
 						} else if (params.getSid().getType() != SubtitleType.ASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
-							File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+							File subsFilename = SubtitleUtils.getSubtitles(resource, media, params, configuration, SubtitleType.ASS);
 							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
 						}
 					} else {
@@ -1550,7 +1550,7 @@ public class MEncoderVideo extends Engine {
 			String vfValuePrepend = "expand=";
 
 			if (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) {
-				String resolution = dlna.getResolutionForKeepAR(scaleWidth, scaleHeight);
+				String resolution = resource.getResolutionForKeepAR(scaleWidth, scaleHeight);
 				scaleWidth = Integer.parseInt(StringUtils.substringBefore(resolution, "x"));
 				scaleHeight = Integer.parseInt(StringUtils.substringAfter(resolution, "x"));
 
@@ -2239,7 +2239,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

@@ -33,10 +33,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
@@ -142,21 +142,21 @@ public abstract class Engine {
 	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public abstract ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException;
 
 	/**
 	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link MediaResource}. If {@code resource} is {@code null} {@code false}
+	 * {@link LibraryResource}. If {@code resource} is {@code null} {@code false}
 	 * will be returned.
 	 *
-	 * @param resource the {@link MediaResource} to be matched.
+	 * @param resource the {@link LibraryResource} to be matched.
 	 * @return {@code true} if {@code resource} can be handled, {@code false}
 	 *         otherwise.
 	 */
-	public abstract boolean isCompatible(MediaResource resource);
+	public abstract boolean isCompatible(LibraryResource resource);
 
 	protected abstract boolean isSpecificTest();
 
@@ -964,7 +964,7 @@ public abstract class Engine {
 	 * @param media The MediaInfo metadata for the file.
 	 * @param params The parameters to populate.
 	 */
-	public static void setAudioAndSubs(MediaResource resource, OutputParams params) {
+	public static void setAudioAndSubs(LibraryResource resource, OutputParams params) {
 		if (resource == null || params == null || resource.getMediaInfo() == null) {
 			return;
 		}
@@ -987,14 +987,14 @@ public abstract class Engine {
 				}
 			}
 		} else if (params.getSid() == null) {
-			params.setSid(resource.resolveSubtitlesStream(params.getMediaRenderer(), params.getAid() == null ? null : params.getAid().getLang(), true));
+			params.setSid(resource.resolveSubtitlesStream(params.getAid() == null ? null : params.getAid().getLang(), true));
 		}
 	}
 
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
-	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
+	 * Also used by LibraryResource to help determine the DLNA.ORG_PN (file type)
 	 * value to send to the renderer.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
@@ -1105,8 +1105,8 @@ public abstract class Engine {
 		// Check the metadata
 		return (
 			(
-				media.getFileTitleFromMetadata() != null &&
-				media.getFileTitleFromMetadata().toLowerCase().replaceAll("\\-", "").contains("webdl")
+				media.getTitle() != null &&
+				media.getTitle().toLowerCase().replaceAll("\\-", "").contains("webdl")
 			) ||
 			(
 				media.getDefaultVideoTrack() != null &&

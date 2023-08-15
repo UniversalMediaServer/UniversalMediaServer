@@ -31,7 +31,6 @@ import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.util.exif.ExifFilterUtils;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
 import net.pms.image.ExifInfo;
 import net.pms.image.ExifOrientation;
@@ -43,6 +42,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.MetadataExtractorParser;
 import net.pms.platform.windows.NTStatus;
@@ -88,15 +88,15 @@ public class DCRaw extends ImageEngine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
-		if (media == null || dlna == null) {
+		if (media == null || resource == null) {
 			return null;
 		}
 
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		byte[] image = getImage(params, filename, media.getImageInfo());
 
 		if (image == null) {
@@ -315,7 +315,7 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return resource != null && resource.getFormat() != null && resource.getFormat().getIdentifier() == Format.Identifier.RAW;
 	}
 

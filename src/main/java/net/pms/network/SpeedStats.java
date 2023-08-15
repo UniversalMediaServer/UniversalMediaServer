@@ -29,11 +29,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.IPlatformUtils;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.platform.IPlatformUtils;
 
 /**
  * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.

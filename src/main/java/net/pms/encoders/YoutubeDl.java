@@ -21,11 +21,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.MediaResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
@@ -65,7 +65,7 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		MediaResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -73,8 +73,8 @@ public class YoutubeDl extends FFMpegVideo {
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
-		String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
@@ -161,7 +161,7 @@ public class YoutubeDl extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(MediaResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 

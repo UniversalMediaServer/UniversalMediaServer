@@ -29,21 +29,13 @@ import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
-import net.pms.dlna.MediaResource;
 import net.pms.formats.Format;
-import net.pms.media.MediaInfo;
-import net.pms.renderers.Renderer;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Implements any item that can be transfered through the HTTP pipes.
- * In the PMS case, this item represents media files.
- * @see MediaResource
- */
 public abstract class HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPResource.class);
 	public static final String UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
@@ -123,10 +115,10 @@ public abstract class HTTPResource {
 	 * @param fileName TODO Absolute or relative file path.
 	 * @return If found, an InputStream associated with the fileName. null otherwise.
 	 */
-	protected InputStream getResourceInputStream(String fileName) {
+	public static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
 		fileName = fileName.replace("//", "/");
-		ClassLoader cll = this.getClass().getClassLoader();
+		ClassLoader cll = HTTPResource.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
 		while (is == null && cll.getParent() != null) {
@@ -252,154 +244,4 @@ public abstract class HTTPResource {
 		return bytes.toByteArray();
 	}
 
-	/**
-	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param renderer media renderer to customize the MIME type for.
-	 * @param resource the resource
-	 * @return The MIME type
-	 */
-	public static String getRendererMimeType(Renderer renderer, MediaResource resource) {
-		return renderer.getMimeType(resource);
-	}
-
-	public static int getDLNALocalesCount() {
-		return 3;
-	}
-
-	public static final String getMpegPsOrgPN(int index) {
-		if (index == 1 || index == 2) {
-			return "MPEG_PS_NTSC";
-		}
-
-		return "MPEG_PS_PAL";
-	}
-
-	private static final String getMpegTsMpeg2OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
-		String orgPN = "MPEG_TS_";
-		if (media != null && media.getDefaultVideoTrack() == null && media.getDefaultVideoTrack().isHDVideo()) {
-			orgPN += "HD";
-		} else {
-			orgPN += "SD";
-		}
-
-		orgPN += (
-			switch (index) {
-				case 1 -> "_NA";
-				case 2 -> "_JP";
-				default -> "_EU";
-			}
-		);
-
-		if (!isStreaming) {
-			orgPN += "_ISO";
-		}
-
-		return orgPN;
-	}
-
-	public static final String getMpegTsH264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
-		String orgPN = "AVC_TS";
-
-		orgPN += (
-			switch (index) {
-				case 1 -> "_NA";
-				case 2 -> "_JP";
-				default -> "_EU";
-			}
-		);
-
-		if (!isStreaming) {
-			orgPN += "_ISO";
-		}
-
-		return orgPN;
-	}
-
-	public static final String getMkvH264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
-		String orgPN = "AVC_MKV";
-
-		if (media == null || media.getDefaultVideoTrack() == null ||
-			media.getDefaultVideoTrack().getFormatProfile() == null ||
-			media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
-			orgPN += "_HP";
-		} else {
-			orgPN += "_MP";
-		}
-
-		orgPN += "_HD";
-
-		if (media != null && media.getDefaultAudioTrack() != null) {
-			if (
-				(
-					isStreaming &&
-					media.getDefaultAudioTrack().isAACLC()
-				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAAC()
-				)
-			) {
-				orgPN += "_AAC_MULT5";
-			} else if (
-				(
-					isStreaming &&
-					media.getDefaultAudioTrack().isAC3()
-				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAC3()
-				)
-			) {
-				orgPN += "_AC3";
-			} else if (
-				isStreaming &&
-				media.getDefaultAudioTrack().isDTS()
-			) {
-				orgPN += "_DTS";
-			} else if (
-				isStreaming &&
-				media.getDefaultAudioTrack().isEAC3()
-			) {
-				orgPN += "_EAC3";
-			} else if (
-				isStreaming &&
-				media.getDefaultAudioTrack().isHEAAC()
-			) {
-				orgPN += "_HEAAC_L4";
-			}
-		}
-
-		return orgPN;
-	}
-
-	public static final String getWmvOrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
-		String orgPN = "WMV";
-		if (media != null && media.getDefaultVideoTrack() != null &&  media.getDefaultVideoTrack().isHDVideo()) {
-			orgPN += "HIGH";
-		} else {
-			orgPN += "MED";
-		}
-
-		if (media != null && media.getDefaultAudioTrack() != null) {
-			if (
-				(
-					isStreaming &&
-					media.getDefaultAudioTrack().isWMA()
-				) || (
-					!isStreaming &&
-					renderer.isTranscodeToWMV()
-				)
-			) {
-				orgPN += "_FULL";
-			} else if (
-				isStreaming &&
-				(
-					media.getDefaultAudioTrack().isWMAPro() ||
-					media.getDefaultAudioTrack().isWMA10()
-				)
-			) {
-				orgPN += "_PRO";
-			}
-		}
-
-		return orgPN;
-	}
 }

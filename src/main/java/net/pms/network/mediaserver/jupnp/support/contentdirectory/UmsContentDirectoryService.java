@@ -19,14 +19,14 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.MediaResource;
-import net.pms.dlna.PlaylistFolder;
-import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.DidlHelper;
+import net.pms.library.LibraryResource;
+import net.pms.library.PlaylistFolder;
+import net.pms.library.virtual.MediaLibrary;
+import net.pms.media.MediaStatusStore;
+import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
@@ -154,7 +154,7 @@ public class UmsContentDirectoryService {
 	@UpnpAction(out = @UpnpOutputArgument(name = "Id"))
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
 		//maybe use the provided systemUpdateID ?
-		return new UnsignedIntegerFourBytes(MediaResource.getSystemUpdateId());
+		return new UnsignedIntegerFourBytes(ContentDirectory.getSystemUpdateId());
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
@@ -322,7 +322,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
-		if (renderer != null && !renderer.isAllowed()) {
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 			}
@@ -331,7 +337,7 @@ public class UmsContentDirectoryService {
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
-		List<MediaResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<LibraryResource> files = renderer.getRootFolder().getLibraryResources(
 				objectID,
 				browseDirectChildren,
 				(int) startingIndex,
@@ -344,7 +350,7 @@ public class UmsContentDirectoryService {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		if (files != null) {
-			for (MediaResource uf : files) {
+			for (LibraryResource uf : files) {
 				if (uf instanceof PlaylistFolder playlistFolder) {
 					File f = new File(uf.getFileName());
 					if (uf.getLastModified() < f.lastModified()) {
@@ -353,13 +359,13 @@ public class UmsContentDirectoryService {
 				}
 
 				if (uf != null &&
-					uf.isCompatible(renderer) &&
+					uf.isCompatible() &&
 					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(renderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 					uf != null && files.get(0).isInsideTranscodeFolder()
 				) {
-					filesData.append(uf.getDidlString(renderer));
+					filesData.append(DidlHelper.getDidlString(uf));
 				} else {
 					minus++;
 				}
@@ -374,7 +380,7 @@ public class UmsContentDirectoryService {
 		long count = filessize - minus;
 
 		long totalMatches;
-		if (browseDirectChildren && renderer != null && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, files are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
@@ -388,11 +394,11 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else if (browseDirectChildren) {
-			MediaResource parentFolder;
+			LibraryResource parentFolder;
 			if (files != null && filessize > 0) {
 				parentFolder = files.get(0).getParent();
 			} else {
-				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
+				parentFolder = renderer.getRootFolder().getLibraryResource(objectID);
 			}
 			if (parentFolder != null) {
 				totalMatches = parentFolder.childrenCount() - minus;
@@ -404,7 +410,7 @@ public class UmsContentDirectoryService {
 			totalMatches = 1;
 		}
 
-		long containerUpdateID = MediaResource.getSystemUpdateId();
+		long containerUpdateID = ContentDirectory.getSystemUpdateId();
 		//jupnp will escape DIDL result itself
 		//this will not be necessary when UMS will build results from DIDL objects
 		String result = StringEscapeUtils.unescapeXml(filesData.toString());
@@ -495,7 +501,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		List<MediaResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
 			containerId,
 			true,
 			(int) startingIndex,
@@ -503,38 +509,38 @@ public class UmsContentDirectoryService {
 			searchCriteria
 		);
 
-		if (searchCriteria != null && files != null) {
-			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && !files.isEmpty()) {
-				files = files.get(0).getChildren();
+		if (searchCriteria != null && resources != null) {
+			UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
+			if (xbox360 && !resources.isEmpty()) {
+				resources = resources.get(0).getChildren();
 			}
 		}
 
 		long minus = 0;
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
-		if (files != null) {
-			for (MediaResource uf : files) {
-				if (uf instanceof PlaylistFolder playlistFolder) {
-					File f = new File(uf.getFileName());
-					if (uf.getLastModified() < f.lastModified()) {
+		if (resources != null) {
+			for (LibraryResource resource : resources) {
+				if (resource instanceof PlaylistFolder playlistFolder) {
+					File f = new File(resource.getFileName());
+					if (resource.getLastModified() < f.lastModified()) {
 						playlistFolder.resolve();
 					}
 				}
 
-				if (xbox360 && xboxId != null && uf != null) {
-					uf.setFakeParentId(xboxId);
+				if (xbox360 && xboxId != null && resource != null) {
+					resource.setFakeParentId(xboxId);
 				}
 
 				if (
-					uf != null &&
-					(uf.isCompatible(renderer) &&
-					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(renderer)) ||
+					resource != null &&
+					(resource.isCompatible() &&
+					(resource.getEngine() == null || resource.getEngine().isEngineCompatible(renderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder())
+					resources.get(0).isInsideTranscodeFolder())
 				) {
-					filesData.append(uf.getDidlString(renderer));
+					filesData.append(DidlHelper.getDidlString(resource));
 				} else {
 					minus++;
 				}
@@ -543,8 +549,8 @@ public class UmsContentDirectoryService {
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 
 		int filessize = 0;
-		if (files != null) {
-			filessize = files.size();
+		if (resources != null) {
+			filessize = resources.size();
 		}
 		long count = filessize - minus;
 
@@ -563,11 +569,11 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else {
-			MediaResource parentFolder;
-			if (files != null && filessize > 0) {
-				parentFolder = files.get(0).getParent();
+			LibraryResource parentFolder;
+			if (resources != null && filessize > 0) {
+				parentFolder = resources.get(0).getParent();
 			} else {
-				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(containerId, renderer);
+				parentFolder = renderer.getRootFolder().getLibraryResource(containerId);
 			}
 			if (parentFolder != null) {
 				totalMatches = parentFolder.childrenCount() - minus;
@@ -576,7 +582,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long containerUpdateID = MediaResource.getSystemUpdateId();
+		long containerUpdateID = ContentDirectory.getSystemUpdateId();
 		//jupnp will escape DIDL result itself
 		//this will not be necessary when UMS will build results from DIDL objects
 		String result = StringEscapeUtils.unescapeXml(filesData.toString());
@@ -592,7 +598,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
-		if (renderer != null && !renderer.isAllowed()) {
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 			}
@@ -605,19 +617,13 @@ public class UmsContentDirectoryService {
 			// No need to update database in such case.
 			LOGGER.debug("Skipping \"set bookmark\". Position=0");
 		} else {
-			Connection connection = null;
 			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					MediaResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
-					File file = new File(dlna.getFileName());
-					String path = file.getCanonicalPath();
-					MediaTableFilesStatus.setBookmark(connection, path, (int) posSecond);
-				}
+				LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
+				File file = new File(resource.getFileName());
+				String path = file.getCanonicalPath();
+				MediaStatusStore.setBookmark(path, renderer.getAccountUserId(), (int) posSecond);
 			} catch (IOException e) {
 				LOGGER.error("Cannot set bookmark", e);
-			} finally {
-				MediaDatabase.close(connection);
 			}
 		}
 		return "";
@@ -628,7 +634,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
-		if (renderer != null && !renderer.isAllowed()) {
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 			}
@@ -636,7 +648,7 @@ public class UmsContentDirectoryService {
 		}
 
 		StringBuilder features = new StringBuilder();
-		String rootFolderId = PMS.get().getRootFolder(renderer).getResourceId();
+		String rootFolderId = renderer.getRootFolder().getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
