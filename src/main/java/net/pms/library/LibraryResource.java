@@ -844,8 +844,8 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 
 	/**
 	 * (Re)sets the given LibraryResource as follows: - if it's already one of our
- children, renew it - or if we have another child with the same name,
- replace it - otherwise add it as a new child.
+	 * children, renew it - or if we have another child with the same name,
+	 * replace it - otherwise add it as a new child.
 	 *
 	 * @param child the LibraryResource to update
 	 */

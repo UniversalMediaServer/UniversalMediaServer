@@ -76,10 +76,13 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 */
 	private static final String SQL_GET_ALL = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ISFULLYPLAYED = SELECT + TABLE_COL_ISFULLYPLAYED + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_MOVED = SELECT + PARAMETER + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_USER = SELECT + TABLE_COL_FILENAME + COMMA + PARAMETER + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
-	private static final String SQL_GET_MOVED = SELECT + PARAMETER + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
-	private static final String SQL_INSERT_MOVED = INSERT + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_MOVED;
+	private static final String SQL_DELETE_USER = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
+	private static final String SQL_INSERT_MOVED = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_MOVED;
+	private static final String SQL_INSERT_USERCOPY = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_USER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -473,6 +476,33 @@ public final class MediaTableFilesStatus extends MediaTable {
 		}
 
 		return null;
+	}
+
+	public static void deleteUser(final Connection connection, int userId) {
+		if (connection == null || userId < 1) {
+			return;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_USER)) {
+			statement.setInt(1, userId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Error deleteUser:{}", e.getMessage());
+		}
+	}
+
+	public static void copyUserEntries(final Connection connection, final int userId, final int userIdDest) {
+		if (connection == null || userId < 0 || userIdDest < 1) {
+			return;
+		}
+		//first ensure empty user entries (avoid duplicate)
+		deleteUser(connection, userIdDest);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_USERCOPY)) {
+			statement.setInt(1, userIdDest);
+			statement.setInt(2, userId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Error copyUserEntries:{}", e.getMessage());
+		}
 	}
 
 }

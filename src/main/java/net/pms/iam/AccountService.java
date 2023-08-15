@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.UserDatabase;
 import net.pms.database.UserTableGroups;
 import net.pms.database.UserTableUsers;
@@ -45,7 +47,7 @@ public class AccountService {
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	private AccountService() {
+	protected AccountService() {
 	}
 
 	public static Account getAccountByUserId(final int userId) {
@@ -167,9 +169,9 @@ public class AccountService {
 		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(displayName, 255), groupId);
 	}
 
-	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId, final Image avatar, final String pinCode) {
+	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId, final Image avatar, final String pinCode, final boolean libraryHidden) {
 		LOGGER.info("Updating user id : {}", userId);
-		if (UserTableUsers.updateUser(connection, userId, displayName, groupId, avatar, pinCode) && USERS.containsKey(userId)) {
+		if (UserTableUsers.updateUser(connection, userId, displayName, groupId, avatar, pinCode, libraryHidden) && USERS.containsKey(userId)) {
 			USERS.get(userId).setDisplayName(displayName);
 			USERS.get(userId).setGroupId(groupId);
 			USERS.get(userId).setAvatar(avatar);
@@ -180,6 +182,11 @@ public class AccountService {
 	public static void deleteUser(final Connection connection, final int userId) {
 		LOGGER.info("Deleting user id : {}", userId);
 		UserTableUsers.deleteUser(connection, userId);
+		Connection mConnection = MediaDatabase.getConnectionIfAvailable();
+		if (mConnection != null) {
+			MediaTableFilesStatus.deleteUser(mConnection, userId);
+			MediaDatabase.close(mConnection);
+		}
 		if (USERS.containsKey(userId)) {
 			USERS.remove(userId);
 		}
@@ -244,6 +251,10 @@ public class AccountService {
 	public static boolean hasNoAdmin(final Connection connection) {
 		LOGGER.info("Checking user table have admin");
 		return UserTableUsers.hasNoAdmin(connection);
+	}
+
+	public static List<User> getUsersLibraryChoice() {
+		return getAllUsers().stream().filter(User::isLibraryChoice).toList();
 	}
 
 	public static Collection<User> getAllUsers() {

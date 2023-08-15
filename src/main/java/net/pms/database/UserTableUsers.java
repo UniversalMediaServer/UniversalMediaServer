@@ -39,7 +39,7 @@ public final class UserTableUsers extends UserTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 6;
 
 	/**
 	 * COLUMNS NAMES
@@ -54,6 +54,7 @@ public final class UserTableUsers extends UserTable {
 	private static final String COL_LAST_LOGIN_TIME = "LAST_LOGIN_TIME";
 	private static final String COL_LOGIN_FAIL_TIME = "LOGIN_FAIL_TIME";
 	private static final String COL_LOGIN_FAIL_COUNT = "LOGIN_FAIL_COUNT";
+	private static final String COL_LIBRARY_HIDDEN = "LIBRARY_HIDDEN";
 
 	/**
 	 * COLUMNS with table name
@@ -127,27 +128,39 @@ public final class UserTableUsers extends UserTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + IF_NOT_EXISTS + COL_LOGIN_FAIL_COUNT + INTEGER + DEFAULT_0);
 					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_DISPLAY_NAME + EQUAL + "'" + AccountService.DEFAULT_ADMIN_GROUP + "'" + WHERE + COL_ID + EQUAL + "0");
 					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_GROUP_ID + EQUAL + "1" + WHERE + COL_ID + EQUAL + "1");
-					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 				}
 				case 2 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_GROUP_ID + SET + DEFAULT_0);
 					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_GROUP_ID + EQUAL + "1" + WHERE + COL_ID + EQUAL + "1");
-					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 				}
 				case 3 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "NAME" + RENAME_TO + COL_DISPLAY_NAME);
 					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_DISPLAY_NAME + EQUAL + "'" + AccountService.DEFAULT_ADMIN_GROUP + "'" + WHERE + COL_ID + EQUAL + "1");
-					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 				}
 				case 4 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + IF_NOT_EXISTS + COL_AVATAR + BLOB);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + IF_NOT_EXISTS + COL_PINCODE + VARCHAR);
-					LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+				}
+				case 5 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + IF_NOT_EXISTS + COL_LIBRARY_HIDDEN + BOOLEAN);
+					//as we now use user's status, copy old common status entries to user's status
+					//they can delete it on their interface
+					List<User> users = getAllUsers(connection);
+					if (!users.isEmpty()) {
+						Connection mConnection = MediaDatabase.getConnectionIfAvailable();
+						if (mConnection != null) {
+							for (User user : users) {
+								MediaTableFilesStatus.copyUserEntries(mConnection, 0, user.getId());
+							}
+						}
+						MediaDatabase.close(mConnection);
+					}
 				}
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
 			}
+			LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 		}
 		UserTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
@@ -165,7 +178,8 @@ public final class UserTableUsers extends UserTable {
 				COL_PINCODE            + VARCHAR                                       + COMMA +
 				COL_LAST_LOGIN_TIME    + BIGINT         + DEFAULT_0                    + COMMA +
 				COL_LOGIN_FAIL_TIME    + BIGINT         + DEFAULT_0                    + COMMA +
-				COL_LOGIN_FAIL_COUNT   + INTEGER        + DEFAULT_0                    +
+				COL_LOGIN_FAIL_COUNT   + INTEGER        + DEFAULT_0                    + COMMA +
+				COL_LIBRARY_HIDDEN     + BOOLEAN                                       +
 			")"
 		);
 	}
@@ -204,7 +218,7 @@ public final class UserTableUsers extends UserTable {
 		}
 	}
 
-	public static boolean updateUser(final Connection connection, final int id, final String displayName, final int groupId, final Image avatar, final String pinCode) {
+	public static boolean updateUser(final Connection connection, final int id, final String displayName, final int groupId, final Image avatar, final String pinCode, final boolean libraryHidden) {
 		if (connection == null || displayName == null) {
 			return false;
 		}
@@ -216,6 +230,7 @@ public final class UserTableUsers extends UserTable {
 					resultSet.updateInt(COL_GROUP_ID, groupId);
 					updateBytes(resultSet, COL_AVATAR, avatar != null ? avatar.getBytes(true) : null);
 					updateString(resultSet, COL_PINCODE, pinCode, 4);
+					resultSet.updateBoolean(COL_LIBRARY_HIDDEN, libraryHidden);
 					resultSet.updateRow();
 					return true;
 				}
@@ -353,6 +368,7 @@ public final class UserTableUsers extends UserTable {
 		result.setLastLoginTime(resultSet.getLong(COL_LAST_LOGIN_TIME));
 		result.setLoginFailedTime(resultSet.getLong(COL_LOGIN_FAIL_TIME));
 		result.setLoginFailedCount(resultSet.getInt(COL_LOGIN_FAIL_COUNT));
+		result.setLibraryHidden(resultSet.getBoolean(COL_LIBRARY_HIDDEN));
 		return result;
 	}
 

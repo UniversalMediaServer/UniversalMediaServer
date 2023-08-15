@@ -27,6 +27,7 @@ public class User extends UsernamePassword {
 	private long lastLoginTime;
 	private long loginFailedTime;
 	private int loginFailedCount;
+	private boolean libraryHidden;
 
 	public int getId() {
 		return id;
@@ -90,6 +91,18 @@ public class User extends UsernamePassword {
 
 	public void setLoginFailedCount(int loginFailedCount) {
 		this.loginFailedCount = loginFailedCount;
+	}
+
+	public boolean isLibraryHidden() {
+		return libraryHidden;
+	}
+
+	public boolean isLibraryChoice() {
+		return !libraryHidden;
+	}
+
+	public void setLibraryHidden(boolean libraryHidden) {
+		this.libraryHidden = libraryHidden;
 	}
 
 	@Override

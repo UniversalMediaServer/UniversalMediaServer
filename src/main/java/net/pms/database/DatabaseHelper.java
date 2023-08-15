@@ -213,7 +213,7 @@ public abstract class DatabaseHelper {
 	 * SQL COMMANDS
 	 */
 	protected static final String CREATE = "CREATE ";
-	protected static final String INSERT = "INSERT ";
+	protected static final String INSERT_INTO = "INSERT INTO ";
 	protected static final String SELECT = "SELECT ";
 	protected static final String UPDATE = "UPDATE ";
 
@@ -251,8 +251,6 @@ public abstract class DatabaseHelper {
 	protected static final String ORDER_BY = " ORDER BY ";
 	protected static final String REFERENCES = " REFERENCES ";
 	protected static final String RENAME = " RENAME ";
-
-	protected static final String INSERT_INTO = "INSERT INTO ";
 
 	protected static final String SET = " SET ";
 	protected static final String TABLE = "TABLE ";
@@ -458,7 +456,10 @@ public abstract class DatabaseHelper {
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				try (Statement statement = connection.createStatement()) {
-					statement.execute(ALTER_TABLE + IF_EXISTS + table + DROP + CONSTRAINT + IF_EXISTS + rs.getString("INDEX_NAME"));
+					String indexName = rs.getString("INDEX_NAME");
+					LOGGER.trace("removing index \"{}\"", indexName);
+					statement.execute(ALTER_TABLE + IF_EXISTS + table + DROP + CONSTRAINT + IF_EXISTS + indexName);
+					statement.execute(DROP_INDEX + IF_EXISTS + indexName);
 				}
 			}
 		} catch (SQLException e) {

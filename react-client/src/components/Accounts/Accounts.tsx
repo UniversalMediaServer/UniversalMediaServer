@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, PinInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, PinInput, Select, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { useContext, useState } from 'react';
@@ -24,7 +24,7 @@ import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml } from '../../utils';
+import { allowHtml, defaultTooltipSettings } from '../../utils';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
@@ -134,12 +134,13 @@ const Accounts = () => {
 
   function UserProfileForm(user: UmsUser) {
     const [avatar, setAvatar] = useState<string>(user.avatar ? user.avatar : '');
-    const userProfileForm = useForm({ initialValues: { id: user.id, displayName: user.displayName, avatar: user.avatar ? user.avatar : '', pinCode: user.pinCode ? user.pinCode : '' } });
+    const userProfileForm = useForm({ initialValues: { id: user.id, displayName: user.displayName, avatar: user.avatar ? user.avatar : '', pinCode: user.pinCode ? user.pinCode : '', libraryHidden: user.libraryHidden } });
     const handleUserProfileSubmit = (values: typeof userProfileForm.values) => {
       const data = {operation: 'modifyuser', userid: user.id, name: values.displayName } as any;
       if (userProfileForm.isDirty('displayName')) data.name = values.displayName;
       if (userProfileForm.isDirty('avatar')) data.avatar = values.avatar;
-      if (userProfileForm.isDirty('pinCode')) data.pinCode = values.pinCode;
+      if (userProfileForm.isDirty('pinCode')) data.pincode = values.pinCode;
+      if (userProfileForm.isDirty('libraryHidden')) data.library_hidden = values.libraryHidden;
       postAccountAction(data, i18n.get['UserProfileUpdate'], i18n.get['UserProfileUpdating'], i18n.get['UserProfileUpdated'], i18n.get['UserProfileNotUpdated']);
     }
     return (
@@ -217,6 +218,13 @@ const Accounts = () => {
             {...userProfileForm.getInputProps('pinCode')}
           />
         </Input.Wrapper>
+        <Tooltip label={allowHtml(i18n.get['HideUserChoiceLibrary'])} {...defaultTooltipSettings}>
+          <Checkbox
+            mt='xl'
+            label={i18n.get['HideUserLibrary']}
+            {...userProfileForm.getInputProps('library_hidden', { type: 'checkbox' })}
+          />
+        </Tooltip>
         {userProfileForm.isDirty() && (
           <Group position='right' mt='md'>
             <Button type='submit'>

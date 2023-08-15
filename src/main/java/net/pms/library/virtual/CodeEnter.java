@@ -20,7 +20,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.library.LibraryResource;
-import net.pms.renderers.Renderer;
 
 public class CodeEnter extends VirtualFolder {
 	private final LibraryResource resource;
@@ -33,20 +32,9 @@ public class CodeEnter extends VirtualFolder {
 	public static final int LETTERS = 1;
 	public static final int BOTH = 2;
 
-	private abstract class CodeAction extends VirtualVideoAction {
-		public CodeAction(Renderer renderer, String name, boolean enable) {
-			super(renderer, name, enable, null);
-		}
-
-		@Override
-		public boolean isLogPlayEvents() {
-			return false;
-		}
-	}
-
-	public CodeEnter(LibraryResource r) {
-		super(r.getDefaultRenderer(), r.getName(), r.getThumbnailURL(DLNAImageProfile.JPEG_TN));
-		resource = r;
+	public CodeEnter(LibraryResource resource) {
+		super(resource.getDefaultRenderer(), resource.getName(), resource.getThumbnailURL(DLNAImageProfile.JPEG_TN));
+		this.resource = resource;
 		code = "";
 		enteredCode = "";
 		changed = 0;

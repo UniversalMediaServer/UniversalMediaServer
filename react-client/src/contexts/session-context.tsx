@@ -35,6 +35,7 @@ export interface UmsUser {
   lastLoginTime: number,
   loginFailedTime: number,
   loginFailedCount: number,
+  libraryHidden: boolean,
 }
 
 export interface UmsGroupPermissions {

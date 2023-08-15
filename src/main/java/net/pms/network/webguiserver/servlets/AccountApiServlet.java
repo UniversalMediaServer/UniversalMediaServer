@@ -238,6 +238,12 @@ public class AccountApiServlet extends GuiHttpServlet {
 												} else {
 													muPinCode = muUser.getPinCode();
 												}
+												boolean muLibraryHidden;
+												if (action.has("library_hidden")) {
+													muLibraryHidden = action.get("library_hidden").getAsBoolean();
+												} else {
+													muLibraryHidden = muUser.isLibraryHidden();
+												}
 												//if no granted to manage groups, only allow current group
 												if (!account.havePermission(Permissions.GROUPS_MANAGE) && muGroupId != muUser.getGroupId()) {
 													if (!muName.equals(muUser.getDisplayName())) {
@@ -252,7 +258,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 														return;
 													}
 												}
-												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode);
+												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode, muLibraryHidden);
 												WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 												SseApiServlet.setRefreshSession(muUserId);
 												SseApiServlet.setUpdateAccounts();

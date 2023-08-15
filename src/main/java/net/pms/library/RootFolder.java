@@ -47,6 +47,8 @@ import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.iam.AccountService;
+import net.pms.iam.User;
 import net.pms.io.StreamGobbler;
 import net.pms.library.virtual.CodeEnter;
 import net.pms.library.virtual.DynamicPlaylist;
@@ -57,6 +59,7 @@ import net.pms.library.virtual.MediaMonitor;
 import net.pms.library.virtual.Playlist;
 import net.pms.library.virtual.SearchFolder;
 import net.pms.library.virtual.UnattachedFolder;
+import net.pms.library.virtual.UserVirtualFolder;
 import net.pms.library.virtual.VirtualFile;
 import net.pms.library.virtual.VirtualFolder;
 import net.pms.library.virtual.VirtualFolderDbId;
@@ -154,6 +157,29 @@ public class RootFolder extends LibraryResource {
 			return;
 		}
 
+		//check if we need to show users
+		boolean isRendererThatShowUsers = !renderer.hasUserId() && CONFIGURATION.isAuthenticationEnabled() && CONFIGURATION.isShowUserChoice();
+		if (isRendererThatShowUsers && renderer.getAccountGroupId() == 0) {
+			List<User> usersChoice = AccountService.getUsersLibraryChoice();
+			if (usersChoice.isEmpty()) {
+				//no user, keep going without user
+				isRendererThatShowUsers = false;
+			} else if (usersChoice.size() == 1 && StringUtils.isBlank(usersChoice.get(0).getPinCode())) {
+				//auto connect the unique user
+				renderer.setAccount(AccountService.getAccountByUserId(usersChoice.get(0).getId()));
+				isRendererThatShowUsers = false;
+			} else {
+				//here, show users, then pin code if any, that set a user & reset
+				/*
+				for (User user : usersChoice) {
+					addChildInternal(new UserVirtualFolder(renderer, user, false), false);
+				}
+				setDiscovered(true);
+				return;
+				*/
+			}
+		}
+
 		if (renderer.getUmsConfiguration().isShowMediaLibraryFolder() && mediaLibrary.isEnabled()) {
 			addChild(mediaLibrary, true);
 		}
@@ -237,6 +263,12 @@ public class RootFolder extends LibraryResource {
 
 		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
 			addAdminFolder();
+		}
+
+		//check if we need to show disconnect
+		if (isRendererThatShowUsers && renderer.getAccountGroupId() != 0 && AccountService.getUsersLibraryChoice().size() > 1) {
+			//here, show user disconnect, that set the user to 0 & reset
+			//addChild(new UserVirtualFolder(renderer, renderer.getAccount().getUser(), true));
 		}
 
 		setDiscovered(true);
@@ -1162,6 +1194,19 @@ public class RootFolder extends LibraryResource {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
+
+		if (objectId.startsWith("$LogIn/")) {
+			String loginstring = StringUtils.substringAfter(objectId, "/");
+			Integer userId = UserVirtualFolder.decrypt(loginstring);
+			if (userId != null) {
+				renderer.setAccount(AccountService.getAccountByUserId(userId));
+				getChildren().clear();
+				reset();
+				discoverChildren();
+				ContentDirectory.bumpSystemUpdateId();
+			}
+			return this;
+		}
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
