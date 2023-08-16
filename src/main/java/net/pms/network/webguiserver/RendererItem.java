@@ -42,8 +42,13 @@ public class RendererItem implements IRendererGuiListener {
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
 	private static final Gson GSON = new Gson();
+	private static final String ACTION_ADD = "renderer_add";
+	private static final String ACTION_DELETE = "renderer_delete";
+	private static final String ACTION_UPDATE = "renderer_update";
+
 	private final int id;
 	private final Renderer renderer;
+
 	private String name;
 	private String address;
 	private String uuid;
@@ -54,6 +59,8 @@ public class RendererItem implements IRendererGuiListener {
 	private int progressPercent;
 	private boolean isActive;
 	private boolean isAllowed;
+	private boolean isAuthenticated;
+	private int userId;
 	private int controls;
 	private PlayerState state;
 
@@ -67,7 +74,7 @@ public class RendererItem implements IRendererGuiListener {
 	public void updateRenderer(Renderer value) {
 		//we can use renderer itself as it's a pointer to real renderer object
 		updateRendererValues();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	@Override
@@ -75,7 +82,7 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isActive != renderer.isActive()) {
 			isActive = renderer.isActive();
-			sendRendererAction("renderer_update");
+			sendRendererAction(ACTION_UPDATE);
 		}
 	}
 
@@ -84,7 +91,16 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isAllowed != renderer.isAllowed()) {
 			isAllowed = renderer.isAllowed();
-			sendRendererAction("renderer_update");
+			sendRendererAction(ACTION_UPDATE);
+		}
+	}
+
+	@Override
+	public void setUserId(int value) {
+		//we can use renderer itself as it's a pointer to real renderer object
+		if (userId != renderer.getUserId()) {
+			userId = renderer.getUserId();
+			sendRendererAction(ACTION_UPDATE);
 		}
 	}
 
@@ -96,7 +112,7 @@ public class RendererItem implements IRendererGuiListener {
 				RENDERERS.remove(renderer);
 			}
 		}
-		sendRendererAction("renderer_delete");
+		sendRendererAction(ACTION_DELETE);
 	}
 
 	@Override
@@ -106,7 +122,7 @@ public class RendererItem implements IRendererGuiListener {
 			UMSUtils.playedDurationStr(state.getPosition(), state.getDuration());
 		progressPercent = (int) (100 * state.getBuffer() / MAX_BUFFER_SIZE);
 		playing = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	public String getIcon() {
@@ -152,7 +168,7 @@ public class RendererItem implements IRendererGuiListener {
 		playing = "";
 		progressPercent = 0;
 		renderer.addGuiListener(this);
-		sendRendererAction("renderer_add");
+		sendRendererAction(ACTION_ADD);
 	}
 
 	private void updateRendererValues() {
@@ -163,6 +179,8 @@ public class RendererItem implements IRendererGuiListener {
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
 		isAllowed = renderer.isAllowed();
+		isAuthenticated = renderer.isAuthenticated();
+		userId = renderer.getUserId();
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
@@ -226,6 +244,8 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("progressPercent", progressPercent);
 		result.addProperty("isActive", isActive);
 		result.addProperty("isAllowed", isAllowed);
+		result.addProperty("isAuthenticated", isAuthenticated);
+		result.addProperty("userId", userId);
 		result.addProperty("controls", controls);
 		result.add("state", GSON.toJsonTree(state));
 		return result;

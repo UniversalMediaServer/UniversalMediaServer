@@ -201,6 +201,11 @@ public class StatusTab {
 		public void setAllowed(boolean allowed) {
 			// not implemented on Java GUI
 		}
+
+		@Override
+		public void setUserId(int userId) {
+			// not implemented on Java GUI
+		}
 	}
 
 	private JPanel renderers;

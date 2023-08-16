@@ -46,6 +46,7 @@ import net.pms.library.GlobalIdRepo;
 import net.pms.library.LibraryResource;
 import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
+import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -92,6 +93,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	private Thread monitorThread;
 	private volatile boolean active;
 	private volatile boolean allowed;
+	private volatile int userId;
 	private volatile boolean renew;
 
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
@@ -133,8 +135,11 @@ public class Renderer extends RendererDeviceConfiguration {
 				uuid = id;
 			}
 		}
-		allowed = RendererFilter.isAllowed(uuid);
-		account = AccountService.getAccountByUserId(getUserId());
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			userId = RendererUser.getUserId(uuid);
+			account = AccountService.getAccountByUserId(userId);
+		}
 		controls = 0;
 		active = false;
 		details = null;
@@ -165,13 +170,33 @@ public class Renderer extends RendererDeviceConfiguration {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
+	/**
+	 * Used to check if the renderer use it's own auth (like webplayer).
+	 */
+	public boolean isAuthenticated() {
+		return false;
+	}
+
 	public Account getAccount() {
 		return account;
 	}
 
+	public void setUserId(int value) {
+		userId = value;
+		setAccount(AccountService.getAccountByUserId(userId));
+		refreshUserIdGui(value);
+	}
+
+	public int getUserId() {
+		return userId;
+	}
+
 	public void setAccount(Account account) {
-		this.account = account;
-		clearSharedFolders();
+		if (this.account != account) {
+			this.account = account;
+			clearSharedFolders();
+			resetRootFolder();
+		}
 	}
 
 	public int getAccountGroupId() {
@@ -180,11 +205,6 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public int getAccountUserId() {
 		return account != null && account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE ? account.getUser().getId() : 0;
-	}
-
-	public void setAccountUserId(int value) {
-		account = AccountService.getAccountByUserId(value);
-		rootFolder.reset();
 	}
 
 	public boolean hasShareAccess(File value) {
@@ -218,7 +238,12 @@ public class Renderer extends RendererDeviceConfiguration {
 		super.reset();
 		// update gui
 		updateRendererGui();
-		allowed = RendererFilter.isAllowed(uuid);
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			if (userId != RendererUser.getUserId(uuid)) {
+				setUserId(RendererUser.getUserId(uuid));
+			}
+		}
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
 			renderer.updateRendererGui();
 		}
@@ -255,12 +280,12 @@ public class Renderer extends RendererDeviceConfiguration {
 	public synchronized void resetRootFolder() {
 		if (rootFolder != null) {
 			rootFolder.clearChildren();
-			rootFolder = null;
+			rootFolder.reset();
 		}
 		if (globalRepo != null) {
 			globalRepo.clear();
-			globalRepo = null;
 		}
+		ContentDirectory.bumpSystemUpdateId();
 	}
 
 	public synchronized void addFolderLimit(LibraryResource res) {
@@ -519,6 +544,17 @@ public class Renderer extends RendererDeviceConfiguration {
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setAllowed(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshUserIdGui(int userId) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setUserId(userId);
 			}
 		} finally {
 			listenersLock.readLock().unlock();

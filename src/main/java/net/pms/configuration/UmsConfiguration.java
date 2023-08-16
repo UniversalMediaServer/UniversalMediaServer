@@ -377,6 +377,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RENDERERS_FILTER = "renderers_filter";
+	private static final String KEY_RENDERERS_USER = "renderers_user";
 	private static final String KEY_RESUME = "resume";
 	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
@@ -4182,6 +4183,20 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setRenderersFilter(String value) {
 		configuration.setProperty(KEY_RENDERERS_FILTER, value);
+	}
+
+	/**
+	 * Gets the renderers linked user.
+	 */
+	public final String getRenderersUser() {
+		return getString(KEY_RENDERERS_USER, "{}");
+	}
+
+	/**
+	 * Sets the renderers linked user.
+	 */
+	public void setRenderersUser(String value) {
+		configuration.setProperty(KEY_RENDERERS_USER, value);
 	}
 
 	public void setPreventSleep(PreventSleepMode value) {

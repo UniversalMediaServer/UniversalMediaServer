@@ -101,6 +101,8 @@ import net.pms.util.TimeRange;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
+import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -230,6 +232,8 @@ public class RequestHandler implements HttpHandler {
 				sendResponse(exchange, renderer, 200, notifyHandler(exchange), CONTENT_TYPE_XML_UTF8);
 			//------------------------- END ContentDirectory -------------------------
 			}
+		} catch (ContentDirectoryException ex) {
+			sendErrorResponse(exchange, renderer, ex.getErrorCode());
 		} catch (IOException e) {
 			String message = e.getMessage();
 			if (message != null) {
@@ -239,6 +243,14 @@ public class RequestHandler implements HttpHandler {
 			} else {
 				LOGGER.error("Http request error:", e);
 			}
+		}
+	}
+
+	private static void sendErrorResponse(final HttpExchange exchange, final Renderer renderer, int code) throws IOException {
+		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.sendResponseHeaders(code, 0);
+		if (LOGGER.isTraceEnabled()) {
+			logMessageSent(exchange, null, null, renderer);
 		}
 	}
 
@@ -948,12 +960,12 @@ public class RequestHandler implements HttpHandler {
 		}
 	}
 
-	private static String browseHandler(String requestBody, Renderer renderer) {
+	private static String browseHandler(String requestBody, Renderer renderer) throws ContentDirectoryException {
 		BrowseRequest requestMessage = getPayload(BrowseRequest.class, requestBody);
 		return browseSearchHandler(requestMessage, requestBody, renderer).toString();
 	}
 
-	private static String searchHandler(String requestBody, Renderer renderer) {
+	private static String searchHandler(String requestBody, Renderer renderer) throws ContentDirectoryException {
 		SearchRequest requestMessage = getPayload(SearchRequest.class, requestBody);
 		try {
 			return new SearchRequestHandler().createSearchResponse(requestMessage, renderer).toString();
@@ -969,7 +981,7 @@ public class RequestHandler implements HttpHandler {
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string
 	 */
-	private static StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage, String requestBody, Renderer renderer) {
+	private static StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage, String requestBody, Renderer renderer) throws ContentDirectoryException {
 		int startingIndex = 0;
 		int requestCount = 0;
 		boolean xbox360 = renderer.isXbox360();
@@ -1098,6 +1110,9 @@ public class RequestHandler implements HttpHandler {
 			parentFolder = resources.get(0).getParent();
 		} else {
 			parentFolder = renderer.getRootFolder().getLibraryResource(objectID);
+			if (parentFolder == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			}
 		}
 
 		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {

@@ -141,7 +141,6 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_USER_AGENT = "UserAgentSearch";
 	private static final String KEY_USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String KEY_USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
-	private static final String KEY_USER_ID = "UserId";
 	private static final String KEY_USE_CLOSED_CAPTION = "UseClosedCaption";
 	private static final String KEY_USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String KEY_VIDEO = "Video";
@@ -1686,14 +1685,6 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 		// Note: this might be a comma-separated list of ids
 		return d;
-	}
-
-	public boolean hasUserId() {
-		return configuration.containsKey(KEY_USER_ID);
-	}
-
-	public int getUserId() {
-		return getInt(KEY_USER_ID, 0);
 	}
 
 	/**

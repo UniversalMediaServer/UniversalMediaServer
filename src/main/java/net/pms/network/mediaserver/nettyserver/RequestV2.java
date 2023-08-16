@@ -100,6 +100,8 @@ import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.stream.ChunkedStream;
+import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
+import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -818,6 +820,17 @@ public class RequestV2 extends HTTPResource {
 			}
 		} catch (IOException e) {
 			LOGGER.error("error while generating answer", e);
+		} catch (ContentDirectoryException ex) {
+			output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
+			output.headers().remove(HttpHeaders.Names.CONTENT_TYPE);
+			output.setStatus(new HttpResponseStatus(ex.getErrorCode(), ex.getMessage()));
+			// Send the response headers to the client.
+			future = event.getChannel().write(output);
+
+			if (close) {
+				// Close the channel after the response is sent.
+				future.addListener(ChannelFutureListener.CLOSE);
+			}
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
@@ -1006,12 +1019,12 @@ public class RequestV2 extends HTTPResource {
 		return createResponse(response.toString());
 	}
 
-	private StringBuilder browseHandler() {
+	private StringBuilder browseHandler() throws ContentDirectoryException {
 		BrowseRequest requestMessage = getPayload(BrowseRequest.class);
 		return this.browseSearchHandler(requestMessage);
 	}
 
-	private StringBuilder searchHandler() {
+	private StringBuilder searchHandler() throws ContentDirectoryException {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
 		try {
 			return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
@@ -1029,7 +1042,7 @@ public class RequestV2 extends HTTPResource {
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string
 	 */
-	private StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage) {
+	private StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage) throws ContentDirectoryException {
 		boolean xbox360 = mediaRenderer.isXbox360();
 		String objectID = requestMessage.getObjectId();
 		String containerID = null;
@@ -1159,6 +1172,9 @@ public class RequestV2 extends HTTPResource {
 			parentFolder = files.get(0).getParent();
 		} else {
 			parentFolder = mediaRenderer.getRootFolder().getLibraryResource(objectID);
+			if (parentFolder == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			}
 		}
 
 		if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {

@@ -56,7 +56,7 @@ public class WebGuiRenderer extends Renderer {
 
 	public WebGuiRenderer(String uuid, Account account, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
-		this.account = account;
+		setAccount(account);
 		this.browser = getBrowser(userAgent);
 		this.subLang = subLang;
 		setFileless(true);
@@ -72,6 +72,11 @@ public class WebGuiRenderer extends Renderer {
 		configuration.setProperty(KEY_TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
 		configuration.setProperty(KEY_HLS_MULTI_VIDEO_QUALITY, true);
 		configuration.setProperty(KEY_HLS_VERSION, 6);
+	}
+
+	@Override
+	public boolean isAuthenticated() {
+		return true;
 	}
 
 	public boolean havePermission(int permission) {
@@ -122,11 +127,6 @@ public class WebGuiRenderer extends Renderer {
 			}
 		}
 		return null;
-	}
-
-	@Override
-	public boolean hasUserId() {
-		return true;
 	}
 
 	@Override

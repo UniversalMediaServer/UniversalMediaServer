@@ -90,6 +90,7 @@ import net.pms.platform.windows.WindowsUtils;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererFilter;
+import net.pms.renderers.RendererUser;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -402,6 +403,7 @@ public class PMS {
 		UserDatabase.init();
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
+		RendererUser.reset();
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have

@@ -158,7 +158,7 @@ public class RootFolder extends LibraryResource {
 		}
 
 		//check if we need to show users
-		boolean isRendererThatShowUsers = !renderer.hasUserId() && CONFIGURATION.isAuthenticationEnabled() && CONFIGURATION.isShowUserChoice();
+		boolean isRendererThatShowUsers = renderer.getUserId() == -1 && CONFIGURATION.isAuthenticationEnabled() && CONFIGURATION.isShowUserChoice();
 		if (isRendererThatShowUsers && renderer.getAccountGroupId() == 0) {
 			List<User> usersChoice = AccountService.getUsersLibraryChoice();
 			if (usersChoice.isEmpty()) {

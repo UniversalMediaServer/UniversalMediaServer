@@ -399,6 +399,9 @@ public class UmsContentDirectoryService {
 				parentFolder = files.get(0).getParent();
 			} else {
 				parentFolder = renderer.getRootFolder().getLibraryResource(objectID);
+				if (parentFolder == null) {
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
 			}
 			if (parentFolder != null) {
 				totalMatches = parentFolder.childrenCount() - minus;
