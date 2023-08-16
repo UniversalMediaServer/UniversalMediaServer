@@ -238,10 +238,6 @@ public class MediaTableAudiotracks extends MediaTable {
 			updateStatment.executeUpdate();
 		}
 
-		if (trackCount == 0) {
-			return;
-		}
-
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(SQL_GET_ALL_FILEID_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
