@@ -229,7 +229,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			return;
 		}
 
-		int trackCount = media.getSubtitleTrackCount();
+		int trackCount = media.getAudioTrackCount();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
 		) {
