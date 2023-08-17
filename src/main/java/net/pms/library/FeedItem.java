@@ -77,10 +77,6 @@ public class FeedItem extends LibraryResource {
 	}
 
 	@Override
-	public void discoverChildren() {
-	}
-
-	@Override
 	public String getSystemName() {
 		return itemURL;
 	}

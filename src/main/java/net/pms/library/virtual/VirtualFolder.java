@@ -52,7 +52,7 @@ public class VirtualFolder extends LibraryResource {
 	 *
 	 * @return null
 	 * @throws java.io.IOException
-	 * @see net.pms.dlna.MediaResource#getInputStream()
+	 * @see net.pms.library.LibraryResource#getInputStream()
 	 */
 	@Override
 	public InputStream getInputStream() throws IOException {
@@ -63,7 +63,7 @@ public class VirtualFolder extends LibraryResource {
 	 * Returns a string representing the container. This string is used in
 	 * the UPNP ContentBrowser service.
 	 *
-	 * @see net.pms.dlna.MediaResource#getName()
+	 * @see net.pms.library.LibraryResource#getName()
 	 */
 	@Override
 	public String getName() {
@@ -74,7 +74,7 @@ public class VirtualFolder extends LibraryResource {
 	 * Returns true in this case, as this is a folder.
 	 *
 	 * @return true
-	 * @see net.pms.dlna.MediaResource#isFolder()
+	 * @see net.pms.library.LibraryResource#isFolder()
 	 */
 	@Override
 	public boolean isFolder() {
@@ -85,7 +85,7 @@ public class VirtualFolder extends LibraryResource {
 	 * Returns zero as this is a folder (container).
 	 *
 	 * @return 0
-	 * @see net.pms.dlna.MediaResource#length()
+	 * @see net.pms.library.LibraryResource#length()
 	 */
 	@Override
 	public long length() {
@@ -119,7 +119,7 @@ public class VirtualFolder extends LibraryResource {
 	 * Returns true, as a container is always a valid item to add to another
 	 * container.
 	 *
-	 * @see net.pms.dlna.MediaResource#isValid()
+	 * @see net.pms.library.LibraryResource#isValid()
 	 */
 	@Override
 	public boolean isValid() {

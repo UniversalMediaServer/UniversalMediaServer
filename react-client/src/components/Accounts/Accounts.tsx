@@ -210,6 +210,7 @@ const Accounts = () => {
             </Group>
           </Dropzone>
         </Input.Wrapper>
+        {/* removed until root user choice is implemented
         <Input.Wrapper label={i18n.get['PinCode']}>
           <PinInput
             name='pincode'
@@ -225,6 +226,7 @@ const Accounts = () => {
             {...userProfileForm.getInputProps('library_hidden', { type: 'checkbox' })}
           />
         </Tooltip>
+        */}
         {userProfileForm.isDirty() && (
           <Group position='right' mt='md'>
             <Button type='submit'>

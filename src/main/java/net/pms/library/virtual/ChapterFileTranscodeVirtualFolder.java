@@ -48,7 +48,7 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	}
 
 	/* (non-Javadoc)
-	 * @see net.pms.dlna.LibraryResource#resolve()
+	 * @see net.pms.library.LibraryResource#resolve()
 	 */
 	@Override
 	protected void resolveOnce() {

@@ -405,7 +405,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * Recursive function that searches through all of the children until it
 	 * finds a {@link LibraryResource} that matches the name.
 	 * <p>
-	 * Only used by {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
+	 * Only used by {@link net.pms.library.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
 	 *
 	 * @param name String to be compared the name to.

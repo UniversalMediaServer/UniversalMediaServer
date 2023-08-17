@@ -99,7 +99,7 @@ public abstract class VirtualVideoAction extends LibraryResource {
 	 * 1s) is shown with the results of the action.
 	 *
 	 * @see #enable()
-	 * @see net.pms.dlna.MediaResource#getInputStream()
+	 * @see net.pms.library.LibraryResource#getInputStream()
 	 */
 	@Override
 	public InputStream getInputStream() throws IOException {
@@ -143,7 +143,7 @@ public abstract class VirtualVideoAction extends LibraryResource {
 	 * As this item is not a container, returns false.
 	 *
 	 * @return false
-	 * @see net.pms.dlna.MediaResource#isFolder()
+	 * @see net.pms.library.LibraryResource#isFolder()
 	 */
 	@Override
 	public boolean isFolder() {
@@ -154,7 +154,7 @@ public abstract class VirtualVideoAction extends LibraryResource {
 	 * Returns an invalid length as this item is not
 	 * TODO: (botijo) VirtualFolder returns 0 instead of -1.
 	 * @return -1, an invalid length for an item.
-	 * @see net.pms.dlna.MediaResource#length()
+	 * @see net.pms.library.LibraryResource#length()
 	 */
 	@Override
 	public long length() {
@@ -171,7 +171,7 @@ public abstract class VirtualVideoAction extends LibraryResource {
 	 * actual value of this item
 	 * @throws IOException
 	 *
-	 * @see net.pms.dlna.MediaResource#getThumbnailInputStream()
+	 * @see net.pms.library.LibraryResource#getThumbnailInputStream()
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
@@ -180,7 +180,7 @@ public abstract class VirtualVideoAction extends LibraryResource {
 
 	/**
 	 * @return True, as this kind of item is always valid.
-	 * @see net.pms.dlna.MediaResource#isValid()
+	 * @see net.pms.library.LibraryResource#isValid()
 	 */
 	@Override
 	public boolean isValid() {
