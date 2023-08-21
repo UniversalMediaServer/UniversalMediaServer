@@ -279,37 +279,37 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		 * @param tag the {@link Tag} to get the information from.
 		 */
 		public CoverArtArchiveTagInfo(Tag tag) {
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.ALBUM)) {
+			if (tagSupportsFieldKey(tag, FieldKey.ALBUM)) {
 				album = tag.getFirst(FieldKey.ALBUM);
 			} else {
 				album = null;
 			}
 
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.ARTIST)) {
+			if (tagSupportsFieldKey(tag, FieldKey.ARTIST)) {
 				artist = tag.getFirst(FieldKey.ARTIST);
 			} else {
 				artist = null;
 			}
 
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.TITLE)) {
+			if (tagSupportsFieldKey(tag, FieldKey.TITLE)) {
 				title = tag.getFirst(FieldKey.TITLE);
 			} else {
 				title = null;
 			}
 
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.YEAR)) {
+			if (tagSupportsFieldKey(tag, FieldKey.YEAR)) {
 				year = tag.getFirst(FieldKey.YEAR);
 			} else {
 				year = null;
 			}
 
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_ARTISTID)) {
+			if (tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_ARTISTID)) {
 				artistId = tag.getFirst(FieldKey.MUSICBRAINZ_ARTISTID);
 			} else {
 				artistId = null;
 			}
 
-			if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_TRACK_ID)) {
+			if (tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_TRACK_ID)) {
 				trackId = tag.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
 			} else {
 				trackId = null;
@@ -702,7 +702,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 		// No need to look up MBID if it's already in the tag
 		String mBID = null;
-		if (AudioUtils.tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_RELEASEID)) {
+		if (tagSupportsFieldKey(tag, FieldKey.MUSICBRAINZ_RELEASEID)) {
 			mBID = tag.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
 			if (isNotBlank(mBID)) {
 				return mBID;
@@ -1073,4 +1073,22 @@ public class CoverArtArchiveUtil extends CoverUtil {
 		}
 		return releaseList;
 	}
+
+	/**
+	 * Checks if a given {@link Tag} supports a given {@link FieldKey}.
+	 *
+	 * @param tag the {@link Tag} to check for support
+	 * @param key the {@link FieldKey} to check for support for
+	 *
+	 * @return The result
+	 */
+	private static boolean tagSupportsFieldKey(Tag tag, FieldKey key) {
+		try {
+			tag.getFirst(key);
+			return true;
+		} catch (UnsupportedOperationException e) {
+			return false;
+		}
+	}
+
 }

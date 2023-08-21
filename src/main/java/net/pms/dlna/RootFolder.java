@@ -281,8 +281,8 @@ public class RootFolder extends DLNAResource {
 
 	public void stopScan() {
 		if (running) {
-			GuiManager.setScanLibraryStatus(false, true);
 			running = false;
+			GuiManager.setScanLibraryStatus(configuration.getUseCache(), false);
 		}
 	}
 

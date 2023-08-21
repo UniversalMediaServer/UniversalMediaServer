@@ -64,8 +64,8 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.media.chapter.MediaChapter;
 import net.pms.media.MediaInfo;
+import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
@@ -639,15 +639,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					media.add("metadata", metadata);
 				}
 				media.addProperty("isVideoWithChapters", rootResource.getMedia() != null && rootResource.getMedia().hasChapters());
-				if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-					if (rootResource.getMedia() != null && rootResource.getMedia().getMimeType() != null) {
-						mime = rootResource.getMedia().getMimeType();
-					}
-				}
-
-				if (!directmime(mime) || transMp4(mime, rootResource.getMedia()) || rootResource.isResume()) {
-					mime = renderer.getVideoMimeType();
-				}
+				mime = renderer.getVideoMimeType();
 				if (rootResource.getMediaStatus() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
 					media.addProperty("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
 				}
@@ -951,18 +943,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 		resource.setDefaultRenderer(renderer);
 		if (resource.getFormat().isVideo()) {
-			if (!directmime(mimeType) || transMp4(mimeType, media)) {
-				mimeType = renderer.getVideoMimeType();
-				// TODO: Use normal engine priorities instead of the following hacks
-				if (FileUtil.isUrl(resource.getSystemName())) {
-					if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
-						resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
-					} else {
-						resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
-					}
-				} else if (!(resource instanceof DVDISOTitle)) {
-					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
+			mimeType = renderer.getVideoMimeType();
+			if (FileUtil.isUrl(resource.getSystemName())) {
+				if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
+					resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
+				} else {
+					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
 				}
+			} else if (!(resource instanceof DVDISOTitle)) {
+				resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 			}
 			if (
 				PMS.getConfiguration().getWebPlayerSubs() &&
@@ -973,9 +962,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				sid = resource.getMediaSubtitle();
 				resource.setMediaSubtitle(null);
 			}
-		}
-
-		if (!directmime(mimeType) && resource.getFormat().isAudio()) {
+		} else if (resource.getFormat().isAudio() && !directmime(mimeType)) {
 			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 		}
 
@@ -1007,13 +994,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							} else if (uri.endsWith(".vtt")) {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
+							resp.setHeader("Transfer-Encoding", "chunked");
 							resp.setStatus(200);
-							resp.setContentLength(in.available());
 							renderer.start(resource);
 							if (LOGGER.isTraceEnabled()) {
 								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
-							OutputStream os = resp.getOutputStream();
+							OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 							WebGuiServletHelper.copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);
@@ -1240,11 +1227,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
 			mime.equals(HTTPResource.GIF_TYPEMIME)
 		);
-	}
-
-	private static boolean transMp4(String mime, MediaInfo media) {
-		LOGGER.debug("mp4 profile " + media.getH264Profile());
-		return mime.equals(HTTPResource.MP4_TYPEMIME) && (PMS.getConfiguration().isWebPlayerMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 }

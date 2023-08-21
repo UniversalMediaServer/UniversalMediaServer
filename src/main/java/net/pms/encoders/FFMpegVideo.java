@@ -45,6 +45,7 @@ import net.pms.io.SimpleProcessWrapper;
 import net.pms.io.StreamModifier;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
+import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
@@ -121,27 +122,29 @@ public class FFMpegVideo extends Engine {
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		MediaVideo defaultVideoTrack = media != null ? media.getDefaultVideoTrack() : null;
 
-		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = isMediaValid && !params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight());
+		boolean isMediaValid = media != null && media.isMediaParsed() && defaultVideoTrack != null && defaultVideoTrack.getHeight() != 0;
+		boolean isResolutionTooHighForRenderer = isMediaValid && !renderer.isResolutionCompatibleWithRenderer(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight());
 
 		int scaleWidth = 0;
 		int scaleHeight = 0;
-		if (media.getWidth() > 0 && media.getHeight() > 0) {
-			scaleWidth = media.getWidth();
-			scaleHeight = media.getHeight();
+		if (defaultVideoTrack != null && defaultVideoTrack.getWidth() > 0 && defaultVideoTrack.getHeight() > 0) {
+			scaleWidth = defaultVideoTrack.getWidth();
+			scaleHeight = defaultVideoTrack.getHeight();
 		}
 
-		boolean is3D = (media.is3d() && !media.stereoscopyIsAnaglyph()) || isConvertedTo3d;
+		boolean is3D = (defaultVideoTrack.is3d() && !defaultVideoTrack.multiViewIsAnaglyph()) || isConvertedTo3d;
 
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) &&
-				!media.is3dFullSbsOrOu() && !isConvertedTo3d &&
-				!"16:9".equals(media.getAspectRatioContainer());
+				!defaultVideoTrack.is3dFullSbsOrOu() && !isConvertedTo3d &&
+				!"16:9".equals(defaultVideoTrack.getDisplayAspectRatio());
 
 		// Scale and pad the video if necessary
 		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-			if (media.is3dFullSbsOrOu()) {
+			if (defaultVideoTrack.is3dFullSbsOrOu()) {
 				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			} else {
 				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
@@ -292,9 +295,9 @@ public class FFMpegVideo extends Engine {
 		// Convert 3D video to the other output 3D format or to 2D using "Output3DFormat = ml" or "Output3DFormat = mr" in the renderer conf
 		String stereoLayout = null;
 		String renderer3DOutputFormat = null;
-		if (media.get3DLayout() != null) {
-			stereoLayout = media.get3DLayout().toString().toLowerCase(Locale.ROOT);
-			renderer3DOutputFormat = params.getMediaRenderer().getOutput3DFormat();
+		if (defaultVideoTrack.get3DLayout() != null) {
+			stereoLayout = defaultVideoTrack.get3DLayout().toString().toLowerCase(Locale.ROOT);
+			renderer3DOutputFormat = renderer.getOutput3DFormat();
 		}
 
 		if (
@@ -332,6 +335,7 @@ public class FFMpegVideo extends Engine {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = dlna.getFileName();
 		final Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 		if (
 			(
@@ -357,7 +361,7 @@ public class FFMpegVideo extends Engine {
 			final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 
 			// Output audio codec
-			dtsRemux = isTsMuxeRVideoEngineActive &&
+			boolean dtsRemux = isTsMuxeRVideoEngineActive &&
 				configuration.isAudioEmbedDtsInPcm() &&
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
@@ -496,15 +500,17 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean dtsRemux) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
-
+		Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int[] rendererMaxBitrates = new int[2];
 
-		if (params.getMediaRenderer().getMaxVideoBitrate() > 0) {
-			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(params.getMediaRenderer().getMaxVideoBitrate()));
+		if (renderer.getMaxVideoBitrate() > 0) {
+			rendererMaxBitrates = getVideoBitrateConfig(Integer.toString(renderer.getMaxVideoBitrate()));
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
@@ -512,7 +518,7 @@ public class FFMpegVideo extends Engine {
 			LOGGER.trace(
 				"Using video bitrate limit from {} configuration ({} Mb/s) because " +
 				"it is lower than the general configuration bitrate limit ({} Mb/s)",
-				params.getMediaRenderer().getRendererName(),
+				renderer.getRendererName(),
 				rendererMaxBitrates[0],
 				defaultMaxBitrates[0]
 			);
@@ -524,10 +530,10 @@ public class FFMpegVideo extends Engine {
 			);
 		}
 
-		boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (params.getMediaRenderer().getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
+		if (renderer.getCBRVideoBitrate() == 0 && params.getTimeEnd() == 0) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd special case here
 				// this is -1 so we guess that 3000 kbps is good
@@ -538,7 +544,7 @@ public class FFMpegVideo extends Engine {
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 			}
 
-			if (params.getMediaRenderer().isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
+			if (renderer.isHalveBitrate() && !configuration.isAutomaticMaximumBitrate()) {
 				defaultMaxBitrates[0] /= 2;
 				LOGGER.trace("Halving the video bitrate limit to {} kb/s", defaultMaxBitrates[0]);
 			}
@@ -554,9 +560,9 @@ public class FFMpegVideo extends Engine {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && params.getMediaRenderer().isTranscodeToH264()) {
+			if (!isXboxOneWebVideo && renderer.isTranscodeToH264()) {
 				if (
-					params.getMediaRenderer().isH264Level41Limited() &&
+					renderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -565,7 +571,7 @@ public class FFMpegVideo extends Engine {
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
-				if (media.isHDVideo()) {
+				if (defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
 					bufSize = defaultMaxBitrates[0] / 3;
 				}
 
@@ -577,7 +583,7 @@ public class FFMpegVideo extends Engine {
 					bufSize = defaultMaxBitrates[1];
 				}
 
-				if (params.getMediaRenderer().isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+				if (renderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 					bufSize = 1835;
 				}
 			}
@@ -604,7 +610,7 @@ public class FFMpegVideo extends Engine {
 
 			if (defaultMaxBitrates[0] > 0) {
 				// prevent x265 buffer underflow errors
-				if (!params.getMediaRenderer().isTranscodeToH265()) {
+				if (!renderer.isTranscodeToH265()) {
 					videoBitrateOptions.add("-bufsize");
 					videoBitrateOptions.add(String.valueOf(bufSize) + "k");
 				}
@@ -613,17 +619,17 @@ public class FFMpegVideo extends Engine {
 			}
 		}
 
-		if (isXboxOneWebVideo || params.getMediaRenderer().isTranscodeToMPEG2()) {
+		if (isXboxOneWebVideo || renderer.isTranscodeToMPEG2()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
+			String mpeg2OptionsRenderer = renderer.getCustomFFmpegMPEG2Options();
 
 			// Renderer settings take priority over user settings
 			if (StringUtils.isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else if (configuration.isAutomaticMaximumBitrate()) {
 				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
-				mpeg2Options = params.getMediaRenderer().getAutomaticVideoQuality();
+				mpeg2Options = renderer.getAutomaticVideoQuality();
 			}
 
 			if (mpeg2Options.contains("Automatic")) {
@@ -641,7 +647,7 @@ public class FFMpegVideo extends Engine {
 				}
 			}
 
-			if (params.getMediaRenderer().isPS3()) {
+			if (renderer.isPS3()) {
 				// It has been reported that non-PS3 renderers prefer -g 5 but prefer 25 for PS3 because it lowers the average bitrate
 				mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 			}
@@ -652,7 +658,7 @@ public class FFMpegVideo extends Engine {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();
 			if (configuration.isAutomaticMaximumBitrate()) {
-				x264CRF = params.getMediaRenderer().getAutomaticVideoQuality();
+				x264CRF = renderer.getAutomaticVideoQuality();
 			}
 
 			// Remove comment from the value
@@ -678,7 +684,7 @@ public class FFMpegVideo extends Engine {
 					}
 				}
 			}
-			if (StringUtils.isNotBlank(x264CRF) && !params.getMediaRenderer().nox264()) {
+			if (StringUtils.isNotBlank(x264CRF) && !renderer.nox264()) {
 				videoBitrateOptions.add("-crf");
 				videoBitrateOptions.add(x264CRF);
 			}
@@ -697,19 +703,17 @@ public class FFMpegVideo extends Engine {
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
 	public List<String> getAudioBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
+		Renderer renderer = params.getMediaRenderer();
 		List<String> audioBitrateOptions = new ArrayList<>();
 
 		audioBitrateOptions.add("-q:a");
 		audioBitrateOptions.add(DEFAULT_QSCALE);
 
 		audioBitrateOptions.add("-ar");
-		audioBitrateOptions.add("" + params.getMediaRenderer().getTranscodedVideoAudioSampleRate());
+		audioBitrateOptions.add("" + renderer.getTranscodedVideoAudioSampleRate());
 
 		return audioBitrateOptions;
 	}
-
-	protected boolean dtsRemux;
-	protected boolean ac3Remux;
 
 	@Override
 	public int purpose() {
@@ -743,11 +747,11 @@ public class FFMpegVideo extends Engine {
 
 	public String initialString() {
 		String threads = " -threads 1";
-		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+		if (CONFIGURATION.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == CONFIGURATION.getNumberOfCpuCores()) {
 				threads = "";
 			} else {
-				threads = " -threads " + configuration.getNumberOfCpuCores();
+				threads = " -threads " + CONFIGURATION.getNumberOfCpuCores();
 			}
 		}
 		return threads;
@@ -806,25 +810,13 @@ public class FFMpegVideo extends Engine {
 		}
 
 		Renderer renderer = params.getMediaRenderer();
+		// Use device-specific pms conf
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 		final String filename = dlna.getFileName();
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
-		// Use device-specific pms conf
-		UmsConfiguration prev = configuration;
-		configuration = params.getMediaRenderer().getUmsConfiguration();
-
-		/*
-		 * Check if the video track and the container report different aspect ratios
-		 */
-		boolean aspectRatiosMatch = true;
-		if (
-			media.getAspectRatioContainer() != null &&
-			media.getAspectRatioVideoTrack() != null &&
-			!media.getAspectRatioContainer().equals(media.getAspectRatioVideoTrack())
-		) {
-			aspectRatiosMatch = false;
-		}
 
 		List<String> cmdList = new ArrayList<>();
 		boolean avisynth = isAviSynthEngine();
@@ -846,10 +838,10 @@ public class FFMpegVideo extends Engine {
 		setDecodingOptions(cmdList, configuration, avisynth);
 
 		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-		final boolean isXboxOneWebVideo = params.getMediaRenderer().isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
+		final boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
-		ac3Remux = false;
-		dtsRemux = false;
+		boolean ac3Remux = false;
+		boolean dtsRemux = false;
 
 		if (
 			configuration.isAudioRemuxAC3() &&
@@ -858,7 +850,7 @@ public class FFMpegVideo extends Engine {
 			!isAviSynthEngine() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
-			params.getAid().getAudioProperties().getNumberOfChannels() <= configuration.getAudioChannelCount()
+			params.getAid().getNumberOfChannels() <= configuration.getAudioChannelCount()
 		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
@@ -869,11 +861,11 @@ public class FFMpegVideo extends Engine {
 				params.getAid() != null &&
 				params.getAid().isDTS() &&
 				!isAviSynthEngine() &&
-				params.getMediaRenderer().isDTSPlayable();
+				renderer.isDTSPlayable();
 		}
 
-		String frameRateRatio = media.getValidFps(true);
-		String frameRateNumber = media.getValidFps(false);
+		String frameRateRatio = getValidFps(media.getFrameRate(), true);
+		String frameRateNumber = getValidFps(media.getFrameRate(), false);
 
 		// Set seeks
 		if (params.getTimeSeek() > 0 && !avisynth) {
@@ -916,7 +908,7 @@ public class FFMpegVideo extends Engine {
 				params.getSid().getType().isText() ||
 				params.getSid().getType() == SubtitleType.VOBSUB
 			) &&
-			!(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))
+			!(defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))
 		) {
 			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
@@ -926,7 +918,7 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpeg = true;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (dlna.isInsideTranscodeFolder()) {
@@ -938,19 +930,19 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we are using AviSynth.");
-			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+			} else if (defaultVideoTrack.isH264() && renderer.isH264Level41Limited() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
+			} else if ("bt.601".equals(defaultVideoTrack.getMatrixCoefficients())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(defaultVideoTrack.getDisplayAspectRatio())) {
 				canMuxVideoWithFFmpeg = false;
-				LOGGER.debug(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+				LOGGER.debug(prependFfmpegTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + defaultVideoTrack.getDisplayAspectRatio() + ".");
+			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision")) {
+			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
@@ -964,10 +956,10 @@ public class FFMpegVideo extends Engine {
 			if (dlna.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (media.isH264() && !params.getMediaRenderer().isMuxH264MpegTS()) {
+			} else if (defaultVideoTrack.isH264() && !renderer.isMuxH264MpegTS()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
-			} else if (params.getSid() != null && !(media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision"))) {
+			} else if (params.getSid() != null && !(defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))) {
 				deferToTsmuxer = false;
 				/**
 				 * @todo here we are manually preventing hardcoding subtitles
@@ -980,22 +972,22 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we are using AviSynth.");
-			} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+			} else if (defaultVideoTrack.isH264() && renderer.isH264Level41Limited() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-			} else if (!media.isMuxable(params.getMediaRenderer())) {
+			} else if (!isMuxable(defaultVideoTrack, renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not muxable to this renderer");
-			} else if (!aspectRatiosMatch) {
+			} else if (!defaultVideoTrack.isDisplayAspectRatioFromCodec()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
-			} else if ("bt.601".equals(media.getMatrixCoefficients())) {
+			} else if ("bt.601".equals(defaultVideoTrack.getMatrixCoefficients())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-			} else if ((params.getMediaRenderer().isKeepAspectRatio() || params.getMediaRenderer().isKeepAspectRatioTranscoding()) && !"16:9".equals(media.getAspectRatioContainer())) {
+			} else if ((renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) && !"16:9".equals(defaultVideoTrack.getDisplayAspectRatio())) {
 				deferToTsmuxer = false;
-				LOGGER.debug(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
+				LOGGER.debug(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + defaultVideoTrack.getDisplayAspectRatio() + ".");
+			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
@@ -1004,16 +996,16 @@ public class FFMpegVideo extends Engine {
 			}
 			if (deferToTsmuxer) {
 				TsMuxeRVideo tsMuxeRVideoInstance = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-				params.setForceFps(media.getValidFps(false));
+				params.setForceFps(getValidFps(media.getFrameRate(), false));
 
-				if (media.getCodecV() != null) {
-					if (media.isH264()) {
+				if (defaultVideoTrack != null && defaultVideoTrack.getCodec() != null) {
+					if (defaultVideoTrack.isH264()) {
 						params.setForceType("V_MPEG4/ISO/AVC");
-					} else if (media.isH265()) {
+					} else if (defaultVideoTrack.isH265()) {
 						params.setForceType("V_MPEGH/ISO/HEVC");
-					} else if (media.getCodecV().startsWith("mpeg2")) {
+					} else if (defaultVideoTrack.getCodec().startsWith("mpeg2")) {
 						params.setForceType("V_MPEG-2");
-					} else if (media.getCodecV().equals("vc1")) {
+					} else if (defaultVideoTrack.getCodec().equals("vc1")) {
 						params.setForceType("V_MS/VFW/WVC1");
 					}
 				}
@@ -1035,7 +1027,7 @@ public class FFMpegVideo extends Engine {
 
 		// Map the proper audio stream when there are multiple audio streams.
 		// For video the FFMpeg automatically chooses the stream with the highest resolution.
-		if (media.getAudioTracksList().size() > 1) {
+		if (media.getAudioTracks().size() > 1) {
 			/**
 			 * Use the first video stream that is not an attached picture, video
 			 * thumbnail or cover art.
@@ -1048,7 +1040,7 @@ public class FFMpegVideo extends Engine {
 			cmdList.add("0:V");
 
 			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.getAid())));
+			cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
 		}
 
 		// Now configure the output streams
@@ -1071,7 +1063,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params, dtsRemux));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
@@ -1089,7 +1081,7 @@ public class FFMpegVideo extends Engine {
 					)
 				) {
 					channels = 2;
-				} else if (params.getAid() != null && params.getAid().getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+				} else if (params.getAid() != null && params.getAid().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 					channels = configuration.getAudioChannelCount();
 				}
 
@@ -1110,10 +1102,10 @@ public class FFMpegVideo extends Engine {
 				if (
 					!customFFmpegOptions.contains("-ar ") &&
 					params.getAid() != null &&
-					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate()
+					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate()
 				) {
 					cmdList.add("-ar");
-					cmdList.add("" + params.getMediaRenderer().getTranscodedVideoAudioSampleRate());
+					cmdList.add("" + renderer.getTranscodedVideoAudioSampleRate());
 				}
 
 				// Use high quality resampler
@@ -1121,7 +1113,7 @@ public class FFMpegVideo extends Engine {
 				if (
 					!customFFmpegOptions.contains("--resampler") &&
 					params.getAid() != null &&
-					params.getAid().getSampleRate() != params.getMediaRenderer().getTranscodedVideoAudioSampleRate() &&
+					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate() &&
 					configuration.isFFmpegSoX()
 				) {
 					cmdList.add("-resampler");
@@ -1170,7 +1162,7 @@ public class FFMpegVideo extends Engine {
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
-		setOutputParsing(dlna, pw, false);
+		setOutputParsing(configuration, dlna, pw, false);
 
 		if (!dtsRemux) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
@@ -1306,12 +1298,12 @@ public class FFMpegVideo extends Engine {
 					}
 				}
 
-				String videoparams = "";
+				String videoparams;
 				if (renderer.isTranscodeToH264()) {
 					String sei = "insertSEI";
 					if (
 						renderer.isPS3() &&
-						media.isWebDl(filename, params)
+						isWebDl(filename, media, params)
 					) {
 						sei = "forceSEI";
 					}
@@ -1358,7 +1350,6 @@ public class FFMpegVideo extends Engine {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
 			LOGGER.trace("", e);
 		}
-		configuration = prev;
 		return pw;
 	}
 
@@ -1369,10 +1360,9 @@ public class FFMpegVideo extends Engine {
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
-		params.setWaitBeforeStart(1000);
+		params.setWaitBeforeStart(0);
 		// Use device-specific conf
-		UmsConfiguration prev = configuration;
-		configuration = params.getMediaRenderer().getUmsConfiguration();
+		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		HlsHelper.HlsConfiguration hlsConfiguration = params.getHlsConfiguration();
 		boolean needVideo = hlsConfiguration.video.resolutionWidth > -1;
 		boolean needAudio = hlsConfiguration.audioStream > -1;
@@ -1431,7 +1421,7 @@ public class FFMpegVideo extends Engine {
 			cmdList.add("-sn");
 		}
 
-		if (media.getAudioTracksList().size() > 1) {
+		if (media.getAudioTracks().size() > 1) {
 			if (needVideo) {
 				cmdList.add("-map");
 				cmdList.add("0:V");
@@ -1551,7 +1541,6 @@ public class FFMpegVideo extends Engine {
 
 		ProcessWrapperImpl pw = runTranscodeProcess(params, cmdList);
 
-		configuration = prev;
 		return pw;
 	}
 
@@ -1751,6 +1740,7 @@ public class FFMpegVideo extends Engine {
 	 * @return
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
+		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		return configuration.isDisableSubtitles() || (params.getSid() == null) || isAviSynthEngine();
 	}
 
@@ -1771,7 +1761,7 @@ public class FFMpegVideo extends Engine {
 	 * Set up a filter to parse ffmpeg's stderr output for info
 	 * (e.g. duration) if required.
 	 */
-	public void setOutputParsing(final DLNAResource dlna, ProcessWrapperImpl pw, boolean force) {
+	public void setOutputParsing(UmsConfiguration configuration, final DLNAResource dlna, ProcessWrapperImpl pw, boolean force) {
 		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
 			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
 			if (duration == 0 || duration == MediaInfo.TRANS_SIZE) {
