@@ -20,12 +20,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.UUID;
-import net.pms.media.MediaInfo;
-import net.pms.media.audio.metadata.MediaAudioMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.network.mediaserver.handlers.api.starrating.FilenameIdVO;
 
 /**
  * This class is responsible for managing the Audio Metadatas table. It
