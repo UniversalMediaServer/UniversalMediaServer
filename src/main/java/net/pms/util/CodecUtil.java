@@ -80,9 +80,9 @@ public class CodecUtil {
 	public static int getAC3Bitrate(UmsConfiguration configuration, MediaAudio media) {
 		int defaultBitrate = configuration.getAudioBitrate();
 		if (media != null && defaultBitrate >= 384) {
-			if (media.getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
+			if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
 				defaultBitrate = 448;
-			} else if (media.getNumberOfChannels() == 1) {
+			} else if (media.getAudioProperties().getNumberOfChannels() == 1) {
 				defaultBitrate = 192;
 			}
 		}

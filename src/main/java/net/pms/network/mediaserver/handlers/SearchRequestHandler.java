@@ -35,7 +35,7 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableAudiotracks;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
@@ -386,9 +386,9 @@ public class SearchRequestHandler {
 			if (property.contains("albumartist")) {
 				return " A.ALBUMARTIST ";
 			} else if (property.contains("composer")) {
-				return " A." + MediaTableAudioMetadata.COL_COMPOSER + " ";
+				return " A." + MediaTableAudiotracks.COL_COMPOSER + " ";
 			} else if (property.contains("conductor")) {
-				return " A." + MediaTableAudioMetadata.COL_CONDUCTOR + " ";
+				return " A." + MediaTableAudiotracks.COL_CONDUCTOR + " ";
 			}
 			// no role, just the artist
 			return " A.ARTIST ";

@@ -22,7 +22,6 @@ import java.awt.image.ColorModel;
 import java.io.Serializable;
 import java.util.Arrays;
 import net.pms.image.ExifInfo.ExifParseInfo;
-import net.pms.parsers.MetadataExtractorParser;
 import net.pms.util.InvalidStateException;
 import net.pms.util.ParseException;
 import org.slf4j.Logger;
@@ -130,7 +129,7 @@ public abstract class ImageInfo implements Serializable {
 		boolean imageIOSupport
 	) throws ParseException {
 		if (format == null && metadata != null) {
-			format = MetadataExtractorParser.toImageFormat(metadata);
+			format = ImageFormat.toImageFormat(metadata);
 			if (format == null) {
 				throw new ParseException("Unable to determine image format from metadata");
 			}
@@ -366,7 +365,7 @@ public abstract class ImageInfo implements Serializable {
 		boolean imageIOSupport
 	) throws ParseException {
 		if (format == null && metadata != null) {
-			format = MetadataExtractorParser.toImageFormat(metadata);
+			format = ImageFormat.toImageFormat(metadata);
 			if (format == null) {
 				throw new ParseException("Unable to determine image format from metadata");
 			}
@@ -638,7 +637,7 @@ public abstract class ImageInfo implements Serializable {
 		boolean throwOnParseFailure
 	) throws ParseException {
 		if (format == null && metadata != null) {
-			format = MetadataExtractorParser.toImageFormat(metadata);
+			format = ImageFormat.toImageFormat(metadata);
 			if (format == null) {
 				throw new ParseException("Unable to determine image format from metadata");
 			}
@@ -844,13 +843,6 @@ public abstract class ImageInfo implements Serializable {
 	 */
 	public int getHeight() {
 		return height;
-	}
-
-	public String getResolution() {
-		if (width > 0 && height > 0) {
-			return width + "x" + height;
-		}
-		return null;
 	}
 
 	/**

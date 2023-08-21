@@ -190,40 +190,6 @@ public class MediaInfoHelper implements AutoCloseable {
 			infoType.getValue()).toString();
 	}
 
-	public Long getLong(StreamKind streamType, int streamNumber, String parameter) {
-		String result = get(streamType, streamNumber, parameter);
-		if (result != null && !"".equals(result)) {
-			try {
-				return Long.valueOf(result);
-			} catch (NumberFormatException e) {
-				StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-				if (stackTraceElements.length > 1) {
-					LOGGER.debug("Could not parse \"{}\" as Long for \"{}.{}\"", result, stackTraceElements[2].getClassName(), stackTraceElements[2].getMethodName());
-				} else {
-					LOGGER.debug("Could not parse \"{}\" as Long", result);
-				}
-			}
-		}
-		return null;
-	}
-
-	public Double getDouble(StreamKind streamType, int streamNumber, String parameter) {
-		String result = get(streamType, streamNumber, parameter);
-		if (result != null && !"".equals(result)) {
-			try {
-				return Double.valueOf(result);
-			} catch (NumberFormatException e) {
-				StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
-				if (stackTraceElements.length > 1) {
-					LOGGER.debug("Could not parse \"{}\" as Double for \"{}.{}\"", result, stackTraceElements[2].getClassName(), stackTraceElements[2].getMethodName());
-				} else {
-					LOGGER.debug("Could not parse \"{}\" as Double", result);
-				}
-			}
-		}
-		return null;
-	}
-
 	/**
 	 * Count of Streams of a Stream kind (StreamNumber not filled), or count of piece of
 	 * information in this Stream.

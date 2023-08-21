@@ -250,7 +250,7 @@ public class SubtitleUtils {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.getSid().isEmbedded();
-		boolean is3D = media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().is3d() && !media.getDefaultVideoTrack().multiViewIsAnaglyph();
+		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 		File convertedFile = params.getSid().getConvertedFile();
 
 		if (convertedFile != null && convertedFile.canRead()) {
@@ -597,7 +597,7 @@ public class SubtitleUtils {
 		if (subsFileCharset == null) {
 			subsFileCharset = StandardCharsets.UTF_8;
 		}
-		Mode3D mode3D = media.getDefaultVideoTrack().get3DLayout();
+		Mode3D mode3D = media.get3DLayout();
 		boolean isOU = mode3D == Mode3D.ABL || mode3D == Mode3D.ABR || mode3D == Mode3D.AB2L;
 		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.SBS2L;
 		if (mode3D == null) {
@@ -1091,7 +1091,7 @@ public class SubtitleUtils {
 				}
 			}
 			if (!modifiableSuffixParts.isEmpty()) {
-				subtitles.setTitle(StringUtils.join(modifiableSuffixParts, '-'));
+				subtitles.setSubtitlesTrackTitleFromMetadata(StringUtils.join(modifiableSuffixParts, '-'));
 			}
 		}
 

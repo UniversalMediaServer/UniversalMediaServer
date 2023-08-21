@@ -37,6 +37,8 @@ import net.pms.renderers.Renderer;
 import net.pms.util.*;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +62,8 @@ public class VLCVideo extends Engine {
 	/** The {@link Configuration} key for the VLC executable type. */
 	public static final String KEY_VLC_EXECUTABLE_TYPE = "vlc_executable_type";
 	public static final String NAME = "VLC Video";
+
+	protected boolean videoRemux;
 
 	// Not to be instantiated by anything but PlayerFactory
 	VLCVideo() {
@@ -143,7 +147,7 @@ public class VLCVideo extends Engine {
 			 */
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
 				codecConfig.videoCodec = "h264";
-				codecConfig.videoRemux = true;
+				videoRemux = true;
 			} else {
 				codecConfig.videoCodec = "mp2v";
 			}
@@ -163,7 +167,7 @@ public class VLCVideo extends Engine {
 		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
 		// This has caused garbled audio, so only enable when told to
-		if (renderer.getUmsConfiguration().isVlcAudioSyncEnabled()) {
+		if (configuration.isVlcAudioSyncEnabled()) {
 			codecConfig.extraTrans.put("audio-sync", "");
 		}
 		return codecConfig;
@@ -173,11 +177,12 @@ public class VLCVideo extends Engine {
 		String videoCodec;
 		String audioCodec;
 		String container;
+		String extraParams;
 		HashMap<String, Object> extraTrans = new HashMap<>();
-		boolean videoRemux;
+		int sampleRate;
 	}
 
-	protected Map<String, Object> getEncodingArgs(UmsConfiguration configuration, CodecConfig codecConfig, OutputParams params) {
+	protected Map<String, Object> getEncodingArgs(CodecConfig codecConfig, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap<>();
@@ -193,7 +198,7 @@ public class VLCVideo extends Engine {
 		 * FFMpegVideo.getVideoBitrateOptions() for our best
 		 * implementation of this.
 		 */
-		if (!codecConfig.videoRemux) {
+		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
 
@@ -218,7 +223,7 @@ public class VLCVideo extends Engine {
 		if (
 			!isXboxOneWebVideo &&
 			params.getAid() != null &&
-			params.getAid().getNumberOfChannels() > 2 &&
+			params.getAid().getAudioProperties().getNumberOfChannels() > 2 &&
 			configuration.getAudioChannelCount() == 6 &&
 			!params.getMediaRenderer().isTranscodeToAC3()
 		) {
@@ -256,7 +261,7 @@ public class VLCVideo extends Engine {
 			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
-		if (StringUtils.isBlank(bitrate)) {
+		if (isBlank(bitrate)) {
 			bitrate = "0";
 		}
 
@@ -274,7 +279,7 @@ public class VLCVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	private List<String> getVideoBitrateOptions(UmsConfiguration configuration, MediaInfo media, OutputParams params) {
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
@@ -327,7 +332,7 @@ public class VLCVideo extends Engine {
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
-				if (media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().isHDVideo()) {
+				if (media.isHDVideo()) {
 					bufSize = defaultMaxBitrates[0] / 3;
 				}
 
@@ -370,7 +375,7 @@ public class VLCVideo extends Engine {
 			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
 
 			// Renderer settings take priority over user settings
-			if (StringUtils.isNotBlank(mpeg2OptionsRenderer)) {
+			if (isNotBlank(mpeg2OptionsRenderer)) {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else if (configuration.isAutomaticMaximumBitrate()) {
 				// when the automatic bandwidth is used than use the proper automatic MPEG2 setting
@@ -429,7 +434,8 @@ public class VLCVideo extends Engine {
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = dlna.getFileName();
 		boolean isWindows = Platform.isWindows();
 		setAudioAndSubs(dlna, params);
@@ -497,7 +503,7 @@ public class VLCVideo extends Engine {
 				cmdList.add("--audio-track=" + params.getAid().getId());
 			} else {
 				if (
-					StringUtils.isBlank(params.getAid().getLang()) ||
+					isBlank(params.getAid().getLang()) ||
 					MediaLang.UND.equals(params.getAid().getLang()) ||
 					"loc".equals(params.getAid().getLang())
 				) {
@@ -552,7 +558,7 @@ public class VLCVideo extends Engine {
 		}
 
 		// x264 options
-		if (config.videoRemux) {
+		if (videoRemux) {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
 
@@ -564,7 +570,7 @@ public class VLCVideo extends Engine {
 			 */
 			//cmdList.add("--no-sout-avcodec-hurry-up");
 
-			cmdList.addAll(getVideoBitrateOptions(configuration, media, params));
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
 
 		// Skip forward if necessary
@@ -576,7 +582,7 @@ public class VLCVideo extends Engine {
 		// Generate encoding args
 		String separator = "";
 		StringBuilder encodingArgsBuilder = new StringBuilder();
-		for (Map.Entry<String, Object> curEntry : getEncodingArgs(configuration, config, params).entrySet()) {
+		for (Map.Entry<String, Object> curEntry : getEncodingArgs(config, params).entrySet()) {
 			encodingArgsBuilder.append(separator);
 			encodingArgsBuilder.append(curEntry.getKey());
 
@@ -613,6 +619,7 @@ public class VLCVideo extends Engine {
 		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
+		configuration = prev;
 		return pw;
 	}
 
@@ -665,10 +672,10 @@ public class VLCVideo extends Engine {
 					return result.build();
 				}
 				if (output.getExitCode() == 0) {
-					if (!output.getOutput().isEmpty()) {
+					if (output.getOutput() != null && !output.getOutput().isEmpty()) {
 						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
 						Matcher matcher = pattern.matcher(output.getOutput().get(0));
-						if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
+						if (matcher.find() && isNotBlank(matcher.group(1))) {
 							result.version(new Version(matcher.group(1)));
 						}
 					}
@@ -682,10 +689,9 @@ public class VLCVideo extends Engine {
 				return null;
 			}
 		}
-		Version version = result.version();
-		if (version != null) {
+		if (result.version() != null) {
 			Version requiredVersion = new Version("2.0.2");
-			if (version.compareTo(requiredVersion) <= 0) {
+			if (result.version().compareTo(requiredVersion) <= 0) {
 				result.errorType(ExecutableErrorType.GENERAL);
 				result.errorText(String.format(Messages.getString("OnlyVersionXAboveSupported"), requiredVersion, this));
 				result.available(Boolean.FALSE);

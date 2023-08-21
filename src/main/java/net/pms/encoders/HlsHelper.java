@@ -130,13 +130,13 @@ public class HlsHelper {
 			//add audio languages
 			List<HlsAudioConfiguration> audioGroups = new ArrayList<>();
 			MediaAudio mediaAudioDefault = null;
-			if (!mediaVideo.getAudioTracks().isEmpty()) {
+			if (!mediaVideo.getAudioTracksList().isEmpty()) {
 				//try to find the prefered language
 				mediaAudioDefault = null;
 				StringTokenizer st = new StringTokenizer(CONFIGURATION.getAudioLanguages(), ",");
 				while (st.hasMoreTokens() && mediaAudioDefault == null) {
 					String lang = st.nextToken().trim();
-					for (MediaAudio mediaAudio : mediaVideo.getAudioTracks()) {
+					for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 						if (mediaAudio.matchCode(lang)) {
 							mediaAudioDefault = mediaAudio;
 							break;
@@ -158,7 +158,7 @@ public class HlsHelper {
 			Map<String, Integer> audioNames = new HashMap<>();
 			for (HlsAudioConfiguration audioGroup : audioGroups) {
 				String groupId = audioGroup.label;
-				for (MediaAudio mediaAudio : mediaVideo.getAudioTracks()) {
+				for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 					sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"").append(groupId).append("\",LANGUAGE=\"");
 					sb.append(mediaAudio.getLang()).append("\",NAME=\"");
 					String audioName = mediaAudio.getLangFullName();
@@ -193,8 +193,8 @@ public class HlsHelper {
 					sb.append(",DEFAULT=").append(mediaSubtitle.isDefault() ? "YES" : "NO");
 					sb.append(",FORCED=NO");
 					String subtitleName;
-					if (StringUtils.isNotBlank(mediaSubtitle.getTitle())) {
-						subtitleName = mediaSubtitle.getTitle();
+					if (StringUtils.isNotBlank(mediaSubtitle.getSubtitlesTrackTitleFromMetadata())) {
+						subtitleName = mediaSubtitle.getSubtitlesTrackTitleFromMetadata();
 					} else if (StringUtils.isNotBlank(mediaSubtitle.getName())) {
 						subtitleName = mediaSubtitle.getName();
 					} else if (StringUtils.isNotBlank(mediaSubtitle.getLangFullName())) {
@@ -233,7 +233,7 @@ public class HlsHelper {
 				for (HlsAudioConfiguration audioGroup : audioGroups) {
 					sb.append("#EXT-X-STREAM-INF:BANDWIDTH=");
 					if (videoGroup.label.equals(COPY_CONF_NAME)) {
-						sb.append(mediaVideo.getBitRate());
+						sb.append(mediaVideo.getBitrate());
 						sb.append(",RESOLUTION=").append(mediaVideo.getWidth()).append("x").append(mediaVideo.getHeight());
 						sb.append(",AUDIO=\"").append(audioGroup.label).append("\"");
 						sb.append(",CODECS=\"").append("avc1.64001e");
@@ -309,7 +309,7 @@ public class HlsHelper {
 		return null;
 	}
 
-	private static TimeRange getTimeRange(String url) {
+	public static TimeRange getTimeRange(String url) {
 		if (!url.contains("/")) {
 			return null;
 		}
@@ -336,44 +336,61 @@ public class HlsHelper {
 		rendition = rendition.substring(0, rendition.indexOf("/"));
 		//here we need to set rendition to renderer
 		HlsHelper.HlsConfiguration hlsConfiguration = getByKey(rendition);
-		Range timeRange = getTimeRange(url);
+		Range timeRange = HlsHelper.getTimeRange(url);
 		if (hlsConfiguration != null && timeRange != null) {
 			return resource.getInputStream(timeRange, renderer, hlsConfiguration);
 		}
 		return null;
 	}
 
-	private static boolean isMediaAudioCompatible(MediaAudio mediaAudio) {
+	public static boolean isMediaCompatible(MediaInfo mediaVideo) {
+		if (mediaVideo.isH264() && mediaVideo.getAvcAsInt() <= 52) {
+			//can't check that, we do not store it on database
+			//profile is not saved in database...
+			//getAvcProfileId(mediaVideo.getH264Profile()) <= 100
+			if (!mediaVideo.hasAudio()) {
+				return true;
+			}
+			for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+				if (isMediaAudioCompatible(mediaAudio)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public static boolean isMediaAudioCompatible(MediaAudio mediaAudio) {
 		return getAudioConfiguration(mediaAudio) != null;
 	}
 
-	private static HlsAudioConfiguration getAudioConfiguration(MediaAudio mediaAudio) {
+	public static HlsAudioConfiguration getAudioConfiguration(MediaAudio mediaAudio) {
 		if (mediaAudio.isAACLC()) {
-			if (mediaAudio.getNumberOfChannels() < 3) {
+			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("AAC-LC");
-			} else if (mediaAudio.getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("AAC-LC-6");
 			}
 		} else if (mediaAudio.isHEAAC()) {
-			if (mediaAudio.getNumberOfChannels() < 3) {
+			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("HE-AAC");
-			} else if (mediaAudio.getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("HE-AAC-6");
 			}
 		} else if (mediaAudio.isAC3()) {
-			if (mediaAudio.getNumberOfChannels() < 3) {
+			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("AC3");
-			} else if (mediaAudio.getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("AC3-6");
 			}
 		} else if (mediaAudio.isEAC3()) {
-			if (mediaAudio.getNumberOfChannels() < 3) {
+			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("EAC3");
-			} else if (mediaAudio.getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("EAC3-6");
-			} else if (mediaAudio.getNumberOfChannels() == 8) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 8) {
 				return HlsAudioConfiguration.getByKey("EAC3-8");
-			} else if (mediaAudio.getNumberOfChannels() == 16) {
+			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 16) {
 				return HlsAudioConfiguration.getByKey("EAC3-16");
 			}
 		}

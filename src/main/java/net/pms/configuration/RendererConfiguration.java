@@ -19,13 +19,8 @@ package net.pms.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.StringTokenizer;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;
@@ -33,8 +28,9 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
-import net.pms.media.MediaInfo;
+import net.pms.formats.v2.AudioProperties;
 import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.network.HTTPResource;
@@ -592,8 +588,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media) {
 		return (
-			(isTranscodeToH264() && media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().isH264()) ||
-			(isTranscodeToH265() && media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().isH265())
+			(isTranscodeToH264() && media.isH264()) ||
+			(isTranscodeToH265() && media.isH265())
 		);
 	}
 
@@ -672,10 +668,10 @@ public class RendererConfiguration extends BaseConfiguration {
 							} else {
 								matchedMimeType += ";rate=48000;channels=2";
 							}
-						} else if (media != null && media.getDefaultAudioTrack() != null) {
-							MediaAudio audio = media.getDefaultAudioTrack();
-							if (audio.getSampleRate() > 0) {
-								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
+						} else if (media != null && media.getFirstAudioTrack() != null) {
+							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+							if (audio.getSampleFrequency() > 0) {
+								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
 							}
 							if (audio.getNumberOfChannels() > 0) {
 								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
@@ -715,10 +711,10 @@ public class RendererConfiguration extends BaseConfiguration {
 						} else {
 							matchedMimeType += ";rate=48000;channels=2";
 						}
-					} else if (media != null && media.getDefaultAudioTrack() != null) {
-						MediaAudio audio = media.getDefaultAudioTrack();
-						if (audio.getSampleRate() > 0) {
-							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
+					} else if (media != null && media.getFirstAudioTrack() != null) {
+						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
+						if (audio.getSampleFrequency() > 0) {
+							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
 						}
 						if (audio.getNumberOfChannels() > 0) {
 							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
@@ -1454,7 +1450,7 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		// Substitute
-		for (Map.Entry<String, String> entry : charMap.entrySet()) {
+		for (Entry<String, String> entry : charMap.entrySet()) {
 			String repl = entry.getValue().replace("###e", "");
 			name = name.replaceAll(entry.getKey(), repl);
 		}
@@ -1736,8 +1732,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	 */
 	public boolean isVideoBitDepthSupported(DLNAResource dlna) {
 		Integer videoBitDepth = null;
-		if (dlna.getMedia() != null && dlna.getMedia().getDefaultVideoTrack() != null) {
-			videoBitDepth = dlna.getMedia().getDefaultVideoTrack().getBitDepth();
+		if (dlna.getMedia() != null) {
+			videoBitDepth = dlna.getMedia().getVideoBitDepth();
 		}
 
 		if (videoBitDepth != null) {

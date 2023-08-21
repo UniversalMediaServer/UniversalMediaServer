@@ -45,7 +45,7 @@ public class MediaTableSubtracks extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 5;
+	private static final int TABLE_VERSION = 4;
 
 	/**
 	 * COLUMNS
@@ -53,14 +53,12 @@ public class MediaTableSubtracks extends MediaTable {
 	private static final String COL_ID = "ID";
 	public static final String COL_FILEID = "FILEID";
 	private static final String COL_LANG = "LANG";
-	private static final String COL_STREAMID = "STREAMID";
-	private static final String COL_DEFAULT_FLAG = "DEFAULT_FLAG";
-	private static final String COL_FORCED_FLAG = "FORCED_FLAG";
-	private static final String COL_OPTIONALID = "OPTIONALID";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	private static final String COL_EXTERNALFILE = "EXTERNALFILE";
 	private static final String COL_CHARSET = "CHARSET";
+	private static final String COL_DEFAULT_FLAG = "DEFAULT_FLAG";
+	private static final String COL_FORCED_FLAG = "FORCED_FLAG";
 
 	/**
 	 * COLUMNS with table name
@@ -75,7 +73,6 @@ public class MediaTableSubtracks extends MediaTable {
 	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_FILEID_ID_EXTERNALFILE = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + EQUAL + PARAMETER + AND + TABLE_COL_EXTERNALFILE + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_EXTERNALFILE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_EXTERNALFILE + EQUAL + PARAMETER;
-	private static final String SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ID + GREATER_OR_EQUAL_THAN + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -123,10 +120,6 @@ public class MediaTableSubtracks extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DEFAULT_FLAG + BOOLEAN);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_FORCED_FLAG + BOOLEAN);
 				}
-				case 4 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_STREAMID + INTEGER);
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_OPTIONALID + BIGINT);
-				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -144,20 +137,18 @@ public class MediaTableSubtracks extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_ID               + INTEGER               + NOT_NULL                      + COMMA +
 				COL_FILEID           + BIGINT                + NOT_NULL                      + COMMA +
 				COL_LANG             + VARCHAR_SIZE_LANG                                     + COMMA +
-				COL_STREAMID         + INTEGER                                               + COMMA +
-				COL_OPTIONALID       + BIGINT                                                + COMMA +
-				COL_DEFAULT_FLAG     + BOOLEAN                                               + COMMA +
-				COL_FORCED_FLAG      + BOOLEAN                                               + COMMA +
 				COL_TITLE            + VARCHAR_SIZE_MAX                                      + COMMA +
 				COL_FORMAT_TYPE      + INTEGER                                               + COMMA +
 				COL_EXTERNALFILE     + VARCHAR_1000          + NOT_NULL + DEFAULT + "''"     + COMMA +
 				COL_CHARSET          + VARCHAR_SIZE_MAX                                      + COMMA +
+				COL_DEFAULT_FLAG     + BOOLEAN                                               + COMMA +
+				COL_FORCED_FLAG      + BOOLEAN                                               + COMMA +
 				CONSTRAINT + TABLE_NAME + PK_MARKER + PRIMARY_KEY + "(" + COL_FILEID + COMMA + COL_ID + COMMA + COL_EXTERNALFILE + ")" + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + PK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableFiles.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")"
@@ -165,20 +156,7 @@ public class MediaTableSubtracks extends MediaTable {
 	}
 
 	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
-		if (connection == null || fileId < 0 || media == null) {
-			return;
-		}
-
-		int trackCount = media.getSubtitleTrackCount();
-		try (
-			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
-		) {
-			updateStatment.setLong(1, fileId);
-			updateStatment.setInt(2, trackCount);
-			updateStatment.executeUpdate();
-		}
-
-		if (trackCount == 0) {
+		if (connection == null || fileId < 0 || media == null || media.getSubTrackCount() < 1) {
 			return;
 		}
 
@@ -208,13 +186,11 @@ public class MediaTableSubtracks extends MediaTable {
 						rs.updateString(COL_EXTERNALFILE, externalFile);
 					}
 					rs.updateString(COL_LANG, StringUtils.left(subtitleTrack.getLang(), SIZE_LANG));
-					updateInteger(rs, COL_STREAMID, subtitleTrack.getStreamOrder());
-					updateLong(rs, COL_OPTIONALID, subtitleTrack.getOptionalId());
-					rs.updateBoolean(COL_DEFAULT_FLAG, subtitleTrack.isDefault());
-					rs.updateBoolean(COL_FORCED_FLAG, subtitleTrack.isForced());
-					rs.updateString(COL_TITLE, StringUtils.left(subtitleTrack.getTitle(), SIZE_MAX));
+					rs.updateString(COL_TITLE, StringUtils.left(subtitleTrack.getSubtitlesTrackTitleFromMetadata(), SIZE_MAX));
 					rs.updateInt(COL_FORMAT_TYPE, subtitleTrack.getType().getStableIndex());
 					rs.updateString(COL_CHARSET, StringUtils.left(subtitleTrack.getSubCharacterSet(), SIZE_MAX));
+					rs.updateBoolean(COL_DEFAULT_FLAG, subtitleTrack.isDefault());
+					rs.updateBoolean(COL_FORCED_FLAG, subtitleTrack.isForced());
 					if (isCreatingNewRecord) {
 						rs.insertRow();
 					} else {
@@ -244,14 +220,12 @@ public class MediaTableSubtracks extends MediaTable {
 					MediaSubtitle sub = new MediaSubtitle();
 					sub.setId(elements.getInt(COL_ID));
 					sub.setLang(elements.getString(COL_LANG));
-					sub.setStreamOrder(toInteger(elements, COL_STREAMID));
-					sub.setOptionalId(toLong(elements, COL_OPTIONALID));
-					sub.setDefault(elements.getBoolean(COL_DEFAULT_FLAG));
-					sub.setForced(elements.getBoolean(COL_FORCED_FLAG));
-					sub.setTitle(elements.getString(COL_TITLE));
+					sub.setSubtitlesTrackTitleFromMetadata(elements.getString(COL_TITLE));
 					sub.setType(SubtitleType.valueOfStableIndex(elements.getInt(COL_FORMAT_TYPE)));
 					sub.setExternalFileOnly(externalFile);
 					sub.setSubCharacterSet(elements.getString(COL_CHARSET));
+					sub.setDefault(elements.getBoolean(COL_DEFAULT_FLAG));
+					sub.setForced(elements.getBoolean(COL_FORCED_FLAG));
 					LOGGER.trace("Adding subtitles from the database: {}", sub.toString());
 					result.add(sub);
 				}
@@ -278,5 +252,4 @@ public class MediaTableSubtracks extends MediaTable {
 
 		return result;
 	}
-
 }

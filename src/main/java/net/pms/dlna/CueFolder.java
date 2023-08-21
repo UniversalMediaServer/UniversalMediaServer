@@ -124,15 +124,15 @@ public class CueFolder extends DLNAResource {
 
 						if (i > 0 && realFile.getMedia() == null) {
 							realFile.setMedia(new MediaInfo());
-							realFile.getMedia().setMediaParser("CueLib");
+							realFile.getMedia().setMediaparsed(true);
 						}
 						realFile.syncResolve();
 						if (i == 0) {
 							originalMedia = realFile.getMedia();
-						}
-						if (originalMedia == null) {
-							LOGGER.trace("Couldn't resolve media \"{}\" for cue file \"{}\" - aborting", realFile.getName(), playlistfile.getAbsolutePath());
-							return;
+							if (originalMedia == null) {
+								LOGGER.trace("Couldn't resolve media \"{}\" for cue file \"{}\" - aborting", realFile.getName(), playlistfile.getAbsolutePath());
+								return;
+							}
 						}
 						realFile.getSplitRange().setStart(getTime(start));
 						realFile.setSplitTrack(i + 1);
@@ -153,22 +153,22 @@ public class CueFolder extends DLNAResource {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
 
-							if (realFile.getMedia() != null && realFile.getMedia().hasAudioMetadata()) {
+							if (realFile.getMedia() != null && realFile.getMedia().getFirstAudioTrack() != null) {
 								if (realFile.getFormat().isAudio()) {
-									realFile.getMedia().getAudioMetadata().setSongname(track.getTitle());
+									realFile.getMedia().getFirstAudioTrack().setSongname(track.getTitle());
 								} else {
-									realFile.getMedia().getDefaultAudioTrack().setTitle("Chapter #" + (i + 1));
+									realFile.getMedia().getFirstAudioTrack().setSongname("Chapter #" + (i + 1));
 								}
-								realFile.getMedia().getAudioMetadata().setTrack(i + 1);
+								realFile.getMedia().getFirstAudioTrack().setTrack(i + 1);
 								realFile.getMedia().setSize(-1);
 								if (StringUtils.isNotBlank(sheet.getTitle())) {
-									realFile.getMedia().getAudioMetadata().setAlbum(sheet.getTitle());
+									realFile.getMedia().getFirstAudioTrack().setAlbum(sheet.getTitle());
 								}
 								if (StringUtils.isNotBlank(sheet.getPerformer())) {
-									realFile.getMedia().getAudioMetadata().setArtist(sheet.getPerformer());
+									realFile.getMedia().getFirstAudioTrack().setArtist(sheet.getPerformer());
 								}
 								if (StringUtils.isNotBlank(track.getPerformer())) {
-									realFile.getMedia().getAudioMetadata().setArtist(track.getPerformer());
+									realFile.getMedia().getFirstAudioTrack().setArtist(track.getPerformer());
 								}
 							}
 
@@ -194,8 +194,7 @@ public class CueFolder extends DLNAResource {
 		}
 	}
 
-	private static double getTime(Position p) {
+	private double getTime(Position p) {
 		return p.getMinutes() * 60 + p.getSeconds() + ((double) p.getFrames() / 100);
 	}
-
 }

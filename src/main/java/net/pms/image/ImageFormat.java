@@ -17,8 +17,24 @@
 package net.pms.image;
 
 import java.util.Locale;
+import com.drew.imaging.FileType;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.bmp.BmpHeaderDirectory;
+import com.drew.metadata.exif.ExifDirectoryBase;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
+import com.drew.metadata.gif.GifHeaderDirectory;
+import com.drew.metadata.ico.IcoDirectory;
+import com.drew.metadata.jfif.JfifDirectory;
+import com.drew.metadata.jpeg.JpegDirectory;
+import com.drew.metadata.pcx.PcxDirectory;
+import com.drew.metadata.photoshop.PsdHeaderDirectory;
+import com.drew.metadata.png.PngDirectory;
+import com.drew.metadata.webp.WebpDirectory;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.image.ExifInfo.ExifCompression;
 
 /**
  * Defines the different image format supported by the ImageIO parser
@@ -82,6 +98,53 @@ public enum ImageFormat {
 	}
 
 	/**
+	 * @return The image format for the given image file type.
+	 */
+	public static ImageFormat toImageFormat(FileType fileType) {
+		if (fileType == null) {
+			return null;
+		}
+		switch (fileType) {
+			case Arw:
+				return ImageFormat.ARW;
+			case Bmp:
+				return ImageFormat.BMP;
+			case Cr2:
+				return ImageFormat.CR2;
+			case Crw:
+				return ImageFormat.CRW;
+			case Gif:
+				return ImageFormat.GIF;
+			case Ico:
+				return ImageFormat.ICO;
+			case Jpeg:
+				return ImageFormat.JPEG;
+			case Nef:
+				return ImageFormat.NEF;
+			case Orf:
+				return ImageFormat.ORF;
+			case Pcx:
+				return ImageFormat.PCX;
+			case Png:
+				return ImageFormat.PNG;
+			case Psd:
+				return ImageFormat.PSD;
+			case Raf:
+				return ImageFormat.RAF;
+			case Rw2:
+				return ImageFormat.RW2;
+			case Tiff:
+				return ImageFormat.TIFF;
+			case Riff:
+			case WebP:
+				return ImageFormat.WEBP;
+			case Unknown:
+			default:
+				return null;
+		}
+	}
+
+	/**
 	 * Tries to parse {@link ImageFormat} from a text representation of an image
 	 * format.
 	 *
@@ -135,6 +198,97 @@ public enum ImageFormat {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Tries to parse {@link ImageFormat} from a {@link Metadata} instance.
+	 *
+	 * @param metadata the {@link Metadata} to parse.
+	 * @return The parsed {@link ImageFormat} or {@code null} if the parsing
+	 *         fails.
+	 */
+	@SuppressWarnings("incomplete-switch")
+	public static ImageFormat toImageFormat(Metadata metadata) {
+		if (metadata == null) {
+			throw new NullPointerException("metadata cannot be null");
+		}
+
+		// Check for known directories tied to a particular format
+		for (Directory directory : metadata.getDirectories()) {
+			if (directory instanceof BmpHeaderDirectory) {
+				return ImageFormat.BMP;
+			}
+			if (directory instanceof GifHeaderDirectory) {
+				return ImageFormat.GIF;
+			}
+			if (directory instanceof IcoDirectory) {
+				return ImageFormat.ICO;
+			}
+			if (directory instanceof JfifDirectory || directory instanceof JpegDirectory) {
+				return ImageFormat.JPEG;
+			}
+			if (directory instanceof PcxDirectory) {
+				return ImageFormat.PCX;
+			}
+			if (directory instanceof PngDirectory) {
+				return ImageFormat.PNG;
+			}
+			if (directory instanceof PsdHeaderDirectory) {
+				return ImageFormat.PSD;
+			}
+			if (directory instanceof WebpDirectory) {
+				return ImageFormat.WEBP;
+			}
+		}
+
+		/*
+		 * Check for Exif compression tag and parse known values to TIFF or
+		 * various proprietary "raw" formats. Do not try to combine the two
+		 * loops, Exif matching must only be attempted if the first match fails.
+		 */
+		ExifCompression exifCompression = null;
+		for (Directory directory : metadata.getDirectories()) {
+			if (directory instanceof ExifIFD0Directory || directory instanceof ExifSubIFDDirectory) {
+				if (((ExifDirectoryBase) directory).containsTag(ExifDirectoryBase.TAG_COMPRESSION)) {
+					Integer i = ((ExifDirectoryBase) directory).getInteger(ExifDirectoryBase.TAG_COMPRESSION);
+					if (i != null) {
+						exifCompression = ExifCompression.typeOf(i);
+					}
+				}
+				if (directory.containsTag(TAG_DNG_VERSION)) {
+					return ImageFormat.DNG;
+				}
+			}
+		}
+		// Nothing found by specific tags, use a generic approach based on Exif compression
+		if (exifCompression != null) {
+			switch (exifCompression) {
+				case ADOBE_DEFLATE, CCITT_1D, DEFLATE, IT8BL, IT8CTPAD, IT8LW, IT8MP, JBIG, JBIG2_TIFF_FX, JBIG_B_W, JBIG_COLOR, JPEG, JPEG_OLD_STYLE, LZW, PACKBITS, T4_GROUP_3_FAX, T6_GROUP_4_FAX, UNCOMPRESSED -> {
+					return ImageFormat.TIFF;
+				}
+				case DCS, KODAC_DCR_COMPRESSED -> {
+					return ImageFormat.DCR;
+				}
+				case KODAK_KDC_COMPRESSED -> {
+					return ImageFormat.KDC;
+				}
+				case NIKON_NEF_COMPRESSED -> {
+					return ImageFormat.NEF;
+				}
+				case PENTAX_PEF_COMPRESSED -> {
+					return ImageFormat.PEF;
+				}
+				case SAMSUNG_SRW_COMPRESSED, SAMSUNG_SRW_COMPRESSED_2 -> {
+					return ImageFormat.SRW;
+				}
+				case SONY_ARW_COMPRESSED -> {
+					return ImageFormat.ARW;
+				}
+			}
+		}
+
+		// Parsing failed
+		return null;
 	}
 
 	/**
