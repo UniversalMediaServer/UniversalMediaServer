@@ -22,7 +22,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +47,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DLNAResource;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
@@ -211,29 +211,11 @@ public class StarRating implements ApiResponseHandler {
 	}
 
 	public void setDatabaseRatingByMusicbrainzId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
-		String sql;
-		sql = "UPDATE AUDIOTRACKS set rating = ? where MBID_TRACK = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setInt(1, ratingInStars);
-			ps.setString(2, musicBrainzTrackId);
-			ps.executeUpdate();
-			connection.commit();
-		}
+		MediaTableAudioMetadata.updateRatingByMusicbrainzId(connection, ratingInStars, musicBrainzTrackId);
 	}
 
 	public void setDatabaseRatingByAudiotracksId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
-		String sql;
-		sql = "UPDATE AUDIOTRACKS set rating = ? where AUDIOTRACK_ID = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setInt(1, ratingInStars);
-			if (audiotracksId == null) {
-				ps.setNull(2, Types.INTEGER);
-			} else {
-				ps.setInt(2, audiotracksId);
-			}
-			ps.executeUpdate();
-			connection.commit();
-		}
+		MediaTableAudioMetadata.updateRatingByAudiotrackId(connection, ratingInStars, audiotracksId);
 	}
 
 	private List<FilenameIdVO> getFilenameIdList(Connection connection, String trackId) {
@@ -260,22 +242,7 @@ public class StarRating implements ApiResponseHandler {
 	}
 
 	private FilenameIdVO getFilenameIdForAudiotrackId(Connection connection, Integer audiotrackId) {
-		if (audiotrackId == null) {
-			throw new RuntimeException("audiotrackId shall not be empty.");
-		}
-
-		String sql = "Select f.id, filename from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql);) {
-			ps.setInt(1, audiotrackId);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return new FilenameIdVO(rs.getInt(1), rs.getString(2));
-			} else {
-				throw new RuntimeException("audiotrackId not found : " + audiotrackId);
-			}
-		} catch (SQLException e) {
-			throw new RuntimeException("cannot handle request", e);
-		}
+		return MediaTableAudioMetadata.getFilenameIdForAudiotrackId(connection, audiotrackId);
 	}
 
 	/**

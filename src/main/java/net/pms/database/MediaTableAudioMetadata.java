@@ -200,6 +200,54 @@ public class MediaTableAudioMetadata extends MediaTable {
 		}
 	}
 
+	public static FilenameIdVO getFilenameIdForAudiotrackId(Connection connection, Integer audiotrackId) {
+		if (audiotrackId == null) {
+			throw new RuntimeException("audiotrackId shall not be empty.");
+		}
+
+		String sql = String.format(
+			"Select f.id, filename from FILES as f left outer join %s as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?",
+			MediaTableAudioMetadata.TABLE_NAME);
+		try (PreparedStatement ps = connection.prepareStatement(sql);) {
+			ps.setInt(1, audiotrackId);
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				return new FilenameIdVO(rs.getInt(1), rs.getString(2));
+			} else {
+				throw new RuntimeException("audiotrackId not found : " + audiotrackId);
+			}
+		} catch (SQLException e) {
+			throw new RuntimeException("cannot handle request", e);
+		}
+	}
+
+	public static void updateRatingByAudiotrackId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
+		String sql;
+		sql = String.format("UPDATE %s set rating = ? where AUDIOTRACK_ID = ?", TABLE_NAME);
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			if (audiotracksId == null) {
+				ps.setNull(2, Types.INTEGER);
+			} else {
+				ps.setInt(2, audiotracksId);
+			}
+			ps.executeUpdate();
+			connection.commit();
+		}
+	}
+
+	public static void updateRatingByMusicbrainzId(Connection connection, int ratingInStars, String musicBrainzTrackId)
+		throws SQLException {
+		String sql;
+		sql = String.format("UPDATE %s set rating = ? where MBID_TRACK = ?", TABLE_NAME);
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+			ps.setInt(1, ratingInStars);
+			ps.setString(2, musicBrainzTrackId);
+			ps.executeUpdate();
+			connection.commit();
+		}
+	}
+
 	public static MediaAudioMetadata getAudioMetadataByFileId(final Connection connection, final long fileId) {
 		if (connection == null || fileId < 0) {
 			return null;
