@@ -229,8 +229,8 @@ public class WebGuiServletHelper {
 
 		try {
 			while ((bytes = in.read(buffer)) != -1) {
-				os.write(buffer, 0, bytes);
 				sendBytes += bytes;
+				os.write(buffer, 0, bytes);
 				os.flush();
 			}
 			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");

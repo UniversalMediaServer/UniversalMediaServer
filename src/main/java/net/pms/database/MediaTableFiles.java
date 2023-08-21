@@ -26,11 +26,12 @@ import java.util.List;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
-import net.pms.parsers.Parser;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -75,30 +76,45 @@ public class MediaTableFiles extends MediaTable {
 	 * - 32: Added an index for the Media Library Movies folder that includes duration
 	 * - 34: Added HDRFORMAT column
 	 * - 35: Added HDRFORMATCOMPATIBILITY column
-	 * - 36: rename indexes
-	 * - 37: remove video infos
 	 */
-	private static final int TABLE_VERSION = 37;
+	private static final int TABLE_VERSION = 36;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	public static final String COL_ID = "ID";
 	public static final String COL_THUMBID = "THUMBID";
+	private static final String COL_DURATION = "DURATION";
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	private static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
-	private static final String COL_PARSER = "PARSER";
-	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
-	private static final String COL_CONTAINER = "CONTAINER";
-	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
-	private static final String COL_DURATION = "DURATION";
+	private static final String COL_WIDTH = "WIDTH";
+	private static final String COL_HEIGHT = "HEIGHT";
+	private static final String COL_STEREOSCOPY = "STEREOSCOPY";
 	private static final String COL_BITRATE = "BITRATE";
+	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
+	private static final String COL_CODECV = "CODECV";
 	private static final String COL_FRAMERATE = "FRAMERATE";
-
 	private static final String COL_ASPECTRATIODVD = "ASPECTRATIODVD";
+	private static final String COL_ASPECTRATIOCONTAINER = "ASPECTRATIOCONTAINER";
+	private static final String COL_ASPECTRATIOVIDEOTRACK = "ASPECTRATIOVIDEOTRACK";
+	private static final String COL_REFRAMES = "REFRAMES";
+	private static final String COL_AVCLEVEL = "AVCLEVEL";
 	private static final String COL_IMAGEINFO = "IMAGEINFO";
+	private static final String COL_CONTAINER = "CONTAINER";
+	private static final String COL_MUXINGMODE = "MUXINGMODE";
+	private static final String COL_FRAMERATEMODE = "FRAMERATEMODE";
+	private static final String COL_MATRIXCOEFFICIENTS = "MATRIXCOEFFICIENTS";
+	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
+	private static final String COL_TITLEVIDEOTRACK = "TITLEVIDEOTRACK";
+	private static final String COL_VIDEOTRACKCOUNT = "VIDEOTRACKCOUNT";
 	private static final String COL_IMAGECOUNT = "IMAGECOUNT";
+	private static final String COL_BITDEPTH = "BITDEPTH";
+	private static final String COL_HDRFORMAT = "HDRFORMAT";
+	private static final String COL_HDRFORMATCOMPATIBILITY = "HDRFORMATCOMPATIBILITY";
+	private static final String COL_PIXELASPECTRATIO = "PIXELASPECTRATIO";
+	private static final String COL_SCANTYPE = "SCANTYPE";
+	private static final String COL_SCANORDER = "SCANORDER";
 
 	/**
 	 * COLUMNS with table name
@@ -107,7 +123,10 @@ public class MediaTableFiles extends MediaTable {
 	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + "." + COL_FORMAT_TYPE;
 	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
 	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
+	public static final String TABLE_COL_WIDTH = TABLE_NAME + "." + COL_WIDTH;
+	public static final String TABLE_COL_HEIGHT = TABLE_NAME + "." + COL_HEIGHT;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
+	public static final String TABLE_COL_STEREOSCOPY = TABLE_NAME + "." + COL_STEREOSCOPY;
 
 	/**
 	 * SQL Jointures
@@ -141,7 +160,13 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Database column sizes
 	 */
+	private static final int SIZE_CODECV = 32;
+	private static final int SIZE_FRAMERATE = 32;
+	private static final int SIZE_AVCLEVEL = 3;
 	private static final int SIZE_CONTAINER = 32;
+	private static final int SIZE_MATRIX_COEFFICIENTS = 16;
+	private static final int SIZE_MUXINGMODE = 32;
+	private static final int SIZE_FRAMERATEMODE = 16;
 
 	/*
 	 * Checks and creates or upgrades the table as needed.
@@ -396,31 +421,8 @@ public class MediaTableFiles extends MediaTable {
 						//rename indexes
 						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "IDX_FILE" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER);
 						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FORMAT_TYPE + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER);
+						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FORMAT_TYPE_WIDTH_HEIGHT" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_WIDTH + CONSTRAINT_SEPARATOR + COL_HEIGHT + IDX_MARKER);
 						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FORMAT_TYPE_MODIFIED" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER);
-					}
-					case 36 -> {
-						//remove indexes
-						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "FORMAT_TYPE_WIDTH_HEIGHT");
-						executeUpdate(connection, DROP_INDEX + IF_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + "WIDTH" + CONSTRAINT_SEPARATOR + "HEIGHT" + IDX_MARKER);
-						String[] columns = {COL_FRAMERATE, "ASPECTRATIOCONTAINER", "ASPECTRATIOVIDEOTRACK", "REFRAMES", "AVCLEVEL", "WIDTH",
-							"HEIGHT", "CODECV", "FRAMERATEMODE", "MATRIXCOEFFICIENTS", "TITLEVIDEOTRACK", "VIDEOTRACKCOUNT", "STEREOSCOPY",
-							"BITDEPTH", "HDRFORMAT", "HDRFORMATCOMPATIBILITY", "PIXELASPECTRATIO", "SCANTYPE", "SCANORDER", "MUXINGMODE"
-						};
-						//delete old columns
-						for (String column : columns)  {
-							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + column);
-						}
-						LOGGER.trace("Adding back FRAMERATE column");
-						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_FRAMERATE + DOUBLE_PRECISION);
-						LOGGER.trace("Adding PARSER column");
-						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_PARSER + VARCHAR_32);
-						//check all cascade constaints
-						ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
-						ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
-						ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);
-						ensureCascadeConstraint(connection, MediaTableSubtracks.TABLE_NAME, MediaTableSubtracks.COL_FILEID, TABLE_NAME, COL_ID);
-						ensureCascadeConstraint(connection, MediaTableVideotracks.TABLE_NAME, MediaTableVideotracks.COL_FILEID, TABLE_NAME, COL_ID);
-						ensureCascadeConstraint(connection, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.COL_FILEID, TABLE_NAME, COL_ID);
 					}
 					default -> {
 						// Do the dumb way
@@ -454,12 +456,10 @@ public class MediaTableFiles extends MediaTable {
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 				//put back constaints
-				ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
-				ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
-				ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);
-				ensureCascadeConstraint(connection, MediaTableSubtracks.TABLE_NAME, MediaTableSubtracks.COL_FILEID, TABLE_NAME, COL_ID);
-				ensureCascadeConstraint(connection, MediaTableVideotracks.TABLE_NAME, MediaTableVideotracks.COL_FILEID, TABLE_NAME, COL_ID);
-				ensureCascadeConstraint(connection, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.COL_FILEID, TABLE_NAME, COL_ID);
+				executeUpdate(connection, ALTER_TABLE + IF_EXISTS + MediaTableAudiotracks.TABLE_NAME + ADD + CONSTRAINT + IF_NOT_EXISTS + MediaTableAudiotracks.TABLE_NAME + CONSTRAINT_SEPARATOR + MediaTableAudiotracks.COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + MediaTableAudiotracks.COL_FILEID + ")" + REFERENCES + TABLE_NAME + "(" + COL_ID + ")" + ON_DELETE_CASCADE);
+				executeUpdate(connection, ALTER_TABLE + IF_EXISTS + MediaTableSubtracks.TABLE_NAME + ADD + CONSTRAINT + IF_NOT_EXISTS + MediaTableSubtracks.TABLE_NAME + CONSTRAINT_SEPARATOR + MediaTableSubtracks.COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + MediaTableSubtracks.COL_FILEID + ")" + REFERENCES + TABLE_NAME + "(" + COL_ID + ")" + ON_DELETE_CASCADE);
+				executeUpdate(connection, ALTER_TABLE + IF_EXISTS + MediaTableChapters.TABLE_NAME + ADD + CONSTRAINT + IF_NOT_EXISTS + MediaTableChapters.TABLE_NAME + CONSTRAINT_SEPARATOR + MediaTableChapters.COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + MediaTableChapters.COL_FILEID + ")" + REFERENCES + TABLE_NAME + "(" + COL_ID + ")" + ON_DELETE_CASCADE);
+				executeUpdate(connection, ALTER_TABLE + IF_EXISTS + MediaTableVideoMetadata.TABLE_NAME + ADD + CONSTRAINT + IF_NOT_EXISTS + MediaTableVideoMetadata.TABLE_NAME + CONSTRAINT_SEPARATOR + MediaTableVideoMetadata.COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + MediaTableVideoMetadata.COL_FILEID + ")" + REFERENCES + TABLE_NAME + "(" + COL_ID + ")" + ON_DELETE_CASCADE);
 			} catch (SQLException se) {
 				LOGGER.error("SQL error while (re)initializing tables: {}", se.getMessage());
 				LOGGER.trace("", se);
@@ -468,25 +468,43 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_ID                      + INTEGER         + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
 				COL_MODIFIED                + TIMESTAMP       + NOT_NULL                     + COMMA +
-				COL_PARSER                  + VARCHAR_32                                     + COMMA +
 				COL_FORMAT_TYPE             + INTEGER                                        + COMMA +
-				COL_MEDIA_SIZE              + NUMERIC                                        + COMMA +
-				COL_CONTAINER               + VARCHAR_32                                     + COMMA +
-				COL_TITLECONTAINER          + VARCHAR_SIZE_MAX                               + COMMA +
+				//all columns here are not file related but media related
 				COL_DURATION                + DOUBLE_PRECISION                               + COMMA +
-				COL_BITRATE                 + INTEGER                                        + COMMA +
-				COL_FRAMERATE               + DOUBLE_PRECISION                               + COMMA +
-				//all columns here are not file (container) related but media related
-				COL_ASPECTRATIODVD          + VARCHAR_SIZE_MAX                               + COMMA +
-				COL_IMAGECOUNT              + INTEGER                                        + COMMA +
-				COL_IMAGEINFO               + OTHER                                          +
+				COL_BITRATE                 + INTEGER                                         + COMMA +
+				COL_WIDTH                   + INTEGER                                         + COMMA +
+				COL_HEIGHT                  + INTEGER                                         + COMMA +
+				COL_MEDIA_SIZE              + NUMERIC                                         + COMMA +
+				COL_CODECV                  + VARCHAR_32                                      + COMMA +
+				COL_FRAMERATE               + VARCHAR_32                                      + COMMA +
+				COL_ASPECTRATIODVD          + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_ASPECTRATIOCONTAINER    + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_ASPECTRATIOVIDEOTRACK   + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_REFRAMES                + TINYINT                                         + COMMA +
+				COL_AVCLEVEL                + VARCHAR_3                                       + COMMA +
+				COL_IMAGEINFO               + OTHER                                           + COMMA +
+				COL_CONTAINER               + VARCHAR_32                                      + COMMA +
+				COL_MUXINGMODE              + VARCHAR_32                                      + COMMA +
+				COL_FRAMERATEMODE           + VARCHAR_16                                      + COMMA +
+				COL_STEREOSCOPY             + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_MATRIXCOEFFICIENTS      + VARCHAR_16                                      + COMMA +
+				COL_TITLECONTAINER          + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_TITLEVIDEOTRACK         + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_VIDEOTRACKCOUNT         + INTEGER                                         + COMMA +
+				COL_IMAGECOUNT              + INTEGER                                         + COMMA +
+				COL_BITDEPTH                + INTEGER                                         + COMMA +
+				COL_HDRFORMAT               + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_HDRFORMATCOMPATIBILITY  + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_PIXELASPECTRATIO        + VARCHAR_SIZE_MAX                                + COMMA +
+				COL_SCANTYPE                + OTHER                                           + COMMA +
+				COL_SCANORDER               + OTHER                                           +
 			")"
 		);
 
@@ -495,6 +513,9 @@ public class MediaTableFiles extends MediaTable {
 
 		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE);
 		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + ")");
+
+		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE + COMMA + COL_WIDTH + COMMA + COL_HEIGHT);
+		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_WIDTH + CONSTRAINT_SEPARATOR + COL_HEIGHT + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + COMMA + COL_WIDTH + COMMA + COL_HEIGHT + ")");
 
 		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE + COMMA + COL_MODIFIED);
 		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + COMMA + COL_MODIFIED + ")");
@@ -579,7 +600,7 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static MediaInfo getMediaInfo(final Connection connection, String name, long modified) throws IOException, SQLException {
+	public static MediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
 		MediaInfo media = null;
 		try (
 			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
@@ -592,29 +613,46 @@ public class MediaTableFiles extends MediaTable {
 				if (rs.next()) {
 					media = new MediaInfo();
 					int id = rs.getInt(COL_ID);
-					media.setMediaParser(rs.getString(COL_PARSER));
-					media.setSize(rs.getLong(COL_MEDIA_SIZE));
-					media.setContainer(rs.getString(COL_CONTAINER));
-					media.setTitle(rs.getString(COL_TITLECONTAINER));
 					media.setDuration(toDouble(rs, COL_DURATION));
-					media.setBitRate(rs.getInt(COL_BITRATE));
-					media.setFrameRate(toDouble(rs, COL_FRAMERATE));
+					media.setBitrate(rs.getInt(COL_BITRATE));
+					media.setWidth(rs.getInt(COL_WIDTH));
+					media.setHeight(rs.getInt(COL_HEIGHT));
+					media.setSize(rs.getLong(COL_MEDIA_SIZE));
+					media.setCodecV(rs.getString(COL_CODECV));
+					media.setFrameRate(rs.getString(COL_FRAMERATE));
+					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
+					media.setAspectRatioContainer(rs.getString(COL_ASPECTRATIOCONTAINER));
+					media.setAspectRatioVideoTrack(rs.getString(COL_ASPECTRATIOVIDEOTRACK));
+					media.setReferenceFrameCount(rs.getByte(COL_REFRAMES));
+					media.setAvcLevel(rs.getString(COL_AVCLEVEL));
+					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
 					try {
 						media.setThumb((DLNAThumbnail) rs.getObject(MediaTableThumbnails.COL_THUMBNAIL));
 					} catch (SQLException se) {
 						//thumb will be recreated on next thumb request
 					}
-					//not media related
-					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
-					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
+					media.setContainer(rs.getString(COL_CONTAINER));
+					media.setMuxingMode(rs.getString(COL_MUXINGMODE));
+					media.setFrameRateMode(rs.getString(COL_FRAMERATEMODE));
+					media.setStereoscopy(rs.getString(COL_STEREOSCOPY));
+					media.setMatrixCoefficients(rs.getString(COL_MATRIXCOEFFICIENTS));
+					media.setFileTitleFromMetadata(rs.getString(COL_TITLECONTAINER));
+					media.setVideoTrackTitleFromMetadata(rs.getString(COL_TITLEVIDEOTRACK));
+					media.setVideoTrackCount(rs.getInt(COL_VIDEOTRACKCOUNT));
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
+					media.setVideoBitDepth(rs.getInt(COL_BITDEPTH));
+					media.setVideoHDRFormat(rs.getString(COL_HDRFORMAT));
+					media.setVideoHDRFormatCompatibility(rs.getString(COL_HDRFORMATCOMPATIBILITY));
+					media.setPixelAspectRatio(rs.getString(COL_PIXELASPECTRATIO));
+					// TODO : store this as string
+					media.setScanType((DLNAMediaInfo.ScanType) rs.getObject(COL_SCANTYPE));
+					media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject(COL_SCANORDER));
 
 					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, id));
-					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, id));
 					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, id));
 					media.setChapters(MediaTableChapters.getChapters(connection, id));
-					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, id));
 					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
+					media.setMediaparsed(true);
 				}
 			}
 		}
@@ -641,7 +679,7 @@ public class MediaTableFiles extends MediaTable {
 		if (id != null) {
 			MediaInfo media = new MediaInfo();
 			media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
-			media.setMediaParser(Parser.MANUAL_PARSER);
+			media.setMediaparsed(true);
 			return media;
 		}
 		return null;
@@ -680,17 +718,51 @@ public class MediaTableFiles extends MediaTable {
 					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
-						result.updateString(COL_PARSER, media.getMediaParser());
+						if (media.getDuration() != null) {
+							result.updateDouble(COL_DURATION, media.getDurationInSeconds());
+						} else {
+							result.updateNull(COL_DURATION);
+						}
+
+						if (type != Format.IMAGE) {
+							if (media.getBitrate() == 0) {
+								LOGGER.debug("Could not parse the bitrate for: " + name);
+							}
+							result.updateInt(COL_BITRATE, media.getBitrate());
+						} else {
+							result.updateInt(COL_BITRATE, 0);
+						}
+						result.updateInt(COL_WIDTH, media.getWidth());
+						result.updateInt(COL_HEIGHT, media.getHeight());
 						result.updateLong(COL_MEDIA_SIZE, media.getSize());
-						result.updateString(COL_CONTAINER, StringUtils.left(media.getContainer(), SIZE_CONTAINER));
-						result.updateString(COL_TITLECONTAINER, StringUtils.left(media.getFileTitleFromMetadata(), SIZE_MAX));
-						updateDouble(result, COL_DURATION, media.getDurationInSeconds());
-						updateInteger(result, COL_BITRATE, media.getBitRate());
-						updateDouble(result, COL_FRAMERATE, media.getFrameRate());
-						//not media related
-						result.updateInt(COL_IMAGECOUNT, media.getImageCount());
+						result.updateString(COL_CODECV, StringUtils.left(media.getCodecV(), SIZE_CODECV));
+						result.updateString(COL_FRAMERATE, StringUtils.left(media.getFrameRate(), SIZE_FRAMERATE));
 						result.updateString(COL_ASPECTRATIODVD, StringUtils.left(media.getAspectRatioDvdIso(), SIZE_MAX));
-						updateObject(result, COL_IMAGEINFO, media.getImageInfo());
+						result.updateString(COL_ASPECTRATIOCONTAINER, StringUtils.left(media.getAspectRatioContainer(), SIZE_MAX));
+						result.updateString(COL_ASPECTRATIOVIDEOTRACK, StringUtils.left(media.getAspectRatioVideoTrack(), SIZE_MAX));
+						result.updateByte(COL_REFRAMES, media.getReferenceFrameCount());
+						result.updateString(COL_AVCLEVEL, StringUtils.left(media.getAvcLevel(), SIZE_AVCLEVEL));
+						updateSerialized(result, media.getImageInfo(), COL_IMAGEINFO);
+						if (media.getImageInfo() != null) {
+							result.updateObject(COL_IMAGEINFO, media.getImageInfo());
+						} else {
+							result.updateNull(COL_IMAGEINFO);
+						}
+						result.updateString(COL_CONTAINER, StringUtils.left(media.getContainer(), SIZE_CONTAINER));
+						result.updateString(COL_MUXINGMODE, StringUtils.left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+						result.updateString(COL_FRAMERATEMODE, StringUtils.left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
+						result.updateString(COL_STEREOSCOPY, StringUtils.left(media.getStereoscopy(), SIZE_MAX));
+						result.updateString(COL_MATRIXCOEFFICIENTS, StringUtils.left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+						result.updateString(COL_TITLECONTAINER, StringUtils.left(media.getFileTitleFromMetadata(), SIZE_MAX));
+						result.updateString(COL_TITLEVIDEOTRACK, StringUtils.left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
+						result.updateInt(COL_VIDEOTRACKCOUNT, media.getVideoTrackCount());
+						result.updateInt(COL_IMAGECOUNT, media.getImageCount());
+						result.updateInt(COL_BITDEPTH, media.getVideoBitDepth());
+						result.updateString(COL_HDRFORMAT, StringUtils.left(media.getVideoHDRFormat(), SIZE_MAX));
+						result.updateString(COL_HDRFORMATCOMPATIBILITY, StringUtils.left(media.getVideoHDRFormatCompatibility(), SIZE_MAX));
+						result.updateString(COL_PIXELASPECTRATIO, StringUtils.left(media.getPixelAspectRatio(), SIZE_MAX));
+						updateSerialized(result, media.getScanType(), COL_SCANTYPE);
+						updateSerialized(result, media.getScanOrder(), COL_SCANORDER);
 					}
 					if (isCreatingNewRecord) {
 						result.insertRow();
@@ -703,9 +775,7 @@ public class MediaTableFiles extends MediaTable {
 
 			if (media != null && fileId > -1) {
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
-				MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
-				MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
 				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 			}
@@ -1031,10 +1101,11 @@ public class MediaTableFiles extends MediaTable {
 	//TODO : review this
 	public static List<File> getFiles(final Connection connection, String sql) {
 		List<File> list = new ArrayList<>();
-		String psSql = sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : (SELECT + COL_FILENAME + COMMA + COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement(psSql);
+				PreparedStatement ps = connection.prepareStatement(
+					sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : ("SELECT FILENAME, MODIFIED FROM " + TABLE_NAME + WHERE + sql)
+				);
 				ResultSet rs = ps.executeQuery();
 			) {
 				while (rs.next()) {
@@ -1047,7 +1118,6 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
 			return null;
 		}

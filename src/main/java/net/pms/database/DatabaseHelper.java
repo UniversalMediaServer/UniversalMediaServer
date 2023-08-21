@@ -16,12 +16,14 @@
  */
 package net.pms.database;
 
+import com.google.common.base.CharMatcher;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -225,16 +227,11 @@ public abstract class DatabaseHelper {
 	protected static final String CONSTRAINT = "CONSTRAINT ";
 	protected static final String DELETE_FROM = "DELETE FROM ";
 	protected static final String EQUAL = " = ";
-	protected static final String EQUAL_0 = EQUAL + "0";
-	protected static final String EMPTY_STRING = "''";
 	protected static final String EXISTS = "EXISTS ";
 	protected static final String FROM = " FROM ";
-	protected static final String GREATER_OR_EQUAL_THAN = " >= ";
 	protected static final String IF = "IF ";
 	protected static final String INDEX = "INDEX ";
-	protected static final String LESS_OR_EQUAL_THAN = " <= ";
 	protected static final String NOT = "NOT ";
-	protected static final String NOT_EQUAL = " != ";
 	protected static final String IS = " IS ";
 	protected static final String LEFT_JOIN = " LEFT JOIN ";
 	protected static final String LIMIT = " LIMIT ";
@@ -424,19 +421,6 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	protected static final void ensureCascadeConstraint(final Connection connection, String table, String column, String refTable, String refColumn) {
-		try {
-			if (isTableExist(connection, table)) {
-				//first delete bad entries if any
-				executeUpdate(connection, DELETE_FROM + table + WHERE + column + " NOT IN (" + SELECT + refTable + "." + refColumn + FROM + refTable + ")");
-				//then add cascade if needed
-				executeUpdate(connection, ALTER_TABLE + table + ADD + CONSTRAINT + IF_NOT_EXISTS + table + CONSTRAINT_SEPARATOR + column + FK_MARKER + FOREIGN_KEY + "(" + column + ")" + REFERENCES + refTable + "(" + refColumn + ")" + ON_DELETE_CASCADE);
-			}
-		} catch (SQLException e) {
-			LOGGER.error("error during ensuring cascade exists on table\"" + table + "\":" + e.getMessage(), e);
-		}
-	}
-
 	/**
 	 * Convenience method for handling SQL null values in <code>WHERE</code> or
 	 * <code>HAVING</code> statements. SQL doesn't see null as a value, and
@@ -586,28 +570,6 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	/**
-	 * Check if the table name exists in the database.
-	 *
-	 * @param connection the {@link Connection} to use.
-	 * @param table The name of the table.
-	 *
-	 * @return <code>true</code> if the table name exists in
-	 * the database <code>false</code> otherwise.
-	 *
-	 * @throws SQLException
-	 */
-	protected static boolean isTableExist(Connection connection, String table) throws SQLException {
-		ResultSet result = connection.getMetaData().getTables(null, null, table, null);
-		if (result.first()) {
-			LOGGER.trace("Table \"{}\" found in db", table);
-			return true;
-		} else {
-			LOGGER.trace("Table \"{}\" not found in db", table);
-			return false;
-		}
-	}
-
 	protected static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
@@ -631,20 +593,44 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	protected static Integer toInteger(ResultSet rs, String column) throws SQLException {
-		Object obj = rs.getObject(column);
-		if (obj instanceof Integer value) {
-			return value;
+	protected static void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
+		if (x != null) {
+			rs.updateObject(columnLabel, x);
+		} else {
+			rs.updateNull(columnLabel);
 		}
-		return null;
 	}
 
-	protected static Long toLong(ResultSet rs, String column) throws SQLException {
-		Object obj = rs.getObject(column);
-		if (obj instanceof Long value) {
-			return value;
+	protected static void insertSerialized(PreparedStatement ps, Object x, int parameterIndex) throws SQLException {
+		if (x != null) {
+			ps.setObject(parameterIndex, x);
+		} else {
+			ps.setNull(parameterIndex, Types.OTHER);
 		}
-		return null;
+	}
+	/**
+	 * Returns the VALUES {@link String} for the SQL request.
+	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p>
+	 * The number of the "?" is calculated from the columns and not need to be hardcoded which
+	 * often causes mistakes when columns are deleted or added.<p>
+	 * Possible implementation:
+	 * <blockquote><pre>
+	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
+	 * PreparedStatement insertStatement = connection.prepareStatement(
+	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" +
+	 *    createDefaultValueForInsertStatement(columns)
+	 * );
+	 * </pre></blockquote><p
+	 *
+	 * @param columns the SQL parameters string
+	 * @return The " VALUES (?,?,?, ...)" string
+	 *
+	 */
+	protected static String createDefaultValueForInsertStatement(String columns) {
+		int count = CharMatcher.is(',').countIn(columns);
+		StringBuilder sb = new StringBuilder();
+		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
+		return sb.toString();
 	}
 
 	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
@@ -653,46 +639,6 @@ public abstract class DatabaseHelper {
 			return value;
 		}
 		return null;
-	}
-
-	protected static void updateInteger(ResultSet result, String column, Integer value) throws SQLException {
-		if (value != null) {
-			result.updateInt(column, value);
-		} else {
-			result.updateNull(column);
-		}
-	}
-
-	protected static void updateLong(ResultSet result, String column, Long value) throws SQLException {
-		if (value != null) {
-			result.updateLong(column, value);
-		} else {
-			result.updateNull(column);
-		}
-	}
-
-	protected static void updateDouble(ResultSet result, String column, Double value) throws SQLException {
-		if (value != null) {
-			result.updateDouble(column, value);
-		} else {
-			result.updateNull(column);
-		}
-	}
-
-	protected static void updateString(ResultSet rs, String columnLabel, String value, int size) throws SQLException {
-		if (value != null) {
-			rs.updateString(columnLabel, StringUtils.left(StringUtils.trimToEmpty(value), size));
-		} else {
-			rs.updateNull(columnLabel);
-		}
-	}
-
-	protected static void updateObject(ResultSet rs, String columnLabel, Object value) throws SQLException {
-		if (value != null) {
-			rs.updateObject(columnLabel, value);
-		} else {
-			rs.updateNull(columnLabel);
-		}
 	}
 
 	public static void close(ResultSet rs) {

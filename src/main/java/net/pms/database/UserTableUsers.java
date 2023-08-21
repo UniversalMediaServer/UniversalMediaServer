@@ -146,7 +146,7 @@ public final class UserTableUsers extends UserTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID                 + INTEGER        + PRIMARY_KEY + AUTO_INCREMENT + COMMA +

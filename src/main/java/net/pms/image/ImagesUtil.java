@@ -16,8 +16,27 @@
  */
 package net.pms.image;
 
+import com.drew.imaging.FileType;
+import com.drew.imaging.FileTypeDetector;
+import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
+import com.drew.imaging.bmp.BmpMetadataReader;
+import com.drew.imaging.gif.GifMetadataReader;
+import com.drew.imaging.ico.IcoMetadataReader;
+import com.drew.imaging.jpeg.JpegMetadataReader;
+import com.drew.imaging.pcx.PcxMetadataReader;
+import com.drew.imaging.png.PngMetadataReader;
+import com.drew.imaging.psd.PsdMetadataReader;
+import com.drew.imaging.raf.RafMetadataReader;
+import com.drew.imaging.tiff.TiffMetadataReader;
+import com.drew.imaging.webp.WebpMetadataReader;
+import com.drew.lang.RandomAccessReader;
+import com.drew.lang.RandomAccessStreamReader;
+import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
+import com.drew.metadata.MetadataException;
+import com.drew.metadata.exif.ExifIFD0Directory;
+import com.drew.metadata.exif.ExifSubIFDDirectory;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
@@ -27,11 +46,15 @@ import java.awt.image.ColorConvertOp;
 import java.io.*;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.imageio.IIOException;
@@ -47,10 +70,12 @@ import net.pms.dlna.DLNAImageProfile.DLNAComplianceResult;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.BufferedImageFilter.BufferedImageFilterResult;
 import net.pms.image.ImageIOTools.ImageReaderResult;
-import net.pms.parsers.MetadataExtractorParser;
+import net.pms.media.MediaInfo;
 import net.pms.util.BufferedImageType;
 import net.pms.util.InvalidStateException;
 import net.pms.util.Iso639;
+import net.pms.util.ParseException;
+import net.pms.util.ResettableInputStream;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,6 +90,198 @@ public class ImagesUtil {
 	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/codes/%s.png";
 
 	private static final HashMap<String, WeakReference<BufferedImage>> LANGUAGE_FLAGS_CACHE = new HashMap<>();
+
+	/**
+	 * Parses an image file and stores the results in the given
+	 * {@link MediaInfo}. Parsing is performed using both
+	 * <a href=https://github.com/drewnoakes/metadata-extractor>Metadata Extractor</a>
+	 * and {@link ImageIO}. While Metadata Extractor offers more detailed
+	 * information, {@link ImageIO} offers information that is convenient for
+	 * image transformation with {@link ImageIO}. Parsing will be performed if
+	 * just one of the two methods produces results, but some details will be
+	 * missing if either one failed.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 * @param file the {@link File} to parse.
+	 * @param media the {@link MediaInfo} instance to store the parsing
+	 *              results to.
+	 * @throws IOException if an IO error occurs or no information can be parsed.
+	 *
+	 */
+	public static void parseImage(File file, MediaInfo media) throws IOException {
+		final int maxBuffer = 1048576; // 1 MB
+		if (file == null) {
+			throw new IllegalArgumentException("parseImage: file cannot be null");
+		}
+		if (media == null) {
+			throw new IllegalArgumentException("parseImage: media cannot be null");
+		}
+
+		boolean trace = LOGGER.isTraceEnabled();
+		if (trace) {
+			LOGGER.trace("Parsing image file \"{}\"", file.getAbsolutePath());
+		}
+		long size = file.length();
+		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
+		try  {
+			Metadata metadata;
+			FileType fileType = null;
+			try {
+				fileType = FileTypeDetector.detectFileType(inputStream);
+				metadata = getMetadata(inputStream, fileType);
+			} catch (IOException e) {
+				metadata = new Metadata();
+				LOGGER.debug("Error reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+				LOGGER.trace("", e);
+			} catch (ImageProcessingException e) {
+				metadata = new Metadata();
+				LOGGER.debug(
+					"Error parsing {} metadata for \"{}\": {}",
+					fileType != null ? fileType.toString().toUpperCase(Locale.ROOT) : "null",
+					file.getAbsolutePath(),
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+
+			ImageFormat format = ImageFormat.toImageFormat(fileType);
+			if (format == null || format == ImageFormat.TIFF) {
+				ImageFormat tmpformat = ImageFormat.toImageFormat(metadata);
+				if (tmpformat != null) {
+					format = tmpformat;
+				}
+			}
+			if (inputStream.isFullResetAvailable()) {
+				inputStream.fullReset();
+			} else {
+				// If we can't reset it, close it and create a new
+				inputStream.close();
+				inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
+			}
+			ImageInfo imageInfo = null;
+			try {
+				imageInfo = ImageIOTools.readImageInfo(inputStream, size, metadata, false);
+			} catch (UnknownFormatException | IIOException | ParseException e) {
+				if (format == null) {
+					throw new UnknownFormatException(
+						"Unable to recognize image format for \"" + file.getAbsolutePath() + "\" - parsing failed",
+						e
+					);
+				}
+				LOGGER.debug(
+					"Unable to parse \"{}\" with ImageIO because the format is unsupported, image information will be limited",
+					file.getAbsolutePath()
+				);
+				LOGGER.trace("ImageIO parse failure reason: {}", e.getMessage());
+
+				// Gather basic information from the data we have
+				if (metadata != null) {
+					try {
+						imageInfo = ImageInfo.create(metadata, format, size, true, true);
+					} catch (ParseException pe) {
+						LOGGER.debug("Unable to parse metadata for \"{}\": {}", file.getAbsolutePath(), pe.getMessage());
+						LOGGER.trace("", pe);
+					}
+				}
+			}
+
+			if (imageInfo == null && format == null) {
+				throw new ParseException("Parsing of \"" + file.getAbsolutePath() + "\" failed");
+			}
+
+			if (format == null && imageInfo != null) {
+				format = imageInfo.getFormat();
+			} else if (imageInfo != null && imageInfo.getFormat() != null && format != null && format != imageInfo.getFormat()) {
+				if (imageInfo.getFormat() == ImageFormat.TIFF && format.isRaw()) {
+					if (format == ImageFormat.ARW && !isARW(metadata)) {
+						// XXX Remove this if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
+						// Metadata extractor misidentifies some Photoshop created TIFFs for ARW, correct it
+						format = ImageFormat.toImageFormat(metadata);
+						if (format == null) {
+							format = ImageFormat.TIFF;
+						}
+						LOGGER.trace(
+							"Correcting misidentified image format ARW to {} for \"{}\"",
+							format,
+							file.getAbsolutePath()
+						);
+					} else {
+						/*
+						 * ImageIO recognizes many RAW formats as TIFF because
+						 * of their close relationship let's treat them as what
+						 * they really are.
+						 */
+						imageInfo = ImageInfo.create(
+							imageInfo.getWidth(),
+							imageInfo.getHeight(),
+							format,
+							size,
+							imageInfo.getBitDepth(),
+							imageInfo.getNumComponents(),
+							imageInfo.getColorSpace(),
+							imageInfo.getColorSpaceType(),
+							metadata,
+							false,
+							imageInfo.isImageIOSupported()
+							);
+						LOGGER.trace(
+							"Correcting misidentified image format TIFF to {} for \"{}\"",
+							format.toString(),
+							file.getAbsolutePath()
+						);
+					}
+				} else {
+					LOGGER.debug(
+						"Image parsing for \"{}\" was inconclusive, metadata parsing " +
+						"detected {} format while ImageIO detected {}. Choosing {}.",
+						file.getAbsolutePath(),
+						format,
+						imageInfo.getFormat(),
+						imageInfo.getFormat()
+					);
+					format = imageInfo.getFormat();
+				}
+			}
+			media.setImageInfo(imageInfo);
+			if (format != null) {
+				media.setCodecV(format.toFormatConfiguration());
+				media.setContainer(format.toFormatConfiguration());
+			}
+			if (trace) {
+				LOGGER.trace("Parsing of image \"{}\" completed", file.getName());
+			}
+		} finally {
+			inputStream.close();
+		}
+	}
+
+	/**
+	 * There is a bug in Metadata Extractor that misidentifies some TIFF files
+	 * as ARW files. This method is here to verify if such a misidentification
+	 * has taken place or not.
+	 *
+	 * @param metadata the {@link Metadata} instance to evaluate.
+	 * @return The result of the evaluation.
+	 *
+	 * XXX This method can be removed if https://github.com/drewnoakes/metadata-extractor/issues/217 is fixed
+	 */
+	public static boolean isARW(Metadata metadata) {
+		if (metadata == null) {
+			return false;
+		}
+		Collection<ExifSubIFDDirectory> directories = metadata.getDirectoriesOfType(ExifSubIFDDirectory.class);
+		for (ExifSubIFDDirectory directory : directories) {
+			if (
+				directory.containsTag(ExifSubIFDDirectory.TAG_COMPRESSION) &&
+				directory.getInteger(ExifSubIFDDirectory.TAG_COMPRESSION) != null &&
+				directory.getInteger(ExifSubIFDDirectory.TAG_COMPRESSION) == 32767
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/**
 	 * Converts a raw Exif version byte array to an integer value.
@@ -96,6 +313,44 @@ public class ImagesUtil {
 			LOGGER.debug("Failed to parse Exif version number from: {}", Arrays.toString(bytes));
 			return 0;
 		}
+	}
+
+	/**
+	 * Tries to parse {@link ExifOrientation} from the given metadata. If it
+	 * fails, {@link ExifOrientation#TOP_LEFT} is returned.
+	 *
+	 * @param metadata the {@link Metadata} to parse.
+	 * @return The parsed {@link ExifOrientation} or
+	 *         {@link ExifOrientation#TOP_LEFT}.
+	 */
+	public static ExifOrientation parseExifOrientation(Metadata metadata) {
+		return parseExifOrientation(metadata, ExifOrientation.TOP_LEFT);
+	}
+
+	/**
+	 * Tries to parse {@link ExifOrientation} from the given metadata. If it
+	 * fails, {@code defaultOrientation} is returned.
+	 *
+	 * @param metadata the {@link Metadata} to parse.
+	 * @param defaultOrientation the default to return if parsing fails.
+	 * @return The parsed {@link ExifOrientation} or {@code defaultOrientation}.
+	 */
+	public static ExifOrientation parseExifOrientation(Metadata metadata, ExifOrientation defaultOrientation) {
+		if (metadata == null) {
+			return defaultOrientation;
+		}
+		try {
+			for (Directory directory : metadata.getDirectories()) {
+				if (directory instanceof ExifIFD0Directory exifIFD0Directory &&
+					exifIFD0Directory.containsTag(ExifIFD0Directory.TAG_ORIENTATION)
+				) {
+					return ExifOrientation.typeOf(exifIFD0Directory.getInt(ExifIFD0Directory.TAG_ORIENTATION));
+				}
+			}
+		} catch (MetadataException e) {
+			return defaultOrientation;
+		}
+		return defaultOrientation;
 	}
 
 	/**
@@ -1126,7 +1381,7 @@ public class ImagesUtil {
 			orientation = inputImage.getImageInfo().getExifOrientation();
 		} else {
 			try {
-				metadata = MetadataExtractorParser.getMetadata(inputByteArray, inputResult.imageFormat);
+				metadata = getMetadata(inputByteArray, inputResult.imageFormat);
 			} catch (IOException | ImageProcessingException e) {
 				LOGGER.error("Failed to read input image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -1135,7 +1390,7 @@ public class ImagesUtil {
 			if (metadata == null) {
 				metadata = new Metadata();
 			}
-			orientation = MetadataExtractorParser.parseExifOrientation(metadata);
+			orientation = parseExifOrientation(metadata);
 		}
 
 		if (orientation != ExifOrientation.TOP_LEFT) {
@@ -1150,7 +1405,7 @@ public class ImagesUtil {
 			ByteArrayOutputStream tmpOutputStream = new ByteArrayOutputStream(inputByteArray.length);
 			Thumbnails.of(bufferedImage).scale(1.0d).outputFormat(outputFormat.toString()).toOutputStream(tmpOutputStream);
 			try {
-				metadata = MetadataExtractorParser.getMetadata(tmpOutputStream.toByteArray(), outputFormat);
+				metadata = getMetadata(tmpOutputStream.toByteArray(), outputFormat);
 			} catch (IOException | ImageProcessingException e) {
 				LOGGER.debug("Failed to read rotated image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -1426,6 +1681,190 @@ public class ImagesUtil {
 	}
 
 	/**
+	 * Extracts an embedded Exif thumbnail from a {@link Metadata} instance.
+	 *
+	 * @param file the {@link File} to read the thumbnail from
+	 * @param metadata the {@link Metadata} collected on the {@link File}
+	 *                 previously.
+	 * @return A byte array containing the thumbnail or {@code null} if no
+	 *         thumbnail was found/could be extracted.
+	 */
+	@SuppressWarnings("unused")
+	public static byte[] getThumbnailFromMetadata(File file, Metadata metadata) {
+		if (metadata == null) {
+			return null;
+		}
+
+		/*
+		 * XXX Extraction of thumbnails was removed in version
+		 * 2.10.0 of metadata-extractor because of a bug in
+		 * related code. This section is deactivated while
+		 * waiting for this to be made available again.
+		 *
+		 * Images supported by ImageIO or DCRaw aren't affected,
+		 * so this only applied to very few images anyway.
+		 * It could extract thumbnails for some "raw" images
+		 * if DCRaw was disabled.
+		 *
+		// First check if there is a ExifThumbnailDirectory
+		Collection<ExifThumbnailDirectory> directories = metadata.getDirectoriesOfType(ExifThumbnailDirectory.class);
+		if (directories.isEmpty()) {
+			return null;
+		}
+
+		// Now get the thumbnail data if they're there
+		directories = metadata.getDirectoriesOfType(ExifThumbnailDirectory.class);
+		for (ExifThumbnailDirectory directory : directories) {
+			if (directory.hasThumbnailData()) {
+				return directory.getThumbnailData();
+			}
+		}*/
+
+		return null;
+	}
+
+	/**
+	 * Reads image metadata for supported format.
+	 *
+	 * @param bytes the image for which to read metadata.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Metadata getMetadata(byte[] bytes, ImageFormat format) throws ImageProcessingException, IOException {
+		return getMetadata(bytes, format, null);
+	}
+
+	/**
+	 * Reads image metadata for supported format.
+	 *
+	 * @param bytes the image for which to read metadata.
+	 * @param fileType the {@link FileType} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Metadata getMetadata(byte[] bytes, FileType fileType) throws ImageProcessingException, IOException {
+		return getMetadata(bytes, null, fileType);
+	}
+
+	/**
+	 * Reads image metadata for supported format. Either {@code format} or
+	 * {@code FileType} must be non-null.
+	 *
+	 * @param bytes the image for which to read metadata.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @param fileType the {@link FileType} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Metadata getMetadata(byte[] bytes, ImageFormat format, FileType fileType) throws ImageProcessingException, IOException {
+		if (bytes == null) {
+			return null;
+		}
+		return getMetadata(new ByteArrayInputStream(bytes), format, fileType);
+	}
+
+	/**
+	 * Reads image metadata for supported formats.
+	 *
+	 * @param inputStream the image for which to read metadata.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Metadata getMetadata(InputStream inputStream, ImageFormat format) throws ImageProcessingException, IOException {
+		return getMetadata(inputStream, format, null);
+	}
+
+	/**
+	 * Reads image metadata for supported formats.
+	 *
+	 * @param inputStream the image for which to read metadata.
+	 * @param fileType the {@link FileType} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	public static Metadata getMetadata(InputStream inputStream, FileType fileType) throws ImageProcessingException, IOException {
+		return getMetadata(inputStream, null, fileType);
+	}
+
+	/**
+	 * Reads image metadata for supported formats. Either {@code format} or
+	 * {@code FileType} must be non-null.
+	 *
+	 * @param inputStream the image for which to read metadata.
+	 * @param format the {@link ImageFormat} of the image.
+	 * @param fileType the {@link FileType} of the image.
+	 * @return The {@link Metadata} or {@code null} if {@code bytes} is
+	 *         {@code null}.
+	 * @throws ImageProcessingException If the image cannot be processed.
+	 * @throws IOException If an error occurs during the operation.
+	 */
+	@SuppressWarnings("null")
+	public static Metadata getMetadata(
+		InputStream inputStream,
+		ImageFormat format,
+		FileType fileType
+	) throws ImageProcessingException, IOException {
+		if (inputStream == null) {
+			return null;
+		}
+		if (format == null && fileType == null) {
+			throw new IllegalArgumentException("Either format or fileType must be non-null");
+		}
+
+		Metadata metadata;
+
+		if (fileType != null) {
+			metadata = switch (fileType) {
+				case Bmp -> BmpMetadataReader.readMetadata(inputStream);
+				case Gif -> GifMetadataReader.readMetadata(inputStream);
+				case Ico -> IcoMetadataReader.readMetadata(inputStream);
+				case Jpeg -> JpegMetadataReader.readMetadata(inputStream);
+				case Pcx -> PcxMetadataReader.readMetadata(inputStream);
+				case Png -> PngMetadataReader.readMetadata(inputStream);
+				case Psd -> PsdMetadataReader.readMetadata(inputStream);
+				case Raf -> RafMetadataReader.readMetadata(inputStream);
+				case Riff, WebP -> WebpMetadataReader.readMetadata(inputStream);
+				case Tiff, Arw, Cr2, Nef, Orf, Rw2 -> TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
+						inputStream, RandomAccessStreamReader.DEFAULT_CHUNK_LENGTH, -1
+					));
+				// Return an empty Metadata instance for unsupported formats
+				default -> new Metadata();
+			};
+		} else {
+			metadata = switch (format) {
+				case BMP -> BmpMetadataReader.readMetadata(inputStream);
+				case GIF -> GifMetadataReader.readMetadata(inputStream);
+				case ICO -> IcoMetadataReader.readMetadata(inputStream);
+				case JPEG -> JpegMetadataReader.readMetadata(inputStream);
+				case DCX, PCX -> PcxMetadataReader.readMetadata(inputStream);
+				case PNG -> PngMetadataReader.readMetadata(inputStream);
+				case PSD -> PsdMetadataReader.readMetadata(inputStream);
+				case RAF -> RafMetadataReader.readMetadata(inputStream);
+				case TIFF, ARW, CR2, NEF, ORF, RW2 -> TiffMetadataReader.readMetadata(new RandomAccessStreamReader(
+						inputStream, RandomAccessStreamReader.DEFAULT_CHUNK_LENGTH, -1
+					));
+				case WEBP -> WebpMetadataReader.readMetadata(inputStream);
+				case SOURCE -> ImageMetadataReader.readMetadata(inputStream);
+				// Return an empty Metadata instance for unsupported formats
+				default ->  new Metadata();
+			};
+		}
+		return metadata;
+	}
+
+	/**
 	 * @param fileName the "file name" part of the HTTP request.
 	 * @return The "decoded" {@link ImageProfile} or
 	 *         {@link ImageProfile#JPEG_TN} if the parsing fails.
@@ -1588,6 +2027,140 @@ public class ImagesUtil {
 			}
 		}
 		return result;
+	}
+
+	/**
+	 * Finds the offset of the given Exif tag. Only the first IFD is searched.
+	 *
+	 * @param tagId the tag id to look for.
+	 * @param reader a {@link RandomAccessReader} with a JPEG image.
+	 * @return the offset of the given tag's value, or -1 if not found.
+	 * @throws UnknownFormatException if the content isn't a JPEG.
+	 * @throws IOException if any error occurs while reading.
+	 */
+	public static int getJPEGExifIFDTagOffset(int tagId, RandomAccessReader reader) throws UnknownFormatException, IOException {
+		reader.setMotorolaByteOrder(true);
+		if (reader.getUInt16(0) != 0xFFD8) {
+			throw new UnknownFormatException("Content isn't JPEG");
+		}
+
+		byte jpegSegmentIdentifier = (byte) 0xFF;
+		byte markerEOI = (byte) 0xD9;
+		byte app1 = (byte) 0xE1;
+		final String exifSegmentPreamble = "Exif\0\0";
+
+		byte segmentIdentifier = reader.getInt8(2);
+		byte segmentType = reader.getInt8(3);
+
+		int pos = 4;
+
+		while (
+			segmentIdentifier != jpegSegmentIdentifier ||
+			segmentType != app1 &&
+			segmentType != markerEOI ||
+			segmentType == app1 &&
+			!exifSegmentPreamble.equals(new String(
+				reader.getBytes(pos + 2, exifSegmentPreamble.length()),
+				0,
+				exifSegmentPreamble.length(),
+				StandardCharsets.US_ASCII)
+			)
+		) {
+			segmentIdentifier = segmentType;
+			segmentType = reader.getInt8(pos++);
+		}
+
+		if (segmentType == markerEOI) {
+			// Reached the end of the image without finding an Exif segment
+			return -1;
+		}
+
+		int segmentLength = reader.getUInt16(pos) - 2;
+		pos += 2 + exifSegmentPreamble.length();
+
+		if (segmentLength < exifSegmentPreamble.length()) {
+			throw new ParseException("Exif segment is too small");
+		}
+
+		int exifHeaderOffset = pos;
+
+		short byteOrderIdentifier = reader.getInt16(pos);
+		pos += 4; // Skip TIFF marker
+
+		switch (byteOrderIdentifier) {
+			// "MM"
+			case 0x4d4d -> reader.setMotorolaByteOrder(true);
+			// "II"
+			case 0x4949 -> reader.setMotorolaByteOrder(false);
+			default -> throw new ParseException("Can't determine Exif endianness from: 0x" + Integer.toHexString(byteOrderIdentifier));
+		}
+
+		pos = reader.getInt32(pos) + exifHeaderOffset;
+
+		int tagCount = reader.getUInt16(pos);
+
+		for (int tagNumber = 0; tagNumber < tagCount; tagNumber++) {
+			int tagOffset = pos + 2 + (12 * tagNumber);
+			int curTagId = reader.getUInt16(tagOffset);
+			if (curTagId == tagId) {
+				// tag found
+				return tagOffset + 8;
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Reads the resolution specified in the JPEG SOF header.
+	 *
+	 * @param reader a {@link RandomAccessReader} with a JPEG image.
+	 * @return The JPEG SOF specified resolution or {@code null} if no SOF is
+	 *         found.
+	 * @throws UnknownFormatException if the content isn't a JPEG.
+	 * @throws IOException if any error occurs while reading.
+	 */
+	public static Dimension getJPEGResolution(RandomAccessReader reader) throws UnknownFormatException, IOException {
+		reader.setMotorolaByteOrder(true);
+		if (reader.getUInt16(0) != 0xFFD8) {
+			throw new UnknownFormatException("Content isn't JPEG");
+		}
+
+		byte jpegSegmentIdentifier = (byte) 0xFF;
+		byte markerEOI = (byte) 0xD9;
+		Set<Byte> sofs = Set.of(
+			(byte) 0xC0, (byte) 0xC1, (byte) 0xC2, (byte) 0xC3, (byte) 0xC5,
+			(byte) 0xC6, (byte) 0xC7, (byte) 0xC8, (byte) 0xC9, (byte) 0xCA,
+			(byte) 0xCB, (byte) 0xCD, (byte) 0xCE, (byte) 0xCF
+		);
+
+		byte segmentIdentifier = reader.getInt8(2);
+		byte segmentType = reader.getInt8(3);
+
+		int pos = 4;
+
+		while (
+			segmentIdentifier != jpegSegmentIdentifier ||
+			!sofs.contains(segmentType) &&
+			segmentType != markerEOI
+		) {
+			segmentIdentifier = segmentType;
+			segmentType = reader.getInt8(pos++);
+		}
+
+		if (segmentType == markerEOI) {
+			// Reached the end of the image without finding the SOF segment
+			return null;
+		}
+
+		int segmentLength = reader.getUInt16(pos) - 2;
+		pos += 3;
+
+		if (segmentLength < 5) {
+			throw new ParseException("SOF segment is too small");
+		}
+
+		return new Dimension(reader.getUInt16(pos + 2), reader.getUInt16(pos));
 	}
 
 	/**

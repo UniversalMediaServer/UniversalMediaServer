@@ -195,7 +195,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
-			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracks());
+			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
 			List<MediaSubtitle> subtitlesTracks;
 			if (getMediaSubtitle() != null) {
 				// Transcode folder of live subtitles folder

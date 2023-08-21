@@ -129,7 +129,8 @@ public class VideoLanVideoStreaming extends Engine {
 		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		boolean isWindows = Platform.isWindows();
 		final String filename = dlna.getFileName();
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + getMux());
@@ -197,6 +198,7 @@ public class VideoLanVideoStreaming extends Engine {
 		UMSUtils.sleep(150);
 
 		pw.runInNewThread();
+		configuration = prev;
 		return pw;
 	}
 

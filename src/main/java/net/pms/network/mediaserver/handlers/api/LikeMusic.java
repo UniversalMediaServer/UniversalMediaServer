@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
+import net.pms.database.MediaTableAudiotracks;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
@@ -62,7 +62,17 @@ public class LikeMusic implements ApiResponseHandler {
 
 			String sql;
 			switch (uri) {
-				case "likealbum" -> {
+				case "likesong":
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = true WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
+						ps.setString(1, content);
+						ps.executeUpdate();
+					} catch (SQLException e) {
+						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
+					}
+					break;
+				case "likealbum":
 					sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
 					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
@@ -71,8 +81,18 @@ public class LikeMusic implements ApiResponseHandler {
 						LOG.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
-				}
-				case "dislikealbum" -> {
+					break;
+				case "dislikesong":
+					sql = "UPDATE " + MediaTableAudiotracks.TABLE_NAME + " SET LIKESONG = false WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
+					try (PreparedStatement ps = connection.prepareStatement(sql)) {
+						ps.setString(1, content);
+						ps.executeUpdate();
+					} catch (SQLException e) {
+						LOG.warn("error preparing statement", e);
+						return "ERROR:" + e.getMessage();
+					}
+					break;
+				case "dislikealbum":
 					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					try (PreparedStatement ps = connection.prepareStatement(sql)) {
 						ps.setString(1, content);
@@ -81,27 +101,22 @@ public class LikeMusic implements ApiResponseHandler {
 						LOG.warn("error preparing statement", e);
 						return "ERROR:" + e.getMessage();
 					}
-				}
-				case "isalbumliked" -> {
+					break;
+				case "isalbumliked":
 					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
-				}
-				case "issongliked" -> {
-					sql = "SELECT COUNT(*) FROM " + MediaTableAudioMetadata.TABLE_NAME + " WHERE " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK + " = ?";
+				case "issongliked":
+					sql = "SELECT COUNT(*) FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableAudiotracks.TABLE_COL_MBID_TRACK + " = ?";
 					return Boolean.toString(isCountGreaterZero(sql, connection, content));
-				}
-				case "backupLikedAlbums" -> {
+				case "backupLikedAlbums":
 					backupLikedAlbums();
 					return "OK";
-				}
-				case "restoreLikedAlbums" -> {
+				case "restoreLikedAlbums":
 					restoreLikedAlbums();
 					return "OK";
-				}
-				default -> {
+				default:
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 					return "ERROR";
-				}
 			}
 
 			return "ERROR";
@@ -140,7 +155,7 @@ public class LikeMusic implements ApiResponseHandler {
 				stmt.execute(sql);
 				try {
 					RunScript.execute(connection, new FileReader(backupFilename));
-				} catch (FileNotFoundException | SQLException e) {
+				} catch (Exception e) {
 					LOG.error("restoring MUSIC_BRAINZ_RELEASE_LIKE table : failed");
 					throw new RuntimeException("restoring MUSIC_BRAINZ_RELEASE_LIKE table failed", e);
 				}

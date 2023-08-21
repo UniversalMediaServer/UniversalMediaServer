@@ -21,6 +21,7 @@ import com.sun.jna.Platform;
 import java.awt.Dimension;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,7 +45,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.media.MediaInfo;
-import net.pms.parsers.MetadataExtractorParser;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
@@ -217,8 +217,8 @@ public class DCRaw extends ImageEngine {
 			if (isJPEG) {
 				try {
 					ByteArrayReader reader = new ByteArrayReader(bytes);
-					exifOrientationOffset = MetadataExtractorParser.getJPEGExifIFDTagOffset(0x112, reader);
-					jpegResolution = MetadataExtractorParser.getJPEGResolution(reader);
+					exifOrientationOffset = ImagesUtil.getJPEGExifIFDTagOffset(0x112, reader);
+					jpegResolution = ImagesUtil.getJPEGResolution(reader);
 				} catch (IOException e) {
 					exifOrientationOffset = -1;
 					LOGGER.debug(
@@ -312,6 +312,55 @@ public class DCRaw extends ImageEngine {
 			LOGGER.trace("Failed to generate thumbnail with DCRaw for image \"{}\"", fileName);
 		}
 		return bytes != null && bytes.length > 0 ? bytes : null;
+	}
+
+	/**
+	 * Parses {@code file} and stores the result in {@code media}.
+	 *
+	 * @param media the {@link MediaInfo} instance to store the parse
+	 *            results in.
+	 * @param file the {@link File} to parse.
+	 */
+	@Override
+	public void parse(MediaInfo media, File file) {
+		if (media == null) {
+			throw new NullPointerException("media cannot be null");
+		}
+		if (file == null) {
+			throw new NullPointerException("file cannot be null");
+		}
+
+		OutputParams params = new OutputParams(configuration);
+		params.setLog(true);
+
+		String[] cmdArray = new String[4];
+		cmdArray[0] = EngineFactory.getEngineExecutable(ID);
+		cmdArray[1] = "-i";
+		cmdArray[2] = "-v";
+		cmdArray[3] = file.getAbsolutePath();
+
+		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params, true, false);
+		pw.runInSameThread();
+
+		List<String> list = pw.getOtherResults();
+		Pattern pattern = Pattern.compile("^Output size:\\s*(\\d+)\\s*x\\s*(\\d+)");
+		Matcher matcher;
+		for (String s : list) {
+			matcher = pattern.matcher(s);
+			if (matcher.find()) {
+				media.setWidth(Integer.parseInt(matcher.group(1)));
+				media.setHeight(Integer.parseInt(matcher.group(2)));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+						"Parsed resolution {} x {} for image \"{}\" from DCRaw output",
+						matcher.group(1),
+						matcher.group(2),
+						file.getPath()
+					);
+				}
+				break;
+			}
+		}
 	}
 
 	@Override

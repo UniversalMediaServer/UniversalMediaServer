@@ -22,7 +22,6 @@ import net.pms.formats.audio.*;
 import net.pms.formats.image.*;
 import net.pms.formats.subtitle.*;
 import net.pms.media.MediaInfo;
-import net.pms.parsers.Parser;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -91,7 +90,7 @@ public class FormatsRegressionTest {
 		// The following exception was thrown during execution in test
 		// generation
 		try {
-			Parser.parse(dLNAMediaInfo1, inputFile2, mPG0, (short) 0);
+			mPG0.parse(dLNAMediaInfo1, inputFile2, (short) 0, null);
 			fail("Expected exception of type NullPointerException");
 		} catch (NullPointerException e) {
 			// Expected exception.

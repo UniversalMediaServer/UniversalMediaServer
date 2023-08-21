@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -128,7 +128,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID            + IDENTITY          + PRIMARY_KEY + COMMA +

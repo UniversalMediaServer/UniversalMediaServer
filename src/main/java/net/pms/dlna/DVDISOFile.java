@@ -16,13 +16,18 @@
  */
 package net.pms.dlna;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import org.apache.commons.text.WordUtils;
+import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
-import net.pms.parsers.MPlayerParser;
-import org.apache.commons.lang3.StringUtils;
+import net.pms.io.OutputParams;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.ProcessUtil;
+import net.pms.util.UMSUtils;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
@@ -49,7 +54,7 @@ public class DVDISOFile extends VirtualFolder {
 
 	@Override
 	public String getName() {
-		if (StringUtils.isNotBlank(volumeId)) {
+		if (isNotBlank(volumeId)) {
 			if (configuration.isPrettifyFilenames()) {
 				return "[DVD] " + volumeId;
 			}
@@ -91,8 +96,53 @@ public class DVDISOFile extends VirtualFolder {
 
 	@Override
 	protected void resolveOnce() {
-		Map<Integer, Double> titles = new HashMap<>();
-		volumeId = MPlayerParser.parseIsoFile(file, titles);
+		double[] titles = new double[100];
+		String[] cmd = new String[]{
+			configuration.getMPlayerPath(),
+			"-identify",
+			"-endpos",
+			"0",
+			"-ao",
+			"null",
+			"-vc",
+			"null",
+			"-vo",
+			"null",
+			"-dvd-device",
+			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
+			"dvd://"
+		};
+		OutputParams params = new OutputParams(configuration);
+		params.setMaxBufferSize(1);
+		params.setLog(true);
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
+		Runnable r = () -> {
+			UMSUtils.sleep(10000);
+			pw.stopProcess();
+		};
+
+		Thread failsafe = new Thread(r, "DVDISO Failsafe");
+		failsafe.start();
+		pw.runInSameThread();
+		List<String> lines = pw.getOtherResults();
+		if (lines != null) {
+			for (String line : lines) {
+				if (line.startsWith("ID_DVD_TITLE_") && line.contains("_LENGTH")) {
+					int rank = Integer.parseInt(line.substring(13, line.indexOf("_LENGT")));
+					double duration = Double.parseDouble(line.substring(line.lastIndexOf("LENGTH=") + 7));
+					titles[rank] = duration;
+				} else if (line.startsWith("ID_DVD_VOLUME_ID")) {
+					String volumeID = line.substring(line.lastIndexOf("_ID=") + 4).trim();
+					if (configuration.isPrettifyFilenames()) {
+						volumeID = volumeID.replaceAll("_", " ");
+						if (isNotBlank(volumeID) && volumeID.equals(volumeID.toUpperCase(PMS.getLocale()))) {
+							volumeID = WordUtils.capitalize(volumeID.toLowerCase(PMS.getLocale()));
+						}
+					}
+					this.volumeId = volumeID;
+				}
+			}
+		}
 
 		double oldduration = -1;
 
@@ -103,11 +153,10 @@ public class DVDISOFile extends VirtualFolder {
 			 * The "maybe wrong" title is taken into account only if its duration is less than 1 hour.
 			 * Common-sense is a single video track on a DVD is usually greater than 1h
 			 */
-			Double duration = titles.get(i);
-			if (duration != null && duration > 10 && (duration != oldduration || oldduration < 3600)) {
+			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
 				DVDISOTitle dvd = new DVDISOTitle(file, volumeId, i);
 				addChild(dvd);
-				oldduration = duration;
+				oldduration = titles[i];
 			}
 		}
 
@@ -116,5 +165,4 @@ public class DVDISOFile extends VirtualFolder {
 		}
 
 	}
-
 }

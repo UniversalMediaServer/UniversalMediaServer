@@ -72,7 +72,8 @@ public class YoutubeDl extends FFMpegVideo {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
-		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
+		UmsConfiguration prev = configuration;
+		configuration = params.getMediaRenderer().getUmsConfiguration();
 		String filename = dlna.getFileName();
 		setAudioAndSubs(dlna, params);
 
@@ -149,6 +150,7 @@ public class YoutubeDl extends FFMpegVideo {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
+		configuration = prev;
 		return pw;
 	}
 

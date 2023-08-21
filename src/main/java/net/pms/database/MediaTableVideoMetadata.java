@@ -25,8 +25,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import net.pms.media.MediaInfo;
-import net.pms.media.video.metadata.MediaVideoMetadata;
-import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.media.metadata.MediaVideoMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -199,7 +199,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_FILEID                  + INTEGER                            + PRIMARY_KEY + COMMA +
