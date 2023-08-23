@@ -26,8 +26,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.media.video.metadata.TvSeriesMetadata;
-import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.media.metadata.TvSeriesMetadata;
+import net.pms.media.metadata.VideoMetadataLocalized;
 import net.pms.util.APIUtils;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -284,7 +284,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID + "                   IDENTITY           PRIMARY KEY , " +

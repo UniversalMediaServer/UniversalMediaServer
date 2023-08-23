@@ -18,233 +18,389 @@ package net.pms.media.audio;
 
 import java.util.Locale;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.formats.v2.AudioProperties;
 import net.pms.media.MediaLang;
-import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of the audio properties of media.
  */
 public class MediaAudio extends MediaLang implements Cloneable {
-
-	public static final int DEFAULT_BIT_DEPTH = 16;
-	public static final int DEFAULT_SAMPLE_RATE = 48000;
-	public static final int DEFAULT_NUMBER_OF_CHANNELS = 2;
-
-	private Integer streamOrder;
-	private boolean defaultFlag;
-	private boolean forcedFlag;
-	private String codec;
-	private Long optionalId;
-	private String title;
-	private String muxingMode;
-	private int numberOfChannels = DEFAULT_NUMBER_OF_CHANNELS;
-	private int bitsDepth = DEFAULT_BIT_DEPTH;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaAudio.class);
+	private AudioProperties audioProperties = new AudioProperties();
+	private int bitsperSample = 16;
 	private int bitRate;
-	private int sampleRate = DEFAULT_SAMPLE_RATE;
-	private int videoDelay = 0;
+	private String sampleFrequency;
+	private String codecA;
+	private String album;
+	private String artist;
+	private String composer;
+	private String conductor;
+	private String songname;
+	private String genre;
+	private int year;
+	private int disc = 1;
+	private int track;
+	private String audioTrackTitleFromMetadata;
+	private String muxingModeAudio;
+	private String albumartist;
+	private String mbidRecord;
+	private String mbidTrack;
+	private Integer rating;
+	private int audiotrackId;
 
 	/**
-	 * @return the container stream index.
-	 */
-	public Integer getStreamOrder() {
-		return streamOrder;
-	}
-
-	/**
-	 * @param streamIndex the container stream index to set
-	 */
-	public void setStreamOrder(Integer streamIndex) {
-		this.streamOrder = streamIndex;
-	}
-
-	/**
-	 * Whether the stream was flagged to default audio stream.
+	 * Returns the sample rate for this audio media.
 	 *
-	 * @return {boolean}
-	 */
-	public boolean isDefault() {
-		return defaultFlag;
-	}
-
-	/**
-	 * @param defaultFlag the default flag to set
-	 */
-	public void setDefault(boolean defaultFlag) {
-		this.defaultFlag = defaultFlag;
-	}
-
-	/**
-	 * Whether the stream was flagged to forced video stream.
-	 *
-	 * @return {boolean}
-	 */
-	public boolean isForced() {
-		return forcedFlag;
-	}
-
-	/**
-	 * @param forcedFlag the forced flag to set
-	 */
-	public void setForced(boolean forcedFlag) {
-		this.forcedFlag = forcedFlag;
-	}
-
-	/**
-	 * Returns the optional id for this audio stream.
-	 *
-	 * @return The optional id.
-	 */
-	public Long getOptionalId() {
-		return optionalId;
-	}
-
-	/**
-	 * Sets an optional id for this audio stream.
-	 *
-	 * @param uid the optional id to set.
-	 */
-	public void setOptionalId(Long optionalId) {
-		this.optionalId = optionalId;
-	}
-
-	/**
-	 * Returns the number of bits per sample for the audio.
-	 *
-	 * @return The number of bits per sample.
-	 * @since 1.50
-	 */
-	public int getBitDepth() {
-		return bitsDepth;
-	}
-
-	/**
-	 * Sets the number of bits per sample for the audio.
-	 *
-	 * @param bitsDepth The number of bits per sample to set.
-	 * @since 1.50
-	 */
-	public void setBitDepth(int bitsDepth) {
-		this.bitsDepth = bitsDepth;
-	}
-
-	/**
-	 * Returns audio bitrate.
-	 *
-	 * @return Audio bitrate.
-	 */
-	public int getBitRate() {
-		return bitRate;
-	}
-
-	/**
-	 * Sets audio bitrate.
-	 *
-	 * @param bitRate Audio bitrate to set.
-	 */
-	public void setBitRate(int bitRate) {
-		this.bitRate = bitRate;
-	}
-
-	/**
-	 * Returns the name of the audio codec that is being used.
-	 *
-	 * @return The name of the audio codec.
-	 * @since 1.50
-	 */
-	public String getCodec() {
-		return codec;
-	}
-
-	/**
-	 * Sets the name of the audio codec that is being used.
-	 *
-	 * @param codecA The name of the audio codec to set.
-	 * @since 1.50
-	 */
-	public void setCodec(String codec) {
-		this.codec = codec != null ? codec.toLowerCase(Locale.ROOT) : null;
-	}
-
-	public String getTitle() {
-		return title;
-	}
-
-	public void setTitle(String value) {
-		this.title = value;
-	}
-
-	/**
-	 * Returns the audio codec to use for muxing.
-	 *
-	 * @return The audio codec to use.
-	 * @since 1.50
-	 */
-	public String getMuxingMode() {
-		return muxingMode;
-	}
-
-	/**
-	 * Sets the audio codec to use for muxing.
-	 *
-	 * @param muxingMode The audio codec to use.
-	 * @since 1.50
-	 */
-	public void setMuxingMode(String muxingMode) {
-		this.muxingMode = muxingMode;
-	}
-
-	/**
-	 * Get number of channels for this audio track.
-	 * @return number of channels (default is 2)
-	 */
-	public int getNumberOfChannels() {
-		return numberOfChannels;
-	}
-
-	/**
-	 * Set number of channels for this audio track.
-	 * @param numberOfChannels number of channels to set
-	 */
-	public void setNumberOfChannels(int numberOfChannels) {
-		if (numberOfChannels < 1) {
-			throw new IllegalArgumentException("Channel number can't be less than 1.");
-		}
-		this.numberOfChannels = numberOfChannels;
-	}
-
-	/**
-	 * Get sample frequency for this audio track.
-	 * @return sample frequency in Hz
+	 * @return The sample rate.
 	 */
 	public int getSampleRate() {
-		return sampleRate;
-	}
-
-	/**
-	 * Set sample frequency for this audio track.
-	 * @param sampleFrequency sample frequency in Hz
-	 */
-	public void setSampleRate(int sampleFrequency) {
-		if (sampleFrequency < 1) {
-			throw new IllegalArgumentException("Sample frequency can't be less than 1 Hz.");
+		int sr = 0;
+		if (getSampleFrequency() != null && getSampleFrequency().length() > 0) {
+			try {
+				sr = Integer.parseInt(getSampleFrequency());
+			} catch (NumberFormatException e) {
+				LOGGER.debug("Could not parse sample rate from \"" + getSampleFrequency() + "\"");
+			}
 		}
-		this.sampleRate = sampleFrequency;
+		return sr;
 	}
 
 	/**
-	 * Get delay for this audio track.
-	 * @return video delay in ms. May be negative.
+	 * @return True if the audio codec is one of the AAC variants.
 	 */
-	public int getVideoDelay() {
-		return videoDelay;
+	public boolean isAAC() {
+		return isAACLC() || isHEAAC();
 	}
 
 	/**
-	 * Set delay for this audio track.
-	 * @param audioDelay video delay in ms to set. May be negative.
+	 * @return True if the audio codec is AAC-LC.
 	 */
-	public void setVideoDelay(int videoDelay) {
-		this.videoDelay = videoDelay;
+	public boolean isAACLC() {
+		return FormatConfiguration.AAC_LC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is AC-3.
+	 */
+	public boolean isAC3() {
+		return FormatConfiguration.AC3.equalsIgnoreCase(getCodecA()) || getCodecA() != null && getCodecA().contains("a52");
+	}
+
+	/**
+	 * @return True if the audio codec is ACELP.
+	 */
+	public boolean isACELP() {
+		return FormatConfiguration.ACELP.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ADPCM.
+	 */
+	public boolean isADPCM() {
+		return FormatConfiguration.ADPCM.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is AIFF.
+	 */
+	public boolean isAIFF() {
+		return FormatConfiguration.AIFF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ALAC.
+	 */
+	public boolean isALAC() {
+		return FormatConfiguration.ALAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ALS.
+	 */
+	public boolean isALS() {
+		return FormatConfiguration.ALS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Atmos.
+	 */
+	public boolean isAtmos() {
+		return FormatConfiguration.ATMOS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is ATRAC.
+	 */
+	public boolean isATRAC() {
+		return FormatConfiguration.ATRAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Cook.
+	 */
+	public boolean isCook() {
+		return FormatConfiguration.COOK.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Dolby E.
+	 */
+	public boolean isDolbyE() {
+		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is DSD Audio.
+	 */
+	public boolean isDFF() {
+		return FormatConfiguration.DFF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is DSF.
+	 */
+	public boolean isDSF() {
+		return FormatConfiguration.DSF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is DTS.
+	 */
+	public boolean isDTS() {
+		return FormatConfiguration.DTS.equalsIgnoreCase(getCodecA()) || getCodecA() != null && getCodecA().contains("dca");
+	}
+
+	/**
+	 * @return True if the audio codec is DTS HD.
+	 */
+	public boolean isDTSHD() {
+		return FormatConfiguration.DTSHD.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is EAC-3.
+	 */
+	public boolean isEAC3() {
+		return FormatConfiguration.EAC3.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return whether the audio codec is ER BSAC.
+	 */
+	public boolean isERBSAC() {
+		return FormatConfiguration.ER_BSAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is FLAC.
+	 */
+	public boolean isFLAC() {
+		return FormatConfiguration.FLAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is G729.
+	 */
+	public boolean isG729() {
+		return FormatConfiguration.G729.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is HE-AAC.
+	 */
+	public boolean isHEAAC() {
+		return FormatConfiguration.HE_AAC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is MLP.
+	 */
+	public boolean isMLP() {
+		return FormatConfiguration.MLP.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is MonkeysAudio.
+	 */
+	public boolean isMonkeysAudio() {
+		return FormatConfiguration.MONKEYS_AUDIO.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is MP3.
+	 */
+	public boolean isMP3() {
+		return FormatConfiguration.MP3.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is MPEG-1/MPEG-2.
+	 */
+	public boolean isMpegAudio() {
+		return FormatConfiguration.MP2.equalsIgnoreCase(getCodecA()) || FormatConfiguration.MPA.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is MPC.
+	 */
+	public boolean isMPC() {
+		return FormatConfiguration.MPC.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is OPUS.
+	 */
+	public boolean isOpus() {
+		return FormatConfiguration.OPUS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is PCM.
+	 */
+	public boolean isPCM() {
+		return FormatConfiguration.LPCM.equals(getCodecA()) || getCodecA() != null && getCodecA().startsWith("pcm");
+	}
+
+	/**
+	 * @return True if the audio codec is QDesign.
+	 */
+	public boolean isQDesign() {
+		return FormatConfiguration.QDESIGN.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is RealAudio Lossless.
+	 */
+	public boolean isRALF() {
+		return FormatConfiguration.RALF.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is RealAudio 14.4.
+	 */
+	public boolean isRealAudio144() {
+		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is RealAudio 28.8.
+	 */
+	public boolean isRealAudio288() {
+		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Shorten.
+	 */
+	public boolean isShorten() {
+		return FormatConfiguration.SHORTEN.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Sipro Lab Telecom Audio Codec.
+	 */
+	public boolean isSipro() {
+		return FormatConfiguration.SIPRO.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is SLS.
+	 */
+	public boolean isSLS() {
+		return FormatConfiguration.SLS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is TrueHD.
+	 */
+	public boolean isTrueHD() {
+		return FormatConfiguration.TRUEHD.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is TTA.
+	 */
+	public boolean isTTA() {
+		return FormatConfiguration.TTA.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Vorbis.
+	 */
+	public boolean isVorbis() {
+		return FormatConfiguration.VORBIS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is Wav.
+	 */
+	public boolean isWAV() {
+		return FormatConfiguration.WAV.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WavPack.
+	 */
+	public boolean isWavPack() {
+		return FormatConfiguration.WAVPACK.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WMA.
+	 */
+	public boolean isWMA() {
+		return FormatConfiguration.WMA.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WMA10.
+	 */
+	public boolean isWMA10() {
+		return FormatConfiguration.WMA10.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Lossless.
+	 */
+	public boolean isWMALossless() {
+		return FormatConfiguration.WMALOSSLESS.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Pro.
+	 */
+	public boolean isWMAPro() {
+		return FormatConfiguration.WMAPRO.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is WMA Voice.
+	 */
+	public boolean isWMAVoice() {
+		return FormatConfiguration.WMAVOICE.equalsIgnoreCase(getCodecA());
+	}
+
+	/**
+	 * @return True if the audio codec is AC-3, DTS, DTS-HD or TrueHD.
+	 */
+	public boolean isNonPCMEncodedAudio() {
+		return isAC3() || isAtmos() || isDTS() || isTrueHD() || isDTSHD();
+	}
+
+	/**
+	 * @return True if the audio codec is lossless.
+	 */
+	public boolean isLossless() {
+		return getCodecA() != null &&
+			(
+				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
+				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
+				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
+				isWMALossless()
+			);
 	}
 
 	/**
@@ -342,347 +498,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 		} else if (isWMAVoice()) {
 			return "WMA Voice";
 		}
-		return getCodec() != null ? getCodec() : "-";
-	}
-
-	/**
-	 * @return True if the audio codec is one of the AAC variants.
-	 */
-	public boolean isAAC() {
-		return isAACLC() || isHEAAC();
-	}
-
-	/**
-	 * @return True if the audio codec is AAC-LC.
-	 */
-	public boolean isAACLC() {
-		return FormatConfiguration.AAC_LC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is AC-3.
-	 */
-	public boolean isAC3() {
-		return FormatConfiguration.AC3.equalsIgnoreCase(getCodec()) || getCodec() != null && getCodec().contains("a52");
-	}
-
-	/**
-	 * @return True if the audio codec is ACELP.
-	 */
-	public boolean isACELP() {
-		return FormatConfiguration.ACELP.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is ADPCM.
-	 */
-	public boolean isADPCM() {
-		return FormatConfiguration.ADPCM.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is AIFF.
-	 */
-	public boolean isAIFF() {
-		return FormatConfiguration.AIFF.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is ALAC.
-	 */
-	public boolean isALAC() {
-		return FormatConfiguration.ALAC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is ALS.
-	 */
-	public boolean isALS() {
-		return FormatConfiguration.ALS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Atmos.
-	 */
-	public boolean isAtmos() {
-		return FormatConfiguration.ATMOS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is ATRAC.
-	 */
-	public boolean isATRAC() {
-		return FormatConfiguration.ATRAC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Cook.
-	 */
-	public boolean isCook() {
-		return FormatConfiguration.COOK.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Dolby E.
-	 */
-	public boolean isDolbyE() {
-		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is DSD Audio.
-	 */
-	public boolean isDFF() {
-		return FormatConfiguration.DFF.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is DSF.
-	 */
-	public boolean isDSF() {
-		return FormatConfiguration.DSF.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is DTS.
-	 */
-	public boolean isDTS() {
-		return FormatConfiguration.DTS.equalsIgnoreCase(getCodec()) || getCodec() != null && getCodec().contains("dca");
-	}
-
-	/**
-	 * @return True if the audio codec is DTS HD.
-	 */
-	public boolean isDTSHD() {
-		return FormatConfiguration.DTSHD.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is EAC-3.
-	 */
-	public boolean isEAC3() {
-		return FormatConfiguration.EAC3.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return whether the audio codec is ER BSAC.
-	 */
-	public boolean isERBSAC() {
-		return FormatConfiguration.ER_BSAC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is FLAC.
-	 */
-	public boolean isFLAC() {
-		return FormatConfiguration.FLAC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is G729.
-	 */
-	public boolean isG729() {
-		return FormatConfiguration.G729.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is HE-AAC.
-	 */
-	public boolean isHEAAC() {
-		return FormatConfiguration.HE_AAC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is MLP.
-	 */
-	public boolean isMLP() {
-		return FormatConfiguration.MLP.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is MonkeysAudio.
-	 */
-	public boolean isMonkeysAudio() {
-		return FormatConfiguration.MONKEYS_AUDIO.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is MP3.
-	 */
-	public boolean isMP3() {
-		return FormatConfiguration.MP3.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is MPEG-1/MPEG-2.
-	 */
-	public boolean isMpegAudio() {
-		return FormatConfiguration.MP2.equalsIgnoreCase(getCodec()) || FormatConfiguration.MPA.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is MPC.
-	 */
-	public boolean isMPC() {
-		return FormatConfiguration.MPC.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is OPUS.
-	 */
-	public boolean isOpus() {
-		return FormatConfiguration.OPUS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is PCM.
-	 */
-	public boolean isPCM() {
-		return FormatConfiguration.LPCM.equals(getCodec()) || getCodec() != null && getCodec().startsWith("pcm");
-	}
-
-	/**
-	 * @return True if the audio codec is QDesign.
-	 */
-	public boolean isQDesign() {
-		return FormatConfiguration.QDESIGN.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is RealAudio Lossless.
-	 */
-	public boolean isRALF() {
-		return FormatConfiguration.RALF.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is RealAudio 14.4.
-	 */
-	public boolean isRealAudio144() {
-		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is RealAudio 28.8.
-	 */
-	public boolean isRealAudio288() {
-		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Shorten.
-	 */
-	public boolean isShorten() {
-		return FormatConfiguration.SHORTEN.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Sipro Lab Telecom Audio Codec.
-	 */
-	public boolean isSipro() {
-		return FormatConfiguration.SIPRO.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is SLS.
-	 */
-	public boolean isSLS() {
-		return FormatConfiguration.SLS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is TrueHD.
-	 */
-	public boolean isTrueHD() {
-		return FormatConfiguration.TRUEHD.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is TTA.
-	 */
-	public boolean isTTA() {
-		return FormatConfiguration.TTA.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Vorbis.
-	 */
-	public boolean isVorbis() {
-		return FormatConfiguration.VORBIS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is Wav.
-	 */
-	public boolean isWAV() {
-		return FormatConfiguration.WAV.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WavPack.
-	 */
-	public boolean isWavPack() {
-		return FormatConfiguration.WAVPACK.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WMA.
-	 */
-	public boolean isWMA() {
-		return FormatConfiguration.WMA.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WMA10.
-	 */
-	public boolean isWMA10() {
-		return FormatConfiguration.WMA10.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WMA Lossless.
-	 */
-	public boolean isWMALossless() {
-		return FormatConfiguration.WMALOSSLESS.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WMA Pro.
-	 */
-	public boolean isWMAPro() {
-		return FormatConfiguration.WMAPRO.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is WMA Voice.
-	 */
-	public boolean isWMAVoice() {
-		return FormatConfiguration.WMAVOICE.equalsIgnoreCase(getCodec());
-	}
-
-	/**
-	 * @return True if the audio codec is AC-3, DTS, DTS-HD or TrueHD.
-	 */
-	public boolean isNonPCMEncodedAudio() {
-		return isAC3() || isAtmos() || isDTS() || isTrueHD() || isDTSHD();
-	}
-
-	/**
-	 * @return True if the audio codec is lossless.
-	 */
-	public boolean isLossless() {
-		return getCodec() != null &&
-			(
-				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
-				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
-				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
-				isWMALossless()
-			);
-	}
-
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
+		return getCodecA() != null ? getCodecA() : "-";
 	}
 
 	/**
@@ -693,46 +509,440 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	@Override
 	public String toString() {
 		StringBuilder result = new StringBuilder();
-		result.append("Audio Id: ").append(getId());
-		if (forcedFlag) {
-			result.append(", Default");
-		}
-		if (forcedFlag) {
-			result.append(", Forced");
-		}
-		if (StringUtils.isNotBlank(getTitle())) {
-			result.append(", Title: ").append(getTitle());
-		}
-		if (StringUtils.isNotBlank(getLang()) && !UND.equals(getLang())) {
+		if (getLang() != null && !getLang().equals("und")) {
+			result.append("Id: ").append(getId());
 			result.append(", Language Code: ").append(getLang());
 		}
-		result.append(", Codec: ").append(getAudioCodec());
-		if (getOptionalId() != null && getOptionalId() > 10) {
-			result.append(", Optional Id: ").append(getOptionalId());
-		}
-		if (getStreamOrder() != null) {
-			result.append(", Stream Order: ").append(getStreamOrder());
-		}
-		result.append(", Bitrate: ").append(getBitRate());
-		if (getBitDepth() != 16) {
-			result.append(", Bits per Sample: ").append(getBitDepth());
-		}
-		if (getNumberOfChannels() == 1) {
-			result.append(", Channel: ").append(getNumberOfChannels());
-		} else {
-			result.append(", Channels: ").append(getNumberOfChannels());
-		}
-		result.append(", Sample Frequency: ").append(getSampleRate()).append(" Hz");
-		if (getVideoDelay() != 0) {
-			result.append(", Video Delay: ").append(getVideoDelay());
+
+		if (isNotBlank(getAudioTrackTitleFromMetadata())) {
+			if (result.length() > 0) {
+				result.append(", ");
+			}
+			result.append("Audio Track Title From Metadata: ").append(getAudioTrackTitleFromMetadata());
 		}
 
-		if (StringUtils.isNotBlank(getMuxingMode())) {
-			result.append(", Muxing Mode: ").append(getMuxingMode());
+		if (result.length() > 0) {
+			result.append(", ");
+		}
+		result.append("Audio Codec: ").append(getAudioCodec());
+
+		result.append(", Bitrate: ").append(getBitRate());
+		if (getBitsperSample() != 16) {
+			result.append(", Bits per Sample: ").append(getBitsperSample());
+		}
+		if (getAudioProperties() != null) {
+			result.append(", ").append(getAudioProperties());
+		}
+
+		if (isNotBlank(getArtist())) {
+			result.append(", Artist: ").append(getArtist());
+		}
+		if (isNotBlank(getComposer())) {
+			result.append(", Composer: ").append(getComposer());
+		}
+		if (isNotBlank(getConductor())) {
+			result.append(", Conductor: ").append(getConductor());
+		}
+		if (isNotBlank(getAlbum())) {
+			result.append(", Album: ").append(getAlbum());
+		}
+		if (isNotBlank(getAlbumArtist())) {
+			result.append(", Album Artist: ").append(getAlbumArtist());
+		}
+		if (isNotBlank(getSongname())) {
+			result.append(", Track Name: ").append(getSongname());
+		}
+		if (getYear() != 0) {
+			result.append(", Year: ").append(getYear());
+		}
+		if (getTrack() != 0) {
+			result.append(", Track: ").append(getTrack());
+		}
+		if (isNotBlank(getGenre())) {
+			result.append(", Genre: ").append(getGenre());
+		}
+
+		if (isNotBlank(getMuxingModeAudio())) {
+			result.append(", Muxing Mode: ").append(getMuxingModeAudio());
 		}
 
 		return result.toString();
 	}
 
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
 
+	/**
+	 * Returns the number of bits per sample for the audio.
+	 *
+	 * @return The number of bits per sample.
+	 * @since 1.50
+	 */
+	public int getBitsperSample() {
+		return bitsperSample;
+	}
+
+	/**
+	 * Sets the number of bits per sample for the audio.
+	 *
+	 * @param bitsperSample The number of bits per sample to set.
+	 * @since 1.50
+	 */
+	public void setBitsperSample(int bitsperSample) {
+		this.bitsperSample = bitsperSample;
+	}
+
+	/**
+	 * Returns audio bitrate.
+	 *
+	 * @return Audio bitrate.
+	 */
+	public int getBitRate() {
+		return bitRate;
+	}
+
+	/**
+	 * Sets audio bitrate.
+	 *
+	 * @param bitRate Audio bitrate to set.
+	 */
+	public void setBitRate(int bitRate) {
+		this.bitRate = bitRate;
+	}
+
+	/**
+	 * Returns the sample frequency for the audio.
+	 *
+	 * @return The sample frequency.
+	 * @since 1.50
+	 */
+	public String getSampleFrequency() {
+		return sampleFrequency;
+	}
+
+	/**
+	 * Sets the sample frequency for the audio.
+	 *
+	 * @param sampleFrequency The sample frequency to set.
+	 * @since 1.50
+	 */
+	public void setSampleFrequency(String sampleFrequency) {
+		if (isNotBlank(sampleFrequency)) {
+			this.sampleFrequency = sampleFrequency;
+			try {
+				audioProperties.setSampleFrequency(Integer.parseInt(sampleFrequency));
+			} catch (NumberFormatException e) {
+				LOGGER.warn("Audio sample frequency \"{}\" cannot be parsed, using (probably wrong) default", sampleFrequency);
+			}
+		}
+	}
+
+	/**
+	 * Returns the name of the audio codec that is being used.
+	 *
+	 * @return The name of the audio codec.
+	 * @since 1.50
+	 */
+	public String getCodecA() {
+		return codecA;
+	}
+
+	/**
+	 * Sets the name of the audio codec that is being used.
+	 *
+	 * @param codecA The name of the audio codec to set.
+	 * @since 1.50
+	 */
+	public void setCodecA(String codecA) {
+		this.codecA = codecA != null ? codecA.toLowerCase(Locale.ROOT) : null;
+	}
+
+	/**
+	 * Returns the name of the album to which an audio track belongs.
+	 *
+	 * @return The album name.
+	 * @since 1.50
+	 */
+	public String getAlbum() {
+		return album;
+	}
+
+	/**
+	 * Sets the name of the album to which an audio track belongs.
+	 *
+	 * @param album The name of the album to set.
+	 * @since 1.50
+	 */
+	public void setAlbum(String album) {
+		this.album = album;
+	}
+
+	/**
+	 * Sets the MB record ID for this track.
+	 *
+	 * @param mbidRecord The MB record ID.
+	 */
+	public void setMbidRecord(String mbidRecord) {
+		this.mbidRecord = mbidRecord;
+	}
+
+	/**
+	 * Returns the MB record ID for this track
+	 *
+	 * @return The MB record ID.
+	 */
+	public String getMbidRecord() {
+		return this.mbidRecord;
+	}
+
+	/**
+	 * Sets the MB track ID for this track.
+	 *
+	 * @param mbidTrack The MB track ID.
+	 */
+	public void setMbidTrack(String mbidTrack) {
+		this.mbidTrack = mbidTrack;
+	}
+
+	/**
+	 * Returns MB track id for this track.
+	 *
+	 * @return The MB track ID.
+	 */
+	public String getMbidTrack() {
+		return this.mbidTrack;
+	}
+
+	/**
+	 * Returns the name of the artist performing the audio track.
+	 *
+	 * @return The artist name.
+	 * @since 1.50
+	 */
+	public String getArtist() {
+		return artist;
+	}
+
+	/**
+	 * Returns the composer of the audio track.
+	 *
+	 * @return The composer name.
+	 */
+	public String getComposer() {
+		return composer;
+	}
+
+	/**
+	 * Returns the conductor of the audio track.
+	 *
+	 * @return The conductor name.
+	 */
+	public String getConductor() {
+		return conductor;
+	}
+
+	/**
+	 * Sets the name of the main artist of the album of the audio track.
+	 * This field is often used for the compilation type albums or "featuring..." songs.
+	 *
+	 * @param artist The album artist name to set.
+	 */
+	public void setAlbumArtist(String artist) {
+		this.albumartist = artist;
+	}
+
+	/**
+	 * Returns the name of the main artist of the album of the audio track.
+	 *
+	 * @return The album artist name.
+	 */
+	public String getAlbumArtist() {
+		return albumartist;
+	}
+
+	/**
+	 * Sets the name of the artist performing the audio track.
+	 *
+	 * @param artist The artist name to set.
+	 * @since 1.50
+	 */
+	public void setArtist(String artist) {
+		this.artist = artist;
+	}
+
+	/**
+	 * Sets the composer of the audio track.
+	 *
+	 * @param composer The composer name to set.
+	 */
+	public void setComposer(String composer) {
+		this.composer = composer;
+	}
+
+	/**
+	 * Sets the conductor of the audio track.
+	 *
+	 * @param The conductor name to set.
+	 */
+	public void setConductor(String conductor) {
+		this.conductor = conductor;
+	}
+
+	/**
+	 * Returns the name of the song for the audio track.
+	 *
+	 * @return The song name.
+	 * @since 1.50
+	 */
+	public String getSongname() {
+		return songname;
+	}
+
+	/**
+	 * Sets the name of the song for the audio track.
+	 *
+	 * @param songname The song name to set.
+	 * @since 1.50
+	 */
+	public void setSongname(String songname) {
+		this.songname = songname;
+	}
+
+	/**
+	 * Returns the name of the genre for the audio track.
+	 *
+	 * @return The genre name.
+	 * @since 1.50
+	 */
+	public String getGenre() {
+		return genre;
+	}
+
+	/**
+	 * Sets the name of the genre for the audio track.
+	 *
+	 * @param genre The name of the genre to set.
+	 * @since 1.50
+	 */
+	public void setGenre(String genre) {
+		this.genre = genre;
+	}
+
+	/**
+	 * Returns the year of inception for the audio track.
+	 *
+	 * @return The year.
+	 * @since 1.50
+	 */
+	public int getYear() {
+		return year;
+	}
+
+	/**
+	 * Sets the year of inception for the audio track.
+	 *
+	 * @param year The year to set.
+	 * @since 1.50
+	 */
+	public void setYear(int year) {
+		this.year = year;
+	}
+
+	/**
+	 * Returns the track number within an album for the audio.
+	 *
+	 * @return The track number.
+	 * @since 1.50
+	 */
+	public int getTrack() {
+		return track;
+	}
+
+	/**
+	 * Returns the disc number of an album for the audio.
+	 *
+	 * @return The disc number.
+	 */
+	public int getDisc() {
+		return disc;
+	}
+
+	/**
+	 * Sets the track number within an album for the audio.
+	 *
+	 * @param track The track number to set.
+	 * @since 1.50
+	 */
+	public void setTrack(int track) {
+		this.track = track;
+	}
+
+	public void setDisc(int disc) {
+		this.disc = disc;
+	}
+
+	public String getAudioTrackTitleFromMetadata() {
+		return audioTrackTitleFromMetadata;
+	}
+
+	public void setAudioTrackTitleFromMetadata(String value) {
+		this.audioTrackTitleFromMetadata = value;
+	}
+
+	/**
+	 * Returns the audio codec to use for muxing.
+	 *
+	 * @return The audio codec to use.
+	 * @since 1.50
+	 */
+	public String getMuxingModeAudio() {
+		return muxingModeAudio;
+	}
+
+	/**
+	 * Sets the audio codec to use for muxing.
+	 *
+	 * @param muxingModeAudio The audio codec to use.
+	 * @since 1.50
+	 */
+	public void setMuxingModeAudio(String muxingModeAudio) {
+		this.muxingModeAudio = muxingModeAudio;
+	}
+
+	public AudioProperties getAudioProperties() {
+		return audioProperties;
+	}
+
+	public void setAudioProperties(AudioProperties audioProperties) {
+		if (audioProperties == null) {
+			throw new IllegalArgumentException("Can't set null AudioProperties.");
+		}
+		this.audioProperties = audioProperties;
+	}
+
+	/**
+	 *
+	 * @return user rating (0 - 5 stars)
+	 */
+	public Integer getRating() {
+		return rating;
+	}
+
+	/**
+	 * Set's user rating (0 - 5 stars)
+	 * @param rating
+	 */
+	public void setRating(Integer rating) {
+		this.rating = rating;
+	}
+
+	public int getAudiotrackId() {
+		return audiotrackId;
+	}
+
+	public void setAudiotrackId(int audiotrackId) {
+		this.audiotrackId = audiotrackId;
+	}
 }

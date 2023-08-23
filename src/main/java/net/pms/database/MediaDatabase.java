@@ -87,7 +87,6 @@ public class MediaDatabase extends Database {
 				MediaTableMetadata.checkTable(connection);
 				MediaTableFiles.checkTable(connection);
 				MediaTableVideoMetadata.checkTable(connection);
-				MediaTableVideotracks.checkTable(connection);
 				MediaTableSubtracks.checkTable(connection);
 				MediaTableChapters.checkTable(connection);
 				MediaTableRegexpRules.checkTable(connection);
@@ -115,7 +114,6 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
-				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
 			}

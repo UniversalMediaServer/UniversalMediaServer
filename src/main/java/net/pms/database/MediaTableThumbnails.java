@@ -114,6 +114,9 @@ public final class MediaTableThumbnails extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1 -> {
+					//nothing to do
+				}
 				default -> throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
@@ -123,7 +126,7 @@ public final class MediaTableThumbnails extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID                + IDENTITY                       + COMMA +

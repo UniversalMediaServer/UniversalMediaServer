@@ -256,9 +256,9 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 	public String toString() {
 		StringBuilder result = new StringBuilder(getClass().getSimpleName());
 		result.append(" [Type: ").append(getType());
-		if (isNotBlank(getTitle())) {
-			result.append(", Title: ");
-			result.append(getTitle());
+		if (isNotBlank(getSubtitlesTrackTitleFromMetadata())) {
+			result.append(", Subtitles Track Title From Metadata: ");
+			result.append(getSubtitlesTrackTitleFromMetadata());
 		}
 		result.append(", Language: ").append(getLang());
 

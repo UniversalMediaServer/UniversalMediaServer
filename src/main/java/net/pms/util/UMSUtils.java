@@ -38,8 +38,8 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
-import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
@@ -101,21 +101,21 @@ public class UMSUtils {
 			}
 
 			if (!keep) {
-				if (media != null && media.hasAudioMetadata()) {
-					MediaAudioMetadata audioMetadata = media.getAudioMetadata();
-					if (audioMetadata.getAlbum() != null) {
-						keep |= audioMetadata.getAlbum().toLowerCase().contains(searchString);
-					}
-					//TODO maciekberry: check whether it makes sense to use Album Artist
-					if (audioMetadata.getArtist() != null) {
-						keep |= audioMetadata.getArtist().toLowerCase().contains(searchString);
-					}
-					if (audioMetadata.getSongname() != null) {
-						keep |= audioMetadata.getSongname().toLowerCase().contains(searchString);
+				if (media != null && media.getAudioTracksList() != null) {
+					for (int j = 0; j < media.getAudioTracksList().size(); j++) {
+						MediaAudio audio = media.getAudioTracksList().get(j);
+						if (audio.getAlbum() != null) {
+							keep |= audio.getAlbum().toLowerCase().contains(searchString);
+						}
+						//TODO maciekberry: check whether it makes sense to use Album Artist
+						if (audio.getArtist() != null) {
+							keep |= audio.getArtist().toLowerCase().contains(searchString);
+						}
+						if (audio.getSongname() != null) {
+							keep |= audio.getSongname().toLowerCase().contains(searchString);
+						}
 					}
 				}
-			}
-			if (!keep) {
 				resources.remove(i);
 			}
 		}

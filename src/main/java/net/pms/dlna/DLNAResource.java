@@ -16,6 +16,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.media.MediaType;
 import com.sun.jna.Platform;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.RenderingHints;
@@ -82,16 +83,13 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
-import net.pms.media.MediaStatus;
-import net.pms.media.MediaType;
-import net.pms.media.audio.MediaAudio;
-import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaOpenSubtitle;
+import net.pms.media.MediaStatus;
 import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.media.video.MediaVideo;
-import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
@@ -117,6 +115,8 @@ import static net.pms.util.StringUtil.endTag;
 import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,11 +127,16 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
+	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
+	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
-	private static final Debouncer DEBOUNCER = new Debouncer();
-	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
-	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
+	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	private volatile ImageInfo thumbnailImageInfo = null;
+	protected UmsConfiguration configuration = PMS.getConfiguration();
+
+	// private boolean subsAreValidForStreaming = false;
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
@@ -141,22 +146,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	protected static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
 
-	public static final RenderingHints THUMBNAIL_HINTS = new RenderingHints(RenderingHints.KEY_RENDERING,
-		RenderingHints.VALUE_RENDER_QUALITY);
-
 	private static boolean hasFetchedSystemUpdateIdFromDatabase = false;
 
-	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
-	private final SimpleDateFormat simpleDateFormatDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-	private volatile ImageInfo thumbnailImageInfo = null;
+	private static final Debouncer DEBOUNCER = new Debouncer();
 
-	// private boolean subsAreValidForStreaming = false;
+	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
 
-	protected UmsConfiguration configuration = PMS.getConfiguration();
-
-	private boolean resolved;
 	private int specificType;
 	private String id;
+	public static final RenderingHints THUMBNAIL_HINTS = new RenderingHints(RenderingHints.KEY_RENDERING,
+		RenderingHints.VALUE_RENDER_QUALITY);
 
 	private DLNAResource parent;
 
@@ -826,12 +825,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
 					renderer.getRendererName());
 			} else if (configurationSpecificToRenderer.isEncodedAudioPassthrough()) {
-				if (mediaAudio != null && (FormatConfiguration.AC3.equals(mediaAudio.getAudioCodec()) ||
-					FormatConfiguration.DTS.equals(mediaAudio.getAudioCodec()))) {
+				if (getMediaAudio() != null && (FormatConfiguration.AC3.equals(getMediaAudio().getAudioCodec()) ||
+					FormatConfiguration.DTS.equals(getMediaAudio().getAudioCodec()))) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
-					for (MediaAudio audioTrack : media.getAudioTracks()) {
+					for (MediaAudio audioTrack : media.getAudioTracksList()) {
 						if (audioTrack != null && (FormatConfiguration.AC3.equals(audioTrack.getAudioCodec()) ||
 							FormatConfiguration.DTS.equals(audioTrack.getAudioCodec()))) {
 							isIncompatible = true;
@@ -842,30 +841,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2 && media.getDefaultVideoTrack() != null) {
-				MediaVideo mediaVideo = media.getDefaultVideoTrack();
+			if (!forceTranscode && !isIncompatible && format.isVideo() && parserV2) {
 				int maxBandwidth = renderer.getMaxBandwidth();
 
-				if (renderer.isKeepAspectRatio() && !"16:9".equals(mediaVideo.getDisplayAspectRatio())) {
+				if (renderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 					isIncompatible = true;
 					LOGGER.debug(
 						prependTranscodingReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.",
-						getName(), mediaVideo.getDisplayAspectRatio());
-				} else if (!renderer.isResolutionCompatibleWithRenderer(mediaVideo.getWidth(), mediaVideo.getHeight())) {
+						getName(), media.getAspectRatioContainer());
+				} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the resolution is incompatible with the renderer.", getName());
-				} else if (media.getBitRate() > maxBandwidth) {
+				} else if (media.getBitrate() > maxBandwidth) {
 					isIncompatible = true;
-					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitRate(),
+					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), media.getBitrate(),
 						maxBandwidth);
-				} else if (renderer.isH264Level41Limited() && mediaVideo.isH264()) {
-					if (mediaVideo.getFormatLevel() != null) {
+				} else if (renderer.isH264Level41Limited() && media.isH264()) {
+					if (media.getAvcLevel() != null) {
 						double h264Level = 4.1;
 
 						try {
-							h264Level = Double.parseDouble(mediaVideo.getFormatLevel());
+							h264Level = Double.parseDouble(media.getAvcLevel());
 						} catch (NumberFormatException e) {
-							LOGGER.trace("Could not convert {} to double: {}", mediaVideo.getFormatLevel(), e.getMessage());
+							LOGGER.trace("Could not convert {} to double: {}", media.getAvcLevel(), e.getMessage());
 						}
 
 						if (h264Level > 4.1) {
@@ -876,8 +874,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						isIncompatible = true;
 						LOGGER.debug(prependTranscodingReason + "the H.264 level is unknown.", getName());
 					}
-				} else if (mediaVideo.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) &&
-					(!mediaVideo.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
+				} else if (media.is3d() && StringUtils.isNotBlank(renderer.getOutput3DFormat()) &&
+					(!media.get3DLayout().toString().toLowerCase(Locale.ROOT).equals(renderer.getOutput3DFormat()))) {
 					forceTranscode = true;
 					LOGGER.debug(prependTranscodingReason + "it is 3D and is forced to transcode to the format \"{}\"", getName(),
 						renderer.getOutput3DFormat());
@@ -915,7 +913,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String setPreferredMimeType(Renderer renderer) {
 		String prev = media != null ? media.getMimeType() : null;
-		if (media != null && renderer != null && renderer.isUseMediaInfo() && (format == null || !format.isImage())) {
+		boolean parserV2 = media != null && renderer != null && renderer.isUseMediaInfo();
+		if (parserV2 && (format == null || !format.isImage())) {
 			// See which MIME type the renderer prefers in case it supports the
 			// media
 			String preferred = renderer.getFormatConfiguration().getMatchedMIMEtype(this, renderer);
@@ -1189,26 +1188,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean audioExists = false;
 		for (DLNAResource res : dlna.getChildren()) {
 			if (res.getFormat() != null && res.getFormat().isAudio()) {
-				if (res.getMedia() == null || !res.getMedia().hasAudioMetadata()) {
-					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
+				if (res.getMedia() == null || res.getMedia().getFirstAudioTrack() == null) {
+					LOGGER.warn("Audio resource has no AudioTrack : {}", res.getDisplayName());
 					continue;
 				}
-				MediaAudioMetadata metadata = res.getMedia().getAudioMetadata();
 				numberOfAudioFiles++;
 				if (album == null) {
 					audioExists = true;
-					album = metadata.getAlbum() != null ? metadata.getAlbum() : "";
-					mbReleaseId = metadata.getMbidRecord();
+					album = res.getMedia().getFirstAudioTrack().getAlbum() != null ? res.getMedia().getFirstAudioTrack().getAlbum() : "";
+					mbReleaseId = res.getMedia().getFirstAudioTrack().getMbidRecord();
 					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
 						return false;
 					}
 				} else {
-					if (mbReleaseId != null && !StringUtils.isAllBlank(mbReleaseId)) {
+					if (!StringUtils.isAllBlank(mbReleaseId)) {
 						// First check musicbrainz ReleaseID
-						if (!mbReleaseId.equals(metadata.getMbidRecord())) {
+						if (!mbReleaseId.equals(res.getMedia().getFirstAudioTrack().getMbidRecord())) {
 							return false;
 						}
-					} else if (!album.equals(metadata.getAlbum())) {
+					} else if (!album.equals(res.getMedia().getFirstAudioTrack().getAlbum())) {
 						return false;
 					}
 				}
@@ -1219,7 +1217,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
 
-	private static void sortChildrenWithAudioElements(DLNAResource dlna) {
+	private void sortChildrenWithAudioElements(DLNAResource dlna) {
 		Collections.sort(dlna.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
 			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
 				if (o1 != null && o1.getFormat() != null && o1.getFormat().isAudio()) {
@@ -1237,16 +1235,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		});
 	}
 
-	private static Integer getTrackNum(DLNAResource res) {
-		if (res != null && res.getMedia() != null && res.getMedia().hasAudioMetadata()) {
-			return res.getMedia().getAudioMetadata().getTrack();
+	private Integer getTrackNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getTrack();
 		}
 		return 0;
 	}
 
-	private static Integer getDiscNum(DLNAResource res) {
-		if (res != null && res.getMedia() != null && res.getMedia().hasAudioMetadata()) {
-			return res.getMedia().getAudioMetadata().getDisc();
+	private Integer getDiscNum(DLNAResource res) {
+		if (res != null && res.getMedia() != null && res.getMedia().getFirstAudioTrack() != null) {
+			return res.getMedia().getFirstAudioTrack().getDisc();
 		}
 		return 0;
 	}
@@ -1616,9 +1614,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					String audioTrackTitle = "";
-					if (mediaAudio.getTitle() != null && !"".equals(mediaAudio.getTitle()) &&
+					if (mediaAudio.getAudioTrackTitleFromMetadata() != null && !"".equals(mediaAudio.getAudioTrackTitleFromMetadata()) &&
 						renderer != null && renderer.isShowAudioMetadata()) {
-						audioTrackTitle = " (" + mediaAudio.getTitle() + ")";
+						audioTrackTitle = " (" + mediaAudio.getAudioTrackTitleFromMetadata() + ")";
 					}
 
 					if (nameSuffixBuilder.length() > 0) {
@@ -1668,9 +1666,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							nameSuffixBuilder.append(subtitleLanguage);
 						}
 
-						if (renderer != null && mediaSubtitle.getTitle() != null &&
-							StringUtils.isNotBlank(mediaSubtitle.getTitle()) && renderer.isShowSubMetadata()) {
-							nameSuffixBuilder.append(" (").append(mediaSubtitle.getTitle()).append(")");
+						if (renderer != null && mediaSubtitle.getSubtitlesTrackTitleFromMetadata() != null &&
+							isNotBlank(mediaSubtitle.getSubtitlesTrackTitleFromMetadata()) && renderer.isShowSubMetadata()) {
+							nameSuffixBuilder.append(" (").append(mediaSubtitle.getSubtitlesTrackTitleFromMetadata()).append(")");
 						}
 					}
 					nameSuffixBuilder.append("}");
@@ -1734,7 +1732,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Suffix
 		if (withSuffix) {
 			String displayNamesuffix = getDisplayNameSuffix(renderer, configurationSpecificToRenderer);
-			if (StringUtils.isNotBlank(displayNamesuffix)) {
+			if (isNotBlank(displayNamesuffix)) {
 				if (isInsideTranscodeFolder()) {
 					sb.setLength(0);
 					sb.append(displayNamesuffix);
@@ -1874,6 +1872,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#clone()
+	 */
+	@Override
+	public DLNAResource clone() {
+		DLNAResource o = null;
+		try {
+			o = (DLNAResource) super.clone();
+			o.setId(null);
+
+			// Make sure clones (typically #--TRANSCODE--# folder files)
+			// have the option to respond to resolve events
+			o.resolved = false;
+
+			if (media != null) {
+				o.media = media.clone();
+			}
+		} catch (CloneNotSupportedException e) {
+			LOGGER.error(null, e);
+		}
+
+		return o;
+	}
+
+	/**
 	 * DLNA.ORG_OP flags
 	 *
 	 * Two booleans (binary digits) which determine what transport operations
@@ -1959,21 +1983,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String mime = getRendererMimeType(renderer);
 
 		String dlnaOrgPnFlags = null;
-		final MediaVideo defaultVideoTrack = media != null ? media.getDefaultVideoTrack() : null;
-		final MediaAudio defaultAudioTrack = media != null ? media.getDefaultAudioTrack() : null;
 
 		if (renderer.isDLNAOrgPNUsed() || renderer.isAccurateDLNAOrgPN()) {
 			// TODO: See if this PS3 condition is still needed
 			if (renderer.isPS3()) {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
-				} else if (mime.equals(WMV_TYPEMIME) && defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
+				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, renderer, engine == null);
 				}
 			} else {
 				if (mime.equals(DIVX_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
-				} else if (mime.equals(WMV_TYPEMIME) && defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
+				} else if (mime.equals(WMV_TYPEMIME) && media != null && media.isHDVideo()) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(media, renderer, engine == null);
 				} else if (mime.equals(MPEG_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegPsOrgPN(localizationValue);
@@ -2040,7 +2062,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 * MPEG-TS
 							 */
 							if (mediaSubtitle == null && !hasExternalSubtitles() && media != null && media.getDvdtrack() == 0 &&
-								Engine.isMuxable(media.getDefaultVideoTrack(), renderer) && renderer.isMuxH264MpegTS()) {
+								media.isMuxable(renderer) && renderer.isMuxH264MpegTS()) {
 								isOutputtingMPEGTS = true;
 							}
 						}
@@ -2054,7 +2076,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					} else if (media != null) {
 						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
-							if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
+							if ((engine == null && media.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
 									getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
 							} else {
@@ -2066,24 +2088,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
 					// patters - on Sony BDP m2ts clips aren't listed without
 					// this
-					if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
+					if ((engine == null && media.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
 					} else {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
 					}
 				} else if (media != null && mime.equals(MP4_TYPEMIME)) {
-					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("h265") && defaultAudioTrack != null &&
-						(defaultAudioTrack.isAC3() || defaultAudioTrack.isEAC3() ||
-							defaultAudioTrack.isHEAAC())) {
+					if (engine == null && media.getCodecV().equals("h265") && media.getFirstAudioTrack() != null &&
+						(media.getFirstAudioTrack().isAC3() || media.getFirstAudioTrack().isEAC3() ||
+							media.getFirstAudioTrack().isHEAAC())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
 					}
 				} else if (media != null && mime.equals(MATROSKA_TYPEMIME)) {
-					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
+					if (engine == null && media.isH264()) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMkvH264OrgPN(localizationValue, media, renderer, engine == null);
 					}
 				} else if (media != null && mime.equals(ASF_TYPEMIME)) {
-					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("vc1") && defaultAudioTrack != null && defaultAudioTrack.isWMA()) {
-						if (media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().isHDVideo()) {
+					if (engine == null && media.getCodecV().equals("vc1") && media.getFirstAudioTrack().isWMA()) {
+						if (media.isHDVideo()) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=VC1_ASF_AP_L2_WMA";
 						} else {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=VC1_ASF_AP_L1_WMA";
@@ -2226,21 +2248,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		addAttribute(sb, "parentID", resourceId);
 		addAttribute(sb, "restricted", "1");
 		endTag(sb);
-		final MediaVideo defaultVideoTrack = media != null ? media.getDefaultVideoTrack() : null;
-		final MediaAudio defaultAudioTrack = media != null ? media.getDefaultAudioTrack() : null;
-		final MediaAudioMetadata audioMetadata = media != null ? media.getAudioMetadata() : null;
+		final MediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 
 		/*
 		 * Use the track title for audio files, otherwise use the filename.
 		 */
 		String title;
-		if (audioMetadata != null && media.isAudio() && StringUtils.isNotBlank(audioMetadata.getSongname())) {
+		if (firstAudioTrack != null && media.isAudio() && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			title = "";
-			if (renderer.isPrependTrackNumbers() && audioMetadata.getTrack() > 0) {
+			if (renderer.isPrependTrackNumbers() && firstAudioTrack.getTrack() > 0) {
 				// zero pad for proper numeric sorting on all devices
-				title += String.format("%03d - ", audioMetadata.getTrack());
+				title += String.format("%03d - ", firstAudioTrack.getTrack());
 			}
-			title += audioMetadata.getSongname();
+			title += firstAudioTrack.getSongname();
 		} else if (isFolder || subsAreValidForStreaming) {
 			title = getDisplayName(renderer, false);
 		} else {
@@ -2266,70 +2286,70 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addBookmark(sb, renderer.getDcTitle(title, getDisplayNameSuffix(renderer, configurationSpecificToRenderer), this));
 		}
 
-		if (audioMetadata != null && renderer.isSendDateMetadataYearForAudioTags() && audioMetadata.getYear() > 1000) {
-			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(audioMetadata.getYear()));
+		if (renderer.isSendDateMetadataYearForAudioTags() && firstAudioTrack != null && firstAudioTrack.getYear() > 1000) {
+			addXMLTagAndAttribute(sb, "dc:date", Integer.toString(firstAudioTrack.getYear()));
 		} else if (getLastModified() > 0 && renderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", simpleDateFormatDate.format(new Date(getLastModified())));
 		}
 
-		if (media != null && audioMetadata != null) {
-			if (StringUtils.isNotBlank(audioMetadata.getAlbum())) {
-				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(audioMetadata.getAlbum()));
+		if (firstAudioTrack != null) {
+			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
+				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
 
 			// TODO maciekberry: check whether it makes sense to use Album
 			// Artist
-			if (StringUtils.isNotBlank(audioMetadata.getArtist())) {
-				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(audioMetadata.getArtist()));
-				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(audioMetadata.getArtist()));
+			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
+				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
+				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
 			}
 
-			if (StringUtils.isNotBlank(audioMetadata.getComposer())) {
-				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Composer\"", encodeXML(audioMetadata.getComposer()));
-				addXMLTagAndAttributeWithRole(sb, "upnp:author role=\"Composer\"", encodeXML(audioMetadata.getComposer()));
-				addXMLTagAndAttribute(sb, "upnp:composer", encodeXML(audioMetadata.getComposer()));
+			if (StringUtils.isNotBlank(firstAudioTrack.getComposer())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttributeWithRole(sb, "upnp:author role=\"Composer\"", encodeXML(firstAudioTrack.getComposer()));
+				addXMLTagAndAttribute(sb, "upnp:composer", encodeXML(firstAudioTrack.getComposer()));
 			}
 
-			if (StringUtils.isNotBlank(audioMetadata.getConductor())) {
-				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Conductor\"", encodeXML(audioMetadata.getConductor()));
-				addXMLTagAndAttribute(sb, "upnp:conductor", encodeXML(audioMetadata.getConductor()));
+			if (StringUtils.isNotBlank(firstAudioTrack.getConductor())) {
+				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Conductor\"", encodeXML(firstAudioTrack.getConductor()));
+				addXMLTagAndAttribute(sb, "upnp:conductor", encodeXML(firstAudioTrack.getConductor()));
 			}
 
-			if (StringUtils.isNotBlank(audioMetadata.getGenre())) {
-				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(audioMetadata.getGenre()));
+			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
+				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
 
-			if (audioMetadata.getTrack() > 0) {
-				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + audioMetadata.getTrack());
+			if (firstAudioTrack.getTrack() > 0) {
+				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + firstAudioTrack.getTrack());
 			}
 
-			if (audioMetadata.getRating() != null) {
-				addXMLTagAndAttribute(sb, "upnp:rating", "" + audioMetadata.getRating());
+			if (firstAudioTrack.getRating() != null) {
+				addXMLTagAndAttribute(sb, "upnp:rating", "" + firstAudioTrack.getRating());
 			}
 		}
 
 		if (media != null && media.hasVideoMetadata()) {
 			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
 			if (videoMetadata.isTVEpisode()) {
-				if (StringUtils.isNotBlank(videoMetadata.getTVSeason())) {
+				if (isNotBlank(videoMetadata.getTVSeason())) {
 					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTVSeason());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeNumber())) {
+				if (isNotBlank(videoMetadata.getTVEpisodeNumber())) {
 					addXMLTagAndAttribute(sb, "upnp:episodeNumber", videoMetadata.getTVEpisodeNumberUnpadded());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getMovieOrShowName())) {
+				if (isNotBlank(videoMetadata.getMovieOrShowName())) {
 					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(videoMetadata.getMovieOrShowName()));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeName())) {
+				if (isNotBlank(videoMetadata.getTVEpisodeName())) {
 					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
 				}
 			}
 			if (mediaStatus != null) {
 				addXMLTagAndAttribute(sb, "upnp:playbackCount", mediaStatus.getPlaybackCount());
-				if (StringUtils.isNotBlank(mediaStatus.getLastPlaybackTime())) {
+				if (isNotBlank(mediaStatus.getLastPlaybackTime())) {
 					addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(mediaStatus.getLastPlaybackTime()));
 				}
-				if (StringUtils.isNotBlank(mediaStatus.getLastPlaybackPositionForUPnP())) {
+				if (isNotBlank(mediaStatus.getLastPlaybackPositionForUPnP())) {
 					addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(mediaStatus.getLastPlaybackPositionForUPnP()));
 				}
 			}
@@ -2359,7 +2379,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(mediaSubtitle));
 				}
 
-				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaParsed()) {
+				if (getFormat() != null && getFormat().isVideo() && media != null && media.isMediaparsed()) {
 					long transcodedSize = renderer.getTranscodedSize();
 					if (engine == null) {
 						addAttribute(sb, "size", media.getSize());
@@ -2379,53 +2399,49 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 
-					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
+					if (media.getResolution() != null) {
 						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
-							addAttribute(sb, "resolution", getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
+							addAttribute(sb, "resolution", getResolutionForKeepAR(media.getWidth(), media.getHeight()));
 						} else {
-							addAttribute(sb, "resolution", defaultVideoTrack.getResolution());
+							addAttribute(sb, "resolution", media.getResolution());
 						}
 					}
 
-					if (media.getFrameRate() != null) {
-						addAttribute(sb, "framerate", media.getFrameRate());
+					if (isNotBlank(media.getFrameRate())) {
+						addAttribute(sb, "framerate", media.getFrameRateDLNA());
 					}
 
 					addAttribute(sb, "bitrate", media.getRealVideoBitrate());
 
-					if (defaultAudioTrack != null) {
-						if (defaultAudioTrack.getNumberOfChannels() > 0) {
+					if (firstAudioTrack != null) {
+						if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
 							if (engine == null) {
-								addAttribute(sb, "nrAudioChannels", defaultAudioTrack.getNumberOfChannels());
+								addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
 							} else {
 								addAttribute(sb, "nrAudioChannels", configuration.getAudioChannelCount());
 							}
 						}
 
-						if (defaultAudioTrack.getSampleRate() > 1) {
-							addAttribute(sb, "sampleFrequency", defaultAudioTrack.getSampleRate());
+						if (firstAudioTrack.getSampleFrequency() != null) {
+							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 						}
 					}
-					if (defaultVideoTrack != null && defaultVideoTrack.getBitDepth() > 0) {
-						if (engine == null) {
-							addAttribute(sb, "colorDepth", defaultVideoTrack.getBitDepth());
-						} else {
-							addAttribute(sb, "colorDepth", "8");
-						}
+					if (media.getVideoBitDepth() > 0) {
+						addAttribute(sb, "colorDepth", media.getVideoBitDepth());
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
-					if (media != null && media.isMediaParsed()) {
+					if (media != null && media.isMediaparsed()) {
 						addAttribute(sb, "size", media.getSize());
-						if (media.getImageInfo() != null && media.getImageInfo().getResolution() != null) {
-							addAttribute(sb, "resolution", media.getImageInfo().getResolution());
+						if (media.getResolution() != null) {
+							addAttribute(sb, "resolution", media.getResolution());
 						}
 					} else {
 						addAttribute(sb, "size", length());
 					}
 				} else if (getFormat() != null && getFormat().isAudio()) {
-					if (media != null && media.isMediaParsed()) {
-						if (media.getBitRate() > 0) {
-							addAttribute(sb, "bitrate", media.getBitRate());
+					if (media != null && media.isMediaparsed()) {
+						if (media.getBitrate() > 0) {
+							addAttribute(sb, "bitrate", media.getBitrate());
 						}
 						if (media.getDuration() != null && media.getDuration() != 0.0) {
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(media.getDuration()));
@@ -2433,21 +2449,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						int transcodeFrequency = -1;
 						int transcodeNumberOfChannels = -1;
-						if (defaultAudioTrack != null) {
+						if (firstAudioTrack != null) {
 							if (engine == null) {
-								if (defaultAudioTrack.getSampleRate() > 1) {
-									addAttribute(sb, "sampleFrequency", defaultAudioTrack.getSampleRate());
+								if (firstAudioTrack.getSampleFrequency() != null) {
+									addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
 								}
-								if (defaultAudioTrack.getNumberOfChannels() > 0) {
-									addAttribute(sb, "nrAudioChannels", defaultAudioTrack.getNumberOfChannels());
+								if (firstAudioTrack.getAudioProperties().getNumberOfChannels() > 0) {
+									addAttribute(sb, "nrAudioChannels", firstAudioTrack.getAudioProperties().getNumberOfChannels());
 								}
 							} else {
 								if (configurationSpecificToRenderer.isAudioResample()) {
 									transcodeFrequency = renderer.isTranscodeAudioTo441() ? 44100 : 48000;
 									transcodeNumberOfChannels = 2;
 								} else {
-									transcodeFrequency = defaultAudioTrack.getSampleRate();
-									transcodeNumberOfChannels = defaultAudioTrack.getNumberOfChannels();
+									transcodeFrequency = firstAudioTrack.getSampleRate();
+									transcodeNumberOfChannels = firstAudioTrack.getAudioProperties().getNumberOfChannels();
 								}
 								if (transcodeFrequency > 0) {
 									addAttribute(sb, "sampleFrequency", transcodeFrequency);
@@ -2456,7 +2472,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									addAttribute(sb, "nrAudioChannels", transcodeNumberOfChannels);
 								}
 							}
-							addAttribute(sb, "bitsPerSample", defaultAudioTrack.getBitDepth());
+							addAttribute(sb, "bitsPerSample", firstAudioTrack.getBitsperSample());
 						}
 
 						if (engine == null) {
@@ -2465,7 +2481,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						} else {
 							// Calculate WAV size
-							if (defaultAudioTrack != null && media.getDurationInSeconds() > 0.0 && transcodeFrequency > 0 &&
+							if (firstAudioTrack != null && media.getDurationInSeconds() > 0.0 && transcodeFrequency > 0 &&
 								transcodeNumberOfChannels > 0) {
 								int finalSize = (int) (media.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
 								LOGGER.trace("Calculated transcoded size for {}: {}", getSystemName(), finalSize);
@@ -2528,21 +2544,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			// DESC Metadata support: add ability for control point to identify
 			// songs by MusicBrainz TrackID or audiotrack-id
-			if (media != null && audioMetadata != null && media.isAudio()) {
+			if (media != null && media.isAudio() && media.getFirstAudioTrack() != null) {
 				openTag(sb, "desc");
 				addAttribute(sb, "id", "2");
 				// TODO add real namespace
 				addAttribute(sb, "nameSpace", "http://ums/tags");
 				addAttribute(sb, "type", "ums-tags");
 				endTag(sb);
-				addXMLTagAndAttribute(sb, "musicbrainztrackid", audioMetadata.getMbidTrack());
-				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", audioMetadata.getMbidRecord());
-				addXMLTagAndAttribute(sb, "audiotrackid", Integer.toString(audioMetadata.getAudiotrackId()));
-				if (audioMetadata.getDisc() > 0) {
-					addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
-				}
-				if (audioMetadata.getRating() != null) {
-					addXMLTagAndAttribute(sb, "rating", Integer.toString(audioMetadata.getRating()));
+				addXMLTagAndAttribute(sb, "musicbrainztrackid", media.getFirstAudioTrack().getMbidTrack());
+				addXMLTagAndAttribute(sb, "musicbrainzreleaseid", media.getFirstAudioTrack().getMbidRecord());
+				addXMLTagAndAttribute(sb, "audiotrackid", Integer.toString(media.getFirstAudioTrack().getAudiotrackId()));
+				if (firstAudioTrack != null) {
+					if (firstAudioTrack.getDisc() > 0) {
+						addXMLTagAndAttribute(sb, "numberOfThisDisc", Integer.toString(firstAudioTrack.getDisc()));
+					}
+					if (firstAudioTrack.getRating() != null) {
+						addXMLTagAndAttribute(sb, "rating", Integer.toString(firstAudioTrack.getRating()));
+					}
 				}
 				closeTag(sb, "desc");
 			}
@@ -2600,7 +2618,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else if (media != null && media.hasVideoMetadata() && (media.getVideoMetadata().isTVEpisode() || StringUtils.isNotBlank(media.getVideoMetadata().getYear()))) {
+		} else if (media != null && media.hasVideoMetadata() && (media.getVideoMetadata().isTVEpisode() || isNotBlank(media.getVideoMetadata().getYear()))) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
 		} else {
@@ -3180,10 +3198,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (low > 0 && media.getBitRate() > 0) {
-			lastStartPosition = (low * 8) / (double) media.getBitRate();
+		if (low > 0 && media.getBitrate() > 0) {
+			lastStartPosition = (low * 8) / (double) media.getBitrate();
 			LOGGER.trace("Estimating seek position from byte range:");
-			LOGGER.trace("   media.getBitrate: " + media.getBitRate());
+			LOGGER.trace("   media.getBitrate: " + media.getBitrate());
 			LOGGER.trace("   low: " + low);
 			LOGGER.trace("   lastStartPosition: " + lastStartPosition);
 		} else {
@@ -3226,7 +3244,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Pipe transcoding result
 		OutputParams params = new OutputParams(configurationSpecificToRenderer);
-		params.setAid(mediaAudio);
+		params.setAid(getMediaAudio());
 		params.setSid(mediaSubtitle);
 		params.setMediaRenderer(renderer);
 		timeRange.limit(getSplitRange());
@@ -3281,7 +3299,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
 			}
-		} else if (params.getTimeSeek() > 0 && media != null && media.isMediaParsed() && media.getDurationInSeconds() > 0) {
+		} else if (params.getTimeSeek() > 0 && media != null && media.isMediaparsed() && media.getDurationInSeconds() > 0) {
 
 			// Time seek request => stop running transcode process and start a new one
 			LOGGER.debug("Requesting time seek: " + params.getTimeSeek() + " seconds");
@@ -3386,7 +3404,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Engines like FFmpegVideo can define placeholder MIME types like
 			// video/transcode to be replaced later
 			return engine.mimeType();
-		} else if (media != null && media.isMediaParsed()) {
+		} else if (media != null && media.isMediaparsed()) {
 			return media.getMimeType();
 		} else if (getFormat() != null) {
 			return getFormat().mimeType();
@@ -3427,7 +3445,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
+			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume());
 			if (!isResume() && media.getThumb() != null && configurationSpecificToRenderer.getUseCache() && inputFile.getFile() != null) {
 				MediaTableThumbnails.setThumbnail(media.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
 			}
@@ -3545,7 +3563,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public BufferedImageFilterChain addAudioFlagFilter(BufferedImageFilterChain filterChain) {
 		String audioLanguageCode = mediaAudio != null ? mediaAudio.getLang() : null;
-		if (StringUtils.isNotBlank(audioLanguageCode)) {
+		if (isNotBlank(audioLanguageCode)) {
 			if (filterChain == null) {
 				filterChain = new BufferedImageFilterChain();
 			}
@@ -3566,7 +3584,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public BufferedImageFilterChain addSubtitlesFlagFilter(BufferedImageFilterChain filterChain) {
 		String subsLanguageCode = mediaSubtitle != null && mediaSubtitle.getId() != MediaLang.DUMMY_ID ? mediaSubtitle.getLang() : null;
 
-		if (StringUtils.isNotBlank(subsLanguageCode)) {
+		if (isNotBlank(subsLanguageCode)) {
 			if (filterChain == null) {
 				filterChain = new BufferedImageFilterChain();
 			}
@@ -3616,6 +3634,29 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public boolean allowScan() {
 		return false;
+	}
+
+	/**
+	 * (non-Javadoc)
+	 *
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		result.append(getClass().getSimpleName());
+		result.append(" [id=");
+		result.append(id);
+		result.append(", name=");
+		result.append(getName());
+		result.append(", full path=");
+		result.append(getResourceId());
+		result.append(", format=");
+		result.append(format);
+		result.append(", discovered=");
+		result.append(isDiscovered());
+		result.append(']');
+		return result.toString();
 	}
 
 	/**
@@ -3968,7 +4009,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (!configuration.isDisableSubtitles() && configuration.isAutoloadExternalSubtitles()) {
 				SubtitleUtils.searchAndAttachExternalSubtitles(file, media, forceRefresh);
 				// update the database if enabled
-				if (configuration.getUseCache() && media.isMediaParsed() && !media.isParsing()) {
+				if (configuration.getUseCache() && media.isMediaparsed() && !media.isParsing()) {
 					Connection connection = null;
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
@@ -4069,7 +4110,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		while (st.hasMoreTokens()) {
 			String lang = st.nextToken().trim();
 			LOGGER.trace("Looking for an audio track with language \"{}\" for \"{}\"", lang, getName());
-			for (MediaAudio audio : media.getAudioTracks()) {
+			for (MediaAudio audio : media.getAudioTracksList()) {
 				if (audio.matchCode(lang)) {
 					LOGGER.trace("Matched audio track: {}", audio);
 					return audio;
@@ -4087,7 +4128,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Preferring DTS audio track since no language match was found: {}", dtsTrack);
 			return dtsTrack;
 		}
-		MediaAudio result = media.getDefaultAudioTrack();
+		MediaAudio result = media.getFirstAudioTrack();
 		LOGGER.trace("Using the first available audio track: {}", result);
 		return result;
 	}
@@ -4142,7 +4183,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (StringUtils.isBlank(audioLanguage) || StringUtils.isBlank(audioSubLanguages)) {
+		if (isBlank(audioLanguage) || isBlank(audioSubLanguages)) {
 			// Not enough information to do a full audio/subtitles combination
 			// search, only use the preferred subtitles
 			LOGGER.trace("Searching for subtitles without considering audio language for \"{}\"", getName());
@@ -4216,23 +4257,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Check for forced subtitles.
 		String forcedTags = deviceSpecificConfiguration.getForcedSubtitleTags();
-		if (StringUtils.isNotBlank(forcedTags)) {
+		if (isNotBlank(forcedTags)) {
 			Locale locale = PMS.getLocale();
 			ArrayList<String> forcedTagsList = new ArrayList<>();
 			for (String forcedTag : forcedTags.split(",")) {
-				if (StringUtils.isNotBlank(forcedTag)) {
+				if (isNotBlank(forcedTag)) {
 					forcedTagsList.add(forcedTag.trim().toLowerCase(locale));
 				}
 			}
 			ArrayList<MediaSubtitle> candidates = new ArrayList<>();
 			String forcedLanguage = deviceSpecificConfiguration.getForcedSubtitleLanguage();
-			boolean anyLanguage = StringUtils.isBlank(forcedLanguage) || "*".equals(forcedLanguage) || MediaLang.UND.equals(forcedLanguage);
+			boolean anyLanguage = isBlank(forcedLanguage) || "*".equals(forcedLanguage) || MediaLang.UND.equals(forcedLanguage);
 			for (MediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (!useExternal && subtitles.isExternal()) {
 					continue;
 				}
-				String title = subtitles.getTitle();
-				if (StringUtils.isNotBlank(title)) {
+				String title = subtitles.getSubtitlesTrackTitleFromMetadata();
+				if (isNotBlank(title)) {
 					title = title.toLowerCase(locale);
 					for (String forcedTag : forcedTagsList) {
 						if (title.contains(forcedTag) && (anyLanguage || Iso639.isCodesMatching(subtitles.getLang(), forcedLanguage))) {
@@ -5028,12 +5069,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				videoMetadata.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 
 				// Apply the metadata from the filename.
-				if (StringUtils.isNotBlank(titleFromFilename) && StringUtils.isNotBlank(tvSeasonFromFilename)) {
+				if (isNotBlank(titleFromFilename) && isNotBlank(tvSeasonFromFilename)) {
 					videoMetadata.setTVSeason(tvSeasonFromFilename);
-					if (StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
+					if (isNotBlank(tvEpisodeNumberFromFilename)) {
 						videoMetadata.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
 					}
-					if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
+					if (isNotBlank(tvEpisodeNameFromFilename)) {
 						videoMetadata.setTVEpisodeName(tvEpisodeNameFromFilename);
 					}
 
@@ -5155,55 +5196,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			result = this;
 		}
 		return result;
-	}
-
-	/**
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#clone()
-	 */
-	@Override
-	public DLNAResource clone() {
-		DLNAResource o = null;
-		try {
-			o = (DLNAResource) super.clone();
-			o.setId(null);
-
-			// Make sure clones (typically #--TRANSCODE--# folder files)
-			// have the option to respond to resolve events
-			o.resolved = false;
-
-			if (media != null) {
-				o.media = media.clone();
-			}
-		} catch (CloneNotSupportedException e) {
-			LOGGER.error(null, e);
-		}
-
-		return o;
-	}
-
-	/**
-	 * (non-Javadoc)
-	 *
-	 * @see java.lang.Object#toString()
-	 */
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
-		result.append(getClass().getSimpleName());
-		result.append(" [id=");
-		result.append(id);
-		result.append(", name=");
-		result.append(getName());
-		result.append(", full path=");
-		result.append(getResourceId());
-		result.append(", format=");
-		result.append(format);
-		result.append(", discovered=");
-		result.append(isDiscovered());
-		result.append(']');
-		return result.toString();
 	}
 
 }

@@ -49,7 +49,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
-import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
 import static net.pms.util.Constants.*;
 import net.pms.util.FilePermissions.FileFlag;
@@ -1648,6 +1648,7 @@ public class FileUtil {
 	 *         match was found
 	 * @throws IOException
 	 */
+	@Nonnull
 	public static CharsetMatch getFileCharsetMatch(@Nonnull File file) throws IOException {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();

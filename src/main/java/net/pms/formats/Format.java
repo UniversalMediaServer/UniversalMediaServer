@@ -19,6 +19,8 @@ package net.pms.formats;
 import java.util.Locale;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.InputFile;
+import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
@@ -279,6 +281,19 @@ public abstract class Format implements Cloneable {
 
 	public Format duplicate() {
 		return (Format) this.clone();
+	}
+
+	/**
+	 * Chooses which parsing method to parse the file with.
+	 */
+	public void parse(MediaInfo media, InputFile file, int type, Renderer renderer) {
+		if (renderer != null && renderer.isUseMediaInfo()) {
+			renderer.getFormatConfiguration().parse(media, file, this, type, renderer);
+		} else {
+			media.parse(file, this, type, false);
+		}
+
+		LOGGER.trace("Parsing results for file \"{}\": {}", file.toString(), media.toString());
 	}
 
 	/**

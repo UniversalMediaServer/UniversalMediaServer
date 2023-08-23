@@ -37,19 +37,13 @@ import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
-import net.pms.parsers.FFmpegParser;
-import net.pms.parsers.Parser;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.Tag;
-import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,18 +113,18 @@ public class RealFile extends VirtualFile {
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (this.getType() != Format.UNKNOWN && getMedia() != null) {
-				if (getMedia().getDefaultVideoTrack() != null && getMedia().getDefaultVideoTrack().isEncrypted()) {
+			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(MediaLang.UND))) {
+				if (getMedia().isEncrypted()) {
 					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
-				} else if (getMedia().getContainer() == null || getMedia().getContainer().equals(MediaLang.UND)) {
+				} else {
 					// problematic media not parsed by MediaInfo try to parse it in a different way by ffmpeg, AudioFileIO or ImagesUtil
 					// this is a quick fix for the MediaInfo insufficient parsing method
-					getMedia().setMediaParser(null);
+					getMedia().setMediaparsed(false);
 					InputFile inputfile = new InputFile();
 					inputfile.setFile(file);
 					getMedia().setContainer(null);
-					FFmpegParser.parse(getMedia(), inputfile, getFormat(), getType());
+					getMedia().parse(inputfile, getFormat(), getType(), false);
 					if (getMedia().getContainer() == null) {
 						valid = false;
 						LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
@@ -169,7 +163,7 @@ public class RealFile extends VirtualFile {
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
 			return MediaInfo.TRANS_SIZE;
-		} else if (getMedia() != null && getMedia().isMediaParsed()) {
+		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getSize();
 		}
 		return getFile().length();
@@ -235,7 +229,7 @@ public class RealFile extends VirtualFile {
 			LOGGER.error("RealFile points to no physical file. ");
 			return;
 		}
-		if (file.isFile() && (getMedia() == null || !getMedia().isMediaParsed())) {
+		if (file.isFile() && (getMedia() == null || !getMedia().isMediaparsed())) {
 			boolean found = false;
 			InputFile input = new InputFile();
 			input.setFile(file);
@@ -250,23 +244,18 @@ public class RealFile extends VirtualFile {
 					if (connection != null) {
 						connection.setAutoCommit(false);
 						try {
-							MediaInfo media = MediaTableFiles.getMediaInfo(connection, fileName, file.lastModified());
+							MediaInfo media = MediaTableFiles.getData(connection, fileName, file.lastModified());
 
 							setExternalSubtitlesParsed();
 							if (media != null) {
 								setMedia(media);
 								if (configuration.isDisableSubtitles() && getMedia().isVideo()) {
 									// clean subtitles obtained from the database when they are disabled but keep them in the database for the future use
-									// FIXME this hack should not be done
-									// media info are immutable
 									getMedia().setSubtitlesTracks(new ArrayList<>());
 									resetSubtitlesStatus();
 								}
-								if (!media.isMediaParsed()) {
-									Parser.parse(media, input, getFormat(), getType());
-									MediaTableFiles.insertOrUpdateData(connection, fileName, file.lastModified(), getType(), media);
-								}
-								getMedia().postParse(getType());
+
+								getMedia().postParse(getType(), input);
 								found = true;
 								setMediaStatus(MediaTableFilesStatus.getData(connection, fileName));
 							}
@@ -283,13 +272,13 @@ public class RealFile extends VirtualFile {
 					}
 
 					if (getFormat() != null) {
-						Parser.parse(getMedia(), input, getFormat(), getType());
+						getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 					} else {
 						// Don't think that will ever happen
-						FFmpegParser.parse(getMedia(), input, getFormat(), getType());
+						getMedia().parse(input, getFormat(), getType(), isResume());
 					}
 
-					if (connection != null && getMedia().isMediaParsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {
+					if (connection != null && getMedia().isMediaparsed() && !getMedia().isParsing() && isAddToMediaLibrary()) {
 						try {
 							/*
 							 * Even though subtitles will be resolved later in
@@ -467,8 +456,8 @@ public class RealFile extends VirtualFile {
 	 * @param inputFile
 	 */
 	protected void checkCoverThumb() {
-		if (getMedia() != null && getMedia().isAudio() && getMedia().hasAudioMetadata()) {
-			String mbReleaseId = getMedia().getAudioMetadata().getMbidRecord();
+		if (getMedia() != null && getMedia().isAudio() && getMedia().getAudioTrackCount() > 0) {
+			String mbReleaseId = getMedia().getAudioTracksList().get(0).getMbidRecord();
 			if (!StringUtils.isAllBlank(mbReleaseId)) {
 				try {
 					if (!MediaTableCoverArtArchive.hasCover(mbReleaseId)) {
@@ -490,11 +479,10 @@ public class RealFile extends VirtualFile {
 					} else {
 						LOGGER.trace("cover already exists in MediaTableCoverArtArchive");
 					}
-				} catch (IOException | CannotReadException | InvalidAudioFrameException | ReadOnlyFileException | TagException e) {
+				} catch (Exception e) {
 					LOGGER.trace("checkCoverThumb failed.", e);
 				}
 			}
 		}
 	}
-
 }
