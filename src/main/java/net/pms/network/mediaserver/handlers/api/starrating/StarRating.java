@@ -19,14 +19,11 @@ package net.pms.network.mediaserver.handlers.api.starrating;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -92,55 +89,38 @@ public class StarRating implements ApiResponseHandler {
 			}
 
 			String uriLower = uri.toLowerCase();
-			String sql;
 			switch (uriLower) {
 				case "setrating" -> {
 					RequestVO request = parseSetRatingRequest(content);
-					setDatabaseRatingByMusicbrainzId(connection, request.getStars(), request.getTrackID());
-					List<FilenameIdVO> dbSongs = getFilenameIdList(connection, request.getTrackID());
+					setDatabaseRatingByMusicbrainzTrackId(connection, request.getStars(), request.getTrackID());
 					if (PMS.getConfiguration().isAudioUpdateTag()) {
-						for (FilenameIdVO dbSong : dbSongs) {
-							setRatingInFile(request.getStars(), dbSong);
+						List<String> filenames = getFilenameListByMusicbrainzTrackId(connection, request.getTrackID());
+						for (String filename : filenames) {
+							setRatingInFile(request.getStars(), filename);
 						}
 					}
 				}
 				case "getrating" -> {
-					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.MBID_TRACK = ?";
-					try (PreparedStatement ps = connection.prepareStatement(sql)) {
-						ps.setString(1, content);
-						try (ResultSet rs = ps.executeQuery()) {
-							if (rs.next()) {
-								int ratingVal = rs.getInt(1);
-								return Integer.toString(ratingVal);
-							}
-						}
-					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+					Integer rating = MediaTableAudioMetadata.getRatingByMusicbrainzTrackId(connection, content);
+					if (rating != null) {
+						return Integer.toString(rating);
 					}
 				}
 				case "setratingbyaudiotrackid" -> {
 					RequestVO request = parseSetRatingRequest(content);
 					if (NumberUtils.isParsable(request.getTrackID())) {
 						Integer audiotrackId = Integer.valueOf(request.getTrackID());
-						setDatabaseRatingByAudiotracksId(connection, request.getStars(), audiotrackId);
+						MediaTableAudioMetadata.updateRatingByAudiotrackId(connection, request.getStars(), audiotrackId);
 						if (PMS.getConfiguration().isAudioUpdateTag()) {
-							FilenameIdVO dbSong = getFilenameIdForAudiotrackId(connection, audiotrackId);
-							setRatingInFile(request.getStars(), dbSong);
+							String filename = getFilenameForAudiotrackId(connection, audiotrackId);
+							setRatingInFile(request.getStars(), filename);
 						}
 					}
 				}
 				case "getratingbyaudiotrackid" -> {
-					sql = "Select distinct rating from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?";
-					try (PreparedStatement ps = connection.prepareStatement(sql)) {
-						ps.setString(1, content);
-						try (ResultSet rs = ps.executeQuery()) {
-							if (rs.next()) {
-								int ratingVal = rs.getInt(1);
-								return Integer.toString(ratingVal);
-							}
-						}
-					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
+					Integer rating = MediaTableAudioMetadata.getRatingByAudiotrackId(connection, Integer.valueOf(content));
+					if (rating != null) {
+						return Integer.toString(rating);
 					}
 				}
 				default -> {
@@ -184,10 +164,12 @@ public class StarRating implements ApiResponseHandler {
 		return request;
 	}
 
-	public void setRatingInFile(int ratingInStars, FilenameIdVO dbSong) {
-		AudioFile audioFile;
+	public void setRatingInFile(int ratingInStars, String filename) {
+		if (StringUtils.isEmpty(filename)) {
+			return;
+		}
 		try {
-			audioFile = AudioFileIO.read(new File(dbSong.getFilename()));
+			AudioFile audioFile = AudioFileIO.read(new File(filename));
 			Tag tag = audioFile.getTag();
 			tag.setField(FieldKey.RATING, getRatingValue(tag, ratingInStars));
 			audioFile.commit();
@@ -196,69 +178,39 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	public void setDatabaseRatingByMusicbrainzId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
-		String sql;
-		sql = "UPDATE AUDIOTRACKS set rating = ? where MBID_TRACK = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setInt(1, ratingInStars);
-			ps.setString(2, musicBrainzTrackId);
-			ps.executeUpdate();
-			connection.commit();
-		}
+	public void setDatabaseRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
+		MediaTableAudioMetadata.updateRatingByMusicbrainzTrackId(connection, ratingInStars, musicBrainzTrackId);
 	}
 
 	public void setDatabaseRatingByAudiotracksId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
-		String sql;
-		sql = "UPDATE AUDIOTRACKS set rating = ? where AUDIOTRACK_ID = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql)) {
-			ps.setInt(1, ratingInStars);
-			if (audiotracksId == null) {
-				ps.setNull(2, Types.INTEGER);
-			} else {
-				ps.setInt(2, audiotracksId);
-			}
-			ps.executeUpdate();
-			connection.commit();
-		}
+		MediaTableAudioMetadata.updateRatingByAudiotrackId(connection, ratingInStars, audiotracksId);
 	}
 
-	private List<FilenameIdVO> getFilenameIdList(Connection connection, String trackId) {
+	private List<String> getFilenameListByMusicbrainzTrackId(Connection connection, String trackId) {
 		if (trackId == null) {
 			throw new RuntimeException("musicBrainz trackId shall not be empty.");
 		}
-
-		ArrayList<FilenameIdVO> list = new ArrayList<>();
-		String sql = "Select f.id, filename from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.MBID_TRACK = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql);) {
-			ps.setString(1, trackId);
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				list.add(new FilenameIdVO(rs.getInt(1), rs.getString(2)));
+		try {
+			List<String> filenames = MediaTableAudioMetadata.getFilenamesByMusicbrainzTrackId(connection, trackId);
+			if (filenames.isEmpty()) {
+				throw new RuntimeException("musicbrainz trackid not found : " + trackId);
 			}
+			return filenames;
 		} catch (SQLException e) {
 			throw new RuntimeException("cannot handle request", e);
 		}
-		if (list.isEmpty()) {
-			throw new RuntimeException("musicbrainz trackid not found : " + trackId);
-		} else {
-			return list;
-		}
 	}
 
-	private FilenameIdVO getFilenameIdForAudiotrackId(Connection connection, Integer audiotrackId) {
+	private String getFilenameForAudiotrackId(Connection connection, Integer audiotrackId) {
 		if (audiotrackId == null) {
 			throw new RuntimeException("audiotrackId shall not be empty.");
 		}
-
-		String sql = "Select f.id, filename from FILES as f left outer join AUDIOTRACKS as a on F.ID = A.FILEID where a.AUDIOTRACK_ID = ?";
-		try (PreparedStatement ps = connection.prepareStatement(sql);) {
-			ps.setInt(1, audiotrackId);
-			ResultSet rs = ps.executeQuery();
-			if (rs.next()) {
-				return new FilenameIdVO(rs.getInt(1), rs.getString(2));
-			} else {
+		try {
+			String filename = MediaTableAudioMetadata.getFilenameByAudiotrackId(connection, audiotrackId);
+			if (filename == null) {
 				throw new RuntimeException("audiotrackId not found : " + audiotrackId);
 			}
+			return filename;
 		} catch (SQLException e) {
 			throw new RuntimeException("cannot handle request", e);
 		}
