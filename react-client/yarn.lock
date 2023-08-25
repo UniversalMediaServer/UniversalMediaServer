@@ -3322,13 +3322,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:*, @types/jest@npm:29.5.3":
+"@types/jest@npm:*":
   version: 29.5.3
   resolution: "@types/jest@npm:29.5.3"
   dependencies:
     expect: ^29.0.0
     pretty-format: ^29.0.0
   checksum: e36bb92e0b9e5ea7d6f8832baa42f087fc1697f6cd30ec309a07ea4c268e06ec460f1f0cfd2581daf5eff5763475190ec1ad8ac6520c49ccfe4f5c0a48bfa676
+  languageName: node
+  linkType: hard
+
+"@types/jest@npm:29.5.4":
+  version: 29.5.4
+  resolution: "@types/jest@npm:29.5.4"
+  dependencies:
+    expect: ^29.0.0
+    pretty-format: ^29.0.0
+  checksum: 38ed5942f44336452efd0f071eab60aaa57cd8d46530348d0a3aa5a691dcbf1366c4ca8f6ee8364efb45b4413bfefae443e5d4f469246a472a03b21ac11cd4ed
   languageName: node
   linkType: hard
 
@@ -3374,10 +3384,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.17.6":
-  version: 18.17.6
-  resolution: "@types/node@npm:18.17.6"
-  checksum: 70bc92adde47d569f25c5ed40b55040cdf189518d6149e0c3041c6e60b1098cad9c48a856f0b7868ebd74d4098a0ca508b0ec4373dd96216eb8a387ee898e14c
+"@types/node@npm:18.17.11":
+  version: 18.17.11
+  resolution: "@types/node@npm:18.17.11"
+  checksum: c31d9f4a6f7c5c413b6548ded0fab046571832718361c5cda325960f32d6b386dd0a7fa9228911111fee54c180d09df82a622efdabdbef89fa9e1923891892bc
   languageName: node
   linkType: hard
 
@@ -13860,9 +13870,9 @@ __metadata:
     "@testing-library/jest-dom": 5.17.0
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.4.3
-    "@types/jest": 29.5.3
+    "@types/jest": 29.5.4
     "@types/lodash": 4.14.197
-    "@types/node": 18.17.6
+    "@types/node": 18.17.11
     "@types/react": 18.2.20
     "@types/react-color": 3.0.6
     "@types/react-dom": 18.2.7
