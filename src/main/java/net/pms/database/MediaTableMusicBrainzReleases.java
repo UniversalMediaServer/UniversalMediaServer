@@ -23,9 +23,9 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is responsible for managing the MusicBrainz releases table. It

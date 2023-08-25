@@ -27,10 +27,9 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -44,6 +43,7 @@ import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.util.InputFile;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 import net.pms.util.Version;
@@ -113,7 +113,7 @@ public class TsMuxeRVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -121,8 +121,8 @@ public class TsMuxeRVideo extends Engine {
 		// Use device-specific ums conf
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 
-		final String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		final String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;
@@ -704,7 +704,7 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		MediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
@@ -717,7 +717,7 @@ public class TsMuxeRVideo extends Engine {
 
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getDefaultAudioTrack().toString();
+			String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// We only support playback of the default audio track for tsMuxeR

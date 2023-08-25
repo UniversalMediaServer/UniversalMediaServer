@@ -538,7 +538,7 @@ public class MediaInfoParser {
 				media.setAudioMetadata(parseFileForAudioMetadata(file, media));
 			}
 
-			media.postParse(type);
+			Parser.postParse(media, type);
 			if (parseLogger != null) {
 				LOGGER.trace("{}", parseLogger);
 			}

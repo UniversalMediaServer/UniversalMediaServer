@@ -26,14 +26,12 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.jupnp.support.model.Protocol;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.DLNAOrgProfileName;
 import net.pms.dlna.protocolinfo.KnownDLNAOrgProfileName;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.dlna.protocolinfo.ProtocolInfo;
 import net.pms.image.ColorSpaceType;
+import net.pms.image.ExifInfo.ExifColorSpace;
 import net.pms.image.GIFInfo;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -43,8 +41,10 @@ import net.pms.image.JPEGInfo;
 import net.pms.image.JPEGInfo.CompressionType;
 import net.pms.image.JPEGSubsamplingNotation;
 import net.pms.image.PNGInfo;
-import net.pms.image.ExifInfo.ExifColorSpace;
 import net.pms.image.PNGInfo.InterlaceMethod;
+import org.jupnp.support.model.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Definition and validation of the different DLNA media profiles for images.
@@ -666,8 +666,8 @@ public class DLNAImageProfile implements Comparable<DLNAImageProfile>, Serializa
 		) {
 			DLNAOrgProfileName dlnaProfileName = protocolInfo.getDLNAProfileName();
 			if (dlnaProfileName != null) {
-				if (dlnaProfileName instanceof KnownDLNAOrgProfileName) {
-					switch ((KnownDLNAOrgProfileName) dlnaProfileName) {
+				if (dlnaProfileName instanceof KnownDLNAOrgProfileName knownDLNAOrgProfileName) {
+					switch (knownDLNAOrgProfileName) {
 						case GIF_LRG:
 							result.add(GIF_LRG);
 							break;

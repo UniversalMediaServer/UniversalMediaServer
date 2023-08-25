@@ -18,7 +18,7 @@ package net.pms.renderers.devices.players;
 
 import java.awt.event.ActionEvent;
 import java.util.Map;
-import net.pms.dlna.DLNAResource;
+import net.pms.library.LibraryResource;
 import net.pms.renderers.JUPnPDeviceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.util.StringUtil;
@@ -135,13 +135,13 @@ public class UPNPPlayer extends LogicalPlayer {
 
 	@Override
 	public void start() {
-		DLNAResource d = renderer.getPlayingRes();
+		LibraryResource d = renderer.getPlayingRes();
 		state.setName(d.getDisplayName());
-		if (d.getMedia() != null) {
-			String duration = d.getMedia().getDurationString();
+		if (d.getMediaInfo() != null) {
+			String duration = d.getMediaInfo().getDurationString();
 			ignoreUpnpDuration = !StringUtil.isZeroTime(duration);
 			if (ignoreUpnpDuration) {
-				state.setDuration(StringUtil.shortTime(d.getMedia().getDurationString(), 4));
+				state.setDuration(StringUtil.shortTime(d.getMediaInfo().getDurationString(), 4));
 			}
 		}
 	}

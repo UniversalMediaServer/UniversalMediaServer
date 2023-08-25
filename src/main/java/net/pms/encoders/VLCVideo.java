@@ -26,9 +26,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.network.HTTPResource;
@@ -427,12 +427,12 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(DLNAResource dlna, MediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(LibraryResource resource, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(dlna, params);
+		setAudioAndSubs(resource, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.getMediaRenderer());
@@ -518,7 +518,7 @@ public class VLCVideo extends Engine {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 				} else if (
 					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
-					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), dlna)
+					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), resource)
 				) {
 					String externalSubtitlesFileName;
 
@@ -617,7 +617,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		// Only handle local video - not web video or audio
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

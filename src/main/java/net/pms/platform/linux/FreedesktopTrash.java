@@ -37,10 +37,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil.InvalidFileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.util.FilePermissions;
 
 public class FreedesktopTrash {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);

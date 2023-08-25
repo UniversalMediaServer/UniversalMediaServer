@@ -21,14 +21,13 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+import net.pms.PMS;
+import net.pms.network.NetworkDeviceFilter;
+import net.pms.service.LibraryScanner;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.service.LibraryScanner;
-import net.pms.dlna.RootFolder;
-import net.pms.network.NetworkDeviceFilter;
-import org.apache.commons.io.IOUtils;
 
 /**
  * This class handles calls to the internal API.
@@ -66,13 +65,13 @@ public class ApiHandler implements HttpHandler {
 					exchange.sendResponseHeaders(403, 0); //Forbidden
 				} else if (validApiKeyPresent(serverApiKey, clientApiKey)) {
 					switch (call) {
-						case "rescan":
+						case "rescan" -> {
 							rescanLibrary();
-							break;
-						case "rescanFileOrFolder":
+						}
+						case "rescanFileOrFolder" -> {
 							String filename = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-							RootFolder.rescanLibraryFileOrFolder(filename);
-							break;
+							LibraryScanner.scanFileOrFolder(filename);
+						}
 					}
 					exchange.sendResponseHeaders(204, 0); //No Content
 				} else {

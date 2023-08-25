@@ -16,9 +16,11 @@
  */
 package net.pms.platform.windows;
 
-import java.io.*;
-import net.pms.io.IPipeProcess;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import net.pms.io.BufferedOutputFile;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 
@@ -69,6 +71,7 @@ public class WindowsPipeProcess implements IPipeProcess {
 
 	@Override
 	public void deleteLater() {
+		//not implemented
 	}
 
 	@Override

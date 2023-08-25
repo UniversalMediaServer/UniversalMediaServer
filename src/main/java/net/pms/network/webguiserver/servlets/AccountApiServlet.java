@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.Base64;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,9 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
 import net.pms.iam.User;
+import net.pms.image.Image;
+import net.pms.image.ImageFormat;
+import net.pms.image.ImagesUtil;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
@@ -113,7 +117,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 						Connection connection = UserDatabase.getConnectionIfAvailable();
 						if (connection != null) {
 							switch (operation) {
-								case "authentication":
+								case "authentication" -> {
 									//we need enabled
 									if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
 										boolean enabled = action.get("enabled").getAsBoolean();
@@ -123,8 +127,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to change authentication service", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "localhost":
+								}
+								case "localhost" -> {
 									//we need enabled
 									if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
 										boolean enabled = action.get("enabled").getAsBoolean();
@@ -134,12 +138,12 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to change localhost auto admin", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "changelogin":
+								}
+								case "changelogin" -> {
 									//we need username, password
 									//optional userid
 									if (action.has("username") && action.has("password")) {
-											int clUserId;
+										int clUserId;
 										// without userid member, we fall back to self user
 										if (action.has("userid")) {
 											clUserId = action.get("userid").getAsInt();
@@ -159,8 +163,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 									} else {
 										WebGuiServletHelper.respondBadRequest(req, resp);
 									}
-									break;
-								case "createuser":
+								}
+								case "createuser" -> {
 									if (account.havePermission(Permissions.USERS_MANAGE)) {
 										//we need at least user, password
 										//optional : name, groupid
@@ -193,10 +197,10 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to create a user", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "modifyuser":
+								}
+								case "modifyuser" -> {
 									//we need userid
-									//optional : name, groupid
+									//optional : name, groupid, avatar, pincode
 									if (action.has("userid")) {
 										int muUserId = action.get("userid").getAsInt();
 										if (muUserId == account.getUser().getId() || account.havePermission(Permissions.USERS_MANAGE)) {
@@ -214,6 +218,32 @@ public class AccountApiServlet extends GuiHttpServlet {
 												} else {
 													muGroupId = muUser.getGroupId();
 												}
+												Image muAvatar = null;
+												if (action.has("avatar")) {
+													String muAvatarBase64 = action.get("avatar").getAsString();
+													if (muAvatarBase64.contains("data:image") && muAvatarBase64.contains(";base64,")) {
+														muAvatarBase64 = muAvatarBase64.substring(muAvatarBase64.indexOf(";base64,") + 8);
+														muAvatar = getAvatarFromBase64(muAvatarBase64);
+													}
+													if (muAvatar == null && !"".equals(muAvatarBase64)) {
+														//something went wrong or this is not an image
+														muAvatar = muUser.getAvatar();
+													}
+												} else {
+													muAvatar = muUser.getAvatar();
+												}
+												String muPinCode;
+												if (action.has("pincode")) {
+													muPinCode = action.get("pincode").getAsString();
+												} else {
+													muPinCode = muUser.getPinCode();
+												}
+												boolean muLibraryHidden;
+												if (action.has("library_hidden")) {
+													muLibraryHidden = action.get("library_hidden").getAsBoolean();
+												} else {
+													muLibraryHidden = muUser.isLibraryHidden();
+												}
 												//if no granted to manage groups, only allow current group
 												if (!account.havePermission(Permissions.GROUPS_MANAGE) && muGroupId != muUser.getGroupId()) {
 													if (!muName.equals(muUser.getDisplayName())) {
@@ -228,7 +258,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 														return;
 													}
 												}
-												AccountService.updateUser(connection, muUserId, muName, muGroupId);
+												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode, muLibraryHidden);
 												WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 												SseApiServlet.setRefreshSession(muUserId);
 												SseApiServlet.setUpdateAccounts();
@@ -243,8 +273,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 									} else {
 										WebGuiServletHelper.respondBadRequest(req, resp);
 									}
-									break;
-								case "deleteuser":
+								}
+								case "deleteuser" -> {
 									//we need only userid
 									if (action.has("userid")) {
 										int duUserId = action.get("userid").getAsInt();
@@ -260,8 +290,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 									} else {
 										WebGuiServletHelper.respondBadRequest(req, resp);
 									}
-									break;
-								case "creategroup":
+								}
+								case "creategroup" -> {
 									if (account.havePermission(Permissions.GROUPS_MANAGE)) {
 										//we need name
 										if (action.has("name")) {
@@ -276,8 +306,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to create a group", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "modifygroup":
+								}
+								case "modifygroup" -> {
 									if (account.havePermission(Permissions.GROUPS_MANAGE)) {
 										//we need groupid, name
 										if (action.has("groupid") && action.has("name")) {
@@ -295,8 +325,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to modify a group", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "deletegroup":
+								}
+								case "deletegroup" -> {
 									if (account.havePermission(Permissions.GROUPS_MANAGE)) {
 										//we need groupid
 										if (action.has("groupid")) {
@@ -313,8 +343,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to delete a group", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								case "updatepermission":
+								}
+								case "updatepermission" -> {
 									if (account.havePermission(Permissions.GROUPS_MANAGE)) {
 										//we need groupid, permissions
 										if (action.has("groupid") && action.has("permissions")) {
@@ -332,9 +362,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										LOGGER.trace("User '{}' try to update permissions", account.toString());
 										WebGuiServletHelper.respondForbidden(req, resp);
 									}
-									break;
-								default:
-									WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
+								}
+								default -> WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
 							}
 							UserDatabase.close(connection);
 						} else {
@@ -373,6 +402,18 @@ public class AccountApiServlet extends GuiHttpServlet {
 	private static JsonObject groupToJsonObject(Group group) {
 		JsonElement jElement = GSON.toJsonTree(group);
 		return jElement.getAsJsonObject();
+	}
+
+	private static Image getAvatarFromBase64(String imageString) {
+		try {
+			byte[] avatarBytes = Base64.getDecoder().decode(imageString);
+			return Image.toImage(avatarBytes, 640, 480, ImagesUtil.ScaleType.MAX, ImageFormat.JPEG, false);
+		} catch (IllegalArgumentException e) {
+			LOGGER.trace("Avatar seems to not be a valid Base64: {}", e);
+		} catch (IOException e) {
+			LOGGER.trace("Avatar seems to not be a valid image: {}", e);
+		}
+		return null;
 	}
 
 }

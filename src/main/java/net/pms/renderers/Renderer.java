@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,15 +31,22 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererDeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.configuration.RendererDeviceConfiguration;
+import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.SharedContent;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
+import net.pms.library.GlobalIdRepo;
+import net.pms.library.LibraryResource;
+import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -85,18 +93,24 @@ public class Renderer extends RendererDeviceConfiguration {
 	private Thread monitorThread;
 	private volatile boolean active;
 	private volatile boolean allowed;
+	private volatile int userId;
 	private volatile boolean renew;
 
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private DLNAResource playingRes;
+	private LibraryResource playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
+	private String automaticVideoQuality;
 
 	private volatile RootFolder rootFolder;
-	private String automaticVideoQuality;
+	private GlobalIdRepo globalRepo;
+	private List<String> sharedPath;
+	protected Account account;
+
+	private volatile int upnpMode = UPNP_NONE;
 
 	public Renderer(String uuid) throws ConfigurationException, InterruptedException {
 		super(uuid);
@@ -114,14 +128,18 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	private void setup() {
-		setRootFolder(null);
+		resetRootFolder();
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
 			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
 				uuid = id;
 			}
 		}
-		allowed = RendererFilter.isAllowed(uuid);
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			userId = RendererUser.getUserId(uuid);
+			account = AccountService.getAccountByUserId(userId);
+		}
 		controls = 0;
 		active = false;
 		details = null;
@@ -152,12 +170,80 @@ public class Renderer extends RendererDeviceConfiguration {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
+	/**
+	 * Used to check if the renderer use it's own auth (like webplayer).
+	 */
+	public boolean isAuthenticated() {
+		return false;
+	}
+
+	public Account getAccount() {
+		return account;
+	}
+
+	public void setUserId(int value) {
+		userId = value;
+		setAccount(AccountService.getAccountByUserId(userId));
+		refreshUserIdGui(value);
+	}
+
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setAccount(Account account) {
+		if (this.account != account) {
+			this.account = account;
+			clearSharedFolders();
+			resetRootFolder();
+		}
+	}
+
+	public int getAccountGroupId() {
+		return account != null && account.getGroup() != null && account.getGroup().getId() != Integer.MAX_VALUE ? account.getGroup().getId() : 0;
+	}
+
+	public int getAccountUserId() {
+		return account != null && account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE ? account.getUser().getId() : 0;
+	}
+
+	public boolean hasShareAccess(File value) {
+		return hasSameBasePath(getSharedFolders(), value.getAbsolutePath());
+	}
+
+	private synchronized void clearSharedFolders() {
+		sharedPath = null;
+	}
+
+	private synchronized List<String> getSharedFolders() {
+		if (sharedPath == null) {
+			// Lazy initialization
+			sharedPath = new ArrayList<>();
+			List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
+			for (SharedContent sharedContent : sharedContents) {
+				if (sharedContent instanceof FolderContent folder &&
+					folder.getFile() != null &&
+					folder.isActive() &&
+					folder.isGroupAllowed(getAccountGroupId())
+				) {
+					sharedPath.add(folder.getFile().getAbsolutePath());
+				}
+			}
+		}
+		return sharedPath;
+	}
+
 	@Override
 	public void reset() {
 		super.reset();
 		// update gui
 		updateRendererGui();
-		allowed = RendererFilter.isAllowed(uuid);
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			if (userId != RendererUser.getUserId(uuid)) {
+				setUserId(RendererUser.getUserId(uuid));
+			}
+		}
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
 			renderer.updateRendererGui();
 		}
@@ -174,8 +260,8 @@ public class Renderer extends RendererDeviceConfiguration {
 	 */
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			rootFolder = new RootFolder();
-			rootFolder.setDefaultRenderer(this);
+			getGlobalRepo();
+			rootFolder = new RootFolder(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -184,14 +270,28 @@ public class Renderer extends RendererDeviceConfiguration {
 		return rootFolder;
 	}
 
-	public void addFolderLimit(DLNAResource res) {
+	public synchronized GlobalIdRepo getGlobalRepo() {
+		if (globalRepo == null) {
+			globalRepo = new GlobalIdRepo();
+		}
+		return globalRepo;
+	}
+
+	public synchronized void resetRootFolder() {
+		if (rootFolder != null) {
+			rootFolder.clearChildren();
+			rootFolder.reset();
+		}
+		if (globalRepo != null) {
+			globalRepo.clear();
+		}
+		UmsContentDirectoryService.getDbSystemUpdateId();
+	}
+
+	public synchronized void addFolderLimit(LibraryResource res) {
 		if (rootFolder != null) {
 			rootFolder.setFolderLim(res);
 		}
-	}
-
-	public synchronized void setRootFolder(RootFolder r) {
-		rootFolder = r;
 	}
 
 	/**
@@ -374,15 +474,15 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public DLNAResource getPlayingRes() {
+	public LibraryResource getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(DLNAResource dlna) {
-		playingRes = dlna;
+	public void setPlayingRes(LibraryResource resource) {
+		playingRes = resource;
 		getPlayer();
-		if (dlna != null) {
-			player.getState().setName(dlna.getDisplayName());
+		if (resource != null) {
+			player.getState().setName(resource.getDisplayName());
 			player.start();
 		} else {
 			player.reset();
@@ -444,6 +544,17 @@ public class Renderer extends RendererDeviceConfiguration {
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setAllowed(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshUserIdGui(int userId) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setUserId(userId);
 			}
 		} finally {
 			listenersLock.readLock().unlock();
@@ -697,7 +808,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		return file;
 	}
 
-	private volatile int upnpMode = UPNP_NONE;
 	public int getUpnpMode() {
 		if (upnpMode == UPNP_NONE) {
 			upnpMode = getUpnpMode(getUpnpAllow());
@@ -752,6 +862,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			case UPNP_NONE -> "unknown";
 			default -> "allowed";
 		};
+	}
+
+	private static boolean hasSameBasePath(List<String> paths, String filename) {
+		for (String path : paths) {
+			if (filename.startsWith(path)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

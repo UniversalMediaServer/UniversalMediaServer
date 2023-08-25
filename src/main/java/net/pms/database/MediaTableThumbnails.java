@@ -16,17 +16,17 @@
  */
 package net.pms.database;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import net.pms.dlna.DLNAThumbnail;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is responsible for managing the Thumbnails table. It

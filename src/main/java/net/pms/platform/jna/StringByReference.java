@@ -16,14 +16,13 @@
  */
 package net.pms.platform.jna;
 
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import com.sun.jna.FromNativeContext;
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
-
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 /**
  * An implementation of a referenced {@code null}-terminated C string.
@@ -110,7 +109,7 @@ public class StringByReference extends PointerType {
 	 * @param value the new string content.
 	 * @param charset a supported {@link Charset} to use for encoding.
 	 */
-	public void setValue(String value, Charset charset) {
+	public final void setValue(String value, Charset charset) {
 		setValue(value, charset.name());
 	}
 
@@ -124,7 +123,7 @@ public class StringByReference extends PointerType {
 	 * @param charsetName a valid and supported {@link Charset} name to use for
 	 *            encoding.
 	 */
-	public void setValue(String value, String charsetName) {
+	public final void setValue(String value, String charsetName) {
 		if (value == null) {
 			setPointer(Pointer.NULL);
 			return;
@@ -180,8 +179,8 @@ public class StringByReference extends PointerType {
 	 * @return The allocated size in bytes or {@code -1} if unknown.
 	 */
 	public long getAllocatedSize() {
-		if (getPointer() instanceof Memory) {
-			return Math.max(((Memory) getPointer()).size() - 1, 0);
+		if (getPointer() instanceof Memory memory) {
+			return Math.max(memory.size() - 1, 0);
 		}
 		return -1;
 	}

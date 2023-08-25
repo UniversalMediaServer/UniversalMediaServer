@@ -16,7 +16,8 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,14 +29,13 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import jakarta.xml.bind.DatatypeConverter;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import javax.xml.stream.XMLStreamConstants;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 
 /**

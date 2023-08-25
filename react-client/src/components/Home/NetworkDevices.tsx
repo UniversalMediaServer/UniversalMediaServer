@@ -20,17 +20,17 @@ import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh } from 'tabler-icons-r
 
 import { NetworkDevice, NetworkDevicesFilter } from './Home';
 import { useDisclosure } from '@mantine/hooks';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 const NetworkDevices = (
-  { blockedByDefault, canModify, currentTime, i18n, networkDeviceFilters, refreshData, setAllowed }:
+  { blockedByDefault, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed }:
     {
       blockedByDefault: boolean,
       canModify: boolean,
       currentTime: number,
       i18n: { get: { [key: string]: string } },
       networkDeviceFilters: NetworkDevicesFilter[],
-      refreshData: () => void,
+      refreshDeviceData: () => void,
       setAllowed: (rule: string, isAllowed: boolean) => void
     }
 ) => {
@@ -94,7 +94,7 @@ const NetworkDevices = (
                   ) : (
                     <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
                   )}
-                  <Menu.Item icon={<Refresh size={14} />} onClick={() => refreshData()}>{i18n.get['Refresh']}</Menu.Item>
+                  <Menu.Item icon={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get['Refresh']}</Menu.Item>
                   <Menu.Item icon={<CodePlus size={14} />} onClick={() => open()}>{i18n.get['AddCustomFilter']}</Menu.Item>
                 </>
               </Menu.Dropdown>
@@ -166,6 +166,10 @@ const NetworkDevices = (
       </Card>
     </Grid.Col>
   ));
+
+  useEffect(() => {
+    refreshDeviceData();
+  }, [i18n]);
 
   return (
     <>

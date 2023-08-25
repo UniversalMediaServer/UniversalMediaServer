@@ -104,17 +104,17 @@ public class MetadataExtractorParser {
 	 * This method consumes and closes {@code inputStream}.
 	 * </b>
 	 * @param file the {@link File} to parse.
-	 * @param media the {@link MediaInfo} instance to store the parsing
+	 * @param mediaInfo the {@link MediaInfo} instance to store the parsing
 	 *              results to.
 	 * @throws IOException if an IO error occurs or no information can be parsed.
 	 *
 	 */
-	public static void parse(File file, MediaInfo media) throws IOException {
+	public static void parse(File file, MediaInfo mediaInfo) throws IOException {
 		final int maxBuffer = 1048576; // 1 MB
 		if (file == null) {
 			throw new IllegalArgumentException("parseImage: file cannot be null");
 		}
-		if (media == null) {
+		if (mediaInfo == null) {
 			throw new IllegalArgumentException("parseImage: media cannot be null");
 		}
 
@@ -243,14 +243,14 @@ public class MetadataExtractorParser {
 					format = imageInfo.getFormat();
 				}
 			}
-			media.setImageInfo(imageInfo);
-			media.setImageCount(1);
+			mediaInfo.setImageInfo(imageInfo);
+			mediaInfo.setImageCount(1);
 			if (format != null) {
-				media.setContainer(format.toFormatConfiguration());
+				mediaInfo.setContainer(format.toFormatConfiguration());
 			}
-			media.setSize(file.length());
-			media.setMediaParser(PARSER_NAME);
-			media.postParse(Format.IMAGE);
+			mediaInfo.setSize(file.length());
+			mediaInfo.setMediaParser(PARSER_NAME);
+			Parser.postParse(mediaInfo, Format.IMAGE);
 			if (trace) {
 				LOGGER.trace("Parsing of image \"{}\" completed", file.getName());
 			}

@@ -14,7 +14,6 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.util;
 
 import java.io.File;
@@ -63,11 +62,10 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.renderers.Renderer;
@@ -81,10 +79,6 @@ import net.pms.util.XMLRPCUtil.Value;
 import net.pms.util.XMLRPCUtil.ValueArray;
 import net.pms.util.XMLRPCUtil.ValueString;
 import net.pms.util.XMLRPCUtil.ValueStruct;
-import static net.pms.util.XMLRPCUtil.createReader;
-import static net.pms.util.XMLRPCUtil.createWriter;
-import static net.pms.util.XMLRPCUtil.readMethodResponse;
-import static net.pms.util.XMLRPCUtil.writeMethod;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -323,8 +317,8 @@ public class OpenSubtitle {
 					new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
 					connection.getOutputStream()
 			) {
-				XMLStreamWriter writer = createWriter(out);
-				writeMethod(writer, "LogIn", params);
+				XMLStreamWriter writer = XMLRPCUtil.createWriter(out);
+				XMLRPCUtil.writeMethod(writer, "LogIn", params);
 				writer.flush();
 				if (out instanceof LoggableOutputStream loggableOutputStream) {
 					LOGGER.trace("Sending OpenSubtitles login request:\n{}", toLogString(loggableOutputStream));
@@ -343,15 +337,15 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles login response");
 				XMLStreamReader reader = null;
 				try {
-					reader = createReader(reply);
-					params = readMethodResponse(reader);
+					reader = XMLRPCUtil.createReader(reply);
+					params = XMLRPCUtil.readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
 						reader.close();
 					}
 				}
-				if (reply instanceof LoggableInputStream) {
-					LOGGER.trace("Received OpenSubtitles login response:\n{}", toLogString((LoggableInputStream) reply));
+				if (reply instanceof LoggableInputStream loggableInputStream) {
+					LOGGER.trace("Received OpenSubtitles login response:\n{}", toLogString(loggableInputStream));
 				}
 			}
 
@@ -532,15 +526,15 @@ public class OpenSubtitle {
 
 	/**
 	 * Tries to find relevant OpenSubtitles subtitles for the specified
-	 * {@link DLNAResource} for the specified renderer.
+	 * {@link LibraryResource} for the specified renderer.
 	 *
-	 * @param resource the {@link DLNAResource} for which to find OpenSubtitles
+	 * @param resource the {@link LibraryResource} for which to find OpenSubtitles
 	 *            subtitles.
 	 * @param renderer the {@link Renderer} or {@code null}.
 	 * @return The {@link List} of found {@link SubtitleItem}. If none are
 	 *         found, an empty {@link List} is returned.
 	 */
-	public static List<SubtitleItem> findSubtitles(DLNAResource resource, Renderer renderer) {
+	public static List<SubtitleItem> findSubtitles(LibraryResource resource, Renderer renderer) {
 		List<SubtitleItem> result = new ArrayList<>();
 		if (resource == null) {
 			return new ArrayList<>();
@@ -633,7 +627,7 @@ public class OpenSubtitle {
 	 * Queries OpenSubtitles for subtitles matching a file with the specified
 	 * hash and size.
 	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are to be
+	 * @param resource the {@link LibraryResource} for which subtitles are to be
 	 *            searched.
 	 * @param fileHash the file hash.
 	 * @param fileSize the file size in bytes.
@@ -643,7 +637,7 @@ public class OpenSubtitle {
 	 *         empty).
 	 */
 	protected static List<SubtitleItem> findSubtitlesByFileHash(
-		DLNAResource resource,
+		LibraryResource resource,
 		String fileHash,
 		long fileSize,
 		String languageCodes,
@@ -673,7 +667,7 @@ public class OpenSubtitle {
 	 * Queries OpenSubtitles for subtitles matching a file with the specified
 	 * IMDB ID.
 	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are to be
+	 * @param resource the {@link LibraryResource} for which subtitles are to be
 	 *            searched.
 	 * @param imdbId the IMDB ID.
 	 * @param languageCodes the comma separated list of subtitle language codes.
@@ -682,7 +676,7 @@ public class OpenSubtitle {
 	 *         empty).
 	 */
 	protected static List<SubtitleItem> findSubtitlesByImdbId(
-		DLNAResource resource,
+		LibraryResource resource,
 		String imdbId,
 		String languageCodes,
 		FileNamePrettifier prettifier
@@ -711,7 +705,7 @@ public class OpenSubtitle {
 	 * {@link Array}.
 	 *
 	 * @param queryArray the {@link Array} containing the query to send.
-	 * @param resource the {@link DLNAResource} for which subtitles are searched
+	 * @param resource the {@link LibraryResource} for which subtitles are searched
 	 *            for.
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @param logDescription a {@link String} describing the type of search,
@@ -725,7 +719,7 @@ public class OpenSubtitle {
 	 */
 	protected static List<SubtitleItem> searchSubtitles(
 		Array queryArray,
-		DLNAResource resource,
+		LibraryResource resource,
 		FileNamePrettifier prettifier,
 		String logDescription,
 		String logSearchTerm,
@@ -775,8 +769,8 @@ public class OpenSubtitle {
 				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
 				connection.getOutputStream()
 			) {
-				XMLStreamWriter writer = createWriter(out);
-				writeMethod(writer, "SearchSubtitles", params);
+				XMLStreamWriter writer = XMLRPCUtil.createWriter(out);
+				XMLRPCUtil.writeMethod(writer, "SearchSubtitles", params);
 				writer.flush();
 				if (out instanceof LoggableOutputStream loggableOutputStream) {
 					LOGGER.trace("Querying OpenSubtitles for subtitles for \"{}\" using {}:\n{}", resource.getName(), logDescription,
@@ -803,8 +797,8 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles search by {} response", logDescription);
 				XMLStreamReader reader = null;
 				try {
-					reader = createReader(reply);
-					params = readMethodResponse(reader);
+					reader = XMLRPCUtil.createReader(reply);
+					params = XMLRPCUtil.readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
 						reader.close();
@@ -825,12 +819,12 @@ public class OpenSubtitle {
 			}
 
 			// Parse subtitles
-			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
+			Member<?, ?> dataMember = params != null ? ((Struct) params.get(0).getValue()).get("data") : null;
 			if (dataMember == null || !(dataMember.getValue() instanceof Array)) {
 				// No data
 				return new ArrayList<>();
 			}
-			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMedia());
+			List<SubtitleItem> results = parseSubtitles((Array) dataMember.getValue(), prettifier, resource.getMediaInfo());
 
 			if (LOGGER.isDebugEnabled()) {
 				if (results.isEmpty()) {
@@ -871,14 +865,14 @@ public class OpenSubtitle {
 	 * Attempts to find an {@code IMDB ID} corresponding to a video file using
 	 * {@code SearchSubtitles} and {@code CheckMovieHash2} queries.
 	 *
-	 * @param resource the {@link DLNAResource} whose IMDB ID to find.
+	 * @param resource the {@link LibraryResource} whose IMDB ID to find.
 	 * @param fileHash the file hash for the video file.
 	 * @param fileSize the file size for the video file.
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The {@code IMDB ID} if one can be determined, {@code null}
 	 *         otherwise.
 	 */
-	protected static String findImdbIdByFileHash(DLNAResource resource, String fileHash, long fileSize, FileNamePrettifier prettifier) {
+	protected static String findImdbIdByFileHash(LibraryResource resource, String fileHash, long fileSize, FileNamePrettifier prettifier) {
 		if (resource == null || isBlank(fileHash)) {
 			return null;
 		}
@@ -1022,8 +1016,8 @@ public class OpenSubtitle {
 				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
 				connection.getOutputStream()
 			) {
-				XMLStreamWriter writer = createWriter(out);
-				writeMethod(writer, "CheckMovieHash2", params);
+				XMLStreamWriter writer = XMLRPCUtil.createWriter(out);
+				XMLRPCUtil.writeMethod(writer, "CheckMovieHash2", params);
 				writer.flush();
 				if (out instanceof LoggableOutputStream loggableOutputStream) {
 					LOGGER.trace("Querying OpenSubtitles for titles using file hash{}:\n{}",
@@ -1055,8 +1049,8 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles CheckMovieHash2 response");
 				XMLStreamReader reader = null;
 				try {
-					reader = createReader(reply);
-					params = readMethodResponse(reader);
+					reader = XMLRPCUtil.createReader(reply);
+					params = XMLRPCUtil.readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
 						reader.close();
@@ -1074,7 +1068,7 @@ public class OpenSubtitle {
 			}
 
 			// Parse subtitles
-			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
+			Member<?, ?> dataMember = params != null ? ((Struct) params.get(0).getValue()).get("data") : null;
 			if (dataMember == null || !(dataMember.getValue() instanceof Struct)) {
 				// No data
 				return new HashMap<>();
@@ -1126,7 +1120,7 @@ public class OpenSubtitle {
 	 * Queries OpenSubtitles for subtitles matching a file with the specified
 	 * name.
 	 *
-	 * @param resource the {@link DLNAResource} for which subtitles are to be
+	 * @param resource the {@link LibraryResource} for which subtitles are to be
 	 *            searched.
 	 * @param languageCodes the comma separated list of subtitle language codes.
 	 * @param prettifier the {@link FileNamePrettifier} to use.
@@ -1134,7 +1128,7 @@ public class OpenSubtitle {
 	 *         empty).
 	 */
 	protected static List<SubtitleItem> findSubtitlesByName(
-		DLNAResource resource,
+		LibraryResource resource,
 		String languageCodes,
 		FileNamePrettifier prettifier
 	) {
@@ -1230,11 +1224,11 @@ public class OpenSubtitle {
 	/**
 	 * Queries OpenSubtitles for IMDB IDs matching a filename.
 	 *
-	 * @param resource the {@link DLNAResource} for which to find the IMDB ID.
+	 * @param resource the {@link LibraryResource} for which to find the IMDB ID.
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	public static String guessImdbIdByFileName(DLNAResource resource, FileNamePrettifier prettifier) {
+	public static String guessImdbIdByFileName(LibraryResource resource, FileNamePrettifier prettifier) {
 		return guessImdbIdByFileName(resource, null, prettifier);
 	}
 
@@ -1254,14 +1248,14 @@ public class OpenSubtitle {
 	 * <i>either</i> {@code resource} <i>or</i> {@code fileName}. If both are
 	 * specified, only {@code resource} is used.
 	 *
-	 * @param resource the {@link DLNAResource} for which to find the IMDB ID or
+	 * @param resource the {@link LibraryResource} for which to find the IMDB ID or
 	 *            {@code null}.
 	 * @param fileName the file name for which to find the IMDB ID or
 	 *            {@code null}.
 	 * @param prettifier the {@link FileNamePrettifier} to use.
 	 * @return The IMDB ID or {@code null}.
 	 */
-	protected static String guessImdbIdByFileName(DLNAResource resource, String fileName, FileNamePrettifier prettifier) {
+	protected static String guessImdbIdByFileName(LibraryResource resource, String fileName, FileNamePrettifier prettifier) {
 		if (resource == null && isBlank(fileName)) {
 			return null;
 		}
@@ -1322,8 +1316,8 @@ public class OpenSubtitle {
 				new LoggableOutputStream(connection.getOutputStream(), StandardCharsets.UTF_8) :
 				connection.getOutputStream()
 			) {
-				XMLStreamWriter writer = createWriter(out);
-				writeMethod(writer, "GuessMovieFromString", params);
+				XMLStreamWriter writer = XMLRPCUtil.createWriter(out);
+				XMLRPCUtil.writeMethod(writer, "GuessMovieFromString", params);
 				writer.flush();
 
 				if (out instanceof LoggableOutputStream loggableOutputStream) {
@@ -1345,8 +1339,8 @@ public class OpenSubtitle {
 				LOGGER.trace("Parsing OpenSubtitles GuessMovieFromString response");
 				XMLStreamReader reader = null;
 				try {
-					reader = createReader(reply);
-					params = readMethodResponse(reader);
+					reader = XMLRPCUtil.createReader(reply);
+					params = XMLRPCUtil.readMethodResponse(reader);
 				} finally {
 					if (reader != null) {
 						reader.close();
@@ -1363,7 +1357,7 @@ public class OpenSubtitle {
 			}
 
 			// Parse suggestions
-			Member<?, ?> dataMember = ((Struct) params.get(0).getValue()).get("data");
+			Member<?, ?> dataMember = params != null ? ((Struct) params.get(0).getValue()).get("data") : null;
 			if (dataMember == null || !(dataMember.getValue() instanceof Struct)) {
 				// No data
 				return null;
@@ -1376,17 +1370,18 @@ public class OpenSubtitle {
 
 			MovieGuess movieGuess = guesses.get(fileName);
 			if (movieGuess != null) {
+				GuessIt guess = movieGuess.getGuessIt();
 				VideoClassification classification;
 				if (
-					movieGuess.getGuessIt() != null &&
-					movieGuess.getGuessIt().getType() != null &&
-					movieGuess.getGuessIt().getType() != prettifier.getClassification()
+					guess != null &&
+					guess.getType() != null &&
+					guess.getType() != prettifier.getClassification()
 				) {
-					classification = movieGuess.getGuessIt().getType();
+					classification = guess.getType();
 					LOGGER.debug(
 						"OpenSubtitles guessed that \"{}\" is a {} while we guessed a {}. Using {}",
 						fileName,
-						movieGuess.getGuessIt().getType(),
+						guess.getType(),
 						prettifier.getClassification(),
 						classification
 					);
@@ -2286,25 +2281,21 @@ public class OpenSubtitle {
 			if (member == null) {
 				return result;
 			}
-			if (member.getValue() instanceof Struct) {
-				Struct struct = (Struct) member.getValue();
+			if (member.getValue() instanceof Struct struct) {
 				if (struct.isEmpty()) {
 					return result;
 				}
 				for (Member<?, ?> guessMember : struct.values()) {
-					if (guessMember == null || !(guessMember.getValue() instanceof Struct)) {
-						continue;
+					if (guessMember != null && guessMember.getValue() instanceof Struct guessStruct) {
+						result.put(guessMember.getName(), new GuessItem(
+							Member.getString(guessStruct, "MovieName"),
+							Member.getString(guessStruct, "MovieYear"),
+							Member.getString(guessStruct, "MovieKind"),
+							Member.getString(guessStruct, "IDMovieIMDB")
+						));
 					}
-					Struct guessStruct = (Struct) guessMember.getValue();
-					result.put(guessMember.getName(), new GuessItem(
-						Member.getString(guessStruct, "MovieName"),
-						Member.getString(guessStruct, "MovieYear"),
-						Member.getString(guessStruct, "MovieKind"),
-						Member.getString(guessStruct, "IDMovieIMDB")
-					));
 				}
-			} else if (member.getValue() instanceof Array) {
-				Array array = (Array) member.getValue();
+			} else if (member.getValue() instanceof Array array) {
 				if (array.isEmpty()) {
 					return result;
 				}
@@ -2385,7 +2376,7 @@ public class OpenSubtitle {
 			first &= !addFieldToStringBuilder(first, sb, "MovieKind", videoClassification, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "MovieYear", year, false, false, true);
 			first &= !addFieldToStringBuilder(first, sb, "IDMovieIMDB", imdbId, false, false, true);
-			addFieldToStringBuilder(first, sb, "score", Integer.valueOf(score), false, false, false);
+			addFieldToStringBuilder(first, sb, "score", score, false, false, false);
 			sb.append("]");
 			return sb.toString();
 		}
@@ -2428,23 +2419,20 @@ public class OpenSubtitle {
 			if (member == null) {
 				return result;
 			}
-			if (member.getValue() instanceof Struct) {
-				Struct struct = (Struct) member.getValue();
+			if (member.getValue() instanceof Struct struct) {
 				if (struct.isEmpty()) {
 					return result;
 				}
 				for (Member<?, ?> guessMember : struct.values()) {
-					if (guessMember == null || !(guessMember.getValue() instanceof Struct)) {
-						continue;
+					if (guessMember != null && guessMember.getValue() instanceof Struct guessStruct) {
+						result.put(member.getName(), new GuessFromString(
+							Member.getString(guessStruct, "MovieName"),
+							Member.getString(guessStruct, "MovieYear"),
+							Member.getString(guessStruct, "MovieKind"),
+							Member.getString(guessStruct, "IDMovieIMDB"),
+							Member.getString(guessStruct, "score")
+						));
 					}
-					Struct guessStruct = (Struct) guessMember.getValue();
-					result.put(member.getName(), new GuessFromString(
-						Member.getString(guessStruct, "MovieName"),
-						Member.getString(guessStruct, "MovieYear"),
-						Member.getString(guessStruct, "MovieKind"),
-						Member.getString(guessStruct, "IDMovieIMDB"),
-						Member.getString(guessStruct, "score")
-					));
 				}
 			} else if (member.getValue() instanceof Array array) {
 				if (array.isEmpty()) {
@@ -3433,24 +3421,31 @@ public class OpenSubtitle {
 			}
 
 			switch (subFormat.toLowerCase(Locale.ROOT)) {
-				case "sub":
+				case "sub" -> {
 					return SubtitleType.MICRODVD;
-				case "srt":
+				}
+				case "srt" -> {
 					return SubtitleType.SUBRIP;
-				case "txt":
+				}
+				case "txt" -> {
 					return SubtitleType.TEXT;
-				case "ssa":
+				}
+				case "ssa" -> {
 					return SubtitleType.ASS;
-				case "smi":
+				}
+				case "smi" -> {
 					return SubtitleType.SAMI;
-				case "mpl":
-				case "tmp":
+				}
+				case "mpl", "tmp" -> {
 					return SubtitleType.UNSUPPORTED;
-				case "vtt":
+				}
+				case "vtt" -> {
 					return SubtitleType.WEBVTT;
-				default:
+				}
+				default -> {
 					LOGGER.warn("OpenSubtitles: Warning, unknown subtitles type \"{}\"", subFormat);
 					return SubtitleType.UNKNOWN;
+				}
 			}
 		}
 
@@ -4363,31 +4358,15 @@ public class OpenSubtitle {
 				throw new IllegalArgumentException("statusCode cannot be null");
 			}
 			switch (statusCode) {
-				case OK:
-				case PARTIAL_CONTENT:
-					return;
-				case DISABLED_USER_AGENT:
-				case DOWNLOAD_LIMIT_REACHED:
-				case HASH_MISMATCH:
-				case INTERNAL_VALIDATION_FAILURE:
-				case INVALID_FORMAT:
-				case INVALID_IMDBID:
-				case INVALID_PARAMETER:
-				case INVALID_SUBTITLES_FORMAT:
-				case INVALID_SUBTITLES_LANGUAGE:
-				case INVALID_USERAGENT:
-				case MISSING_MANDATORY_PARAMETER:
-				case MOVED:
-				case NO_SESSION:
-				case SERVER_MAINTENANCE:
-				case SERVICE_UNAVAILABLE:
-				case UNAUTHORIZED:
-				case UNKNOWN_ERROR:
-				case UNKNOWN_METHOD:
-				case UNKNOWN_USER_AGENT:
+				case OK, PARTIAL_CONTENT -> {
+					//nothing to do
+				}
+				case DISABLED_USER_AGENT, DOWNLOAD_LIMIT_REACHED, HASH_MISMATCH, INTERNAL_VALIDATION_FAILURE, INVALID_FORMAT, INVALID_IMDBID, INVALID_PARAMETER, INVALID_SUBTITLES_FORMAT, INVALID_SUBTITLES_LANGUAGE, INVALID_USERAGENT, MISSING_MANDATORY_PARAMETER, MOVED, NO_SESSION, SERVER_MAINTENANCE, SERVICE_UNAVAILABLE, UNAUTHORIZED, UNKNOWN_ERROR, UNKNOWN_METHOD, UNKNOWN_USER_AGENT -> {
 					throw new OpenSubtitlesException(statusCode.toString());
-				default:
+				}
+				default -> {
 					throw new AssertionError("Unimplemented statusCode \"" + statusCode + "\"");
+				}
 			}
 		}
 	}

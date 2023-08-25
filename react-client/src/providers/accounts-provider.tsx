@@ -18,7 +18,7 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
-import { accountsContext, UmsAccounts } from '../contexts/accounts-context';
+import { AccountsContext, UmsAccounts } from '../contexts/accounts-context';
 import I18nContext from '../contexts/i18n-context';
 import ServerEventContext from '../contexts/server-event-context';
 import { accountApiUrl } from '../utils';
@@ -52,7 +52,7 @@ export const AccountsProvider = ({ children, ...props }: Props) => {
       });
   }, [i18n, sse]);
 
-  const { Provider } = accountsContext;
+  const { Provider } = AccountsContext;
   return (
     <Provider value={accounts}>
       {children}

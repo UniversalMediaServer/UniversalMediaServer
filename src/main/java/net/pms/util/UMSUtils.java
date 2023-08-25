@@ -18,26 +18,34 @@ package net.pms.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.ResumeObj;
-import net.pms.dlna.SevenZipEntry;
-import net.pms.dlna.WebStream;
-import net.pms.dlna.ZippedEntry;
-
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
+import net.pms.library.ResumeObj;
+import net.pms.library.SevenZipEntry;
+import net.pms.library.WebStream;
+import net.pms.library.ZippedEntry;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -73,13 +81,13 @@ public class UMSUtils {
 	 * @param isExpectOneResult whether to only return one result
 	 * @param isExactMatch whether to only return exact matches
 	 */
-	public static void filterResourcesByName(List<DLNAResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
+	public static void filterResourcesByName(List<LibraryResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
 		if (resources == null || searchString == null) {
 			return;
 		}
 		searchString = searchString.toLowerCase();
 		for (int i = resources.size() - 1; i >= 0; i--) {
-			DLNAResource res = resources.get(i);
+			LibraryResource res = resources.get(i);
 
 			if (res.isSearched()) {
 				continue;
@@ -92,7 +100,7 @@ public class UMSUtils {
 				keep = res.getName().toLowerCase().contains(searchString);
 			}
 
-			final MediaInfo media = res.getMedia();
+			final MediaInfo media = res.getMediaInfo();
 
 			if (keep && isExpectOneResult) {
 				resources.clear();
@@ -265,9 +273,9 @@ public class UMSUtils {
 	}
 
 	/**
-	 * A DLNAResource list with built-in file i/o.
+	 * A LibraryResource list with built-in file i/o.
 	 */
-	public static class IOList extends ArrayList<DLNAResource> {
+	public static class IOList extends ArrayList<LibraryResource> {
 		/**
 		 * Bitwise constants relating to playlist management.
 		 */
@@ -275,10 +283,12 @@ public class UMSUtils {
 		public static final int AUTOSAVE = 2;
 		public static final int AUTOREMOVE = 4;
 		private static final long serialVersionUID = 8042924548275374060L;
-		private File file;
+		private final Renderer renderer;
 		private final int mode;
+		private File file;
 
-		public IOList(String uri, int mode) {
+		public IOList(Renderer renderer, String uri, int mode) {
+			this.renderer = renderer;
 			this.mode = mode;
 			if (!StringUtils.isBlank(uri)) {
 				file = new File(uri);
@@ -289,7 +299,7 @@ public class UMSUtils {
 		}
 
 		@Override
-		public boolean add(DLNAResource d) {
+		public boolean add(LibraryResource d) {
 			super.add(d);
 			if (isMode(AUTOSAVE)) {
 				save();
@@ -298,8 +308,8 @@ public class UMSUtils {
 		}
 
 		@Override
-		public DLNAResource remove(int index) {
-			DLNAResource d = super.remove(index);
+		public LibraryResource remove(int index) {
+			LibraryResource d = super.remove(index);
 			if (isMode(AUTOSAVE)) {
 				save();
 			}
@@ -348,7 +358,7 @@ public class UMSUtils {
 			}
 		}
 
-		public static void write(List<DLNAResource> playlist, File f) throws IOException {
+		public static void write(List<LibraryResource> playlist, File f) throws IOException {
 			Date now = new Date();
 			try (FileWriter out = new FileWriter(f)) {
 				StringBuilder sb = new StringBuilder();
@@ -360,7 +370,7 @@ public class UMSUtils {
 				sb.append("## Generated: ");
 				sb.append(now.toString());
 				sb.append("\n");
-				for (DLNAResource r : playlist) {
+				for (LibraryResource r : playlist) {
 					String data = r.write();
 					if (!StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
 						String id = "internal:" + r.getClass().getName();
@@ -419,12 +429,12 @@ public class UMSUtils {
 			return null;
 		}
 
-		private static DLNAResource parse(String clazz, String data) {
+		private LibraryResource parse(String clazz, String data) {
 			boolean error = false;
 			if (clazz.contains("RealFile")) {
 				if (data.contains(">")) {
 					String[] tmp = data.split(">");
-					return new RealFile(new File(tmp[1]), tmp[0]);
+					return new RealFile(renderer, new File(tmp[1]), tmp[0]);
 				}
 				error = true;
 			}
@@ -432,7 +442,7 @@ public class UMSUtils {
 				if (data.contains(">")) {
 					String[] tmp = data.split(">");
 					long len = Long.parseLong(tmp[2]);
-					return new SevenZipEntry(new File(tmp[1]), tmp[0], len);
+					return new SevenZipEntry(renderer, new File(tmp[1]), tmp[0], len);
 				}
 				error = true;
 			}
@@ -440,7 +450,7 @@ public class UMSUtils {
 				if (data.contains(">")) {
 					String[] tmp = data.split(">");
 					long len = Long.parseLong(tmp[2]);
-					return new ZippedEntry(new File(tmp[1]), tmp[0], len);
+					return new ZippedEntry(renderer, new File(tmp[1]), tmp[0], len);
 				}
 				error = true;
 			}
@@ -453,7 +463,7 @@ public class UMSUtils {
 					} catch (NumberFormatException e) {
 						type = Format.UNKNOWN;
 					}
-					return new WebStream(tmp[0], tmp[1], tmp[2], type);
+					return new WebStream(renderer, tmp[0], tmp[1], tmp[2], type);
 				}
 				error = true;
 			}
@@ -467,7 +477,7 @@ public class UMSUtils {
 			return null;
 		}
 
-		public static void read(List<DLNAResource> playlist, File f) throws IOException {
+		public void read(List<LibraryResource> playlist, File f) throws IOException {
 			if (!f.exists()) {
 				return;
 			}
@@ -495,7 +505,7 @@ public class UMSUtils {
 					pos = str.indexOf(';');
 					String subData = null;
 					String resData = null;
-					DLNAResource res = null;
+					LibraryResource res = null;
 					Engine player = null;
 					while (pos != -1) {
 						if (str.startsWith("player:")) {
@@ -588,9 +598,7 @@ public class UMSUtils {
 		if (result != null) {
 			for (String line : result) {
 				line = line.trim();
-				if (line.equals("Hardware acceleration methods:")) {
-					continue;
-				} else {
+				if (!line.equals("Hardware acceleration methods:")) {
 					// fix duplicating GPU acceleration methods reported in
 					// https://github.com/UniversalMediaServer/UniversalMediaServer/issues/1592
 					if (!availableMethods.contains(line)) {
@@ -616,7 +624,7 @@ public class UMSUtils {
 			return true;
 		}
 
-		if ((a == null && b != null) || (a != null && b == null) || (a.size() != b.size())) {
+		if (a == null || b == null || (a.size() != b.size())) {
 			return false;
 		}
 

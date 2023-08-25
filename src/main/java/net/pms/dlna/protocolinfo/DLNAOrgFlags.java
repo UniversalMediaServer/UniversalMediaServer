@@ -18,9 +18,9 @@ package net.pms.dlna.protocolinfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
-import net.pms.media.MediaType;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
+import net.pms.media.MediaType;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is immutable and represents the {@code DLNA.ORG_FLAGS} parameter.

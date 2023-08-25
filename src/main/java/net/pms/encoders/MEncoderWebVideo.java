@@ -18,11 +18,11 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PlayerUtil;
@@ -84,7 +84,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
@@ -98,7 +98,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		String[] defaultArgs = getDefaultArgs(configuration);
 		String[] cmdArray = new String[defaultArgs.length + 4];
 		cmdArray[0] = getExecutable();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		cmdArray[1] = filename;
 		System.arraycopy(defaultArgs, 0, cmdArray, 2, defaultArgs.length);
 		cmdArray[cmdArray.length - 2] = "-o";
@@ -136,7 +136,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(LibraryResource resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 }

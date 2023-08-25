@@ -16,7 +16,19 @@
  */
 package net.pms.util;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,27 +47,25 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.media.MediaInfo;
-import net.pms.media.MediaLang;
-import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.EngineFactory;
+import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.library.LibraryResource;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.renderers.Renderer;
+import static net.pms.util.Constants.*;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
-import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,7 +92,7 @@ public class SubtitleUtils {
 			SUBTITLES_LOWER_CASE[i] = Character.toLowerCase(subtitles.charAt(i));
 		}
 
-		if (PMS.getConfiguration() == null || isBlank(PMS.getConfiguration().getAlternateSubtitlesFolder())) {
+		if (PMS.getConfiguration() == null || StringUtils.isBlank(PMS.getConfiguration().getAlternateSubtitlesFolder())) {
 			ALTERNATIVE_SUBTITLES_FOLDER = null;
 		} else {
 			File alternativeFolder = new File(PMS.getConfiguration().getAlternateSubtitlesFolder());
@@ -169,7 +179,7 @@ public class SubtitleUtils {
 		if (dlnaMediaSubtitle == null) {
 			throw new NullPointerException("dlnaMediaSubtitle can't be null.");
 		}
-		if (isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
+		if (StringUtils.isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
 			return null;
 		}
 		return FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP.get(dlnaMediaSubtitle.getSubCharacterSet());
@@ -186,7 +196,7 @@ public class SubtitleUtils {
 	public static File applyCodepageConversion(File fileToConvert, File outputSubs) throws IOException {
 		String line;
 		String cp = CONFIGURATION.getSubtitlesCodepage();
-		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
+		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = StringUtils.isNotBlank(cp) && Charset.isSupported(cp);
 
 		try (
 			BufferedReader reader = isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM ?
@@ -210,7 +220,7 @@ public class SubtitleUtils {
 	 * fontconfig setting to that converted file and applies timeseeking when
 	 * required.
 	 *
-	 * @param dlna DLNAResource
+	 * @param resource LibraryResource
 	 * @param media MediaInfo
 	 * @param params Output parameters
 	 * @param configuration
@@ -219,7 +229,7 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File getSubtitles(
-		DLNAResource dlna,
+		LibraryResource resource,
 		MediaInfo media,
 		OutputParams params,
 		UmsConfiguration configuration,
@@ -260,7 +270,7 @@ public class SubtitleUtils {
 			return convertedFile;
 		}
 
-		String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
+		String filename = isEmbeddedSource ? resource.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
 
 		String basename;
 
@@ -271,7 +281,7 @@ public class SubtitleUtils {
 		} else {
 			// It's something else, e.g. a url or psuedo-url without meaningful
 			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			basename = resource.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			modId = filename.hashCode();
 		}
 
@@ -289,12 +299,12 @@ public class SubtitleUtils {
 		}
 		nameBuilder.append("_").append(modId);
 		String extension;
-		if (subtitleType != null && isNotBlank(subtitleType.getExtension())) {
+		if (subtitleType != null && StringUtils.isNotBlank(subtitleType.getExtension())) {
 			extension = subtitleType.getExtension();
 		} else {
 			extension = FileUtil.getExtension(basename);
 		}
-		if (isNotBlank(extension)) {
+		if (StringUtils.isNotBlank(extension)) {
 			nameBuilder.append(".").append(extension);
 		}
 		convertedSubs = new File(nameBuilder.toString());
@@ -425,7 +435,7 @@ public class SubtitleUtils {
 
 		// Try to specify input encoding if we have a non utf-8 external sub
 		if (params.getSid().isExternal() && !params.getSid().isExternalFileUtf8()) {
-			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+			String encoding = StringUtils.isNotBlank(configuration.getSubtitlesCodepage()) ?
 			// Prefer the global user-specified encoding if we have one.
 			// Note: likely wrong if the file isn't supplied by the user.
 				configuration.getSubtitlesCodepage() : params.getSid().getSubCharacterSet() != null ?
@@ -504,7 +514,7 @@ public class SubtitleUtils {
 					output.write(outputString.toString());
 					while ((line = reader.readLine()) != null) {
 						outputString.setLength(0);
-						if (isNotBlank(line)) {
+						if (StringUtils.isNotBlank(line)) {
 							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
 								playResIsSet = true;
 							}
@@ -530,7 +540,8 @@ public class SubtitleUtils {
 				if (line != null && line.contains("Style: Default")) {
 					String[] params = line.split(",");
 
-					for (i = 0; i < format.length; i++) {
+					int length = format != null ? format.length : 0;
+					for (i = 0; i < length; i++) {
 						switch (format[i].trim()) {
 							case "Fontname" -> {
 								if (!configuration.getFont().isEmpty()) {
@@ -1019,7 +1030,7 @@ public class SubtitleUtils {
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
 		for (MediaSubtitle subtitle : media.getSubtitlesTracks()) {
-			if (!(subtitle instanceof MediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
+			if (subtitle != null && !(subtitle instanceof MediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
 		}
@@ -1083,7 +1094,7 @@ public class SubtitleUtils {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
 			for (Iterator<String> iterator = modifiableSuffixParts.iterator(); iterator.hasNext();) {
 				String part = iterator.next();
-				if (isBlank(part)) {
+				if (StringUtils.isBlank(part)) {
 					iterator.remove();
 				} else if (Iso639.isValid(part)) {
 					language = Iso639.getISO639_2Code(part);
@@ -1096,7 +1107,7 @@ public class SubtitleUtils {
 		}
 
 		try {
-			if (isNotBlank(language)) {
+			if (StringUtils.isNotBlank(language)) {
 				subtitles.setLang(language);
 			}
 			subtitles.setExternalFile(subtitlesFile);
@@ -1112,7 +1123,7 @@ public class SubtitleUtils {
 	}
 
 	private static int getPriorityIndex(List<String> languagePriorities, String languageCode) {
-		if (isBlank(languageCode)) {
+		if (StringUtils.isBlank(languageCode)) {
 			return languagePriorities.size();
 		}
 		for (int i = 0; i < languagePriorities.size(); i++) {
@@ -1151,7 +1162,7 @@ public class SubtitleUtils {
 
 		final ArrayList<String> languagePriorities = new ArrayList<>();
 		for (String language : UMSUtils.getLangList(renderer, false).split(",")) {
-			if (isNotBlank(language)) {
+			if (StringUtils.isNotBlank(language)) {
 				languagePriorities.add(language.trim().toLowerCase(Locale.ROOT));
 			}
 		}
@@ -1159,9 +1170,9 @@ public class SubtitleUtils {
 		LOGGER.trace("Looking for subtitles with the highest priority from {}", StringUtils.join(languagePriorities, ", "));
 		ArrayList<MediaSubtitle> candidatesList = new ArrayList<>(candidates);
 		Collections.sort(candidatesList, (MediaSubtitle o1, MediaSubtitle o2) -> {
-			if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
-				if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
-					return isBlank(o1.getLang()) ? 1 : -1;
+			if (StringUtils.isBlank(o1.getLang()) || StringUtils.isBlank(o2.getLang())) {
+				if (StringUtils.isNotBlank(o1.getLang()) || StringUtils.isNotBlank(o2.getLang())) {
+					return StringUtils.isBlank(o1.getLang()) ? 1 : -1;
 				}
 			} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
 				int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());

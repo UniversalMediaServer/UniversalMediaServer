@@ -16,16 +16,18 @@
  */
 import { Context, createContext } from 'react';
 
-export const NavbarContext: Context<{
-  value: any;
-  setValue: (navbar: any) => void;
-  opened: boolean;
-  setOpened: (opened: any) => void;
-}> = createContext({
+export const NavbarContext: Context<NavbarInterface> = createContext({
   value: undefined,
   setValue: (navbar) => { },
   opened: false as boolean,
   setOpened: (opened) => { },
 });
+
+export interface NavbarInterface {
+  value: any;
+  setValue: (navbar: any) => void;
+  opened: boolean;
+  setOpened: (opened: any) => void;
+}
 
 export default NavbarContext;

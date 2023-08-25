@@ -854,9 +854,6 @@ public class MediaVideo extends MediaLang implements Cloneable {
 		result.append(", Resolution: ").append(getWidth()).append(" x ").append(getHeight());
 		if (displayAspectRatio != null) {
 			result.append(", Display Aspect Ratio: ").append(getDisplayAspectRatio());
-			if (originalDisplayAspectRatio != null) {
-				//result.append(" (").append(getOriginalDisplayAspectRatio()).append(")");
-			}
 		}
 		if (pixelAspectRatio != null && pixelAspectRatio != 1) {
 			result.append(", Pixel Aspect Ratio: ").append(getPixelAspectRatio());

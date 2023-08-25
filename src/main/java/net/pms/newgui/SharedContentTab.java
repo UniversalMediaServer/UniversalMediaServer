@@ -45,17 +45,17 @@ import net.pms.configuration.sharedcontent.FeedContent;
 import net.pms.configuration.sharedcontent.FeedImageContent;
 import net.pms.configuration.sharedcontent.FeedVideoContent;
 import net.pms.configuration.sharedcontent.FolderContent;
-import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
-import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamAudioContent;
+import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamVideoContent;
+import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.Feed;
+import net.pms.library.Feed;
+import net.pms.media.MediaStatusStore;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
@@ -511,7 +511,7 @@ public class SharedContentTab implements SharedContentListener {
 				try {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
-						MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, true);
+						MediaStatusStore.setDirectoryFullyPlayed(connection, path, 0, true);
 					}
 				} finally {
 					MediaDatabase.close(connection);
@@ -527,7 +527,7 @@ public class SharedContentTab implements SharedContentListener {
 				try {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
-						MediaTableFilesStatus.setDirectoryFullyPlayed(connection, path, false);
+						MediaStatusStore.setDirectoryFullyPlayed(connection, path, 0, false);
 					}
 				} finally {
 					MediaDatabase.close(connection);

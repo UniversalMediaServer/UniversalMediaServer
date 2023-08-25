@@ -45,11 +45,11 @@ import NavbarContext from './contexts/navbar-context';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
 import { AccountsProvider } from './providers/accounts-provider';
+import { NavbarProvider } from './providers/navbar-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
-import { NavbarProvider } from './providers/navbar-provider';
 
 type ExtendedCustomColors = 'darkTransparent' | 'lightTransparent' | DefaultMantineColor;
 

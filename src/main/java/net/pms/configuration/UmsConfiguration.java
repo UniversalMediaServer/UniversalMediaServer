@@ -46,7 +46,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.CodeEnter;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.EngineId;
@@ -54,6 +53,7 @@ import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
+import net.pms.library.virtual.CodeEnter;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
@@ -377,6 +377,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RENDERERS_FILTER = "renderers_filter";
+	private static final String KEY_RENDERERS_USER = "renderers_user";
 	private static final String KEY_RESUME = "resume";
 	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
@@ -406,6 +407,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SHOW_SERVER_SETTINGS_FOLDER = "show_server_settings_folder";
 	private static final String KEY_SHOW_SPLASH_SCREEN = "show_splash_screen";
 	private static final String KEY_SHOW_TRANSCODE_FOLDER = "show_transcode_folder";
+	private static final String KEY_SHOW_USER_CHOICE = "show_user_choice";
 	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
@@ -4183,6 +4185,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_RENDERERS_FILTER, value);
 	}
 
+	/**
+	 * Gets the renderers linked user.
+	 */
+	public final String getRenderersUser() {
+		return getString(KEY_RENDERERS_USER, "{}");
+	}
+
+	/**
+	 * Sets the renderers linked user.
+	 */
+	public void setRenderersUser(String value) {
+		configuration.setProperty(KEY_RENDERERS_USER, value);
+	}
+
 	public void setPreventSleep(PreventSleepMode value) {
 		if (value == null) {
 			throw new NullPointerException("value cannot be null");
@@ -4285,6 +4301,24 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setShowTranscodeFolder(boolean value) {
 		configuration.setProperty(KEY_SHOW_TRANSCODE_FOLDER, value);
+	}
+
+	/**
+	 * Whether to show user choice on non affiliate renderer.
+	 *
+	 * @return whether the user choice is shown
+	 */
+	public boolean isShowUserChoice() {
+		return getBoolean(KEY_SHOW_USER_CHOICE, true);
+	}
+
+	/**
+	 * Whether to show user choice on non affiliate renderer.
+	 *
+	 * @param value whether the user choice is shown
+	 */
+	public void setShowUserChoice(boolean value) {
+		configuration.setProperty(KEY_SHOW_USER_CHOICE, value);
 	}
 
 	public boolean isDvdIsoThumbnails() {
@@ -4695,26 +4729,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	/* Credential path handling */
 	public static final String KEY_CRED_PATH = "cred.path";
 
-	public void initCred() throws IOException {
+	public void initCred() {
 		File credFile = getCredFile();
 
 		if (!credFile.exists()) {
 			// Create an empty file and save the path if needed
-			try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
-				writer.write("# Add credentials to the file");
-				writer.newLine();
-				writer.write("# on the format tag=user,password");
-				writer.newLine();
-				writer.write("# For example:");
-				writer.newLine();
-				writer.write("# channels.xxx=name,secret");
-				writer.newLine();
-			}
-
-			// Save the path if we got here
-			configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 			try {
+				try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(credFile), StandardCharsets.UTF_8))) {
+					writer.write("# Add credentials to the file");
+					writer.newLine();
+					writer.write("# on the format tag=user,password");
+					writer.newLine();
+					writer.write("# For example:");
+					writer.newLine();
+					writer.write("# channels.xxx=name,secret");
+					writer.newLine();
+				}
+
+				// Save the path if we got here
+				configuration.setProperty(KEY_CRED_PATH, credFile.getAbsolutePath());
 				((PropertiesConfiguration) configuration).save();
+			} catch (IOException e) {
+				LOGGER.debug("Error initializing credentials file: {}", e);
 			} catch (ConfigurationException e) {
 				LOGGER.warn("An error occurred while saving configuration: {}", e.getMessage());
 			}
@@ -5651,6 +5687,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SHOW_SERVER_SETTINGS_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_SPLASH_SCREEN, true);
 		jObj.addProperty(KEY_SHOW_TRANSCODE_FOLDER, true);
+		jObj.addProperty(KEY_SHOW_USER_CHOICE, true);
 		jObj.addProperty(KEY_SORT_METHOD, "4");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");

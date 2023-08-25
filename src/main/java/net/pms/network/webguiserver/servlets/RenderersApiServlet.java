@@ -16,6 +16,7 @@
  */
 package net.pms.network.webguiserver.servlets;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.FileInputStream;
@@ -29,13 +30,16 @@ import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.iam.User;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.RendererItem;
 import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.renderers.RendererFilter;
+import net.pms.renderers.RendererUser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +55,19 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("renderers", RendererItem.getRenderersAsJsonArray());
 				jsonResponse.addProperty("renderersBlockedByDefault", RendererFilter.getBlockedByDefault());
+				jsonResponse.addProperty("networkDevicesBlockedByDefault", NetworkDeviceFilter.getBlockedByDefault());
+				JsonArray jUsers = new JsonArray();
+				for (User user : AccountService.getAllUsers()) {
+					JsonObject jUser = new JsonObject();
+					jUser.addProperty("value", user.getId());
+					jUser.addProperty("label", user.getDisplayName());
+					jUsers.add(jUser);
+				}
+				jsonResponse.add("users", jUsers);
+				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
+				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+			} else if (path.equals("/devices")) {
+				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("networkDevices", NetworkDeviceFilter.getNetworkDevicesAsJsonArray());
 				jsonResponse.addProperty("networkDevicesBlockedByDefault", NetworkDeviceFilter.getBlockedByDefault());
 				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
@@ -130,11 +147,17 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
 					if (data != null && data.has("rule")) {
 						String uuid = data.get("rule").getAsString();
-						Boolean isAllowed = data.get("isAllowed").getAsBoolean();
-						if ("DEFAULT".equals(uuid)) {
-							RendererFilter.setBlockedByDefault(!isAllowed);
-						} else {
-							RendererFilter.setAllowed(uuid, isAllowed);
+						if (data.has("isAllowed")) {
+							boolean isAllowed = data.get("isAllowed").getAsBoolean();
+							if ("DEFAULT".equals(uuid)) {
+								RendererFilter.setBlockedByDefault(!isAllowed);
+							} else {
+								RendererFilter.setAllowed(uuid, isAllowed);
+							}
+						}
+						if (data.has("userId")) {
+							int userId = data.get("userId").getAsInt();
+							RendererUser.setRendererUser(uuid, userId);
 						}
 					}
 					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");

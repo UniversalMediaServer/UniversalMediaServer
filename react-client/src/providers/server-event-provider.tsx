@@ -19,7 +19,7 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
-import { serverEventContext } from '../contexts/server-event-context';
+import ServerEventContext from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
 import { sseApiUrl } from '../utils';
@@ -31,7 +31,7 @@ interface Props {
 export const ServerEventProvider = ({ children, ...props }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
-  const [memory, setMemory] = useState<{ max: number, used: number, buffer: number }>({ max: 0, used: 0, buffer: 0 });
+  const [memory, setMemory] = useState<{ max: number, used: number, dbcache: number, buffer: number }>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
@@ -172,7 +172,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
     return result;
   };
 
-  const { Provider } = serverEventContext;
+  const { Provider } = ServerEventContext;
   return (
     <Provider value={{
       connectionStatus: connectionStatus,

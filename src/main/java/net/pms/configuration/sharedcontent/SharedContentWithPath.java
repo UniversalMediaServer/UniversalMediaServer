@@ -16,8 +16,10 @@
  */
 package net.pms.configuration.sharedcontent;
 
+import java.util.Objects;
+
 public abstract class SharedContentWithPath extends SharedContent {
-	protected String parent;
+	private String parent;
 
 	public void setParent(String value) {
 		parent = value;
@@ -25,6 +27,25 @@ public abstract class SharedContentWithPath extends SharedContent {
 
 	public String getParent() {
 		return parent;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (o == this) {
+			return true;
+		}
+		if (super.equals(o) && o instanceof SharedContentWithPath other) {
+			return (parent == null && other.parent == null) ||
+				parent != null && parent.equals(other.parent);
+		}
+		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		int hash = super.hashCode();
+		hash = 83 * hash + (Objects.hashCode(this.parent));
+		return hash;
 	}
 
 }

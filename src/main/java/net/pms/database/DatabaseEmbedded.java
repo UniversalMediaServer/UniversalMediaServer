@@ -313,4 +313,18 @@ public class DatabaseEmbedded {
 			LOGGER.error("Database error on memory indexes change", ex);
 		}
 	}
+
+	public static int getCacheSize(final Connection connection) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.CACHE_SIZE'")) {
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.first()) {
+					return result.getInt("SETTING_VALUE");
+				}
+			}
+		} catch (SQLException ex) {
+			LOGGER.error("Database error on getting memory cache size", ex);
+		}
+		return 0;
+	}
+
 }

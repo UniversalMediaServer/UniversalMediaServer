@@ -768,8 +768,8 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
-		st.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
+		st.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 	}
 
 }

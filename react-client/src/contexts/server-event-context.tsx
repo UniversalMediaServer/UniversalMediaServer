@@ -16,22 +16,9 @@
  */
 import { Context, createContext } from 'react';
 
-export const serverEventContext: Context<{
-  connectionStatus: number;
-  memory: { max: number, used: number, buffer: number };
-  updateAccounts: boolean;
-  setUpdateAccounts: (updateAccounts: boolean) => void;
-  reloadable: boolean;
-  userConfiguration: any;
-  setUserConfiguration: (config: any) => void;
-  scanLibrary: { enabled: boolean, running: boolean };
-  hasRendererAction: boolean;
-  getRendererAction: () => any;
-  hasNewLogLine: boolean;
-  getNewLogLine: () => any;
-}> = createContext({
+export const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
-  memory: { max: 0, used: 0, buffer: 0 },
+  memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
   updateAccounts: false as boolean,
   setUpdateAccounts: (updateAccounts: boolean) => { },
   reloadable: false as boolean,
@@ -44,4 +31,19 @@ export const serverEventContext: Context<{
   getNewLogLine: () => null,
 });
 
-export default serverEventContext;
+export interface ServerEventInterface {
+  connectionStatus: number;
+  memory: { max: number, used: number, dbcache: number, buffer: number };
+  updateAccounts: boolean;
+  setUpdateAccounts: (updateAccounts: boolean) => void;
+  reloadable: boolean;
+  userConfiguration: any;
+  setUserConfiguration: (config: any) => void;
+  scanLibrary: { enabled: boolean, running: boolean };
+  hasRendererAction: boolean;
+  getRendererAction: () => any;
+  hasNewLogLine: boolean;
+  getNewLogLine: () => any;
+}
+
+export default ServerEventContext;

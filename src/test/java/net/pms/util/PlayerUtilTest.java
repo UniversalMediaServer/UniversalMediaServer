@@ -19,9 +19,10 @@ package net.pms.util;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.WebStream;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.library.LibraryResource;
+import net.pms.library.RealFile;
+import net.pms.library.WebStream;
 import net.pms.formats.Format;
 import static net.pms.util.PlayerUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,28 +32,28 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
-	private static DLNAResource video;
-	private static DLNAResource audio;
-	private static DLNAResource image;
-	private static DLNAResource webImage;
-	private static DLNAResource webVideo;
-	private static DLNAResource webAudio;
+	private static LibraryResource video;
+	private static LibraryResource audio;
+	private static LibraryResource image;
+	private static LibraryResource webImage;
+	private static LibraryResource webVideo;
+	private static LibraryResource webAudio;
 
 	@BeforeAll
 	public static void setUpClass() {
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
-		image = new RealFile(getNonExistingFile("test.jpg"));
+		image = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.jpg"));
 		image.isValid();
-		audio = new RealFile(getNonExistingFile("test.mp3"));
+		audio = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mp3"));
 		audio.isValid();
-		video = new RealFile(getNonExistingFile("test.mpg"));
+		video = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mpg"));
 		video.isValid();
-		webImage = new WebStream("", "http://example.com/test.jpg", "", Format.IMAGE);
+		webImage = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.jpg", "", Format.IMAGE);
 		webImage.isValid();
-		webAudio = new WebStream("", "http://example.com/test.mp3", "", Format.AUDIO);
+		webAudio = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mp3", "", Format.AUDIO);
 		webAudio.isValid();
-		webVideo = new WebStream("", "http://example.com/test.mpg", "", Format.VIDEO);
+		webVideo = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mpg", "", Format.VIDEO);
 		webVideo.isValid();
 	}
 

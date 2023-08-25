@@ -33,11 +33,11 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
+import net.pms.library.LibraryResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
-import net.pms.util.StringUtil;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -113,6 +113,10 @@ public class JUPnPDeviceHelper {
 	protected static ArrayList<RemoteDevice> ignoredDevices = new ArrayList<>();
 
 	private static DocumentBuilder db;
+
+	private JUPnPDeviceHelper() {
+		//not to be instanciated
+	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {
 		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
@@ -680,7 +684,7 @@ public class JUPnPDeviceHelper {
 	 * Seems not used.
 	 */
 	public static void play(String uri, String name, Renderer renderer) {
-		DLNAResource d = DLNAResource.getValidResource(uri, name, renderer);
+		LibraryResource d = renderer.getRootFolder().getValidResource(uri, name);
 		if (d != null) {
 			play(d, renderer);
 		}
@@ -689,11 +693,11 @@ public class JUPnPDeviceHelper {
 	/**
 	 * Seems not used.
 	 */
-	public static void play(DLNAResource d, Renderer renderer) {
-		DLNAResource d1 = d.getParent() == null ? DLNAResource.TEMP.add(d) : d;
-		if (d1 != null) {
+	public static void play(LibraryResource d, Renderer renderer) {
+		LibraryResource resource = d.getParent() == null ? renderer.getRootFolder().getTemp().add(d) : d;
+		if (resource != null) {
 			Device dev = getDevice(renderer.getUUID());
-			setAVTransportURI(dev, d1.getURL(""), renderer.isPushMetadata() ? d1.getDidlString(renderer) : null);
+			setAVTransportURI(dev, resource.getURL(""), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
 			play(dev);
 		}
 	}
@@ -793,7 +797,7 @@ public class JUPnPDeviceHelper {
 
 	public static void setAVTransportURI(Device dev, String uri, String metaData) {
 		send(dev, AV_TRANSPORT_SERVICE, "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData != null ? DidlHelper.unEncodeXML(metaData) : null);
 	}
 
 	/**

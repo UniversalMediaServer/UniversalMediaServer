@@ -19,7 +19,7 @@ import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
-import { sessionContext, UmsSession } from '../contexts/session-context';
+import SessionContext, { UmsSession } from '../contexts/session-context';
 import { authApiUrl } from '../utils';
 
 interface Props {
@@ -51,7 +51,7 @@ export const SessionProvider = ({ children, ...props }: Props) => {
     }
   }, [session.initialized, i18n]);
 
-  const { Provider } = sessionContext;
+  const { Provider } = SessionContext;
   return (
     <Provider value={session}>
       {children}

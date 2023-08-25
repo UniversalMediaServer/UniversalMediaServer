@@ -29,14 +29,14 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.service.LibraryScanner;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.dlna.RootFolder;
 
 public class PlaylistManager {
 
@@ -73,7 +73,7 @@ public class PlaylistManager {
 			} else {
 				LOGGER.debug("Invalid playlist directory. Playlist management is disabled.");
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOGGER.warn("Error while scanning Playlist files from disc.", e);
 		}
 	}
@@ -280,7 +280,7 @@ public class PlaylistManager {
 
 		createNewEmptyPlaylistFile(newPlaylist);
 		checkPlaylistDirectoryConfiguration();
-		RootFolder.rescanLibraryFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
+		LibraryScanner.scanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
 	}
 
 	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {

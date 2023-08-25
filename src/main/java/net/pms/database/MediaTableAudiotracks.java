@@ -22,8 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -229,7 +229,7 @@ public class MediaTableAudiotracks extends MediaTable {
 			return;
 		}
 
-		int trackCount = media.getSubtitleTrackCount();
+		int trackCount = media.getAudioTrackCount();
 		try (
 			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_BY_FILEID_ID_GREATER_OR_EQUAL);
 		) {

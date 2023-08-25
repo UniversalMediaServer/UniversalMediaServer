@@ -21,8 +21,8 @@ import net.pms.util.PmsProperties;
 import net.pms.util.Version;
 import oshi.SystemInfo;
 import oshi.hardware.CentralProcessor;
-import oshi.hardware.HardwareAbstractionLayer;
 import oshi.hardware.CentralProcessor.ProcessorIdentifier;
+import oshi.hardware.HardwareAbstractionLayer;
 
 /**
  * Data provided by the server for us to update with.  Must be synchronized externally.

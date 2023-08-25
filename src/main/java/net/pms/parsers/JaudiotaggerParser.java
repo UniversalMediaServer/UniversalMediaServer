@@ -194,7 +194,7 @@ public class JaudiotaggerParser {
 			if (StringUtils.isBlank(media.getContainer())) {
 				media.setContainer(audio.getCodec());
 			}
-			media.postParse(Format.AUDIO);
+			Parser.postParse(media, Format.AUDIO);
 			media.setMediaParser(PARSER_NAME);
 		}
 	}
