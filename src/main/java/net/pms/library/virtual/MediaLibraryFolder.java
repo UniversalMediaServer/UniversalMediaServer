@@ -39,7 +39,7 @@ import net.pms.database.MediaTableVideoMetadataReleased;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.library.*;
-import net.pms.network.mediaserver.ContentDirectory;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -677,7 +677,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		}
 
 		if (isDiscovered()) {
-			ContentDirectory.bumpSystemUpdateId();
+			UmsContentDirectoryService.bumpSystemUpdateId();
 		}
 	}
 

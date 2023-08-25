@@ -545,7 +545,7 @@ public class DidlHelper extends DlnaHelper {
 		return sb.toString();
 	}
 
-	/**
+			/**
 	 * Generate and append image and thumbnail {@code res} and
 	 * {@code upnp:albumArtURI} entries for the image.
 	 *

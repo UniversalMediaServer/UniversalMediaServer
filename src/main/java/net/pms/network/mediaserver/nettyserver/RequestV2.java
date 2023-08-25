@@ -70,7 +70,6 @@ import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
-import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.ApiHandler;
@@ -79,6 +78,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
@@ -977,7 +977,7 @@ public class RequestV2 extends HTTPResource {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(ContentDirectory.getSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -1116,27 +1116,27 @@ public class RequestV2 extends HTTPResource {
 		int minus = 0;
 		StringBuilder filesData = new StringBuilder();
 		if (files != null) {
-			for (LibraryResource uf : files) {
-				if (uf instanceof PlaylistFolder playlistFolder) {
-					File f = new File(uf.getFileName());
-					if (uf.getLastModified() < f.lastModified()) {
+			for (LibraryResource resource : files) {
+				if (resource instanceof PlaylistFolder playlistFolder) {
+					File f = new File(resource.getFileName());
+					if (resource.getLastModified() < f.lastModified()) {
 						playlistFolder.resolve();
 					}
 				}
 
-				if (xbox360 && containerID != null && uf != null) {
-					uf.setFakeParentId(containerID);
+				if (xbox360 && containerID != null && resource != null) {
+					resource.setFakeParentId(containerID);
 				}
 
 				if (
-					uf != null &&
-					(uf.isCompatible() &&
-					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(mediaRenderer)) ||
+					resource != null &&
+					(resource.isCompatible() &&
+					(resource.getEngine() == null || resource.getEngine().isEngineCompatible(mediaRenderer)) ||
 					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 					files.get(0).isInsideTranscodeFolder())
 				) {
-					filesData.append(DidlHelper.getDidlString(uf));
+					filesData.append(DidlHelper.getDidlString(resource));
 				} else {
 					minus++;
 				}
@@ -1220,7 +1220,7 @@ public class RequestV2 extends HTTPResource {
 		 * stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(ContentDirectory.getSystemUpdateId());
+		response.append(UmsContentDirectoryService.getDbSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -1355,7 +1355,7 @@ public class RequestV2 extends HTTPResource {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + ContentDirectory.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + UmsContentDirectoryService.getDbSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -1376,7 +1376,7 @@ public class RequestV2 extends HTTPResource {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(ContentDirectory.getSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

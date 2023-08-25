@@ -20,7 +20,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.network.mediaserver.ContentDirectory;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class GlobalIdRepo {
 		try {
 			if (resource.getId() == null || get(resource.getId()) != resource) {
 				ids.add(new ID(resource, curGlobalId++));
-				ContentDirectory.bumpSystemUpdateId();
+				UmsContentDirectoryService.bumpSystemUpdateId();
 			}
 		} finally {
 			lock.writeLock().unlock();
@@ -67,7 +67,7 @@ public class GlobalIdRepo {
 				lock.writeLock().lock();
 				try {
 					item.setRef(b);
-					ContentDirectory.bumpSystemUpdateId();
+					UmsContentDirectoryService.bumpSystemUpdateId();
 				} finally {
 					lock.writeLock().unlock();
 				}
@@ -110,7 +110,7 @@ public class GlobalIdRepo {
 		try {
 			if (index > -1 && index < ids.size()) {
 				ids.remove(index);
-				ContentDirectory.bumpSystemUpdateId();
+				UmsContentDirectoryService.bumpSystemUpdateId();
 				deletionsCount++;
 			}
 		} finally {

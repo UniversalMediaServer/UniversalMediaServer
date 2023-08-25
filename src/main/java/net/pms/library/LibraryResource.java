@@ -78,8 +78,8 @@ import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
-import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayedAction;
@@ -1090,7 +1090,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		ContentDirectory.bumpSystemUpdateId();
+		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
 	protected final void discover(int count, boolean forced, String searchStr) {

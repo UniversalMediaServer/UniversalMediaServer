@@ -79,7 +79,6 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.NetworkDeviceFilter;
-import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -87,6 +86,7 @@ import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
@@ -882,7 +882,7 @@ public class RequestHandler implements HttpHandler {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(ContentDirectory.getSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -1162,7 +1162,7 @@ public class RequestHandler implements HttpHandler {
 		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(ContentDirectory.getSystemUpdateId());
+		response.append(UmsContentDirectoryService.getDbSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -1247,7 +1247,7 @@ public class RequestHandler implements HttpHandler {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + ContentDirectory.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + UmsContentDirectoryService.getDbSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -1266,7 +1266,7 @@ public class RequestHandler implements HttpHandler {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(ContentDirectory.getSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

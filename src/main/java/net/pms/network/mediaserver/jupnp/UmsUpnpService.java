@@ -24,7 +24,6 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
 import net.pms.network.mediaserver.jupnp.registry.UmsRegistryListener;
 import org.jupnp.UpnpServiceImpl;
-import org.jupnp.model.meta.LocalDevice;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.registry.Registry;
 import org.jupnp.util.SpecificationViolationReporter;
@@ -41,7 +40,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
+	private final UmsLocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
 
 	public UmsUpnpService(boolean serveContentDirectory) {
 		super(new UmsUpnpServiceConfiguration(serveContentDirectory));

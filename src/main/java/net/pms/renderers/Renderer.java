@@ -46,7 +46,7 @@ import net.pms.library.GlobalIdRepo;
 import net.pms.library.LibraryResource;
 import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.ContentDirectory;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -285,7 +285,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (globalRepo != null) {
 			globalRepo.clear();
 		}
-		ContentDirectory.bumpSystemUpdateId();
+		UmsContentDirectoryService.getDbSystemUpdateId();
 	}
 
 	public synchronized void addFolderLimit(LibraryResource res) {

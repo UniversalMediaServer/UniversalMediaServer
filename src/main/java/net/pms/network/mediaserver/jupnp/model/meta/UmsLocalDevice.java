@@ -42,6 +42,9 @@ import org.slf4j.LoggerFactory;
 public class UmsLocalDevice extends LocalDevice {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsLocalDevice.class);
 	private final DeviceDetailsProvider deviceDetailsProvider;
+	private final UmsContentDirectoryService contentDirectoryService;
+	private final UmsConnectionManagerService connectionManagerService;
+	private final UmsMediaReceiverRegistrarService mediaReceiverRegistrarService;
 
 	public UmsLocalDevice() throws ValidationException {
 		super(
@@ -53,6 +56,9 @@ public class UmsLocalDevice extends LocalDevice {
 			null
 		);
 		this.deviceDetailsProvider = new UmsDeviceDetailsProvider();
+		this.contentDirectoryService = getServiceImplementation(UmsContentDirectoryService.class);
+		this.connectionManagerService = getServiceImplementation(UmsConnectionManagerService.class);
+		this.mediaReceiverRegistrarService = getServiceImplementation(UmsMediaReceiverRegistrarService.class);
 	}
 
 	@Override
@@ -63,12 +69,33 @@ public class UmsLocalDevice extends LocalDevice {
 		return this.getDetails();
 	}
 
+	public UmsContentDirectoryService getContentDirectoryService() {
+		return this.contentDirectoryService;
+	}
+
+	public UmsConnectionManagerService getConnectionManagerService() {
+		return this.connectionManagerService;
+	}
+
+	public UmsMediaReceiverRegistrarService getMediaReceiverRegistrarService() {
+		return this.mediaReceiverRegistrarService;
+	}
+
+	private <T> T getServiceImplementation(Class<T> baseClass) {
+		for (LocalService service : getServices()) {
+			if (service != null && service.getManager().getImplementation().getClass().equals(baseClass)) {
+				return (T) service.getManager().getImplementation();
+			}
+		}
+		return null;
+	}
+
 	/**
 	 * Create the local UMS device
 	 *
 	 * @return the device
 	 */
-	public static LocalDevice createMediaServerDevice() {
+	public static UmsLocalDevice createMediaServerDevice() {
 		try {
 			return new UmsLocalDevice();
 		} catch (ValidationException e) {

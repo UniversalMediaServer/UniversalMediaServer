@@ -58,12 +58,6 @@ public class SearchAction extends VirtualFolder {
 	}
 
 	@Override
-	public boolean isFolder() {
-		return true;
-		//	return false;
-	}
-
-	@Override
 	public long length() {
 		return -1; //DLNAMediaInfo.TRANS_SIZE;
 	}

@@ -63,7 +63,7 @@ import net.pms.library.virtual.VirtualFile;
 import net.pms.library.virtual.VirtualFolder;
 import net.pms.library.virtual.VirtualFolderDbId;
 import net.pms.library.virtual.VirtualVideoAction;
-import net.pms.network.mediaserver.ContentDirectory;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.CodeDb;
@@ -1173,7 +1173,7 @@ public class RootFolder extends LibraryResource {
 				getChildren().clear();
 				reset();
 				discoverChildren();
-				ContentDirectory.bumpSystemUpdateId();
+				UmsContentDirectoryService.bumpSystemUpdateId();
 			}
 			return this;
 		}
@@ -1255,7 +1255,7 @@ public class RootFolder extends LibraryResource {
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
-			ContentDirectory.bumpSystemUpdateId();
+			UmsContentDirectoryService.bumpSystemUpdateId();
 
 			/*
 			 * Something about this process causes Java to hold onto the
@@ -1307,13 +1307,13 @@ public class RootFolder extends LibraryResource {
 						} else if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 							MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
-							ContentDirectory.bumpSystemUpdateId();
+							UmsContentDirectoryService.bumpSystemUpdateId();
 						}
 					} else {
 						if ("ENTRY_DELETE".equals(event)) {
 							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 							MediaTableFiles.removeMediaEntry(connection, filename, true);
-							ContentDirectory.bumpSystemUpdateId();
+							UmsContentDirectoryService.bumpSystemUpdateId();
 						} else {
 							LOGGER.trace("File {} was created on the hard drive", filename);
 							File file = new File(filename);

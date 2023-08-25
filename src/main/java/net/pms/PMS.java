@@ -71,8 +71,8 @@ import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
-import net.pms.network.mediaserver.ContentDirectory;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webplayerserver.WebPlayerServer;
@@ -405,13 +405,6 @@ public class PMS {
 		RendererFilter.reset();
 		RendererUser.reset();
 
-		/**
-		 * Bump the SystemUpdateID state variable because now we will have
-		 * different resource IDs than last time UMS ran. It also populates our
-		 * in-memory value with the database value if the database is enabled.
-		 */
-		ContentDirectory.bumpSystemUpdateId();
-
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("");
@@ -711,7 +704,7 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		ContentDirectory.bumpSystemUpdateId();
+		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
 	/**
