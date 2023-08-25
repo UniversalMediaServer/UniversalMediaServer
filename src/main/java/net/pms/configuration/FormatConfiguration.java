@@ -25,12 +25,12 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.pms.dlna.DLNAResource;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.io.OutputParams;
-import net.pms.media.audio.MediaAudio;
+import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -619,12 +619,12 @@ public class FormatConfiguration {
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param dlna The DLNAResource
+	 * @param resource The LibraryResource
 	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(DLNAResource dlna, RendererConfiguration renderer) {
-		MediaInfo media = dlna.getMedia();
+	public String getMatchedMIMEtype(LibraryResource resource, RendererConfiguration renderer) {
+		MediaInfo media = resource.getMediaInfo();
 		if (media == null) {
 			return null;
 		}
@@ -644,8 +644,7 @@ public class FormatConfiguration {
 		}
 		if (media.getDefaultAudioTrack() == null) {
 			// no sound
-			return getMatchedMIMEtype(
-				media.getContainer(),
+			return getMatchedMIMEtype(media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				null,
 				0,
@@ -658,8 +657,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
+				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -676,8 +675,7 @@ public class FormatConfiguration {
 			* track needs to be checked.
 			*/
 			MediaAudio audio = media.getDefaultAudioTrack();
-			return getMatchedMIMEtype(
-				media.getContainer(),
+			return getMatchedMIMEtype(media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
@@ -690,8 +688,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
+				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -699,8 +697,7 @@ public class FormatConfiguration {
 		String finalMimeType = null;
 
 		for (MediaAudio audio : media.getAudioTracks()) {
-			String mimeType = getMatchedMIMEtype(
-				media.getContainer(),
+			String mimeType = getMatchedMIMEtype(media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
@@ -713,8 +710,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
+				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;

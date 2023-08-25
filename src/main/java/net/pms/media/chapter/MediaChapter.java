@@ -16,25 +16,20 @@
  */
 package net.pms.media.chapter;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import net.pms.Messages;
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class keeps track of the chapter properties of media.
  */
 public class MediaChapter extends MediaLang {
+
 	public static final Pattern CHAPTERS_TITLE_DEFAULT = Pattern.compile("^Chapter\\s\\d\\d$");
 	public static final Pattern CHAPTERS_TITLE_TIMESTAMP = Pattern.compile("^\\d\\d:\\d\\d:\\d\\d.\\d\\d\\d$");
-	public static final DateTimeFormatter CHAPTERS_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
+
 	private int parentId;
 	private String title;
 	private double start;
@@ -174,55 +169,4 @@ public class MediaChapter extends MediaLang {
 		return CHAPTERS_TITLE_DEFAULT.matcher(title).matches() || CHAPTERS_TITLE_TIMESTAMP.matcher(title).matches();
 	}
 
-	/**
-	 * Return a WebVtt from a resource.
-	 *
-	 * @param dlna The dlna resource.
-	 * @return The WebVtt representation of the chapter list.
-	 */
-	public static String getWebVtt(DLNAResource dlna) {
-		StringBuilder chaptersVtt = new StringBuilder();
-		chaptersVtt.append("WEBVTT\n");
-		MediaInfo mediaVideo = dlna.getMedia();
-		if (mediaVideo != null && mediaVideo.hasChapters()) {
-			for (MediaChapter chapter : mediaVideo.getChapters()) {
-				int chaptersNum = chapter.getId() + 1;
-				chaptersVtt.append("\nChapter ").append(chaptersNum).append("\n");
-				long nanoOfDay = (long) (chapter.getStart() * 1000_000_000D);
-				LocalTime lt = LocalTime.ofNanoOfDay(nanoOfDay);
-				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER));
-				chaptersVtt.append(" --> ");
-				nanoOfDay = (long) (chapter.getEnd() * 1000_000_000D);
-				lt = LocalTime.ofNanoOfDay(nanoOfDay);
-				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER)).append("\n");
-				if (StringUtils.isNotBlank(chapter.getTitle())) {
-					chaptersVtt.append(chapter.getTitle());
-				} else {
-					chaptersVtt.append(Messages.getString("Chapter")).append(" ").append(String.format("%02d", chaptersNum));
-				}
-				chaptersVtt.append("\n");
-			}
-		}
-		return chaptersVtt.toString();
-	}
-
-	/**
-	 * Return a HLS json representation of a dlna resource's chapters.
-	 *
-	 * @param dlna The dlna resource.
-	 * @return The HLS json representation of the chapter list.
-	 */
-	public static String getHls(DLNAResource dlna) {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		MediaInfo mediaVideo = dlna.getMedia();
-		if (mediaVideo != null && mediaVideo.hasChapters()) {
-			for (MediaChapter chapter : mediaVideo.getChapters()) {
-				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
-			}
-			sb.deleteCharAt(sb.length() - 1);
-		}
-		sb.append("]");
-		return sb.toString();
-	}
 }

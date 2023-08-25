@@ -16,6 +16,12 @@
  */
 package net.pms.image;
 
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.jfif.JfifDirectory;
+import com.drew.metadata.jpeg.HuffmanTablesDirectory;
+import com.drew.metadata.jpeg.JpegComponent;
+import com.drew.metadata.jpeg.JpegDirectory;
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import java.util.Collections;
@@ -23,12 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.util.ParseException;
-import com.drew.metadata.Directory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.jfif.JfifDirectory;
-import com.drew.metadata.jpeg.HuffmanTablesDirectory;
-import com.drew.metadata.jpeg.JpegComponent;
-import com.drew.metadata.jpeg.JpegDirectory;
 
 public class JPEGInfo extends ExifInfo {
 	protected final Map<Integer, JpegComponent> components;

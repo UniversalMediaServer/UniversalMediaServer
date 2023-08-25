@@ -16,8 +16,6 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,6 +24,7 @@ import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.Rational;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is immutable and represents {@code DLNA.ORG_PS} attributes. This
@@ -117,7 +116,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 
 	@Override
 	public String getAttributeString() {
-		return isBlank(stringValue) ? "" : NAME + "=" + stringValue;
+		return StringUtils.isBlank(stringValue) ? "" : NAME + "=" + stringValue;
 	}
 
 	@Override
@@ -176,7 +175,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 	 *
 	 * @return the calculated {@code hashCode}.
 	 */
-	protected int calculateHashCode() {
+	private int calculateHashCode() {
 		final int prime = 31;
 		int result = 1;
 		if (speeds == null) {
@@ -223,7 +222,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		public DLNAOrgPlaySpeeds getPlaySpeeds(String values) {
 
 			// Check for static instances
-			if (isBlank(values)) {
+			if (StringUtils.isBlank(values)) {
 				return NONE;
 			}
 
@@ -232,7 +231,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			String[] valueArray = values.split("\\s*,\\s*");
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
-				if (isNotBlank(value)) {
+				if (StringUtils.isNotBlank(value)) {
 					valueSet.add(Rational.valueOf(value));
 				}
 			}
@@ -304,7 +303,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		public DLNAOrgPlaySpeeds createPlaySpeeds(String values) {
 
 			// Check for static instances
-			if (isBlank(values)) {
+			if (StringUtils.isBlank(values)) {
 				return NONE;
 			}
 
@@ -313,7 +312,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			String[] valueArray = values.split("\\s*,\\s*");
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
-				if (isNotBlank(value)) {
+				if (StringUtils.isNotBlank(value)) {
 					valueSet.add(Rational.valueOf(value));
 				}
 			}

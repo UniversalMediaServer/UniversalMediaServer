@@ -16,20 +16,22 @@
  */
 package net.pms.util;
 
-import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-
+import com.sun.jna.Platform;
+import com.sun.nio.file.ExtendedWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.ClosedWatchServiceException;
+import static java.nio.file.FileVisitOption.FOLLOW_LINKS;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchEvent.Kind;
 import java.nio.file.WatchKey;
@@ -42,13 +44,9 @@ import java.util.Iterator;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
-import com.sun.nio.file.ExtendedWatchEventModifier;
 
 /**
  * An abstraction of the Java 7 nio WatchService api, which monitors native system
@@ -209,13 +207,6 @@ public class FileWatcher {
 					// take() will block until events occur in our subscribed
 					// directories
 					WatchKey key = watchService.take();
-					try {
-						// Wait a bit in case there are a few repeats
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						LOGGER.debug("Sleep interrupted {}", e);
-						Thread.currentThread().interrupt();
-					}
 					// Filter the received directory event(s)
 					for (WatchEvent<?> e : key.pollEvents()) {
 						final WatchEvent.Kind<?> kind = e.kind();
@@ -260,12 +251,23 @@ public class FileWatcher {
 					if (!key.reset()) {
 						keys.remove(key);
 					}
+					try {
+						// Wait a bit in case there are a few repeats
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
 				} while (!keys.isEmpty());
+			} catch (ClosedWatchServiceException e) {
+				if (running) {
+					LOGGER.debug("Event process error: " + e, e);
+				}
 			} catch (InterruptedException e) {
 				//only log if running as InterruptedException will throw on shutdown
 				if (running) {
 					LOGGER.debug("Event process error: " + e, e);
 				}
+				Thread.currentThread().interrupt();
 			}
 		}, "File watcher").start();
 	}

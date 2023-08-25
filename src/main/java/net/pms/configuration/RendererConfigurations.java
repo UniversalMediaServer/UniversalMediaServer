@@ -478,9 +478,6 @@ public class RendererConfigurations {
 			if (rendererConf.hasDeviceId()) {
 				//device specific conf
 				reloadDeviceFile(file, rendererConf);
-			} else {
-				//renderer specific conf
-				reloadRendererFile(file, rendererConf);
 			}
 		} catch (ConfigurationException ce) {
 			LOGGER.info("Error in reloading configuration of: " + file.getAbsolutePath());
@@ -507,7 +504,4 @@ public class RendererConfigurations {
 		}
 	}
 
-	private static void reloadRendererFile(File file, RendererConfiguration rendererConf) {
-		//handled by RendererConfiguration RELOADER
-	}
 }

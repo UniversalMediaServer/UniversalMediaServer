@@ -28,7 +28,6 @@ import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.dlna.InputFile;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.media.MediaInfo;
@@ -36,6 +35,7 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.util.CoverSupplier;
 import net.pms.util.CoverUtil;
+import net.pms.util.InputFile;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.tag.id3.ID3v1Tag;
 import org.slf4j.Logger;
@@ -52,13 +52,13 @@ public class RealAudioParser {
 	private RealAudioParser() {
 	}
 
-	public static boolean parse(MediaInfo media, InputFile file, int type) {
+	public static boolean parse(MediaInfo mediaInfo, InputFile file, int type) {
 		FileChannel channel;
 		try {
 			channel = FileChannel.open(file.getFile().toPath(), StandardOpenOption.READ);
-			if (parseRealAudio(channel, media)) {
+			if (parseRealAudio(channel, mediaInfo)) {
 				// If successful parsing is done, if not continue parsing the standard way
-				media.postParse(type);
+				Parser.postParse(mediaInfo, type);
 				return true;
 			}
 		} catch (IOException e) {
@@ -85,12 +85,12 @@ public class RealAudioParser {
 	 * @param channel the {@link Channel} containing the input. Size will only
 	 *            be parsed if {@code channel} is a {@link FileChannel}
 	 *            instance.
-	 * @param media the {@link MediaInfo} instance to write the parsing
+	 * @param mediaInfo the {@link MediaInfo} instance to write the parsing
 	 *            results to.
 	 * @return {@code true} if the {@code channel} input is in RealAudio 1.0 or
 	 *         2.0 format and the parsing succeeds; false otherwise
 	 */
-	private static boolean parseRealAudio(ReadableByteChannel channel, MediaInfo media) {
+	private static boolean parseRealAudio(ReadableByteChannel channel, MediaInfo mediaInfo) {
 		final byte[] magicBytes = {0x2E, 0x72, 0x61, (byte) 0xFD};
 		ByteBuffer buffer = ByteBuffer.allocate(8);
 		buffer.order(ByteOrder.BIG_ENDIAN);
@@ -114,7 +114,7 @@ public class RealAudioParser {
 				}
 				return false;
 			}
-			media.setContainer(FormatConfiguration.RA);
+			mediaInfo.setContainer(FormatConfiguration.RA);
 			short version = buffer.getShort();
 			int reportedHeaderSize = 0;
 			int reportedDataSize;
@@ -145,7 +145,7 @@ public class RealAudioParser {
 							audioMetadata.setArtist(new String(artist, StandardCharsets.US_ASCII));
 						}
 						audio.setBitRate(bytesPerMinute * 8 / 60);
-						media.setBitRate(bytesPerMinute * 8 / 60);
+						mediaInfo.setBitRate(bytesPerMinute * 8 / 60);
 					}
 				case 4, 5 -> {
 					buffer = ByteBuffer.allocate(14);
@@ -211,7 +211,7 @@ public class RealAudioParser {
 					}
 
 					audio.setBitRate((int) (bytesPerMinute * 8 / 60));
-					media.setBitRate((int) (bytesPerMinute * 8 / 60));
+					mediaInfo.setBitRate((int) (bytesPerMinute * 8 / 60));
 					audio.setBitDepth(bitDepth);
 					audio.setNumberOfChannels(nrChannels);
 					audio.setSampleRate(sampleRate);
@@ -222,11 +222,11 @@ public class RealAudioParser {
 				}
 			}
 
-			media.getAudioTracks().add(audio);
+			mediaInfo.getAudioTracks().add(audio);
 			long fileSize = 0;
 			if (channel instanceof FileChannel fileChannel) {
 				fileSize = fileChannel.size();
-				media.setSize(fileSize);
+				mediaInfo.setSize(fileSize);
 			}
 			// Duration is estimated based on bitrate and might not be accurate
 			if (audio.getBitRate() > 0) {
@@ -241,7 +241,7 @@ public class RealAudioParser {
 				} else {
 					dataSize = reportedDataSize;
 				}
-				media.setDuration((double) dataSize / audio.getBitRate() * 8);
+				mediaInfo.setDuration((double) dataSize / audio.getBitRate() * 8);
 			}
 
 		} catch (IOException e) {
@@ -265,7 +265,7 @@ public class RealAudioParser {
 				tag.setArtist(audioMetadata.getArtist());
 			}
 			try {
-				media.setThumb(DLNAThumbnail.toThumbnail(
+				mediaInfo.setThumb(DLNAThumbnail.toThumbnail(
 					CoverUtil.get().getThumbnail(tag),
 					640,
 					480,
@@ -281,8 +281,8 @@ public class RealAudioParser {
 				);
 			}
 		}
-		media.setThumbready(true);
-		media.setMediaParser(PARSER_NAME);
+		mediaInfo.setThumbready(true);
+		mediaInfo.setMediaParser(PARSER_NAME);
 
 		return true;
 	}

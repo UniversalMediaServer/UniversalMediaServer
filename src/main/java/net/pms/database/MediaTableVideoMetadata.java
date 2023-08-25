@@ -395,6 +395,17 @@ public class MediaTableVideoMetadata extends MediaTable {
 		}
 	}
 
+	public static MediaVideoMetadata getVideoMetadataByFilename(final Connection connection, final String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		Long id = MediaTableFiles.getFileId(connection, filename);
+		if (id != null) {
+			return getVideoMetadataByFileId(connection, id);
+		}
+		return null;
+	}
+
 	public static MediaVideoMetadata getVideoMetadataByFileId(final Connection connection, final long fileId) {
 		if (connection == null || fileId < 0) {
 			return null;

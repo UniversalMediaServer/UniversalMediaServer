@@ -20,9 +20,19 @@ package net.pms.media;
  * This class keeps track of media file status.
  */
 public class MediaStatus {
+	private boolean fullyPlayed = false;
 	private Double lastPlaybackPosition = null;
 	private String lastPlaybackTime;
 	private int playbackCount = 0;
+	private int bookmark;
+
+	public boolean isFullyPlayed() {
+		return fullyPlayed;
+	}
+
+	public void setFullyPlayed(boolean value) {
+		this.fullyPlayed = value;
+	}
 
 	public int getPlaybackCount() {
 		return playbackCount;
@@ -74,4 +84,13 @@ public class MediaStatus {
 	public void setLastPlaybackTime(String value) {
 		this.lastPlaybackTime = value;
 	}
+
+	public int getBookmark() {
+		return bookmark;
+	}
+
+	public void setBookmark(int value) {
+		this.bookmark = value;
+	}
+
 }

@@ -32,7 +32,6 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.InputFile;
 import net.pms.encoders.DCRaw;
 import net.pms.encoders.EngineFactory;
 import net.pms.image.ImageFormat;
@@ -40,6 +39,7 @@ import net.pms.image.ImageInfo;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
+import net.pms.util.InputFile;
 import net.pms.util.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,7 +129,7 @@ public class DCRawParser {
 		media.setImageInfo(imageInfo);
 		media.setSize(file.getSize());
 		media.setImageCount(1);
-		media.postParse(type);
+		Parser.postParse(media, type);
 		media.setMediaParser(PARSER_NAME);
 		return true;
 	}

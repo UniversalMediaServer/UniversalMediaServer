@@ -26,7 +26,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.dlna.InputFile;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.AudioAsVideo;
@@ -41,6 +40,7 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
+import net.pms.util.InputFile;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
@@ -114,7 +114,7 @@ public class FFmpegParser {
 					}
 				}
 			}
-			media.postParse(type);
+			Parser.postParse(media, type);
 		}
 	}
 

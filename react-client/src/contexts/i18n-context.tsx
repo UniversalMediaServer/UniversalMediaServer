@@ -16,15 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const i18nContext: Context<{
-  get: { [key: string]: string };
-  getI18nString: (value: string) => string;
-  getI18nFormat: (value: string[]) => string;
-  language: string;
-  rtl: boolean;
-  languages: LanguageValue[];
-  setLanguage: (language: string) => void;
-}> = createContext({
+export const I18nContext: Context<I18nInterface> = createContext({
   get: {},
   getI18nString: (value: string) => { return value },
   getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
@@ -34,7 +26,15 @@ export const i18nContext: Context<{
   setLanguage: (language: string) => { }
 });
 
-export default i18nContext;
+export interface I18nInterface {
+  get: { [key: string]: string };
+  getI18nString: (value: string) => string;
+  getI18nFormat: (value: string[]) => string;
+  language: string;
+  rtl: boolean;
+  languages: LanguageValue[];
+  setLanguage: (language: string) => void;
+}
 
 export interface LanguageValue {
   id: string,
@@ -43,3 +43,5 @@ export interface LanguageValue {
   country: string,
   coverage: number,
 }
+
+export default I18nContext;

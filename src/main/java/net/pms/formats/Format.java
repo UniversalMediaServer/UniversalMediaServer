@@ -18,7 +18,7 @@ package net.pms.formats;
 
 import java.util.Locale;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.dlna.DLNAResource;
+import net.pms.library.LibraryResource;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
@@ -177,14 +177,14 @@ public abstract class Format implements Cloneable {
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
 	 * be returned.
 	 *
-	 * @param dlna The media information.
+	 * @param resource The media information.
 	 * @param renderer The renderer for which to check. If <code>null</code>
 	 *                 is set as renderer, the default renderer configuration
 	 *                 will be used.
 	 * @return Whether the format can be handled by the renderer
 	 * @since 1.50.1
 	 */
-	public boolean isCompatible(DLNAResource dlna, Renderer renderer) {
+	public boolean isCompatible(LibraryResource resource, Renderer renderer) {
 		Renderer referenceRenderer;
 
 		if (renderer != null) {
@@ -196,7 +196,7 @@ public abstract class Format implements Cloneable {
 		}
 
 		// Let the renderer configuration decide on native compatibility
-		return referenceRenderer.isCompatible(dlna, this);
+		return referenceRenderer.isCompatible(resource, this);
 	}
 
 	public abstract boolean transcodable();

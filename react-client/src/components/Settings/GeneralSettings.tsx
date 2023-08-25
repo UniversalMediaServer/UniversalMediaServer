@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
@@ -142,6 +142,13 @@ export default function GeneralSettings(
               {...form.getInputProps('port')}
             />
             <Stack mt='sm'>
+              {/* removed until root user choice is implemented
+              <Checkbox
+                disabled={!canModify}
+                label={i18n.get['ShowUserChoice']}
+                {...form.getInputProps('show_user_choice', { type: 'checkbox' })}
+              />
+              */}
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get['UPnPDlnaService']}

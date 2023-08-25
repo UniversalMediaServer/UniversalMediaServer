@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This holds information about a given image, and is used as a standard image
- * information container in {@link DLNAResource}, {@link DLNAThumbnail},
+ * information container in {@link LibraryResource}, {@link DLNAThumbnail},
  * {@link DLNAThumbnailInputStream}, {@link DLNAImageInputStream},
  * {@link DLNAImage} and {@link Image}.
  *

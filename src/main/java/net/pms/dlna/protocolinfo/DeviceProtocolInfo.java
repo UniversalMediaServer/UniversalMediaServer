@@ -24,13 +24,13 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import net.pms.dlna.DLNAImageProfile;
+import net.pms.util.ParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.translate.CharSequenceTranslator;
 import org.apache.commons.text.translate.LookupTranslator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.DLNAImageProfile;
-import net.pms.util.ParseException;
 
 /**
  * This class represents a device's {@code ProtocolInfo} elements, typically

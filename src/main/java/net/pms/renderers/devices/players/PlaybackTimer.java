@@ -16,7 +16,7 @@
  */
 package net.pms.renderers.devices.players;
 
-import net.pms.dlna.DLNAResource;
+import net.pms.library.LibraryResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
@@ -32,11 +32,11 @@ public class PlaybackTimer extends MinimalPlayer {
 
 	@Override
 	public void start() {
-		final DLNAResource res = renderer.getPlayingRes();
+		final LibraryResource res = renderer.getPlayingRes();
 		state.setName(res.getDisplayName());
 		final long duration;
-		if (res.getMedia() != null) {
-			duration = (long) res.getMedia().getDurationInSeconds() * 1000;
+		if (res.getMediaInfo() != null) {
+			duration = (long) res.getMediaInfo().getDurationInSeconds() * 1000;
 			state.setDuration(duration);
 		} else {
 			duration = 0;

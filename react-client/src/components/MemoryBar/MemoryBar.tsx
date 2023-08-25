@@ -15,29 +15,30 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Group, Progress, Text } from '@mantine/core';
-import { useContext } from 'react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
+import { I18nInterface } from '../../contexts/i18n-context';
+import { ServerEventInterface } from '../../contexts/server-event-context';
 
-export const MemoryBar = ({ decorate }: { decorate?: boolean }) => {
-  const sse = useContext(ServerEventContext);
-  const i18n = useContext(I18nContext);
+export const MemoryBar = ({ decorate, sse, i18n }: { decorate?: boolean, sse: ServerEventInterface, i18n: I18nInterface}) => {
   const MaxMemLabel = () => { return sse.memory.max.toString(); }
-  const UsedMemPercent = () => { return Math.ceil((sse.memory.used / sse.memory.max) * 100); }
+  const UsedMem = () => { return Math.max(0, sse.memory.used - sse.memory.dbcache - sse.memory.buffer); }
+  const UsedMemPercent = () => { return Math.ceil((UsedMem() / sse.memory.max) * 100); }
   const UsedMemLabel = () => { return UsedMemPercent().toString() + ' %'; }
+  const DbCacheMemPercent = () => { return Math.floor((sse.memory.dbcache / sse.memory.max) * 100) };
+  const DbCacheMemLabel = () => { return DbCacheMemPercent().toString() + ' %'; }
   const BufferMemPercent = () => { return Math.floor((sse.memory.buffer / sse.memory.max) * 100) };
   const MemoryBarProgress =
     <Progress
       size='xl'
       radius='xl'
       sections={[
-        { value: UsedMemPercent(), color: 'pink', label: UsedMemPercent() > 10 ? UsedMemLabel() : '' },
-        { value: BufferMemPercent(), color: 'grape' },
+        { value: UsedMemPercent(), color: 'pink', label: UsedMemPercent() > 10 ? UsedMemLabel() : '', tooltip: 'UMS: ' + UsedMem() + ' ' + i18n.get['Mb'] },
+        { value: DbCacheMemPercent(), color: 'grape', label: DbCacheMemPercent() > 10 ? DbCacheMemLabel() : '', tooltip: i18n.get['DatabaseCache'] + ' ' + sse.memory.dbcache + ' ' + i18n.get['Mb'] },
+        { value: BufferMemPercent(), color: 'orange', tooltip: sse.memory.buffer + ' ' + i18n.get['Mb'] },
       ]}
       style={{ marginTop: '4px' }}
     />
-    ;
+  ;
 
   return decorate ? (
     <Group position='center' spacing='xs' grow>

@@ -20,8 +20,8 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import javax.swing.Icon;
@@ -190,7 +190,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	 *
 	 * @param frames a {@link List} of {@link AnimatedIconFrame}
 	 */
-	public void setFrames(final List<AnimatedIconFrame> frames) {
+	private void setFrames(final List<AnimatedIconFrame> frames) {
 		if (frames == null) {
 			throw new NullPointerException("Frames cannot be null");
 		}
@@ -222,7 +222,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	 *
 	 * @param frames an array of {@link AnimatedIconFrame}
 	 */
-	public void setFrames(final AnimatedIconFrame... frames) {
+	private void setFrames(final AnimatedIconFrame... frames) {
 		if (frames == null) {
 			throw new NullPointerException("Frames cannot be null");
 		}
@@ -436,15 +436,13 @@ public class AnimatedIcon implements Icon, ActionListener {
 	public void paintIcon(Component c, Graphics g, int x, int y) {
 
 		// If the previous icon was an AnimatedIcon, stop the animation
-		if (c instanceof JAnimatedButton) {
-			if (((JAnimatedButton) c).getCurrentIcon() != this) {
-				if (((JAnimatedButton) c).getCurrentIcon() != null) {
-					((JAnimatedButton) c).getCurrentIcon().pause();
-				}
-
-				((JAnimatedButton) c).setCurrentIcon(this);
-				resume();
+		if (c instanceof JAnimatedButton jAnimatedButton && jAnimatedButton.getCurrentIcon() != this) {
+			if (jAnimatedButton.getCurrentIcon() != null) {
+				jAnimatedButton.getCurrentIcon().pause();
 			}
+
+			jAnimatedButton.setCurrentIcon(this);
+			resume();
 		}
 
 		//  Saving the x, y coordinates allows us to only repaint the icon and
@@ -482,6 +480,7 @@ public class AnimatedIcon implements Icon, ActionListener {
 	/**
 	 *  Controls the animation of the {@link Icon}s when the {@link Timer} fires.
 	 */
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		// Take the appropriate action for the next step in the animation
 		// This runs in Swing's event dispatcher thread, so no thread safety
@@ -491,8 +490,8 @@ public class AnimatedIcon implements Icon, ActionListener {
 		if (nextFrameIndex < 0 || nextFrameIndex == currentFrameIndex) {
 			pause();
 			if (nextStage != null) {
-				if (component instanceof AnimatedIconCallback) {
-					((AnimatedIconCallback) component).setNextIcon(nextStage);
+				if (component instanceof AnimatedIconCallback animatedIconCallback) {
+					animatedIconCallback.setNextIcon(nextStage);
 				}
 				nextStage = permanentStage;
 			}

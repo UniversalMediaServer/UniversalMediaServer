@@ -36,6 +36,7 @@ const Home = () => {
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
   const [networkDevicesBlockedByDefault, setNetworkDevicesBlockedByDefault] = useState(false);
+  const [users, setUsers] = useState([] as User[]);
   const [currentTime, setCurrentTime] = useState(0);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -84,6 +85,24 @@ const Home = () => {
       .then(function(response: any) {
         setRenderers(response.data.renderers);
         setRenderersBlockedByDefault(response.data.renderersBlockedByDefault);
+        setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
+        setUsers(response.data.users);
+        setCurrentTime(response.data.currentTime);
+      })
+      .catch(function() {
+        showNotification({
+          id: 'renderers-data-loading',
+          color: 'red',
+          title: i18n.get['Error'],
+          message: i18n.get['DataNotReceived'],
+          autoClose: 3000,
+        });
+      });
+  }
+
+  const refreshDeviceData = async () => {
+    axios.get(renderersApiUrl + 'devices')
+      .then(function(response: any) {
         setNetworkDeviceFilters(response.data.networkDevices);
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
         setCurrentTime(response.data.currentTime);
@@ -99,15 +118,19 @@ const Home = () => {
       });
   }
 
+  const setUserId = async (rule: string, userId: any) => {
+    setSettings('renderers', { rule, userId });
+  }
+
   const setRenderersAllowed = async (rule: string, isAllowed: boolean) => {
-    setAllowed('renderers', rule, isAllowed);
+    setSettings('renderers', { rule, isAllowed });
   }
 
   const setDevicesAllowed = async (rule: string, isAllowed: boolean) => {
-    setAllowed('devices', rule, isAllowed);
+    setSettings('devices', { rule, isAllowed });
   };
 
-  const setAllowed = async (endpoint:string, rule: string, isAllowed: boolean) => {
+  const setSettings = async (endpoint:string, data: any) => {
     showNotification({
       id: 'settings-save',
       loading: true,
@@ -116,7 +139,7 @@ const Home = () => {
       autoClose: false,
       withCloseButton: false
     });
-    await axios.post(renderersApiUrl + endpoint, { rule, isAllowed })
+    await axios.post(renderersApiUrl + endpoint, data)
       .then(function() {
         updateNotification({
           id: 'settings-save',
@@ -163,7 +186,9 @@ const Home = () => {
             canModify={canModify}
             i18n={i18n}
             renderers={renderers}
+            users={users}
             setAllowed={setRenderersAllowed}
+            setUserId={setUserId}
           />
         </Tabs.Panel>
         <Tabs.Panel value='blocked_renderers' pt='xs'>
@@ -174,7 +199,9 @@ const Home = () => {
             canModify={canModify}
             i18n={i18n}
             renderers={renderers}
+            users={users}
             setAllowed={setRenderersAllowed}
+            setUserId={setUserId}
           />
         </Tabs.Panel>
         <Tabs.Panel value='network_devices' pt='xs'>
@@ -184,7 +211,7 @@ const Home = () => {
             currentTime={currentTime}
             i18n={i18n}
             networkDeviceFilters={networkDeviceFilters}
-            refreshData={refreshData}
+            refreshDeviceData={refreshDeviceData}
             setAllowed={setDevicesAllowed}
           />
         </Tabs.Panel>
@@ -220,6 +247,8 @@ export interface Renderer {
   progressPercent: number,
   isActive: boolean,
   isAllowed: boolean,
+  isAuthenticated: boolean,
+  userId: number,
   controls: number,
   state: RendererState,
 }
@@ -236,4 +265,10 @@ export interface NetworkDevicesFilter {
   isDefault: boolean,
   devices: NetworkDevice[]
 }
+
+export interface User {
+  value: number,
+  label: string
+}
+
 export default Home;

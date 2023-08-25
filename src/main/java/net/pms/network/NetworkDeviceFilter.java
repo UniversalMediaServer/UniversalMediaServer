@@ -141,7 +141,6 @@ public class NetworkDeviceFilter {
 			rule.add("devices", devices);
 			result.add(rule);
 		}
-
 		for (InetAddressSeen addrSeen : LAST_SEEN.values()) {
 			if (!addrSeen.addr.isLoopbackAddress() && isAllowed(addrSeen.addr, false) == isAllowed) {
 				rule = new JsonObject();

@@ -25,6 +25,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -46,10 +49,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 /**
  * <pre>
@@ -124,7 +123,6 @@ public class StarRating implements ApiResponseHandler {
 					if (NumberUtils.isParsable(request.getTrackID())) {
 						Integer audiotrackId = Integer.valueOf(request.getTrackID());
 						setDatabaseRatingByAudiotracksId(connection, request.getStars(), audiotrackId);
-						updateGlobalRepoCache(request);
 						if (PMS.getConfiguration().isAudioUpdateTag()) {
 							FilenameIdVO dbSong = getFilenameIdForAudiotrackId(connection, audiotrackId);
 							setRatingInFile(request.getStars(), dbSong);
@@ -164,18 +162,6 @@ public class StarRating implements ApiResponseHandler {
 		} catch (Exception e) {
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return "ERROR : " + e.getMessage();
-		}
-	}
-
-	private void updateGlobalRepoCache(RequestVO request) {
-		try {
-			DLNAResource cachedObj = PMS.getGlobalRepo().get("" + (request.getGlobalID()));
-			if (cachedObj != null) {
-				cachedObj.getMedia().getAudioMetadata().setRating(request.getStars());
-				LOG.trace("updated GlobalRepo cache object successfully.");
-			}
-		} catch (NullPointerException e) {
-			LOG.trace("couldn't update rating info in cache.");
 		}
 	}
 

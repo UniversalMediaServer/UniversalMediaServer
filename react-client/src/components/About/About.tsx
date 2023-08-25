@@ -22,8 +22,8 @@ import ReactCountryFlag from 'react-country-flag';
 import { Edit, EditOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
-import { ServerEventProvider } from '../../providers/server-event-provider';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { aboutApiUrl } from '../../utils';
 import MemoryBar from '../MemoryBar/MemoryBar';
@@ -124,7 +124,7 @@ const About = () => {
                 </tr>
                 <tr>
                   <td>{i18n.get['JVMMemoryUsage']}</td>
-                  <td><ServerEventProvider><MemoryBar decorate={false} /></ServerEventProvider></td>
+                  <td><ServerEventContext.Consumer>{sse => (<MemoryBar decorate={false} sse={sse} i18n={i18n} />)}</ServerEventContext.Consumer></td>
                 </tr>
               </tbody>
             </>}

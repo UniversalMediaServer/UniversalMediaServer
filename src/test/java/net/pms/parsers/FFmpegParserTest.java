@@ -17,10 +17,10 @@
 package net.pms.parsers;
 
 import java.io.File;
-import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
+import net.pms.util.InputFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ public class FFmpegParserTest {
 		ParserTest.SetUPClass();
 	}
 
-	private static MediaInfo getTestFileMediaInfo(String testFile) {
+	private MediaInfo getTestFileMediaInfo(String testFile) {
 		File file = ParserTest.getTestFile(testFile);
 		InputFile inputFile = new InputFile();
 		inputFile.setFile(file);

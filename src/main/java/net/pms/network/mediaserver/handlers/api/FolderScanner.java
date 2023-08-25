@@ -16,14 +16,13 @@
  */
 package net.pms.network.mediaserver.handlers.api;
 
+import net.pms.network.mediaserver.handlers.ApiResponseHandler;
+import net.pms.service.LibraryScanner;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.service.LibraryScanner;
-import net.pms.dlna.RootFolder;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 
 public class FolderScanner implements ApiResponseHandler {
 
@@ -36,7 +35,7 @@ public class FolderScanner implements ApiResponseHandler {
 		output.setStatus(HttpResponseStatus.NO_CONTENT);
 		switch (uri) {
 			case "rescan" -> rescanLibrary();
-			case "rescanFileOrFolder" -> RootFolder.rescanLibraryFileOrFolder(content);
+			case "rescanFileOrFolder" -> LibraryScanner.scanFileOrFolder(content);
 			default -> {
 				LOGGER.warn("Invalid API call. Unknown path : " + uri);
 				output.setStatus(HttpResponseStatus.NOT_FOUND);

@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.library.LibraryResource;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -42,8 +42,13 @@ public class RendererItem implements IRendererGuiListener {
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
 	private static final Gson GSON = new Gson();
+	private static final String ACTION_ADD = "renderer_add";
+	private static final String ACTION_DELETE = "renderer_delete";
+	private static final String ACTION_UPDATE = "renderer_update";
+
 	private final int id;
 	private final Renderer renderer;
+
 	private String name;
 	private String address;
 	private String uuid;
@@ -54,6 +59,8 @@ public class RendererItem implements IRendererGuiListener {
 	private int progressPercent;
 	private boolean isActive;
 	private boolean isAllowed;
+	private boolean isAuthenticated;
+	private int userId;
 	private int controls;
 	private PlayerState state;
 
@@ -67,7 +74,7 @@ public class RendererItem implements IRendererGuiListener {
 	public void updateRenderer(Renderer value) {
 		//we can use renderer itself as it's a pointer to real renderer object
 		updateRendererValues();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	@Override
@@ -75,7 +82,7 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isActive != renderer.isActive()) {
 			isActive = renderer.isActive();
-			sendRendererAction("renderer_update");
+			sendRendererAction(ACTION_UPDATE);
 		}
 	}
 
@@ -84,7 +91,16 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isAllowed != renderer.isAllowed()) {
 			isAllowed = renderer.isAllowed();
-			sendRendererAction("renderer_update");
+			sendRendererAction(ACTION_UPDATE);
+		}
+	}
+
+	@Override
+	public void setUserId(int value) {
+		//we can use renderer itself as it's a pointer to real renderer object
+		if (userId != renderer.getUserId()) {
+			userId = renderer.getUserId();
+			sendRendererAction(ACTION_UPDATE);
 		}
 	}
 
@@ -96,7 +112,7 @@ public class RendererItem implements IRendererGuiListener {
 				RENDERERS.remove(renderer);
 			}
 		}
-		sendRendererAction("renderer_delete");
+		sendRendererAction(ACTION_DELETE);
 	}
 
 	@Override
@@ -106,7 +122,7 @@ public class RendererItem implements IRendererGuiListener {
 			UMSUtils.playedDurationStr(state.getPosition(), state.getDuration());
 		progressPercent = (int) (100 * state.getBuffer() / MAX_BUFFER_SIZE);
 		playing = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	public String getIcon() {
@@ -152,7 +168,7 @@ public class RendererItem implements IRendererGuiListener {
 		playing = "";
 		progressPercent = 0;
 		renderer.addGuiListener(this);
-		sendRendererAction("renderer_add");
+		sendRendererAction(ACTION_ADD);
 	}
 
 	private void updateRendererValues() {
@@ -163,6 +179,8 @@ public class RendererItem implements IRendererGuiListener {
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
 		isAllowed = renderer.isAllowed();
+		isAuthenticated = renderer.isAuthenticated();
+		userId = renderer.getUserId();
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
@@ -205,8 +223,7 @@ public class RendererItem implements IRendererGuiListener {
 
 	private void playerSetMediaId(String id) {
 		try {
-			DLNAResource root = renderer.getRootFolder();
-			List<DLNAResource> resources = root.getDLNAResources(id, false, 0, 0, renderer);
+			List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
 			if (!resources.isEmpty()) {
 				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
 			}
@@ -227,6 +244,8 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("progressPercent", progressPercent);
 		result.addProperty("isActive", isActive);
 		result.addProperty("isAllowed", isAllowed);
+		result.addProperty("isAuthenticated", isAuthenticated);
+		result.addProperty("userId", userId);
 		result.addProperty("controls", controls);
 		result.add("state", GSON.toJsonTree(state));
 		return result;
@@ -308,13 +327,12 @@ public class RendererItem implements IRendererGuiListener {
 					return null;
 				}
 				String media = post.get("media").getAsString();
-				DLNAResource root = renderer.renderer.getRootFolder();
 				JsonObject result = new JsonObject();
 				JsonArray parents = new JsonArray();
 				JsonArray childrens = new JsonArray();
-				List<DLNAResource> resources = root.getDLNAResources(media, true, 0, 0, renderer.renderer);
+				List<LibraryResource> resources = renderer.renderer.getRootFolder().getLibraryResources(media, true, 0, 0);
 				if (!resources.isEmpty()) {
-					DLNAResource parentFromResources = resources.get(0).getParent();
+					LibraryResource parentFromResources = resources.get(0).getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
 						JsonObject parent = new JsonObject();
 						parent.addProperty("value", parentFromResources.getResourceId());
@@ -328,7 +346,7 @@ public class RendererItem implements IRendererGuiListener {
 							parents.add(parent);
 						}
 					}
-					for (DLNAResource resource : resources) {
+					for (LibraryResource resource : resources) {
 						if (resource == null) {
 							continue;
 						}

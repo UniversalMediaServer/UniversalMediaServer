@@ -126,7 +126,8 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String SQL_INSERT_TITLE = INSERT_INTO + TABLE_NAME + " (" + COL_SIMPLIFIEDTITLE + ", " + COL_TITLE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
 
 	private static final String SQL_GET_THUMBNAIL_BY_SIMPLIFIEDTITLE = SELECT + TABLE_COL_THUMBID + ", " + TABLE_COL_ID + ", " + MediaTableThumbnails.TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + WHERE + TABLE_COL_SIMPLIFIEDTITLE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_ISFULLYPLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + EQUAL + PARAMETER + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE + LIMIT_1;
+	private static final String SQL_GET_PARTIALLY_PLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_NOT_FULLYPLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
 	 * Used by child tables
@@ -905,8 +906,25 @@ public final class MediaTableTVSeries extends MediaTable {
 		}
 	}
 
-	public static Boolean isFullyPlayed(final Connection connection, final String title) {
+	public static Boolean isFullyPlayed(final Connection connection, final String title, final int userId) {
 		try {
+			/*
+			 * If we don't have entry for this series, then this series is
+			 * not fully played.
+			 */
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_PARTIALLY_PLAYED)) {
+				statement.setString(1, title);
+				statement.setInt(2, userId);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", statement);
+				}
+				try (ResultSet resultSet = statement.executeQuery()) {
+					if (!resultSet.next()) {
+						return false;
+					}
+				}
+			}
+
 			/*
 			 * If there is one file for this TV series where ISFULLYPLAYED is
 			 * not true, then this series is not fully played, otherwise it is.
@@ -914,8 +932,9 @@ public final class MediaTableTVSeries extends MediaTable {
 			 * This backwards logic is used for performance since we only have
 			 * to check one row instead of all rows.
 			 */
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ISFULLYPLAYED)) {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_NOT_FULLYPLAYED)) {
 				statement.setString(1, title);
+				statement.setInt(2, userId);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", statement);
 				}

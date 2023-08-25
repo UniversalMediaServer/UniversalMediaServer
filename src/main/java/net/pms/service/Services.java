@@ -97,6 +97,12 @@ public class Services {
 		return instance == null ? null : instance.getSleepManager();
 	}
 
+	public static void postponeSleep() {
+		if (instance != null && instance.getSleepManager() != null) {
+			instance.getSleepManager().postponeSleep();
+		}
+	}
+
 	/**
 	 * Sets the static {@link Services} instance. Isn't normally needed, use
 	 * {@link Services#create()} instead.

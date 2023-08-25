@@ -14,18 +14,18 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Slider, Stack, Table, Text } from '@mantine/core';
+import { ActionIcon, Button, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Select, Slider, Stack, Table, Text } from '@mantine/core';
 import axios from 'axios';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { Cast, DevicesPc, DevicesPcOff, Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
+import { Cast, DevicesPc, DevicesPcOff, Dots, Link, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
 import { renderersApiUrl } from '../../utils';
+import { Renderer, User } from './Home';
 import MediaChooser, { Media } from './MediaChooser';
-import { Renderer } from './Home';
 
 const Renderers = (
-  { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, setAllowed }:
+  { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, users, setAllowed, setUserId }:
     {
       allowed: boolean,
       blockedByDefault: boolean,
@@ -36,7 +36,9 @@ const Renderers = (
         getI18nString: (value: string) => string;
       },
       renderers: Renderer[],
+      users: User[],
       setAllowed: (rule: string, isAllowed: boolean) => void
+      setUserId: (rule: string, userId: any) => void
     }
 ) => {
 
@@ -44,6 +46,8 @@ const Renderers = (
   const [infos, setInfos] = useState(null as RendererInfos | null);
   const [controlId, setControlId] = useState(-1);
   const [controlMedia, setControlMedia] = useState<Media | null>(null);
+  const [userChanger, setUserChanger] = useState<Renderer | null>();
+  const [userChangerValue, setUserChangerValue] = useState<string | null>(null);
 
   useEffect(() => {
     if (askInfos < 0) {
@@ -86,6 +90,52 @@ const Renderers = (
     </Modal>
   );
 
+  const getAccountNameList = () => {
+    return [ { value: '-1', label: i18n.get['NoAccountAssigned'] },
+      { value: '0', label: i18n.get['DefaultAccount'] }
+    ].concat(users.map(user => ({ value: user.value.toString(), label: user.label })));
+  }
+
+  const rendererUserChanger = (
+    <Modal
+      centered
+      opened={userChanger != null}
+      title={userChanger?.name}
+      onClose={() => setUserChanger(null)}
+      withinPortal={false}
+      lockScroll={false}
+    >
+      <Select
+        mb={'xl'}
+        label={i18n.get['LinkRendererTo']}
+        defaultValue={userChanger?.userId.toString()}
+        onChange={(value) => {setUserChangerValue(value)}}
+        dropdownPosition='bottom'
+        maxDropdownHeight={60}
+        data={getAccountNameList()}
+      />
+      <Group position='right' mt='md'>
+        <Button
+          disabled={!userChangerValue || userChangerValue == userChanger?.userId.toString()}
+          onClick={() => { userChanger && setUserId(userChanger.uuid, userChangerValue); setUserChanger(null) }}
+        >
+          {i18n.get['Apply']}
+        </Button>
+      </Group>
+    </Modal>
+  );
+
+  const getAccountName = (userId: number) => {
+    switch(userId) {
+      case -1: return i18n.get['NoAccountAssigned'];
+      case 0: return i18n.get['DefaultAccount'];
+      default: {
+        const founded = users.find((user) => user.value === userId);
+        return founded ? founded.label : i18n.get['NonExistentUser']
+      }
+    }
+  }
+
   const getNameColor = (renderer: Renderer) => {
     if (!renderer.isAllowed) {
       return 'red';
@@ -113,10 +163,18 @@ const Renderers = (
                 <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
                 {canModify && (<>
                   <Menu.Item icon={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
-                  {!renderer.isAllowed && renderer.uuid && (
+                  {!renderer.isAuthenticated && renderer.uuid && (
+                    <Menu.Item
+                      icon={<Link size={14} />}
+                      onClick={() => setUserChanger(renderer)}
+                    >
+                      {getAccountName(renderer.userId)}
+                    </Menu.Item>
+                  )}
+                  {!renderer.isAuthenticated && !renderer.isAllowed && renderer.uuid && (
                     <Menu.Item icon={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
                   )}
-                  {renderer.isAllowed && renderer.uuid && (
+                  {!renderer.isAuthenticated && renderer.isAllowed && renderer.uuid && (
                     <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get['Block']}</Menu.Item>
                   )}
                 </>)}
@@ -249,6 +307,7 @@ const Renderers = (
   return (
     <>
       {rendererDetail}
+      {rendererUserChanger}
       {rendererControls}
       {renderersHeader}
       <Grid>

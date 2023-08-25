@@ -22,7 +22,7 @@ public interface IGui {
 	public void appendLog(String msg);
 	public void setCurrentBitrate(int sizeinMb);
 	public void setPeakBitrate(int sizeinMb);
-	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory);
 	public void setConnectionState(EConnectionState connectionState);
 	public void addRenderer(Renderer renderer);
 	public void setReloadable(boolean reload);

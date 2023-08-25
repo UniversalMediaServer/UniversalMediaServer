@@ -14,22 +14,23 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, PinInput, Select, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { useContext, useState } from 'react';
-import { ExclamationMark, Folder, FolderPlus, User, UserPlus, X } from 'tabler-icons-react';
+import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
 
 import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml } from '../../utils';
+import { allowHtml, defaultTooltipSettings } from '../../utils';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
-  const groupSelectionDatas = getUserGroupsSelection(accounts, i18n.get['None']);
+  const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get['None']);
   const canModifySettings = havePermission(session, Permissions.settings_modify);
   const canManageUsers = havePermission(session, Permissions.users_manage);
   const canManageGroups = havePermission(session, Permissions.groups_manage);
@@ -40,8 +41,8 @@ const Accounts = () => {
     const displayName = showAsUsername ? user.username : user.displayName;
     return (
       <Group noWrap>
-        <Avatar radius='xl' size='lg'>
-          {user.id === 0 ? (<UserPlus size={24} />) : (<User size={24} />)}
+        <Avatar radius='xl' size='lg' src={user.avatar}>
+          {!user.avatar && (user.id === 0 ? (<UserPlus size={24} />) : (<User size={24} />))}
         </Avatar>
         <div>
           <Text>{displayName}{groupDisplayName}</Text>
@@ -89,11 +90,13 @@ const Accounts = () => {
           data={groupSelectionDatas}
           {...newUserForm.getInputProps('groupid')}
         />
-        <Group position='right' mt='md'>
-          <Button type='submit'>
-            {i18n.get['Create']}
-          </Button>
-        </Group>
+        {newUserForm.isValid() && (
+          <Group position='right' mt='md'>
+            <Button type='submit'>
+              {i18n.get['Create']}
+            </Button>
+          </Group>
+        )}
       </form>
     )
   }
@@ -129,25 +132,108 @@ const Accounts = () => {
     )
   }
 
-  function UserDisplayNameForm(user: UmsUser) {
-    const userDisplayNameForm = useForm({ initialValues: { id: user.id, displayName: user.displayName } });
-    const handleUserDisplayNameSubmit = (values: typeof userDisplayNameForm.values) => {
-      const data = { operation: 'modifyuser', userid: user.id, name: values.displayName };
-      postAccountAction(data, i18n.get['DisplayNameUpdate'], i18n.get['DisplayNameUpdating'], i18n.get['DisplayNameUpdated'], i18n.get['DisplayNameNotUpdated']);
+  function UserProfileForm(user: UmsUser) {
+    const [avatar, setAvatar] = useState<string>(user.avatar ? user.avatar : '');
+    const userProfileForm = useForm({ initialValues: { id: user.id, displayName: user.displayName, avatar: user.avatar ? user.avatar : '', pinCode: user.pinCode ? user.pinCode : '', libraryHidden: user.libraryHidden } });
+    const handleUserProfileSubmit = (values: typeof userProfileForm.values) => {
+      const data = {operation: 'modifyuser', userid: user.id, name: values.displayName } as any;
+      if (userProfileForm.isDirty('displayName')) data.name = values.displayName;
+      if (userProfileForm.isDirty('avatar')) data.avatar = values.avatar;
+      if (userProfileForm.isDirty('pinCode')) data.pincode = values.pinCode;
+      if (userProfileForm.isDirty('libraryHidden')) data.library_hidden = values.libraryHidden;
+      postAccountAction(data, i18n.get['UserProfileUpdate'], i18n.get['UserProfileUpdating'], i18n.get['UserProfileUpdated'], i18n.get['UserProfileNotUpdated']);
     }
     return (
-      <form onSubmit={userDisplayNameForm.onSubmit(handleUserDisplayNameSubmit)}>
-        <Divider my='sm' label={i18n.get['DisplayName']} />
+      <form onSubmit={userProfileForm.onSubmit(handleUserProfileSubmit)}>
+        <Divider my='sm' label={i18n.get['Profile']} />
         <TextInput
           label={i18n.get['DisplayName']}
           name='displayName'
-          {...userDisplayNameForm.getInputProps('displayName')}
+          {...userProfileForm.getInputProps('displayName')}
         />
-        <Group position='right' mt='md'>
-          <Button type='submit'>
-            {i18n.get['Apply']}
-          </Button>
-        </Group>
+        <Input.Wrapper label={i18n.get['Avatar']}>
+          <Dropzone
+            name='avatar'
+            maxSize={2 * 1024 **2}
+            accept={IMAGE_MIME_TYPE}
+            multiple={false}
+            styles={{ inner: { pointerEvents: 'all' } }}
+            onDrop={(files: FileWithPath[]) => {
+              const reader = new FileReader();
+              reader.onload = () => {
+                const result = reader.result as string;
+                if (result) {
+                  setAvatar(result);
+                  userProfileForm.setFieldValue('avatar', result);
+                }
+              }
+              files[0] && reader.readAsDataURL(files[0]);
+            }}
+          >
+            <Group position='center'>
+              <Dropzone.Accept>
+                <PhotoUp />
+              </Dropzone.Accept>
+              <Dropzone.Reject>
+                <PhotoX />
+              </Dropzone.Reject>
+              <Dropzone.Idle>
+                <div onClick={e => {e.stopPropagation()}}>
+                  <HoverCard disabled={avatar === ''}>
+                    <HoverCard.Target>
+                      <Avatar radius='xl' size='lg' src={avatar !== '' ? avatar : null}>
+                        {avatar === '' && <User size={24} />}
+                      </Avatar>
+                    </HoverCard.Target>
+                    <HoverCard.Dropdown>
+                      <Button
+                        onClick={ () => {
+                          const newavatar = (user.avatar && avatar !== user.avatar) ? user.avatar : '';
+                          setAvatar(newavatar);
+                          userProfileForm.setFieldValue('avatar', newavatar);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                    </HoverCard.Dropdown>
+                  </HoverCard>
+                </div>
+              </Dropzone.Idle>
+              <div>
+                <Text inline>
+                  Drag image here or click to select file
+                </Text>
+                <Text size='sm' color='dimmed' inline mt={7}>
+                  File should not exceed 2mb
+                </Text>
+              </div>
+            </Group>
+          </Dropzone>
+        </Input.Wrapper>
+        {/* removed until root user choice is implemented
+        <Input.Wrapper label={i18n.get['PinCode']}>
+          <PinInput
+            name='pincode'
+            type='number'
+            oneTimeCode
+            {...userProfileForm.getInputProps('pinCode')}
+          />
+        </Input.Wrapper>
+        <Tooltip label={allowHtml(i18n.get['HideUserChoiceLibrary'])} {...defaultTooltipSettings}>
+          <Checkbox
+            mt='xl'
+            label={i18n.get['HideUserLibrary']}
+            {...userProfileForm.getInputProps('library_hidden', { type: 'checkbox' })}
+          />
+        </Tooltip>
+        */}
+        {userProfileForm.isDirty() && (
+          <Group position='right' mt='md'>
+            <Button type='submit'>
+              {i18n.get['Apply']}
+            </Button>
+          </Group>
+        )}
       </form>
     )
   }
@@ -168,7 +254,7 @@ const Accounts = () => {
           data={groupSelectionDatas}
           {...userGroupForm.getInputProps('groupId')}
         />
-        {canManageGroups && (
+        {canManageGroups && userGroupForm.isDirty() && (
           <Group position='right' mt='md'>
             <Button type='submit'>
               {i18n.get['Apply']}
@@ -215,7 +301,7 @@ const Accounts = () => {
     const userGroup = getUserGroup(user, accounts);
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
     const userIdentityForm = UserIdentityForm(user);
-    const userDisplayNameForm = UserDisplayNameForm(user);
+    const userDisplayNameForm = UserProfileForm(user);
     const userGroupForm = UserGroupForm(user);
     const userDeleteForm = UserDeleteForm(user);
     return (
