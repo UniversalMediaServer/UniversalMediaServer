@@ -57,7 +57,7 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@3.6.2",
+  "packageManager": "yarn@3.6.3",
   "devDependencies": {
     "@testing-library/jest-dom": "5.17.0",
     "@testing-library/react": "14.0.0",
