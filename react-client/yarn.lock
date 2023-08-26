@@ -1972,13 +1972,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/js@npm:^8.47.0":
-  version: 8.47.0
-  resolution: "@eslint/js@npm:8.47.0"
-  checksum: 0ef57fe27b6d4c305b33f3b2d2fee1ab397a619006f1d6f4ce5ee4746b8f03d11a4e098805a7d78601ca534cf72917d37f0ac19896c992a32e26299ecb9f9de1
-  languageName: node
-  linkType: hard
-
 "@floating-ui/core@npm:^1.4.1":
   version: 1.4.1
   resolution: "@floating-ui/core@npm:1.4.1"
@@ -3329,17 +3322,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:*":
-  version: 29.5.3
-  resolution: "@types/jest@npm:29.5.3"
-  dependencies:
-    expect: ^29.0.0
-    pretty-format: ^29.0.0
-  checksum: e36bb92e0b9e5ea7d6f8832baa42f087fc1697f6cd30ec309a07ea4c268e06ec460f1f0cfd2581daf5eff5763475190ec1ad8ac6520c49ccfe4f5c0a48bfa676
-  languageName: node
-  linkType: hard
-
-"@types/jest@npm:29.5.4":
+"@types/jest@npm:*, @types/jest@npm:29.5.4":
   version: 29.5.4
   resolution: "@types/jest@npm:29.5.4"
   dependencies:
@@ -3459,18 +3442,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*":
-  version: 18.2.20
-  resolution: "@types/react@npm:18.2.20"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: 30f699c60e5e4bfef273ce64d320651cdd60f5c6a08361c6c7eca8cebcccda1ac953d2ee57c9f321b5ae87f8a62c72b6d35ca42df0e261d337849952daab2141
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:18.2.21":
+"@types/react@npm:*, @types/react@npm:18.2.21":
   version: 18.2.21
   resolution: "@types/react@npm:18.2.21"
   dependencies:
@@ -3883,24 +3855,6 @@ __metadata:
     "@typescript-eslint/types": 6.4.1
     eslint-visitor-keys: ^3.4.1
   checksum: bd9cd56fc793e1d880c24193f939c4992b2653f330baece41cd461d1fb48edb2c53696987cba0e29074bbb452dd181fd009db92dd19060fdcc417ad76768f18a
-  languageName: node
-  linkType: hard
-
-"@videojs/http-streaming@npm:3.3.1":
-  version: 3.3.1
-  resolution: "@videojs/http-streaming@npm:3.3.1"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 4.0.0
-    aes-decrypter: 4.0.1
-    global: ^4.4.0
-    m3u8-parser: ^6.0.0
-    mpd-parser: ^1.1.1
-    mux.js: 6.3.0
-    video.js: ^7 || ^8
-  peerDependencies:
-    video.js: ^7 || ^8
-  checksum: 8feb13bd075d3c425a5140e559f89dcb1ac3e2918ecc6c7e2738c5834cf36f629bdd76639364d79f217eafc73646f5554b8d06439c665ba1fe612e8a3fb9a112
   languageName: node
   linkType: hard
 
@@ -4606,6 +4560,15 @@ __metadata:
   version: 3.2.4
   resolution: "async@npm:3.2.4"
   checksum: 43d07459a4e1d09b84a20772414aa684ff4de085cbcaec6eea3c7a8f8150e8c62aa6cd4e699fe8ee93c3a5b324e777d34642531875a0817a35697522c1b02e89
+  languageName: node
+  linkType: hard
+
+"asynciterator.prototype@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "asynciterator.prototype@npm:1.0.0"
+  dependencies:
+    has-symbols: ^1.0.3
+  checksum: e8ebfd9493ac651cf9b4165e9d64030b3da1d17181bb1963627b59e240cdaf021d9b59d44b827dc1dde4e22387ec04c2d0f8720cf58a1c282e34e40cc12721b3
   languageName: node
   linkType: hard
 
@@ -6398,7 +6361,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-abstract@npm:^1.17.2, es-abstract@npm:^1.19.0, es-abstract@npm:^1.20.4, es-abstract@npm:^1.21.2":
+"es-abstract@npm:^1.17.2, es-abstract@npm:^1.19.0, es-abstract@npm:^1.20.4, es-abstract@npm:^1.21.2, es-abstract@npm:^1.21.3":
   version: 1.22.1
   resolution: "es-abstract@npm:1.22.1"
   dependencies:
@@ -6466,6 +6429,28 @@ __metadata:
     isarray: ^2.0.5
     stop-iteration-iterator: ^1.0.0
   checksum: 8fa118da42667a01a7c7529f8a8cca514feeff243feec1ce0bb73baaa3514560bd09d2b3438873cf8a5aaec5d52da248131de153b28e2638a061b6e4df13267d
+  languageName: node
+  linkType: hard
+
+"es-iterator-helpers@npm:^1.0.12":
+  version: 1.0.13
+  resolution: "es-iterator-helpers@npm:1.0.13"
+  dependencies:
+    asynciterator.prototype: ^1.0.0
+    call-bind: ^1.0.2
+    define-properties: ^1.2.0
+    es-abstract: ^1.21.3
+    es-set-tostringtag: ^2.0.1
+    function-bind: ^1.1.1
+    get-intrinsic: ^1.2.1
+    globalthis: ^1.0.3
+    has-property-descriptors: ^1.0.0
+    has-proto: ^1.0.1
+    has-symbols: ^1.0.3
+    internal-slot: ^1.0.5
+    iterator.prototype: ^1.1.0
+    safe-array-concat: ^1.0.0
+  checksum: 1b08ae7388439121fee1129cb23497abd7bf23dd440f7fa44d119c9f92f38f9b7d75b7d98453fcd15948a7eb58abb2a48c673c7250d2e15871abe3641f567ed7
   languageName: node
   linkType: hard
 
@@ -6701,14 +6686,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:7.33.1, eslint-plugin-react@npm:^7.27.1":
-  version: 7.33.1
-  resolution: "eslint-plugin-react@npm:7.33.1"
+"eslint-plugin-react@npm:7.33.2, eslint-plugin-react@npm:^7.27.1":
+  version: 7.33.2
+  resolution: "eslint-plugin-react@npm:7.33.2"
   dependencies:
     array-includes: ^3.1.6
     array.prototype.flatmap: ^1.3.1
     array.prototype.tosorted: ^1.1.1
     doctrine: ^2.1.0
+    es-iterator-helpers: ^1.0.12
     estraverse: ^5.3.0
     jsx-ast-utils: ^2.4.1 || ^3.0.0
     minimatch: ^3.1.2
@@ -6722,7 +6708,7 @@ __metadata:
     string.prototype.matchall: ^4.0.8
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: 0427bd24acb87422b7298686203167123ba289ba563384983f3d99fad7817eae7f63157fd2e9b868bdcf0760719c319ab1e22a44764a98302034b0c844763e57
+  checksum: b4c3d76390b0ae6b6f9fed78170604cc2c04b48e6778a637db339e8e3911ec9ef22510b0ae77c429698151d0f1b245f282177f384105b6830e7b29b9c9b26610
   languageName: node
   linkType: hard
 
@@ -6787,7 +6773,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:8.48.0":
+"eslint@npm:8.48.0, eslint@npm:^8.3.0":
   version: 8.48.0
   resolution: "eslint@npm:8.48.0"
   dependencies:
@@ -6831,53 +6817,6 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: f20b359a4f8123fec5c033577368cc020d42978b1b45303974acd8da7a27063168ee3fe297ab5b35327162f6a93154063e3ce6577102f70f9809aff793db9bd0
-  languageName: node
-  linkType: hard
-
-"eslint@npm:^8.3.0":
-  version: 8.47.0
-  resolution: "eslint@npm:8.47.0"
-  dependencies:
-    "@eslint-community/eslint-utils": ^4.2.0
-    "@eslint-community/regexpp": ^4.6.1
-    "@eslint/eslintrc": ^2.1.2
-    "@eslint/js": ^8.47.0
-    "@humanwhocodes/config-array": ^0.11.10
-    "@humanwhocodes/module-importer": ^1.0.1
-    "@nodelib/fs.walk": ^1.2.8
-    ajv: ^6.12.4
-    chalk: ^4.0.0
-    cross-spawn: ^7.0.2
-    debug: ^4.3.2
-    doctrine: ^3.0.0
-    escape-string-regexp: ^4.0.0
-    eslint-scope: ^7.2.2
-    eslint-visitor-keys: ^3.4.3
-    espree: ^9.6.1
-    esquery: ^1.4.2
-    esutils: ^2.0.2
-    fast-deep-equal: ^3.1.3
-    file-entry-cache: ^6.0.1
-    find-up: ^5.0.0
-    glob-parent: ^6.0.2
-    globals: ^13.19.0
-    graphemer: ^1.4.0
-    ignore: ^5.2.0
-    imurmurhash: ^0.1.4
-    is-glob: ^4.0.0
-    is-path-inside: ^3.0.3
-    js-yaml: ^4.1.0
-    json-stable-stringify-without-jsonify: ^1.0.1
-    levn: ^0.4.1
-    lodash.merge: ^4.6.2
-    minimatch: ^3.1.2
-    natural-compare: ^1.4.0
-    optionator: ^0.9.3
-    strip-ansi: ^6.0.1
-    text-table: ^0.2.0
-  bin:
-    eslint: bin/eslint.js
-  checksum: 1988617f703eadc5c7540468d54dc8e5171cf2bb9483f6172799cd1ff54a9a5e4470f003784e8cef92687eaa14de37172732787040e67817581a20bcb9c15970
   languageName: node
   linkType: hard
 
@@ -8247,6 +8186,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-async-function@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "is-async-function@npm:2.0.0"
+  dependencies:
+    has-tostringtag: ^1.0.0
+  checksum: e3471d95e6c014bf37cad8a93f2f4b6aac962178e0a5041e8903147166964fdc1c5c1d2ef87e86d77322c370ca18f2ea004fa7420581fa747bcaf7c223069dbd
+  languageName: node
+  linkType: hard
+
 "is-bigint@npm:^1.0.1":
   version: 1.0.4
   resolution: "is-bigint@npm:1.0.4"
@@ -8316,6 +8264,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"is-finalizationregistry@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "is-finalizationregistry@npm:1.0.2"
+  dependencies:
+    call-bind: ^1.0.2
+  checksum: 4f243a8e06228cd45bdab8608d2cb7abfc20f6f0189c8ac21ea8d603f1f196eabd531ce0bb8e08cbab047e9845ef2c191a3761c9a17ad5cabf8b35499c4ad35d
+  languageName: node
+  linkType: hard
+
 "is-fullwidth-code-point@npm:^3.0.0":
   version: 3.0.0
   resolution: "is-fullwidth-code-point@npm:3.0.0"
@@ -8334,6 +8291,15 @@ __metadata:
   version: 2.1.0
   resolution: "is-generator-fn@npm:2.1.0"
   checksum: a6ad5492cf9d1746f73b6744e0c43c0020510b59d56ddcb78a91cbc173f09b5e6beff53d75c9c5a29feb618bfef2bf458e025ecf3a57ad2268e2fb2569f56215
+  languageName: node
+  linkType: hard
+
+"is-generator-function@npm:^1.0.10":
+  version: 1.0.10
+  resolution: "is-generator-function@npm:1.0.10"
+  dependencies:
+    has-tostringtag: ^1.0.0
+  checksum: d54644e7dbaccef15ceb1e5d91d680eb5068c9ee9f9eb0a9e04173eb5542c9b51b5ab52c5537f5703e48d5fddfd376817c1ca07a84a407b7115b769d4bdde72b
   languageName: node
   linkType: hard
 
@@ -8604,6 +8570,19 @@ __metadata:
     html-escaper: ^2.0.0
     istanbul-lib-report: ^3.0.0
   checksum: 44c4c0582f287f02341e9720997f9e82c071627e1e862895745d5f52ec72c9b9f38e1d12370015d2a71dcead794f34c7732aaef3fab80a24bc617a21c3d911d6
+  languageName: node
+  linkType: hard
+
+"iterator.prototype@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "iterator.prototype@npm:1.1.0"
+  dependencies:
+    define-properties: ^1.1.4
+    get-intrinsic: ^1.1.3
+    has-symbols: ^1.0.3
+    has-tostringtag: ^1.0.0
+    reflect.getprototypeof: ^1.0.3
+  checksum: 462fe16c770affeb9c08620b13fc98d38307335821f4fabd489f491d38c79855c6a93d4b56f6146eaa56711f61690aa5c7eb0ce8586c95145d2f665a3834d916
   languageName: node
   linkType: hard
 
@@ -10165,18 +10144,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mux.js@npm:6.3.0, mux.js@npm:^6.2.0":
-  version: 6.3.0
-  resolution: "mux.js@npm:6.3.0"
-  dependencies:
-    "@babel/runtime": ^7.11.2
-    global: ^4.4.0
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: dc914bc12ee7d1e8143dc124697db87e41b57c6735a5a0024d5592e9ea424e25f5c19fc6fd7f66333621bb2c5e86120de862049eb62f2c8ac5a17dd5dc54b194
-  languageName: node
-  linkType: hard
-
 "mux.js@npm:7.0.0":
   version: 7.0.0
   resolution: "mux.js@npm:7.0.0"
@@ -10186,6 +10153,18 @@ __metadata:
   bin:
     muxjs-transmux: bin/transmux.js
   checksum: 37a8bb469222d26937b45540601afd43c6556d13df98621e34c378c27e99528af019f664f7b61fbf1a5861ed6f96c207db7f6414d0df126c6f512a1e7ed0bfbb
+  languageName: node
+  linkType: hard
+
+"mux.js@npm:^6.2.0":
+  version: 6.3.0
+  resolution: "mux.js@npm:6.3.0"
+  dependencies:
+    "@babel/runtime": ^7.11.2
+    global: ^4.4.0
+  bin:
+    muxjs-transmux: bin/transmux.js
+  checksum: dc914bc12ee7d1e8143dc124697db87e41b57c6735a5a0024d5592e9ea424e25f5c19fc6fd7f66333621bb2c5e86120de862049eb62f2c8ac5a17dd5dc54b194
   languageName: node
   linkType: hard
 
@@ -12261,6 +12240,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"reflect.getprototypeof@npm:^1.0.3":
+  version: 1.0.3
+  resolution: "reflect.getprototypeof@npm:1.0.3"
+  dependencies:
+    call-bind: ^1.0.2
+    define-properties: ^1.1.4
+    es-abstract: ^1.20.4
+    get-intrinsic: ^1.1.1
+    globalthis: ^1.0.3
+    which-builtin-type: ^1.1.3
+  checksum: 843e2506c013da66f83635f943c5bd41243bc6c7703298531cfb16eb6baaefd92f83031fa37140ad31c4edc86938b6eb385e6fc85bf1628e79348ed49e044f3d
+  languageName: node
+  linkType: hard
+
 "regenerate-unicode-properties@npm:^10.1.0":
   version: 10.1.0
   resolution: "regenerate-unicode-properties@npm:10.1.0"
@@ -13947,7 +13940,7 @@ __metadata:
     "@typescript-eslint/parser": 6.4.1
     axios: 1.4.0
     eslint: 8.48.0
-    eslint-plugin-react: 7.33.1
+    eslint-plugin-react: 7.33.2
     jwt-decode: 3.1.2
     lodash: 4.17.21
     react: 18.2.0
@@ -14238,7 +14231,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.5.2":
+"video.js@npm:8.5.2, video.js@npm:^7 || ^8, video.js@npm:^8.3.0":
   version: 8.5.2
   resolution: "video.js@npm:8.5.2"
   dependencies:
@@ -14257,28 +14250,6 @@ __metadata:
     videojs-font: 4.1.0
     videojs-vtt.js: 0.15.5
   checksum: 2415cd7f08f1cff84c71d0a001455a0f489d9a554180f4cb408f5d83c5f0a32581ac10229b4d2990206ab49ce479f0e049c8627ee081330c55458eeed674bc0a
-  languageName: node
-  linkType: hard
-
-"video.js@npm:^7 || ^8, video.js@npm:^8.3.0":
-  version: 8.5.1
-  resolution: "video.js@npm:8.5.1"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 3.3.1
-    "@videojs/vhs-utils": ^4.0.0
-    "@videojs/xhr": 2.6.0
-    aes-decrypter: ^4.0.1
-    global: 4.4.0
-    keycode: 2.2.0
-    m3u8-parser: ^6.0.0
-    mpd-parser: ^1.0.1
-    mux.js: ^6.2.0
-    safe-json-parse: 4.0.0
-    videojs-contrib-quality-levels: 4.0.0
-    videojs-font: 4.1.0
-    videojs-vtt.js: 0.15.5
-  checksum: 2ee3b41282f6b1a423d93fdf90f3f0834a948514dc4b36543456643064bf22d300349c6dec4c662da88c86921a5b170cfebda987e8f2d79aff3eb4a8ea51798b
   languageName: node
   linkType: hard
 
@@ -14605,6 +14576,26 @@ __metadata:
     is-string: ^1.0.5
     is-symbol: ^1.0.3
   checksum: 53ce774c7379071729533922adcca47220228405e1895f26673bbd71bdf7fb09bee38c1d6399395927c6289476b5ae0629863427fd151491b71c4b6cb04f3a5e
+  languageName: node
+  linkType: hard
+
+"which-builtin-type@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "which-builtin-type@npm:1.1.3"
+  dependencies:
+    function.prototype.name: ^1.1.5
+    has-tostringtag: ^1.0.0
+    is-async-function: ^2.0.0
+    is-date-object: ^1.0.5
+    is-finalizationregistry: ^1.0.2
+    is-generator-function: ^1.0.10
+    is-regex: ^1.1.4
+    is-weakref: ^1.0.2
+    isarray: ^2.0.5
+    which-boxed-primitive: ^1.0.2
+    which-collection: ^1.0.1
+    which-typed-array: ^1.1.9
+  checksum: 43730f7d8660ff9e33d1d3f9f9451c4784265ee7bf222babc35e61674a11a08e1c2925019d6c03154fcaaca4541df43abe35d2720843b9b4cbcebdcc31408f36
   languageName: node
   linkType: hard
 
