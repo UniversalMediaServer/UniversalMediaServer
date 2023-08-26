@@ -13,7 +13,6 @@
     "@mantine/notifications": "6.0.19",
     "@mantine/prism": "6.0.19",
     "@microsoft/fetch-event-source": "2.0.1",
-    "@mycujoo/videojs-hls-quality-selector": "1.1.5-rc.4",
     "axios": "1.4.0",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
@@ -26,9 +25,8 @@
     "stylis": "4.3.0",
     "stylis-plugin-rtl": "2.1.1",
     "tabler-icons-react": "1.56.0",
-    "typescript": "5.1.6",
-    "video.js": "8.5.2",
-    "videojs-contrib-quality-levels": "4.0.0",
+    "typescript": "5.2.2",
+    "video.js": "8.5.3",
     "web-vitals": "3.4.0"
   },
   "scripts": {
@@ -46,10 +44,7 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all",
-      "not android < 5"
+      "supports es6-module"
     ],
     "development": [
       "last 1 chrome version",
@@ -59,7 +54,7 @@
   },
   "packageManager": "yarn@3.6.2",
   "devDependencies": {
-    "@testing-library/jest-dom": "5.17.0",
+    "@testing-library/jest-dom": "6.1.2",
     "@testing-library/react": "14.0.0",
     "@testing-library/user-event": "14.4.3",
     "@types/jest": "29.5.4",
@@ -68,12 +63,10 @@
     "@types/react": "18.2.21",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.2.7",
-    "@types/video.js": "7.3.52",
-    "@types/videojs-hls-quality-selector": "1.1.0",
     "@typescript-eslint/eslint-plugin": "6.4.1",
     "@typescript-eslint/parser": "6.4.1",
-    "eslint": "8.47.0",
-    "eslint-plugin-react": "7.33.1",
+    "eslint": "8.48.0",
+    "eslint-plugin-react": "7.33.2",
     "react-scripts": "5.0.1"
   }
 }

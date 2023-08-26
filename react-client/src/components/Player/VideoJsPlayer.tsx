@@ -18,12 +18,11 @@ import axios from 'axios';
 import { useEffect } from 'react';
 import videojs, { ReadyCallback } from 'video.js';
 import Player from 'video.js/dist/types/player';
-import '@mycujoo/videojs-hls-quality-selector/dist/videojs-hls-quality-selector.es';
 import 'video.js/dist/video-js.min.css';
-import '@mycujoo/videojs-hls-quality-selector/dist/videojs-hls-quality-selector.css';
 
 import { playerApiUrl } from '../../utils';
 import { AudioMedia, BaseMedia, VideoMedia } from './Player';
+import './HlsQualitySelector/HlsQualitySelectorPlugin';
 
 export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
@@ -116,7 +115,9 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         }
       }
       if (vpOptions.media.mime === 'application/x-mpegURL') {
+        try {
         (videoPlayer as any).hlsQualitySelector();
+        } catch { /* continue without hlsQualitySelector */ }
       }
     };
 
