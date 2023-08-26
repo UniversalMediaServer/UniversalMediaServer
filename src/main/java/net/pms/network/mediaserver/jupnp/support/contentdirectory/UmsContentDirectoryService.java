@@ -58,7 +58,6 @@ import org.jupnp.support.model.BrowseResult;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.exc.InvalidNullException;
 
 @UpnpService(
 		serviceId = @UpnpServiceId("ContentDirectory"),
