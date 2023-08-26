@@ -86,7 +86,7 @@ public class MediaTableFiles extends MediaTable {
 	public static final String COL_ID = "ID";
 	public static final String COL_THUMBID = "THUMBID";
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
-	private static final String COL_FILENAME = "FILENAME";
+	public static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
@@ -116,6 +116,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = LEFT_JOIN + MediaTableFilesStatus.TABLE_NAME + ON + TABLE_COL_FILENAME + EQUAL + MediaTableFilesStatus.TABLE_COL_FILENAME;
 	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = LEFT_JOIN + MediaTableThumbnails.TABLE_NAME + ON + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID;
+	public static final String SQL_LEFT_JOIN_TABLE_AUDIO_METADATA = LEFT_JOIN + MediaTableAudioMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID;
 	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadata.TABLE_COL_FILEID;
 
 	/**
