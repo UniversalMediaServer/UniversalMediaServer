@@ -58,6 +58,7 @@ import org.jupnp.support.model.BrowseResult;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.exc.InvalidNullException;
 
 @UpnpService(
 		serviceId = @UpnpServiceId("ContentDirectory"),
@@ -738,7 +739,7 @@ public class UmsContentDirectoryService {
 					String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID);
 					try {
 						dbSystemUpdateID = new UnsignedIntegerFourBytes(systemUpdateIdFromDb);
-					} catch (NumberFormatException ex) {
+					} catch (NumberFormatException | NullPointerException ex) {
 						LOGGER.debug("" + ex);
 					}
 				}
