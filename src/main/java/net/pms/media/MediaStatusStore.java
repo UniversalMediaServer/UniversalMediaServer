@@ -18,6 +18,7 @@ package net.pms.media;
 
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -57,18 +58,6 @@ public class MediaStatusStore {
 			}
 			STORE.get(userId).put(filename, mediaStatus);
 			return mediaStatus;
-		}
-	}
-
-	public static void clear(int userId) {
-		synchronized (STORE) {
-			STORE.get(userId).clear();
-		}
-	}
-
-	public static void clear() {
-		synchronized (STORE) {
-			STORE.clear();
 		}
 	}
 
@@ -176,6 +165,50 @@ public class MediaStatusStore {
 			}
 		} finally {
 			GuiManager.setStatusLine(null);
+		}
+	}
+
+	public static boolean removeMediaEntriesInFolder(String pathToFolder) {
+		boolean removed = false;
+		synchronized (STORE) {
+			for (int userId : STORE.keySet()) {
+				if (STORE.get(userId) != null) {
+					Iterator<String> filenames = STORE.get(userId).keySet().iterator();
+					while (filenames.hasNext()) {
+						if (filenames.next().startsWith(pathToFolder)) {
+							filenames.remove();
+							removed = true;
+						}
+					}
+				}
+			}
+		}
+		return removed;
+	}
+
+	public static boolean removeMediaEntry(String filename) {
+		boolean removed = false;
+		synchronized (STORE) {
+			for (int userId : STORE.keySet()) {
+				if (STORE.get(userId) != null && STORE.get(userId).remove(filename) != null) {
+					removed = true;
+				}
+			}
+		}
+		return removed;
+	}
+
+	public static void clear(int userId) {
+		synchronized (STORE) {
+			if (STORE.containsKey(userId) && STORE.get(userId) != null) {
+				STORE.get(userId).clear();
+			}
+		}
+	}
+
+	public static void clear() {
+		synchronized (STORE) {
+			STORE.clear();
 		}
 	}
 

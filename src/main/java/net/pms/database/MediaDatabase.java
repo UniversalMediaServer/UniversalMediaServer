@@ -18,7 +18,7 @@ package net.pms.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import net.pms.service.LibraryScanner;
+import net.pms.library.LibraryScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

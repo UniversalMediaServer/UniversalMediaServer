@@ -14,14 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.service;
+package net.pms.library;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.pms.database.MediaDatabase;
 import net.pms.gui.GuiManager;
-import net.pms.library.MediaScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

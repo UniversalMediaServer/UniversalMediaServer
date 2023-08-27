@@ -32,9 +32,10 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
+import net.pms.library.LibraryScanner;
+import net.pms.library.MediaScanner;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.platform.PlatformUtils;
-import net.pms.service.LibraryScanner;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
@@ -83,13 +84,36 @@ public class SharedContentConfiguration {
 		}
 	}
 
-	public static List<File> getSharedFolders(List<SharedContent> sharedContents) {
+	/**
+	 * Get all shared directories including virtual folders for a group.
+	 */
+	public static List<File> getSharedFolders(int groupId) {
+		synchronized (SHARED_CONTENT_ARRAY) {
+			return getSharedFolders(SHARED_CONTENT_ARRAY, groupId);
+		}
+	}
+
+	private static List<File> getSharedFolders(List<SharedContent> sharedContents) {
 		List<File> files = new ArrayList<>();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
 				files.add(folder.getFile());
 			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
 				files.addAll(getSharedFolders(folders.getChilds()));
+			}
+		}
+		return files;
+	}
+
+	private static List<File> getSharedFolders(List<SharedContent> sharedContents, int groupId) {
+		List<File> files = new ArrayList<>();
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent.isGroupAllowed(groupId)) {
+				if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
+					files.add(folder.getFile());
+				} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+					files.addAll(getSharedFolders(folders.getChilds()));
+				}
 			}
 		}
 		return files;
@@ -152,6 +176,7 @@ public class SharedContentConfiguration {
 				updated = true;
 
 				if (wasFolderUpdate && save && CONFIGURATION.getUseCache()) {
+					MediaScanner.setLibraryFileWatchers();
 					// Rescan to add/remove Media Library content
 					LibraryScanner.stopScanLibrary();
 					LibraryScanner.scanLibrary();

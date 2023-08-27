@@ -222,7 +222,7 @@ public class ConnectedRenderers {
 							removeUuidOf(ia);
 						}
 					}
-					renderer.resetRootFolder();
+					renderer.resetRootFolder(true);
 				}
 			}
 		};
@@ -240,7 +240,7 @@ public class ConnectedRenderers {
 
 	public static void resetAllRenderers() {
 		for (Renderer r : getConnectedRenderers()) {
-			r.resetRootFolder();
+			r.resetRootFolder(false);
 		}
 	}
 

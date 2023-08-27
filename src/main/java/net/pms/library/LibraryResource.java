@@ -940,7 +940,11 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 				LOGGER.debug("code is not valid any longer");
 				return resources;
 			}
-			String systemName = resource.getSystemName();
+
+			if (!isRendererAllowed()) {
+				LOGGER.debug("renderer does not have access to this ressource");
+				return resources;
+			}
 
 			if (!returnChildren) {
 				resources.add(resource);
@@ -953,6 +957,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 				}
 
 				if (count > 0) {
+					String systemName = resource.getSystemName();
 					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 					int nParallelThreads = 3;
@@ -3411,6 +3416,10 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	// any or null
 	public static String parseObjectId(String url) {
 		return isResourceUrl(url) ? StringUtils.substringAfter(url, "get/") : null;
+	}
+
+	public boolean isRendererAllowed() {
+		return true;
 	}
 
 	public LibraryResource isCoded() {

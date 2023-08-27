@@ -736,10 +736,12 @@ public class UmsContentDirectoryService {
 				if (connection != null) {
 					LOCK_SYSTEM_UPDATE_ID.readLock().lock();
 					String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID);
-					try {
-						dbSystemUpdateID = new UnsignedIntegerFourBytes(systemUpdateIdFromDb);
-					} catch (NumberFormatException | NullPointerException ex) {
-						LOGGER.debug("" + ex);
+					if (systemUpdateIdFromDb != null) {
+						try {
+							dbSystemUpdateID = new UnsignedIntegerFourBytes(systemUpdateIdFromDb);
+						} catch (NumberFormatException ex) {
+							LOGGER.debug("" + ex);
+						}
 					}
 				}
 			}

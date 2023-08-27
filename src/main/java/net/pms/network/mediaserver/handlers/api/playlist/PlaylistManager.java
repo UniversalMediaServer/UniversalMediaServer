@@ -32,7 +32,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
-import net.pms.service.LibraryScanner;
+import net.pms.library.LibraryScanner;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

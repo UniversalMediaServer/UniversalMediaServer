@@ -420,7 +420,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
 	 *            operator, {@code false} if {@code =} should be used.
 	 */
-	protected static void remove(final Connection connection, final String filename, boolean useLike) {
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
 		try {
 			String sql = useLike ? SQL_DELETE_LIKE : SQL_DELETE;
 			try (PreparedStatement statement = connection.prepareStatement(sql)) {
