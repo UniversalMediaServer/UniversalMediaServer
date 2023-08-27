@@ -23,6 +23,7 @@ import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -259,6 +260,54 @@ public class MediaInfoStore {
 			// Attempt to enhance the metadata via our API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 		}
+	}
+
+	public static boolean removeMediaEntriesInFolder(String pathToFolder) {
+		if (CONFIGURATION.getUseCache()) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFiles.removeMediaEntriesInFolder(connection, pathToFolder);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		boolean removed = false;
+		synchronized (STORE) {
+			Iterator<String> filenames = STORE.keySet().iterator();
+			while (filenames.hasNext()) {
+				if (filenames.next().startsWith(pathToFolder)) {
+					filenames.remove();
+					removed = true;
+				}
+			}
+		}
+		removed = MediaStatusStore.removeMediaEntriesInFolder(pathToFolder) || removed;
+		return removed;
+	}
+
+	public static boolean removeMediaEntry(String filename) {
+		if (CONFIGURATION.getUseCache()) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFiles.removeMediaEntry(connection, filename, true);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		boolean removed = false;
+		synchronized (STORE) {
+			if (STORE.remove(filename) != null) {
+				removed = true;
+			}
+		}
+		removed = MediaStatusStore.removeMediaEntry(filename) || removed;
+		return removed;
 	}
 
 	public static void clear() {

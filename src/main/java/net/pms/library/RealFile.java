@@ -95,12 +95,7 @@ public class RealFile extends VirtualFile {
 		if (file == null) {
 			throw new NullPointerException("file shall not be empty");
 		}
-		Boolean useSymlinks = renderer.getUmsConfiguration().isUseSymlinksTargetFile();
-		if (useSymlinks && FileUtil.isSymbolicLink(file)) {
-			getFiles().add(FileUtil.getRealFile(file));
-		} else {
-			getFiles().add(file);
-		}
+		getFiles().add(file);
 	}
 
 	@Override
@@ -159,6 +154,11 @@ public class RealFile extends VirtualFile {
 		}
 
 		return valid;
+	}
+
+	@Override
+	public boolean isRendererAllowed() {
+		return renderer.hasShareAccess(getFile());
 	}
 
 	@Override
@@ -244,7 +244,13 @@ public class RealFile extends VirtualFile {
 		}
 
 		if (file.isFile() && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
-			String filename = file.getAbsolutePath();
+			Boolean useSymlinks = renderer.getUmsConfiguration().isUseSymlinksTargetFile();
+			String filename;
+			if (useSymlinks && FileUtil.isSymbolicLink(file)) {
+				filename = FileUtil.getRealFile(file).getAbsolutePath();
+			} else {
+				filename = file.getAbsolutePath();
+			}
 			if (getSplitTrack() > 0) {
 				filename += "#SplitTrack" + getSplitTrack();
 			}

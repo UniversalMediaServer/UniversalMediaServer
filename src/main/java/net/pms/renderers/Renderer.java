@@ -34,8 +34,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.RendererDeviceConfiguration;
-import net.pms.configuration.sharedcontent.FolderContent;
-import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
@@ -128,7 +126,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	private void setup() {
-		resetRootFolder();
+		resetRootFolder(true);
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
 			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
@@ -195,7 +193,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (this.account != account) {
 			this.account = account;
 			clearSharedFolders();
-			resetRootFolder();
+			resetRootFolder(false);
 		}
 	}
 
@@ -219,15 +217,9 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (sharedPath == null) {
 			// Lazy initialization
 			sharedPath = new ArrayList<>();
-			List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-			for (SharedContent sharedContent : sharedContents) {
-				if (sharedContent instanceof FolderContent folder &&
-					folder.getFile() != null &&
-					folder.isActive() &&
-					folder.isGroupAllowed(getAccountGroupId())
-				) {
-					sharedPath.add(folder.getFile().getAbsolutePath());
-				}
+			List<File> files = SharedContentConfiguration.getSharedFolders(getAccountGroupId());
+			for (File file : files) {
+				sharedPath.add(file.getAbsolutePath());
 			}
 		}
 		return sharedPath;
@@ -236,6 +228,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	@Override
 	public void reset() {
 		super.reset();
+		resetRootFolder(false);
 		// update gui
 		updateRendererGui();
 		if (!isAuthenticated()) {
@@ -277,16 +270,20 @@ public class Renderer extends RendererDeviceConfiguration {
 		return globalRepo;
 	}
 
-	public synchronized void resetRootFolder() {
+	public synchronized void resetRootFolder(boolean clearChildren) {
+		clearSharedFolders();
 		if (rootFolder != null) {
-			rootFolder.clearChildren();
+			if (clearChildren) {
+				rootFolder.clearChildren();
+			}
 			rootFolder.reset();
 		}
 		if (globalRepo != null) {
 			globalRepo.clear();
 		}
-		UmsContentDirectoryService.getDbSystemUpdateId();
+		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
+
 
 	public synchronized void addFolderLimit(LibraryResource res) {
 		if (rootFolder != null) {

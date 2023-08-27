@@ -33,7 +33,6 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.library.LibraryResource;
 import net.pms.library.RealFile;
-import net.pms.library.RootFolder;
 import net.pms.media.MediaStatusStore;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -235,22 +234,22 @@ public class MediaMonitor extends VirtualFolder {
 						String newFilename = playedFile.getName();
 						String newPathToFile = newDirectory + newFilename;
 						try {
+							fileWillMove(fullPathToFile, newPathToFile);
 							Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newPathToFile), StandardCopyOption.REPLACE_EXISTING);
 							LOGGER.debug("Moved {} because it has been fully played", newFilename);
-							fileWasMoved(fullPathToFile, newPathToFile);
 						} catch (IOException e) {
 							LOGGER.debug("Moving {} failed, trying again in 3 seconds: {}", newFilename, e.getMessage());
 							try {
 								Thread.sleep(3000);
 								Files.move(Paths.get(playedFile.getAbsolutePath()), Paths.get(newPathToFile), StandardCopyOption.REPLACE_EXISTING);
 								LOGGER.debug("Moved {} because it has been fully played", newFilename);
-								fileWasMoved(fullPathToFile, newPathToFile);
 							} catch (InterruptedException e2) {
 								LOGGER.debug(
 									"Abandoning moving of {} because the thread was interrupted, probably due to program shutdown: {}",
 									newFilename,
 									e2.getMessage()
 								);
+								fileMoveFail(newPathToFile);
 								Thread.currentThread().interrupt();
 							} catch (IOException e3) {
 								LOGGER.debug("Moving {} failed a second time: {}", newFilename, e3.getMessage());
@@ -297,7 +296,7 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-	private static void fileWasMoved(String fullPathToFile, String fullPathToNewFile) {
+	private static void fileWillMove(String fullPathToFile, String fullPathToNewFile) {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -307,8 +306,18 @@ public class MediaMonitor extends VirtualFolder {
 		} finally {
 			MediaDatabase.close(connection);
 		}
-		File newFile = new File(fullPathToNewFile);
-		RootFolder.parseFileForDatabase(newFile);
+	}
+
+	private static void fileMoveFail(String fullPathToNewFile) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableFilesStatus.remove(connection, fullPathToNewFile, false);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
 	}
 
 	@Override

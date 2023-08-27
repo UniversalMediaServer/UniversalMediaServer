@@ -27,13 +27,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.sharedcontent.FeedAudioContent;
 import net.pms.configuration.sharedcontent.FeedImageContent;
 import net.pms.configuration.sharedcontent.FeedVideoContent;
@@ -45,8 +43,6 @@ import net.pms.configuration.sharedcontent.StreamAudioContent;
 import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.iam.AccountService;
 import net.pms.io.StreamGobbler;
 import net.pms.library.virtual.CodeEnter;
@@ -68,7 +64,6 @@ import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
-import net.pms.util.FileWatcher;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
@@ -170,7 +165,8 @@ public class RootFolder extends LibraryResource {
 
 		if (
 			renderer.getUmsConfiguration().getFolderLimit() &&
-			renderer.isLimitFolders()
+			renderer.isLimitFolders() && 
+			lim == null
 		) {
 			lim = new FolderLimit(renderer);
 			addChild(lim, true);
@@ -184,35 +180,8 @@ public class RootFolder extends LibraryResource {
 			}
 		}
 
-		for (LibraryResource r : getFolderContents()) {
-			addChild(r, true, true);
-		}
+		setSharedContents();
 
-		setVirtualFolderContents();
-
-		/**
-		 * Changes to monitored folders trigger a rescan
-		 */
-		if (PMS.getConfiguration().getUseCache()) {
-			for (File file : SharedContentConfiguration.getMonitoredFolders()) {
-				if (file.exists()) {
-					if (!file.isDirectory()) {
-						LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
-					} else {
-						LOGGER.trace("Creating FileWatcher for " + file.toString());
-						try {
-							FileWatcher.add(new FileWatcher.Watch(file.toString() + File.separator + "**", LIBRARY_RESCANNER));
-						} catch (Exception e) {
-							LOGGER.warn("File watcher access denied for directory {}", file.toString());
-						}
-					}
-				} else {
-					LOGGER.trace("Skip adding a FileWatcher for non-existent \"{}\"", file);
-				}
-			}
-		}
-
-		setExternalContents();
 		int osType = Platform.getOSType();
 		if (osType == Platform.MAC) {
 			if (renderer.getUmsConfiguration().isShowIphotoLibrary()) {
@@ -250,47 +219,23 @@ public class RootFolder extends LibraryResource {
 		}
 	}
 
-	private List<RealFile> getFolderContents() {
-		List<RealFile> resources = new ArrayList<>();
+	private void setSharedContents() {
+		List<RealFile> realFiles = new ArrayList<>();
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-
+		boolean setExternalContent = CONFIGURATION.getExternalNetwork() && renderer.getUmsConfiguration().getExternalNetwork();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder &&
 				folder.getFile() != null &&
 				folder.isActive() &&
 				folder.isGroupAllowed(renderer.getAccountGroupId())
 			) {
-				resources.add(new RealFile(renderer, folder.getFile()));
-			}
-		}
-
-		if (renderer.getUmsConfiguration().getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(renderer, Messages.getString("SearchDiscFolders"), new FileSearch(resources));
-			addChild(sf);
-		}
-
-		return resources;
-	}
-
-	private synchronized void setVirtualFolderContents() {
-		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-		for (SharedContent sharedContent : sharedContents) {
-			if (sharedContent instanceof VirtualFolderContent virtualFolder && virtualFolder.isActive()) {
+				RealFile realFile = new RealFile(renderer, folder.getFile());
+				realFiles.add(realFile);
+				addChild(realFile, true, true);
+			} else if (sharedContent instanceof VirtualFolderContent virtualFolder && virtualFolder.isActive()) {
 				LibraryResource parent = getSharedContentParent(virtualFolder.getParent());
 				parent.addChild(new VirtualFile(renderer, virtualFolder));
-			}
-		}
-	}
-
-	/**
-	 * This update the external sources.
-	 */
-	public synchronized void setExternalContents() {
-		if (!CONFIGURATION.getExternalNetwork() || !renderer.getUmsConfiguration().getExternalNetwork()) {
-			return;
-		}
-		for (SharedContent sharedContent : SharedContentConfiguration.getSharedContentArray()) {
-			if (sharedContent instanceof SharedContentWithPath sharedContentWithPath && sharedContentWithPath.isExternalContent() && sharedContentWithPath.isActive()) {
+			} else if (setExternalContent && sharedContent instanceof SharedContentWithPath sharedContentWithPath && sharedContentWithPath.isExternalContent() && sharedContentWithPath.isActive()) {
 				LibraryResource parent = getSharedContentParent(sharedContentWithPath.getParent());
 				// Handle web playlists stream
 				if (sharedContent instanceof StreamContent streamContent) {
@@ -311,9 +256,14 @@ public class RootFolder extends LibraryResource {
 				} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
 					parent.addChild(new WebVideoStream(renderer, streamVideoContent.getName(), streamVideoContent.getUri(), streamVideoContent.getThumbnail()));
 				}
+				setLastModified(1);
 			}
 		}
-		setLastModified(1);
+
+		if (renderer.getUmsConfiguration().getSearchFolder()) {
+			SearchFolder sf = new SearchFolder(renderer, Messages.getString("SearchDiscFolders"), new FileSearch(realFiles));
+			addChild(sf);
+		}
 	}
 
 	/**
@@ -1155,7 +1105,7 @@ public class RootFolder extends LibraryResource {
 				int index = tempFolder.indexOf(objectId);
 				return index > -1 ? tempFolder.getChildren().get(index) : tempFolder.recreate(objectId, name);
 			}
-			return renderer.getRootFolder().getLibraryResource(objectId);
+			return getLibraryResource(objectId);
 		}
 		return tempFolder.add(uri, name);
 	}
@@ -1180,22 +1130,19 @@ public class RootFolder extends LibraryResource {
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
-			return renderer.getRootFolder().getTemp().get(objectId);
+			return getTemp().get(objectId);
 		}
 
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		LibraryResource resource;
 		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
-			resource = renderer.getRootFolder();
+			return this;
 		} else {
 			// only allow the last one here
-			resource = renderer.getGlobalRepo().get(ids[ids.length - 1]);
+			return renderer.getGlobalRepo().get(ids[ids.length - 1]);
 		}
-
-		return resource;
 	}
 
 	/**
@@ -1224,107 +1171,5 @@ public class RootFolder extends LibraryResource {
 
 		return (comparison == 0);
 	}
-
-	/**
-	 * Parses a file so it gets parsed and added to the database
-	 * along the way.
-	 *
-	 * @param file the file to parse
-	 */
-	public static final void parseFileForDatabase(File file) {
-		if (!VirtualFile.isPotentialMediaFile(file.getAbsolutePath())) {
-			LOGGER.trace("Not parsing file that can't be media");
-			return;
-		}
-
-		if (!file.exists()) {
-			LOGGER.trace("Not parsing file that no longer exists");
-			return;
-		}
-
-		if (FileUtil.isLocked(file)) {
-			LOGGER.debug("File will not be parsed because it is open in another process");
-			return;
-		}
-
-		// TODO: Can this use UnattachedFolder and add instead?
-		RealFile rf = new RealFile(RendererConfigurations.getDefaultRenderer(), file);
-		rf.setParent(rf);
-		rf.resolveFormat();
-		rf.syncResolve();
-
-		if (rf.isValid()) {
-			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
-			UmsContentDirectoryService.bumpSystemUpdateId();
-
-			/*
-			 * Something about this process causes Java to hold onto the
-			 * file, which prevents things happening to it on the filesystem
-			 * until the garbage collector runs.
-			 * Some sources say it is a symptom of the nio namespace itself
-			 * and the fix is to use older syntax, and others say other things,
-			 * but until we have a real fix for it we ask Java to collect the
-			 * garbage. It might not do it, but usually it does, which is better
-			 * than what we had before.
-			 */
-			System.gc();
-			System.runFinalization();
-		} else {
-			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
-		}
-	}
-
-	/**
-	 * Adds and removes files from the database when they are created, modified or
-	 * deleted on the hard drive.
-	 */
-	public static final FileWatcher.Listener LIBRARY_RESCANNER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
-		if (("ENTRY_DELETE".equals(event) || "ENTRY_CREATE".equals(event) || "ENTRY_MODIFY".equals(event)) && PMS.getConfiguration().getUseCache()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					/**
-					 * If a new directory is created with files, the listener may not
-					 * give us information about those new files, as it wasn't listening
-					 * when they were created, so make sure we parse them.
-					 */
-					if (isDir) {
-						if ("ENTRY_CREATE".equals(event)) {
-							LOGGER.trace("Folder {} was created on the hard drive", filename);
-							File[] files = new File(filename).listFiles();
-							if (files != null) {
-								LOGGER.trace("Crawling {}", filename);
-								for (File file : files) {
-									if (file.isFile()) {
-										LOGGER.trace("File {} found in {}", file.getName(), filename);
-										parseFileForDatabase(file);
-									}
-								}
-							} else {
-								LOGGER.trace("Folder {} is empty", filename);
-							}
-						} else if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
-							MediaTableFiles.removeMediaEntriesInFolder(connection, filename);
-							UmsContentDirectoryService.bumpSystemUpdateId();
-						}
-					} else {
-						if ("ENTRY_DELETE".equals(event)) {
-							LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
-							MediaTableFiles.removeMediaEntry(connection, filename, true);
-							UmsContentDirectoryService.bumpSystemUpdateId();
-						} else {
-							LOGGER.trace("File {} was created on the hard drive", filename);
-							File file = new File(filename);
-							parseFileForDatabase(file);
-						}
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		}
-	};
 
 }
