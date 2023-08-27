@@ -16,8 +16,8 @@
  */
 package net.pms.network.mediaserver.handlers.api;
 
+import net.pms.library.LibraryScanner;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
-import net.pms.service.LibraryScanner;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
