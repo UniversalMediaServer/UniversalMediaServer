@@ -165,7 +165,7 @@ public class RootFolder extends LibraryResource {
 
 		if (
 			renderer.getUmsConfiguration().getFolderLimit() &&
-			renderer.isLimitFolders() && 
+			renderer.isLimitFolders() &&
 			lim == null
 		) {
 			lim = new FolderLimit(renderer);
