@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WindowsSleepWorker extends AbstractSleepWorker {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsSleepWorker.class);
+	private static final int FIFTEEN_MINUTES_IN_MILLISECONDS = 15 * 60 * 1000;
 
 	/**
 	 * Creates a new {@link WindowsSleepWorker} initialized with the
@@ -42,7 +43,7 @@ public class WindowsSleepWorker extends AbstractSleepWorker {
 
 	@Override
 	protected int getDelayUntilAllowSleep() {
-		return WindowsUtils.isVersionThatSleepsImmediately() ? (5 * 60 * 1000) : 0;
+		return WindowsUtils.isVersionThatSleepsImmediately() ? FIFTEEN_MINUTES_IN_MILLISECONDS : 0;
 	}
 
 	@Override
