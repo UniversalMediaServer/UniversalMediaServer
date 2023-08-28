@@ -3098,8 +3098,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private long lastStartSystemTime;
 
 	/**
-	 * Gets the system time when the resource was last (re)started.
-	 *
+	 * The system time when the resource was last (re)started by a user.
+	 * This is a guess, where we disqualify certain playback requests from
+	 * setting this value based on how close they were to the end, because
+	 * some renderers request the last bytes of a file for processing behind
+	 * the scenes, and that does not count as a real user doing it.
+	 */
+	private long lastStartSystemTimeUser;
+
+	/**
 	 * @return The system time when the resource was last (re)started
 	 */
 	public double getLastStartSystemTime() {
@@ -3113,6 +3120,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void setLastStartSystemTime(long startTime) {
 		lastStartSystemTime = startTime;
+
+		double fileDuration = 0;
+		final RealFile realFile = (RealFile) this;
+		if (realFile.getMedia() != null && (realFile.getMedia().isAudio() || realFile.getMedia().isVideo())) {
+			fileDuration = realFile.getMedia().getDurationInSeconds();
+		}
+
+		/**
+		 * Do not treat this as a legitimate playback attempt if the start
+		 * time was within 2 seconds of the end of the video.
+		 */
+		if (fileDuration < 2.0 || realFile.getLastStartPosition() < (fileDuration - 2.0)) {
+			lastStartSystemTimeUser = startTime;
+		}
+	}
+
+	/**
+	 * @return The system time when the resource was last (re)started
+	 *         by a user.
+	 */
+	public double getLastStartSystemTimeUser() {
+		return lastStartSystemTimeUser;
 	}
 
 	/**
