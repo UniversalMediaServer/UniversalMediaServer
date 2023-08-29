@@ -30,6 +30,9 @@ import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.text.Normalizer;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FeedAudioContent;
@@ -59,12 +62,15 @@ import net.pms.library.virtual.VirtualFile;
 import net.pms.library.virtual.VirtualFolder;
 import net.pms.library.virtual.VirtualFolderDbId;
 import net.pms.library.virtual.VirtualVideoAction;
+import net.pms.media.DbIdResourceLocator;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.SimpleThreadFactory;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -84,6 +90,10 @@ public class RootFolder extends LibraryResource {
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
+	/**
+	 * List of children objects backuped when discoverChildren.
+	 */
+	private final List<LibraryResource> backupChildren = new ArrayList<>();;
 
 	public RootFolder(Renderer renderer) {
 		super(renderer);
@@ -146,15 +156,30 @@ public class RootFolder extends LibraryResource {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 		if (isDiscovered()) {
 			return;
 		}
 
+		//clear childrens but keep copy until discovered
+		backupChildren.clear();
+		for (LibraryResource libraryResource : getChildren()) {
+			backupChildren.add(libraryResource);
+		}
+		getChildren().clear();
+
 		if (renderer.getUmsConfiguration().isShowMediaLibraryFolder() && mediaLibrary.isEnabled()) {
-			addChild(mediaLibrary, true);
+			if (backupChildren.contains(mediaLibrary)) {
+				addChildInternal(mediaLibrary, false);
+				backupChildren.remove(mediaLibrary);
+			} else {
+				addChild(mediaLibrary, true);
+			}
 		}
 
+		if (mon != null) {
+			mon.clearChildren();
+		}
 		if (renderer.getUmsConfiguration().getUseCache()) {
 			List<File> foldersMonitored = SharedContentConfiguration.getMonitoredFolders();
 			if (!foldersMonitored.isEmpty()) {
@@ -165,18 +190,29 @@ public class RootFolder extends LibraryResource {
 
 		if (
 			renderer.getUmsConfiguration().getFolderLimit() &&
-			renderer.isLimitFolders() &&
-			lim == null
+			renderer.isLimitFolders()
 		) {
 			lim = new FolderLimit(renderer);
 			addChild(lim, true);
 		}
 
 		if (renderer.getUmsConfiguration().isDynamicPls()) {
-			addChild(getDynamicPls(), true);
+			if (dynamicPls != null && backupChildren.contains(dynamicPls)) {
+				addChildInternal(dynamicPls, false);
+				backupChildren.remove(dynamicPls);
+			} else {
+				addChild(getDynamicPls(), true);
+			}
+
 			if (!renderer.getUmsConfiguration().isHideSavedPlaylistFolder()) {
 				File plsdir = new File(renderer.getUmsConfiguration().getDynamicPlsSavePath());
-				addChild(new RealFile(renderer, plsdir, Messages.getString("SavedPlaylists")), true);
+				RealFile realFile = findRealFileInResources(backupChildren, plsdir);
+				if (realFile != null) {
+					addChildInternal(realFile, false);
+					backupChildren.remove(realFile);
+				} else {
+					addChild(new RealFile(renderer, plsdir, Messages.getString("SavedPlaylists")), true);
+				}
 			}
 		}
 
@@ -185,32 +221,86 @@ public class RootFolder extends LibraryResource {
 		int osType = Platform.getOSType();
 		if (osType == Platform.MAC) {
 			if (renderer.getUmsConfiguration().isShowIphotoLibrary()) {
-				LibraryResource iPhotoRes = getiPhotoFolder();
+				LibraryResource iPhotoRes = findVirtualFolderInResources(backupChildren, "iPhoto Library");
 				if (iPhotoRes != null) {
-					addChild(iPhotoRes);
+					addChildInternal(iPhotoRes, false);
+					backupChildren.remove(iPhotoRes);
+				} else {
+					iPhotoRes = getiPhotoFolder();
+					if (iPhotoRes != null) {
+						addChild(iPhotoRes);
+					}
 				}
 			}
 			if (renderer.getUmsConfiguration().isShowApertureLibrary()) {
-				LibraryResource apertureRes = getApertureFolder();
+				LibraryResource apertureRes = findVirtualFolderInResources(backupChildren, "Aperture libraries");
 				if (apertureRes != null) {
-					addChild(apertureRes);
+					addChildInternal(apertureRes, false);
+					backupChildren.remove(apertureRes);
+				} else {
+					apertureRes = getApertureFolder();
+					if (apertureRes != null) {
+						addChild(apertureRes);
+					}
 				}
 			}
 		}
 		if (osType == Platform.MAC || osType == Platform.WINDOWS) {
 			if (renderer.getUmsConfiguration().isShowItunesLibrary()) {
-				LibraryResource iTunesRes = getiTunesFolder();
+				LibraryResource iTunesRes = findVirtualFolderInResources(backupChildren, "iTunes Library");
 				if (iTunesRes != null) {
-					addChild(iTunesRes);
+					addChildInternal(iTunesRes, false);
+					backupChildren.remove(iTunesRes);
+				} else {
+					iTunesRes = getiTunesFolder();
+					if (iTunesRes != null) {
+						addChild(iTunesRes);
+					}
 				}
 			}
 		}
 
 		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			addAdminFolder();
+			LibraryResource serverSettingsRes = findVirtualFolderInResources(backupChildren, Messages.getString("ServerSettings"));
+			if (serverSettingsRes != null) {
+				addChildInternal(serverSettingsRes, false);
+				backupChildren.remove(serverSettingsRes);
+			} else {
+				addAdminFolder();
+			}
 		}
 
+		//now remove old children from globalids
+		for (LibraryResource backupChild : backupChildren) {
+			renderer.getGlobalRepo().delete(backupChild);
+			backupChild.clearChildren();
+		}
+		backupChildren.clear();
 		setDiscovered(true);
+	}
+
+	private RealFile findRealFileInResources(List<LibraryResource> resources, File file) {
+		if (file == null) {
+			return null;
+		}
+		for (LibraryResource resource : resources) {
+			if (resource instanceof RealFile realFile && file.equals(realFile.getFile())) {
+				return realFile;
+			}
+		}
+		return null;
+	}
+
+	private VirtualFolder findVirtualFolderInResources(List<LibraryResource> resources, String name) {
+		if (name == null) {
+			return null;
+		}
+		for (LibraryResource resource : resources) {
+			if (resource instanceof VirtualFolder virtualFolder && name.equals(virtualFolder.getName())) {
+				return virtualFolder;
+			}
+		}
+		return null;
 	}
 
 	public void setFolderLim(LibraryResource r) {
@@ -229,9 +319,15 @@ public class RootFolder extends LibraryResource {
 				folder.isActive() &&
 				folder.isGroupAllowed(renderer.getAccountGroupId())
 			) {
-				RealFile realFile = new RealFile(renderer, folder.getFile());
+				RealFile realFile = findRealFileInResources(backupChildren, folder.getFile());
+				if (realFile != null) {
+					addChildInternal(realFile, false);
+					backupChildren.remove(realFile);
+				} else {
+					realFile = new RealFile(renderer, folder.getFile());
+					addChild(realFile, true, true);
+				}
 				realFiles.add(realFile);
-				addChild(realFile, true, true);
 			} else if (sharedContent instanceof VirtualFolderContent virtualFolder && virtualFolder.isActive()) {
 				LibraryResource parent = getSharedContentParent(virtualFolder.getParent());
 				parent.addChild(new VirtualFile(renderer, virtualFolder));
@@ -839,7 +935,10 @@ public class RootFolder extends LibraryResource {
 											// consume the error and output process streams
 											StreamGobbler.consume(pid.getInputStream());
 											pid.waitFor();
-										} catch (IOException | InterruptedException e) {
+										} catch (IOException e) {
+											//continue
+										} catch (InterruptedException e) {
+											Thread.currentThread().interrupt();
 										}
 
 										return true;
@@ -1164,12 +1263,215 @@ public class RootFolder extends LibraryResource {
 		return getLibraryResources(objectId, children, start, count, null);
 	}
 
+	public synchronized List<LibraryResource> getLibraryResources(String objectId, boolean returnChildren, int start, int count,
+		String searchStr) {
+		ArrayList<LibraryResource> resources = new ArrayList<>();
+
+		// Get/create/reconstruct it if it's a Temp item
+		if (objectId.contains("$Temp/")) {
+			List<LibraryResource> items = getTemp().asList(objectId);
+			return items != null ? items : resources;
+		}
+
+		// Now strip off the filename
+		objectId = StringUtils.substringBefore(objectId, "/");
+
+		LibraryResource resource = null;
+		String[] ids = objectId.split("\\.");
+		if (objectId.equals("0")) {
+			resource = this;
+		} else {
+			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				try {
+					resource = DbIdResourceLocator.locateResource(renderer, objectId);
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			} else {
+				resource = renderer.getGlobalRepo().get(ids[ids.length - 1]);
+			}
+		}
+
+		if (resource == null) {
+			// nothing in the cache do a traditional search
+			resource = search(ids);
+			// resource = search(objectId, count, searchStr);
+		}
+
+		if (resource != null) {
+			if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
+				LOGGER.debug("code is not valid any longer");
+				return resources;
+			}
+
+			if (!isRendererAllowed()) {
+				LOGGER.debug("renderer does not have access to this ressource");
+				return resources;
+			}
+
+			if (!returnChildren) {
+				resources.add(resource);
+				resource.refreshChildrenIfNeeded(searchStr);
+			} else {
+				resource.discover(count, true, searchStr);
+
+				if (count == 0) {
+					count = resource.getChildren().size();
+				}
+
+				if (count > 0) {
+					String systemName = resource.getSystemName();
+					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
+
+					int nParallelThreads = 3;
+					if (resource instanceof DVDISOFile) {
+						// Some DVD drives die with 3 parallel threads
+						nParallelThreads = 1;
+					}
+
+					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
+						new SimpleThreadFactory("LibraryResource resolver thread", true));
+
+					if (shouldDoAudioTrackSorting(resource)) {
+						sortChildrenWithAudioElements(resource);
+					}
+					for (int i = start; i < start + count && i < resource.getChildren().size(); i++) {
+						final LibraryResource child = resource.getChildren().get(i);
+						if (child != null) {
+							tpe.execute(child);
+							resources.add(child);
+						} else {
+							LOGGER.warn("null child at index {} in {}", i, systemName);
+						}
+					}
+
+					try {
+						tpe.shutdown();
+						tpe.awaitTermination(20, TimeUnit.SECONDS);
+					} catch (InterruptedException e) {
+						LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+						Thread.currentThread().interrupt();
+					}
+
+					LOGGER.trace("End of analysis for " + systemName);
+				}
+			}
+		}
+
+		return resources;
+	}
+
+	private LibraryResource search(String[] searchIds) {
+		LibraryResource resource;
+		for (String searchId : searchIds) {
+			if (searchId.equals("0")) {
+				resource = this;
+			} else {
+				resource = renderer.getGlobalRepo().get(searchId);
+			}
+
+			if (resource == null) {
+				LOGGER.debug("Bad id {} found in path", searchId);
+				return null;
+			}
+
+			resource.discover(0, false, null);
+		}
+
+		return renderer.getGlobalRepo().get(searchIds[searchIds.length - 1]);
+	}
+
 	private static boolean areNamesEqual(String aThis, String aThat) {
 		Collator collator = Collator.getInstance(Locale.getDefault());
 		collator.setStrength(Collator.PRIMARY);
 		int comparison = collator.compare(aThis, aThat);
 
 		return (comparison == 0);
+	}
+
+	/**
+	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
+	 * implementation could match the MBID record id (not implemented).
+	 *
+	 * @param resource Folder containing child objects of any kind
+	 *
+	 * @return
+	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
+	 */
+	private static boolean shouldDoAudioTrackSorting(LibraryResource resource) {
+		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
+			LOGGER.trace("shouldDoAudioTrackSorting : {}", PMS.getConfiguration().isSortAudioTracksByAlbumPosition());
+			return false;
+		}
+
+		String album = null;
+		String mbReleaseId = null;
+		int numberOfAudioFiles = 0;
+		int numberOfOtherFiles = 0;
+
+		boolean audioExists = false;
+		for (LibraryResource res : resource.getChildren()) {
+			if (res.getFormat() != null && res.getFormat().isAudio()) {
+				if (res.getMediaInfo() == null || !res.getMediaInfo().hasAudioMetadata()) {
+					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
+					continue;
+				}
+				MediaAudioMetadata metadata = res.getMediaInfo().getAudioMetadata();
+				numberOfAudioFiles++;
+				if (album == null) {
+					audioExists = true;
+					album = metadata.getAlbum() != null ? metadata.getAlbum() : "";
+					mbReleaseId = metadata.getMbidRecord();
+					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
+						return false;
+					}
+				} else {
+					if (mbReleaseId != null && !StringUtils.isAllBlank(mbReleaseId)) {
+						// First check musicbrainz ReleaseID
+						if (!mbReleaseId.equals(metadata.getMbidRecord())) {
+							return false;
+						}
+					} else if (!album.equals(metadata.getAlbum())) {
+						return false;
+					}
+				}
+			} else {
+				numberOfOtherFiles++;
+			}
+		}
+		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
+	}
+
+	private static void sortChildrenWithAudioElements(LibraryResource resource) {
+		Collections.sort(resource.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
+			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
+				if (o1.getFormat() != null && o1.getFormat().isAudio()) {
+					if (o2.getFormat() != null && o2.getFormat().isAudio()) {
+						return getTrackNum(o1).compareTo(getTrackNum(o2));
+					} else {
+						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+					}
+				} else {
+					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
+				}
+			} else {
+				return getDiscNum(o1).compareTo(getDiscNum(o2));
+			}
+		});
+	}
+
+	private static Integer getTrackNum(LibraryResource res) {
+		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
+			return res.getMediaInfo().getAudioMetadata().getTrack();
+		}
+		return 0;
+	}
+
+	private static Integer getDiscNum(LibraryResource res) {
+		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
+			return res.getMediaInfo().getAudioMetadata().getDisc();
+		}
+		return 0;
 	}
 
 }

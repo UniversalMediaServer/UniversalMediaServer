@@ -75,6 +75,16 @@ public class GlobalIdRepo {
 		}
 	}
 
+	public void delete(LibraryResource a) {
+		int id = parseIndex(a.getId());
+		if (id > 0) {
+			int index = indexOf(id);
+			if (index > -1) {
+				delete(index);
+			}
+		}
+	}
+
 	// Here scope=false means util.DLNAList is telling us the underlying
 	// LibraryResource has been removed and we should ignore its id, i.e. not
 	// share any hard references to it via get(), between now and whenever

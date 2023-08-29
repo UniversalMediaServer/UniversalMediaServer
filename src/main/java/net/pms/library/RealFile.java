@@ -58,6 +58,11 @@ import org.slf4j.LoggerFactory;
 public class RealFile extends VirtualFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
+	private final Object displayNameBaseLock = new Object();
+
+	private volatile String baseNamePrettified;
+	private volatile String baseNameWithoutExtension;
+
 	public RealFile(Renderer renderer, File file) {
 		super(renderer);
 		addFileToFiles(file);
@@ -196,32 +201,6 @@ public class RealFile extends VirtualFile {
 	}
 
 	@Override
-	public String getName() {
-		if (name == null) {
-			File file = getFile();
-
-			// this probably happened because the file was removed after it could not be parsed by isValid()
-			if (file == null) {
-				return null;
-			}
-
-			if (file.getName().trim().isEmpty()) {
-				if (Platform.isWindows()) {
-					name = PlatformUtils.INSTANCE.getDiskLabel(file);
-				}
-				if (name != null && name.length() > 0) {
-					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
-				} else {
-					name = file.getAbsolutePath().substring(0, 1);
-				}
-			} else {
-				name = file.getName();
-			}
-		}
-		return name.replaceAll("_imdb([^_]+)_", "");
-	}
-
-	@Override
 	protected void resolveFormat() {
 		if (getFormat() == null) {
 			setFormat(FormatFactory.getAssociatedFormat(getFile().getAbsolutePath()));
@@ -339,45 +318,6 @@ public class RealFile extends VirtualFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
-	private volatile String baseNamePrettified;
-	private volatile String baseNameWithoutExtension;
-	private final Object displayNameBaseLock = new Object();
-
-	@Override
-	public String getDisplayNameBase() {
-		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
-			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
-		}
-		if (isFolder()) {
-			return super.getDisplayNameBase();
-		}
-		if (renderer.getUmsConfiguration().isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
-			return getBaseNamePrettified();
-		} else if (renderer.getUmsConfiguration().isHideExtensions()) {
-			return getBaseNameWithoutExtension();
-		}
-
-		return super.getDisplayNameBase();
-	}
-
-	private String getBaseNamePrettified() {
-		synchronized (displayNameBaseLock) {
-			if (baseNamePrettified == null) {
-				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMediaInfo(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
-			}
-			return baseNamePrettified;
-		}
-	}
-
-	private String getBaseNameWithoutExtension() {
-		synchronized (displayNameBaseLock) {
-			if (baseNameWithoutExtension == null) {
-				baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase());
-			}
-			return baseNameWithoutExtension;
-		}
-	}
-
 	@Override
 	public synchronized void syncResolve() {
 		super.syncResolve();
@@ -429,6 +369,67 @@ public class RealFile extends VirtualFile {
 		) &&
 		getMediaStatus() != null &&
 		getMediaStatus().isFullyPlayed();
+	}
+
+	@Override
+	public String getName() {
+		if (name == null) {
+			File file = getFile();
+
+			// this probably happened because the file was removed after it could not be parsed by isValid()
+			if (file == null) {
+				return null;
+			}
+
+			if (file.getName().trim().isEmpty()) {
+				if (Platform.isWindows()) {
+					name = PlatformUtils.INSTANCE.getDiskLabel(file);
+				}
+				if (name != null && name.length() > 0) {
+					name = file.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
+				} else {
+					name = file.getAbsolutePath().substring(0, 1);
+				}
+			} else {
+				name = file.getName();
+			}
+		}
+		return name.replaceAll("_imdb([^_]+)_", "");
+	}
+
+	@Override
+	public String getDisplayNameBase() {
+		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
+			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
+		}
+		if (isFolder()) {
+			return super.getDisplayNameBase();
+		}
+		if (renderer.getUmsConfiguration().isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
+			return getBaseNamePrettified();
+		} else if (renderer.getUmsConfiguration().isHideExtensions()) {
+			return getBaseNameWithoutExtension();
+		}
+
+		return super.getDisplayNameBase();
+	}
+
+	private String getBaseNamePrettified() {
+		synchronized (displayNameBaseLock) {
+			if (baseNamePrettified == null) {
+				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMediaInfo(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
+			}
+			return baseNamePrettified;
+		}
+	}
+
+	private String getBaseNameWithoutExtension() {
+		synchronized (displayNameBaseLock) {
+			if (baseNameWithoutExtension == null) {
+				baseNameWithoutExtension = FileUtil.getFileNameWithoutExtension(super.getDisplayNameBase());
+			}
+			return baseNameWithoutExtension;
+		}
 	}
 
 }

@@ -278,7 +278,7 @@ public class Renderer extends RendererDeviceConfiguration {
 			}
 			rootFolder.reset();
 		}
-		if (globalRepo != null) {
+		if (globalRepo != null && clearChildren) {
 			globalRepo.clear();
 		}
 		UmsContentDirectoryService.bumpSystemUpdateId();

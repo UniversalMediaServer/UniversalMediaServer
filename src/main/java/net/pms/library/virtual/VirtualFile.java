@@ -229,12 +229,10 @@ public class VirtualFile extends LibraryResource {
 		return true;
 	}
 
-	@Override
 	public boolean analyzeChildren(int count) {
 		return analyzeChildren(count, true);
 	}
 
-	@Override
 	public boolean analyzeChildren(int count, boolean isAddGlobally) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
@@ -265,15 +263,6 @@ public class VirtualFile extends LibraryResource {
 
 	@Override
 	public void discoverChildren() {
-		discoverChildren(null, true);
-	}
-
-	@Override
-	public void discoverChildren(String str) {
-		discoverChildren(str, true);
-	}
-
-	public void discoverChildren(String str, boolean isAddGlobally) {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
@@ -373,7 +362,7 @@ public class VirtualFile extends LibraryResource {
 				// empty letters
 				UMSUtils.sortFiles(entry.getValue(), sm);
 				VirtualFile mf = new VirtualFile(renderer, this, entry.getValue(), entry.getKey());
-				addChild(mf, true, isAddGlobally);
+				addChild(mf, true, true);
 			}
 			return;
 		}
@@ -396,14 +385,6 @@ public class VirtualFile extends LibraryResource {
 				discoverable.add(f); // manageFile(f);
 			}
 		}
-	}
-
-	public void doRefreshChildren(String str, boolean isAddGlobally) {
-		getChildren().clear();
-		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
-		discoverable = null;
-		discoverChildren(str, isAddGlobally);
-		analyzeChildren(-1, isAddGlobally);
 	}
 
 	/**
@@ -450,12 +431,11 @@ public class VirtualFile extends LibraryResource {
 
 	@Override
 	public void doRefreshChildren() {
-		doRefreshChildren(null, true);
-	}
-
-	@Override
-	public void doRefreshChildren(String str) {
-		doRefreshChildren(str, true);
+		getChildren().clear();
+		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
+		discoverable = null;
+		discoverChildren();
+		analyzeChildren(-1, true);
 	}
 
 	@Override
