@@ -42,10 +42,12 @@ public class RendererUser {
 
 	public static synchronized void reset() {
 		USERS.clear();
-		String rendererUser = CONFIGURATION.getRenderersUser();
+		String rendererUser = CONFIGURATION.getRenderersUser().replace('|', '"');
 		try {
-			Map<String, Integer> users = GSON.fromJson(rendererUser, USERS.getClass());
-			USERS.putAll(users);
+			Map<String, Number> users = GSON.fromJson(rendererUser, USERS.getClass());
+			for (Map.Entry<String, Number> entry : users.entrySet()) {
+				USERS.put(entry.getKey(), entry.getValue().intValue());
+			}
 		} catch (JsonSyntaxException e) {
 			LOGGER.error("Renderer User: error reading configuration value {}", rendererUser, e);
 		}
@@ -76,7 +78,7 @@ public class RendererUser {
 			renderer.setUserId(userId);
 		}
 		// persist the change
-		CONFIGURATION.setRenderersFilter(GSON.toJson(USERS));
+		CONFIGURATION.setRenderersUser(GSON.toJson(USERS).replace('"', '|'));
 	}
 
 	public static synchronized int getUserId(String uuid) {

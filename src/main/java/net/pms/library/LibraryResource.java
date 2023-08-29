@@ -28,15 +28,11 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -64,16 +60,15 @@ import net.pms.library.virtual.FileTranscodeVirtualFolder;
 import net.pms.library.virtual.SubSelFile;
 import net.pms.library.virtual.SubSelect;
 import net.pms.library.virtual.TranscodeVirtualFolder;
+import net.pms.library.virtual.VirtualFile;
 import net.pms.library.virtual.VirtualFolder;
 import net.pms.library.virtual.VirtualVideoAction;
-import net.pms.media.DbIdResourceLocator;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaInfoStore;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
-import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
@@ -89,7 +84,6 @@ import net.pms.util.InputFile;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.Range;
-import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.TimeRange;
@@ -108,6 +102,8 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final int STOP_PLAYING_DELAY = 4000;
+	private static final int DEPTH_WARNING_LIMIT = 7;
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
@@ -202,6 +198,28 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	private boolean isExternalSubtitlesParsed;
 
 	private double lastTimeSeek = -1.0;
+
+	/**
+	 * The system time when the resource was last (re)started by a user.
+	 */
+	private long lastStartSystemTimeUser;
+
+	/**
+	 * The system time when the resource was last (re)started.
+	 */
+	private long lastStartSystemTime;
+
+	/**
+	 * The most recently requested time offset in seconds.
+	 */
+	private double lastStartPosition;
+
+	////////////////////////////////////////////////////
+	// Resume handling
+	////////////////////////////////////////////////////
+	private ResumeObj resume;
+	private int resHash;
+	private long startTime;
 
 	protected LibraryResource(Renderer renderer) {
 		this(renderer, Format.UNKNOWN);
@@ -321,15 +339,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 */
 	protected void setIndexId(int id) {
 		setId(Integer.toString(id));
-	}
-
-	/**
-	 *
-	 * @return the unique id which identifies the LibraryResource relative to its
-         parent.
-	 */
-	public String getInternalId() {
-		return getId();
 	}
 
 	/**
@@ -887,7 +896,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 *                      global ID repository.
 	 */
 	protected synchronized void addChildInternal(LibraryResource child, boolean isAddGlobally) {
-		if (child.getInternalId() != null) {
+		if (child.getId() != null) {
 			LOGGER.debug("Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {child.getClass().getName(), child.getResourceId(), child.parent });
 		}
@@ -900,191 +909,8 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 		}
 	}
 
-	public synchronized List<LibraryResource> getLibraryResources(String objectId, boolean returnChildren, int start, int count,
-		String searchStr) {
-		ArrayList<LibraryResource> resources = new ArrayList<>();
-
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
-			List<LibraryResource> items = renderer.getRootFolder().getTemp().asList(objectId);
-			return items != null ? items : resources;
-		}
-
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		LibraryResource resource = null;
-		String[] ids = objectId.split("\\.");
-		if (objectId.equals("0")) {
-			resource = renderer.getRootFolder();
-		} else {
-			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-				try {
-					resource = DbIdResourceLocator.locateResource(renderer, objectId);
-				} catch (Exception e) {
-					LOGGER.error("", e);
-				}
-			} else {
-				resource = renderer.getGlobalRepo().get(ids[ids.length - 1]);
-			}
-		}
-
-		if (resource == null) {
-			// nothing in the cache do a traditional search
-			resource = search(ids);
-			// resource = search(objectId, count, searchStr);
-		}
-
-		if (resource != null) {
-			if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
-				LOGGER.debug("code is not valid any longer");
-				return resources;
-			}
-
-			if (!isRendererAllowed()) {
-				LOGGER.debug("renderer does not have access to this ressource");
-				return resources;
-			}
-
-			if (!returnChildren) {
-				resources.add(resource);
-				resource.refreshChildrenIfNeeded(searchStr);
-			} else {
-				resource.discover(count, true, searchStr);
-
-				if (count == 0) {
-					count = resource.getChildren().size();
-				}
-
-				if (count > 0) {
-					String systemName = resource.getSystemName();
-					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
-
-					int nParallelThreads = 3;
-					if (resource instanceof DVDISOFile) {
-						// Some DVD drives die with 3 parallel threads
-						nParallelThreads = 1;
-					}
-
-					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-						new SimpleThreadFactory("LibraryResource resolver thread", true));
-
-					if (shouldDoAudioTrackSorting(resource)) {
-						sortChildrenWithAudioElements(resource);
-					}
-					for (int i = start; i < start + count && i < resource.getChildren().size(); i++) {
-						final LibraryResource child = resource.getChildren().get(i);
-						if (child != null) {
-							tpe.execute(child);
-							resources.add(child);
-						} else {
-							LOGGER.warn("null child at index {} in {}", i, systemName);
-						}
-					}
-
-					try {
-						tpe.shutdown();
-						tpe.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e) {
-						LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-						Thread.currentThread().interrupt();
-					}
-
-					LOGGER.trace("End of analysis for " + systemName);
-				}
-			}
-		}
-
-		return resources;
-	}
-
-	/**
-	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
-	 * implementation could match the MBID record id (not implemented).
-	 *
-	 * @param resource Folder containing child objects of any kind
-	 *
-	 * @return
-	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
-	 */
-	private boolean shouldDoAudioTrackSorting(LibraryResource resource) {
-		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
-			LOGGER.trace("shouldDoAudioTrackSorting : {}", PMS.getConfiguration().isSortAudioTracksByAlbumPosition());
-			return false;
-		}
-
-		String album = null;
-		String mbReleaseId = null;
-		int numberOfAudioFiles = 0;
-		int numberOfOtherFiles = 0;
-
-		boolean audioExists = false;
-		for (LibraryResource res : resource.getChildren()) {
-			if (res.getFormat() != null && res.getFormat().isAudio()) {
-				if (res.getMediaInfo() == null || !res.getMediaInfo().hasAudioMetadata()) {
-					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
-					continue;
-				}
-				MediaAudioMetadata metadata = res.getMediaInfo().getAudioMetadata();
-				numberOfAudioFiles++;
-				if (album == null) {
-					audioExists = true;
-					album = metadata.getAlbum() != null ? metadata.getAlbum() : "";
-					mbReleaseId = metadata.getMbidRecord();
-					if (StringUtils.isAllBlank(album) && StringUtils.isAllBlank(mbReleaseId)) {
-						return false;
-					}
-				} else {
-					if (mbReleaseId != null && !StringUtils.isAllBlank(mbReleaseId)) {
-						// First check musicbrainz ReleaseID
-						if (!mbReleaseId.equals(metadata.getMbidRecord())) {
-							return false;
-						}
-					} else if (!album.equals(metadata.getAlbum())) {
-						return false;
-					}
-				}
-			} else {
-				numberOfOtherFiles++;
-			}
-		}
-		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
-	}
-
-	private static void sortChildrenWithAudioElements(LibraryResource resource) {
-		Collections.sort(resource.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
-			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
-				if (o1.getFormat() != null && o1.getFormat().isAudio()) {
-					if (o2.getFormat() != null && o2.getFormat().isAudio()) {
-						return getTrackNum(o1).compareTo(getTrackNum(o2));
-					} else {
-						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
-					}
-				} else {
-					return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());
-				}
-			} else {
-				return getDiscNum(o1).compareTo(getDiscNum(o2));
-			}
-		});
-	}
-
-	private static Integer getTrackNum(LibraryResource res) {
-		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
-			return res.getMediaInfo().getAudioMetadata().getTrack();
-		}
-		return 0;
-	}
-
-	private static Integer getDiscNum(LibraryResource res) {
-		if (res != null && res.getMediaInfo() != null && res.getMediaInfo().hasAudioMetadata()) {
-			return res.getMediaInfo().getAudioMetadata().getDisc();
-		}
-		return 0;
-	}
-
 	protected void refreshChildrenIfNeeded(String search) {
-		if (isDiscovered() && shouldRefresh(search)) {
+		if (isDiscovered() && isRefreshNeeded()) {
 			refreshChildren(search);
 			notifyRefresh();
 		}
@@ -1112,10 +938,14 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 			discoverChildren(searchStr);
 			boolean ready;
 
-			if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
-				ready = analyzeChildren(count);
+			if (this instanceof VirtualFile virtualFile) {
+				if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+					ready = virtualFile.analyzeChildren(count);
+				} else {
+					ready = virtualFile.analyzeChildren(-1);
+				}
 			} else {
-				ready = analyzeChildren(-1);
+				ready = true;
 			}
 
 			if (!renderer.isUseMediaInfo() || ready) {
@@ -1142,16 +972,12 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren
 				// pair.
-				if (shouldRefresh(searchStr)) {
+				if (isRefreshNeeded()) {
 					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
 			}
 		}
-	}
-
-	private boolean shouldRefresh(String searchStr) {
-		return isRefreshNeeded();
 	}
 
 	@Override
@@ -1170,101 +996,13 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Recursive function that searches for a given ID.
-	 *
-	 * @param searchId ID to search for.
-	 * @param count
-	 * @param searchStr
-	 * @return Item found, or null otherwise.
-	 * @see #getId()
-	 */
-	public LibraryResource search(String searchId, int count, String searchStr) {
-		if (id != null && searchId != null) {
-			String[] indexPath = searchId.split("\\$", 2);
-			if (id.equals(indexPath[0])) {
-				if (indexPath.length == 1 || indexPath[1].length() == 0) {
-					return this;
-				}
-				discover(count, false, null);
-
-				for (LibraryResource file : children) {
-					LibraryResource found = file.search(indexPath[1], count, null);
-					if (found != null) {
-						// Make sure it's ready
-						// found.resolve();
-						return found;
-					}
-				}
-			} else {
-				return null;
-			}
-		}
-
-		return null;
-	}
-
-	private LibraryResource search(String[] searchIds) {
-		LibraryResource resource;
-		for (String searchId : searchIds) {
-			if (searchId.equals("0")) {
-				resource = renderer.getRootFolder();
-			} else {
-				resource = renderer.getGlobalRepo().get(searchId);
-			}
-
-			if (resource == null) {
-				LOGGER.debug("Bad id {} found in path", searchId);
-				return null;
-			}
-
-			resource.discover(0, false, null);
-		}
-
-		return renderer.getGlobalRepo().get(searchIds[searchIds.length - 1]);
-	}
-
-	public LibraryResource search(String searchId) {
-		if (id != null && searchId != null) {
-			if (getResourceId().equals(searchId)) {
-				return this;
-			}
-			for (LibraryResource file : children) {
-				LibraryResource found = file.search(searchId);
-				if (found != null) {
-					// Make sure it's ready
-					// found.resolve();
-					return found;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	/**
-	 * TODO: (botijo) What is the intention of this function? Looks like a
-	 * prototype to be overloaded.
+	 * Discover the list of children.
 	 */
 	public void discoverChildren() {
 	}
 
 	public void discoverChildren(String str) {
 		discoverChildren();
-	}
-
-	/**
-	 * TODO: (botijo) What is the intention of this function? Looks like a
-	 * prototype to be overloaded.
-	 *
-	 * @param count
-	 * @return Returns true
-	 */
-	public boolean analyzeChildren(int count) {
-		return true;
-	}
-
-	public boolean analyzeChildren(int count, boolean isAddGlobally) {
-		return true;
 	}
 
 	/**
@@ -1303,7 +1041,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	}
 
 	public boolean refreshChildren(String search) {
-		if (shouldRefresh(search)) {
+		if (isRefreshNeeded()) {
 			doRefreshChildren(search);
 			return true;
 		}
@@ -1800,13 +1538,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * The system time when the resource was last (re)started.
-	 */
-	private long lastStartSystemTime;
-
-	/**
-	 * Gets the system time when the resource was last (re)started.
-	 *
 	 * @return The system time when the resource was last (re)started
 	 */
 	public double getLastStartSystemTime() {
@@ -1820,12 +1551,36 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 */
 	public void setLastStartSystemTime(long startTime) {
 		lastStartSystemTime = startTime;
+
+		double fileDuration = 0;
+		if (mediaInfo != null && (mediaInfo.isAudio() || mediaInfo.isVideo())) {
+			fileDuration = mediaInfo.getDurationInSeconds();
+		}
+
+		/**
+		 * Do not treat this as a legitimate playback attempt if the start
+		 * time was within 2 seconds of the end of the video.
+		 */
+		if (fileDuration < 2.0 || lastStartPosition < (fileDuration - 2.0)) {
+			lastStartSystemTimeUser = startTime;
+		}
 	}
 
 	/**
-	 * The most recently requested time offset in seconds.
+	 * Gets the system time when the resource was last (re)started.
+	 *
+	 * The system time when the resource was last (re)started by a user.
+	 * This is a guess, where we disqualify certain playback requests from
+	 * setting this value based on how close they were to the end, because
+	 * some renderers request the last bytes of a file for processing behind
+	 * the scenes, and that does not count as a real user doing it.
+	 *
+	 * @return The system time when the resource was last (re)started
+	 *         by a user.
 	 */
-	private double lastStartPosition;
+	public double getLastStartSystemTimeUser() {
+		return lastStartSystemTimeUser;
+	}
 
 	/**
 	 * Gets the most recently requested time offset in seconds.
@@ -1976,6 +1731,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				LOGGER.error(null, e);
+				Thread.currentThread().interrupt();
 			}
 		}
 
@@ -1999,6 +1755,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 					Thread.sleep(params.getWaitBeforeStart());
 				} catch (InterruptedException e) {
 					LOGGER.error(null, e);
+					Thread.currentThread().interrupt();
 				}
 
 				LOGGER.trace("Finished sleeping for " + params.getWaitBeforeStart() + " milliseconds");
@@ -2030,6 +1787,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					LOGGER.error(null, e);
+					Thread.currentThread().interrupt();
 				}
 
 				if (newExternalProcess == null) {
@@ -3186,8 +2944,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 		this.lastRefreshTime = lastRefreshTime;
 	}
 
-	private static final int DEPTH_WARNING_LIMIT = 7;
-
 	private boolean depthLimit() {
 		LibraryResource tmp = this;
 		int depth = 0;
@@ -3267,10 +3023,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////
-
-	private ResumeObj resume;
-	private int resHash;
-	private long startTime;
 
 	private void internalStop() {
 		LibraryResource res = resumeStop();
@@ -3626,7 +3378,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 		StringBuilder result = new StringBuilder();
 		result.append(getClass().getSimpleName());
 		result.append(" [id=");
-		result.append(id);
+		result.append(getId());
 		result.append(", name=");
 		result.append(getName());
 		result.append(", full path=");

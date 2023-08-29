@@ -184,7 +184,7 @@ public class UmsContentDirectoryService {
 		 * in-memory value with the database value if the database is enabled.
 		 */
 		bumpSystemUpdateId();
-		systemUpdateID = getDbSystemUpdateId();
+		systemUpdateID = new UnsignedIntegerFourBytes(getDbSystemUpdateId().getValue());
 		propertyChangeSupport = new PropertyChangeSupport(this);
 		systemUpdateIdTimer.schedule(systemUpdateIdTask, 0, 200);
 	}
@@ -201,7 +201,7 @@ public class UmsContentDirectoryService {
 
 	@UpnpAction(out = @UpnpOutputArgument(name = "Id"))
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
-		return systemUpdateID;
+		return getDbSystemUpdateId();
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
@@ -769,6 +769,7 @@ public class UmsContentDirectoryService {
 			if (connection != null) {
 				MediaTableMetadata.setOrUpdateMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID, getDbSystemUpdateId().toString());
 			}
+			MediaDatabase.close(connection);
 		}
 	}
 

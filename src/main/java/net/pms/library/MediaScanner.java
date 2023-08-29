@@ -195,7 +195,9 @@ public class MediaScanner extends LibraryResource {
 							child.syncResolve();
 						}
 						child.discoverChildren();
-						child.analyzeChildren(-1, false);
+						if (child instanceof VirtualFile virtualFile) {
+							virtualFile.analyzeChildren(-1, false);
+						}
 						child.setDiscovered(true);
 					}
 

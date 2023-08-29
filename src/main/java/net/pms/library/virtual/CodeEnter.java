@@ -84,11 +84,6 @@ public class CodeEnter extends VirtualFolder {
 	}
 
 	@Override
-	public void discoverChildren(String str) {
-		discoverChildren();
-	}
-
-	@Override
 	public void discoverChildren() {
 		super.addChild(resource);
 		int charset = renderer.getUmsConfiguration().getCodeCharSet();
@@ -119,15 +114,9 @@ public class CodeEnter extends VirtualFolder {
 
 	@Override
 	public void doRefreshChildren() {
-		doRefreshChildren(null);
-	}
-
-	@Override
-	public void doRefreshChildren(String str) {
 		setEnteredCode("");
 		getChildren().clear();
-		discoverChildren(str);
-		analyzeChildren(-1);
+		discoverChildren();
 	}
 
 	public boolean validCode(LibraryResource r) {

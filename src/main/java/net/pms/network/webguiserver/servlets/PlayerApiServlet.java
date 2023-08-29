@@ -424,39 +424,47 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						if (id.equals("0") && resource.getName().equals(Messages.getString("MediaLibrary"))) {
 							List<LibraryResource> videoSearchResults = renderer.getRootFolder().getLibraryResources(resource.getId(), true, 0, 0, Messages.getString("Video"));
 							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("Video"), true, true);
-							LibraryResource videoFolder = videoSearchResults.get(0);
 							JsonObject mediaLibraryFolder = new JsonObject();
-							mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
-							mediaLibraryFolder.addProperty("name", videoFolder.resumeName());
-							mediaLibraryFolder.addProperty("icon", "video");
-							mediaLibraryFolders.add(mediaLibraryFolder);
+							LibraryResource videoFolder = null;
+							if (!videoSearchResults.isEmpty()) {
+								videoFolder = videoSearchResults.get(0);
+								mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
+								mediaLibraryFolder.addProperty("name", videoFolder.resumeName());
+								mediaLibraryFolder.addProperty("icon", "video");
+								mediaLibraryFolders.add(mediaLibraryFolder);
+							}
 
 							List<LibraryResource> audioSearchResults = renderer.getRootFolder().getLibraryResources(resource.getId(), true, 0, 0, Messages.getString("Audio"));
 							UMSUtils.filterResourcesByName(audioSearchResults, Messages.getString("Audio"), true, true);
-							LibraryResource audioFolder = audioSearchResults.get(0);
-							mediaLibraryFolder = new JsonObject();
-							mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
-							mediaLibraryFolder.addProperty("name", audioFolder.resumeName());
-							mediaLibraryFolder.addProperty("icon", "audio");
-							mediaLibraryFolders.add(mediaLibraryFolder);
+							if (!audioSearchResults.isEmpty()) {
+								LibraryResource audioFolder = audioSearchResults.get(0);
+								mediaLibraryFolder = new JsonObject();
+								mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
+								mediaLibraryFolder.addProperty("name", audioFolder.resumeName());
+								mediaLibraryFolder.addProperty("icon", "audio");
+								mediaLibraryFolders.add(mediaLibraryFolder);
+							}
 
 							List<LibraryResource> imageSearchResults = renderer.getRootFolder().getLibraryResources(resource.getId(), true, 0, 0, Messages.getString("Photo"));
 							UMSUtils.filterResourcesByName(imageSearchResults, Messages.getString("Photo"), true, true);
-							LibraryResource imagesFolder = imageSearchResults.get(0);
-							mediaLibraryFolder = new JsonObject();
-							mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
-							mediaLibraryFolder.addProperty("name", imagesFolder.resumeName());
-							mediaLibraryFolder.addProperty("icon", "image");
-							mediaLibraryFolders.add(mediaLibraryFolder);
+							if (!imageSearchResults.isEmpty()) {
+								LibraryResource imagesFolder = imageSearchResults.get(0);
+								mediaLibraryFolder = new JsonObject();
+								mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
+								mediaLibraryFolder.addProperty("name", imagesFolder.resumeName());
+								mediaLibraryFolder.addProperty("icon", "image");
+								mediaLibraryFolders.add(mediaLibraryFolder);
+							}
 
-							JsonObject jMediasSelections = new JsonObject();
-							jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyAdded")));
-							jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyPlayed")));
-							jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("InProgress")));
-							jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("MostPlayed")));
-							result.add("mediasSelections", jMediasSelections);
-
-							addFolderToFoldersListOnLeft = false;
+							if (videoFolder != null) {
+								JsonObject jMediasSelections = new JsonObject();
+								jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyAdded")));
+								jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyPlayed")));
+								jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("InProgress")));
+								jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("MostPlayed")));
+								result.add("mediasSelections", jMediasSelections);
+								addFolderToFoldersListOnLeft = false;
+							}
 						}
 
 						if (addFolderToFoldersListOnLeft) {
@@ -573,7 +581,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		Renderer renderer,
 		String folderName
 	) throws IOException {
-		List<LibraryResource> videoFolderChildren = videoFolder.getLibraryResources(videoFolder.getId(), true, 0, 0, folderName);
+		List<LibraryResource> videoFolderChildren = renderer.getRootFolder().getLibraryResources(videoFolder.getId(), true, 0, 0, folderName);
 		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 		if (videoFolderChildren.isEmpty()) {
 			LOGGER.trace("The videoFolderChildren folder was empty after filtering for " + folderName);
@@ -1091,21 +1099,21 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				return null;
 			}
 			LibraryResource mediaLibraryFolder = rootFolderChildren.get(0);
-			List<LibraryResource> mediaLibraryChildren = mediaLibraryFolder.getLibraryResources(mediaLibraryFolder.getId(), true, 0, 0, Messages.getString("Video"));
+			List<LibraryResource> mediaLibraryChildren = renderer.getRootFolder().getLibraryResources(mediaLibraryFolder.getId(), true, 0, 0, Messages.getString("Video"));
 			UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
 			LibraryResource videoFolder = mediaLibraryChildren.get(0);
 
 			boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
 			String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
-			List<LibraryResource> videoFolderChildren = videoFolder.getLibraryResources(videoFolder.getId(), true, 0, 0, folderName);
+			List<LibraryResource> videoFolderChildren = renderer.getRootFolder().getLibraryResources(videoFolder.getId(), true, 0, 0, folderName);
 			UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
 			LibraryResource tvShowsOrMoviesFolder = videoFolderChildren.get(0);
 
-			List<LibraryResource> tvShowsOrMoviesChildren = tvShowsOrMoviesFolder.getLibraryResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, Messages.getString("FilterByInformation"));
+			List<LibraryResource> tvShowsOrMoviesChildren = renderer.getRootFolder().getLibraryResources(tvShowsOrMoviesFolder.getId(), true, 0, 0, Messages.getString("FilterByInformation"));
 			UMSUtils.filterResourcesByName(tvShowsOrMoviesChildren, Messages.getString("FilterByInformation"), true, true);
 			LibraryResource filterByInformationFolder = tvShowsOrMoviesChildren.get(0);
 
-			List<LibraryResource> filterByInformationChildren = filterByInformationFolder.getLibraryResources(filterByInformationFolder.getId(), true, 0, 0, Messages.getString("Genres"));
+			List<LibraryResource> filterByInformationChildren = renderer.getRootFolder().getLibraryResources(filterByInformationFolder.getId(), true, 0, 0, Messages.getString("Genres"));
 
 			for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
 				LibraryResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
@@ -1145,7 +1153,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							JsonObject dlnaChild = new JsonObject();
 							dlnaChild.addProperty("name", value);
 							if (folder != null) {
-								List<LibraryResource> folderChildren = folder.getLibraryResources(folder.getId(), true, 0, 0, value);
+								List<LibraryResource> folderChildren = renderer.getRootFolder().getLibraryResources(folder.getId(), true, 0, 0, value);
 								UMSUtils.filterResourcesByName(folderChildren, value, true, true);
 								if (!folderChildren.isEmpty()) {
 									dlnaChild.addProperty("id", folderChildren.get(0).getId());
@@ -1168,7 +1176,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				JsonObject dlnaChild = new JsonObject();
 				dlnaChild.addProperty("name", value);
 				if (folder != null) {
-					List<LibraryResource> folderChildren = folder.getLibraryResources(folder.getId(), true, 0, 0, value);
+					List<LibraryResource> folderChildren = renderer.getRootFolder().getLibraryResources(folder.getId(), true, 0, 0, value);
 					UMSUtils.filterResourcesByName(folderChildren, value, true, true);
 					if (!folderChildren.isEmpty()) {
 						dlnaChild.addProperty("id", folderChildren.get(0).getId());
