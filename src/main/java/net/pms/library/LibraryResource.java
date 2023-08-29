@@ -102,6 +102,8 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final int STOP_PLAYING_DELAY = 4000;
+	private static final int DEPTH_WARNING_LIMIT = 7;
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 	protected static final double CONTAINER_OVERHEAD = 1.04;
@@ -196,6 +198,28 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	private boolean isExternalSubtitlesParsed;
 
 	private double lastTimeSeek = -1.0;
+
+	/**
+	 * The system time when the resource was last (re)started by a user.
+	 */
+	private long lastStartSystemTimeUser;
+
+	/**
+	 * The system time when the resource was last (re)started.
+	 */
+	private long lastStartSystemTime;
+
+	/**
+	 * The most recently requested time offset in seconds.
+	 */
+	private double lastStartPosition;
+
+	////////////////////////////////////////////////////
+	// Resume handling
+	////////////////////////////////////////////////////
+	private ResumeObj resume;
+	private int resHash;
+	private long startTime;
 
 	protected LibraryResource(Renderer renderer) {
 		this(renderer, Format.UNKNOWN);
@@ -1514,13 +1538,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * The system time when the resource was last (re)started.
-	 */
-	private long lastStartSystemTime;
-
-	/**
-	 * Gets the system time when the resource was last (re)started.
-	 *
 	 * @return The system time when the resource was last (re)started
 	 */
 	public double getLastStartSystemTime() {
@@ -1534,12 +1551,36 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 */
 	public void setLastStartSystemTime(long startTime) {
 		lastStartSystemTime = startTime;
+
+		double fileDuration = 0;
+		if (mediaInfo != null && (mediaInfo.isAudio() || mediaInfo.isVideo())) {
+			fileDuration = mediaInfo.getDurationInSeconds();
+		}
+
+		/**
+		 * Do not treat this as a legitimate playback attempt if the start
+		 * time was within 2 seconds of the end of the video.
+		 */
+		if (fileDuration < 2.0 || lastStartPosition < (fileDuration - 2.0)) {
+			lastStartSystemTimeUser = startTime;
+		}
 	}
 
 	/**
-	 * The most recently requested time offset in seconds.
+	 * Gets the system time when the resource was last (re)started.
+	 *
+	 * The system time when the resource was last (re)started by a user.
+	 * This is a guess, where we disqualify certain playback requests from
+	 * setting this value based on how close they were to the end, because
+	 * some renderers request the last bytes of a file for processing behind
+	 * the scenes, and that does not count as a real user doing it.
+	 *
+	 * @return The system time when the resource was last (re)started
+	 *         by a user.
 	 */
-	private double lastStartPosition;
+	public double getLastStartSystemTimeUser() {
+		return lastStartSystemTimeUser;
+	}
 
 	/**
 	 * Gets the most recently requested time offset in seconds.
@@ -2903,8 +2944,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 		this.lastRefreshTime = lastRefreshTime;
 	}
 
-	private static final int DEPTH_WARNING_LIMIT = 7;
-
 	private boolean depthLimit() {
 		LibraryResource tmp = this;
 		int depth = 0;
@@ -2984,10 +3023,6 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////
-
-	private ResumeObj resume;
-	private int resHash;
-	private long startTime;
 
 	private void internalStop() {
 		LibraryResource res = resumeStop();

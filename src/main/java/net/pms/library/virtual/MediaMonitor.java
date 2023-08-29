@@ -174,7 +174,7 @@ public class MediaMonitor extends VirtualFolder {
 		if (realFile.getLastStartPosition() == 0) {
 			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
 		} else {
-			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTime()) / 1000;
+			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTimeUser()) / 1000;
 			elapsed += realFile.getLastStartPosition();
 		}
 
@@ -185,18 +185,9 @@ public class MediaMonitor extends VirtualFolder {
 			LOGGER.trace("   duration: " + fileDuration);
 			LOGGER.trace("   getLastStartPosition: " + realFile.getLastStartPosition());
 			LOGGER.trace("   getStartTime: " + realFile.getStartTime());
-			LOGGER.trace("   getLastStartSystemTime: " + realFile.getLastStartSystemTime());
+			LOGGER.trace("   getLastStartSystemTimeUser: " + realFile.getLastStartSystemTimeUser());
 			LOGGER.trace("   elapsed: " + elapsed);
 			LOGGER.trace("   minimum play time needed: " + (fileDuration * CONFIGURATION.getResumeBackFactor()));
-		}
-
-		/**
-		 * Do not treat this as a legitimate playback attempt if the start
-		 * time was within 2 seconds of the end of the video.
-		 */
-		if (fileDuration > 2.0 && realFile.getLastStartPosition() > (fileDuration - 2.0)) {
-			LOGGER.trace("final decision: not legitimate playback");
-			return;
 		}
 
 		int userId = renderer.getAccountUserId();
