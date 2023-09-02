@@ -19,6 +19,7 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -36,7 +37,7 @@ import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
-import net.pms.library.Feed;
+import net.pms.library.container.Feed;
 import net.pms.media.MediaStatusStore;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
@@ -71,6 +72,9 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 				// immutable data
 				jsonResponse.addProperty("use_cache", CONFIGURATION.getUseCache());
 				jsonResponse.add("shared_content", SharedContentConfiguration.getAsJsonArray());
+				jsonResponse.addProperty("show_itunes_library", Platform.isMac() || Platform.isWindows());
+				jsonResponse.addProperty("show_iphoto_library", Platform.isMac());
+				jsonResponse.addProperty("show_aperture_library", Platform.isMac());
 				JsonArray jGroups = new JsonArray();
 				for (Group group : AccountService.getAllGroups()) {
 					jGroups.add(groupToJsonObject(group));

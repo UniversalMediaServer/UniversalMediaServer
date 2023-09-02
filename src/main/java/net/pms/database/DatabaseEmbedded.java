@@ -327,4 +327,12 @@ public class DatabaseEmbedded {
 		return 0;
 	}
 
+	public static void analyzeDb(final Connection connection) {
+		try (PreparedStatement statement = connection.prepareStatement("ANALYZE SAMPLE_SIZE 0")) {
+			statement.execute();
+		} catch (SQLException ex) {
+			LOGGER.error("Database error on updating the selectivity statistics of tables", ex);
+		}
+	}
+
 }

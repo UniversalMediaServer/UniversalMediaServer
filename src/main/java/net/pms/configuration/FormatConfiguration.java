@@ -28,7 +28,7 @@ import java.util.regex.PatternSyntaxException;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.io.OutputParams;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import org.apache.commons.lang3.StringUtils;
@@ -623,7 +623,7 @@ public class FormatConfiguration {
 	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(LibraryResource resource, RendererConfiguration renderer) {
+	public String getMatchedMIMEtype(LibraryItem resource, RendererConfiguration renderer) {
 		MediaInfo media = resource.getMediaInfo();
 		if (media == null) {
 			return null;

@@ -18,7 +18,7 @@ package net.pms.formats;
 
 import java.util.Locale;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
@@ -184,7 +184,7 @@ public abstract class Format implements Cloneable {
 	 * @return Whether the format can be handled by the renderer
 	 * @since 1.50.1
 	 */
-	public boolean isCompatible(LibraryResource resource, Renderer renderer) {
+	public boolean isCompatible(LibraryItem resource, Renderer renderer) {
 		Renderer referenceRenderer;
 
 		if (renderer != null) {

@@ -20,10 +20,9 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.library.LibraryResource;
-import net.pms.library.RealFile;
-import net.pms.library.WebStream;
 import net.pms.formats.Format;
+import net.pms.library.item.RealFile;
+import net.pms.library.item.WebStream;
 import static net.pms.util.PlayerUtil.*;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,23 +31,24 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
-	private static LibraryResource video;
-	private static LibraryResource audio;
-	private static LibraryResource image;
-	private static LibraryResource webImage;
-	private static LibraryResource webVideo;
-	private static LibraryResource webAudio;
+
+	private static RealFile video;
+	private static RealFile audio;
+	private static RealFile image;
+	private static WebStream webImage;
+	private static WebStream webVideo;
+	private static WebStream webAudio;
 
 	@BeforeAll
 	public static void setUpClass() {
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
 		image = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.jpg"));
-		image.isValid();
+		image.resolveFormat();
 		audio = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mp3"));
-		audio.isValid();
+		audio.resolveFormat();
 		video = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mpg"));
-		video.isValid();
+		video.resolveFormat();
 		webImage = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.jpg", "", Format.IMAGE);
 		webImage.isValid();
 		webAudio = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mp3", "", Format.AUDIO);
@@ -188,4 +188,5 @@ public class PlayerUtilTest {
 		}
 		return result;
 	}
+
 }

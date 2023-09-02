@@ -20,7 +20,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
@@ -450,35 +449,20 @@ public class NavigationShareTab {
 		});
 
 		// Show iTunes library
-		iTunes = new JCheckBox(Messages.getString("ShowItunesLibrary"), configuration.isShowItunesLibrary());
+		iTunes = new JCheckBox(Messages.getString("ShowItunesLibrary"), false);
 		iTunes.setToolTipText(Messages.getString("IfEnabledThreeNewVirtual"));
 		iTunes.setContentAreaFilled(false);
-		if (!(Platform.isMac() || Platform.isWindows())) {
-			iTunes.setEnabled(false);
-		}
-		iTunes.addItemListener((ItemEvent e) -> {
-			configuration.setShowItunesLibrary((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		iTunes.setEnabled(false);
 
 		// Show iPhoto library
-		iPhoto = new JCheckBox(Messages.getString("ShowIphotoLibrary"), configuration.isShowIphotoLibrary());
+		iPhoto = new JCheckBox(Messages.getString("ShowIphotoLibrary"), false);
 		iPhoto.setContentAreaFilled(false);
-		if (!Platform.isMac()) {
-			iPhoto.setEnabled(false);
-		}
-		iPhoto.addItemListener((ItemEvent e) -> {
-			configuration.setShowIphotoLibrary((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		iPhoto.setEnabled(false);
 
 		// Show aperture library
-		aperture = new JCheckBox(Messages.getString("ShowApertureLibrary"), configuration.isShowApertureLibrary());
+		aperture = new JCheckBox(Messages.getString("ShowApertureLibrary"), false);
 		aperture.setContentAreaFilled(false);
-		if (!Platform.isMac()) {
-			aperture.setEnabled(false);
-		}
-		aperture.addItemListener((ItemEvent e) -> {
-			configuration.setShowApertureLibrary((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		aperture.setEnabled(false);
 
 		// File order
 		final KeyedComboBoxModel<Integer, String> kcbm = new KeyedComboBoxModel<>(

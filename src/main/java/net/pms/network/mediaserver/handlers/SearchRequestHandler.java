@@ -33,11 +33,10 @@ import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
 import net.pms.library.DbIdMediaType;
+import net.pms.library.DbIdResourceLocator;
 import net.pms.library.DbIdTypeAndIdent;
 import net.pms.library.LibraryResource;
-import net.pms.library.RealFileDbId;
-import net.pms.library.virtual.VirtualFolderDbId;
-import net.pms.media.DbIdResourceLocator;
+import net.pms.library.container.VirtualFolderDbId;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
@@ -560,8 +559,11 @@ public class SearchRequestHandler {
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										filesList.add(new RealFileDbId(renderer, new DbIdTypeAndIdent(type, resultSet.getString("FID")),
-											new File(realFileName)));
+										LibraryResource item = DbIdResourceLocator.createResourceFromFile(
+											renderer,
+											new File(realFileName),
+											new DbIdTypeAndIdent(type, resultSet.getString("FID")));
+										filesList.add(item);
 									}
 								}
 							}

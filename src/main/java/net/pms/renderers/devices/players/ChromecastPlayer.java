@@ -17,6 +17,7 @@
 package net.pms.renderers.devices.players;
 
 import java.io.IOException;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
@@ -38,17 +39,18 @@ public class ChromecastPlayer extends LogicalPlayer {
 
 	@Override
 	public void setURI(String uri, String metadata) {
-		PlaylistItem item = resolveURI(uri, metadata);
-		if (item != null) {
+		PlaylistItem playlistItem = resolveURI(uri, metadata);
+		if (playlistItem != null) {
 			// this is a bit circular but what the heck
-			LibraryResource r = renderer.getRootFolder().getValidResource(item.getUri(), item.getName());
-			if (r == null) {
+			LibraryResource r = renderer.getRootFolder().getValidResource(playlistItem.getUri(), playlistItem.getName());
+			LibraryItem item = r instanceof LibraryItem libraryItem ? libraryItem : null;
+			if (item == null) {
 				LOGGER.debug("Bad media in cc seturi: " + uri);
 				return;
 			}
 			try {
 				api.launchApp(MEDIA_PLAYER);
-				api.load("", null, item.getUri(), r.mimeType());
+				api.load("", null, playlistItem.getUri(), item.mimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
 			}

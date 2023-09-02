@@ -27,13 +27,15 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableMetadata;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.LibraryResourceHelper;
+import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
-import net.pms.library.PlaylistFolder;
-import net.pms.library.virtual.MediaLibrary;
+import net.pms.library.container.MediaLibrary;
+import net.pms.library.container.PlaylistFolder;
 import net.pms.media.MediaStatusStore;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.LibraryResourceHelper;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
@@ -409,12 +411,14 @@ public class UmsContentDirectoryService {
 					}
 				}
 
-				if (resource != null && resource.isCompatible() &&
-						(resource.getEngine() == null || resource.getEngine().isEngineCompatible(renderer)) ||
+				if (resource instanceof LibraryContainer container) {
+					didlResult.addObject(LibraryResourceHelper.getContainer(container));
+				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						resource != null && resources.get(0).isInsideTranscodeFolder()) {
-					didlResult.addObject(LibraryResourceHelper.getBaseObject(resource));
+						resources.get(0).isInsideTranscodeFolder())) {
+					didlResult.addObject(LibraryResourceHelper.getItem(item));
 				} else {
 					badResourceCount++;
 				}
@@ -437,12 +441,14 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else if (browseDirectChildren) {
-			LibraryResource parentFolder;
+			LibraryContainer parentFolder;
 			if (resources != null && resourcesCount > 0) {
 				parentFolder = resources.get(0).getParent();
 			} else {
-				parentFolder = renderer.getRootFolder().getLibraryResource(objectID);
-				if (parentFolder == null) {
+				LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
+				if (resource instanceof LibraryContainer libraryContainer) {
+					parentFolder = libraryContainer;
+				} else {
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}
@@ -559,8 +565,8 @@ public class UmsContentDirectoryService {
 		if (resources != null) {
 			if (searchCriteria != null) {
 				UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
-				if (xbox360 && !resources.isEmpty()) {
-					resources = resources.get(0).getChildren();
+				if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof LibraryContainer libraryContainer) {
+					resources = libraryContainer.getChildren();
 				}
 			}
 			resourceCount = resources.size();
@@ -576,12 +582,14 @@ public class UmsContentDirectoryService {
 					resource.setFakeParentId(xboxId);
 				}
 
-				if (resource != null && (resource.isCompatible() &&
-						(resource.getEngine() == null || resource.getEngine().isEngineCompatible(renderer)) ||
+				if (resource instanceof LibraryContainer container) {
+					didlResult.addObject(LibraryResourceHelper.getContainer(container));
+				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 						resources.get(0).isInsideTranscodeFolder())) {
-					didlResult.addObject(LibraryResourceHelper.getBaseObject(resource));
+					didlResult.addObject(LibraryResourceHelper.getItem(item));
 				} else {
 					badResourceCount++;
 				}
@@ -604,11 +612,16 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else {
-			LibraryResource parentFolder;
+			LibraryContainer parentFolder;
 			if (resources != null && resourceCount > 0) {
 				parentFolder = resources.get(0).getParent();
 			} else {
-				parentFolder = renderer.getRootFolder().getLibraryResource(containerId);
+				LibraryResource resource = renderer.getRootFolder().getLibraryResource(containerId);
+				if (resource instanceof LibraryContainer libraryContainer) {
+					parentFolder = libraryContainer;
+				} else {
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
 			}
 			if (parentFolder != null) {
 				totalMatches = parentFolder.childrenCount() - badResourceCount;

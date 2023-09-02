@@ -17,28 +17,21 @@
 package net.pms.library;
 
 import com.sun.jna.Platform;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.text.Collator;
-import java.text.Normalizer;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.sharedcontent.ApertureContent;
 import net.pms.configuration.sharedcontent.FeedAudioContent;
 import net.pms.configuration.sharedcontent.FeedImageContent;
 import net.pms.configuration.sharedcontent.FeedVideoContent;
 import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.IPhotoContent;
+import net.pms.configuration.sharedcontent.ITunesContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentWithPath;
@@ -47,41 +40,46 @@ import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.iam.AccountService;
-import net.pms.io.StreamGobbler;
-import net.pms.library.virtual.CodeEnter;
-import net.pms.library.virtual.DynamicPlaylist;
-import net.pms.library.virtual.FileSearch;
-import net.pms.library.virtual.FolderLimit;
-import net.pms.library.virtual.MediaLibrary;
-import net.pms.library.virtual.MediaMonitor;
-import net.pms.library.virtual.Playlist;
-import net.pms.library.virtual.SearchFolder;
-import net.pms.library.virtual.UnattachedFolder;
-import net.pms.library.virtual.UserVirtualFolder;
-import net.pms.library.virtual.VirtualFile;
-import net.pms.library.virtual.VirtualFolder;
-import net.pms.library.virtual.VirtualFolderDbId;
-import net.pms.library.virtual.VirtualVideoAction;
-import net.pms.media.DbIdResourceLocator;
+import net.pms.library.container.ApertureLibraries;
+import net.pms.library.container.AudiosFeed;
+import net.pms.library.container.CodeEnter;
+import net.pms.library.container.CueFolder;
+import net.pms.library.container.DVDISOFile;
+import net.pms.library.container.DynamicPlaylist;
+import net.pms.library.container.FolderLimit;
+import net.pms.library.container.IPhotoLibrary;
+import net.pms.library.container.ITunesLibrary;
+import net.pms.library.container.ImagesFeed;
+import net.pms.library.container.MediaLibrary;
+import net.pms.library.container.MediaMonitor;
+import net.pms.library.container.Playlist;
+import net.pms.library.container.PlaylistFolder;
+import net.pms.library.container.RarredFile;
+import net.pms.library.container.RealFolder;
+import net.pms.library.container.SearchFolder;
+import net.pms.library.container.ServerSettingsFolder;
+import net.pms.library.container.SevenZipFile;
+import net.pms.library.container.UnattachedFolder;
+import net.pms.library.container.UserVirtualFolder;
+import net.pms.library.container.VideosFeed;
+import net.pms.library.container.VirtualFolder;
+import net.pms.library.container.VirtualFolderDbId;
+import net.pms.library.container.ZippedFile;
+import net.pms.library.item.RealFile;
+import net.pms.library.item.WebAudioStream;
+import net.pms.library.item.WebVideoStream;
+import net.pms.library.utils.IOList;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
-import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
-import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
-import net.pms.util.ProcessUtil;
 import net.pms.util.SimpleThreadFactory;
-import net.pms.util.UMSUtils;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xmlwise.Plist;
-import xmlwise.XmlParseException;
 
-public class RootFolder extends LibraryResource {
+public class RootFolder extends LibraryContainer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 
 	// A temp folder for non-xmb items
@@ -90,13 +88,14 @@ public class RootFolder extends LibraryResource {
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
+
 	/**
 	 * List of children objects backuped when discoverChildren.
 	 */
-	private final List<LibraryResource> backupChildren = new ArrayList<>();;
+	private final List<LibraryResource> backupChildren = new ArrayList<>();
 
 	public RootFolder(Renderer renderer) {
-		super(renderer);
+		super(renderer, "root", null);
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
 		setIndexId(0);
@@ -110,8 +109,8 @@ public class RootFolder extends LibraryResource {
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(renderer, Messages.getString("DynamicPlaylist"),
-				renderer.getUmsConfiguration().getDynamicPlsSavePath(),
-				(renderer.getUmsConfiguration().isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+					renderer.getUmsConfiguration().getDynamicPlsSavePath(),
+					(renderer.getUmsConfiguration().isDynamicPlsAutoSave() ? IOList.AUTOSAVE : 0) | IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
@@ -123,26 +122,6 @@ public class RootFolder extends LibraryResource {
 	 */
 	public MediaLibrary getLibrary() {
 		return mediaLibrary;
-	}
-
-	@Override
-	public InputStream getInputStream() {
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return "root";
-	}
-
-	@Override
-	public boolean isFolder() {
-		return true;
-	}
-
-	@Override
-	public long length() {
-		return 0;
 	}
 
 	@Override
@@ -173,7 +152,7 @@ public class RootFolder extends LibraryResource {
 				addChildInternal(mediaLibrary, false);
 				backupChildren.remove(mediaLibrary);
 			} else {
-				addChild(mediaLibrary, true);
+				addChild(mediaLibrary);
 			}
 		}
 
@@ -188,12 +167,10 @@ public class RootFolder extends LibraryResource {
 			}
 		}
 
-		if (
-			renderer.getUmsConfiguration().getFolderLimit() &&
-			renderer.isLimitFolders()
-		) {
+		if (renderer.getUmsConfiguration().getFolderLimit() &&
+				renderer.isLimitFolders()) {
 			lim = new FolderLimit(renderer);
-			addChild(lim, true);
+			addChild(lim);
 		}
 
 		if (renderer.getUmsConfiguration().isDynamicPls()) {
@@ -201,102 +178,47 @@ public class RootFolder extends LibraryResource {
 				addChildInternal(dynamicPls, false);
 				backupChildren.remove(dynamicPls);
 			} else {
-				addChild(getDynamicPls(), true);
+				addChild(getDynamicPls());
 			}
 
 			if (!renderer.getUmsConfiguration().isHideSavedPlaylistFolder()) {
 				File plsdir = new File(renderer.getUmsConfiguration().getDynamicPlsSavePath());
-				RealFile realFile = findRealFileInResources(backupChildren, plsdir);
-				if (realFile != null) {
-					addChildInternal(realFile, false);
-					backupChildren.remove(realFile);
+				LibraryResource plsResource = findResourceFromFile(backupChildren, plsdir);
+				if (plsResource != null) {
+					addChildInternal(plsResource, false);
+					backupChildren.remove(plsResource);
 				} else {
-					addChild(new RealFile(renderer, plsdir, Messages.getString("SavedPlaylists")), true);
+					addChild(new RealFolder(renderer, plsdir, Messages.getString("SavedPlaylists")));
 				}
 			}
 		}
 
 		setSharedContents();
 
-		int osType = Platform.getOSType();
-		if (osType == Platform.MAC) {
-			if (renderer.getUmsConfiguration().isShowIphotoLibrary()) {
-				LibraryResource iPhotoRes = findVirtualFolderInResources(backupChildren, "iPhoto Library");
-				if (iPhotoRes != null) {
-					addChildInternal(iPhotoRes, false);
-					backupChildren.remove(iPhotoRes);
-				} else {
-					iPhotoRes = getiPhotoFolder();
-					if (iPhotoRes != null) {
-						addChild(iPhotoRes);
-					}
-				}
-			}
-			if (renderer.getUmsConfiguration().isShowApertureLibrary()) {
-				LibraryResource apertureRes = findVirtualFolderInResources(backupChildren, "Aperture libraries");
-				if (apertureRes != null) {
-					addChildInternal(apertureRes, false);
-					backupChildren.remove(apertureRes);
-				} else {
-					apertureRes = getApertureFolder();
-					if (apertureRes != null) {
-						addChild(apertureRes);
-					}
-				}
-			}
-		}
-		if (osType == Platform.MAC || osType == Platform.WINDOWS) {
-			if (renderer.getUmsConfiguration().isShowItunesLibrary()) {
-				LibraryResource iTunesRes = findVirtualFolderInResources(backupChildren, "iTunes Library");
-				if (iTunesRes != null) {
-					addChildInternal(iTunesRes, false);
-					backupChildren.remove(iTunesRes);
-				} else {
-					iTunesRes = getiTunesFolder();
-					if (iTunesRes != null) {
-						addChild(iTunesRes);
-					}
-				}
-			}
-		}
-
 		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			LibraryResource serverSettingsRes = findVirtualFolderInResources(backupChildren, Messages.getString("ServerSettings"));
-			if (serverSettingsRes != null) {
-				addChildInternal(serverSettingsRes, false);
-				backupChildren.remove(serverSettingsRes);
+			LibraryResource serverSettingsFolder = findVirtualFolderInResources(backupChildren, Messages.getString("ServerSettings"));
+			if (serverSettingsFolder != null) {
+				addChildInternal(serverSettingsFolder, false);
+				backupChildren.remove(serverSettingsFolder);
 			} else {
-				addAdminFolder();
+				serverSettingsFolder = ServerSettingsFolder.getServerSettingsFolder(renderer);
+				if (serverSettingsFolder != null) {
+					addChild(serverSettingsFolder);
+				}
 			}
 		}
 
-		//now remove old children from globalids
-		for (LibraryResource backupChild : backupChildren) {
-			renderer.getGlobalRepo().delete(backupChild);
-			backupChild.clearChildren();
-		}
-		backupChildren.clear();
+		//now remove old children that was not added from globalids
+		clearBackupChildren();
 		setDiscovered(true);
 	}
 
-	private RealFile findRealFileInResources(List<LibraryResource> resources, File file) {
-		if (file == null) {
-			return null;
-		}
-		for (LibraryResource resource : resources) {
-			if (resource instanceof RealFile realFile && file.equals(realFile.getFile())) {
-				return realFile;
-			}
-		}
-		return null;
-	}
-
-	private VirtualFolder findVirtualFolderInResources(List<LibraryResource> resources, String name) {
+	private LibraryContainer findVirtualFolderInResources(List<LibraryResource> resources, String name) {
 		if (name == null) {
 			return null;
 		}
 		for (LibraryResource resource : resources) {
-			if (resource instanceof VirtualFolder virtualFolder && name.equals(virtualFolder.getName())) {
+			if (resource instanceof LibraryContainer virtualFolder && name.equals(virtualFolder.getName())) {
 				return virtualFolder;
 			}
 		}
@@ -310,882 +232,152 @@ public class RootFolder extends LibraryResource {
 	}
 
 	private void setSharedContents() {
-		List<RealFile> realFiles = new ArrayList<>();
+		List<LibraryResource> realSystemFileResources = new ArrayList<>();
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
-		boolean setExternalContent = CONFIGURATION.getExternalNetwork() && renderer.getUmsConfiguration().getExternalNetwork();
+		boolean useExternalContent = CONFIGURATION.getExternalNetwork() && renderer.getUmsConfiguration().getExternalNetwork();
 		for (SharedContent sharedContent : sharedContents) {
-			if (sharedContent instanceof FolderContent folder &&
-				folder.getFile() != null &&
-				folder.isActive() &&
-				folder.isGroupAllowed(renderer.getAccountGroupId())
-			) {
-				RealFile realFile = findRealFileInResources(backupChildren, folder.getFile());
-				if (realFile != null) {
-					addChildInternal(realFile, false);
-					backupChildren.remove(realFile);
-				} else {
-					realFile = new RealFile(renderer, folder.getFile());
-					addChild(realFile, true, true);
-				}
-				realFiles.add(realFile);
-			} else if (sharedContent instanceof VirtualFolderContent virtualFolder && virtualFolder.isActive()) {
-				LibraryResource parent = getSharedContentParent(virtualFolder.getParent());
-				parent.addChild(new VirtualFile(renderer, virtualFolder));
-			} else if (setExternalContent && sharedContent instanceof SharedContentWithPath sharedContentWithPath && sharedContentWithPath.isExternalContent() && sharedContentWithPath.isActive()) {
-				LibraryResource parent = getSharedContentParent(sharedContentWithPath.getParent());
-				// Handle web playlists stream
-				if (sharedContent instanceof StreamContent streamContent) {
-					LibraryResource playlist = PlaylistFolder.getPlaylist(renderer, streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
-					if (playlist != null) {
-						parent.addChild(playlist);
-						continue;
+			if (sharedContent.isActive() && sharedContent.isGroupAllowed(renderer.getAccountGroupId())) {
+				if (sharedContent instanceof ITunesContent iTunesContent) {
+					setITunesContent(iTunesContent);
+				} else if (sharedContent instanceof ApertureContent) {
+					setApertureContent();
+				} else if (sharedContent instanceof IPhotoContent) {
+					setIPhotoContent();
+				} else if (sharedContent instanceof FolderContent folder) {
+					if (folder.getFile() != null) {
+						LibraryResource realSystemFileResource = setFolderContent(folder);
+						if (realSystemFileResource instanceof RealFolder || realSystemFileResource instanceof RealFile) {
+							realSystemFileResources.add(realSystemFileResource);
+						}
 					}
+				} else if (sharedContent instanceof VirtualFolderContent virtualFolder) {
+					setVirtualFolderContent(virtualFolder);
+				} else if (useExternalContent && sharedContent instanceof SharedContentWithPath sharedContentWithPath && sharedContentWithPath.isExternalContent()) {
+					setExternalContent(sharedContentWithPath);
 				}
-				if (sharedContent instanceof FeedAudioContent feedAudioContent) {
-					parent.addChild(new AudiosFeed(renderer, feedAudioContent.getUri()));
-				} else if (sharedContent instanceof FeedImageContent feedImageContent) {
-					parent.addChild(new ImagesFeed(renderer, feedImageContent.getUri()));
-				} else if (sharedContent instanceof FeedVideoContent feedVideoContent) {
-					parent.addChild(new VideosFeed(renderer, feedVideoContent.getUri()));
-				} else if (sharedContent instanceof StreamAudioContent streamAudioContent) {
-					parent.addChild(new WebAudioStream(renderer, streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
-				} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
-					parent.addChild(new WebVideoStream(renderer, streamVideoContent.getName(), streamVideoContent.getUri(), streamVideoContent.getThumbnail()));
-				}
-				setLastModified(1);
 			}
 		}
 
 		if (renderer.getUmsConfiguration().getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(renderer, Messages.getString("SearchDiscFolders"), new FileSearch(realFiles));
+			SearchFolder sf = new SearchFolder(renderer, Messages.getString("SearchDiscFolders"), new FileSearch(realSystemFileResources));
 			addChild(sf);
 		}
 	}
 
-	/**
-	 * Creates, populates and returns a virtual folder mirroring the
-	 * contents of the system's iPhoto folder.
-	 * Mac OS X only.
-	 *
-	 * @return iPhotoVirtualFolder the populated <code>VirtualFolder</code>, or null if one couldn't be created.
-	 */
-	private LibraryResource getiPhotoFolder() {
-		VirtualFolder iPhotoVirtualFolder = null;
-
-		if (Platform.isMac()) {
-			LOGGER.debug("Adding iPhoto folder");
-			Process process;
-			try {
-				// This command will show the XML files for recently opened iPhoto databases
-				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
-			} catch (IOException e1) {
-				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e1);
-				return null;
-			}
-
-			try (InputStream inputStream = process.getInputStream()) {
-				List<String> lines = IOUtils.readLines(inputStream, StandardCharsets.UTF_8);
-				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
-
-				if (lines.size() >= 2) {
-					// we want the 2nd line
-					String line = lines.get(1);
-
-					// Remove extra spaces
-					line = line.trim();
-
-					// Remove quotes
-					line = line.substring(1, line.length() - 1);
-
-					URI uri = new URI(line);
-					URL url = uri.toURL();
-					File file = FileUtils.toFile(url);
-					LOGGER.debug("Resolved URL to file: {} -> {}", url, file.getAbsolutePath());
-
-					// Load the properties XML file.
-					Map<String, Object> iPhotoLib = Plist.load(file);
-
-					// The list of all photos
-					Map<?, ?> photoList = (Map<?, ?>) iPhotoLib.get("Master Image List");
-
-					// The list of events (rolls)
-					List<Map<?, ?>> listOfRolls = (List<Map<?, ?>>) iPhotoLib.get("List of Rolls");
-
-					iPhotoVirtualFolder = new VirtualFolder(renderer, "iPhoto Library", null);
-
-					for (Map<?, ?> roll : listOfRolls) {
-						Object rollName = roll.get("RollName");
-
-						if (rollName != null) {
-							VirtualFolder virtualFolder = new VirtualFolder(renderer, rollName.toString(), null);
-
-							// List of photos in an event (roll)
-							List<?> rollPhotos = (List<?>) roll.get("KeyList");
-
-							for (Object photo : rollPhotos) {
-								Map<?, ?> photoProperties = (Map<?, ?>) photoList.get(photo);
-
-								if (photoProperties != null) {
-									Object imagePath = photoProperties.get("ImagePath");
-
-									if (imagePath != null) {
-										RealFile realFile = new RealFile(renderer, new File(imagePath.toString()));
-										virtualFolder.addChild(realFile);
-									}
-								}
-							}
-
-							iPhotoVirtualFolder.addChild(virtualFolder);
-						}
-					}
-				} else {
-					LOGGER.info("iPhoto folder not found");
-				}
-			} catch (XmlParseException | URISyntaxException | IOException e) {
-				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
-			}
-		}
-
-		return iPhotoVirtualFolder;
-	}
-
-	/**
-	 * Returns Aperture folder. Used by manageRoot, so it is usually used as
-	 * a folder at the root folder. Only works when UMS is run on Mac OS X.
-	 * TODO: Requirements for Aperture.
-	 */
-	private LibraryResource getApertureFolder() {
-		VirtualFolder res = null;
-
-		if (Platform.isMac()) {
-			Process process = null;
-
-			try {
-				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-					// Every line entry is one aperture library. We want all of them as a dlna folder.
-					String line;
-					res = new VirtualFolder(renderer, "Aperture libraries", null);
-
-					while ((line = in.readLine()) != null) {
-						if (line.startsWith("(") || line.startsWith(")")) {
-							continue;
-						}
-
-						line = line.trim(); // remove extra spaces
-						line = line.substring(1, line.lastIndexOf('"')); // remove quotes and spaces
-						VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
-
-						if (apertureLibrary != null) {
-							res.addChild(apertureLibrary);
-						}
-					}
-				}
-			} catch (IOException | XmlParseException | URISyntaxException e) {
-				LOGGER.error("Something went wrong with the aperture library scan: ", e);
-			} finally {
-				// Avoid zombie processes, or open stream failures
-				if (process != null) {
-					try {
-						// The process seems to always finish, so we can wait for it.
-						// If the result code is not read by parent. The process might turn into a zombie (they are real!)
-						process.waitFor();
-					} catch (InterruptedException e) {
-						LOGGER.warn("Interrupted while waiting for stream for process");
-						Thread.currentThread().interrupt();
-					}
-
-					try {
-						process.getErrorStream().close();
-					} catch (IOException e) {
-						LOGGER.warn("Could not close process output stream: {}", e.getMessage());
-						LOGGER.trace("", e);
-					}
-
-					try {
-						process.getInputStream().close();
-					} catch (IOException e) {
-						LOGGER.warn("Could not close stream for output process", e);
-					}
-
-					try {
-						process.getOutputStream().close();
-					} catch (IOException e) {
-						LOGGER.warn("Could not close stream for output process", e);
-					}
-				}
-			}
-		}
-
-		return res;
-	}
-
-	private VirtualFolder createApertureDlnaLibrary(String url) throws XmlParseException, IOException, URISyntaxException {
-		VirtualFolder res = null;
-
-		if (url != null) {
-			Map<String, Object> iPhotoLib;
-			// every project is a album, too
-			List<?> listOfAlbums;
-			Map<?, ?> album;
-			Map<?, ?> photoList;
-
-			URI tURI = new URI(url);
-			iPhotoLib = Plist.load(URLDecoder.decode(tURI.toURL().getFile(), System.getProperty("file.encoding"))); // loads the (nested) properties.
-			photoList = (Map<?, ?>) iPhotoLib.get("Master Image List"); // the list of photos
-			final Object mediaPath = iPhotoLib.get("Archive Path");
-			String mediaName;
-
-			if (mediaPath != null) {
-				mediaName = mediaPath.toString();
-
-				if (mediaName != null && mediaName.lastIndexOf('/') != -1 && mediaName.lastIndexOf(".aplibrary") != -1) {
-					mediaName = mediaName.substring(mediaName.lastIndexOf('/'), mediaName.lastIndexOf(".aplibrary"));
-				} else {
-					mediaName = "unknown library";
-				}
+	private LibraryResource setFolderContent(FolderContent folderContent) {
+		if (folderContent.getFile() != null) {
+			LibraryResource realSystemFileResource = findResourceFromFile(backupChildren, folderContent.getFile());
+			if (realSystemFileResource != null) {
+				addChildInternal(realSystemFileResource, false);
+				backupChildren.remove(realSystemFileResource);
 			} else {
-				mediaName = "unknown library";
+				realSystemFileResource = createResourceFromFile(folderContent.getFile());
+				addChild(realSystemFileResource, true, true);
 			}
-
-			LOGGER.info("Going to parse aperture library: " + mediaName);
-			res = new VirtualFolder(renderer, mediaName, null);
-			listOfAlbums = (List<?>) iPhotoLib.get("List of Albums"); // the list of events (rolls)
-
-			for (Object item : listOfAlbums) {
-				album = (Map<?, ?>) item;
-
-				if (album.get("Parent") == null) {
-					VirtualFolder vAlbum = createApertureAlbum(photoList, album, listOfAlbums);
-					res.addChild(vAlbum);
-				}
-			}
-		} else {
-			LOGGER.info("No Aperture library found.");
+			return realSystemFileResource;
 		}
-		return res;
+		return null;
 	}
 
-	private VirtualFolder createApertureAlbum(
-		Map<?, ?> photoList,
-		Map<?, ?> album, List<?> listOfAlbums
-	) {
-
-		List<?> albumPhotos;
-		int albumId = (Integer) album.get("AlbumId");
-		VirtualFolder vAlbum = new VirtualFolder(renderer, album.get("AlbumName").toString(), null);
-
-		for (Object item : listOfAlbums) {
-			Map<?, ?> sub = (Map<?, ?>) item;
-
-			if (sub.get("Parent") != null) {
-				// recursive album creation
-				int parent = (Integer) sub.get("Parent");
-
-				if (parent == albumId) {
-					VirtualFolder subAlbum = createApertureAlbum(photoList, sub, listOfAlbums);
-					vAlbum.addChild(subAlbum);
-				}
-			}
-		}
-
-		albumPhotos = (List<?>) album.get("KeyList");
-
-		if (albumPhotos == null) {
-			return vAlbum;
-		}
-
-		boolean firstPhoto = true;
-
-		for (Object photoKey : albumPhotos) {
-			Map<?, ?> photo = (Map<?, ?>) photoList.get(photoKey);
-
-			if (firstPhoto) {
-				Object x = photoList.get("ThumbPath");
-
-				if (x != null) {
-					vAlbum.setThumbnail(x.toString());
-				}
-
-				firstPhoto = false;
-			}
-
-			RealFile file = new RealFile(renderer, new File(photo.get("ImagePath").toString()));
-			vAlbum.addChild(file);
-		}
-
-		return vAlbum;
+	private void setVirtualFolderContent(VirtualFolderContent virtualFolderContent) {
+		//TODO : find a way to use backupChildren avoiding reconstruction
+		LibraryContainer parent = getSharedContentParent(virtualFolderContent.getParent());
+		parent.addChild(new VirtualFolder(renderer, virtualFolderContent));
 	}
 
-	/**
-	 * Returns the iTunes XML file. This file has all the information of the
-	 * iTunes database. The methods used in this function depends on whether
-	 * UMS runs on Mac OS X or Windows.
-	 *
-	 * @return (String) Absolute path to the iTunes XML file.
-	 * @throws Exception
-	 */
-	private String getiTunesFile() throws Exception {
-		String customUserPath = renderer.getUmsConfiguration().getItunesLibraryPath();
-
-		if (!"".equals(customUserPath)) {
-			return customUserPath;
-		}
-		return PlatformUtils.INSTANCE.getiTunesFile();
-	}
-
-	/**
-	 * Returns iTunes folder. Used by manageRoot, so it is usually used as a
-	 * folder at the root folder. Only works on Mac OS X or Windows.
-	 *
-	 * The iTunes XML is parsed fully when this method is called, so it can
-	 * take some time for larger (+1000 albums) databases.
-	 *
-	 * This method does not support genius playlists and does not provide a
-	 * media library.
-	 *
-	 * @see RootFolder#getiTunesFile()
-	 */
-	private LibraryResource getiTunesFolder() {
-		LibraryResource res = null;
-
-		if (Platform.isMac() || Platform.isWindows()) {
-			Map<String, Object> iTunesLib;
-			List<?> playlists;
-			Map<?, ?> playlist;
-			Map<?, ?> tracks;
-			Map<?, ?> track;
-			List<?> playlistTracks;
-
-			try {
-				String iTunesFile = getiTunesFile();
-
-				if (iTunesFile != null && (new File(iTunesFile)).exists()) {
-					iTunesLib = Plist.load(URLDecoder.decode(iTunesFile, System.getProperty("file.encoding"))); // loads the (nested) properties.
-					tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
-					playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
-					res = new VirtualFolder(renderer, "iTunes Library", null);
-
-					VirtualFolder playlistsFolder = null;
-
-					for (Object item : playlists) {
-						playlist = (Map<?, ?>) item;
-
-						if (playlist.containsKey("Visible") && playlist.get("Visible").equals(Boolean.FALSE)) {
-							continue;
-						}
-
-						if (playlist.containsKey("Music") && playlist.get("Music").equals(Boolean.TRUE)) {
-							// Create virtual folders for artists, albums and genres
-
-							VirtualFolder musicFolder = new VirtualFolder(renderer, playlist.get("Name").toString(), null);
-							res.addChild(musicFolder);
-
-							VirtualFolder virtualFolderArtists = new VirtualFolder(renderer, Messages.getString("BrowseByArtist"), null);
-							VirtualFolder virtualFolderAlbums = new VirtualFolder(renderer, Messages.getString("BrowseByAlbum"), null);
-							VirtualFolder virtualFolderGenres = new VirtualFolder(renderer, Messages.getString("BrowseByGenre"), null);
-							VirtualFolder virtualFolderAllTracks = new VirtualFolder(renderer, Messages.getString("AllAudioTracks"), null);
-							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
-
-							String artistName;
-							String albumName;
-							String genreName;
-
-							if (playlistTracks != null) {
-								for (Object t : playlistTracks) {
-									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
-
-									if (
-										track != null &&
-										track.get("Location") != null &&
-										track.get("Location").toString().startsWith("file://")
-									) {
-										String name = Normalizer.normalize((String) track.get("Name"), Normalizer.Form.NFC);
-										// remove dots from name to prevent media renderer from trimming
-										name = name.replace('.', '-');
-
-										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
-											name = name + "-" + Messages.getString("Protected_lowercase");
-										}
-
-										boolean isCompilation = (track.containsKey("Compilation") && track.get("Compilation").equals(Boolean.TRUE));
-
-										artistName = (String) track.get("Artist");
-										if (isCompilation) {
-											artistName = "Compilation";
-										} else if (track.containsKey("Album Artist")) {
-											artistName = (String) track.get("Album Artist");
-										}
-										albumName = (String) track.get("Album");
-										genreName = (String) track.get("Genre");
-
-										if (artistName == null) {
-											artistName = "Unknown Artist";
-										} else {
-											artistName = Normalizer.normalize(artistName, Normalizer.Form.NFC);
-										}
-
-										if (albumName == null) {
-											albumName = "Unknown Album";
-										} else {
-											albumName = Normalizer.normalize(albumName, Normalizer.Form.NFC);
-										}
-
-										if (genreName == null || "".equals(genreName.replaceAll("[^a-zA-Z]", ""))) {
-											// This prevents us from adding blank or numerical genres
-											genreName = "Unknown Genre";
-										} else {
-											genreName = Normalizer.normalize(genreName, Normalizer.Form.NFC);
-										}
-
-										// Replace &nbsp with space and then trim
-										artistName = artistName.replace('\u0160', ' ').trim();
-										albumName  = albumName.replace('\u0160', ' ').trim();
-										genreName  = genreName.replace('\u0160', ' ').trim();
-
-										URI tURI2 = new URI(track.get("Location").toString());
-										File refFile = new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8));
-										RealFile file = new RealFile(renderer, refFile, name);
-
-										// Put the track into the artist's album folder and the artist's "All tracks" folder
-										VirtualFolder individualArtistFolder = null;
-										VirtualFolder individualArtistAllTracksFolder;
-										VirtualFolder individualArtistAlbumFolder = null;
-
-										for (LibraryResource artist : virtualFolderArtists.getChildren()) {
-											if (areNamesEqual(artist.getName(), artistName)) {
-												individualArtistFolder = (VirtualFolder) artist;
-												for (LibraryResource album : individualArtistFolder.getChildren()) {
-													if (areNamesEqual(album.getName(), albumName)) {
-														individualArtistAlbumFolder = (VirtualFolder) album;
-													}
-												}
-												break;
-											}
-										}
-
-										if (individualArtistFolder == null) {
-											individualArtistFolder = new VirtualFolder(renderer, artistName, null);
-											virtualFolderArtists.addChild(individualArtistFolder);
-											individualArtistAllTracksFolder = new VirtualFolder(renderer, Messages.getString("AllAudioTracks"), null);
-											individualArtistFolder.addChild(individualArtistAllTracksFolder);
-										} else {
-											individualArtistAllTracksFolder = (VirtualFolder) individualArtistFolder.getChildren().get(0);
-										}
-
-										if (individualArtistAlbumFolder == null) {
-											individualArtistAlbumFolder = new VirtualFolder(renderer, albumName, null);
-											individualArtistFolder.addChild(individualArtistAlbumFolder);
-										}
-
-										individualArtistAlbumFolder.addChild(file.clone());
-										individualArtistAllTracksFolder.addChild(file);
-
-										// Put the track into its album folder
-										if (!isCompilation) {
-											albumName += " - " + artistName;
-										}
-
-										VirtualFolder individualAlbumFolder = null;
-										for (LibraryResource album : virtualFolderAlbums.getChildren()) {
-											if (areNamesEqual(album.getName(), albumName)) {
-												individualAlbumFolder = (VirtualFolder) album;
-												break;
-											}
-										}
-										if (individualAlbumFolder == null) {
-											individualAlbumFolder = new VirtualFolder(renderer, albumName, null);
-											virtualFolderAlbums.addChild(individualAlbumFolder);
-										}
-										individualAlbumFolder.addChild(file.clone());
-
-										// Put the track into its genre folder
-										VirtualFolder individualGenreFolder = null;
-										for (LibraryResource genre : virtualFolderGenres.getChildren()) {
-											if (areNamesEqual(genre.getName(), genreName)) {
-												individualGenreFolder = (VirtualFolder) genre;
-												break;
-											}
-										}
-										if (individualGenreFolder == null) {
-											individualGenreFolder = new VirtualFolder(renderer, genreName, null);
-											virtualFolderGenres.addChild(individualGenreFolder);
-										}
-										individualGenreFolder.addChild(file.clone());
-
-										// Put the track into the global "All tracks" folder
-										virtualFolderAllTracks.addChild(file.clone());
-									}
-								}
-							}
-
-							musicFolder.addChild(virtualFolderArtists);
-							musicFolder.addChild(virtualFolderAlbums);
-							musicFolder.addChild(virtualFolderGenres);
-							musicFolder.addChild(virtualFolderAllTracks);
-
-							// Sort the virtual folders alphabetically
-							Collections.sort(virtualFolderArtists.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
-								VirtualFolder a = (VirtualFolder) o1;
-								VirtualFolder b = (VirtualFolder) o2;
-								return a.getName().compareToIgnoreCase(b.getName());
-							});
-
-							Collections.sort(virtualFolderAlbums.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
-								VirtualFolder a = (VirtualFolder) o1;
-								VirtualFolder b = (VirtualFolder) o2;
-								return a.getName().compareToIgnoreCase(b.getName());
-							});
-
-							Collections.sort(virtualFolderGenres.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
-								VirtualFolder a = (VirtualFolder) o1;
-								VirtualFolder b = (VirtualFolder) o2;
-								return a.getName().compareToIgnoreCase(b.getName());
-							});
-						} else {
-							// Add all playlists
-							VirtualFolder pf = new VirtualFolder(renderer, playlist.get("Name").toString(), null);
-							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
-
-							if (playlistTracks != null) {
-								for (Object t : playlistTracks) {
-									Map<?, ?> td = (Map<?, ?>) t;
-									track = (Map<?, ?>) tracks.get(td.get("Track ID").toString());
-
-									if (
-										track != null &&
-										track.get("Location") != null &&
-										track.get("Location").toString().startsWith("file://")
-									) {
-										String name = Normalizer.normalize(track.get("Name").toString(), Normalizer.Form.NFC);
-										// remove dots from name to prevent media renderer from trimming
-										name = name.replace('.', '-');
-
-										if (track.containsKey("Protected") && track.get("Protected").equals(Boolean.TRUE)) {
-											name = name + "-" + Messages.getString("Protected_lowercase");
-										}
-
-										URI tURI2 = new URI(track.get("Location").toString());
-										RealFile file = new RealFile(renderer, new File(URLDecoder.decode(tURI2.toURL().getFile(), StandardCharsets.UTF_8)), name);
-										pf.addChild(file);
-									}
-								}
-							}
-
-							int kind = playlist.containsKey("Distinguished Kind") ? ((Number) playlist.get("Distinguished Kind")).intValue() : -1;
-							if (kind >= 0 && kind != 17 && kind != 19 && kind != 20) {
-								// System folder, but not voice memos (17) and purchased items (19 & 20)
-								res.addChild(pf);
-							} else {
-								// User playlist or playlist folder
-								if (playlistsFolder == null) {
-									playlistsFolder = new VirtualFolder(renderer, "Playlists", null);
-									res.addChild(playlistsFolder);
-								}
-								playlistsFolder.addChild(pf);
-							}
-						}
-					}
-				} else {
-					LOGGER.info("Could not find the iTunes file");
-				}
-			} catch (Exception e) {
-				LOGGER.error("Something went wrong with the iTunes Library scan: ", e);
-			}
-		}
-
-		return res;
-	}
-
-	private void addAdminFolder() {
-		LibraryResource res = new VirtualFolder(renderer, Messages.getString("ServerSettings"), null);
-		LibraryResource vsf = getVideoSettingsFolder();
-
-		if (vsf != null) {
-			res.addChild(vsf);
-		}
-
-		if (renderer.getUmsConfiguration().getScriptDir() != null) {
-			final File scriptDir = new File(renderer.getUmsConfiguration().getScriptDir());
-
-			if (scriptDir.exists()) {
-				res.addChild(new VirtualFolder(renderer, Messages.getString("Scripts"), null) {
-					@Override
-					public void discoverChildren() {
-						File[] files = scriptDir.listFiles();
-						if (files != null) {
-							for (File file : files) {
-								String childrenName = file.getName().replace("_", " ");
-								int pos = childrenName.lastIndexOf('.');
-
-								if (pos != -1) {
-									childrenName = childrenName.substring(0, pos);
-								}
-
-								final File f = file;
-
-								addChild(new VirtualVideoAction(renderer, childrenName, true, null) {
-									@Override
-									public boolean enable() {
-										try {
-											ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
-											pb.redirectErrorStream(true);
-											Process pid = pb.start();
-											// consume the error and output process streams
-											StreamGobbler.consume(pid.getInputStream());
-											pid.waitFor();
-										} catch (IOException e) {
-											//continue
-										} catch (InterruptedException e) {
-											Thread.currentThread().interrupt();
-										}
-
-										return true;
-									}
-								});
-							}
-						}
-					}
-				});
-			}
-		}
-
-		// Resume file management
-		if (renderer.getUmsConfiguration().isResumeEnabled()) {
-			res.addChild(new VirtualFolder(renderer, Messages.getString("ManageResumeFiles"), null) {
-				@Override
-				public void discoverChildren() {
-					final File[] files = ResumeObj.resumeFiles();
-					addChild(new VirtualVideoAction(renderer, Messages.getString("DeleteAllFiles"), true, null) {
-						@Override
-						public boolean enable() {
-							for (File f : files) {
-								f.delete();
-							}
-							getParent().getChildren().remove(this);
-							return false;
-						}
-					});
-					for (final File f : files) {
-						String childrenName = FileUtil.getFileNameWithoutExtension(f.getName());
-						childrenName = childrenName.replaceAll(ResumeObj.CLEAN_REG, "");
-						addChild(new VirtualVideoAction(renderer, childrenName, false, null) {
-							@Override
-							public boolean enable() {
-								f.delete();
-								getParent().getChildren().remove(this);
-								return false;
-							}
-						});
-					}
-				}
-			});
-		}
-
-		// Restart UMS
-		res.addChild(new VirtualVideoAction(renderer, Messages.getString("RestartUms"), true, "images/icon-videothumbnail-restart.png") {
-			@Override
-			public boolean enable() {
-				ProcessUtil.reboot();
-				// Reboot failed if we get here
-				return false;
-			}
-		});
-
-		// Shut down computer
-		res.addChild(new VirtualVideoAction(renderer, Messages.getString("ShutDownComputer"), true, "images/icon-videothumbnail-shutdown.png") {
-			@Override
-			public boolean enable() {
-				ProcessUtil.shutDownComputer();
-				// Shutdown failed if we get here
-				return false;
-			}
-		});
-
-		addChild(res);
-	}
-
-	/**
-	 * Returns Video Settings folder. Used by manageRoot, so it is usually
-	 * used as a folder at the root folder. Child objects are created when
-	 * this folder is created.
-	 */
-	private LibraryResource getVideoSettingsFolder() {
-		LibraryResource res = null;
-
-		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			res = new VirtualFolder(renderer, Messages.getString("VideoSettings_FolderName"), null);
-			VirtualFolder vfSub = new VirtualFolder(renderer, Messages.getString("Subtitles"), null);
-			res.addChild(vfSub);
-
-			if (renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid() &&
-				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
-				// if the master code is valid we don't add this
-				VirtualVideoAction vva = new VirtualVideoAction(renderer, "MasterCode", true, null) {
-					@Override
-					public boolean enable() {
-						CodeEnter ce = (CodeEnter) getParent();
-						if (ce.validCode(this)) {
-							PMS.get().setMasterCode(ce);
-							return true;
-						}
-						return false;
-					}
-				};
-				CodeEnter ce1 = new CodeEnter(vva);
-				ce1.setCode(CodeDb.MASTER);
-				res.addChild(ce1);
-			}
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("AvSyncAlternativeMethod"), renderer.getUmsConfiguration().isMencoderNoOutOfSync(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setMencoderNoOutOfSync(!renderer.getUmsConfiguration().isMencoderNoOutOfSync());
-					return renderer.getUmsConfiguration().isMencoderNoOutOfSync();
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("DefaultH264RemuxMencoder"), renderer.getUmsConfiguration().isMencoderMuxWhenCompatible(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setMencoderMuxWhenCompatible(!renderer.getUmsConfiguration().isMencoderMuxWhenCompatible());
-
-					return renderer.getUmsConfiguration().isMencoderMuxWhenCompatible();
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, "  !!-- Fix 23.976/25fps A/V Mismatch --!!", renderer.getUmsConfiguration().isFix25FPSAvMismatch(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setMencoderForceFps(!renderer.getUmsConfiguration().isFix25FPSAvMismatch());
-					renderer.getUmsConfiguration().setFix25FPSAvMismatch(!renderer.getUmsConfiguration().isFix25FPSAvMismatch());
-					return renderer.getUmsConfiguration().isFix25FPSAvMismatch();
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("DeinterlaceFilter"), renderer.getUmsConfiguration().isMencoderYadif(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setMencoderYadif(!renderer.getUmsConfiguration().isMencoderYadif());
-
-					return renderer.getUmsConfiguration().isMencoderYadif();
-				}
-			});
-
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("DisableSubtitles"), renderer.getUmsConfiguration().isDisableSubtitles(), null) {
-				@Override
-				public boolean enable() {
-					boolean oldValue = renderer.getUmsConfiguration().isDisableSubtitles();
-					boolean newValue = !oldValue;
-					renderer.getUmsConfiguration().setDisableSubtitles(newValue);
-					return newValue;
-				}
-			});
-
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("AutomaticallyLoadSrtSubtitles"), renderer.getUmsConfiguration().isAutoloadExternalSubtitles(), null) {
-				@Override
-				public boolean enable() {
-					boolean oldValue = renderer.getUmsConfiguration().isAutoloadExternalSubtitles();
-					boolean newValue = !oldValue;
-					renderer.getUmsConfiguration().setAutoloadExternalSubtitles(newValue);
-					return newValue;
-				}
-			});
-
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("UseEmbeddedStyle"), renderer.getUmsConfiguration().isUseEmbeddedSubtitlesStyle(), null) {
-				@Override
-				public boolean enable() {
-					boolean oldValue = renderer.getUmsConfiguration().isUseEmbeddedSubtitlesStyle();
-					boolean newValue = !oldValue;
-					renderer.getUmsConfiguration().setUseEmbeddedSubtitlesStyle(newValue);
-					return newValue;
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("SkipLoopFilterDeblocking"), renderer.getUmsConfiguration().getSkipLoopFilterEnabled(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setSkipLoopFilterEnabled(!renderer.getUmsConfiguration().getSkipLoopFilterEnabled());
-					return renderer.getUmsConfiguration().getSkipLoopFilterEnabled();
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("KeepDtsTracks"), renderer.getUmsConfiguration().isAudioEmbedDtsInPcm(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setAudioEmbedDtsInPcm(!renderer.getUmsConfiguration().isAudioEmbedDtsInPcm());
-					return renderer.getUmsConfiguration().isAudioEmbedDtsInPcm();
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("SaveConfiguration"), true, null) {
-				@Override
-				public boolean enable() {
-					try {
-						renderer.getUmsConfiguration().save();
-					} catch (ConfigurationException e) {
-						LOGGER.debug("Caught exception", e);
-					}
-					return true;
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("RestartServer"), true, null) {
-				@Override
-				public boolean enable() {
-					PMS.get().resetMediaServer();
-					return true;
-				}
-			});
-
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("ShowLiveSubtitlesFolder"), renderer.getUmsConfiguration().isShowLiveSubtitlesFolder(), null) {
-				@Override
-				public boolean enable() {
-					renderer.getUmsConfiguration().setShowLiveSubtitlesFolder(renderer.getUmsConfiguration().isShowLiveSubtitlesFolder());
-					return renderer.getUmsConfiguration().isShowLiveSubtitlesFolder();
-				}
-			});
-		}
-
-		return res;
-	}
-
-	/**
-	 * TODO: move that under the media library as it should (like tv series)
-	 */
-	private void addVirtualMyMusicFolder() {
-		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, Messages.getString("MyAlbums"), myAlbums, "");
-		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			if (!getChildren().contains(myMusicFolder)) {
-				myMusicFolder.setFakeParentId("0");
-				addChild(myMusicFolder, true, false);
-				LOGGER.debug("adding My Music folder to root");
-			}
-		} else {
-			if (
-				mediaLibrary.isEnabled() &&
-				mediaLibrary.getAudioFolder() != null &&
-				mediaLibrary.getAudioFolder().getChildren() != null &&
-				!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)
-			) {
-				myMusicFolder.setFakeParentId(mediaLibrary.getAudioFolder().getId());
-				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, false);
-				LOGGER.debug("adding My Music folder to 'Audio' folder");
+	private void setITunesContent(ITunesContent iTunesContent) {
+		int osType = Platform.getOSType();
+		if (osType == Platform.MAC || osType == Platform.WINDOWS) {
+			LibraryResource iTunesRes = findVirtualFolderInResources(backupChildren, "iTunes Library");
+			if (iTunesRes != null) {
+				addChildInternal(iTunesRes, false);
+				backupChildren.remove(iTunesRes);
 			} else {
-				LOGGER.debug("couldn't add 'My Music' folder because the media library is not initialized.");
+				iTunesRes = ITunesLibrary.getiTunesFolder(renderer, iTunesContent.getPath());
+				if (iTunesRes != null) {
+					addChild(iTunesRes);
+				}
 			}
 		}
 	}
 
-	@Override
-	public String toString() {
-		return "RootFolder[" + getChildren() + "]";
+	private void setApertureContent() {
+		int osType = Platform.getOSType();
+		if (osType == Platform.MAC) {
+			LibraryResource apertureRes = findVirtualFolderInResources(backupChildren, "Aperture libraries");
+			if (apertureRes != null) {
+				addChildInternal(apertureRes, false);
+				backupChildren.remove(apertureRes);
+			} else {
+				apertureRes = ApertureLibraries.getApertureFolder(renderer);
+				if (apertureRes != null) {
+					addChild(apertureRes);
+				}
+			}
+		}
+	}
+
+	private void setIPhotoContent() {
+		int osType = Platform.getOSType();
+		if (osType == Platform.MAC) {
+			LibraryResource iPhotoRes = findVirtualFolderInResources(backupChildren, "iPhoto Library");
+			if (iPhotoRes != null) {
+				addChildInternal(iPhotoRes, false);
+				backupChildren.remove(iPhotoRes);
+			} else {
+				iPhotoRes = IPhotoLibrary.getiPhotoFolder(renderer);
+				if (iPhotoRes != null) {
+					addChild(iPhotoRes);
+				}
+			}
+		}
+	}
+
+	private void setExternalContent(SharedContentWithPath sharedContent) {
+		LibraryContainer parent = getSharedContentParent(sharedContent.getParent());
+		// Handle web playlists stream
+		if (sharedContent instanceof StreamContent streamContent) {
+			LibraryResource playlist = PlaylistFolder.getPlaylist(renderer, streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
+			if (playlist != null) {
+				parent.addChild(playlist);
+				return;
+			}
+		}
+		if (sharedContent instanceof FeedAudioContent feedAudioContent) {
+			parent.addChild(new AudiosFeed(renderer, feedAudioContent.getUri()));
+		} else if (sharedContent instanceof FeedImageContent feedImageContent) {
+			parent.addChild(new ImagesFeed(renderer, feedImageContent.getUri()));
+		} else if (sharedContent instanceof FeedVideoContent feedVideoContent) {
+			parent.addChild(new VideosFeed(renderer, feedVideoContent.getUri()));
+		} else if (sharedContent instanceof StreamAudioContent streamAudioContent) {
+			parent.addChild(new WebAudioStream(renderer, streamAudioContent.getName(), streamAudioContent.getUri(), streamAudioContent.getThumbnail()));
+		} else if (sharedContent instanceof StreamVideoContent streamVideoContent) {
+			parent.addChild(new WebVideoStream(renderer, streamVideoContent.getName(), streamVideoContent.getUri(), streamVideoContent.getThumbnail()));
+		}
+		setLastModified(1);
+	}
+
+	/**
+	 * Clear all resources in children.
+	 */
+	public void clearBackupChildren() {
+		Iterator<LibraryResource> resources = backupChildren.iterator();
+		while (resources.hasNext()) {
+			LibraryResource resource = resources.next();
+			if (resource instanceof LibraryContainer container) {
+				container.clearChildren();
+			}
+			resources.remove();
+			renderer.getGlobalRepo().delete(resource);
+		}
+		backupChildren.clear();
 	}
 
 	public void reset() {
-		setDiscovered(false);
+		if (isDiscovered()) {
+			setDiscovered(false);
+			discoverChildren();
+		}
 	}
 
 	public void stopPlaying(LibraryResource res) {
@@ -1219,7 +411,6 @@ public class RootFolder extends LibraryResource {
 			Integer userId = UserVirtualFolder.decrypt(loginstring);
 			if (userId != null) {
 				renderer.setAccount(AccountService.getAccountByUserId(userId));
-				getChildren().clear();
 				reset();
 				discoverChildren();
 				UmsContentDirectoryService.bumpSystemUpdateId();
@@ -1264,7 +455,7 @@ public class RootFolder extends LibraryResource {
 	}
 
 	public synchronized List<LibraryResource> getLibraryResources(String objectId, boolean returnChildren, int start, int count,
-		String searchStr) {
+			String searchStr) {
 		ArrayList<LibraryResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -1311,49 +502,53 @@ public class RootFolder extends LibraryResource {
 
 			if (!returnChildren) {
 				resources.add(resource);
-				resource.refreshChildrenIfNeeded(searchStr);
-			} else {
-				resource.discover(count, true, searchStr);
-
-				if (count == 0) {
-					count = resource.getChildren().size();
+				if (resource instanceof LibraryContainer libraryContainer) {
+					libraryContainer.refreshChildrenIfNeeded(searchStr);
 				}
+			} else {
+				if (resource instanceof LibraryContainer libraryContainer) {
+					libraryContainer.discover(count, true, searchStr);
 
-				if (count > 0) {
-					String systemName = resource.getSystemName();
-					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
-
-					int nParallelThreads = 3;
-					if (resource instanceof DVDISOFile) {
-						// Some DVD drives die with 3 parallel threads
-						nParallelThreads = 1;
+					if (count == 0) {
+						count = libraryContainer.getChildren().size();
 					}
 
-					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-						new SimpleThreadFactory("LibraryResource resolver thread", true));
+					if (count > 0) {
+						String systemName = libraryContainer.getSystemName();
+						ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
-					if (shouldDoAudioTrackSorting(resource)) {
-						sortChildrenWithAudioElements(resource);
-					}
-					for (int i = start; i < start + count && i < resource.getChildren().size(); i++) {
-						final LibraryResource child = resource.getChildren().get(i);
-						if (child != null) {
-							tpe.execute(child);
-							resources.add(child);
-						} else {
-							LOGGER.warn("null child at index {} in {}", i, systemName);
+						int nParallelThreads = 3;
+						if (libraryContainer instanceof DVDISOFile) {
+							// Some DVD drives die with 3 parallel threads
+							nParallelThreads = 1;
 						}
-					}
 
-					try {
-						tpe.shutdown();
-						tpe.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e) {
-						LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-						Thread.currentThread().interrupt();
-					}
+						ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
+								new SimpleThreadFactory("LibraryResource resolver thread", true));
 
-					LOGGER.trace("End of analysis for " + systemName);
+						if (shouldDoAudioTrackSorting(libraryContainer)) {
+							sortChildrenWithAudioElements(libraryContainer);
+						}
+						for (int i = start; i < start + count && i < libraryContainer.getChildren().size(); i++) {
+							final LibraryResource child = libraryContainer.getChildren().get(i);
+							if (child != null) {
+								tpe.execute(child);
+								resources.add(child);
+							} else {
+								LOGGER.warn("null child at index {} in {}", i, systemName);
+							}
+						}
+
+						try {
+							tpe.shutdown();
+							tpe.awaitTermination(20, TimeUnit.SECONDS);
+						} catch (InterruptedException e) {
+							LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+							Thread.currentThread().interrupt();
+						}
+
+						LOGGER.trace("End of analysis for " + systemName);
+					}
 				}
 			}
 		}
@@ -1375,30 +570,175 @@ public class RootFolder extends LibraryResource {
 				return null;
 			}
 
-			resource.discover(0, false, null);
+			if (resource instanceof LibraryContainer libraryContainer) {
+				libraryContainer.discover(0, false, null);
+			}
 		}
 
 		return renderer.getGlobalRepo().get(searchIds[searchIds.length - 1]);
 	}
 
-	private static boolean areNamesEqual(String aThis, String aThat) {
-		Collator collator = Collator.getInstance(Locale.getDefault());
-		collator.setStrength(Collator.PRIMARY);
-		int comparison = collator.compare(aThis, aThat);
+	public void fileRemoved(String filename) {
+		File file = new File(filename);
+		for (LibraryResource libraryResource : renderer.getGlobalRepo().findSystemFileResources(file)) {
+			libraryResource.getParent().removeChild(libraryResource);
+			libraryResource.getParent().notifyRefresh();
+		}
+	}
 
-		return (comparison == 0);
+	public void fileAdded(String filename) {
+		File file = new File(filename);
+		File parentFile = file.getParentFile();
+		for (LibraryResource libraryResource : renderer.getGlobalRepo().findSystemFileResources(parentFile)) {
+			if (libraryResource instanceof VirtualFolder virtualFolder) {
+				virtualFolder.addFile(file);
+			}
+		}
+	}
+
+	private LibraryResource findResourceFromFile(List<LibraryResource> resources, File file) {
+		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+			return null;
+		}
+		if (file.isDirectory()) {
+			if (file.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS")) {
+				return findResourceFromFile(resources, file, DVDISOFile.class);
+			} else {
+				return findResourceFromFile(resources, file, RealFolder.class);
+			}
+		}
+		String lcFilename = file.getName().toLowerCase();
+		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+			return findResourceFromFile(resources, file, ZippedFile.class);
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
+			return findResourceFromFile(resources, file, RarredFile.class);
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
+				lcFilename.endsWith(".gzip") ||
+				lcFilename.endsWith(".gz") ||
+				lcFilename.endsWith(".7z"))) {
+			return findResourceFromFile(resources, file, SevenZipFile.class);
+		} else if (lcFilename.endsWith(".iso") ||
+				lcFilename.endsWith(".img")) {
+			return findResourceFromFile(resources, file, DVDISOFile.class);
+		} else if (lcFilename.endsWith(".m3u") ||
+				lcFilename.endsWith(".m3u8") ||
+				lcFilename.endsWith(".pls")) {
+			return findResourceFromFile(resources, file, PlaylistFolder.class);
+		} else if (lcFilename.endsWith(".cue")) {
+			return findResourceFromFile(resources, file, CueFolder.class);
+		} else if (lcFilename.endsWith(".ups")) {
+			return findResourceFromFile(resources, file, Playlist.class);
+		} else {
+			return findResourceFromFile(resources, file, RealFile.class);
+		}
+	}
+
+	private LibraryResource findResourceFromFile(List<LibraryResource> resources, File file, Class<?> resourceClass) {
+		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+			return null;
+		}
+		for (LibraryResource resource : resources) {
+			if (resourceClass.isInstance(resource) && resource instanceof SystemFileResource systemFileResource && file.equals(systemFileResource.getSystemFile())) {
+				return resource;
+			}
+		}
+		return null;
+	}
+
+	public LibraryResource createResourceFromFile(File file) {
+		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+			return null;
+		}
+		String lcFilename = file.getName().toLowerCase();
+		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+			return new ZippedFile(renderer, file);
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
+			return new RarredFile(renderer, file);
+		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
+				lcFilename.endsWith(".gzip") ||
+				lcFilename.endsWith(".gz") ||
+				lcFilename.endsWith(".7z"))) {
+			return new SevenZipFile(renderer, file);
+		} else if (lcFilename.endsWith(".iso") ||
+				lcFilename.endsWith(".img") || (file.isDirectory() &&
+				file.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS"))) {
+			return new DVDISOFile(renderer, file);
+		} else if (lcFilename.endsWith(".m3u") ||
+				lcFilename.endsWith(".m3u8") ||
+				lcFilename.endsWith(".pls") ||
+				lcFilename.endsWith(".cue") ||
+				lcFilename.endsWith(".ups")) {
+			LibraryContainer d = PlaylistFolder.getPlaylist(renderer, lcFilename, file.getAbsolutePath(), 0);
+			if (d != null) {
+				return d;
+			}
+		} else {
+			ArrayList<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+
+			/* Optionally ignore empty directories */
+			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
+				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.getName());
+			} else if (file.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
+				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+			} else {
+				// Otherwise add the file
+				if (file.isDirectory()) {
+					return new RealFolder(renderer, file);
+				} else {
+					RealFile rf = new RealFile(renderer, file);
+					if (rf.length() == 0) {
+						LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", file.getName());
+						return null;
+					}
+					return rf;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
-	 * Check if all audio child elements belong to the same album. Here the Album string is matched. Another more strict alternative
-	 * implementation could match the MBID record id (not implemented).
+	 * TODO: move that under the media library as it should (like tv series)
+	 */
+	private void addVirtualMyMusicFolder() {
+		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, Messages.getString("MyAlbums"), myAlbums, "");
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+			if (!getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId("0");
+				addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to root");
+			}
+		} else {
+			if (mediaLibrary.isEnabled() &&
+					mediaLibrary.getAudioFolder() != null &&
+					mediaLibrary.getAudioFolder().getChildren() != null &&
+					!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)) {
+				myMusicFolder.setFakeParentId(mediaLibrary.getAudioFolder().getId());
+				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, false);
+				LOGGER.debug("adding My Music folder to 'Audio' folder");
+			} else {
+				LOGGER.debug("couldn't add 'My Music' folder because the media library is not initialized.");
+			}
+		}
+	}
+
+	@Override
+	public String toString() {
+		return "RootFolder[" + getChildren() + "]";
+	}
+
+	/**
+	 * Check if all audio child elements belong to the same album. Here the
+	 * Album string is matched. Another more strict alternative implementation
+	 * could match the MBID record id (not implemented).
 	 *
 	 * @param resource Folder containing child objects of any kind
 	 *
-	 * @return
-	 * 	TRUE, if AudioTrackSorting is not disabled, all audio child objects belong to the same album and the majority of files are audio.
+	 * @return TRUE, if AudioTrackSorting is not disabled, all audio child
+	 * objects belong to the same album and the majority of files are audio.
 	 */
-	private static boolean shouldDoAudioTrackSorting(LibraryResource resource) {
+	private static boolean shouldDoAudioTrackSorting(LibraryContainer resource) {
 		if (!PMS.getConfiguration().isSortAudioTracksByAlbumPosition()) {
 			LOGGER.trace("shouldDoAudioTrackSorting : {}", PMS.getConfiguration().isSortAudioTracksByAlbumPosition());
 			return false;
@@ -1411,7 +751,7 @@ public class RootFolder extends LibraryResource {
 
 		boolean audioExists = false;
 		for (LibraryResource res : resource.getChildren()) {
-			if (res.getFormat() != null && res.getFormat().isAudio()) {
+			if (res instanceof LibraryItem item && item.getFormat() != null && item.getFormat().isAudio()) {
 				if (res.getMediaInfo() == null || !res.getMediaInfo().hasAudioMetadata()) {
 					LOGGER.warn("Audio resource has no AudioMetadata : {}", res.getDisplayName());
 					continue;
@@ -1442,11 +782,11 @@ public class RootFolder extends LibraryResource {
 		return audioExists && (numberOfAudioFiles > numberOfOtherFiles);
 	}
 
-	private static void sortChildrenWithAudioElements(LibraryResource resource) {
+	private static void sortChildrenWithAudioElements(LibraryContainer resource) {
 		Collections.sort(resource.getChildren(), (LibraryResource o1, LibraryResource o2) -> {
 			if (getDiscNum(o1) == null || getDiscNum(o2) == null || getDiscNum(o1).equals(getDiscNum(o2))) {
-				if (o1.getFormat() != null && o1.getFormat().isAudio()) {
-					if (o2.getFormat() != null && o2.getFormat().isAudio()) {
+				if (o1 instanceof LibraryItem item1 && item1.getFormat() != null && item1.getFormat().isAudio()) {
+					if (o2 instanceof LibraryItem item2 && item2.getFormat() != null && item2.getFormat().isAudio()) {
 						return getTrackNum(o1).compareTo(getTrackNum(o2));
 					} else {
 						return o1.getDisplayNameBase().compareTo(o2.getDisplayNameBase());

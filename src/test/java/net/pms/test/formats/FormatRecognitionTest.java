@@ -24,8 +24,6 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.library.LibraryResource;
-import net.pms.library.RealFile;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
 import net.pms.formats.ISO;
@@ -37,6 +35,7 @@ import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -53,9 +52,11 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.LoggerFactory;
 
 /**
- * Test the recognition of formats using the MediaInfo and renderer configuration.
+ * Test the recognition of formats using the MediaInfo and renderer
+ * configuration.
  */
 public class FormatRecognitionTest {
+
 	private static boolean mediaInfoParserIsValid;
 	private static UmsConfiguration configuration;
 
@@ -79,17 +80,18 @@ public class FormatRecognitionTest {
 		configuration = new UmsConfiguration(false);
 	}
 
-    /**
-     * Test some basic functionality of {@link RendererConfiguration#isCompatible(MediaInfo, Format)}
-     */
-    @Test
-    public void testRendererConfigurationBasics() {
-    	// This test is only useful if the MediaInfo library is available
+	/**
+	 * Test some basic functionality of
+	 * {@link RendererConfiguration#isCompatible(MediaInfo, Format)}
+	 */
+	@Test
+	public void testRendererConfigurationBasics() {
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
 		assertFalse(conf.isCompatible(null, null, configuration),
-			"With nothing provided isCompatible() should return false");
+				"With nothing provided isCompatible() should return false");
 	}
 
 	private Renderer getRenderer(RendererConfiguration conf) {
@@ -106,7 +108,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationAudioMp3Compatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
@@ -115,7 +117,7 @@ public class FormatRecognitionTest {
 		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
 		// Construct regular two channel MP3 information
-		LibraryResource resource = new RealFile(renderer, new File("test.mkv"));
+		RealFile resource = new RealFile(renderer, new File("test.mkv"));
 		MediaInfo info = new MediaInfo();
 		info.setContainer(FormatConfiguration.MP3);
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
@@ -126,12 +128,12 @@ public class FormatRecognitionTest {
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"PS3 is compatible with MP3");
+				"PS3 is compatible with MP3");
 
 		// Construct five channel MP3 that the PS3 does not support natively
 		audio.setNumberOfChannels(5);
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"PS3 is incompatible with five channel MP3");
+				"PS3 is incompatible with five channel MP3");
 	}
 
 	/**
@@ -139,7 +141,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationVideoMpgCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
@@ -147,7 +149,7 @@ public class FormatRecognitionTest {
 		Renderer renderer = getRenderer(conf);
 		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		LibraryResource resource = new RealFile(renderer, new File("test.mkv"));
+		RealFile resource = new RealFile(renderer, new File("test.mkv"));
 		// Construct regular two channel MPG information
 		MediaInfo info = new MediaInfo();
 		info.setContainer(FormatConfiguration.AVI);
@@ -162,12 +164,12 @@ public class FormatRecognitionTest {
 		format.match("test.avi");
 		resource.setMediaInfo(info);
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"PS3 is compatible with MPG");
+				"PS3 is compatible with MPG");
 
 		// Construct MPG with wmv codec that the PS3 does not support natively
 		video.setCodec("wmv");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"PS3 is incompatible with MPG with wmv codec");
+				"PS3 is incompatible with MPG with wmv codec");
 	}
 
 	/**
@@ -175,7 +177,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPlaystationVideoMkvCompatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
@@ -183,7 +185,7 @@ public class FormatRecognitionTest {
 		Renderer renderer = getRenderer(conf);
 		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		LibraryResource resource = new RealFile(renderer, new File("test.mkv"));
+		RealFile resource = new RealFile(renderer, new File("test.mkv"));
 		// Construct MKV information
 		MediaInfo info = new MediaInfo();
 		MediaVideo video = new MediaVideo();
@@ -207,7 +209,7 @@ public class FormatRecognitionTest {
 	 */
 	@Test
 	public void testPS3Compatibility() {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
@@ -215,7 +217,7 @@ public class FormatRecognitionTest {
 		Renderer renderer = getRenderer(conf);
 		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		LibraryResource resource = new RealFile(renderer, new File("test.mkv"));
+		RealFile resource = new RealFile(renderer, new File("test.mkv"));
 		// DVRMS: false
 		MediaInfo info = new MediaInfo();
 		info.setContainer("dvr");
@@ -223,69 +225,69 @@ public class FormatRecognitionTest {
 		resource.setMediaInfo(info);
 		assertTrue(format.match("test.dvr"), "Format \"test.dvr\" not matches DVRMS");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"true\" for DVRMS");
+				"isCompatible() gives the wrong outcome \"true\" for DVRMS");
 
 		// ISO: false
 		info.setContainer(FormatConfiguration.ISO);
 		format = new ISO();
 		assertTrue(format.match("test.iso"), "Format not matches ISO");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"true\" for ISO");
+				"isCompatible() gives the wrong outcome \"true\" for ISO");
 
 		// M4A: true
 		info.setContainer(FormatConfiguration.M4A);
 		format = new M4A();
 		assertTrue(format.match("test.m4a"), "Format \"test.m4a\" not matches M4A");
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"false\" for M4A");
+				"isCompatible() gives the wrong outcome \"false\" for M4A");
 
 		// MKV: false
 		info.setContainer(FormatConfiguration.MKV);
 		format = new MKV();
 		assertTrue(format.match("test.mkv"), "Format \"test.mkv\" not matches MKV");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"true\" for MKV");
+				"isCompatible() gives the wrong outcome \"true\" for MKV");
 
 		// MP3: true
 		info.setContainer(FormatConfiguration.MP3);
 		format = new MP3();
 		assertTrue(format.match("test.mp3"), "Format \"test.mkv\" does not match MP3");
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"false\" for MP3");
+				"isCompatible() gives the wrong outcome \"false\" for MP3");
 
 		// MPG: true);
 		info.setContainer(FormatConfiguration.AVI);
 		format = new MPG();
 		assertTrue(format.match("test.mpg"), "Format \"test.mpg\" does not match MPG");
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"false\" for MPG");
+				"isCompatible() gives the wrong outcome \"false\" for MPG");
 
 		// OGG: false
 		info.setContainer(FormatConfiguration.OGG);
 		format = new OGA();
 		assertFalse(format.match("test.ogg"), "Format \"test.ogg\" does not match OGA");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"true\" for OGG");
+				"isCompatible() gives the wrong outcome \"true\" for OGG");
 
 		// RAW: false
 		info.setContainer(FormatConfiguration.RAW);
 		format = new RAW();
 		assertTrue(format.match("test.raw"), "Format \"test.raw\" does not match RAW");
 		assertFalse(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"true\"for RAW");
+				"isCompatible() gives the wrong outcome \"true\"for RAW");
 
 		// WAV: true
 		info.setContainer(FormatConfiguration.WAV);
 		format = new WAV();
 		assertTrue(format.match("test.wav"), "Format \"test.raw\" does not match WAV");
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"false\" for WAV");
+				"isCompatible() gives the wrong outcome \"false\" for WAV");
 
 		// WEB: type=VIDEO
 		info.setContainer(FormatConfiguration.AVI);
 		format.setType(Format.VIDEO);
 		assertTrue(conf.isCompatible(resource, format, configuration),
-			"isCompatible() gives the wrong outcome \"false\" for WEB video");
+				"isCompatible() gives the wrong outcome \"false\" for WEB video");
 	}
 
 	/**
@@ -300,6 +302,7 @@ public class FormatRecognitionTest {
 	 * message.
 	 * <p>
 	 * This test verifies the case above.
+	 *
 	 * @throws InterruptedException
 	 */
 	@Test
@@ -310,7 +313,7 @@ public class FormatRecognitionTest {
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
 		assumeTrue(MediaInfoParser.isValid());
 
-		LibraryResource resource = new RealFile(RendererConfigurations.getDefaultRenderer(), new File("test.mkv"));
+		RealFile resource = new RealFile(RendererConfigurations.getDefaultRenderer(), new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does
 		MediaInfo info = new MediaInfo();
 		info.setContainer("mpegps");
@@ -325,27 +328,27 @@ public class FormatRecognitionTest {
 
 		// Test without rendererConfiguration, as can happen when plugins
 		// create virtual video actions under a folder.
-
 		assertTrue(format.isCompatible(resource, null),
-			"VirtualVideoAction is initialized as compatible with null configuration");
+				"VirtualVideoAction is initialized as compatible with null configuration");
 	}
 
 	/**
 	 * Test the compatibility of the subtitles in
-	 * {@link Format#isCompatible(MediaInfo, RendererConfiguration)} for
-	 * given subtitles formats
-	 * @throws FileNotFoundException 
+	 * {@link Format#isCompatible(MediaInfo, RendererConfiguration)} for given
+	 * subtitles formats
+	 *
+	 * @throws FileNotFoundException
 	 */
 	@Test
 	public void testSubtitlesRecognition() throws FileNotFoundException {
-    	// This test is only useful if the MediaInfo library is available
+		// This test is only useful if the MediaInfo library is available
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Panasonic TX-L32V10E");
 		assertNotNull(conf, "Renderer named \"Panasonic TX-L32V10E\" not found.");
 		Renderer renderer = getRenderer(conf);
 		assertNotNull(conf, "Renderer named \"Playstation 3\" fail.");
 
-		LibraryResource resource = new RealFile(renderer, new File("test.avi"));
+		RealFile resource = new RealFile(renderer, new File("test.avi"));
 		MediaInfo info = new MediaInfo();
 		MediaVideo video = new MediaVideo();
 		MediaAudio audio = new MediaAudio();
@@ -368,7 +371,7 @@ public class FormatRecognitionTest {
 		subs.setType(SubtitleType.ASS);
 		resource.setMediaSubtitle(subs);
 		assertFalse(conf.isCompatible(resource, null), "isCompatible() gives the wrong outcome \"true\" for external ASS format");
-		
+
 		//DIVX internal: true
 		subs.setExternalFileOnly(null);
 		subs.setType(SubtitleType.DIVX);

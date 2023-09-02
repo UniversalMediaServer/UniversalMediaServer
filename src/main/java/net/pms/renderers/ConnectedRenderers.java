@@ -49,6 +49,12 @@ public class ConnectedRenderers {
 	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ConnectedRenderers() {
+	}
+
+	/**
 	 * Returns the list of all connected renderer devices.
 	 *
 	 * @return The list of connected renderers.
@@ -222,7 +228,7 @@ public class ConnectedRenderers {
 							removeUuidOf(ia);
 						}
 					}
-					renderer.resetRootFolder(true);
+					renderer.clearLibrary();
 				}
 			}
 		};
@@ -240,7 +246,7 @@ public class ConnectedRenderers {
 
 	public static void resetAllRenderers() {
 		for (Renderer r : getConnectedRenderers()) {
-			r.resetRootFolder(false);
+			r.resetLibrary();
 		}
 	}
 

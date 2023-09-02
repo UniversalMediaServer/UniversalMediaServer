@@ -114,8 +114,10 @@ public class JUPnPDeviceHelper {
 
 	private static DocumentBuilder db;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
 	private JUPnPDeviceHelper() {
-		//not to be instanciated
 	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {
@@ -217,7 +219,7 @@ public class JUPnPDeviceHelper {
 	private static synchronized boolean addRenderer(Device<?, RemoteDevice, ?> device) {
 		if (device != null) {
 			String uuid = getUUID(device);
-			if (isMediaRenderer(device)) {
+			if (isMediaRenderer(device) && uuid != null) {
 				Renderer renderer = rendererFound(device, uuid);
 				if (renderer != null) {
 					LOGGER.debug("Adding device: {} {}", device.getType(), device.toString());
@@ -243,6 +245,10 @@ public class JUPnPDeviceHelper {
 			if (renderer != null && !renderer.isUpnpAllowed()) {
 				LOGGER.debug("Upnp service is {} for \"{}\"", renderer.getUpnpModeString(), renderer);
 				return null;
+			}
+
+			if (renderer != null && ref != null) {
+				LOGGER.debug("Upnp service found device \"{}\" with upnp details matching conf \"{}\"", renderer, ref);
 			}
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a

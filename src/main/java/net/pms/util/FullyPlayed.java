@@ -26,6 +26,7 @@ import net.pms.Messages;
 import net.pms.formats.Format;
 import net.pms.image.BufferedImageFilter;
 import net.pms.image.NonGeometricBufferedImageOp;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.media.MediaType;
 import org.slf4j.Logger;
@@ -69,8 +70,8 @@ public class FullyPlayed {
 		MediaType mediaType;
 		if (resource.getMediaInfo() != null) {
 			mediaType = resource.getMediaInfo().getMediaType();
-		} else if (resource.getFormat() != null) {
-			mediaType = switch (resource.getFormat().getType()) {
+		} else if (resource instanceof LibraryItem item && item.getFormat() != null) {
+			mediaType = switch (item.getFormat().getType()) {
 				case Format.AUDIO -> MediaType.AUDIO;
 				case Format.IMAGE -> MediaType.IMAGE;
 				case Format.VIDEO -> MediaType.VIDEO;

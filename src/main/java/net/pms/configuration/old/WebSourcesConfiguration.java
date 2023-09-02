@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.library.Feed;
+import net.pms.library.container.Feed;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

@@ -24,7 +24,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
@@ -86,7 +86,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		LibraryResource resource,
+		LibraryItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -200,7 +200,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryResource resource) {
+	public boolean isCompatible(LibraryItem resource) {
 		// XXX Matching on file format isn't really enough, codec should also be evaluated
 		return (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||

@@ -26,7 +26,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -216,7 +216,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryResource resource) {
+	public boolean isCompatible(LibraryItem resource) {
 		Format format = resource.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {

@@ -67,7 +67,7 @@ public class PlatformUtils implements IPlatformUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlatformUtils.class);
 
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
-	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
+	public static final IPlatformUtils INSTANCE = createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
 	protected static final Object DEFAULT_FOLDERS_LOCK = new Object();
 

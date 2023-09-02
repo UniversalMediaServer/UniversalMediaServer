@@ -17,7 +17,7 @@
 package net.pms.util;
 
 import net.pms.formats.Format;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 
 public class PlayerUtil {
 	/**
@@ -26,7 +26,7 @@ public class PlayerUtil {
 	private PlayerUtil() { }
 
 	// Returns whether or not the supplied library resource matches the supplied format and format identifier
-	private static boolean isType(LibraryResource resource, int matchType, Format.Identifier matchIdentifier) {
+	private static boolean isType(LibraryItem resource, int matchType, Format.Identifier matchIdentifier) {
 		boolean match = false;
 
 		if (resource != null) {
@@ -54,7 +54,7 @@ public class PlayerUtil {
 	 * @param resource the library resource
 	 * @return true if the library resource is an image file, false otherwise.
 	 */
-	public static boolean isImage(LibraryResource resource) {
+	public static boolean isImage(LibraryItem resource) {
 		return isType(resource, Format.IMAGE, null);
 	}
 
@@ -65,7 +65,7 @@ public class PlayerUtil {
 	 * @param identifier the format identifier to match against
 	 * @return true if the library resource is an image file with the specified format identifier, false otherwise
 	 */
-	public static boolean isImage(LibraryResource resource, Format.Identifier identifier) {
+	public static boolean isImage(LibraryItem resource, Format.Identifier identifier) {
 		return isType(resource, Format.IMAGE, identifier);
 	}
 
@@ -75,7 +75,7 @@ public class PlayerUtil {
 	 * @param resource the library resource
 	 * @return true if the library resource is an audio file, false otherwise.
 	 */
-	public static boolean isAudio(LibraryResource resource) {
+	public static boolean isAudio(LibraryItem resource) {
 		return isType(resource, Format.AUDIO, null);
 	}
 
@@ -86,7 +86,7 @@ public class PlayerUtil {
 	 * @param identifier the format identifier to match against
 	 * @return true if the library resource is an audio file with the specified format identifier, false otherwise
 	 */
-	public static boolean isAudio(LibraryResource resource, Format.Identifier identifier) {
+	public static boolean isAudio(LibraryItem resource, Format.Identifier identifier) {
 		return isType(resource, Format.AUDIO, identifier);
 	}
 
@@ -96,7 +96,7 @@ public class PlayerUtil {
 	 * @param resource the library resource
 	 * @return true if the library resource is a video file, false otherwise.
 	 */
-	public static boolean isVideo(LibraryResource resource) {
+	public static boolean isVideo(LibraryItem resource) {
 		return isType(resource, Format.VIDEO, null);
 	}
 
@@ -107,7 +107,7 @@ public class PlayerUtil {
 	 * @param identifier the format identifier to match against
 	 * @return true if the library resource is a video file with the specified format identifier, false otherwise.
 	 */
-	public static boolean isVideo(LibraryResource resource, Format.Identifier identifier) {
+	public static boolean isVideo(LibraryItem resource, Format.Identifier identifier) {
 		return isType(resource, Format.VIDEO, identifier);
 	}
 
@@ -117,7 +117,7 @@ public class PlayerUtil {
 	 * @param resource the library resource
 	 * @return true if the library resource is a web audio file, false otherwise.
 	 */
-	public static boolean isWebAudio(LibraryResource resource) {
+	public static boolean isWebAudio(LibraryItem resource) {
 		return isType(resource, Format.AUDIO, Format.Identifier.WEB);
 	}
 
@@ -127,7 +127,7 @@ public class PlayerUtil {
 	 * @param resource the library resource
 	 * @return true if the library resource is a web video file, false otherwise.
 	 */
-	public static boolean isWebVideo(LibraryResource resource) {
+	public static boolean isWebVideo(LibraryItem resource) {
 		return isType(resource, Format.VIDEO, Format.Identifier.WEB);
 	}
 }

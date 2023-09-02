@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ResumeObj {
+
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 	private static final int DAYS = 3600 * 24 * 1000;
@@ -133,7 +134,7 @@ public class ResumeObj {
 		return path;
 	}
 
-	private static File resumeFile(LibraryResource r) {
+	private static File resumeFile(LibraryItem r) {
 		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").trim();
 		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath(), fName);
@@ -145,13 +146,13 @@ public class ResumeObj {
 	}
 
 	/**
-	 * Creates a "Resume" version of the incoming resource, which is a
-	 * video that has a particular starting point past the beginning.
+	 * Creates a "Resume" version of the incoming resource, which is a video
+	 * that has a particular starting point past the beginning.
 	 *
 	 * @param originalResource
 	 * @return
 	 */
-	public static ResumeObj create(LibraryResource originalResource) {
+	public static ResumeObj create(LibraryItem originalResource) {
 		// resume is off bail early
 		if (!originalResource.renderer.getUmsConfiguration().isResumeEnabled()) {
 			return null;
@@ -183,7 +184,7 @@ public class ResumeObj {
 		return res;
 	}
 
-	public static ResumeObj store(LibraryResource r, long startTime) {
+	public static ResumeObj store(LibraryItem r, long startTime) {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
 		obj.setMinDuration(r.minPlayTime());

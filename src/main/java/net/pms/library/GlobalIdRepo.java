@@ -16,9 +16,11 @@
  */
 package net.pms.library;
 
+import java.io.File;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import org.apache.commons.lang.StringUtils;
@@ -26,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GlobalIdRepo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 
 	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
@@ -90,7 +93,6 @@ public class GlobalIdRepo {
 	// share any hard references to it via get(), between now and whenever
 	// garbage collection actually happens (or whenever the item is re-added,
 	// in the case of items that are just being moved).
-
 	public void setScope(LibraryResource resource, boolean scope) {
 		lock.writeLock().lock();
 		try {
@@ -113,6 +115,18 @@ public class GlobalIdRepo {
 		} finally {
 			lock.writeLock().unlock();
 		}
+	}
+
+	public List<LibraryResource> findSystemFileResources(File file) {
+		List<LibraryResource> systemFileResources = new ArrayList<>();
+		for (ID id : ids) {
+			if (id.dlnaRef.get() instanceof SystemFileResource systemFileResource &&
+					file.equals(systemFileResource.getSystemFile()) &&
+					systemFileResource instanceof LibraryResource libraryResource) {
+				systemFileResources.add(libraryResource);
+			}
+		}
+		return systemFileResources;
 	}
 
 	private void delete(int index) {
@@ -214,6 +228,7 @@ public class GlobalIdRepo {
 	}
 
 	private class SoftMediaResourceRef extends SoftReference<LibraryResource> {
+
 		int id;
 
 		SoftMediaResourceRef(LibraryResource resource, int id) {
@@ -229,6 +244,7 @@ public class GlobalIdRepo {
 	}
 
 	private class ID {
+
 		int id;
 		boolean scope;
 		SoftMediaResourceRef dlnaRef;

@@ -33,7 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.ProgramExecutableType;
@@ -403,15 +403,15 @@ public final class EngineFactory {
 
 	/**
 	 * Returns the first {@link Engine} that matches the given
-	 * {@link LibraryResource}. Each of the available {@link Engine} instances are
+	 * {@link LibraryItem}. Each of the available {@link Engine} instances are
 	 * passed the provided information and the first that reports that it is
 	 * compatible will be returned.
 	 *
-	 * @param resource the {@link LibraryResource} to match.
+	 * @param resource the {@link LibraryItem} to match.
 	 * @return The {@link Engine} if a match could be found, {@code null}
 	 *         otherwise.
 	 */
-	public static Engine getEngine(final LibraryResource resource) {
+	public static Engine getEngine(final LibraryItem resource) {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no engine found");
 			return null;
@@ -486,11 +486,11 @@ public final class EngineFactory {
 	 * information and each {@link Engine} that reports that it is compatible
 	 * will be returned.
 	 *
-	 * @param resource the {@link LibraryResource} to match.
+	 * @param resource the {@link LibraryItem} to match.
 	 * @return A list of compatible {@link Engine}s if a match could be found,
 	 *         {@code null} otherwise.
 	 */
-	public static List<Engine> getEngines(final LibraryResource resource) {
+	public static List<Engine> getEngines(final LibraryItem resource) {
 		if (resource == null) {
 			return null;
 		}

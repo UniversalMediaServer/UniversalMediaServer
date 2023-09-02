@@ -67,7 +67,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.ThreadedProcessWrapper;
 import net.pms.library.LibraryScanner;
-import net.pms.library.virtual.CodeEnter;
+import net.pms.library.container.CodeEnter;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
@@ -630,7 +630,7 @@ public class PMS {
 					}
 					LOGGER.info("Launching the graphical interface on a browser");
 					if (!PlatformUtils.INSTANCE.browseURI(webGuiServer.getUrl())) {
-						LOGGER.info(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
+						LOGGER.error(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
 					}
 				}
 			}.start();

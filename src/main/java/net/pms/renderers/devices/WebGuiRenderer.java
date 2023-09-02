@@ -20,9 +20,8 @@ import com.google.gson.JsonObject;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.iam.Account;
 import net.pms.image.ImageFormat;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
 import net.pms.renderers.Renderer;
@@ -54,9 +53,9 @@ public class WebGuiRenderer extends Renderer {
 	private IServerSentEvents sse;
 	private StartStopListenerDelegate startStop;
 
-	public WebGuiRenderer(String uuid, Account account, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
+	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
-		setAccount(account);
+		setUserId(userId);
 		this.browser = getBrowser(userAgent);
 		this.subLang = subLang;
 		setFileless(true);
@@ -226,13 +225,13 @@ public class WebGuiRenderer extends Renderer {
 		}
 	}
 
-	public void start(LibraryResource resource) {
+	public void start(LibraryItem item) {
 		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != resource) {
+		if (getPlayingRes() != null && getPlayingRes() != item) {
 			stop();
 		}
 
-		setPlayingRes(resource);
+		setPlayingRes(item);
 		if (startStop == null) {
 			startStop = new StartStopListenerDelegate(getAddress().getHostAddress());
 		}

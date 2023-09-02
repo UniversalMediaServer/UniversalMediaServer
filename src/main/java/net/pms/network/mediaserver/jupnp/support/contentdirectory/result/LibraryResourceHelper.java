@@ -31,17 +31,21 @@ import net.pms.encoders.Engine;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
-import net.pms.library.DVDISOFile;
+import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
-import net.pms.library.PlaylistFolder;
-import net.pms.library.RealFile;
-import net.pms.library.virtual.VirtualFolderDbId;
+import net.pms.library.container.DVDISOFile;
+import net.pms.library.container.PlaylistFolder;
+import net.pms.library.container.RealFolder;
+import net.pms.library.container.VirtualFolderDbId;
+import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
@@ -55,7 +59,6 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Photo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.VideoItem;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.sec.SEC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.renderers.Renderer;
@@ -70,12 +73,18 @@ public class LibraryResourceHelper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibraryResourceHelper.class);
 	private static final SimpleDateFormat DIDL_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private LibraryResourceHelper() {
+	}
+
 	public static final BaseObject getBaseObject(LibraryResource resource) {
 		try {
-			if (resource.isFolder()) {
-				return getContainer(resource);
-			} else {
-				return getItem(resource);
+			if (resource instanceof LibraryContainer container) {
+				return getContainer(container);
+			} else if (resource instanceof LibraryItem item) {
+				return getItem(item);
 			}
 		} catch (Exception ex) {
 			LOGGER.debug("", ex);
@@ -83,7 +92,7 @@ public class LibraryResourceHelper {
 		return null;
 	}
 
-	public static final Container getContainer(LibraryResource resource) {
+	public static final Container getContainer(LibraryContainer resource) {
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
 		final MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
@@ -139,8 +148,8 @@ public class LibraryResourceHelper {
 		String title = resource.getDisplayName(false);
 		if (
 			!renderer.isThumbnails() &&
-			resource instanceof RealFile realfile &&
-			realfile.isFullyPlayedMark()
+			resource instanceof RealFolder realfolder &&
+			realfolder.isFullyPlayedMark()
 		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, resource);
 		}
@@ -148,7 +157,6 @@ public class LibraryResourceHelper {
 			title = resource.getName();
 		}
 
-		title = resource.resumeStr(title);
 		result.setTitle(renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
 		if (renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile) {
 			for (Res res : getThumbnailRes(resource, mediaType)) {
@@ -158,7 +166,7 @@ public class LibraryResourceHelper {
 		return result;
 	}
 
-	public static final Item getItem(LibraryResource resource) {
+	public static final Item getItem(LibraryItem resource) {
 		final Renderer renderer = resource.getDefaultRenderer();
 		final Engine engine = resource.getEngine();
 		final MediaInfo mediaInfo = resource.getMediaInfo();

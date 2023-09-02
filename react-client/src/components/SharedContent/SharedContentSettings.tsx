@@ -134,6 +134,12 @@ export default function SharedContentSettings(
         return i18n.get['Folder'];
       case 'VirtualFolder':
         return i18n.get['VirtualFolders'];
+      case 'iTunes':
+        return i18n.get['ItunesLibrary'];
+      case 'iPhoto':
+        return i18n.get['IphotoLibrary'];
+      case 'Aperture':
+        return i18n.get['ApertureLibrary'];
     }
   }
 
@@ -237,6 +243,12 @@ export default function SharedContentSettings(
         return getSharedContentFolderView(value as Folder);
       case 'VirtualFolder':
         return getSharedContentVirtualFolderView(value as VirtualFolder);
+      case 'iTunes':
+        return i18n.get['ItunesLibrary'];
+      case 'iPhoto':
+        return i18n.get['IphotoLibrary'];
+      case 'Aperture':
+        return i18n.get['ApertureLibrary'];
     }
     return (<div>{i18n.get['Unknown']}</div>);
   }
@@ -473,23 +485,34 @@ export default function SharedContentSettings(
 
   const getSharedContentModifyModal = () => {
     const isNew = editingIndex < 0;
+    const data=[
+      { value: 'Folder', label: i18n.get['Folder'] },
+      { value: 'VirtualFolder', label: i18n.get['VirtualFolders'] },
+      { value: 'FeedAudio', label: i18n.get['Podcast'] },
+      { value: 'FeedImage', label: i18n.get['ImageFeed'] },
+      { value: 'FeedVideo', label: i18n.get['VideoFeed'] },
+      { value: 'StreamAudio', label: i18n.get['AudioStream'] },
+      { value: 'StreamVideo', label: i18n.get['VideoStream'] },
+    ];
+    configuration.show_itunes_library && data.push({ value: 'iTunes', label: i18n.get['ItunesLibrary'] });
+    configuration.show_iphoto_library && data.push({ value: 'iPhoto', label: i18n.get['IphotoLibrary'] });
+    configuration.show_aperture_library && data.push({ value: 'Aperture', label: i18n.get['ApertureLibrary'] });
     return (
-      <Modal scrollAreaComponent={ScrollArea.Autosize} opened={newOpened} onClose={() => setNewOpened(false)} title={i18n.get['SharedContent']}>
+      <Modal
+        scrollAreaComponent={ScrollArea.Autosize}
+        opened={newOpened}
+        onClose={() => setNewOpened(false)}
+        title={i18n.get['SharedContent']}
+        lockScroll={false}
+      >
         <Select
           disabled={!canModify || !isNew}
           label={i18n.get['Type']}
-          data={[
-            { value: 'Folder', label: i18n.get['Folder'] },
-            { value: 'VirtualFolder', label: i18n.get['VirtualFolders'] },
-            { value: 'FeedAudio', label: i18n.get['Podcast'] },
-            { value: 'FeedImage', label: i18n.get['ImageFeed'] },
-            { value: 'FeedVideo', label: i18n.get['VideoFeed'] },
-            { value: 'StreamAudio', label: i18n.get['AudioStream'] },
-            { value: 'StreamVideo', label: i18n.get['VideoStream'] },
-          ]}
+          data={data}
+          maxDropdownHeight={120}
           {...modalForm.getInputProps('contentType')}
         ></Select>
-        {modalForm.values['contentType'] !== 'Folder' && (
+        {modalForm.values['contentType'] !== 'Folder' && modalForm.values['contentType'] !== 'iTunes' && (
           <TextInput
             disabled={!canModify || modalForm.values['contentType'].startsWith('Feed')}
             label={i18n.get['Name']}
@@ -499,7 +522,7 @@ export default function SharedContentSettings(
             {...modalForm.getInputProps('contentName')}
           />
         )}
-        {modalForm.values['contentType'] !== 'Folder' && (
+        {modalForm.values['contentType'] !== 'Folder' && modalForm.values['contentType'] !== 'iTunes' && (
           <TextInput
             disabled={!canModify}
             label={i18n.get['Path']}
@@ -509,13 +532,15 @@ export default function SharedContentSettings(
             {...modalForm.getInputProps('contentPath')}
           />
         )}
-        {modalForm.values['contentType'] === 'Folder' ? (
+        {modalForm.values['contentType'] === 'Folder' || modalForm.values['contentType'] === 'iTunes' ? (
           <DirectoryChooser
             disabled={!canModify}
             label={i18n.get['Folder']}
             size='xs'
             path={modalForm.values['contentSource']}
             callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
+            placeholder= {modalForm.values['contentType'] === 'iTunes' ? i18n.get['AutoDetect'] : undefined}
+            withAsterisk= {modalForm.values['contentType'] === 'Folder'}
           ></DirectoryChooser>
         ) : modalForm.values['contentType'] !== 'VirtualFolder' && (
           <TextInput
@@ -542,6 +567,7 @@ export default function SharedContentSettings(
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get['AuthorizedGroups']}
           placeholder={i18n.get['NoGroupRestrictions']}
+          maxDropdownHeight={120}
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group position='right' mt='sm'>
@@ -592,10 +618,26 @@ export default function SharedContentSettings(
         if (editingIndex < 0) {
           sharedContentsTemp.push({ type: values.contentType, active: true, groups: contentGroups, parent: values.contentPath, name: values.contentName, uri: values.contentSource } as Stream);
         } else {
-          (sharedContentsTemp[editingIndex] as Stream).groups = contentGroups;
+          sharedContentsTemp[editingIndex].groups = contentGroups;
           (sharedContentsTemp[editingIndex] as Stream).parent = values.contentPath;
           (sharedContentsTemp[editingIndex] as Stream).name = values.contentName;
           (sharedContentsTemp[editingIndex] as Stream).uri = values.contentSource;
+        }
+        break;
+      case 'iTunes':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({ type: values.contentType, active: true, groups: contentGroups, path: values.contentSource } as ITunes);
+        } else {
+          (sharedContentsTemp[editingIndex] as ITunes).groups = contentGroups;
+          (sharedContentsTemp[editingIndex] as ITunes).path = values.contentSource;
+        }
+        break;
+      case 'iPhoto':
+      case 'Aperture':
+        if (editingIndex < 0) {
+          sharedContentsTemp.push({ type: values.contentType, active: true, groups: contentGroups } as SharedContent);
+        } else {
+          (sharedContentsTemp[editingIndex] as SharedContent).groups = contentGroups;
         }
         break;
     }
@@ -634,7 +676,7 @@ export default function SharedContentSettings(
     const contentGroups = isNew || !sharedContent.groups ? [] : sharedContent.groups.map(String);
     const contentName = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).name;
     const contentPath = isNew || sharedContent.type === 'Folder' ? '' : (sharedContent as any).parent;
-    const contentSource = isNew || sharedContent.type === 'VirtualFolder' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file;
+    const contentSource = isNew || sharedContent.type === 'VirtualFolder' ? '' : (sharedContent as any).uri ? (sharedContent as any).uri : (sharedContent as any).file ? (sharedContent as any).file : (sharedContent as any).path;
     const contentChilds = isNew || sharedContent.type !== 'VirtualFolder' ? [] : (sharedContent as any).childs ? (sharedContent as any).childs : [];
     modalForm.setValues({ contentType: contentType, contentGroups: contentGroups, contentName: contentName, contentPath: contentPath, contentSource: contentSource, contentChilds: contentChilds });
   }, [sharedContents, editingIndex]);
@@ -685,4 +727,8 @@ interface Feed extends SharedContent {
 
 interface Stream extends Feed {
   thumbnail: string;
+}
+
+interface ITunes extends SharedContent {
+  path: string;
 }

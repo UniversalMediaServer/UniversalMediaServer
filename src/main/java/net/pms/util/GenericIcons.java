@@ -39,6 +39,7 @@ import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import org.apache.commons.lang3.StringUtils;
@@ -111,6 +112,7 @@ public enum GenericIcons {
 		}
 
 		IconType iconType = IconType.UNKNOWN;
+		Format format = resource instanceof LibraryItem item ? item.getFormat() : null;
 		if (resource.getMediaInfo() != null) {
 			if (resource.getMediaInfo().isAudio()) {
 				iconType = IconType.AUDIO;
@@ -118,18 +120,18 @@ public enum GenericIcons {
 				iconType = IconType.IMAGE;
 			} else if (resource.getMediaInfo().isVideo()) {
 				// FFmpeg parses images as video, try to rectify
-				if (resource.getFormat() != null && resource.getFormat().isImage()) {
+				if (format != null && format.isImage()) {
 					iconType = IconType.IMAGE;
 				} else {
 					iconType = IconType.VIDEO;
 				}
 			}
-		} else if (resource.getFormat() != null) {
-			if (resource.getFormat().isAudio()) {
+		} else if (format != null) {
+			if (format.isAudio()) {
 				iconType = IconType.AUDIO;
-			} else if (resource.getFormat().isImage()) {
+			} else if (format.isImage()) {
 				iconType = IconType.IMAGE;
-			} else if (resource.getFormat().isVideo()) {
+			} else if (format.isVideo()) {
 				iconType = IconType.VIDEO;
 			}
 		}
@@ -149,7 +151,7 @@ public enum GenericIcons {
 
 			String label = getLabelFromImageFormat(resource.getMediaInfo());
 			if (label == null) {
-				label = getLabelFromFormat(resource.getFormat());
+				label = getLabelFromFormat(format);
 			}
 			if (label == null) {
 				label = getLabelFromContainer(resource.getMediaInfo());

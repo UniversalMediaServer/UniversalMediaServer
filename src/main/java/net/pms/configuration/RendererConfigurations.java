@@ -370,8 +370,10 @@ public class RendererConfigurations {
 			try {
 				defaultConf = new RendererConfiguration(null);
 				defaultRenderer = new Renderer(defaultConf);
-			} catch (ConfigurationException | InterruptedException e) {
+			} catch (ConfigurationException e) {
 				LOGGER.debug("Caught exception", e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 
 			File[] renderersDirs = new File[]{getProfileRenderersDir(), getRenderersDir()};

@@ -55,13 +55,14 @@ import net.pms.image.ImageInfo;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.DVDISOTitle;
 import net.pms.library.DbIdMediaType;
+import net.pms.library.DbIdResourceLocator;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
-import net.pms.library.virtual.CodeEnter;
-import net.pms.library.virtual.MediaLibraryFolder;
-import net.pms.library.virtual.VirtualVideoAction;
-import net.pms.media.DbIdResourceLocator;
+import net.pms.library.container.CodeEnter;
+import net.pms.library.container.MediaLibraryFolder;
+import net.pms.library.item.DVDISOTitle;
+import net.pms.library.item.VirtualVideoAction;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
@@ -85,6 +86,7 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "PlayerApiServlet", urlPatterns = {"/v1/api/player"}, displayName = "Player Api Servlet")
 public class PlayerApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -154,7 +156,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				String[] imageData = path.split("/");
 				if (imageData.length == 4) {
 					WebGuiRenderer renderer = getRenderer(req, imageData[2]);
-					if (renderer != null  && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendImageMedia(req, resp, renderer, imageData[3])) {
+					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendImageMedia(req, resp, renderer, imageData[3])) {
 						return;
 					}
 				}
@@ -295,10 +297,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			String userAgent = req.getHeader("User-agent");
 			String langs = WebGuiServletHelper.getLangs(req);
-			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account, userAgent, langs);
+			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
 			renderer.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
 			renderer.setActive(true);
-			renderer.getRootFolder().discoverChildren();
+			renderer.getRootFolder();
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
 		} catch (ConfigurationException ex) {
 			LOGGER.info("Error in loading configuration of WebPlayerRenderer");
@@ -320,11 +322,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			LibraryResource rootResource = id.equals("0") ? null : renderer.getRootFolder().getLibraryResource(id);
 
 			List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(id, true, 0, 0, search);
-			if (
-				!resources.isEmpty() &&
-				resources.get(0).getParent() != null &&
-				(resources.get(0).getParent() instanceof CodeEnter)
-			) {
+			if (!resources.isEmpty() &&
+					resources.get(0).getParent() != null &&
+					(resources.get(0).getParent() instanceof CodeEnter)) {
 				return null;
 			}
 			if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
@@ -332,25 +332,27 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			boolean hasFile = false;
-			if (
-				!resources.isEmpty() &&
-				resources.get(0).getParent() != null &&
-				resources.get(0).getParent().isFolder()
-			) {
+			if (!resources.isEmpty() &&
+					resources.get(0).getParent() != null &&
+					resources.get(0).getParent().isFolder()) {
 				LibraryResource thisResourceFromResources = resources.get(0).getParent();
 				String thisName = thisResourceFromResources.getDisplayName();
 				if (thisName.equals(Messages.getString("MediaLibrary"))) {
 					for (LibraryResource resource : resources) {
-						String icon = switch (resource.resumeName()) {
-							case "Video" -> "video";
-							case "Audio" -> "audio";
-							case "Photo" -> "image";
-							default -> "folder";
+						String icon = switch (resource.getDisplayName()) {
+							case "Video" ->
+								"video";
+							case "Audio" ->
+								"audio";
+							case "Photo" ->
+								"image";
+							default ->
+								"folder";
 						};
 						hasFile = true;
 						JsonObject jMedia = new JsonObject();
 						jMedia.addProperty("id", resource.getResourceId());
-						jMedia.addProperty("name", resource.resumeName());
+						jMedia.addProperty("name", resource.getDisplayName());
 						jMedia.addProperty("icon", icon);
 						jMedias.add(jMedia);
 					}
@@ -388,7 +390,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					hasFile = true;
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
-					jMedia.addProperty("name", resource.resumeName());
+					jMedia.addProperty("name", resource.getDisplayName());
 					jMedias.add(jMedia);
 					continue;
 				}
@@ -400,20 +402,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					* - The parent is TV Shows, or
 					* - This is a filtered metadata folder within TV shows, or
 					* - This is Recommendations
-					*/
-					if (
-						resource.getParent().getDisplayName().equals(Messages.getString("TvShows")) ||
-						resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
-						(
-							resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
-						) ||
-						(
-							resource.getParent().getParent() != null &&
+					 */
+					if (resource.getParent().getDisplayName().equals(Messages.getString("TvShows")) ||
+							resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
+							(resource.getParent().getParent() != null &&
+							resource.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))) ||
+							(resource.getParent().getParent() != null &&
 							resource.getParent().getParent().getParent() != null &&
-							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
-						)
-					) {
+							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation")))) {
 						isDisplayFoldersAsThumbnails = true;
 					}
 
@@ -429,7 +425,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							if (!videoSearchResults.isEmpty()) {
 								videoFolder = videoSearchResults.get(0);
 								mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", videoFolder.resumeName());
+								mediaLibraryFolder.addProperty("name", videoFolder.getDisplayName());
 								mediaLibraryFolder.addProperty("icon", "video");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -440,7 +436,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								LibraryResource audioFolder = audioSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", audioFolder.resumeName());
+								mediaLibraryFolder.addProperty("name", audioFolder.getDisplayName());
 								mediaLibraryFolder.addProperty("icon", "audio");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -451,7 +447,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								LibraryResource imagesFolder = imageSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", imagesFolder.resumeName());
+								mediaLibraryFolder.addProperty("name", imagesFolder.getDisplayName());
 								mediaLibraryFolder.addProperty("icon", "image");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -471,7 +467,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							// The HlsHelper is a folder
 							JsonObject jFolder = new JsonObject();
 							jFolder.addProperty("id", resource.getResourceId());
-							jFolder.addProperty("name", resource.resumeName());
+							jFolder.addProperty("name", resource.getDisplayName());
 							jFolders.add(jFolder);
 						}
 					}
@@ -483,10 +479,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			if (rootResource instanceof MediaLibraryFolder folder) {
-				if (
-					folder.isTVSeries() &&
-					CONFIGURATION.getUseCache()
-				) {
+				if (folder.isTVSeries() &&
+						CONFIGURATION.getUseCache()) {
 					JsonObject metadata = getMetadataAsJsonObject(rootResource, true, renderer, lang);
 					if (metadata != null) {
 						result.add("metadata", metadata);
@@ -494,19 +488,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 
 				// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
-				if (
-					folder.getDisplayName().equals(Messages.getString("TvShows")) ||
-					folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
-					(
-						folder.getParent() != null &&
-						folder.getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))
-					) ||
-					(
-						folder.getParent() != null &&
+				if (folder.getDisplayName().equals(Messages.getString("TvShows")) ||
+						folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
+						(folder.getParent() != null &&
+						folder.getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))) ||
+						(folder.getParent() != null &&
 						folder.getParent().getParent() != null &&
-						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation"))
-					)
-				) {
+						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation")))) {
 					for (LibraryResource resource : resources) {
 						if (resource instanceof MediaLibraryFolder) {
 							hasFile = true;
@@ -545,13 +533,16 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
-		} else if (resource.getFormat() != null && resource.getFormat().isVideo()) {
-			jMedia.addProperty("goal", "show");
-		} else {
-			jMedia.addProperty("goal", "play");
+			jMedia.addProperty("name", resource.getDisplayName());
+		} else if (resource instanceof LibraryItem item) {
+			if (item.getFormat() != null && item.getFormat().isVideo()) {
+				jMedia.addProperty("goal", "show");
+			} else {
+				jMedia.addProperty("goal", "play");
+			}
+			jMedia.addProperty("name", item.resumeName());
 		}
 		jMedia.addProperty("id", resource.getResourceId());
-		jMedia.addProperty("name", resource.resumeName());
 		return jMedia;
 	}
 
@@ -577,9 +568,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private JsonArray getMediaLibraryFolderChilds(
-		LibraryResource videoFolder,
-		Renderer renderer,
-		String folderName
+			LibraryResource videoFolder,
+			Renderer renderer,
+			String folderName
 	) throws IOException {
 		List<LibraryResource> videoFolderChildren = renderer.getRootFolder().getLibraryResources(videoFolder.getId(), true, 0, 0, folderName);
 		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
@@ -593,7 +584,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 		for (LibraryResource libraryVideo : libraryVideos) {
 			// Skip the #--TRANSCODE--# entry
-			if (libraryVideo.resumeName().equals(Messages.getString("Transcode_FolderName"))) {
+			if (libraryVideo.getDisplayName().equals(Messages.getString("Transcode_FolderName"))) {
 				continue;
 			}
 			jLibraryVideos.add(getMediaJsonObject(libraryVideo));
@@ -620,38 +611,37 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			JsonArray medias = new JsonArray();
 			JsonObject media = new JsonObject();
 
-			LibraryResource rootResource = renderer.getRootFolder().getLibraryResource(id);
-			if (rootResource == null) {
+			LibraryResource resource = renderer.getRootFolder().getLibraryResource(id);
+			LibraryItem item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+			if (item == null) {
 				LOGGER.debug("Bad web play id: " + id);
 				throw new IOException("Bad Id");
 			}
 
-			if (
-				rootResource.getParent() != null &&
-				rootResource.getParent().isFolder()
-			) {
+			if (item.getParent() != null &&
+					item.getParent().isFolder()) {
 				JsonObject jFolder = new JsonObject();
-				jFolder.addProperty("id", rootResource.getParent().getResourceId());
+				jFolder.addProperty("id", item.getParent().getResourceId());
 				jFolder.addProperty("name", "..");
 				jFolders.add(jFolder);
 			}
 
-			Format format = rootResource.getFormat();
+			Format format = item.getFormat();
 			boolean isImage = format.isImage();
 			boolean isVideo = format.isVideo();
 			boolean isAudio = format.isAudio();
 
-			String mime = renderer.getMimeType(rootResource);
+			String mime = renderer.getMimeType(item);
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
 				if (CONFIGURATION.getUseCache()) {
-					JsonObject metadata = getMetadataAsJsonObject(rootResource, false, renderer, lang);
+					JsonObject metadata = getMetadataAsJsonObject(item, false, renderer, lang);
 					media.add("metadata", metadata);
 				}
-				media.addProperty("isVideoWithChapters", rootResource.getMediaInfo() != null && rootResource.getMediaInfo().hasChapters());
+				media.addProperty("isVideoWithChapters", item.getMediaInfo() != null && item.getMediaInfo().hasChapters());
 				mime = renderer.getVideoMimeType();
-				if (rootResource.getMediaStatus() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
-					media.addProperty("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
+				if (item.getMediaStatus() != null && item.getMediaStatus().getLastPlaybackPosition() != null && item.getMediaStatus().getLastPlaybackPosition() > 0) {
+					media.addProperty("resumePosition", item.getMediaStatus().getLastPlaybackPosition().intValue());
 				}
 			}
 
@@ -661,13 +651,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				media.addProperty("isNativeAudio", mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME));
 			}
 
-			media.addProperty("name", rootResource.resumeName());
+			media.addProperty("name", item.resumeName());
 			media.addProperty("id", id);
 			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
 
-			media.add("surroundMedias", getSurroundingByType(rootResource));
+			media.add("surroundMedias", getSurroundingByType(item));
 
 			if (isImage) {
 				// do this like this to simplify the code
@@ -683,7 +673,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			medias.add(media);
 			result.add("medias", medias);
 			result.add("folders", jFolders);
-			result.add("breadcrumbs", getBreadcrumbs(rootResource));
+			result.add("breadcrumbs", getBreadcrumbs(item));
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			return result;
 		} finally {
@@ -691,14 +681,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static JsonObject getSurroundingByType(LibraryResource resource) {
+	private static JsonObject getSurroundingByType(LibraryItem item) {
 		JsonObject result = new JsonObject();
-		List<LibraryResource> children = resource.getParent().getChildren();
-		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(resource.getFormat());
-		int type = resource.getType();
+		List<LibraryResource> children = item.getParent().getChildren();
+		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(item.getFormat());
+		int type = item.getType();
 		int size = children.size();
 		int mod = looping ? size : 9999;
-		int self = children.indexOf(resource);
+		int self = children.indexOf(item);
 		for (int step = -1; step < 2; step += 2) {
 			int i = self;
 			int offset = (step < 0 && looping) ? size : 0;
@@ -709,15 +699,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					break; // Not found
 				}
 				next = children.get(i);
-				if (next.getType() == type && !next.isFolder()) {
+				if (next instanceof LibraryItem libraryItem && libraryItem.getType() == type) {
 					break; // Found
 				}
 				next = null;
 			}
-			if (next != null) {
+			if (next != null && next instanceof LibraryItem libraryItem) {
 				JsonObject jMedia = new JsonObject();
-				jMedia.addProperty("id", next.getResourceId());
-				jMedia.addProperty("name", next.resumeName());
+				jMedia.addProperty("id", libraryItem.getResourceId());
+				jMedia.addProperty("name", libraryItem.resumeName());
 				result.add(step > 0 ? "next" : "prev", jMedia);
 			}
 		}
@@ -757,29 +747,35 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<LibraryResource> res;
 		try {
 			res = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
-			if (res.size() != 1) {
+			LibraryItem item;
+			if (res.size() == 1) {
+				LibraryResource resource = res.get(0);
+				item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+			} else {
 				// another error
+				item = null;
+			}
+			if (item == null) {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			LibraryResource resource = res.get(0);
-			long len = resource.length();
-			resource.setEngine(null);
+			long len = item.length();
+			item.setEngine(null);
 			ByteRange range = parseRange(req, len);
 			AsyncContext async = req.startAsync();
-			InputStream in = resource.getInputStream(range);
+			InputStream in = item.getInputStream(range);
 			if (len == 0) {
 				// For web resources actual length may be unknown until we open the stream
-				len = resource.length();
+				len = item.length();
 			}
-			String mime = renderer.getMimeType(resource);
+			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Server", PMS.get().getServerName());
 			resp.setHeader("Connection", "keep-alive");
 
 			if (isDownload) {
-				resp.setHeader("Content-Disposition", "attachment; filename=\"" + new File(resource.getFileName()).getName() + "\"");
+				resp.setHeader("Content-Disposition", "attachment; filename=\"" + new File(item.getFileName()).getName() + "\"");
 			}
 			if (in != null) {
 				if (in.available() != len) {
@@ -811,21 +807,27 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<LibraryResource> res;
 		try {
 			res = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
-			if (res.size() != 1) {
+			LibraryItem item;
+			if (res.size() == 1) {
+				LibraryResource resource = res.get(0);
+				item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+			} else {
 				// another error
+				item = null;
+			}
+			if (item == null) {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			LibraryResource resource = res.get(0);
-			File media = new File(resource.getFileName());
-			String mime = renderer.getMimeType(resource);
+			File media = new File(item.getFileName());
+			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
 			resp.setHeader("Server", PMS.get().getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			resp.setHeader("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
 			resp.setStatus(200);
 			resp.setContentLengthLong(media.length());
-			InputStream in = resource.getInputStream();
+			InputStream in = item.getInputStream();
 			if (LOGGER.isTraceEnabled()) {
 				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 			}
@@ -842,37 +844,43 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<LibraryResource> res;
 		try {
 			res = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
-			if (res.size() != 1) {
+			LibraryItem item;
+			if (res.size() == 1) {
+				LibraryResource resource = res.get(0);
+				item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+			} else {
 				// another error
+				item = null;
+			}
+			if (item == null) {
 				LOGGER.debug("media unkonwn");
 				return false;
 			}
-			LibraryResource resource = res.get(0);
 			String mime;
 			InputStream in;
 			long len;
 			ByteRange range;
-			if (resource.getMediaInfo() != null && resource.getMediaInfo().isImage() && resource.getMediaInfo().getImageInfo() != null) {
-				ImageInfo imageInfo = resource.getMediaInfo().getImageInfo();
+			if (item.getMediaInfo() != null && item.getMediaInfo().isImage() && item.getMediaInfo().getImageInfo() != null) {
+				ImageInfo imageInfo = item.getMediaInfo().getImageInfo();
 				boolean supported = renderer.isImageFormatSupported(imageInfo.getFormat());
-				mime = resource.getFormat() != null ?
-					resource.getFormat().mimeType() :
-					renderer.getMimeType(resource);
+				mime = item.getFormat() != null ?
+						item.getFormat().mimeType() :
+						renderer.getMimeType(item);
 
-				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : resource.length();
+				len = supported && imageInfo.getSize() != ImageInfo.SIZE_UNKNOWN ? imageInfo.getSize() : item.length();
 
 				if (supported) {
-					in = resource.getInputStream();
+					in = item.getInputStream();
 				} else {
 					InputStream imageInputStream;
-					if (resource.getEngine() instanceof ImageEngine) {
-						ProcessWrapper transcodeProcess = resource.getEngine().launchTranscode(resource,
-							resource.getMediaInfo(),
-							new OutputParams(PMS.getConfiguration())
+					if (item.getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = item.getEngine().launchTranscode(item,
+								item.getMediaInfo(),
+								new OutputParams(PMS.getConfiguration())
 						);
 						imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
 					} else {
-						imageInputStream = resource.getInputStream();
+						imageInputStream = item.getInputStream();
 					}
 					Image image = Image.toImage(imageInputStream, 3840, 2400, ImagesUtil.ScaleType.MAX, ImageFormat.JPEG, false);
 					len = image == null ? 0 : image.getBytes(false).length;
@@ -925,65 +933,65 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return false;
 		}
 		LibraryResource resource = renderer.getRootFolder().getLibraryResource(resourceId);
-		if (resource == null) {
+		LibraryItem item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+
+		if (item == null) {
 			// another error
 			LOGGER.debug("media unkonwn");
 			return false;
 		}
 		MediaSubtitle sid = null;
-		String mimeType = renderer.getMimeType(resource);
-		MediaInfo media = resource.getMediaInfo();
+		String mimeType = renderer.getMimeType(item);
+		MediaInfo media = item.getMediaInfo();
 		if (media == null) {
 			media = new MediaInfo();
-			resource.setMediaInfo(media);
+			item.setMediaInfo(media);
 		}
 		if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
 			mimeType = media.getMimeType();
 		}
-		if (resource.getFormat().isVideo()) {
+		if (item.getFormat().isVideo()) {
 			mimeType = renderer.getVideoMimeType();
-			if (FileUtil.isUrl(resource.getSystemName())) {
-				if (FFmpegWebVideo.isYouTubeURL(resource.getSystemName())) {
-					resource.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
+			if (FileUtil.isUrl(item.getSystemName())) {
+				if (FFmpegWebVideo.isYouTubeURL(item.getSystemName())) {
+					item.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
 				} else {
-					resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
+					item.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));
 				}
-			} else if (!(resource instanceof DVDISOTitle)) {
-				resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
+			} else if (!(item instanceof DVDISOTitle)) {
+				item.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_VIDEO, false, false));
 			}
-			if (
-				PMS.getConfiguration().getWebPlayerSubs() &&
-				resource.getMediaSubtitle() != null &&
-				resource.getMediaSubtitle().isExternal()
-			) {
+			if (PMS.getConfiguration().getWebPlayerSubs() &&
+					item.getMediaSubtitle() != null &&
+					item.getMediaSubtitle().isExternal()) {
 				// fetched on the side
-				sid = resource.getMediaSubtitle();
-				resource.setMediaSubtitle(null);
+				sid = item.getMediaSubtitle();
+				item.setMediaSubtitle(null);
 			}
-		} else if (resource.getFormat().isAudio() && !directmime(mimeType)) {
-			resource.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
+		} else if (item.getFormat().isAudio() && !directmime(mimeType)) {
+			item.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_AUDIO, false, false));
 		}
 
 		try {
 			//hls part
-			if (resource.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(renderer.getVideoMimeType())) {
+			if (item.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(renderer.getVideoMimeType())) {
 				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
-					String response = HlsHelper.getChaptersWebVtt(resource);
+					String response = HlsHelper.getChaptersWebVtt(item);
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
-					String response = HlsHelper.getChaptersHls(resource);
+					String response = HlsHelper.getChaptersHls(item);
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsHelper.getHLSm3u8ForRendition(resource, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
+						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
 						WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						AsyncContext async = req.startAsync();
-						InputStream in = HlsHelper.getInputStream(uri, resource);
+						InputStream in = HlsHelper.getInputStream(uri, item);
 
 						if (in != null) {
 							resp.setHeader("Connection", "keep-alive");
@@ -994,7 +1002,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							}
 							resp.setHeader("Transfer-Encoding", "chunked");
 							resp.setStatus(200);
-							renderer.start(resource);
+							renderer.start(item);
 							if (LOGGER.isTraceEnabled()) {
 								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 							}
@@ -1007,15 +1015,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						}
 					}
 				} else {
-					String response = HlsHelper.getHLSm3u8(resource, renderer, req.getServletPath() + "/media/" + sessionId + "/");
+					String response = HlsHelper.getHLSm3u8(item, renderer, req.getServletPath() + "/media/" + sessionId + "/");
 					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
 				AsyncContext async = req.startAsync();
-				ByteRange range = parseRange(req, resource.length());
-				LOGGER.debug("Sending {} with mime type {} to {}", resource, mimeType, renderer);
-				InputStream in = resource.getInputStream(range);
-				long len = resource.length();
+				ByteRange range = parseRange(req, item.length());
+				LOGGER.debug("Sending {} with mime type {} to {}", item, mimeType, renderer);
+				InputStream in = item.getInputStream(range);
+				long len = item.length();
 				boolean isTranscoding = len == LibraryResource.TRANS_SIZE;
 				resp.setContentType(mimeType);
 				resp.setHeader("Server", PMS.get().getServerName());
@@ -1039,9 +1047,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (LOGGER.isTraceEnabled()) {
 						WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
 					}
-					renderer.start(resource);
+					renderer.start(item);
 					if (sid != null) {
-						resource.setMediaSubtitle(sid);
+						item.setMediaSubtitle(sid);
 					}
 					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 					WebGuiServletHelper.copyStreamAsync(in, os, async);
@@ -1059,14 +1067,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Gets metadata from our database, which may be there from our API, for
- this HlsHelper, which could be a TV series, TV episode, or movie.
+	 * this HlsHelper, which could be a TV series, TV episode, or movie.
 	 *
 	 * @param resource
 	 * @param isTVSeries whether this is a TV series, or an episode/movie
 	 * @param rootFolder the root folder, used for looking up IDs
-	 * @return a JsonObject to be used by a web browser which includes
-	 *         metadata names and when applicable, associated IDs, or null
-	 *         when there is no metadata
+	 * @return a JsonObject to be used by a web browser which includes metadata
+	 * names and when applicable, associated IDs, or null when there is no
+	 * metadata
 	 */
 	private static JsonObject getMetadataAsJsonObject(LibraryResource resource, boolean isTVSeries, Renderer renderer, String lang) {
 		JsonObject result = null;
@@ -1199,11 +1207,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	/**
-	 * Whether the MIME type is supported by all browsers.
-	 * Note: This is a flawed approach because while browsers
-	 * may support the container format, they may not support
-	 * the codecs within. For example, most browsers support
-	 * MP4 with H.264, but do not support it with H.265 (HEVC)
+	 * Whether the MIME type is supported by all browsers. Note: This is a
+	 * flawed approach because while browsers may support the container format,
+	 * they may not support the codecs within. For example, most browsers
+	 * support MP4 with H.264, but do not support it with H.265 (HEVC)
 	 *
 	 * @param mime
 	 * @return
@@ -1211,19 +1218,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 */
 	private static boolean directmime(String mime) {
 		return mime != null &&
-		(
-			mime.equals(HTTPResource.MP4_TYPEMIME) ||
-			mime.equals(HTTPResource.WEBM_TYPEMIME) ||
-			mime.equals(HTTPResource.OGG_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
-			mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
-			mime.equals(HTTPResource.BMP_TYPEMIME) ||
-			mime.equals(HTTPResource.PNG_TYPEMIME) ||
-			mime.equals(HTTPResource.JPEG_TYPEMIME) ||
-			mime.equals(HTTPResource.GIF_TYPEMIME)
-		);
+				(mime.equals(HTTPResource.MP4_TYPEMIME) ||
+				mime.equals(HTTPResource.WEBM_TYPEMIME) ||
+				mime.equals(HTTPResource.OGG_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_M4A_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_OGA_TYPEMIME) ||
+				mime.equals(HTTPResource.AUDIO_WAV_TYPEMIME) ||
+				mime.equals(HTTPResource.BMP_TYPEMIME) ||
+				mime.equals(HTTPResource.PNG_TYPEMIME) ||
+				mime.equals(HTTPResource.JPEG_TYPEMIME) ||
+				mime.equals(HTTPResource.GIF_TYPEMIME));
 	}
 
 }

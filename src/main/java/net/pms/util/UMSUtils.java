@@ -18,48 +18,30 @@ package net.pms.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
-import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.library.LibraryResource;
-import net.pms.library.RealFile;
-import net.pms.library.ResumeObj;
-import net.pms.library.SevenZipEntry;
-import net.pms.library.WebStream;
-import net.pms.library.ZippedEntry;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class UMSUtils {
 
 	private static final Collator COLLATOR;
-	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
 
 	static {
 		COLLATOR = Collator.getInstance();
@@ -73,8 +55,8 @@ public class UMSUtils {
 	}
 
 	/**
-	 * Filters the list of resources in-place by removing all items that do
-	 * not match or contain searchString.
+	 * Filters the list of resources in-place by removing all items that do not
+	 * match or contain searchString.
 	 *
 	 * @param resources
 	 * @param searchString
@@ -139,8 +121,8 @@ public class UMSUtils {
 	public static final int SORT_NO_SORT = 6;
 
 	/**
-	 * Sorts a list of files using a custom method when the files are not episodes
-	 * within TV series folders of the Media Library.
+	 * Sorts a list of files using a custom method when the files are not
+	 * episodes within TV series folders of the Media Library.
 	 *
 	 * @param files
 	 * @param method
@@ -273,302 +255,11 @@ public class UMSUtils {
 	}
 
 	/**
-	 * A LibraryResource list with built-in file i/o.
-	 */
-	public static class IOList extends ArrayList<LibraryResource> {
-		/**
-		 * Bitwise constants relating to playlist management.
-		 */
-		public static final int PERMANENT = 1;
-		public static final int AUTOSAVE = 2;
-		public static final int AUTOREMOVE = 4;
-		private static final long serialVersionUID = 8042924548275374060L;
-		private final Renderer renderer;
-		private final int mode;
-		private File file;
-
-		public IOList(Renderer renderer, String uri, int mode) {
-			this.renderer = renderer;
-			this.mode = mode;
-			if (!StringUtils.isBlank(uri)) {
-				file = new File(uri);
-				load(file);
-			} else {
-				file = null;
-			}
-		}
-
-		@Override
-		public boolean add(LibraryResource d) {
-			super.add(d);
-			if (isMode(AUTOSAVE)) {
-				save();
-			}
-			return true;
-		}
-
-		@Override
-		public LibraryResource remove(int index) {
-			LibraryResource d = super.remove(index);
-			if (isMode(AUTOSAVE)) {
-				save();
-			}
-			return d;
-		}
-
-		public boolean isMode(int m) {
-			return (mode & m) == m;
-		}
-
-		public File getFile() {
-			return file;
-		}
-
-		public final void load(File f) {
-			if (f.exists()) {
-				file = f;
-				clear();
-				try {
-					read(this, f);
-				} catch (IOException e) {
-					LOGGER.debug("Error loading resource list '{}': {}", f, e);
-				}
-				if (PMS.getConfiguration().getSortMethod(f) == UMSUtils.SORT_RANDOM) {
-					Collections.shuffle(this);
-				}
-			}
-		}
-
-		public void save() {
-			if (file != null) {
-				save(file);
-			}
-		}
-
-		public void save(File f) {
-			if (!isEmpty()) {
-				try {
-					write(this, f);
-				} catch (IOException e) {
-					LOGGER.debug("Error saving resource list to '{}': {}", f, e);
-				}
-			} else if (f != null && f.exists()) {
-				// Save = delete for empty playlists
-				f.delete();
-			}
-		}
-
-		public static void write(List<LibraryResource> playlist, File f) throws IOException {
-			Date now = new Date();
-			try (FileWriter out = new FileWriter(f)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("######\n");
-				sb.append("## __UPS__\n");
-				sb.append("## NOTE!!!!!\n");
-				sb.append("## This file is auto generated\n");
-				sb.append("## Edit with EXTREME care\n");
-				sb.append("## Generated: ");
-				sb.append(now.toString());
-				sb.append("\n");
-				for (LibraryResource r : playlist) {
-					String data = r.write();
-					if (!StringUtils.isEmpty(data) && sb.indexOf(data) == -1) {
-						String id = "internal:" + r.getClass().getName();
-
-						sb.append("master:").append(id).append(';');
-						if (r.getEngine() != null) {
-							sb.append("player:").append(r.getEngine().toString()).append(';');
-						}
-						if (r.isResume()) {
-							sb.append("resume");
-							sb.append(r.getResume().getResumeFile().getAbsolutePath());
-							sb.append(';');
-						}
-						if (r.getMediaSubtitle() != null) {
-							MediaSubtitle sub = r.getMediaSubtitle();
-							if (
-								sub.getLang() != null &&
-								(
-									(
-										sub.isExternal() &&
-										sub.getExternalFile() != null
-									) || (
-										sub.isEmbedded() &&
-										sub.getId() != -1
-									)
-								)
-							) {
-								sb.append("sub");
-								sb.append(sub.getLang());
-								sb.append(',');
-								if (sub.isExternal()) {
-									sb.append("file:");
-									sb.append(sub.getExternalFile().getPath());
-								} else {
-									sb.append("id:");
-									sb.append("").append(sub.getId());
-								}
-								sb.append(';');
-							}
-						}
-						sb.append(data);
-						sb.append("\n");
-					}
-				}
-				out.write(sb.toString());
-				out.flush();
-			}
-		}
-
-		private static Engine findPlayerByName(String playerName, boolean onlyEnabled, boolean onlyAvailable) {
-			for (Engine player : EngineFactory.getEngines(onlyEnabled, onlyAvailable)) {
-				if (playerName.equals(player.getName())) {
-					return player;
-				}
-			}
-			return null;
-		}
-
-		private LibraryResource parse(String clazz, String data) {
-			boolean error = false;
-			if (clazz.contains("RealFile")) {
-				if (data.contains(">")) {
-					String[] tmp = data.split(">");
-					return new RealFile(renderer, new File(tmp[1]), tmp[0]);
-				}
-				error = true;
-			}
-			if (clazz.contains("SevenZipEntry")) {
-				if (data.contains(">")) {
-					String[] tmp = data.split(">");
-					long len = Long.parseLong(tmp[2]);
-					return new SevenZipEntry(renderer, new File(tmp[1]), tmp[0], len);
-				}
-				error = true;
-			}
-			if (clazz.contains("ZippedEntry")) {
-				if (data.contains(">")) {
-					String[] tmp = data.split(">");
-					long len = Long.parseLong(tmp[2]);
-					return new ZippedEntry(renderer, new File(tmp[1]), tmp[0], len);
-				}
-				error = true;
-			}
-			if (clazz.contains("WebStream")) {
-				if (data.contains(">")) {
-					String[] tmp = data.split(">");
-					int type;
-					try {
-						type = Integer.parseInt(tmp[3]);
-					} catch (NumberFormatException e) {
-						type = Format.UNKNOWN;
-					}
-					return new WebStream(renderer, tmp[0], tmp[1], tmp[2], type);
-				}
-				error = true;
-			}
-
-			if (error) {
-				LOGGER.debug("Error parsing playlist resource:");
-				LOGGER.debug("clazz: " + clazz);
-				LOGGER.debug("data:" + data);
-			}
-
-			return null;
-		}
-
-		public void read(List<LibraryResource> playlist, File f) throws IOException {
-			if (!f.exists()) {
-				return;
-			}
-			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
-				String str;
-
-				while ((str = in.readLine()) != null) {
-					if (org.apache.commons.lang.StringUtils.isEmpty(str)) {
-						continue;
-					}
-					if (str.startsWith("#")) {
-						continue;
-					}
-					str = str.trim();
-					if (!str.startsWith("master:")) {
-						continue;
-					}
-					str = str.substring(7);
-					int pos = str.indexOf(';');
-					if (pos == -1) {
-						continue;
-					}
-					String master = str.substring(0, pos);
-					str = str.substring(pos + 1);
-					pos = str.indexOf(';');
-					String subData = null;
-					String resData = null;
-					LibraryResource res = null;
-					Engine player = null;
-					while (pos != -1) {
-						if (str.startsWith("player:")) {
-							// find last player
-							player = findPlayerByName(str.substring(7, pos), true, true);
-						}
-						if (str.startsWith("resume")) {
-							// resume data
-							resData = str.substring(6, pos);
-						}
-						if (str.startsWith("sub")) {
-							// subs data
-							subData = str.substring(3, pos);
-						}
-						str = str.substring(pos + 1);
-						pos = str.indexOf(';');
-					}
-					LOGGER.debug("master is " + master + " str " + str);
-					if (master.startsWith("internal:")) {
-						res = parse(master.substring(9), str);
-					} else {
-						LOGGER.warn("Unknown master parents: {}", master);
-					}
-					if (res != null) {
-						if (resData != null) {
-							ResumeObj r = new ResumeObj(new File(resData));
-							if (!r.isDone()) {
-								r.read();
-								res.setResume(r);
-							}
-						}
-						res.setEngine(player);
-						if (subData != null) {
-							MediaSubtitle s = res.getMediaSubtitle();
-							if (s == null) {
-								s = new MediaSubtitle();
-								res.setMediaSubtitle(s);
-							}
-							String[] tmp = subData.split(",");
-							s.setLang(tmp[0]);
-							subData = tmp[1];
-							if (subData.startsWith("file:")) {
-								String sFile = subData.substring(5);
-								s.setExternalFile(new File(sFile));
-								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
-								s.setType(t);
-							} else if (subData.startsWith("id:")) {
-								s.setId(Integer.parseInt(subData.substring(3)));
-							}
-						}
-						playlist.add(res);
-					}
-				}
-			}
-		}
-	}
-
-	/**
 	 * Check available GPU decoding acceleration methods possibly used by
 	 * FFmpeg.
 	 *
 	 * @param configuration in which the available GPU acceleration methods will
-	 *            be stored
+	 * be stored
 	 * @throws ConfigurationException
 	 */
 	public static void checkGPUDecodingAccelerationMethodsForFFmpeg(UmsConfiguration configuration) throws ConfigurationException {
@@ -581,7 +272,7 @@ public class UMSUtils {
 		outputParams.setWaitBeforeStart(0);
 		outputParams.setLog(true);
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(
-			new String[] {configuration.getFFmpegPath(), "-hwaccels"}, false, outputParams, true, false);
+				new String[]{configuration.getFFmpegPath(), "-hwaccels"}, false, outputParams, true, false);
 		Runnable r = () -> {
 			sleep(10000);
 
@@ -649,21 +340,14 @@ public class UMSUtils {
 	}
 
 	/**
-	 * The keys are in the format Mantine expects, which can
-	 * be confusing - "value" in Mantine is what is usually
-	 * referred to as the "key".
+	 * The keys are in the format Mantine expects, which can be confusing -
+	 * "value" in Mantine is what is usually referred to as the "key".
 	 *
 	 * @param values
 	 * @param labels
 	 * @param jsonArray optional array to add to
-	 * @return an array of objects in the format:
-	 * [
-	 *   {
-	 *     "value": "bar",
-	 *     "label": "foo"
-	 *   },
-	 *   ...
-	 * ]
+	 * @return an array of objects in the format: [ { "value": "bar", "label":
+	 * "foo" }, ... ]
 	 */
 	public static JsonArray getArraysAsJsonArrayOfObjects(String[] values, String[] labels, JsonArray jsonArray) {
 		if (jsonArray == null) {
@@ -683,21 +367,14 @@ public class UMSUtils {
 	}
 
 	/**
-	 * The keys are in the format Mantine expects, which can
-	 * be confusing - "value" in Mantine is what is usually
-	 * referred to as the "key".
+	 * The keys are in the format Mantine expects, which can be confusing -
+	 * "value" in Mantine is what is usually referred to as the "key".
 	 *
 	 * @param values
 	 * @param labels
 	 * @param jsonArray optional array to add to
-	 * @return an array of objects in the format:
-	 * [
-	 *   {
-	 *     "value": "bar",
-	 *     "label": "foo"
-	 *   },
-	 *   ...
-	 * ]
+	 * @return an array of objects in the format: [ { "value": "bar", "label":
+	 * "foo" }, ... ]
 	 */
 	public static synchronized JsonArray getListsAsJsonArrayOfObjects(List<String> values, List<String> labels, JsonArray jsonArray) {
 		if (jsonArray == null) {

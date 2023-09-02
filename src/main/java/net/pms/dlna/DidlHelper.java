@@ -27,11 +27,13 @@ import net.pms.encoders.Engine;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
-import net.pms.library.DVDISOFile;
+import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
-import net.pms.library.PlaylistFolder;
-import net.pms.library.RealFile;
-import net.pms.library.virtual.VirtualFolderDbId;
+import net.pms.library.container.DVDISOFile;
+import net.pms.library.container.PlaylistFolder;
+import net.pms.library.container.VirtualFolderDbId;
+import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
@@ -69,18 +71,18 @@ public class DidlHelper extends DlnaHelper {
 	 */
 	public static final String getDidlString(LibraryResource resource) {
 		final Renderer renderer = resource.getDefaultRenderer();
-		final Engine engine = resource.getEngine();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
 		final MediaStatus mediaStatus = resource.getMediaStatus();
-		final MediaSubtitle mediaSubtitle = resource.getMediaSubtitle();
-		final Format format = resource.getFormat();
+		final LibraryContainer container = resource instanceof LibraryContainer libraryContainer ? libraryContainer : null;
+		final LibraryItem item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+		final Engine engine = item != null ? item.getEngine() : null;
+		final Format format = item != null ? item.getFormat() : null;
+		final MediaSubtitle mediaSubtitle = item != null ? item.getMediaSubtitle() : null;
 
 		StringBuilder sb = new StringBuilder();
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = renderer.isXbox360();
-		// Cache this as some implementations actually call the file system
-		boolean isFolder = resource.isFolder();
-		if (!isFolder) {
+		if (item != null) {
 			if (mediaInfo != null && mediaInfo.isVideo()) {
 				if (
 					!renderer.getUmsConfiguration().isDisableSubtitles() &&
@@ -90,7 +92,7 @@ public class DidlHelper extends DlnaHelper {
 					) &&
 					mediaSubtitle != null &&
 					mediaSubtitle.isExternal() &&
-					renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, resource)
+					renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, item)
 				) {
 					subsAreValidForStreaming = true;
 					LOGGER.trace("External subtitles \"{}\" can be streamed to {}", mediaSubtitle.getName(), renderer);
@@ -120,8 +122,8 @@ public class DidlHelper extends DlnaHelper {
 		}
 
 		addAttribute(sb, "id", resourceId);
-		if (isFolder) {
-			if (!resource.isDiscovered() && resource.childrenCount() == 0) {
+		if (container != null) {
+			if (!container.isDiscovered() && container.childrenCount() == 0) {
 				// When a folder has not been scanned for resources, it will
 				// automatically have zero children.
 				// Some renderers like XBMC will assume a folder is empty when
@@ -133,7 +135,7 @@ public class DidlHelper extends DlnaHelper {
 				// set to the right value.
 				addAttribute(sb, "childCount", 1);
 			} else {
-				addAttribute(sb, "childCount", resource.childrenCount());
+				addAttribute(sb, "childCount", container.childrenCount());
 			}
 		}
 
@@ -162,7 +164,7 @@ public class DidlHelper extends DlnaHelper {
 				title += String.format("%03d - ", audioMetadata.getTrack());
 			}
 			title += audioMetadata.getSongname();
-		} else if (isFolder || subsAreValidForStreaming) {
+		} else if (container != null || subsAreValidForStreaming) {
 			title = resource.getDisplayName(false);
 		} else {
 			title = renderer.getUseSameExtension(resource.getDisplayName(false));
@@ -179,7 +181,9 @@ public class DidlHelper extends DlnaHelper {
 			title = resource.getName();
 		}
 
-		title = resource.resumeStr(title);
+		if (item != null) {
+			title = item.resumeStr(title);
+		}
 		addXMLTagAndAttribute(sb, "dc:title",
 			encodeXML(renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource)));
 
@@ -257,9 +261,9 @@ public class DidlHelper extends DlnaHelper {
 		}
 
 		MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
-		if (!isFolder && mediaType == MediaType.IMAGE) {
+		if (item != null && mediaType == MediaType.IMAGE) {
 			appendImage(resource, sb);
-		} else if (!isFolder) {
+		} else if (item != null) {
 			int indexCount = 1;
 			if (renderer.isDLNALocalizationRequired()) {
 				indexCount = getDLNALocalesCount();
@@ -268,12 +272,12 @@ public class DidlHelper extends DlnaHelper {
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(resource, c);
+				String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
 				String dlnaOrgFlags = "*";
 				if (renderer.isSendDLNAOrgFlags()) {
-					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(resource);
+					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
 				}
-				String tempString = "http-get:*:" + resource.getRendererMimeType() + ":" + dlnaOrgFlags;
+				String tempString = "http-get:*:" + item.getRendererMimeType() + ":" + dlnaOrgFlags;
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", mediaSubtitle.getType().getExtension().toUpperCase());
@@ -289,8 +293,8 @@ public class DidlHelper extends DlnaHelper {
 					}
 
 					if (mediaInfo.getDuration() != null) {
-						if (resource.isResume()) {
-							long offset = resource.getResume().getTimeOffset() / 1000;
+						if (item.isResume()) {
+							long offset = item.getResume().getTimeOffset() / 1000;
 							double duration = mediaInfo.getDuration() - offset;
 							addAttribute(sb, "duration", StringUtil.formatDLNADuration(duration));
 						} else if (resource.getSplitRange().isEndLimitAvailable()) {
@@ -302,7 +306,7 @@ public class DidlHelper extends DlnaHelper {
 
 					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
 						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
-							addAttribute(sb, "resolution", resource.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
+							addAttribute(sb, "resolution", item.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", defaultVideoTrack.getResolution());
 						}
@@ -339,7 +343,7 @@ public class DidlHelper extends DlnaHelper {
 					} else {
 						addAttribute(sb, "size", resource.length());
 					}
-				} else if (format != null && resource.getFormat().isAudio()) {
+				} else if (format != null && format.isAudio()) {
 					if (mediaInfo != null && mediaInfo.isMediaParsed()) {
 						if (mediaInfo.getBitRate() > 0) {
 							addAttribute(sb, "bitrate", mediaInfo.getBitRate());
@@ -489,14 +493,14 @@ public class DidlHelper extends DlnaHelper {
 			}
 		}
 
-		if (mediaType != MediaType.IMAGE && (!isFolder || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
+		if (mediaType != MediaType.IMAGE && (container == null || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
 			appendThumbnail(resource, sb, mediaType);
 		}
 
 		String uclass;
 		if (resource.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
 			uclass = "dummy";
-		} else if (isFolder) {
+		} else if (container != null) {
 			if (resource instanceof PlaylistFolder) {
 				uclass = "object.container.playlistContainer";
 			} else if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
@@ -532,16 +536,16 @@ public class DidlHelper extends DlnaHelper {
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
-		if (isFolder) {
-			closeTag(sb, "container");
-		} else {
+		if (item != null) {
 			closeTag(sb, "item");
+		} else {
+			closeTag(sb, "container");
 		}
 
 		return sb.toString();
 	}
 
-			/**
+	/**
 	 * Generate and append image and thumbnail {@code res} and
 	 * {@code upnp:albumArtURI} entries for the image.
 	 *

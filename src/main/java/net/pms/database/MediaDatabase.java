@@ -278,4 +278,18 @@ public class MediaDatabase extends Database {
 		return 0;
 	}
 
+	public static void analyzeDb() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					DatabaseEmbedded.analyzeDb(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+	}
+
 }

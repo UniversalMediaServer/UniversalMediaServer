@@ -33,7 +33,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -125,7 +125,7 @@ public class VideoLanVideoStreaming extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		LibraryResource resource,
+		LibraryItem resource,
 		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
@@ -201,7 +201,7 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryResource resource) {
+	public boolean isCompatible(LibraryItem resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 

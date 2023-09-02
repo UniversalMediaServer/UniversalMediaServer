@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,8 +33,6 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
-import net.pms.library.LibraryScanner;
-import net.pms.library.MediaScanner;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
@@ -155,13 +154,17 @@ public class SharedContentConfiguration {
 				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
 				//check viability
-				boolean wasFolderUpdate = false;
 				for (SharedContent sharedContent : values) {
 					if (sharedContent instanceof FolderContent folderContent) {
 						if (folderContent.getFile() != null) {
 							SHARED_CONTENT_ARRAY.add(sharedContent);
-							wasFolderUpdate = true;
 						}
+					} else if (sharedContent instanceof ITunesContent && !Platform.isMac() && !Platform.isWindows()) {
+						LOGGER.debug("ITunesContent not valid on this platform");
+					} else if (sharedContent instanceof IPhotoContent && !Platform.isMac()) {
+						LOGGER.debug("IPhotoContent not valid on this platform");
+					} else if (sharedContent instanceof ApertureContent && !Platform.isMac()) {
+						LOGGER.debug("ApertureContent not valid on this platform");
 					} else {
 						SHARED_CONTENT_ARRAY.add(sharedContent);
 					}
@@ -174,13 +177,6 @@ public class SharedContentConfiguration {
 					PMS.get().resetRenderersRoot();
 				}
 				updated = true;
-
-				if (wasFolderUpdate && save && CONFIGURATION.getUseCache()) {
-					MediaScanner.setLibraryFileWatchers();
-					// Rescan to add/remove Media Library content
-					LibraryScanner.stopScanLibrary();
-					LibraryScanner.scanLibrary();
-				}
 			} else {
 				LOGGER.debug("Current shared content configuration is already up to date.");
 			}
@@ -245,7 +241,9 @@ public class SharedContentConfiguration {
 			if (Files.exists(sharedConfFilePath)) {
 				LOGGER.info("Getting shared content from configuration file : " + sharedConfFilePath);
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
-				updateSharedContent(GSON.fromJson(json, SharedContentArray.class), false);
+				SharedContentArray values = GSON.fromJson(json, SharedContentArray.class);
+				boolean updated = OldConfigurationImporter.ensureSettingsChanges(values);
+				updateSharedContent(values, updated);
 			} else {
 				//import old settings
 				LOGGER.info("Importing old shared content configuration files");
@@ -321,4 +319,5 @@ public class SharedContentConfiguration {
 		sharedMessage.add("value", sharedData);
 		SseApiServlet.broadcastSharedMessage(sharedMessage.toString());
 	}
+
 }
