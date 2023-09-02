@@ -21,6 +21,7 @@ import net.pms.network.mediaserver.handlers.api.LikeMusic;
 import net.pms.network.mediaserver.handlers.api.playlist.PlaylistService;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 
+//FIXME : this should be implemented under upnp, not a pseudo/personal API
 public class ApiResponseFactory {
 
 	public ApiResponseHandler getApiResponseHandler(String apiType) {

@@ -212,11 +212,13 @@ public class DidlHelper extends DlnaHelper {
 			if (StringUtils.isNotBlank(audioMetadata.getComposer())) {
 				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Composer\"", encodeXML(audioMetadata.getComposer()));
 				addXMLTagAndAttributeWithRole(sb, "upnp:author role=\"Composer\"", encodeXML(audioMetadata.getComposer()));
+				//FIXME : it break upnp standard (non existant)
 				addXMLTagAndAttribute(sb, "upnp:composer", encodeXML(audioMetadata.getComposer()));
 			}
 
 			if (StringUtils.isNotBlank(audioMetadata.getConductor())) {
 				addXMLTagAndAttributeWithRole(sb, "upnp:artist role=\"Conductor\"", encodeXML(audioMetadata.getConductor()));
+				//FIXME : it break upnp standard (non existant)
 				addXMLTagAndAttribute(sb, "upnp:conductor", encodeXML(audioMetadata.getConductor()));
 			}
 
@@ -506,6 +508,9 @@ public class DidlHelper extends DlnaHelper {
 			} else if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
 				uclass = virtualFolderDbId.getMediaTypeUclass();
 			} else {
+				//FIXME : it break upnp standard
+				//object.container.storageFolder require the upnp:storageUsed property set
+				//so either set it, or use the object.container class
 				uclass = "object.container.storageFolder";
 			}
 			if (xbox360 && resource.getFakeParentId() != null) {
@@ -786,6 +791,7 @@ public class DidlHelper extends DlnaHelper {
 				addImageResource(resource, sb, resElement);
 			}
 
+			//FIXME : as it break upnp standard, implement a renderer setting that allow it
 			for (DLNAImageResElement resElement : resElements) {
 				// Offering AlbumArt for video breaks the standard, but some
 				// renderers need it
