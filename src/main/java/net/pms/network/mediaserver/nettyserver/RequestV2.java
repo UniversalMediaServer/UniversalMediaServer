@@ -60,10 +60,12 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.library.DbIdMediaType;
+import net.pms.library.DbIdResourceLocator;
+import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
-import net.pms.library.PlaylistFolder;
-import net.pms.library.virtual.MediaLibrary;
-import net.pms.media.DbIdResourceLocator;
+import net.pms.library.container.MediaLibrary;
+import net.pms.library.container.PlaylistFolder;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatusStore;
 import net.pms.media.MediaType;
@@ -108,16 +110,18 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 /**
- * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
+ * This class handles all forms of incoming HTTP requests by constructing a
+ * proper HTTP response.
  */
 public class RequestV2 extends HTTPResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private static final String CRLF = "\r\n";
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
-	private static final String HTTPSERVER_RESPONSE_END =   "================================== HTTPSERVER RESPONSE END ======================================";
+	private static final String HTTPSERVER_RESPONSE_END = "================================== HTTPSERVER RESPONSE END ======================================";
 
 	private final HttpMethod method;
 	private final SearchRequestHandler searchRequestHandler = new SearchRequestHandler();
@@ -125,8 +129,8 @@ public class RequestV2 extends HTTPResource {
 	private UmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
-	 * A {@link String} that contains the uri with which this {@link RequestV2} was
-	 * created.
+	 * A {@link String} that contains the uri with which this {@link RequestV2}
+	 * was created.
 	 */
 	private String uri;
 	private String soapaction;
@@ -136,7 +140,8 @@ public class RequestV2 extends HTTPResource {
 	private boolean isVideoThumbnailRequest = false;
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.
+	 * When sending an input stream, the lowRange indicates which byte to start
+	 * from.
 	 */
 	private long lowRange;
 	private Renderer mediaRenderer;
@@ -145,7 +150,8 @@ public class RequestV2 extends HTTPResource {
 	private final TimeRange range = new TimeRange();
 
 	/**
-	 * When sending an input stream, the highRange indicates which byte to stop at.
+	 * When sending an input stream, the highRange indicates which byte to stop
+	 * at.
 	 */
 	private long highRange;
 
@@ -160,7 +166,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.
+	 * When sending an input stream, the lowRange indicates which byte to start
+	 * from.
+	 *
 	 * @return The byte to start from
 	 */
 	public long getLowRange() {
@@ -168,8 +176,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Set the byte from which to start when sending an input stream. This value will
-	 * be used to send a CONTENT_RANGE header with the response.
+	 * Set the byte from which to start when sending an input stream. This value
+	 * will be used to send a CONTENT_RANGE header with the response.
+	 *
 	 * @param lowRange The byte to start from.
 	 */
 	public void setLowRange(long lowRange) {
@@ -212,7 +221,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * When sending an input stream, the highRange indicates which byte to stop at.
+	 * When sending an input stream, the highRange indicates which byte to stop
+	 * at.
+	 *
 	 * @return The byte to stop at.
 	 */
 	public long getHighRange() {
@@ -220,8 +231,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Set the byte at which to stop when sending an input stream. This value will
-	 * be used to send a CONTENT_RANGE header with the response.
+	 * Set the byte at which to stop when sending an input stream. This value
+	 * will be used to send a CONTENT_RANGE header with the response.
+	 *
 	 * @param highRange The byte to stop at.
 	 */
 	public void setHighRange(long highRange) {
@@ -229,7 +241,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * This class will construct and transmit a proper HTTP response to a given HTTP request.Rewritten version of the {@link Request} class.
+	 * This class will construct and transmit a proper HTTP response to a given
+	 * HTTP request.Rewritten version of the {@link Request} class.
+	 *
 	 * @param method The {@link String} that defines the HTTP method to be used.
 	 * @param uri
 	 */
@@ -256,8 +270,8 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * LG TVs send us many "play" requests while browsing directories, in order
-	 * for them to show dynamic thumbnails. That means we can skip certain things
-	 * like searching for subtitles and fully played logic.
+	 * for them to show dynamic thumbnails. That means we can skip certain
+	 * things like searching for subtitles and fully played logic.
 	 */
 	public boolean isVideoThumbnailRequest() {
 		return isVideoThumbnailRequest;
@@ -268,26 +282,29 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Construct a proper HTTP response to a received request. After the response has been
-	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
-	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
+	 * Construct a proper HTTP response to a received request. After the
+	 * response has been created, it is sent and the resulting
+	 * {@link ChannelFuture} object is returned. See
+	 * <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
 	 * for HTTP header field definitions.
 	 *
-	 * @param output The {@link HttpResponse} object that will be used to construct the response.
-	 * @param event The {@link MessageEvent} object used to communicate with the client that sent
-	 * 			the request.
-	 * @param close Set to true to close the channel after sending the response. By default the
-	 * 			channel is not closed after sending.
-	 * @param startStopListenerDelegate The {@link StartStopListenerDelegate} object that is used
-	 * 			to notify plugins that the {@link LibraryResource} is about to start playing.
+	 * @param output The {@link HttpResponse} object that will be used to
+	 * construct the response.
+	 * @param event The {@link MessageEvent} object used to communicate with the
+	 * client that sent the request.
+	 * @param close Set to true to close the channel after sending the response.
+	 * By default the channel is not closed after sending.
+	 * @param startStopListenerDelegate The {@link StartStopListenerDelegate}
+	 * object that is used to notify plugins that the {@link LibraryResource} is
+	 * about to start playing.
 	 * @return The {@link ChannelFuture} object via which the response was sent.
 	 * @throws IOException
 	 */
 	public ChannelFuture answer(
-		HttpResponse output,
-		MessageEvent event,
-		final boolean close,
-		final StartStopListenerDelegate startStopListenerDelegate
+			HttpResponse output,
+			MessageEvent event,
+			final boolean close,
+			final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
 		PMS.REALTIME_LOCK.lock();
 		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
@@ -309,14 +326,14 @@ public class RequestV2 extends HTTPResource {
 				// Request to retrieve a file
 
 				/**
-				 * Skip the leading "get/"
-				 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
+				 * Skip the leading "get/" e.g. "get/0$1$5$3$4/Foo.mp4" ->
+				 * "0$1$5$3$4/Foo.mp4"
 				 *
-				 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
-				 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
-				 * This should fix it
+				 * ExSport: I spotted on Android it is asking for
+				 * "/get/0$2$4$2$1$3" which generates exception with response:
+				 * "Http: Response, HTTP/1.1, Status: Internal server error,
+				 * URL: /get/0$2$4$2$1$3" This should fix it
 				 */
-
 				// Note: we intentionally include the trailing filename here because it may
 				// be used to reconstruct lost Temp items.
 				String id = uri.substring(uri.indexOf("get/") + 4);
@@ -340,20 +357,55 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set("TransferMode.DLNA.ORG", transferMode);
 				}
 
-				if (resource != null && resource.isFolder() && !fileName.startsWith("thumbnail0000")) {
-					// if we found a folder we MUST be asked for thumbnails
-					// otherwise this is not allowed
-					resource = null;
-				}
+				// if we found a folder we MUST be asked for thumbnails
+				// otherwise this is not allowed
+				if (resource != null && fileName.startsWith("thumbnail0000")) {
+					// This is a request for a thumbnail file.
+					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 
-				if (resource != null) {
+					DLNAThumbnailInputStream thumbInputStream;
+					if (!configuration.isShowCodeThumbs() && !resource.isCodeValid(resource)) {
+						thumbInputStream = resource.getGenericThumbnailInputStream(null);
+					} else {
+						resource.checkThumbnail();
+						thumbInputStream = resource.fetchThumbnailInputStream();
+					}
+
+					BufferedImageFilterChain filterChain = null;
+					if (mediaRenderer.isThumbnails() && resource.isFullyPlayedMark()) {
+						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
+					}
+					filterChain = resource.addFlagFilters(filterChain);
+					inputStream = thumbInputStream.transcode(
+							imageProfile,
+							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
+							filterChain
+					);
+					if (contentFeatures != null) {
+						output.headers().set("ContentFeatures.DLNA.ORG",
+								DlnaHelper.getDlnaContentFeatures(resource, imageProfile, true)
+						);
+					}
+					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
+						if (lowRange > 0) {
+							inputStream.skip(lowRange);
+						}
+						inputStream = LibraryItem.wrap(inputStream, highRange, lowRange);
+					}
+					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
+					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+				} else if (resource != null && resource instanceof LibraryItem item) {
 					// LibraryResource was found.
 					if (fileName.endsWith("/chapters.vtt")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
-						response.append(HlsHelper.getChaptersWebVtt(resource));
+						response.append(HlsHelper.getChaptersWebVtt(item));
 					} else if (fileName.endsWith("/chapters.json")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
-						response.append(HlsHelper.getChaptersHls(resource));
+						response.append(HlsHelper.getChaptersHls(item));
 					} else if (fileName.startsWith("hls/")) {
 						//HLS
 						if (fileName.endsWith(".m3u8")) {
@@ -361,12 +413,12 @@ public class RequestV2 extends HTTPResource {
 							String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
 							if (HlsHelper.getByKey(rendition) != null) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-								response.append(HlsHelper.getHLSm3u8ForRendition(resource, mediaRenderer, "/get/", rendition));
+								response.append(HlsHelper.getHLSm3u8ForRendition(item, mediaRenderer, "/get/", rendition));
 							}
 						} else {
 							//HLS stream request
 							cLoverride = LibraryResource.TRANS_SIZE;
-							inputStream = HlsHelper.getInputStream("/" + fileName, resource);
+							inputStream = HlsHelper.getInputStream("/" + fileName, item);
 							if (fileName.endsWith(".ts")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
 							} else if (fileName.endsWith(".vtt")) {
@@ -376,67 +428,31 @@ public class RequestV2 extends HTTPResource {
 					} else if (fileName.endsWith("_transcoded_to.m3u8")) {
 						//HLS start m3u8 file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-						response.append(HlsHelper.getHLSm3u8(resource, mediaRenderer, "/get/"));
+						response.append(HlsHelper.getHLSm3u8(item, mediaRenderer, "/get/"));
 						if (contentFeatures != null) {
 							//output.headers().set("transferMode.HlsHelper.org", "Streaming");
-							if (resource.getMediaInfo().getDurationInSeconds() > 0) {
-								String durationStr = String.format(Locale.ENGLISH, "%.3f", resource.getMediaInfo().getDurationInSeconds());
+							if (item.getMediaInfo().getDurationInSeconds() > 0) {
+								String durationStr = String.format(Locale.ENGLISH, "%.3f", item.getMediaInfo().getDurationInSeconds());
 								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
 								//only time seek, transcoded
 								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
 							}
 						}
-					} else if (fileName.startsWith("thumbnail0000")) {
-						// This is a request for a thumbnail file.
-						DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
-						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-						output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-
-						DLNAThumbnailInputStream thumbInputStream;
-						if (!configuration.isShowCodeThumbs() && !resource.isCodeValid(resource)) {
-							thumbInputStream = resource.getGenericThumbnailInputStream(null);
-						} else {
-							resource.checkThumbnail();
-							thumbInputStream = resource.fetchThumbnailInputStream();
-						}
-
-						BufferedImageFilterChain filterChain = null;
-						if (mediaRenderer.isThumbnails() && resource.isFullyPlayedMark()) {
-							filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
-						}
-						filterChain = resource.addFlagFilters(filterChain);
-						inputStream = thumbInputStream.transcode(
-							imageProfile,
-							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
-							filterChain
-						);
-						if (contentFeatures != null) {
-							output.headers().set("ContentFeatures.DLNA.ORG",
-								DlnaHelper.getDlnaContentFeatures(resource, imageProfile, true)
-							);
-						}
-						if (inputStream != null && (lowRange > 0 || highRange > 0)) {
-							if (lowRange > 0) {
-								inputStream.skip(lowRange);
-							}
-							inputStream = LibraryResource.wrap(inputStream, highRange, lowRange);
-						}
-						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-					} else if (resource.getMediaInfo() != null && resource.getMediaInfo().getMediaType() == MediaType.IMAGE && resource.isCodeValid(resource)) {
+					} else if (item.getMediaInfo() != null && item.getMediaInfo().getMediaType() == MediaType.IMAGE && item.isCodeValid(item)) {
 						// This is a request for an image
 						Services.postponeSleep();
 						DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
 						if (imageProfile == null) {
 							// Parsing failed for some reason, we'll have to pick a profile
-							if (resource.getMediaInfo().getImageInfo() != null && resource.getMediaInfo().getImageInfo().getFormat() != null) {
-								imageProfile = switch (resource.getMediaInfo().getImageInfo().getFormat()) {
-									case GIF -> DLNAImageProfile.GIF_LRG;
-									case PNG -> DLNAImageProfile.PNG_LRG;
-									default -> DLNAImageProfile.JPEG_LRG;
+							if (item.getMediaInfo().getImageInfo() != null && item.getMediaInfo().getImageInfo().getFormat() != null) {
+								imageProfile = switch (item.getMediaInfo().getImageInfo().getFormat()) {
+									case GIF ->
+										DLNAImageProfile.GIF_LRG;
+									case PNG ->
+										DLNAImageProfile.PNG_LRG;
+									default ->
+										DLNAImageProfile.JPEG_LRG;
 								};
 							} else {
 								imageProfile = DLNAImageProfile.JPEG_LRG;
@@ -448,14 +464,14 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						try {
 							InputStream imageInputStream;
-							if (resource.getEngine() instanceof ImageEngine) {
-								ProcessWrapper transcodeProcess = resource.getEngine().launchTranscode(resource,
-									resource.getMediaInfo(),
-									new OutputParams(configuration)
+							if (item.getEngine() instanceof ImageEngine) {
+								ProcessWrapper transcodeProcess = item.getEngine().launchTranscode(item,
+										item.getMediaInfo(),
+										new OutputParams(configuration)
 								);
 								imageInputStream = transcodeProcess != null ? transcodeProcess.getInputStream(0) : null;
 							} else {
-								imageInputStream = resource.getInputStream();
+								imageInputStream = item.getInputStream();
 							}
 							if (imageInputStream == null) {
 								LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
@@ -463,14 +479,14 @@ public class RequestV2 extends HTTPResource {
 								inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 								if (contentFeatures != null) {
 									output.headers().set("ContentFeatures.DLNA.ORG",
-										DlnaHelper.getDlnaContentFeatures(resource, imageProfile, false)
+											DlnaHelper.getDlnaContentFeatures(item, imageProfile, false)
 									);
 								}
 								if (inputStream != null && (lowRange > 0 || highRange > 0)) {
 									if (lowRange > 0) {
 										inputStream.skip(lowRange);
 									}
-									inputStream = LibraryResource.wrap(inputStream, highRange, lowRange);
+									inputStream = LibraryItem.wrap(inputStream, highRange, lowRange);
 								}
 								output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 								output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -487,15 +503,15 @@ public class RequestV2 extends HTTPResource {
 								future.addListener(ChannelFutureListener.CLOSE);
 							}
 
-							LOGGER.debug("Could not send image \"{}\": {}", resource.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
+							LOGGER.debug("Could not send image \"{}\": {}", item.getName(), ie.getMessage() != null ? ie.getMessage() : ie.getClass().getSimpleName());
 							LOGGER.trace("", ie);
 							return future;
 						}
-					} else if (resource.getMediaInfo() != null && fileName.contains("subtitle0000") && resource.isCodeValid(resource)) {
+					} else if (item.getMediaInfo() != null && fileName.contains("subtitle0000") && item.isCodeValid(item)) {
 						// This is a request for a subtitles file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
-						MediaSubtitle sub = resource.getMediaSubtitle();
+						MediaSubtitle sub = item.getMediaSubtitle();
 						if (sub != null) {
 							// XXX external file is null if the first subtitle track is embedded
 							if (sub.isExternal()) {
@@ -525,13 +541,13 @@ public class RequestV2 extends HTTPResource {
 						} else {
 							LOGGER.trace("Not sending external subtitles because dlna.getMediaSubtitle() returned null");
 						}
-					} else if (resource.isCodeValid(resource)) {
+					} else if (item.isCodeValid(item)) {
 						// This is a request for a regular file.
 
 						// If range has not been initialized yet and the LibraryResource has its
 						// own start and end defined, initialize range with those values before
 						// requesting the input stream.
-						TimeRange splitRange = resource.getSplitRange();
+						TimeRange splitRange = item.getSplitRange();
 
 						if (range.getStart() == null && splitRange.getStart() != null) {
 							range.setStart(splitRange.getStart());
@@ -541,69 +557,63 @@ public class RequestV2 extends HTTPResource {
 							range.setEnd(splitRange.getEnd());
 						}
 
-						long totalsize = resource.length();
+						long totalsize = item.length();
 						boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
 
 						// Ignore ByteRangeRequests while media is transcoded
-						if (
-							!ignoreTranscodeByteRangeRequests ||
-							totalsize != LibraryResource.TRANS_SIZE ||
-							(
-								ignoreTranscodeByteRangeRequests &&
+						if (!ignoreTranscodeByteRangeRequests ||
+								totalsize != LibraryResource.TRANS_SIZE ||
+								(ignoreTranscodeByteRangeRequests &&
 								lowRange == 0 &&
-								totalsize == LibraryResource.TRANS_SIZE
-							)
-						) {
-							inputStream = resource.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()));
-							if (resource.isResume()) {
+								totalsize == LibraryResource.TRANS_SIZE)) {
+							inputStream = item.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()));
+							if (item.isResume()) {
 								// Update range to possibly adjusted resume time
-								range.setStart(resource.getResume().getTimeOffset() / (double) 1000);
+								range.setStart(item.getResume().getTimeOffset() / (double) 1000);
 							}
 						}
 
-						Format format = resource.getFormat();
+						Format format = item.getFormat();
 						if (!isVideoThumbnailRequest && format != null && format.isVideo()) {
-							MediaType mediaType = resource.getMediaInfo() == null ? null : resource.getMediaInfo().getMediaType();
+							MediaType mediaType = item.getMediaInfo() == null ? null : item.getMediaInfo().getMediaType();
 							if (mediaType == MediaType.VIDEO) {
-								if (
-									resource.getMediaInfo() != null &&
-									resource.getMediaSubtitle() != null &&
-									resource.getMediaSubtitle().isExternal() &&
-									!configuration.isDisableSubtitles() &&
-									mediaRenderer.isExternalSubtitlesFormatSupported(resource.getMediaSubtitle(), resource)
-								) {
+								if (item.getMediaInfo() != null &&
+										item.getMediaSubtitle() != null &&
+										item.getMediaSubtitle().isExternal() &&
+										!configuration.isDisableSubtitles() &&
+										mediaRenderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 									String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-									if (StringUtils.isNotBlank(subtitleHttpHeader)  && (resource.getEngine() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
+									if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
-										MediaSubtitle sub = resource.getMediaSubtitle();
+										MediaSubtitle sub = item.getMediaSubtitle();
 										String subtitleUrl;
 										String subExtension = sub.getType().getExtension();
 										if (StringUtils.isNotBlank(subExtension)) {
 											subExtension = "." + subExtension;
 										}
 										subtitleUrl = MediaServer.getURL() + "/get/" +
-											id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
+												id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
 
-											output.headers().set(subtitleHttpHeader, subtitleUrl);
+										output.headers().set(subtitleHttpHeader, subtitleUrl);
 									} else {
 										LOGGER.trace(
-											"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
-											subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
-											);
+												"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+												subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
+										);
 									}
 								} else {
 									ArrayList<String> reasons = new ArrayList<>();
-									if (resource.getMediaInfo() == null) {
+									if (item.getMediaInfo() == null) {
 										reasons.add("dlna.getMedia() is null");
 									}
 									if (configuration.isDisableSubtitles()) {
 										reasons.add("configuration.isDisabledSubtitles() is true");
 									}
-									if (resource.getMediaSubtitle() == null) {
+									if (item.getMediaSubtitle() == null) {
 										reasons.add("dlna.getMediaSubtitle() is null");
-									} else if (!resource.getMediaSubtitle().isExternal()) {
+									} else if (!item.getMediaSubtitle().isExternal()) {
 										reasons.add("the subtitles are internal/embedded");
-									} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(resource.getMediaSubtitle(), resource)) {
+									} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 										reasons.add("the external subtitles format isn't supported by the renderer");
 									}
 									LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
@@ -611,9 +621,9 @@ public class RequestV2 extends HTTPResource {
 							}
 						}
 
-						String name = resource.getDisplayName();
-						if (resource.isNoName()) {
-							name = resource.getName() + " " + resource.getDisplayName();
+						String name = item.getDisplayName();
+						if (item.isNoName()) {
+							name = item.getName() + " " + item.getDisplayName();
 						}
 
 						if (inputStream == null) {
@@ -623,11 +633,11 @@ public class RequestV2 extends HTTPResource {
 							}
 						} else {
 							if (startStopListenerDelegate != null) {
-								startStopListenerDelegate.start(resource);
+								startStopListenerDelegate.start(item);
 							}
 
 							// Try to determine the content type of the file
-							String rendererMimeType = mediaRenderer.getMimeType(resource);
+							String rendererMimeType = mediaRenderer.getMimeType(item);
 
 							if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
@@ -679,7 +689,7 @@ public class RequestV2 extends HTTPResource {
 							highRange = lowRange + cLoverride - (cLoverride > 0 ? 1 : 0);
 
 							if (contentFeatures != null) {
-								output.headers().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(resource));
+								output.headers().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
 							}
 
 							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
@@ -690,7 +700,7 @@ public class RequestV2 extends HTTPResource {
 			} else if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && (uri.toLowerCase().endsWith(".png") || uri.toLowerCase().endsWith(".jpg") || uri.toLowerCase().endsWith(".jpeg"))) {
 				inputStream = imageHandler(output);
 
-			//------------------------- START ContentDirectory -------------------------
+				//------------------------- START ContentDirectory -------------------------
 			} else if (HttpMethod.GET.equals(method) && uri.endsWith("/ContentDirectory/desc")) {
 				response.append(contentDirectorySpec(output));
 			} else if (HttpMethod.POST.equals(method) && uri.endsWith("/ContentDirectory/action")) {
@@ -716,7 +726,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(subscribeHandler(output));
 			} else if (method.getName().equals("NOTIFY")) {
 				response.append(notifyHandler(output));
-			//------------------------- END ContentDirectory -------------------------
+				//------------------------- END ContentDirectory -------------------------
 			}
 
 			output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
@@ -757,10 +767,10 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 				}
 
-				if (range.isStartOffsetAvailable() && resource != null) {
+				if (range.isStartOffsetAvailable() && resource instanceof LibraryItem item) {
 					// Add timeseek information headers.
 					String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
-					String timetotalValue = resource.getMediaInfo().getDurationString();
+					String timetotalValue = item.getMediaInfo().getDurationString();
 					String timeEndValue = range.isEndLimitAvailable() ? StringUtil.formatDLNADuration(range.getEnd()) : timetotalValue;
 					output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 					output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
@@ -859,7 +869,7 @@ public class RequestV2 extends HTTPResource {
 		for (Entry<String, String> entry : output.headers().entries()) {
 			if (StringUtils.isNotBlank(entry.getKey())) {
 				header.append("  ").append(entry.getKey())
-				.append(": ").append(entry.getValue()).append("\n");
+						.append(": ").append(entry.getValue()).append("\n");
 			}
 		}
 		if (header.length() > 0) {
@@ -871,12 +881,12 @@ public class RequestV2 extends HTTPResource {
 		String contentType = output.headers().get(HttpHeaders.Names.CONTENT_TYPE);
 		if (HttpMethod.HEAD.equals(method)) {
 			LOGGER.trace(
-				"HEAD only response sent to {}:\n{}\n{}\n{}{}",
-				rendererName,
-				HTTPSERVER_RESPONSE_BEGIN,
-				responseCode,
-				header,
-				HTTPSERVER_RESPONSE_END
+					"HEAD only response sent to {}:\n{}\n{}\n{}{}",
+					rendererName,
+					HTTPSERVER_RESPONSE_BEGIN,
+					responseCode,
+					header,
+					HTTPSERVER_RESPONSE_END
 			);
 		} else {
 			String formattedResponse = null;
@@ -885,7 +895,7 @@ public class RequestV2 extends HTTPResource {
 					try {
 						formattedResponse = StringUtil.prettifyXML(response.toString(), StandardCharsets.UTF_8, 4);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+						formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
 						formattedResponse += "    " + response.toString().replace("\n", "\n    ");
 					}
 				} else {
@@ -894,21 +904,21 @@ public class RequestV2 extends HTTPResource {
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-					"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
-					rendererName,
-					HTTPSERVER_RESPONSE_BEGIN,
-					responseCode,
-					header,
-					formattedResponse,
-					HTTPSERVER_RESPONSE_END
+						"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
+						rendererName,
+						HTTPSERVER_RESPONSE_BEGIN,
+						responseCode,
+						header,
+						formattedResponse,
+						HTTPSERVER_RESPONSE_END
 				);
 				Matcher matcher = DIDL_PATTERN.matcher(response);
 				if (matcher.find()) {
 					try {
 						LOGGER.trace(
-							"The unescaped <Result> sent to {} is:\n{}",
-							rendererName,
-							StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), StandardCharsets.UTF_8, 2)
+								"The unescaped <Result> sent to {} is:\n{}",
+								rendererName,
+								StringUtil.prettifyXML(StringEscapeUtils.unescapeXml(matcher.group(1)), StandardCharsets.UTF_8, 2)
 						);
 					} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
 						LOGGER.warn("Failed to prettify DIDL-Lite document: {}", e.getMessage());
@@ -917,22 +927,22 @@ public class RequestV2 extends HTTPResource {
 				}
 			} else if (iStream != null && !"0".equals(output.headers().get(HttpHeaders.Names.CONTENT_LENGTH))) {
 				LOGGER.trace(
-					"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
-					rendererName,
-					HTTPSERVER_RESPONSE_BEGIN,
-					responseCode,
-					output.isChunked() ? "chunked" : "non-chunked",
-					header,
-					HTTPSERVER_RESPONSE_END
+						"Transfer response sent to {}:\n{}\n{} ({})\n{}{}",
+						rendererName,
+						HTTPSERVER_RESPONSE_BEGIN,
+						responseCode,
+						output.isChunked() ? "chunked" : "non-chunked",
+						header,
+						HTTPSERVER_RESPONSE_END
 				);
 			} else {
 				LOGGER.trace(
-					"Empty response sent to {}:\n{}\n{}\n{}{}",
-					rendererName,
-					HTTPSERVER_RESPONSE_BEGIN,
-					responseCode,
-					header,
-					HTTPSERVER_RESPONSE_END
+						"Empty response sent to {}:\n{}\n{}\n{}{}",
+						rendererName,
+						HTTPSERVER_RESPONSE_BEGIN,
+						responseCode,
+						header,
+						HTTPSERVER_RESPONSE_END
 				);
 			}
 		}
@@ -942,10 +952,8 @@ public class RequestV2 extends HTTPResource {
 		String rendererName;
 		if (mediaRenderer != null) {
 			if (StringUtils.isNotBlank(mediaRenderer.getRendererName())) {
-				if (
-					StringUtils.isBlank(mediaRenderer.getConfName()) ||
-					mediaRenderer.getRendererName().equals(mediaRenderer.getConfName())
-				) {
+				if (StringUtils.isBlank(mediaRenderer.getConfName()) ||
+						mediaRenderer.getRendererName().equals(mediaRenderer.getConfName())) {
 					rendererName = mediaRenderer.getRendererName();
 				} else {
 					rendererName = mediaRenderer.getRendererName() + " [" + mediaRenderer.getConfName() + "]";
@@ -1035,9 +1043,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Hybrid handler for Browse and Search requests.
-	 * FIXME: Should be split up into separate implementations!
-	 * New implementation use JUPnP, so forgot this
+	 * Hybrid handler for Browse and Search requests. FIXME: Should be split up
+	 * into separate implementations! New implementation use JUPnP, so forgot
+	 * this
 	 *
 	 * @param requestMessage parsed message
 	 * @return Soap response as a XML string
@@ -1098,25 +1106,25 @@ public class RequestV2 extends HTTPResource {
 			searchCriteria = requestMessage.getSearchCriteria();
 		}
 
-		List<LibraryResource> files = mediaRenderer.getRootFolder().getLibraryResources(
-			objectID,
-			browseDirectChildren,
-			startingIndex,
-			requestCount,
-			searchCriteria
+		List<LibraryResource> resources = mediaRenderer.getRootFolder().getLibraryResources(
+				objectID,
+				browseDirectChildren,
+				startingIndex,
+				requestCount,
+				searchCriteria
 		);
 
-		if (searchCriteria != null && files != null) {
-			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && !files.isEmpty()) {
-				files = files.get(0).getChildren();
+		if (searchCriteria != null && resources != null) {
+			UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
+			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof LibraryContainer libraryContainer) {
+				resources = libraryContainer.getChildren();
 			}
 		}
 
 		int minus = 0;
 		StringBuilder filesData = new StringBuilder();
-		if (files != null) {
-			for (LibraryResource resource : files) {
+		if (resources != null) {
+			for (LibraryResource resource : resources) {
 				if (resource instanceof PlaylistFolder playlistFolder) {
 					File f = new File(resource.getFileName());
 					if (resource.getLastModified() < f.lastModified()) {
@@ -1128,14 +1136,13 @@ public class RequestV2 extends HTTPResource {
 					resource.setFakeParentId(containerID);
 				}
 
-				if (
-					resource != null &&
-					(resource.isCompatible() &&
-					(resource.getEngine() == null || resource.getEngine().isEngineCompatible(mediaRenderer)) ||
-					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder())
-				) {
+				if (resource instanceof LibraryContainer) {
+					filesData.append(DidlHelper.getDidlString(resource));
+				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(mediaRenderer)) ||
+						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+						resources.get(0).isInsideTranscodeFolder())) {
 					filesData.append(DidlHelper.getDidlString(resource));
 				} else {
 					minus++;
@@ -1160,28 +1167,30 @@ public class RequestV2 extends HTTPResource {
 		response.append(CRLF);
 
 		int filessize = 0;
-		if (files != null) {
-			filessize = files.size();
+		if (resources != null) {
+			filessize = resources.size();
 		}
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		LibraryResource parentFolder;
+		LibraryContainer parentFolder;
 
-		if (files != null && filessize > 0) {
-			parentFolder = files.get(0).getParent();
+		if (resources != null && filessize > 0) {
+			parentFolder = resources.get(0).getParent();
 		} else {
-			parentFolder = mediaRenderer.getRootFolder().getLibraryResource(objectID);
-			if (parentFolder == null) {
+			LibraryResource resource = mediaRenderer.getRootFolder().getLibraryResource(objectID);
+			if (resource instanceof LibraryContainer libraryContainer) {
+				parentFolder = libraryContainer;
+			} else {
 				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 			}
 		}
 
 		if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
-			// with the new parser, files are parsed and analyzed *before*
+			// with the new parser, resources are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
-			// (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
+			// (regular resources, plus the #transcode folder, maybe the #imdb one, also resources can be
 			// invalidated and hidden if format is broken or encrypted, etc.).
 			// let's send a fake total size to force the renderer to ask following items
 			int totalCount = startingIndex + requestCount + 1; // returns 11 when 10 asked
@@ -1201,23 +1210,27 @@ public class RequestV2 extends HTTPResource {
 		response.append(CRLF);
 
 		/**
-		 * From page 95, section 5.5.8.2 of http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
+		 * From page 95, section 5.5.8.2 of
+		 * http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
 		 *
-		 * UpdateID: The value returned in the UpdateID argument shall be the SystemUpdateID
-		 * state variable value at the time the Browse() response was generated. If a control point
-		 * finds that the current SystemUpdateID state variable value is not equal to the value
-		 * returned in the UpdateID argument, then a change within the ContentDirectory service has
-		 * occurred between the time the result was generated and the time that the control point is
-		 * processing the result. The control point might therefore want to re-invoke the Browse()
-		 * action to ensure that it has the latest property values. Note however that the change in the
-		 * value of the SystemUpdateID state variable could have been caused by a change that
-		 * occurred in a location in the ContentDirectory tree hierarchy that is not part of the returned
-		 * result. In this case, the re-invocation of the Browse() action will return the exact same
-		 * result.
-		 * Note: This definition is not backwards compatible with previous versions of this
-		 * specification. However, the previous definition did not indicate changes to properties
-		 * of child containers. Therefore the control point would not have been aware that it had
-		 * stale data.
+		 * UpdateID: The value returned in the UpdateID argument shall be the
+		 * SystemUpdateID state variable value at the time the Browse() response
+		 * was generated. If a control point finds that the current
+		 * SystemUpdateID state variable value is not equal to the value
+		 * returned in the UpdateID argument, then a change within the
+		 * ContentDirectory service has occurred between the time the result was
+		 * generated and the time that the control point is processing the
+		 * result. The control point might therefore want to re-invoke the
+		 * Browse() action to ensure that it has the latest property values.
+		 * Note however that the change in the value of the SystemUpdateID state
+		 * variable could have been caused by a change that occurred in a
+		 * location in the ContentDirectory tree hierarchy that is not part of
+		 * the returned result. In this case, the re-invocation of the Browse()
+		 * action will return the exact same result. Note: This definition is
+		 * not backwards compatible with previous versions of this
+		 * specification. However, the previous definition did not indicate
+		 * changes to properties of child containers. Therefore the control
+		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
 		response.append(UmsContentDirectoryService.getDbSystemUpdateId());
@@ -1287,12 +1300,15 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * Returns the string value that is enclosed by the left and right tag in a content string.
-	 * Only the first match of each tag is used to determine positions. If either of the tags
-	 * cannot be found, null is returned.
-	 * @param content The entire {@link String} that needs to be searched for the left and right tag.
+	 * Returns the string value that is enclosed by the left and right tag in a
+	 * content string. Only the first match of each tag is used to determine
+	 * positions. If either of the tags cannot be found, null is returned.
+	 *
+	 * @param content The entire {@link String} that needs to be searched for
+	 * the left and right tag.
 	 * @param leftTag The {@link String} determining the match for the left tag.
-	 * @param rightTag The {@link String} determining the match for the right tag.
+	 * @param rightTag The {@link String} determining the match for the right
+	 * tag.
 	 * @return The {@link String} that was enclosed by the left and right tag.
 	 */
 	private static String getEnclosingValue(String content, String leftTag, String rightTag) {
@@ -1314,10 +1330,10 @@ public class RequestV2 extends HTTPResource {
 
 		/**
 		 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
-		 * subscribed UPnP control points. The device must enforce a subscription
-		 * TIMEOUT value of 5 minutes.
-		 * The UPnP device behavior of enforcing this 5 minutes TIMEOUT value is
-		 * implemented by specifying "TIMEOUT: second-300" as an HTTP header/value pair.
+		 * subscribed UPnP control points. The device must enforce a
+		 * subscription TIMEOUT value of 5 minutes. The UPnP device behavior of
+		 * enforcing this 5 minutes TIMEOUT value is implemented by specifying
+		 * "TIMEOUT: second-300" as an HTTP header/value pair.
 		 */
 		output.headers().set("TIMEOUT", "Second-300");
 
@@ -1329,9 +1345,7 @@ public class RequestV2 extends HTTPResource {
 				String addr = soapActionUrl.getHost();
 				int port = soapActionUrl.getPort();
 				try (
-						Socket sock = new Socket(addr, port);
-						OutputStream out = sock.getOutputStream()
-				) {
+						Socket sock = new Socket(addr, port); OutputStream out = sock.getOutputStream()) {
 					out.write(("NOTIFY /" + uri + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
@@ -1383,9 +1397,9 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	//------------------------- END ContentDirectory -------------------------
-
 	/**
 	 * Returns a date somewhere in the far future.
+	 *
 	 * @return The {@link String} containing the date
 	 */
 	private static String getFutureDate() {

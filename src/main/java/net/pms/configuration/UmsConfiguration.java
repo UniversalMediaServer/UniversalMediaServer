@@ -53,7 +53,7 @@ import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
-import net.pms.library.virtual.CodeEnter;
+import net.pms.library.container.CodeEnter;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
@@ -310,7 +310,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_IGNORE_THE_WORD_A_AND_THE = "ignore_the_word_a_and_the";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_INFO_DB_RETRY = "infodb_retry";
-	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	private static final String KEY_JWT_SIGNER_SECRET = "jwt_secret";
 	private static final String KEY_LANGUAGE = "language";
 	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
@@ -396,11 +395,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARED_CONF_PATH = "shared_conf";
-	private static final String KEY_SHARES = "shares";
-	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_SHOW_INFO_ABOUT_AUTOMATIC_VIDEO_SETTING = "show_info";
-	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
-	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	private static final String KEY_SHOW_LIVE_SUBTITLES_FOLDER = "show_live_subtitles_folder";
 	private static final String KEY_SHOW_MEDIA_LIBRARY_FOLDER = "show_media_library_folder";
 	private static final String KEY_SHOW_RECENTLY_PLAYED_FOLDER = "show_recently_played_folder";
@@ -516,7 +511,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		"bump.js",					//old player
 		"bump.skin",				//old player
 		"min_playtime_web",			//old player
-		"bump"						//old player
+		"bump",						//old player
+		"shares"					//not used
 	);
 
 	/**
@@ -586,9 +582,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
 		KEY_PRETTIFY_FILENAMES,
-		KEY_SHOW_APERTURE_LIBRARY,
-		KEY_SHOW_IPHOTO_LIBRARY,
-		KEY_SHOW_ITUNES_LIBRARY,
 		KEY_SHOW_LIVE_SUBTITLES_FOLDER,
 		KEY_SHOW_MEDIA_LIBRARY_FOLDER,
 		KEY_SHOW_SERVER_SETTINGS_FOLDER,
@@ -3832,14 +3825,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_HIDE_EXTENSIONS, value);
 	}
 
-	public String getShares() {
-		return getString(KEY_SHARES, "");
-	}
-
-	public void setShares(String value) {
-		configuration.setProperty(KEY_SHARES, value);
-	}
-
 	public String getDisableTranscodeForExtensions() {
 		return getString(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, "");
 	}
@@ -4213,34 +4198,6 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public PreventSleepMode getPreventSleep() {
 		return PreventSleepMode.typeOf(getString(KEY_PREVENT_SLEEP, PreventSleepMode.PLAYBACK.getValue()));
-	}
-
-	public boolean isShowIphotoLibrary() {
-		return getBoolean(KEY_SHOW_IPHOTO_LIBRARY, false);
-	}
-
-	public void setShowIphotoLibrary(boolean value) {
-		configuration.setProperty(KEY_SHOW_IPHOTO_LIBRARY, value);
-	}
-
-	public boolean isShowApertureLibrary() {
-		return getBoolean(KEY_SHOW_APERTURE_LIBRARY, false);
-	}
-
-	public void setShowApertureLibrary(boolean value) {
-		configuration.setProperty(KEY_SHOW_APERTURE_LIBRARY, value);
-	}
-
-	public boolean isShowItunesLibrary() {
-		return getBoolean(KEY_SHOW_ITUNES_LIBRARY, false);
-	}
-
-	public String getItunesLibraryPath() {
-		return getString(KEY_ITUNES_LIBRARY_PATH, "");
-	}
-
-	public void setShowItunesLibrary(boolean value) {
-		configuration.setProperty(KEY_SHOW_ITUNES_LIBRARY, value);
 	}
 
 	public boolean isHideAdvancedOptions() {

@@ -20,8 +20,8 @@ import java.io.File;
 import java.util.List;
 import net.pms.dlna.DidlHelper;
 import net.pms.library.LibraryResource;
-import net.pms.library.RealFile;
-import net.pms.library.virtual.VirtualVideoAction;
+import net.pms.library.container.RealFolder;
+import net.pms.library.item.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
 import net.pms.util.UMSUtils;
@@ -208,7 +208,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 						return;
 					}
 				}
-				RealFile f = new RealFile(player.getRenderer(), new File(folder));
+				RealFolder f = new RealFolder(player.getRenderer(), new File(folder));
 				f.discoverChildren();
 				f.analyzeChildren(-1);
 				player.addAll(-1, f.getChildren(), -1);

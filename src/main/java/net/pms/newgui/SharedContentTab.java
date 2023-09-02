@@ -54,8 +54,8 @@ import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
-import net.pms.library.Feed;
 import net.pms.library.LibraryScanner;
+import net.pms.library.container.Feed;
 import net.pms.media.MediaStatusStore;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
@@ -67,6 +67,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SharedContentTab implements SharedContentListener {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
 	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
@@ -90,22 +91,22 @@ public class SharedContentTab implements SharedContentListener {
 		Messages.getString("VideoFeed"),
 		Messages.getString("ImageFeed"),
 		Messages.getString("AudioStream"),
-		Messages.getString("VideoStream"),
+		Messages.getString("VideoStream")
 	};
 
-	private static final String[] TYPES_WEB_CONTENT = new String[] {
+	private static final String[] TYPES_WEB_CONTENT = new String[]{
 		TYPES_READABLE[2],
 		TYPES_READABLE[3],
 		TYPES_READABLE[4],
 		TYPES_READABLE[5],
-		TYPES_READABLE[6],
+		TYPES_READABLE[6]
 	};
 
-	private static final String READABLE_TYPE_FOLDER       = TYPES_READABLE[0];
-	private static final String READABLE_TYPE_FOLDERS      = TYPES_READABLE[1];
-	private static final String READABLE_TYPE_AUDIO_FEED   = TYPES_READABLE[2];
-	private static final String READABLE_TYPE_VIDEO_FEED   = TYPES_READABLE[3];
-	private static final String READABLE_TYPE_IMAGE_FEED   = TYPES_READABLE[4];
+	private static final String READABLE_TYPE_FOLDER = TYPES_READABLE[0];
+	private static final String READABLE_TYPE_FOLDERS = TYPES_READABLE[1];
+	private static final String READABLE_TYPE_AUDIO_FEED = TYPES_READABLE[2];
+	private static final String READABLE_TYPE_VIDEO_FEED = TYPES_READABLE[3];
+	private static final String READABLE_TYPE_IMAGE_FEED = TYPES_READABLE[4];
 	private static final String READABLE_TYPE_AUDIO_STREAM = TYPES_READABLE[5];
 	private static final String READABLE_TYPE_VIDEO_STREAM = TYPES_READABLE[6];
 
@@ -147,9 +148,9 @@ public class SharedContentTab implements SharedContentListener {
 		panel.applyComponentOrientation(orientation);
 
 		JScrollPane scrollPane = new JScrollPane(
-			panel,
-			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+				panel,
+				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 		);
 
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -157,7 +158,8 @@ public class SharedContentTab implements SharedContentListener {
 	}
 
 	/**
-	 * This parses the web sources config and populates the shared section of this tab.
+	 * This parses the web sources config and populates the shared section of
+	 * this tab.
 	 */
 	@Override
 	public synchronized void updateSharedContent() {
@@ -244,14 +246,12 @@ public class SharedContentTab implements SharedContentListener {
 			newEntryType.setEditable(false);
 			newEntryType.addItemListener((ItemEvent e1) -> {
 				if (READABLE_TYPE_AUDIO_FEED.equals(e1.getItem().toString()) ||
-					READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
-					READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())
-				) {
+						READABLE_TYPE_VIDEO_FEED.equals(e1.getItem().toString()) ||
+						READABLE_TYPE_IMAGE_FEED.equals(e1.getItem().toString())) {
 					newEntryName.setEnabled(false);
 					newEntryName.setText(Messages.getString("NamesSetAutomaticallyFeeds"));
 				} else if (READABLE_TYPE_AUDIO_STREAM.equals(e1.getItem().toString()) ||
-						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())
-				) {
+						READABLE_TYPE_VIDEO_STREAM.equals(e1.getItem().toString())) {
 					newEntryName.setEnabled(true);
 					newEntryName.setText("");
 				}
@@ -268,48 +268,48 @@ public class SharedContentTab implements SharedContentListener {
 			addNewWebContentPanel.setLayout(layout);
 
 			layout.setHorizontalGroup(
-				layout
-					.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(
-						layout
-							.createSequentialGroup()
-							.addContainerGap()
+					layout
+							.createParallelGroup(GroupLayout.Alignment.LEADING)
 							.addGroup(
-								layout
-									.createParallelGroup()
-									.addComponent(labelType)
-									.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelFolders)
-									.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelName)
-									.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-									.addComponent(labelSource)
-									.addComponent(newEntrySource)
+									layout
+											.createSequentialGroup()
+											.addContainerGap()
+											.addGroup(
+													layout
+															.createParallelGroup()
+															.addComponent(labelType)
+															.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+															.addComponent(labelFolders)
+															.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+															.addComponent(labelName)
+															.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+															.addComponent(labelSource)
+															.addComponent(newEntrySource)
+											)
+											.addContainerGap()
 							)
-							.addContainerGap()
-					)
 			);
 
 			layout.setVerticalGroup(
-				layout
-					.createParallelGroup(GroupLayout.Alignment.LEADING)
-					.addGroup(
-						layout
-							.createSequentialGroup()
-							.addContainerGap()
-							.addComponent(labelType)
-							.addComponent(newEntryType)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelFolders)
-							.addComponent(newEntryFolders)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelName)
-							.addComponent(newEntryName)
-							.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-							.addComponent(labelSource)
-							.addComponent(newEntrySource)
-							.addContainerGap()
-					)
+					layout
+							.createParallelGroup(GroupLayout.Alignment.LEADING)
+							.addGroup(
+									layout
+											.createSequentialGroup()
+											.addContainerGap()
+											.addComponent(labelType)
+											.addComponent(newEntryType)
+											.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+											.addComponent(labelFolders)
+											.addComponent(newEntryFolders)
+											.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+											.addComponent(labelName)
+											.addComponent(newEntryName)
+											.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+											.addComponent(labelSource)
+											.addComponent(newEntrySource)
+											.addContainerGap()
+							)
 			);
 
 			int result = JOptionPane.showConfirmDialog(null, addNewWebContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);
@@ -320,16 +320,12 @@ public class SharedContentTab implements SharedContentListener {
 					String resourceName = null;
 					if (!StringUtils.isBlank(newEntrySource.getText())) {
 						try {
-							if (
-								READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_AUDIO_FEED.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_VIDEO_FEED.equals(newEntryType.getSelectedItem().toString())
-							) {
+							if (READABLE_TYPE_IMAGE_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+									READABLE_TYPE_AUDIO_FEED.equals(newEntryType.getSelectedItem().toString()) ||
+									READABLE_TYPE_VIDEO_FEED.equals(newEntryType.getSelectedItem().toString())) {
 								resourceName = Feed.getFeedTitle(newEntrySource.getText());
-							} else if (
-								READABLE_TYPE_VIDEO_STREAM.equals(newEntryType.getSelectedItem().toString()) ||
-								READABLE_TYPE_AUDIO_STREAM.equals(newEntryType.getSelectedItem().toString())
-							) {
+							} else if (READABLE_TYPE_VIDEO_STREAM.equals(newEntryType.getSelectedItem().toString()) ||
+									READABLE_TYPE_AUDIO_STREAM.equals(newEntryType.getSelectedItem().toString())) {
 								resourceName = newEntryName.getText();
 							}
 						} catch (Exception e2) {
@@ -406,10 +402,10 @@ public class SharedContentTab implements SharedContentListener {
 			if (configuration.getUseCache()) {
 				if (LibraryScanner.isScanLibraryRunning()) {
 					int option = JOptionPane.showConfirmDialog(
-						looksFrame,
-						Messages.getString("DoYouWantStopScan"),
-						Messages.getString("Question"),
-						JOptionPane.YES_NO_OPTION);
+							looksFrame,
+							Messages.getString("DoYouWantStopScan"),
+							Messages.getString("Question"),
+							JOptionPane.YES_NO_OPTION);
 					if (option == JOptionPane.YES_OPTION) {
 						LibraryScanner.stopScanLibrary();
 						looksFrame.setStatusLine(Messages.getString("CancelingScan"));
@@ -550,7 +546,7 @@ public class SharedContentTab implements SharedContentListener {
 		SCAN_BUTTON.setToolTipText(running ?
 				Messages.getString("CancelScanningSharedFolders") :
 				Messages.getString("ScanAllSharedFolders")
-			);
+		);
 
 		if (enabled) {
 			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
@@ -562,6 +558,7 @@ public class SharedContentTab implements SharedContentListener {
 	}
 
 	private class SharedContentTableModel extends DefaultTableModel {
+
 		private static final long serialVersionUID = -4247839506937958655L;
 
 		public SharedContentTableModel() {
@@ -572,7 +569,7 @@ public class SharedContentTab implements SharedContentListener {
 				Messages.getString("Name"),
 				Messages.getString("Source"),
 				Messages.getString("Status"),
-				Messages.getString("Enable"),
+				Messages.getString("Enable")
 			}, 0);
 		}
 
@@ -609,6 +606,7 @@ public class SharedContentTab implements SharedContentListener {
 	}
 
 	private class TableMouseListener extends MouseAdapter {
+
 		private final JTable table;
 
 		public TableMouseListener(JTable table) {
@@ -630,10 +628,10 @@ public class SharedContentTab implements SharedContentListener {
 			// more than one click in the same event triggers edit mode
 			if (event.getClickCount() == 2) {
 				SharedContent sharedContent = sharedContentArray.get(currentRow);
-				String currentType    = (String) sharedContentList.getValueAt(currentRow, 0);
+				String currentType = (String) sharedContentList.getValueAt(currentRow, 0);
 				String currentFolders = (String) sharedContentList.getValueAt(currentRow, 1);
-				String currentName    = (String) sharedContentList.getValueAt(currentRow, 2);
-				String currentSource  = (String) sharedContentList.getValueAt(currentRow, 3);
+				String currentName = (String) sharedContentList.getValueAt(currentRow, 2);
+				String currentSource = (String) sharedContentList.getValueAt(currentRow, 3);
 
 				if (sharedContent instanceof FolderContent folder) {
 					JFileChooser chooser;
@@ -659,11 +657,9 @@ public class SharedContentTab implements SharedContentListener {
 				int currentTypeIndex = Arrays.asList(TYPES_READABLE).indexOf(currentType);
 
 				JTextField newEntryName = new JTextField(25);
-				if (
-					READABLE_TYPE_AUDIO_FEED.equals(currentType) ||
-					READABLE_TYPE_VIDEO_FEED.equals(currentType) ||
-					READABLE_TYPE_IMAGE_FEED.equals(currentType)
-				) {
+				if (READABLE_TYPE_AUDIO_FEED.equals(currentType) ||
+						READABLE_TYPE_VIDEO_FEED.equals(currentType) ||
+						READABLE_TYPE_IMAGE_FEED.equals(currentType)) {
 					newEntryName.setEnabled(false);
 					if (!StringUtils.isBlank(currentName)) {
 						newEntryName.setText(currentName);
@@ -680,9 +676,7 @@ public class SharedContentTab implements SharedContentListener {
 
 				JTextField newEntrySource = new JTextField(50);
 				newEntrySource.setText(currentSource);
-				if (
-					READABLE_TYPE_FOLDERS.equals(currentType)
-				) {
+				if (READABLE_TYPE_FOLDERS.equals(currentType)) {
 					newEntrySource.setEnabled(false);
 				}
 
@@ -707,48 +701,48 @@ public class SharedContentTab implements SharedContentListener {
 				addNewSharedContentPanel.setLayout(layout);
 
 				layout.setHorizontalGroup(
-					layout
-						.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
+						layout
+								.createParallelGroup(GroupLayout.Alignment.LEADING)
 								.addGroup(
-									layout
-										.createParallelGroup()
-										.addComponent(labelType)
-										.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(labelFolders)
-										.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(labelName)
-										.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
-										.addComponent(labelSource)
-										.addComponent(newEntrySource)
+										layout
+												.createSequentialGroup()
+												.addContainerGap()
+												.addGroup(
+														layout
+																.createParallelGroup()
+																.addComponent(labelType)
+																.addComponent(newEntryType, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+																.addComponent(labelFolders)
+																.addComponent(newEntryFolders, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+																.addComponent(labelName)
+																.addComponent(newEntryName, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE)
+																.addComponent(labelSource)
+																.addComponent(newEntrySource)
+												)
+												.addContainerGap()
 								)
-								.addContainerGap()
-					)
 				);
 
 				layout.setVerticalGroup(
-					layout
-						.createParallelGroup(GroupLayout.Alignment.LEADING)
-						.addGroup(
-							layout
-								.createSequentialGroup()
-								.addContainerGap()
-								.addComponent(labelType)
-								.addComponent(newEntryType)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-								.addComponent(labelFolders)
-								.addComponent(newEntryFolders)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-								.addComponent(labelName)
-								.addComponent(newEntryName)
-								.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
-								.addComponent(labelSource)
-								.addComponent(newEntrySource)
-								.addContainerGap()
-						)
+						layout
+								.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(
+										layout
+												.createSequentialGroup()
+												.addContainerGap()
+												.addComponent(labelType)
+												.addComponent(newEntryType)
+												.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+												.addComponent(labelFolders)
+												.addComponent(newEntryFolders)
+												.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+												.addComponent(labelName)
+												.addComponent(newEntryName)
+												.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+												.addComponent(labelSource)
+												.addComponent(newEntrySource)
+												.addContainerGap()
+								)
 				);
 
 				int result = JOptionPane.showConfirmDialog(null, addNewSharedContentPanel, Messages.getString("AddNewWebContent"), JOptionPane.OK_CANCEL_OPTION);

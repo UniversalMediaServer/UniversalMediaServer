@@ -31,6 +31,8 @@ export default function DirectoryChooser(props: {
   disabled?: boolean,
   formKey?: string,
   size?: MantineSize,
+  placeholder?: string,
+  withAsterisk?: boolean
 }) {
   const [isLoading, setLoading] = useState(true);
   const [opened, setOpened] = useState(false);
@@ -88,6 +90,8 @@ export default function DirectoryChooser(props: {
       disabled={props.disabled}
       sx={{ flex: 1 }}
       value={props.path}
+      placeholder={props.placeholder}
+      withAsterisk={props.withAsterisk}
       readOnly
     />
   }

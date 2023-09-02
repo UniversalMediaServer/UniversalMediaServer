@@ -65,7 +65,7 @@ import net.pms.PMS;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.library.LibraryResource;
-import net.pms.library.RealFile;
+import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.renderers.Renderer;

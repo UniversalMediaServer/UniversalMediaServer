@@ -16,7 +16,7 @@
  */
 package net.pms.formats;
 
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 
@@ -61,7 +61,7 @@ public class WEB extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(LibraryResource resource, Renderer renderer) {
+	public boolean isCompatible(LibraryItem resource, Renderer renderer) {
 		return type == IMAGE;
 	}
 

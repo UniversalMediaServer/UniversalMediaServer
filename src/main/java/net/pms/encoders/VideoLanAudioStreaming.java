@@ -17,7 +17,7 @@
 package net.pms.encoders;
 
 import net.pms.formats.Format;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web audio streaming engine */
@@ -73,7 +73,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryResource resource) {
+	public boolean isCompatible(LibraryItem resource) {
 		return PlayerUtil.isWebAudio(resource);
 	}
 }

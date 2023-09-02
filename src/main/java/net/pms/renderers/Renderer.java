@@ -41,6 +41,7 @@ import net.pms.gui.IRendererGuiListener;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.library.GlobalIdRepo;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
@@ -98,7 +99,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private LibraryResource playingRes;
+	private LibraryItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
 	private String automaticVideoQuality;
@@ -111,22 +112,19 @@ public class Renderer extends RendererDeviceConfiguration {
 	private volatile int upnpMode = UPNP_NONE;
 
 	public Renderer(String uuid) throws ConfigurationException, InterruptedException {
-		super(uuid);
-		setup();
+		this(null, null, uuid);
 	}
 
 	public Renderer(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
-		super(ref);
-		setup();
+		this(ref, null, null);
 	}
 
 	public Renderer(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
-		super(ref, ia);
-		setup();
+		this(ref, ia, null);
 	}
 
-	private void setup() {
-		resetRootFolder(true);
+	public Renderer(RendererConfiguration ref, InetAddress ia, String uuid) throws ConfigurationException, InterruptedException {
+		super(ref, ia, uuid);
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
 			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
@@ -180,9 +178,11 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	public void setUserId(int value) {
-		userId = value;
-		setAccount(AccountService.getAccountByUserId(userId));
-		refreshUserIdGui(value);
+		if (userId != value) {
+			userId = value;
+			setAccount(AccountService.getAccountByUserId(userId));
+			refreshUserIdGui(value);
+		}
 	}
 
 	public int getUserId() {
@@ -190,11 +190,8 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	public void setAccount(Account account) {
-		if (this.account != account) {
-			this.account = account;
-			clearSharedFolders();
-			resetRootFolder(false);
-		}
+		this.account = account;
+		resetLibrary();
 	}
 
 	public int getAccountGroupId() {
@@ -228,18 +225,27 @@ public class Renderer extends RendererDeviceConfiguration {
 	@Override
 	public void reset() {
 		super.reset();
-		resetRootFolder(false);
-		// update gui
-		updateRendererGui();
+		resetRenderer();
+	}
+
+	private void resetRenderer() {
 		if (!isAuthenticated()) {
 			allowed = RendererFilter.isAllowed(uuid);
 			if (userId != RendererUser.getUserId(uuid)) {
 				setUserId(RendererUser.getUserId(uuid));
 			}
 		}
+		resetLibrary();
+		// update gui
+		updateRendererGui();
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
 			renderer.updateRendererGui();
 		}
+	}
+
+	@Override
+	protected void uuidChanged() {
+		resetRenderer();
 	}
 
 	public void delete(int delay) {
@@ -270,20 +276,25 @@ public class Renderer extends RendererDeviceConfiguration {
 		return globalRepo;
 	}
 
-	public synchronized void resetRootFolder(boolean clearChildren) {
+	public synchronized void clearLibrary() {
 		clearSharedFolders();
 		if (rootFolder != null) {
-			if (clearChildren) {
-				rootFolder.clearChildren();
-			}
-			rootFolder.reset();
+			rootFolder.clearChildren();
+			rootFolder.setDiscovered(false);
 		}
-		if (globalRepo != null && clearChildren) {
+		if (globalRepo != null) {
 			globalRepo.clear();
 		}
 		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
+	public synchronized void resetLibrary() {
+		clearSharedFolders();
+		if (rootFolder != null) {
+			rootFolder.reset();
+		}
+		UmsContentDirectoryService.bumpSystemUpdateId();
+	}
 
 	public synchronized void addFolderLimit(LibraryResource res) {
 		if (rootFolder != null) {
@@ -471,11 +482,11 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public LibraryResource getPlayingRes() {
+	public LibraryItem getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(LibraryResource resource) {
+	public void setPlayingRes(LibraryItem resource) {
 		playingRes = resource;
 		getPlayer();
 		if (resource != null) {

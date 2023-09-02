@@ -36,7 +36,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
@@ -142,21 +142,21 @@ public abstract class Engine {
 	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public abstract ProcessWrapper launchTranscode(
-		LibraryResource resource,
+		LibraryItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException;
 
 	/**
 	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link LibraryResource}. If {@code resource} is {@code null} {@code false}
+	 * {@link LibraryItem}. If {@code resource} is {@code null} {@code false}
 	 * will be returned.
 	 *
-	 * @param resource the {@link LibraryResource} to be matched.
+	 * @param resource the {@link LibraryItem} to be matched.
 	 * @return {@code true} if {@code resource} can be handled, {@code false}
 	 *         otherwise.
 	 */
-	public abstract boolean isCompatible(LibraryResource resource);
+	public abstract boolean isCompatible(LibraryItem resource);
 
 	protected abstract boolean isSpecificTest();
 
@@ -964,7 +964,7 @@ public abstract class Engine {
 	 * @param media The MediaInfo metadata for the file.
 	 * @param params The parameters to populate.
 	 */
-	public static void setAudioAndSubs(LibraryResource resource, OutputParams params) {
+	public static void setAudioAndSubs(LibraryItem resource, OutputParams params) {
 		if (resource == null || params == null || resource.getMediaInfo() == null) {
 			return;
 		}

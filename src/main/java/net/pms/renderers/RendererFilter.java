@@ -36,8 +36,10 @@ public class RendererFilter {
 	private static final List<String> FILTER = new ArrayList<>();
 	private static final Set<String> LOGGED = new HashSet<>();
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
 	private RendererFilter() {
-		throw new IllegalStateException("Static class");
 	}
 
 	public static synchronized void reset() {

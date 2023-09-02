@@ -30,7 +30,7 @@ import java.util.StringTokenizer;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.chapter.MediaChapter;
@@ -120,7 +120,7 @@ public class HlsHelper {
 	    You must use at least protocol version 8 if you use variable substitution.
 	*/
 
-	public static String getHLSm3u8(LibraryResource resource, Renderer renderer, String baseUrl) {
+	public static String getHLSm3u8(LibraryItem resource, Renderer renderer, String baseUrl) {
 		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
 			MediaInfo mediaVideo = resource.getMediaInfo();
@@ -275,7 +275,7 @@ public class HlsHelper {
 	*/
 	public static final double DEFAULT_TARGETDURATION = 6;
 
-	public static String getHLSm3u8ForRendition(LibraryResource resource, Renderer renderer, String baseUrl, String rendition) {
+	public static String getHLSm3u8ForRendition(LibraryItem resource, Renderer renderer, String baseUrl, String rendition) {
 		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
 			Double duration = resource.getMediaInfo().getDuration();
@@ -333,7 +333,7 @@ public class HlsHelper {
 		return new TimeRange(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
 	}
 
-	public static InputStream getInputStream(String url, LibraryResource resource) throws IOException {
+	public static InputStream getInputStream(String url, LibraryItem resource) throws IOException {
 		if (!url.contains("/hls/")) {
 			return null;
 		}
@@ -414,7 +414,7 @@ public class HlsHelper {
 	 * @param resource The resource.
 	 * @return The WebVtt representation of the chapter list.
 	 */
-	public static String getChaptersWebVtt(LibraryResource resource) {
+	public static String getChaptersWebVtt(LibraryItem resource) {
 		StringBuilder chaptersVtt = new StringBuilder();
 		chaptersVtt.append("WEBVTT\n");
 		MediaInfo mediaInfo = resource.getMediaInfo();
@@ -446,7 +446,7 @@ public class HlsHelper {
 	 * @param resource The resource.
 	 * @return The HLS json representation of the chapter list.
 	 */
-	public static String getChaptersHls(LibraryResource resource) {
+	public static String getChaptersHls(LibraryItem resource) {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		MediaInfo mediaInfo = resource.getMediaInfo();

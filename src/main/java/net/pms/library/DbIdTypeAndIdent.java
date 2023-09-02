@@ -17,9 +17,10 @@
 package net.pms.library;
 
 /**
- * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case fail.
- * Should be renamed on the next release, then dev will have time to import DbIdTypeAndIdent2
- * on their git, that will allow rename to DbIdTypeAndIdent.
+ * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case
+ * fail. Should be renamed on the next release, then dev will have time to
+ * import DbIdTypeAndIdent2 on their git, that will allow rename to
+ * DbIdTypeAndIdent.
  */
 public class DbIdTypeAndIdent {
 

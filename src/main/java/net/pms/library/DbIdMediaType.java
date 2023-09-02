@@ -72,4 +72,3 @@ public enum DbIdMediaType {
 		throw new RuntimeException("Unknown DBID type : " + id);
 	}
 }
-

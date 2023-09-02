@@ -25,6 +25,7 @@ import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.image.ImageInfo;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
@@ -46,7 +47,7 @@ public class DlnaHelper {
 	protected DlnaHelper() {
 	}
 
-	public static String getDlnaContentFeatures(LibraryResource resource) {
+	public static String getDlnaContentFeatures(LibraryItem resource) {
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		String dlnaOrgPnFlags = getDlnaOrgPnFlags(resource, localizationValue);
@@ -121,10 +122,10 @@ public class DlnaHelper {
 	 *
 	 * @return String representation of the DLNA.ORG_OP flags
 	 */
-	protected static String getDlnaOrgOpFlags(LibraryResource resource) {
+	protected static String getDlnaOrgOpFlags(LibraryItem item) {
 		String dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
-		final Renderer renderer = resource.getDefaultRenderer();
-		final Engine engine = resource.getEngine();
+		final Renderer renderer = item.getDefaultRenderer();
+		final Engine engine = item.getEngine();
 
 		if (renderer.isSeekByTime() && engine != null && engine.isTimeSeekable()) {
 			/**
@@ -173,16 +174,16 @@ public class DlnaHelper {
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
-	protected static String getDlnaOrgPnFlags(LibraryResource resource, int localizationValue) {
+	protected static String getDlnaOrgPnFlags(LibraryItem item, int localizationValue) {
 		// Use device-specific UMS conf, if any
-		String mime = resource.getRendererMimeType();
-		final Renderer renderer = resource.getDefaultRenderer();
-		final Engine engine = resource.getEngine();
-		final MediaInfo mediaInfo = resource.getMediaInfo();
-		final MediaSubtitle mediaSubtitle = resource.getMediaSubtitle();
+		String mime = item.getRendererMimeType();
+		final Renderer renderer = item.getDefaultRenderer();
+		final Engine engine = item.getEngine();
+		final MediaInfo mediaInfo = item.getMediaInfo();
+		final MediaSubtitle mediaSubtitle = item.getMediaSubtitle();
 		final MediaVideo defaultVideoTrack = mediaInfo != null ? mediaInfo.getDefaultVideoTrack() : null;
 		final MediaAudio defaultAudioTrack = mediaInfo != null ? mediaInfo.getDefaultAudioTrack() : null;
-		final MediaAudio mediaAudio = resource.getMediaAudio();
+		final MediaAudio mediaAudio = item.getMediaAudio();
 		MediaSubtitle resolvedSubtitle = mediaSubtitle;
 
 		String dlnaOrgPnFlags = null;
@@ -246,14 +247,14 @@ public class DlnaHelper {
 							 */
 							if (renderer.isAccurateDLNAOrgPN()) {
 								if (resolvedSubtitle == null) {
-									MediaAudio audio = mediaAudio != null ? mediaAudio : resource.resolveAudioStream();
-									resolvedSubtitle = resource.resolveSubtitlesStream(audio == null ? null : audio.getLang(), false);
+									MediaAudio audio = mediaAudio != null ? mediaAudio : item.resolveAudioStream();
+									resolvedSubtitle = item.resolveSubtitlesStream(audio == null ? null : audio.getLang(), false);
 								}
 
 								if (resolvedSubtitle == null) {
-									LOGGER.trace("We do not want a subtitle for {}", resource.getName());
+									LOGGER.trace("We do not want a subtitle for {}", item.getName());
 								} else {
-									LOGGER.trace("We do want a subtitle for {}", resource.getName());
+									LOGGER.trace("We do want a subtitle for {}", item.getName());
 								}
 							}
 
@@ -263,7 +264,7 @@ public class DlnaHelper {
 							 * accepts media muxed to MPEG-TS then the file is
 							 * MPEG-TS
 							 */
-							if (resolvedSubtitle == null && !resource.hasExternalSubtitles() && mediaInfo != null && mediaInfo.getDvdtrack() == 0 &&
+							if (resolvedSubtitle == null && !item.hasExternalSubtitles() && mediaInfo != null && mediaInfo.getDvdtrack() == 0 &&
 								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) && renderer.isMuxH264MpegTS()) {
 								isOutputtingMPEGTS = true;
 							}

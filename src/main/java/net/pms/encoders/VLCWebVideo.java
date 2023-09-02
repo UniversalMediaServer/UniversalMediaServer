@@ -16,7 +16,7 @@
  */
 package net.pms.encoders;
 
-import net.pms.library.LibraryResource;
+import net.pms.library.LibraryItem;
 import net.pms.util.PlayerUtil;
 
 public class VLCWebVideo extends VLCVideo {
@@ -56,7 +56,7 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryResource resource) {
+	public boolean isCompatible(LibraryItem resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 }

@@ -32,6 +32,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
+import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
@@ -631,7 +632,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return The renderer specific mime type  for given resource. If the generic mime
 	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(LibraryResource resource) {
+	public String getMimeType(LibraryItem resource) {
 		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
@@ -1253,14 +1254,14 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param resource The {@link LibraryResource} information parsed from the
+	 * @param resource The {@link LibraryItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(LibraryResource resource, Format format, UmsConfiguration configuration) {
+	public boolean isCompatible(LibraryItem resource, Format format, UmsConfiguration configuration) {
 		MediaInfo mediaInfo;
 		if (resource != null) {
 			mediaInfo = resource.getMediaInfo();
@@ -1324,13 +1325,13 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param resource The {@link LibraryResource} information parsed from the
+	 * @param resource The {@link LibraryItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(LibraryResource resource, Format format) {
+	public boolean isCompatible(LibraryItem resource, Format format) {
 		return isCompatible(resource, format, null);
 	}
 
@@ -1546,7 +1547,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryResource resource) {
+	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryItem resource) {
 		if (subtitle == null || subtitle.getType() == null || resource == null) {
 			return false;
 		}
@@ -1600,7 +1601,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource The resource
 	 * @return whether the renderer specifies support for the subtitles
 	 */
-	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryResource resource) {
+	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryItem resource) {
 		if (subtitle == null) {
 			return false;
 		}
@@ -1758,7 +1759,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(LibraryResource resource) {
+	public boolean isVideoBitDepthSupported(LibraryItem resource) {
 		Integer videoBitDepth = null;
 		if (resource.getMediaInfo() != null && resource.getMediaInfo().getDefaultVideoTrack() != null) {
 			videoBitDepth = resource.getMediaInfo().getDefaultVideoTrack().getBitDepth();

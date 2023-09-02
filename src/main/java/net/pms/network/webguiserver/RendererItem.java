@@ -134,20 +134,30 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("title", name);
 		result.addProperty("isUpnp", renderer.isUpnp());
 		JsonArray detailsArray = new JsonArray();
+		JsonObject entryObject = new JsonObject();
+		entryObject.addProperty("key", "confname");
+		entryObject.addProperty("value", renderer.getConfName());
+		detailsArray.add(entryObject);
+		if (!renderer.isFileless() && renderer.getFile() != null) {
+			entryObject = new JsonObject();
+			entryObject.addProperty("key", "conffile");
+			entryObject.addProperty("value", renderer.getFile().getName());
+			detailsArray.add(entryObject);
+		}
 		if (renderer.isUpnp()) {
 			Map<String, String> details = renderer.getDetails();
 			for (Entry<String, String> entry : details.entrySet()) {
-				JsonObject entryObject = new JsonObject();
+				entryObject = new JsonObject();
 				entryObject.addProperty("key", entry.getKey());
 				entryObject.addProperty("value", entry.getValue());
 				detailsArray.add(entryObject);
 			}
-			JsonObject entryObject = new JsonObject();
+			entryObject = new JsonObject();
 			entryObject.addProperty("key", "Services");
 			entryObject.addProperty("value", StringUtils.join(renderer.getUpnpServices(), ", "));
 			detailsArray.add(entryObject);
 		} else {
-			JsonObject entryObject = new JsonObject();
+			entryObject = new JsonObject();
 			entryObject.addProperty("key", "i18n@Name");
 			entryObject.addProperty("value", name);
 			detailsArray.add(entryObject);
