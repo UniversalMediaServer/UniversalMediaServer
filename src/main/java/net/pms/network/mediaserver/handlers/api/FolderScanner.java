@@ -24,6 +24,8 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//FIXME : this should not exists.
+//if a bug exists on the scanner, it should be solved.
 public class FolderScanner implements ApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderScanner.class);

@@ -39,6 +39,7 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//FIXME : this should be implemented under upnp, UpdateObject() -> metadata.
 public class LikeMusic implements ApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());

@@ -74,6 +74,7 @@ import org.slf4j.LoggerFactory;
  * </pre>
  *
  */
+//FIXME : this should be implemented under upnp, UpdateObject() -> metadata.
 public class StarRating implements ApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(StarRating.class.getName());
