@@ -168,6 +168,11 @@
 			<version>4.4</version>
 		</dependency>
 		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.16.0</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
 			<!--
@@ -185,34 +190,27 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpasyncclient</artifactId>
-			<version>4.1.5</version>
-			<exclusions>
-				<exclusion>
-					<!-- lets us use a newer version of httpclient -->
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<!--
-				org.apache.httpcomponents:httpclient is shared with
-					- net.pms:ums
-					- org.apache.httpcomponents:httpasyncclient
-					- fm.last:coverartarchive-api
-
-				Check the org.apache.httpcomponents:httpclient version of the other libraries before upgrading
-			-->
-			<version>4.5.14</version>
+			<groupId>org.apache.httpcomponents.core5</groupId>
+			<artifactId>httpcore5</artifactId>
+			<version>5.2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.httpcomponents.client5</groupId>
+			<artifactId>httpclient5</artifactId>
+			<version>5.2.1</version>
 			<exclusions>
 				<exclusion>
-					<!-- org.apache.httpcomponents:httpcore updated from httpasyncclient -->
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpcore</artifactId>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.httpcomponents.core5</groupId>
+					<artifactId>httpcore5</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>

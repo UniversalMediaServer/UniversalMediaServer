@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.update;
+package net.pms.external.update;
 
 import com.sun.jna.Platform;
 import java.awt.Desktop;
@@ -26,8 +26,8 @@ import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.util.UriFileRetriever;
-import net.pms.util.UriRetrieverCallback;
+import net.pms.external.ProgressCallback;
+import net.pms.external.HttpAsyncClientHelper;
 import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Tim Cox (mail@tcox.org)
  */
-public class AutoUpdater extends Observable implements UriRetrieverCallback {
+public class AutoUpdater extends Observable implements ProgressCallback {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
@@ -47,14 +47,13 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	private final String serverUrl;
-	private final UriFileRetriever uriRetriever = new UriFileRetriever();
 	private final Object stateLock = new Object();
 	private final Version currentVersion;
 	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
 	private Throwable errorStateCause;
-	private int bytesDownloaded = -1;
-	private int totalBytes = -1;
+	private long bytesDownloaded = -1;
+	private long totalBytes = -1;
 	private boolean downloadCancelled = false;
 
 	public AutoUpdater(String updateServerUrl, String currentVersion) {
@@ -80,13 +79,15 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		try {
 			setState(State.POLLING_SERVER);
 			long unixTime = System.currentTimeMillis() / 1000L;
-			byte[] propertiesAsData = uriRetriever.get(serverUrl + "?cacheBuster=" + unixTime);
+			byte[] propertiesAsData = HttpAsyncClientHelper.getBytes(serverUrl + "?cacheBuster=" + unixTime);
 			synchronized (stateLock) {
 				SERVER_PROPERTIES.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
 			wrapException("Cannot download properties", e);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -211,7 +212,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 
 		try {
-			uriRetriever.getFile(new URI(downloadUrl), target, this);
+			HttpAsyncClientHelper.getFile(new URI(downloadUrl), target, this);
 		} catch (Exception e) {
 			// when the file download is canceled by user or an error happens
 			// during downloading than delete the partially downloaded file
@@ -225,19 +226,23 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	@Override
-	public void progressMade(String uri, int bytesDownloaded, int totalBytes) throws CancelDownloadException {
+	public void progress(String uri, long bytesDownloaded, long totalBytes) {
 		synchronized (stateLock) {
 			this.bytesDownloaded = bytesDownloaded;
 			this.totalBytes = totalBytes;
-
-			if (downloadCancelled) {
-				setErrorState(new UpdateException("Download cancelled"));
-				throw new CancelDownloadException();
-			}
 		}
 
 		setChanged();
 		notifyObservers();
+	}
+
+	@Override
+	public boolean isCancelled() {
+		boolean cancelled = isDownloadCancelled();
+		if (cancelled) {
+			setErrorState(new UpdateException("Download cancelled"));
+		}
+		return cancelled;
 	}
 
 	public State getState() {
@@ -252,13 +257,13 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		}
 	}
 
-	public int getBytesDownloaded() {
+	public long getBytesDownloaded() {
 		synchronized (stateLock) {
 			return bytesDownloaded;
 		}
 	}
 
-	public int getTotalBytes() {
+	public long getTotalBytes() {
 		synchronized (stateLock) {
 			return totalBytes;
 		}

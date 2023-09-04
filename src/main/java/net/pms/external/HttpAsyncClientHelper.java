@@ -14,30 +14,26 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.external;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
-import org.apache.http.impl.nio.client.HttpAsyncClients;
-import org.apache.http.nio.client.methods.HttpAsyncMethods;
+import org.apache.hc.client5.http.async.methods.SimpleHttpRequest;
+import org.apache.hc.client5.http.async.methods.SimpleHttpResponse;
+import org.apache.hc.client5.http.async.methods.SimpleRequestProducer;
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.async.HttpAsyncClients;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.Method;
 
 /**
  * Download file from the external server and inform the calling process about
  * the progress of download.
- *
- * @author valib
  */
-public class UriFileRetriever {
+public class HttpAsyncClientHelper {
 
 	/**
 	 * Download file from the external server and return the content of it in
@@ -49,19 +45,18 @@ public class UriFileRetriever {
 	 *
 	 * @throws IOException
 	 */
-	public byte[] get(String uri) throws IOException {
+	public static byte[] getBytes(String uri) throws IOException, InterruptedException {
 		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
-			HttpGet request = new HttpGet(uri);
-			Future<HttpResponse> future = httpclient.execute(request, null);
-			HttpResponse response = future.get();
-			int statusCode = response.getStatusLine().getStatusCode();
+			SimpleHttpRequest request = new SimpleHttpRequest(Method.GET.name(), uri);
+			Future<SimpleHttpResponse> future = httpclient.execute(request, null);
+			SimpleHttpResponse response = future.get();
+			int statusCode = response.getCode();
 			if (statusCode != HttpStatus.SC_OK) {
 				throw new IOException("HTTP response not OK for " + uri);
 			}
-
-			return IOUtils.toByteArray(response.getEntity().getContent());
-		} catch (InterruptedException | ExecutionException e) {
+			return response.getBodyBytes();
+		} catch (ExecutionException e) {
 			throw new IOException("Unable to download by HTTP" + e.getMessage());
 		}
 	}
@@ -72,28 +67,19 @@ public class UriFileRetriever {
 	 *
 	 * @param uri The URI of the external server file.
 	 * @param file The path to store downloaded file.
-	 * @param callback The calling class which will be informed about the
-	 *            progress of the file download.
+	 * @param callback The callback which will be informed about the progress of
+	 * the file download.
 	 *
 	 * @throws Exception
 	 */
-	public void getFile(URI uri, File file, UriRetrieverCallback callback) throws Exception {
+	public static void getFile(URI uri, File file, ProgressCallback callback) throws Exception {
 		try (CloseableHttpAsyncClient httpclient = HttpAsyncClients.createDefault()) {
 			httpclient.start();
-			ZeroCopyConsumerWithCallback<File> consumer = new ZeroCopyConsumerWithCallback<File>(file, uri.toString(), callback) {
-
-				@Override
-				protected File process(final HttpResponse response, final File file, final ContentType contentType) throws Exception {
-					if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-						throw new ClientProtocolException("Connection to host failed: " + response.getStatusLine());
-					}
-
-					return file;
-				}
-			};
-
-			Future<File> future = httpclient.execute(HttpAsyncMethods.createGet(uri), consumer, null, null);
-			file = future.get();
+			FileDataAsyncResponseConsumer responseConsumer = new FileDataAsyncResponseConsumer(file, uri.toString(), callback);
+			SimpleRequestProducer requestProducer = SimpleRequestProducer.create(SimpleHttpRequest.create(Method.GET, uri));
+			Future<File> future = httpclient.execute(requestProducer, responseConsumer, null);
+			future.get();
 		}
 	}
+
 }

@@ -17,35 +17,40 @@
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpMessage;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpVersion;
-import org.apache.http.NoHttpResponseException;
-import org.apache.http.StatusLine;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.config.ConnectionConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.util.EntityUtils;
+import org.apache.hc.client5.http.HttpRequestRetryStrategy;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.classic.methods.HttpUriRequestBase;
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.DefaultHttpRequestRetryStrategy;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpMessage;
+import org.apache.hc.core5.http.HttpVersion;
+import org.apache.hc.core5.http.NoHttpResponseException;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
+import org.apache.hc.core5.http.io.SocketConfig;
+import org.apache.hc.core5.http.io.entity.ByteArrayEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.StatusLine;
+import org.apache.hc.core5.util.TimeValue;
+import org.apache.hc.core5.util.Timeout;
 import org.jupnp.http.Headers;
 import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
@@ -53,6 +58,7 @@ import org.jupnp.model.message.UpnpHeaders;
 import org.jupnp.model.message.UpnpMessage;
 import org.jupnp.model.message.UpnpRequest;
 import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.ContentTypeHeader;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.transport.spi.AbstractStreamClient;
 import org.jupnp.transport.spi.InitializationException;
@@ -63,7 +69,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Implementation based on org.jupnp.transport.impl.apache
  */
-public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientConfiguration, HttpRequestBase> {
+public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientConfiguration, HttpUriRequestBase> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StreamClient.class);
 
@@ -74,18 +80,19 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	public ApacheStreamClient(ApacheStreamClientConfiguration configuration) throws InitializationException {
 		this.configuration = configuration;
 		ConnectionConfig.Builder connectionConfigBuilder = ConnectionConfig.custom();
-		connectionConfigBuilder.setCharset(Charset.forName(configuration.getContentCharset()));
+		// These are some safety settings, we should never run into these timeouts as we
+		// do our own expiration checking
+		connectionConfigBuilder.setSocketTimeout(Timeout.ofSeconds(configuration.getTimeoutSeconds() + 5));
+		connectionConfigBuilder.setConnectTimeout(Timeout.ofSeconds(configuration.getTimeoutSeconds() + 5));
+
+		SocketConfig.Builder socketConfigBuilder = SocketConfig.custom();
 		if (configuration.getSocketBufferSize() != -1) {
-			connectionConfigBuilder.setBufferSize(configuration.getSocketBufferSize());
+			socketConfigBuilder.setSndBufSize(configuration.getSocketBufferSize());
+			socketConfigBuilder.setRcvBufSize(configuration.getSocketBufferSize());
 		}
 
 		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
 		requestConfigBuilder.setExpectContinueEnabled(false);
-
-		// These are some safety settings, we should never run into these timeouts as we
-		// do our own expiration checking
-		requestConfigBuilder.setConnectTimeout((configuration.getTimeoutSeconds() + 5) * 1000);
-		requestConfigBuilder.setSocketTimeout((configuration.getTimeoutSeconds() + 5) * 1000);
 
 		// Only register 80, not 443 and SSL
 		Registry<ConnectionSocketFactory> registry = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -95,20 +102,21 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 		clientConnectionManager = new PoolingHttpClientConnectionManager(registry);
 		clientConnectionManager.setMaxTotal(configuration.getMaxTotalConnections());
 		clientConnectionManager.setDefaultMaxPerRoute(configuration.getMaxTotalPerRoute());
+		clientConnectionManager.setDefaultConnectionConfig(connectionConfigBuilder.build());
+		clientConnectionManager.setDefaultSocketConfig(socketConfigBuilder.build());
 
-		DefaultHttpRequestRetryHandler defaultHttpRequestRetryHandler;
+		HttpRequestRetryStrategy defaultHttpRequestRetryHandler;
 		if (configuration.getRequestRetryCount() != -1) {
-			defaultHttpRequestRetryHandler = new DefaultHttpRequestRetryHandler(configuration.getRequestRetryCount(), false);
+			defaultHttpRequestRetryHandler = new DefaultHttpRequestRetryStrategy(configuration.getRequestRetryCount(), TimeValue.ofSeconds(1L));
 		} else {
-			defaultHttpRequestRetryHandler = new DefaultHttpRequestRetryHandler();
+			defaultHttpRequestRetryHandler = new DefaultHttpRequestRetryStrategy();
 		}
 
 		httpClient = HttpClients
 				.custom()
-				.setDefaultConnectionConfig(connectionConfigBuilder.build())
 				.setConnectionManager(clientConnectionManager)
 				.setDefaultRequestConfig(requestConfigBuilder.build())
-				.setRetryHandler(defaultHttpRequestRetryHandler)
+				.setRetryStrategy(defaultHttpRequestRetryHandler)
 				.build();
 	}
 
@@ -118,9 +126,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	}
 
 	@Override
-	protected HttpRequestBase createRequest(StreamRequestMessage requestMessage) {
+	protected HttpUriRequestBase createRequest(StreamRequestMessage requestMessage) {
 		UpnpRequest requestOperation = requestMessage.getOperation();
-		HttpRequestBase request;
+		HttpUriRequestBase request;
 		switch (requestOperation.getMethod()) {
 			case GET -> {
 				request = new HttpGet(requestOperation.getURI());
@@ -143,7 +151,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 			}
 			case POST -> {
 				request = new HttpPost(requestOperation.getURI());
-				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
+				request.setEntity(createHttpRequestEntity(requestMessage));
 			}
 			case NOTIFY -> {
 				request = new HttpPost(requestOperation.getURI()) {
@@ -152,7 +160,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 						return UpnpRequest.Method.NOTIFY.getHttpName();
 					}
 				};
-				((HttpEntityEnclosingRequestBase) request).setEntity(createHttpRequestEntity(requestMessage));
+				request.setEntity(createHttpRequestEntity(requestMessage));
 			}
 			default -> throw new RuntimeException("Unknown HTTP method: " + requestOperation.getHttpMethodName());
 		}
@@ -164,9 +172,9 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 					requestMessage.getUdaMinorVersion()));
 		}
 		if (requestMessage.getOperation().getHttpMinorVersion() == 0) {
-			request.setProtocolVersion(HttpVersion.HTTP_1_0);
+			request.setVersion(HttpVersion.HTTP_1_0);
 		} else {
-			request.setProtocolVersion(HttpVersion.HTTP_1_1);
+			request.setVersion(HttpVersion.HTTP_1_1);
 			// This closes the http connection immediately after the call.
 			request.addHeader("Connection", "close");
 		}
@@ -175,7 +183,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	}
 
 	@Override
-	protected Callable<StreamResponseMessage> createCallable(final StreamRequestMessage requestMessage, final HttpRequestBase request) {
+	protected Callable<StreamResponseMessage> createCallable(final StreamRequestMessage requestMessage, final HttpUriRequestBase request) {
 		return () -> {
 			LOGGER.trace("Sending HTTP request: " + requestMessage);
 			if (LOGGER.isTraceEnabled()) {
@@ -186,7 +194,7 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 	}
 
 	@Override
-	protected void abort(HttpRequestBase request) {
+	protected void abort(HttpUriRequestBase request) {
 		request.abort();
 	}
 
@@ -206,32 +214,42 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 
 	@Override
 	public void stop() {
-		LOGGER.trace("Shutting down HTTP client connection manager/pool");
-		clientConnectionManager.shutdown();
+		try (clientConnectionManager) {
+			LOGGER.trace("Shutting down HTTP client connection manager/pool");
+		}
 	}
 
 	protected HttpEntity createHttpRequestEntity(UpnpMessage upnpMessage) {
 		if (upnpMessage.getBodyType().equals(UpnpMessage.BodyType.BYTES)) {
 			LOGGER.trace("Preparing HTTP request entity as byte[]");
-			return new ByteArrayEntity(upnpMessage.getBodyBytes());
+			return new ByteArrayEntity(upnpMessage.getBodyBytes(), getContentType(upnpMessage));
 		} else {
 			LOGGER.trace("Preparing HTTP request entity as string");
-			String charset = upnpMessage.getContentTypeCharset();
-			if (charset == null) {
-				charset = "UTF-8";
-			}
-			try {
-				return new StringEntity(upnpMessage.getBodyString(), charset);
-			} catch (UnsupportedCharsetException ex) {
-				LOGGER.trace("HTTP request does not support charset: {}", charset);
-				throw new RuntimeException(ex);
-			}
+			return new StringEntity(upnpMessage.getBodyString(), getContentType(upnpMessage));
 		}
 	}
 
-	protected ResponseHandler<StreamResponseMessage> createResponseHandler(StreamRequestMessage requestMessage) {
-		return (final HttpResponse httpResponse) -> {
-			StatusLine statusLine = httpResponse.getStatusLine();
+	private ContentType getContentType(UpnpMessage upnpMessage) {
+		ContentTypeHeader contentTypeHeader = upnpMessage.getContentTypeHeader();
+		String contentTypeStr = contentTypeHeader.getValue().toStringNoParameters();
+		String charsetStr = upnpMessage.getContentTypeCharset();
+		Charset charset = null;
+		if (charsetStr != null) {
+			try {
+				charset = Charset.forName(charsetStr);
+			} catch (UnsupportedCharsetException e) {
+				//no support is available for a requested charset.
+			}
+		}
+		if (charset == null) {
+			charset = StandardCharsets.UTF_8;
+		}
+		return ContentType.create(contentTypeStr, charset);
+	}
+
+	protected HttpClientResponseHandler<StreamResponseMessage> createResponseHandler(StreamRequestMessage requestMessage) {
+		return (final ClassicHttpResponse httpResponse) -> {
+			StatusLine statusLine = new StatusLine(httpResponse);
 			LOGGER.trace("Received HTTP response: " + statusLine);
 
 			// Status
@@ -279,9 +297,10 @@ public class ApacheStreamClient extends AbstractStreamClient<ApacheStreamClientC
 
 	private static Headers getHeaders(HttpMessage httpMessage) {
 		Headers headers = new Headers();
-		for (Header header : httpMessage.getAllHeaders()) {
+		for (Header header : httpMessage.getHeaders()) {
 			headers.add(header.getName(), header.getValue());
 		}
 		return headers;
 	}
+
 }

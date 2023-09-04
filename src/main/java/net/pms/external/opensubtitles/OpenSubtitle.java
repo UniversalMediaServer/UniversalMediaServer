@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.external.opensubtitles;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,6 +69,19 @@ import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.renderers.Renderer;
+import net.pms.util.CredMgr;
+import net.pms.util.FileNamePrettifier;
+import net.pms.util.FileUtil;
+import net.pms.util.ImdbUtil;
+import net.pms.util.Iso639;
+import net.pms.util.LoggableInputStream;
+import net.pms.util.LoggableOutputStream;
+import net.pms.util.ParseException;
+import net.pms.util.SimpleThreadFactory;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
+import net.pms.util.VideoClassification;
+import net.pms.util.XMLRPCUtil;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
 import net.pms.util.XMLRPCUtil.MemberInt;
