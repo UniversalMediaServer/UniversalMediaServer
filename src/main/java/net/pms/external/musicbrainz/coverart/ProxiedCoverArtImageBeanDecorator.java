@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * Copyright (C) 2012-2018 Last.fm
  *
- * Adapted for Apache HttpClient5
+ * Adapted for JDK11+ HttpClient
  */
 class ProxiedCoverArtImageBeanDecorator implements CoverArtImage {
 
@@ -58,7 +58,12 @@ class ProxiedCoverArtImageBeanDecorator implements CoverArtImage {
 
 	@Override
 	public InputStream getImage() throws IOException {
-		return client.getImageData(delegate.getImage());
+		try {
+			return client.getImageData(delegate.getImage());
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
 	}
 
 	@Override
@@ -88,7 +93,12 @@ class ProxiedCoverArtImageBeanDecorator implements CoverArtImage {
 
 	@Override
 	public InputStream getLargeThumbnail() throws IOException {
-		return client.getImageData(delegate.getThumbnails().getLarge());
+		try {
+			return client.getImageData(delegate.getThumbnails().getLarge());
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
 	}
 
 	@Override
@@ -98,7 +108,12 @@ class ProxiedCoverArtImageBeanDecorator implements CoverArtImage {
 
 	@Override
 	public InputStream getSmallThumbnail() throws IOException {
-		return client.getImageData(delegate.getThumbnails().getSmall());
+		try {
+			return client.getImageData(delegate.getThumbnails().getSmall());
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
 	}
 
 	@Override

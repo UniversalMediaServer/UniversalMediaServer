@@ -22,7 +22,7 @@ import fm.last.musicbrainz.coverart.CoverArtType;
 /**
  * Copyright (C) 2012-2018 Last.fm
  *
- * Adapted for Apache HttpClient5
+ * Adapted for JDK11+ HttpClient
  */
 enum CoverArtTypeStringToEnumValue implements Function<String, CoverArtType> {
 	/* */

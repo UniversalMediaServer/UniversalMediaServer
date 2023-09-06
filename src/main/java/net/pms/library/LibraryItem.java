@@ -52,6 +52,7 @@ import net.pms.library.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.library.container.OpenSubtitleFolder;
 import net.pms.library.item.DVDISOTitle;
 import net.pms.library.item.RealFile;
+import net.pms.library.item.VirtualVideoAction;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaInfoStore;
 import net.pms.media.MediaLang;
@@ -1463,7 +1464,7 @@ public abstract class LibraryItem extends LibraryResource {
 	 * subtitles instead of relying on cached information (if it exists).
 	 */
 	public void registerExternalSubtitles(boolean forceRefresh) {
-		if (mediaInfo == null || !mediaInfo.isVideo()) {
+		if (mediaInfo == null || !mediaInfo.isVideo() || this instanceof VirtualVideoAction) {
 			return;
 		}
 

@@ -14,23 +14,19 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.external.musicbrainz.coverart;
+package net.pms.network.mediaserver.jupnp.transport.impl;
 
-import com.google.common.base.Predicate;
-import fm.last.musicbrainz.coverart.CoverArtImage;
+import java.util.concurrent.ExecutorService;
+import org.jupnp.transport.spi.AbstractStreamClientConfiguration;
 
-/**
- * Copyright (C) 2012-2018 Last.fm
- *
- * Adapted for JDK11+ HttpClient
- */
-enum IsBackImage implements Predicate<CoverArtImage> {
+public class JdkStreamClientConfiguration extends AbstractStreamClientConfiguration {
 
-	INSTANCE;
+	public JdkStreamClientConfiguration(ExecutorService requestExecutorService) {
+		super(requestExecutorService);
+	}
 
-	@Override
-	public boolean apply(CoverArtImage coverArtImage) {
-		return coverArtImage.isBack();
+	public JdkStreamClientConfiguration(ExecutorService requestExecutorService, int timeoutSeconds) {
+		super(requestExecutorService, timeoutSeconds);
 	}
 
 }

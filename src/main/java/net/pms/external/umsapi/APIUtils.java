@@ -49,7 +49,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.HttpAsyncClientHelper;
+import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -1110,7 +1110,7 @@ public class APIUtils {
 
 	public static DLNAThumbnail getThumbnailFromUri(String uri) {
 		try {
-			byte[] image = HttpAsyncClientHelper.getBytes(uri);
+			byte[] image = JavaHttpClient.getBytes(uri);
 			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
 		} catch (EOFException e) {
 			LOGGER.debug(
@@ -1122,8 +1122,6 @@ public class APIUtils {
 		} catch (IOException e) {
 			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
 			LOGGER.trace("", e);
-		} catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
 		}
 		return null;
 	}

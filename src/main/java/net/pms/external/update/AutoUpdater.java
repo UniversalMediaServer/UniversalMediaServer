@@ -19,15 +19,14 @@ package net.pms.external.update;
 import com.sun.jna.Platform;
 import java.awt.Desktop;
 import java.io.*;
-import java.net.URI;
 import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.external.JavaHttpClient;
 import net.pms.external.ProgressCallback;
-import net.pms.external.HttpAsyncClientHelper;
 import net.pms.util.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,15 +78,13 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 		try {
 			setState(State.POLLING_SERVER);
 			long unixTime = System.currentTimeMillis() / 1000L;
-			byte[] propertiesAsData = HttpAsyncClientHelper.getBytes(serverUrl + "?cacheBuster=" + unixTime);
+			byte[] propertiesAsData = JavaHttpClient.getBytes(serverUrl + "?cacheBuster=" + unixTime);
 			synchronized (stateLock) {
 				SERVER_PROPERTIES.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
 			wrapException("Cannot download properties", e);
-		} catch (InterruptedException ex) {
-			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -212,8 +209,8 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 		File target = new File(CONFIGURATION.getProfileDirectory(), getTargetFilename());
 
 		try {
-			HttpAsyncClientHelper.getFile(new URI(downloadUrl), target, this);
-		} catch (Exception e) {
+			JavaHttpClient.getFile(target, downloadUrl, this);
+		} catch (IOException e) {
 			// when the file download is canceled by user or an error happens
 			// during downloading than delete the partially downloaded file
 			target.delete();

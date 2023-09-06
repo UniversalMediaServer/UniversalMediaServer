@@ -16,21 +16,16 @@
  */
 package net.pms.external.musicbrainz.coverart;
 
-import com.google.common.base.Predicate;
-import fm.last.musicbrainz.coverart.CoverArtImage;
+public class CoverArtResponseException extends RuntimeException {
 
-/**
- * Copyright (C) 2012-2018 Last.fm
- *
- * Adapted for JDK11+ HttpClient
- */
-enum IsBackImage implements Predicate<CoverArtImage> {
+	private final int statusCode;
 
-	INSTANCE;
+	public CoverArtResponseException(int statusCode) {
+		this.statusCode = statusCode;
+	}
 
-	@Override
-	public boolean apply(CoverArtImage coverArtImage) {
-		return coverArtImage.isBack();
+	public int getStatusCode() {
+		return statusCode;
 	}
 
 }

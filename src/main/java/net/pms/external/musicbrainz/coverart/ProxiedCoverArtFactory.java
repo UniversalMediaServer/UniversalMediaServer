@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Copyright (C) 2012-2018 Last.fm
  *
- * Adapted for Apache HttpClient5
+ * Adapted for JDK11+ HttpClient
  */
 public class ProxiedCoverArtFactory {
 

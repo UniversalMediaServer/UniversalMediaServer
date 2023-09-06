@@ -21,18 +21,20 @@ import fm.last.musicbrainz.coverart.CoverArtArchiveClient;
 import fm.last.musicbrainz.coverart.CoverArtException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.UUID;
-import org.apache.hc.client5.http.classic.HttpClient;
-import org.apache.hc.client5.http.classic.methods.HttpGet;
-import org.apache.hc.client5.http.impl.classic.HttpClients;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Copyright (C) 2012-2018 Last.fm
  *
- * Adapted for Apache HttpClient5
+ * Adapted for JDK11+ HttpClient
  */
 public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 
@@ -44,9 +46,6 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 
 	private final HttpClient client;
 	private final ProxiedCoverArtFactory factory = new ProxiedCoverArtFactory(this);
-
-	private final HttpClientResponseHandler<String> fetchJsonListingHandler = FetchJsonListingResponseHandler.INSTANCE;
-	private final HttpClientResponseHandler<InputStream> fetchImageDataHandler = FetchImageDataResponseHandler.INSTANCE;
 
 	private boolean useHttps;
 
@@ -91,7 +90,9 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 	 */
 	public DefaultCoverArtArchiveClient(boolean useHttps, HttpClient client) {
 		if (client == null) {
-			this.client = HttpClients.createDefault();
+			this.client = HttpClient.newBuilder()
+					.followRedirects(HttpClient.Redirect.ALWAYS)
+					.build();
 		} else {
 			this.client = client;
 		}
@@ -104,20 +105,34 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 
 	@Override
 	public CoverArt getByMbid(UUID mbid) throws CoverArtException {
-		return getByMbid(CoverArtArchiveEntity.RELEASE, mbid);
+		try {
+			return getByMbid(CoverArtArchiveEntity.RELEASE, mbid);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
 	}
 
 	@Override
 	public CoverArt getReleaseGroupByMbid(UUID mbid) throws CoverArtException {
-		return getByMbid(CoverArtArchiveEntity.RELEASE_GROUP, mbid);
+		try {
+			return getByMbid(CoverArtArchiveEntity.RELEASE_GROUP, mbid);
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
+			return null;
+		}
 	}
 
-	private CoverArt getByMbid(CoverArtArchiveEntity entity, UUID mbid) {
+	private CoverArt getByMbid(CoverArtArchiveEntity entity, UUID mbid) throws InterruptedException, CoverArtResponseException {
 		LOGGER.info("mbid={}", mbid);
-		HttpGet getRequest = getJsonGetRequest(entity, mbid);
+		HttpRequest getRequest = getJsonGetRequest(entity, mbid);
 		CoverArt coverArt = null;
 		try {
-			String json = client.execute(getRequest, fetchJsonListingHandler);
+			HttpResponse<String> response = client.send(getRequest, BodyHandlers.ofString());
+			if (response.statusCode() != 200) {
+				throw new CoverArtResponseException(response.statusCode());
+			}
+			String json = response.body();
 			coverArt = factory.valueOf(json);
 		} catch (IOException e) {
 			throw new CoverArtException(e);
@@ -125,19 +140,26 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 		return coverArt;
 	}
 
-	InputStream getImageData(String location) throws IOException {
+	InputStream getImageData(String location) throws IOException, InterruptedException {
 		LOGGER.info("location={}", location);
-		HttpGet getRequest = getJpegGetRequest(location);
-		return client.execute(getRequest, fetchImageDataHandler);
+		HttpRequest getRequest = getJpegGetRequest(location);
+		return client.send(getRequest, BodyHandlers.ofInputStream()).body();
 	}
 
-	private HttpGet getJpegGetRequest(String location) {
-		HttpGet getRequest = new HttpGet(location);
-		getRequest.addHeader("accept", "image/jpeg");
-		return getRequest;
+	private HttpRequest getJpegGetRequest(String location) {
+		try {
+			URI uri = new URI(location);
+			return HttpRequest.newBuilder()
+					.uri(uri)
+					.setHeader("accept", "image/jpeg")
+					.GET()
+					.build();
+		} catch (URISyntaxException ex) {
+			return null;
+		}
 	}
 
-	private HttpGet getJsonGetRequest(CoverArtArchiveEntity entity, UUID mbid) {
+	private HttpRequest getJsonGetRequest(CoverArtArchiveEntity entity, UUID mbid) {
 		String url;
 		if (useHttps) {
 			url = API_ROOT_HTTPS;
@@ -145,9 +167,17 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 			url = API_ROOT;
 		}
 		url += entity.getUrlParam() + mbid;
-		HttpGet getRequest = new HttpGet(url);
-		getRequest.addHeader("accept", "application/json");
-		return getRequest;
+		URI uri;
+		try {
+			uri = new URI(url);
+			return HttpRequest.newBuilder()
+					.uri(uri)
+					.setHeader("accept", "application/json")
+					.GET()
+					.build();
+		} catch (URISyntaxException ex) {
+			return null;
+		}
 	}
 
 }

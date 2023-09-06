@@ -44,7 +44,6 @@ import net.pms.util.XmlUtils;
 import org.apache.commons.io.IOUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.hc.client5.http.HttpResponseException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
@@ -544,7 +543,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						MediaTableCoverArtArchive.writeMBID(mBID, null);
 					}
 					return cover;
-				} catch (HttpResponseException e) {
+				} catch (CoverArtResponseException e) {
 					if (e.getStatusCode() == 404) {
 						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
 						MediaTableCoverArtArchive.writeMBID(mBID, null);
