@@ -1,16 +1,27 @@
 # Changelog
 
-## Unreleased
+## [13.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.6.0...13.7.0) (2023-09-06)
 
 ### General
+- Fixed security vulnerabilities
 - Fixed unnecessary transcoding in some situations
 - Fixed sending incorrect colorDepth for some videos
 - Fixed check for external subtitles format support
 - Fixed Windows 11 sleep delay time
-- Fixed Fully Played feature not working on certain devices
+- Fixed Fully Played feature not working on certain devices (#3947) (thanks, Fredo1650!)
+- Fixed bugs with video playback on web player
 
 ### Renderers
-- Fixed EAC3 (Dolby Digital Plus) support on some Samsung TVs (#4039)
+- Fixed EAC3 (Dolby Digital Plus) support on some Samsung TVs (#4039) (thanks, Fredo1650!)
+
+### Translation updates via Crowdin
+- Catalan (57%) (thanks, Ramon Fonts Oliveras!)
+- English (United Kingdom) (47%) (thanks, Pete Russell!)
+- German (100%) (thanks, Da Ma and Marco Kubitza (Kubi)!)
+- Hungarian (57%) (thanks, Zan1456!)
+- Italian (67%) (thanks, sisar4!)
+- Norwegian (40%) (thanks, Fredrik Sk!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump JRE to 17.0.8.1+1
