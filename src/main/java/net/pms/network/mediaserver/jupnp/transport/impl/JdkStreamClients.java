@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 public class JdkStreamClients extends AbstractStreamClient<JdkStreamClientConfiguration, JdkStreamClient> {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StreamClient.class);
-	protected final JdkStreamClientConfiguration configuration;
+	private final JdkStreamClientConfiguration configuration;
 
 	public JdkStreamClients(JdkStreamClientConfiguration configuration) throws InitializationException {
 		this.configuration = configuration;

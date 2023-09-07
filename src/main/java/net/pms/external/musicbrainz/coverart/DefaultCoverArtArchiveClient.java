@@ -130,7 +130,7 @@ public class DefaultCoverArtArchiveClient implements CoverArtArchiveClient {
 		try {
 			HttpResponse<String> response = client.send(getRequest, BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
-				throw new CoverArtResponseException(response.statusCode());
+				throw new CoverArtResponseException(response.statusCode(), response.body());
 			}
 			String json = response.body();
 			coverArt = factory.valueOf(json);

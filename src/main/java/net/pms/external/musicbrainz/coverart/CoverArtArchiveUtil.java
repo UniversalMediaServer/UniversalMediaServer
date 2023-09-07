@@ -513,6 +513,15 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				CoverArt coverArt;
 				try {
 					coverArt = client.getByMbid(UUID.fromString(mBID));
+				} catch (CoverArtResponseException e) {
+					if (e.getStatusCode() == 404) {
+						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
+						return null;
+					} else {
+						LOGGER.debug("Could not get cover with MBID \"{}\" (code {}): {}", mBID, e.getStatusCode(), e.getMessage());
+					}
+					return null;
 				} catch (CoverArtException e) {
 					LOGGER.debug("Could not get cover with MBID \"{}\": {}", mBID, e.getMessage());
 					LOGGER.trace("", e);

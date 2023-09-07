@@ -20,7 +20,8 @@ public class CoverArtResponseException extends RuntimeException {
 
 	private final int statusCode;
 
-	public CoverArtResponseException(int statusCode) {
+	public CoverArtResponseException(int statusCode, String message) {
+		super(message);
 		this.statusCode = statusCode;
 	}
 

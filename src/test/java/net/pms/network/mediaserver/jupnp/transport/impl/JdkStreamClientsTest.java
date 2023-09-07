@@ -33,8 +33,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
 import org.jupnp.model.message.UpnpRequest;
@@ -43,12 +43,13 @@ import org.jupnp.model.message.UpnpRequest;
  * Check that JDK HttpServer and JdkStreamClient can handle special upnp methods
  */
 public class JdkStreamClientsTest {
+
 	static HttpServer server;
 	static String host;
 
 	@BeforeAll
 	public static void CreateServer() throws IOException {
-		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		ExecutorService executorService = Executors.newFixedThreadPool(10);
 		InetSocketAddress inetSocketAddress = new InetSocketAddress(InetAddress.getLocalHost(), 0);
 		server = HttpServer.create(inetSocketAddress, 0);
 		server.createContext("/", new RequestHttpHandler());
@@ -84,17 +85,23 @@ public class JdkStreamClientsTest {
 
 	@Test
 	public void testClientSubscribeMethod() {
-		assertDoesNotThrow(() -> { testClientMethod(UpnpRequest.Method.SUBSCRIBE, null); });
+		assertDoesNotThrow(() -> {
+			testClientMethod(UpnpRequest.Method.SUBSCRIBE, null);
+		});
 	}
 
 	@Test
 	public void testClientUnsubscribeMethod() {
-		assertDoesNotThrow(() -> { testClientMethod(UpnpRequest.Method.UNSUBSCRIBE, null); });
+		assertDoesNotThrow(() -> {
+			testClientMethod(UpnpRequest.Method.UNSUBSCRIBE, null);
+		});
 	}
 
 	@Test
 	public void testClientNotifyMethod() {
-		assertDoesNotThrow(() -> { testClientMethod(UpnpRequest.Method.NOTIFY, "test"); });
+		assertDoesNotThrow(() -> {
+			testClientMethod(UpnpRequest.Method.NOTIFY, "test");
+		});
 	}
 
 	@Test
