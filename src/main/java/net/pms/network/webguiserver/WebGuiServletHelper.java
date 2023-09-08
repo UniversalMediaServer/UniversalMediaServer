@@ -235,17 +235,19 @@ public class WebGuiServletHelper {
 			}
 			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
 		} catch (IOException e) {
-			LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+			LOGGER.debug("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
 		} finally {
 			try {
 				in.close();
 			} catch (IOException e) {
+				//do not care
 			}
 		}
 
 		try {
 			os.close();
 		} catch (IOException e) {
+			//do not care
 		}
 	}
 

@@ -21,6 +21,7 @@ import com.sun.net.httpserver.HttpsServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.servlet.ServletException;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
@@ -36,6 +37,7 @@ import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.network.webguiserver.servlets.SharedContentApiServlet;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.util.SimpleThreadFactory;
 
 @SuppressWarnings("restriction")
 public class WebGuiServerHttpServer extends WebGuiServer {
@@ -79,7 +81,11 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
-			server.setExecutor(Executors.newFixedThreadPool(threads));
+			ExecutorService executorService = Executors.newFixedThreadPool(
+				threads,
+				new SimpleThreadFactory("webgui-server")
+			);
+			server.setExecutor(executorService);
 			server.start();
 		}
 	}
