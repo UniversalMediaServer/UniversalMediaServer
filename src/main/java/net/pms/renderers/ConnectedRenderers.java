@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
  * This class handle all renderers and devices found.
  */
 public class ConnectedRenderers {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
 	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
@@ -70,8 +71,8 @@ public class ConnectedRenderers {
 	}
 
 	/**
-	 * Tries to find a matching renderer configuration based on the given collection of
-	 * request headers
+	 * Tries to find a matching renderer configuration based on the given
+	 * collection of request headers
 	 *
 	 * @param headers The headers.
 	 * @param ia The request's origin address.
@@ -89,10 +90,10 @@ public class ConnectedRenderers {
 			r = ConnectedRenderers.resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
-					"Matched {}media renderer \"{}\" based on headers {}",
-					isNew ? "new " : "",
-					r.getRendererName(),
-					sortedHeaders
+						"Matched {}media renderer \"{}\" based on headers {}",
+						isNew ? "new " : "",
+						r.getRendererName(),
+						sortedHeaders
 				);
 			}
 		}
@@ -192,11 +193,7 @@ public class ConnectedRenderers {
 	}
 
 	public static void verify(Renderer r) {
-		// FIXME: this is a very fallible, incomplete validity test for use only until
-		// we find something better. The assumption is that renderers unable determine
-		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
-		// address association to a newer renderer at the same ip) are "invalid".
-		if (r.getUpnpMode() != Renderer.UPNP_BLOCK && r.getAddress() == null) {
+		if (!r.verify()) {
 			LOGGER.debug("Purging renderer {} as invalid", r);
 			r.delete(0);
 		}
@@ -358,15 +355,19 @@ public class ConnectedRenderers {
 
 	/**
 	 * RendererMap was marking renderer via uuid.
+	 *
 	 * @param uuid
 	 * @return Renderer
 	 */
 	public static void markRenderer(String uuid, int property, Object value) {
 		Renderer renderer = UUID_RENDERER_ASSOCIATION.get(uuid);
 		switch (property) {
-			case JUPnPDeviceHelper.ACTIVE -> renderer.setActive((boolean) value);
-			case JUPnPDeviceHelper.RENEW -> renderer.setRenew((boolean) value);
-			case JUPnPDeviceHelper.CONTROLS -> renderer.setControls((int) value);
+			case JUPnPDeviceHelper.ACTIVE ->
+				renderer.setActive((boolean) value);
+			case JUPnPDeviceHelper.RENEW ->
+				renderer.setRenew((boolean) value);
+			case JUPnPDeviceHelper.CONTROLS ->
+				renderer.setControls((int) value);
 			default -> {
 				//not handled
 			}
@@ -387,6 +388,7 @@ public class ConnectedRenderers {
 
 	/**
 	 * RendererMap was creating renderer on the fly if not found.
+	 *
 	 * @param uuid
 	 * @return Renderer
 	 */
