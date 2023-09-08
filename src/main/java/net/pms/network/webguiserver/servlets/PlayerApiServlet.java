@@ -44,6 +44,7 @@ import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
 import net.pms.encoders.StandardEngineId;
+import net.pms.external.umsapi.APIUtils;
 import net.pms.formats.Format;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
@@ -73,7 +74,6 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
-import net.pms.util.APIUtils;
 import net.pms.util.ByteRange;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
@@ -276,7 +276,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static WebGuiRenderer getRenderer(HttpServletRequest req, String uuid) {
+	private static synchronized WebGuiRenderer getRenderer(HttpServletRequest req, String uuid) {
 		if (ConnectedRenderers.hasWebPlayerRenderer(uuid)) {
 			return ConnectedRenderers.getWebPlayerRenderer(uuid);
 		}
@@ -295,15 +295,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
+			LOGGER.info("Founded new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
 			String langs = WebGuiServletHelper.getLangs(req);
 			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
 			renderer.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
 			renderer.setActive(true);
-			renderer.getRootFolder();
+			//renderer.getRootFolder();
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
+			LOGGER.debug("Created web gui renderer for " + renderer.getRendererName());
 		} catch (ConfigurationException ex) {
-			LOGGER.info("Error in loading configuration of WebPlayerRenderer");
+			LOGGER.warn("Error in loading configuration of WebPlayerRenderer");
 		} catch (InterruptedException ex) {
 			Thread.currentThread().interrupt();
 		}

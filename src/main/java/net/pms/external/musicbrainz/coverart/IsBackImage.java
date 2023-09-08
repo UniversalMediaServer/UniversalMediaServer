@@ -14,12 +14,23 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.external.musicbrainz.coverart;
 
-public interface UriRetrieverCallback {
-	void progressMade(String uri, int bytesDownloaded, int totalBytes) throws CancelDownloadException;
+import com.google.common.base.Predicate;
+import fm.last.musicbrainz.coverart.CoverArtImage;
 
-	public class CancelDownloadException extends Exception {
-		private static final long serialVersionUID = 1L;
+/**
+ * Copyright (C) 2012-2018 Last.fm
+ *
+ * Adapted for JDK11+ HttpClient
+ */
+enum IsBackImage implements Predicate<CoverArtImage> {
+
+	INSTANCE;
+
+	@Override
+	public boolean apply(CoverArtImage coverArtImage) {
+		return coverArtImage.isBack();
 	}
+
 }

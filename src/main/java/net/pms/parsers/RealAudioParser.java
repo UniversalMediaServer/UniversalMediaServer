@@ -34,7 +34,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.util.CoverSupplier;
-import net.pms.util.CoverUtil;
+import net.pms.external.musicbrainz.coverart.CoverUtil;
 import net.pms.util.InputFile;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.tag.id3.ID3v1Tag;

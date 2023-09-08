@@ -32,7 +32,7 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.util.CoverSupplier;
-import net.pms.util.CoverUtil;
+import net.pms.external.musicbrainz.coverart.CoverUtil;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;

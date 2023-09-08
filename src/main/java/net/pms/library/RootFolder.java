@@ -139,6 +139,7 @@ public class RootFolder extends LibraryContainer {
 		if (isDiscovered()) {
 			return;
 		}
+		LOGGER.debug("Discovering the root folder for " + renderer.getRendererName());
 
 		//clear childrens but keep copy until discovered
 		backupChildren.clear();
@@ -515,6 +516,7 @@ public class RootFolder extends LibraryContainer {
 
 					if (count > 0) {
 						String systemName = libraryContainer.getSystemName();
+						LOGGER.trace("Start of analysis for " + systemName);
 						ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 						int nParallelThreads = 3;

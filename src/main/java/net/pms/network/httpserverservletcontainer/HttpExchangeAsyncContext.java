@@ -72,7 +72,7 @@ public class HttpExchangeAsyncContext implements AsyncContext {
 
 	@Override
 	public void start(Runnable run) {
-		new Thread(run).start();
+		new Thread(run, Thread.currentThread().getName() + "-async").start();
 	}
 
 	@Override

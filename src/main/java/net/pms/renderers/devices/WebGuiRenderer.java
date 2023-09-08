@@ -192,6 +192,16 @@ public class WebGuiRenderer extends Renderer {
 		return subLang;
 	}
 
+	@Override
+	public boolean isAllowed() {
+		return true;
+	}
+
+	@Override
+	public void setAllowed(boolean b) {
+		//nothing to change
+	}
+
 	public void sendMessage(String... args) {
 		JsonObject jObject = new JsonObject();
 		jObject.addProperty("action", "player");

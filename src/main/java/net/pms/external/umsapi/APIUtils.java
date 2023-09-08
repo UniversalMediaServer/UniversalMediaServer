@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.external.umsapi;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -49,6 +49,7 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -59,6 +60,11 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.util.FileUtil;
+import net.pms.util.ImdbUtil;
+import net.pms.external.opensubtitles.OpenSubtitle;
+import net.pms.util.SimpleThreadFactory;
+import net.pms.util.UnknownFormatException;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -100,7 +106,6 @@ public class APIUtils {
 		});
 	}
 
-	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 	private static final Gson GSON = new Gson();
 
 	/**
@@ -1105,10 +1110,7 @@ public class APIUtils {
 
 	public static DLNAThumbnail getThumbnailFromUri(String uri) {
 		try {
-			byte[] image;
-			synchronized (URI_FILE_RETRIEVER) {
-				image = URI_FILE_RETRIEVER.get(uri);
-			}
+			byte[] image = JavaHttpClient.getBytes(uri);
 			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
 		} catch (EOFException e) {
 			LOGGER.debug(

@@ -45,7 +45,7 @@ public class UmsUpnpService extends UpnpServiceImpl {
 	public UmsUpnpService(boolean serveContentDirectory) {
 		super(new UmsUpnpServiceConfiguration(serveContentDirectory));
 		//don't log org.jupnp by default to reflext Cling not log to UMS.
-		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
+		if (!LOGGER.isTraceEnabled() || !CONFIGURATION.isUpnpDebug()) {
 			LOGGER.debug("Upnp set in silent log mode");
 			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
 			Logger rootLogger = loggerContext.getLogger("org.jupnp");

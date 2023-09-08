@@ -152,7 +152,7 @@ public class UmsContentDirectoryService {
 	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
 	private static UnsignedIntegerFourBytes dbSystemUpdateID;
 
-	private final Timer systemUpdateIdTimer = new Timer("SystemUpdateId update");
+	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
 
 	@UpnpStateVariable(sendEvents = false)

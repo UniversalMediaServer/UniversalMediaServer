@@ -26,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClient;
-import net.pms.network.mediaserver.jupnp.transport.impl.ApacheStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClientConfiguration;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClients;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
@@ -53,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
@@ -62,6 +63,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	private final ExecutorService multicastReceiverExecutorService;
 	private final ExecutorService datagramIOExecutorService;
+	private final ExecutorService streamClientExecutorService;
 	private final ExecutorService streamServerExecutorService;
 	private final ExecutorService syncProtocolExecutorService;
 	private final ExecutorService asyncProtocolExecutorService;
@@ -77,6 +79,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 		multicastReceiverExecutorService = createDefaultExecutorService("multicast-receiver");
 		datagramIOExecutorService = createDefaultExecutorService("datagram-io");
+		streamClientExecutorService = createDefaultExecutorService("stream-client");
 		streamServerExecutorService = createDefaultExecutorService("stream-server");
 		syncProtocolExecutorService = createDefaultExecutorService("sync-protocol");
 		asyncProtocolExecutorService = createDefaultExecutorService("async-protocol");
@@ -101,9 +104,9 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 
 	@Override
 	public StreamClient createStreamClient() {
-		return new ApacheStreamClient(
-				new ApacheStreamClientConfiguration(
-						getSyncProtocolExecutorService()
+		return new JdkStreamClients(
+				new JdkStreamClientConfiguration(
+						getStreamClientExecutorService()
 				)
 		);
 	}
@@ -138,7 +141,7 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 			default -> {
 				//non listening server
 				return new JdkHttpServerStreamServer(
-					new UmsStreamServerConfiguration()
+						new UmsStreamServerConfiguration()
 				);
 			}
 		}
@@ -199,6 +202,10 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		return syncProtocolExecutorService;
 	}
 
+	public ExecutorService getStreamClientExecutorService() {
+		return streamClientExecutorService;
+	}
+
 	@Override
 	public ExecutorService getStreamServerExecutorService() {
 		return streamServerExecutorService;
@@ -225,9 +232,9 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		getDefaultExecutorService().shutdownNow();
 		LOGGER.trace("Shutting down multicast receiver executor service");
 		multicastReceiverExecutorService.shutdownNow();
-		LOGGER.trace("Shutting down registry maintainer executor service");
-		datagramIOExecutorService.shutdownNow();
 		LOGGER.trace("Shutting down datagram IO executor service");
+		datagramIOExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down stream server executor service");
 		streamServerExecutorService.shutdownNow();
 		LOGGER.trace("Shutting down sync protocol executor service");
 		syncProtocolExecutorService.shutdownNow();
@@ -237,6 +244,8 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		remoteListenerExecutorService.shutdownNow();
 		LOGGER.trace("Shutting down registry listener executor service");
 		registryListenerExecutorService.shutdownNow();
+		LOGGER.trace("Shutting down stream client executor service");
+		streamClientExecutorService.shutdownNow();
 	}
 
 	public static class JUPnPExecutor extends ThreadPoolExecutor {

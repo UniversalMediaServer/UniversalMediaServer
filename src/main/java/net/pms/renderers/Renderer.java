@@ -852,6 +852,14 @@ public class Renderer extends RendererDeviceConfiguration {
 		return getUpnpMode() > UPNP_NONE;
 	}
 
+	public boolean verify() {
+		// FIXME: this is a very fallible, incomplete validity test for use only until
+		// we find something better. The assumption is that renderers unable determine
+		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
+		// address association to a newer renderer at the same ip) are "invalid".
+		return getUpnpMode() == Renderer.UPNP_BLOCK || getAddress() != null;
+	}
+
 	public static int getUpnpMode(String mode) {
 		if (mode != null) {
 			return switch (mode.trim().toLowerCase()) {

@@ -14,9 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.update;
+package net.pms.external.update;
 
 import java.io.IOException;
+import net.pms.platform.OperatingSystem;
 import net.pms.util.PmsProperties;
 import net.pms.util.Version;
 import oshi.SystemInfo;

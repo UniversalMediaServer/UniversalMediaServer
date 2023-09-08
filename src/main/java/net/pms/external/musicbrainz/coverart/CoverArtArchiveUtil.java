@@ -14,12 +14,11 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.util;
+package net.pms.external.musicbrainz.coverart;
 
 import fm.last.musicbrainz.coverart.CoverArt;
 import fm.last.musicbrainz.coverart.CoverArtException;
 import fm.last.musicbrainz.coverart.CoverArtImage;
-import fm.last.musicbrainz.coverart.impl.DefaultCoverArtArchiveClient;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -40,10 +39,11 @@ import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableCoverArtArchive.CoverArtArchiveResult;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.database.MediaTableMusicBrainzReleases.MusicBrainzReleasesResult;
+import net.pms.util.StringUtil;
+import net.pms.util.XmlUtils;
 import org.apache.commons.io.IOUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.http.client.HttpResponseException;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
@@ -513,6 +513,15 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				CoverArt coverArt;
 				try {
 					coverArt = client.getByMbid(UUID.fromString(mBID));
+				} catch (CoverArtResponseException e) {
+					if (e.getStatusCode() == 404) {
+						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
+						return null;
+					} else {
+						LOGGER.debug("Could not get cover with MBID \"{}\" (code {}): {}", mBID, e.getStatusCode(), e.getMessage());
+					}
+					return null;
 				} catch (CoverArtException e) {
 					LOGGER.debug("Could not get cover with MBID \"{}\": {}", mBID, e.getMessage());
 					LOGGER.trace("", e);
@@ -533,7 +542,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 				try {
 					try (InputStream is = image.getLargeThumbnail()) {
 						cover = IOUtils.toByteArray(is);
-					} catch (HttpResponseException e) {
+					} catch (IOException e) {
 						// Use the default image if the large thumbnail is not available
 						try (InputStream is = image.getImage()) {
 							cover = IOUtils.toByteArray(is);
@@ -543,12 +552,10 @@ public class CoverArtArchiveUtil extends CoverUtil {
 						MediaTableCoverArtArchive.writeMBID(mBID, null);
 					}
 					return cover;
-				} catch (HttpResponseException e) {
+				} catch (CoverArtResponseException e) {
 					if (e.getStatusCode() == 404) {
 						LOGGER.debug("Cover for MBID \"{}\" was not found at CoverArtArchive", mBID);
-						if (connection != null) {
-							MediaTableCoverArtArchive.writeMBID(mBID, null);
-						}
+						MediaTableCoverArtArchive.writeMBID(mBID, null);
 						return null;
 					}
 					LOGGER.warn(
