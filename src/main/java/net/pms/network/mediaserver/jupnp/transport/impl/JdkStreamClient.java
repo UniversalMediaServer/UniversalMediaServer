@@ -38,13 +38,12 @@ import org.jupnp.model.message.UpnpRequest;
 import org.jupnp.model.message.UpnpResponse;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.transport.spi.InitializationException;
-import org.jupnp.transport.spi.StreamClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JdkStreamClient {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StreamClient.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JdkStreamClient.class);
 
 	protected final JdkStreamClientConfiguration configuration;
 	protected final HttpClient httpClient;

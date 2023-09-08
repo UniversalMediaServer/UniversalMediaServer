@@ -21,13 +21,12 @@ import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
 import org.jupnp.transport.spi.AbstractStreamClient;
 import org.jupnp.transport.spi.InitializationException;
-import org.jupnp.transport.spi.StreamClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class JdkStreamClients extends AbstractStreamClient<JdkStreamClientConfiguration, JdkStreamClient> {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(StreamClient.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JdkStreamClients.class);
 	private final JdkStreamClientConfiguration configuration;
 
 	public JdkStreamClients(JdkStreamClientConfiguration configuration) throws InitializationException {
