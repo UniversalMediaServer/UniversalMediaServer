@@ -105,13 +105,6 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 		GuiManager.setStatusLine(null);
 	}
 
-	public void stopScan() {
-		if (running) {
-			running = false;
-			GuiManager.setScanLibraryStatus(CONFIGURATION.getUseCache(), false);
-		}
-	}
-
 	/**
 	 * Starts partial rescan
 	 *
@@ -192,7 +185,8 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
-				addChild(new RealFile(renderer, folder.getFile()), true, false);
+				LibraryResource realSystemFileResource = renderer.getRootFolder().createResourceFromFile(folder.getFile());
+				addChild(realSystemFileResource, true, false);
 			}
 		}
 	}
@@ -254,7 +248,8 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 
 	public static void stopScanLibrary() {
 		if (isScanLibraryRunning()) {
-			INSTANCE.stopScan();
+			running = false;
+			GuiManager.setScanLibraryStatus(CONFIGURATION.getUseCache(), false);
 		}
 	}
 
