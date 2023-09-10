@@ -20,6 +20,7 @@ import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -27,6 +28,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableMetadata;
+import net.pms.dlna.DidlHelper;
 import net.pms.library.LibraryContainer;
 import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
@@ -398,9 +400,10 @@ public class UmsContentDirectoryService {
 				null
 		);
 
+		List<LibraryResource> resultResources = new ArrayList<>();
 		long resourcesCount = 0;
 		long badResourceCount = 0;
-		Result didlResult = new Result();
+
 		if (resources != null) {
 			resourcesCount = resources.size();
 			for (LibraryResource resource : resources) {
@@ -412,13 +415,13 @@ public class UmsContentDirectoryService {
 				}
 
 				if (resource instanceof LibraryContainer container) {
-					didlResult.addObject(LibraryResourceHelper.getContainer(container));
+					resultResources.add(container);
 				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 						resources.get(0).isInsideTranscodeFolder())) {
-					didlResult.addObject(LibraryResourceHelper.getItem(item));
+					resultResources.add(item);
 				} else {
 					badResourceCount++;
 				}
@@ -463,7 +466,8 @@ public class UmsContentDirectoryService {
 		}
 
 		long containerUpdateID = getDbSystemUpdateId().getValue();
-		return new BrowseResult(didlResult.toString(), count, totalMatches, containerUpdateID);
+		String result = DidlHelper.getDidlResults(resultResources);
+		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
 	private BrowseResult search(
@@ -558,7 +562,7 @@ public class UmsContentDirectoryService {
 				searchCriteria
 		);
 
-		Result didlResult = new Result();
+		List<LibraryResource> resultResources = new ArrayList<>();
 		long resourceCount = 0;
 		long badResourceCount = 0;
 
@@ -583,13 +587,13 @@ public class UmsContentDirectoryService {
 				}
 
 				if (resource instanceof LibraryContainer container) {
-					didlResult.addObject(LibraryResourceHelper.getContainer(container));
+					resultResources.add(container);
 				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 						resources.get(0).isInsideTranscodeFolder())) {
-					didlResult.addObject(LibraryResourceHelper.getItem(item));
+					resultResources.add(item);
 				} else {
 					badResourceCount++;
 				}
@@ -631,7 +635,8 @@ public class UmsContentDirectoryService {
 		}
 
 		long containerUpdateID = getDbSystemUpdateId().getValue();
-		return new BrowseResult(didlResult.toString(), count, totalMatches, containerUpdateID);
+		String result = DidlHelper.getDidlResults(resultResources);
+		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
 	private static String getEnclosingValue(String content, String leftTag, String rightTag) {
@@ -795,6 +800,18 @@ public class UmsContentDirectoryService {
 	 */
 	public static synchronized void bumpSystemUpdateId() {
 		getDbSystemUpdateId().increment(true);
+	}
+
+	private static String getJUPnPDidlResults(List<LibraryResource> resultResources) {
+		Result didlResult = new Result();
+		for (LibraryResource resource : resultResources) {
+			if (resource instanceof LibraryContainer container) {
+				didlResult.addObject(LibraryResourceHelper.getContainer(container));
+			} else if (resource instanceof LibraryItem item) {
+				didlResult.addObject(LibraryResourceHelper.getItem(item));
+			}
+		}
+		return didlResult.toString();
 	}
 
 }
