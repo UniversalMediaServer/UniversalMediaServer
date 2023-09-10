@@ -404,6 +404,7 @@ public class PMS {
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
 		RendererUser.reset();
+		LibraryScanner.init();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {

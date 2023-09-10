@@ -141,7 +141,9 @@ public class SharedContentConfiguration {
 
 	public static void addListener(SharedContentListener listener) {
 		synchronized (LISTENERS) {
-			LISTENERS.add(listener);
+			if (!LISTENERS.contains(listener)) {
+				LISTENERS.add(listener);
+			}
 			listener.updateSharedContent();
 		}
 	}
