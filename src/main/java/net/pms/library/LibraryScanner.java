@@ -57,9 +57,9 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 	private static final String ENTRY_DELETE = StandardWatchEventKinds.ENTRY_DELETE.name();
 	private static final String ENTRY_MODIFY = StandardWatchEventKinds.ENTRY_MODIFY.name();
 	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
-	private static final LibraryScanner INSTANCE = new LibraryScanner();
 	private static final List<FileWatcher.Watch> LIBRARY_WATCHERS = new ArrayList<>();
 	private static final List<String> SHARED_FOLDERS = new ArrayList<>();
+	private static final LibraryScanner INSTANCE = new LibraryScanner();
 
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
 	private static List<String> defaultFolders = null;
@@ -202,6 +202,10 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 		return "scanner";
 	}
 
+	public static void init() {
+		SharedContentConfiguration.addListener(INSTANCE);
+	}
+
 	public static boolean isScanLibraryRunning() {
 		return scannerThread != null && scannerThread.isAlive();
 	}
@@ -293,9 +297,9 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 	}
 
 	/**
-	 * Parses a file so it gets parsed and added to the database along the way.
+	 * Advise renderer for added file.
 	 *
-	 * @param file the file to parse
+	 * @param filename the file added
 	 */
 	public static final void addFileEntry(String filename) {
 		LOGGER.trace("File {} was created on the hard drive", filename);
@@ -347,8 +351,11 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 			 * garbage. It might not do it, but usually it does, which is better
 			 * than what we had before.
 			 */
-			System.gc();
-			System.runFinalization();
+			if (FileUtil.isLocked(file)) {
+				System.gc();
+				System.runFinalization();
+			}
+
 			return true;
 		} else {
 			LOGGER.trace("File {} was not recognized as valid media so was not added to the database", file.getName());
@@ -387,7 +394,7 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 	}
 
 	private static void removeFileEntry(String filename) {
-		LOGGER.trace("File {} was deleted or moved on the hard drive, removing it from the database", filename);
+		LOGGER.info("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 		if (MediaInfoStore.removeMediaEntry(filename)) {
 			for (Renderer renderer : ConnectedRenderers.getConnectedRenderers()) {
 				renderer.getRootFolder().fileRemoved(filename);
@@ -396,7 +403,11 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 		}
 	}
 
-	private static void fileScanner(String filename, String event, boolean isDir) {
+	/**
+	 * Adds and removes files from the database when they are created, modified
+	 * or deleted on the hard drive.
+	 */
+	private static final FileWatcher.Listener LIBRARY_RESCANNER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> {
 		if ((ENTRY_DELETE.equals(event) || ENTRY_CREATE.equals(event) || ENTRY_MODIFY.equals(event))) {
 			/**
 			 * If a new directory is created with files, the listener may not
@@ -419,7 +430,7 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 				}
 			}
 		}
-	}
+	};
 
 	private static void setSharedFolders() {
 		SHARED_FOLDERS.clear();
@@ -454,11 +465,5 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 			}
 		}
 	}
-
-	/**
-	 * Adds and removes files from the database when they are created, modified
-	 * or deleted on the hard drive.
-	 */
-	private static final FileWatcher.Listener LIBRARY_RESCANNER = (String filename, String event, FileWatcher.Watch watch, boolean isDir) -> fileScanner(filename, event, isDir);
 
 }
