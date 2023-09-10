@@ -42,10 +42,12 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +60,16 @@ public class DidlHelper extends DlnaHelper {
 	 * This class is not meant to be instantiated.
 	 */
 	protected DidlHelper() {
+	}
+
+	public static final String getDidlResults(List<LibraryResource> resultResources) {
+		StringBuilder filesData = new StringBuilder();
+		filesData.append(HTTPXMLHelper.DIDL_HEADER);
+		for (LibraryResource resource : resultResources) {
+			filesData.append(DidlHelper.getDidlString(resource));
+		}
+		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
+		return StringEscapeUtils.unescapeXml(filesData.toString());
 	}
 
 	/**
