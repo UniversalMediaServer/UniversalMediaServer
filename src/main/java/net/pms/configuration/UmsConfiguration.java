@@ -425,6 +425,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
 	private static final String KEY_UPNP_DEBUG = "upnp_debug";
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
+	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "use_cache";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
@@ -5315,6 +5316,10 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isUpnpDebug() {
 		return getBoolean(KEY_UPNP_DEBUG, false);
+	}
+
+	public boolean isUpnpJupnpDidl() {
+		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
 	}
 
 	public String getRootLogLevel() {

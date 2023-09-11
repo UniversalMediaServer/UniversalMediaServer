@@ -42,11 +42,14 @@ import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
+import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.MusicAlbum;
@@ -59,11 +62,16 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.MusicTrack;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Photo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.VideoItem;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dlna.DlnaProtocolInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.pv.PV;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.sec.SEC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP.AlbumArtURI;
 import net.pms.renderers.Renderer;
 import net.pms.util.FullyPlayed;
+import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.jupnp.support.model.Protocol;
 import org.jupnp.support.model.ProtocolInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,15 +100,15 @@ public class LibraryResourceHelper {
 		return null;
 	}
 
-	public static final Container getContainer(LibraryContainer resource) {
-		final Renderer renderer = resource.getDefaultRenderer();
-		final MediaInfo mediaInfo = resource.getMediaInfo();
+	public static final Container getContainer(LibraryContainer container) {
+		final Renderer renderer = container.getDefaultRenderer();
+		final MediaInfo mediaInfo = container.getMediaInfo();
 		final MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
 		boolean xbox360 = renderer.isXbox360();
-		String resourceId = resource.getResourceId();
+		String resourceId = container.getResourceId();
 		Container result = null;
-		if (xbox360 && resource.getFakeParentId() != null) {
-			result = switch (resource.getFakeParentId()) {
+		if (xbox360 && container.getFakeParentId() != null) {
+			result = switch (container.getFakeParentId()) {
 				case "7" -> new MusicAlbum();
 				case "6" -> new MusicArtist();
 				case "5" -> new MusicGenre();
@@ -109,9 +117,9 @@ public class LibraryResourceHelper {
 			};
 		}
 		if (result == null) {
-			if (resource instanceof PlaylistFolder) {
+			if (container instanceof PlaylistFolder) {
 				result = new PlaylistContainer();
-			} else if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
+			} else if (container instanceof VirtualFolderDbId virtualFolderDbId) {
 				result = newContainerFromUpnpClass(virtualFolderDbId.getMediaTypeUclass());
 			} else {
 				result = new StorageFolder();
@@ -123,7 +131,7 @@ public class LibraryResourceHelper {
 			resourceId += "$";
 		}
 		result.setId(resourceId);
-		if (!resource.isDiscovered() && resource.childrenCount() == 0) {
+		if (!container.isDiscovered() && container.childrenCount() == 0) {
 			// When a folder has not been scanned for resources, it will
 			// automatically have zero children.
 			// Some renderers like XBMC will assume a folder is empty when
@@ -135,49 +143,55 @@ public class LibraryResourceHelper {
 			// set to the right value.
 			result.setChildCount(1L);
 		} else {
-			result.setChildCount((long) resource.childrenCount());
+			result.setChildCount((long) container.childrenCount());
 		}
-		resourceId = resource.getParentId();
-		if (xbox360 && resource.getFakeParentId() == null) {
+		resourceId = container.getParentId();
+		if (xbox360 && container.getFakeParentId() == null) {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
 		}
 		result.setParentID(resourceId);
 		result.setRestricted(true);
-		String title = resource.getDisplayName(false);
+		String title = container.getDisplayName(false);
 		if (
 			!renderer.isThumbnails() &&
-			resource instanceof RealFolder realfolder &&
+			container instanceof RealFolder realfolder &&
 			realfolder.isFullyPlayedMark()
 		) {
-			title = FullyPlayed.addFullyPlayedNamePrefix(title, resource);
+			title = FullyPlayed.addFullyPlayedNamePrefix(title, container);
 		}
-		if (resource instanceof VirtualFolderDbId) {
-			title = resource.getName();
+		if (container instanceof VirtualFolderDbId) {
+			title = container.getName();
 		}
 
-		result.setTitle(renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
-		if (renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile) {
-			for (Res res : getThumbnailRes(resource, mediaType)) {
-				result.addResource(res);
+		result.setTitle(renderer.getDcTitle(title, container.getDisplayNameSuffix(), container));
+		if (renderer.isSendFolderThumbnails() || container instanceof DVDISOFile) {
+			for (DLNAImageResElement resElement : getThumbnailResElements(container, mediaType)) {
+				result.addResource(getImageRes(container, resElement));
+				// Offering AlbumArt here breaks the standard, but some renderers
+				// need it
+				AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
+				if (albumArtURI != null) {
+					result.addProperty(albumArtURI);
+				}
 			}
 		}
 		return result;
 	}
 
-	public static final Item getItem(LibraryItem resource) {
-		final Renderer renderer = resource.getDefaultRenderer();
-		final Engine engine = resource.getEngine();
-		final MediaInfo mediaInfo = resource.getMediaInfo();
-		final MediaStatus mediaStatus = resource.getMediaStatus();
-		final MediaSubtitle mediaSubtitle = resource.getMediaSubtitle();
-		final Format format = resource.getFormat();
+	public static final Item getItem(LibraryItem item) {
+		final Renderer renderer = item.getDefaultRenderer();
+		final Engine engine = item.getEngine();
+		final MediaInfo mediaInfo = item.getMediaInfo();
+		final MediaStatus mediaStatus = item.getMediaStatus();
+		final MediaSubtitle mediaSubtitle = item.getMediaSubtitle();
+		final Format format = item.getFormat();
 		final MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = renderer.isXbox360();
 		Item result;
-		if (resource.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
+		if (item.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
 			result = new Item();
 		} else if (mediaType == MediaType.IMAGE || mediaType == MediaType.UNKNOWN && format != null && format.isImage()) {
 			result = new Photo();
@@ -204,7 +218,7 @@ public class LibraryResourceHelper {
 					renderer.streamSubsForTranscodedVideo()
 				) &&
 				mediaSubtitle.isExternal() &&
-				renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, resource)
+				renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, item)
 			) {
 				subsAreValidForStreaming = true;
 				LOGGER.trace("External subtitles \"{}\" can be streamed to {}", mediaSubtitle.getName(), renderer);
@@ -221,7 +235,7 @@ public class LibraryResourceHelper {
 			}
 		}
 
-		String resourceId = resource.getResourceId();
+		String resourceId = item.getResourceId();
 		if (xbox360) {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
@@ -229,8 +243,8 @@ public class LibraryResourceHelper {
 		}
 		result.setId(resourceId);
 
-		resourceId = resource.getParentId();
-		if (xbox360 && resource.getFakeParentId() == null) {
+		resourceId = item.getParentId();
+		if (xbox360 && item.getFakeParentId() == null) {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
@@ -252,31 +266,31 @@ public class LibraryResourceHelper {
 			}
 			title += audioMetadata.getSongname();
 		} else if (subsAreValidForStreaming) {
-			title = resource.getDisplayName(false);
+			title = item.getDisplayName(false);
 		} else {
-			title = renderer.getUseSameExtension(resource.getDisplayName(false));
+			title = renderer.getUseSameExtension(item.getDisplayName(false));
 		}
 		if (
 			!renderer.isThumbnails() &&
-			resource instanceof RealFile realfile &&
+			item instanceof RealFile realfile &&
 			realfile.isFullyPlayedMark()
 		) {
-			title = FullyPlayed.addFullyPlayedNamePrefix(title, resource);
+			title = FullyPlayed.addFullyPlayedNamePrefix(title, item);
 		}
 
-		title = resource.resumeStr(title);
-		result.setTitle(renderer.getDcTitle(title, resource.getDisplayNameSuffix(), resource));
+		title = item.resumeStr(title);
+		result.setTitle(renderer.getDcTitle(title, item.getDisplayNameSuffix(), item));
 
-		if (renderer.isSamsung() && resource instanceof RealFile && resource.getMediaStatus() != null) {
-			LOGGER.debug("Setting bookmark for {} => {}", title, resource.getMediaStatus().getBookmark());
-			result.addProperty(new SEC.DcmInfo(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, resource.getMediaStatus().getBookmark())));
+		if (renderer.isSamsung() && item instanceof RealFile && item.getMediaStatus() != null) {
+			LOGGER.debug("Setting bookmark for {} => {}", title, item.getMediaStatus().getBookmark());
+			result.addProperty(new SEC.DcmInfo(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, item.getMediaStatus().getBookmark())));
 		}
 
 		if (audioMetadata != null && renderer.isSendDateMetadataYearForAudioTags() && audioMetadata.getYear() > 1000 && result instanceof MusicTrack musicTrack) {
 			musicTrack.setDate(Integer.toString(audioMetadata.getYear()));
-		} else if (resource.getLastModified() > 0 && renderer.isSendDateMetadata()) {
+		} else if (item.getLastModified() > 0 && renderer.isSendDateMetadata()) {
 			//hacked ?
-			result.getProperties().set(new DC.Date(formatDate(new Date(resource.getLastModified()))));
+			result.getProperties().set(new DC.Date(formatDate(new Date(item.getLastModified()))));
 		}
 
 		if (mediaInfo != null && audioMetadata != null && result instanceof MusicTrack musicTrack) {
@@ -337,15 +351,327 @@ public class LibraryResourceHelper {
 				}
 			}
 		}
+
 		if (mediaType != MediaType.IMAGE) {
-			for (Res res : getThumbnailRes(resource, mediaType)) {
+			int indexCount = 1;
+			if (renderer.isDLNALocalizationRequired()) {
+				indexCount = DlnaHelper.getDLNALocalesCount();
+			}
+
+			for (int c = 0; c < indexCount; c++) {
+				Res res = new Res();
+				DlnaProtocolInfo protocolInfo = new DlnaProtocolInfo();
+				protocolInfo.setProtocol(Protocol.HTTP_GET);
+				protocolInfo.setContentFormat(item.getRendererMimeType());
+				if (renderer.isSendDLNAOrgFlags()) {
+					String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
+					String dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
+					protocolInfo.setAdditionalInfo(dlnaOrgFlags);
+				}
+				res.setProtocolInfo(protocolInfo);
+				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
+					res.getDependentProperties().add(new PV.SubtitleFileType(mediaSubtitle.getType().getExtension().toUpperCase()));
+					res.getDependentProperties().add(new PV.SubtitleFileUri(item.getSubsURL(mediaSubtitle)));
+				}
+
+				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {
+					MediaVideo defaultVideoTrack = mediaInfo.getDefaultVideoTrack();
+					MediaAudio defaultAudioTrack = mediaInfo.getDefaultAudioTrack();
+					long transcodedSize = renderer.getTranscodedSize();
+					if (engine == null) {
+						res.setSize(mediaInfo.getSize());
+					} else if (transcodedSize != 0) {
+						res.setSize(transcodedSize);
+					}
+
+					if (mediaInfo.getDuration() != null) {
+						if (item.isResume()) {
+							long offset = item.getResume().getTimeOffset() / 1000;
+							double duration = mediaInfo.getDuration() - offset;
+							res.setDuration(StringUtil.formatDLNADuration(duration));
+						} else if (item.getSplitRange().isEndLimitAvailable()) {
+							res.setDuration(StringUtil.formatDLNADuration(item.getSplitRange().getDuration()));
+						} else {
+							res.setDuration(mediaInfo.getDurationString());
+						}
+					}
+
+					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
+						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
+							res.setResolution(item.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
+						} else {
+							res.setResolution(defaultVideoTrack.getResolution());
+						}
+					}
+
+					if (mediaInfo.getFrameRate() != null) {
+						res.setFramerate(mediaInfo.getFrameRate().toString());
+					}
+
+					res.setBitrate(mediaInfo.getRealVideoBitrate());
+
+					if (defaultAudioTrack != null) {
+						if (defaultAudioTrack.getNumberOfChannels() > 0) {
+							if (engine == null) {
+								res.setNrAudioChannels(defaultAudioTrack.getNumberOfChannels());
+							} else {
+								res.setNrAudioChannels(renderer.getUmsConfiguration().getAudioChannelCount());
+							}
+						}
+
+						if (defaultAudioTrack.getSampleRate() > 1) {
+							res.setSampleFrequency(defaultAudioTrack.getSampleRate());
+						}
+					}
+					if (defaultVideoTrack != null && defaultVideoTrack.getBitDepth() > 0) {
+						res.setColorDepth(defaultVideoTrack.getBitDepth());
+					}
+				} else if (format != null && format.isImage()) {
+					if (mediaInfo != null && mediaInfo.isMediaParsed()) {
+						res.setSize(mediaInfo.getSize());
+						if (mediaInfo.getImageInfo() != null && mediaInfo.getImageInfo().getResolution() != null) {
+							res.setResolution(mediaInfo.getImageInfo().getResolution());
+						}
+					} else {
+						res.setSize(item.length());
+					}
+				} else if (format != null && format.isAudio()) {
+					if (mediaInfo != null && mediaInfo.isMediaParsed()) {
+						MediaAudio defaultAudioTrack = mediaInfo.getDefaultAudioTrack();
+						if (mediaInfo.getBitRate() > 0) {
+							res.setBitrate(mediaInfo.getBitRate());
+						}
+						if (mediaInfo.getDuration() != null && mediaInfo.getDuration() != 0.0) {
+							res.setDuration(StringUtil.formatDLNADuration(mediaInfo.getDuration()));
+						}
+
+						int transcodeFrequency = -1;
+						int transcodeNumberOfChannels = -1;
+						if (defaultAudioTrack != null) {
+							if (engine == null) {
+								if (defaultAudioTrack.getSampleRate() > 1) {
+									res.setSampleFrequency(defaultAudioTrack.getSampleRate());
+								}
+								if (defaultAudioTrack.getNumberOfChannels() > 0) {
+									res.setNrAudioChannels(defaultAudioTrack.getNumberOfChannels());
+								}
+							} else {
+								if (renderer.getUmsConfiguration().isAudioResample()) {
+									transcodeFrequency = renderer.isTranscodeAudioTo441() ? 44100 : 48000;
+									transcodeNumberOfChannels = 2;
+								} else {
+									transcodeFrequency = defaultAudioTrack.getSampleRate();
+									transcodeNumberOfChannels = defaultAudioTrack.getNumberOfChannels();
+								}
+								if (transcodeFrequency > 0) {
+									res.setSampleFrequency(transcodeFrequency);
+								}
+								if (transcodeNumberOfChannels > 0) {
+									res.setNrAudioChannels(transcodeNumberOfChannels);
+								}
+							}
+							res.setBitsPerSample(defaultAudioTrack.getBitDepth());
+						}
+
+						if (engine == null) {
+							if (mediaInfo.getSize() != 0) {
+								res.setSize(mediaInfo.getSize());
+							}
+						} else {
+							// Calculate WAV size
+							if (defaultAudioTrack != null && mediaInfo.getDurationInSeconds() > 0.0 && transcodeFrequency > 0 &&
+								transcodeNumberOfChannels > 0) {
+								int finalSize = (int) (mediaInfo.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
+								LOGGER.trace("Calculated transcoded size for {}: {}", item.getSystemName(), finalSize);
+								res.setSize(finalSize);
+							} else if (mediaInfo.getSize() > 0) {
+								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", item.getSystemName(),
+									mediaInfo.getSize());
+								res.setSize(mediaInfo.getSize());
+							}
+						}
+					} else {
+						res.setSize(item.length());
+					}
+				} else {
+					res.setSize(LibraryResource.TRANS_SIZE);
+					res.setDuration("09:59:59");
+					res.setBitrate(1000000);
+				}
+
+				// Add transcoded format extension to the output stream URL.
+				String transcodedExtension = "";
+				if (engine != null && mediaInfo != null) {
+					// Note: Can't use instanceof below because the audio
+					// classes inherit the corresponding video class
+					if (mediaInfo.isVideo()) {
+						if (renderer.getCustomFFmpegOptions().contains("-f avi")) {
+							transcodedExtension = "_transcoded_to.avi";
+						} else if (renderer.getCustomFFmpegOptions().contains("-f flv")) {
+							transcodedExtension = "_transcoded_to.flv";
+						} else if (renderer.getCustomFFmpegOptions().contains("-f matroska")) {
+							transcodedExtension = "_transcoded_to.mkv";
+						} else if (renderer.getCustomFFmpegOptions().contains("-f mov")) {
+							transcodedExtension = "_transcoded_to.mov";
+						} else if (renderer.getCustomFFmpegOptions().contains("-f webm")) {
+							transcodedExtension = "_transcoded_to.webm";
+						} else if (renderer.isTranscodeToHLS()) {
+							transcodedExtension = "_transcoded_to.m3u8";
+						} else if (renderer.isTranscodeToMPEGTS()) {
+							transcodedExtension = "_transcoded_to.ts";
+						} else if (renderer.isTranscodeToWMV() && !xbox360) {
+							transcodedExtension = "_transcoded_to.wmv";
+						} else {
+							transcodedExtension = "_transcoded_to.mpg";
+						}
+					} else if (mediaInfo.isAudio()) {
+						if (renderer.isTranscodeToMP3()) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (renderer.isTranscodeToWAV()) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else {
+							transcodedExtension = "_transcoded_to.pcm";
+						}
+					}
+				}
+
+				res.setValue(URI.create(item.getFileURL() + transcodedExtension));
 				result.addResource(res);
+			}
+
+			// DESC Metadata support: add ability for control point to identify
+			// songs by MusicBrainz TrackID or audiotrack-id
+			if (mediaInfo != null && audioMetadata != null && mediaInfo.isAudio()) {
+				// TODO add real namespace
+				Desc desc = new Desc("http://ums/tags");
+				desc.setId("2");
+				desc.setType("ums-tags");
+				desc.addMetadata("musicbrainztrackid", audioMetadata.getMbidTrack());
+				desc.addMetadata("musicbrainzreleaseid", audioMetadata.getMbidRecord());
+				desc.addMetadata("audiotrackid", Integer.toString(audioMetadata.getAudiotrackId()));
+				if (audioMetadata.getDisc() > 0) {
+					desc.addMetadata("numberOfThisDisc", Integer.toString(audioMetadata.getDisc()));
+				}
+				if (audioMetadata.getRating() != null) {
+					desc.addMetadata("rating", Integer.toString(audioMetadata.getRating()));
+				}
+				result.addDescription(desc);
+			}
+			for (DLNAImageResElement resElement : getThumbnailResElements(item, mediaType)) {
+				result.addResource(getImageRes(item, resElement));
+				// Offering AlbumArt here breaks the standard, but some renderers
+				// need it
+				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+				if (albumArtURI != null) {
+					result.addProperty(albumArtURI);
+				}
+			}
+		} else {
+			for (DLNAImageResElement resElement : getImageResElements(item)) {
+				result.addResource(getImageRes(item, resElement));
+				// Offering AlbumArt here breaks the standard, but some renderers
+				// need it
+				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+				if (albumArtURI != null) {
+					result.addProperty(albumArtURI);
+				}
 			}
 		}
 		return result;
 	}
 
-	private static List<Res> getThumbnailRes(LibraryResource resource, MediaType mediaType) {
+	private static List<DLNAImageResElement> getImageResElements(LibraryResource resource) {
+		/*
+		 * There's no technical difference between the image itself and the
+		 * thumbnail for an object.item.imageItem, they are all simply listed as
+		 * <res> entries. To UMS there is a difference since the thumbnail is
+		 * cached while the image itself is not. The idea here is therefore to
+		 * offer any size smaller than or equal to the cached thumbnail using
+		 * the cached thumbnail as the source, and offer anything bigger using
+		 * the image itself as the source.
+		 *
+		 * If the thumbnail isn't parsed yet, we don't know the size of the
+		 * thumbnail. In those situations we simply use the thumbnail for the
+		 * _TN entries and the image for all others.
+		 */
+		final Renderer renderer = resource.getDefaultRenderer();
+		final MediaInfo mediaInfo = resource.getMediaInfo();
+		ImageInfo imageInfo = mediaInfo != null ? mediaInfo.getImageInfo() : null;
+		ImageInfo thumbnailImageInf = null;
+		if (resource.getThumbnailImageInfo() != null) {
+			thumbnailImageInf = resource.getThumbnailImageInfo();
+		} else if (mediaInfo != null && mediaInfo.getThumb() != null && mediaInfo.getThumb().getImageInfo() != null) {
+			thumbnailImageInf = mediaInfo.getThumb().getImageInfo();
+		}
+
+		// Only include GIF elements if the source is a GIF and it's supported
+		// by the renderer.
+		boolean includeGIF = imageInfo != null && imageInfo.getFormat() == ImageFormat.GIF &&
+			DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.GIF_LRG, renderer);
+
+		// Add elements in any order, it's sorted by priority later
+		List<DLNAImageResElement> resElements = new ArrayList<>();
+
+		// Always offer JPEG_TN as per DLNA standard
+		resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, thumbnailImageInf != null ? thumbnailImageInf : imageInfo, true));
+		if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_TN, renderer)) {
+			resElements
+				.add(new DLNAImageResElement(DLNAImageProfile.PNG_TN, thumbnailImageInf != null ? thumbnailImageInf : imageInfo, true));
+		}
+		if (imageInfo != null) {
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_RES_H_V, renderer) && imageInfo.getWidth() > 0 &&
+				imageInfo.getHeight() > 0) {
+				// Offer the exact resolution as JPEG_RES_H_V
+				DLNAImageProfile exactResolution = DLNAImageProfile.createJPEG_RES_H_V(imageInfo.getWidth(), imageInfo.getHeight());
+				resElements.add(
+					new DLNAImageResElement(exactResolution, imageInfo, exactResolution.useThumbnailSource(imageInfo, thumbnailImageInf)));
+			}
+			// Always offer JPEG_SM for images as per DLNA standard
+			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, imageInfo,
+				DLNAImageProfile.JPEG_SM.useThumbnailSource(imageInfo, thumbnailImageInf)));
+			if (!DLNAImageProfile.PNG_TN.isResolutionCorrect(imageInfo)) {
+				if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+					resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, imageInfo,
+						DLNAImageProfile.PNG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
+				}
+				if (includeGIF) {
+					resElements.add(new DLNAImageResElement(DLNAImageProfile.GIF_LRG, imageInfo,
+						DLNAImageProfile.GIF_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
+				}
+				if (!DLNAImageProfile.JPEG_SM.isResolutionCorrect(imageInfo)) {
+					if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_MED, renderer)) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_MED, imageInfo,
+							DLNAImageProfile.JPEG_MED.useThumbnailSource(imageInfo, thumbnailImageInf)));
+					}
+					if (!DLNAImageProfile.JPEG_MED.isResolutionCorrect(imageInfo) &&
+						(DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer))
+					) {
+						resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, imageInfo,
+							DLNAImageProfile.JPEG_LRG.useThumbnailSource(imageInfo, thumbnailImageInf)));
+					}
+				}
+			}
+		} else {
+			// This shouldn't normally be the case, parsing must have failed or
+			// isn't finished yet so we just make a generic offer.
+
+			// Always offer JPEG_SM for images as per DLNA standard
+			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_SM, null, false));
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.JPEG_LRG, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_LRG, null, false));
+			}
+			if (DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.PNG_LRG, renderer)) {
+				resElements.add(new DLNAImageResElement(DLNAImageProfile.PNG_LRG, null, false));
+			}
+			LOGGER.debug("Warning: Image \"{}\" wasn't parsed when DIDL-Lite was generated", resource.getName());
+		}
+
+		// Sort the elements by priority
+		Collections.sort(resElements, DLNAImageResElement.getComparator(imageInfo != null ? imageInfo.getFormat() : ImageFormat.JPEG));
+		return resElements;
+	}
+
+	private static List<DLNAImageResElement> getThumbnailResElements(LibraryResource resource, MediaType mediaType) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or
@@ -405,7 +731,7 @@ public class LibraryResourceHelper {
 
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
-		List<Res> resources = new ArrayList<>();
+		List<DLNAImageResElement> resElements = new ArrayList<>();
 		if (MediaType.IMAGE != mediaType) {
 			ImageInfo imageInfo = null;
 			if (resource.getThumbnailImageInfo() != null) {
@@ -418,9 +744,6 @@ public class LibraryResourceHelper {
 			// supported by the renderer.
 			boolean includeGIF = imageInfo != null && imageInfo.getFormat() == ImageFormat.GIF &&
 				DLNAImageResElement.isImageProfileSupported(DLNAImageProfile.GIF_LRG, renderer);
-
-			// Add elements in any order, it's sorted by priority later
-			List<DLNAImageResElement> resElements = new ArrayList<>();
 
 			// Always include JPEG_TN as per DLNA standard
 			resElements.add(new DLNAImageResElement(DLNAImageProfile.JPEG_TN, imageInfo, true));
@@ -458,29 +781,8 @@ public class LibraryResourceHelper {
 
 			// Sort the elements by priority
 			Collections.sort(resElements, DLNAImageResElement.getComparator(imageInfo != null ? imageInfo.getFormat() : ImageFormat.JPEG));
-
-			for (DLNAImageResElement resElement : resElements) {
-				Res res = getImageRes(resource, resElement);
-				resources.add(res);
-			}
-
-			for (DLNAImageResElement resElement : resElements) {
-				// Offering AlbumArt for video breaks the standard, but some
-				// renderers need it
-				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT,
-						DLNAImageProfile.JPEG_SM_INT,
-						DLNAImageProfile.JPEG_TN_INT,
-						DLNAImageProfile.PNG_LRG_INT,
-						DLNAImageProfile.PNG_TN_INT
-					-> {
-						//should add
-						//addAlbumArt(resource, sb, resElement.getProfile());
-					}
-				}
-			}
 		}
-		return resources;
+		return resElements;
 	}
 
 	private static Res getImageRes(LibraryResource resource, DLNAImageResElement resElement) {
@@ -528,6 +830,26 @@ public class LibraryResourceHelper {
 				LOGGER.trace("Res fail with url: {}", url);
 			}
 			return res;
+		}
+		return null;
+	}
+
+	private static AlbumArtURI getAlbumArtURI(LibraryResource resource, DLNAImageResElement resElement) {
+		DLNAImageProfile imageProfile = resElement.getProfile();
+		switch (imageProfile.toInt()) {
+			case DLNAImageProfile.GIF_LRG_INT,
+				DLNAImageProfile.JPEG_SM_INT,
+				DLNAImageProfile.JPEG_TN_INT,
+				DLNAImageProfile.PNG_LRG_INT,
+				DLNAImageProfile.PNG_TN_INT
+				-> {
+					String albumArtURL = resource.getThumbnailURL(imageProfile);
+					if (StringUtils.isNotBlank(albumArtURL)) {
+						UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
+						albumArtURI.setProfileID(imageProfile.toString());
+						return albumArtURI;
+					}
+				}
 		}
 		return null;
 	}

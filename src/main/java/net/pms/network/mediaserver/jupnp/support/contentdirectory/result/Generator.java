@@ -28,19 +28,17 @@ import javax.xml.transform.stream.StreamResult;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.DIDL_LITE;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dlna.DLNA;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.pv.PV;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.sec.SEC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import org.jupnp.model.XMLUtil;
-import org.jupnp.support.model.DescMeta;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public class Generator {
 
@@ -98,34 +96,30 @@ public class Generator {
 		Element rootElement = descriptor.createElementNS(Result.NAMESPACE_URI, "DIDL-Lite");
 		descriptor.appendChild(rootElement);
 
-		// rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:didl", Result.NAMESPACE_URI);
 		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:upnp", UPNP.NAMESPACE_URI);
 		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dc", DC.NAMESPACE_URI);
+		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dlna", DLNA.NAMESPACE_URI);
 		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:sec", SEC.NAMESPACE_URI);
+		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:pv", PV.NAMESPACE_URI);
 
 		for (Container container : content.getContainers()) {
 			if (container == null) {
 				continue;
 			}
-			generateContainer(container, descriptor, rootElement);
+			generateContainer(descriptor, rootElement, container);
 		}
 
 		for (Item item : content.getItems()) {
 			if (item == null) {
 				continue;
 			}
-			generateItem(item, descriptor, rootElement);
+			generateItem(descriptor, rootElement, item);
 		}
 
-		for (DescMeta<?> descMeta : content.getDescMetadata()) {
-			if (descMeta == null) {
-				continue;
-			}
-			generateDescMetadata(descMeta, descriptor, rootElement);
-		}
+		generateDescriptions(descriptor, rootElement, content);
 	}
 
-	protected void generateContainer(Container container, Document descriptor, Element parent) {
+	protected void generateContainer(Document descriptor, Element parent, Container container) {
 
 		if (container.getUpnpClassName() == null) {
 			throw new RuntimeException("Missing 'upnp:class' element for container: " + container.getId());
@@ -133,131 +127,31 @@ public class Generator {
 
 		Element containerElement = XMLUtil.appendNewElement(descriptor, parent, "container");
 
-		appendAttributes(descriptor, containerElement, container);
-		appendProperties(descriptor, containerElement, container, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
+		appendAttributes(containerElement, container);
 		appendProperties(descriptor, containerElement, container, "dc:", DC.NAMESPACE.class, DC.NAMESPACE_URI);
+		appendProperties(descriptor, containerElement, container, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
 		appendProperties(descriptor, containerElement, container, "", DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
-
-		for (DescMeta<?> descMeta : container.getDescMetadata()) {
-			if (descMeta == null) {
-				continue;
-			}
-			generateDescMetadata(descMeta, descriptor, containerElement);
-		}
 	}
 
-	protected void generateItem(Item item, Document descriptor, Element parent) {
+	protected void generateItem(Document descriptor, Element parent, Item item) {
 		Element itemElement = XMLUtil.appendNewElement(descriptor, parent, "item");
 
-		appendAttributes(descriptor, itemElement, item);
-
-		appendProperties(descriptor, itemElement, item, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
+		appendAttributes(itemElement, item);
 		appendProperties(descriptor, itemElement, item, "dc:", DC.NAMESPACE.class, DC.NAMESPACE_URI);
+		appendProperties(descriptor, itemElement, item, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
 		appendProperties(descriptor, itemElement, item, "sec:", SEC.NAMESPACE.class, SEC.NAMESPACE_URI);
 		appendProperties(descriptor, itemElement, item, "", DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
+	}
 
-		for (DescMeta<?> descMeta : item.getDescMetadata()) {
-			if (descMeta == null) {
-				continue;
-			}
-			generateDescMetadata(descMeta, descriptor, itemElement);
+	protected void generateDescriptions(Document descriptor, Element parent, Result content) {
+		for (Property<?> property : content.getDescriptions()) {
+			Element el = descriptor.createElementNS(DIDL_LITE.NAMESPACE_URI, property.getQualifiedName());
+			parent.appendChild(el);
+			property.setOnElement(el);
 		}
 	}
 
-	protected void generateResource(Res resource, Document descriptor, Element parent) {
-
-		if (resource.getValue() == null) {
-			throw new RuntimeException("Missing resource URI value" + resource);
-		}
-		if (resource.getProtocolInfo() == null) {
-			throw new RuntimeException("Missing resource protocol info: " + resource);
-		}
-
-		Element resourceElement = XMLUtil.appendNewElement(descriptor, parent, "res", resource.getValue());
-		resourceElement.setAttribute("protocolInfo", resource.getProtocolInfo().toString());
-		if (resource.getImportUri() != null) {
-			resourceElement.setAttribute("importUri", resource.getImportUri().toString());
-		}
-		if (resource.getSize() != null) {
-			resourceElement.setAttribute("size", resource.getSize().toString());
-		}
-		if (resource.getDuration() != null) {
-			resourceElement.setAttribute("duration", resource.getDuration());
-		}
-		if (resource.getBitrate() != null) {
-			resourceElement.setAttribute("bitrate", resource.getBitrate().toString());
-		}
-		if (resource.getSampleFrequency() != null) {
-			resourceElement.setAttribute("sampleFrequency", resource.getSampleFrequency().toString());
-		}
-		if (resource.getBitsPerSample() != null) {
-			resourceElement.setAttribute("bitsPerSample", resource.getBitsPerSample().toString());
-		}
-		if (resource.getNrAudioChannels() != null) {
-			resourceElement.setAttribute("nrAudioChannels", resource.getNrAudioChannels().toString());
-		}
-		if (resource.getColorDepth() != null) {
-			resourceElement.setAttribute("colorDepth", resource.getColorDepth().toString());
-		}
-		if (resource.getProtection() != null) {
-			resourceElement.setAttribute("protection", resource.getProtection());
-		}
-		if (resource.getResolution() != null) {
-			resourceElement.setAttribute("resolution", resource.getResolution());
-		}
-	}
-
-	protected void generateDescMetadata(DescMeta<?> descMeta, Document descriptor, Element parent) {
-
-		if (descMeta.getId() == null) {
-			throw new RuntimeException("Missing id of description metadata: " + descMeta);
-		}
-		if (descMeta.getNameSpace() == null) {
-			throw new RuntimeException("Missing namespace of description metadata: " + descMeta);
-		}
-
-		Element descElement = XMLUtil.appendNewElement(descriptor, parent, "desc");
-		descElement.setAttribute("id", descMeta.getId());
-		descElement.setAttribute("nameSpace", descMeta.getNameSpace().toString());
-		if (descMeta.getType() != null) {
-			descElement.setAttribute("type", descMeta.getType());
-		}
-		populateDescMetadata(descElement, descMeta);
-	}
-
-	/**
-	 * Expects an <code>org.w3c.Document</code> as metadata, copies nodes of the
-	 * document into the DIDL content.
-	 * <p>
-	 * This method will ignore the content and log a warning if it's of the
-	 * wrong type. If you override
-	 * {@link #createDescMetaHandler(org.jupnp.support.model.DescMeta, org.jupnp.xml.SAXParser.Handler)},
-	 * you most likely also want to override this method.
-	 * </p>
-	 *
-	 * @param descElement The DIDL content {@code <desc>} element wrapping the
-	 * final metadata.
-	 * @param descMeta The metadata with a <code>org.w3c.Document</code>
-	 * payload.
-	 */
-	protected void populateDescMetadata(Element descElement, DescMeta<?> descMeta) {
-		if (descMeta.getMetadata() instanceof Document doc) {
-			NodeList nl = doc.getDocumentElement().getChildNodes();
-			for (int i = 0; i < nl.getLength(); i++) {
-				Node n = nl.item(i);
-				if (n.getNodeType() != Node.ELEMENT_NODE) {
-					continue;
-				}
-
-				Node clone = descElement.getOwnerDocument().importNode(n, true);
-				descElement.appendChild(clone);
-			}
-		} else {
-			LOGGER.warn("Unknown desc metadata content, please override populateDescMetadata(): " + descMeta.getMetadata());
-		}
-	}
-
-	protected void appendAttributes(Document descriptor, Element parent, Property object) {
+	protected void appendAttributes(Element parent, Property object) {
 		for (Property<?> property : object.getDependentProperties().get()) {
 			parent.setAttributeNS(
 				property.getNamespaceURI(),

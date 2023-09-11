@@ -22,11 +22,11 @@ import java.util.List;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Property;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.DIDL_LITE;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.WriteStatusValue;
-import org.jupnp.support.model.DescMeta;
 
 /**
  * This is a derived class of object used to represent a collection (container)
@@ -58,12 +58,12 @@ public class Container extends BaseObject {
 		setSearchClasses(other.getSearchClasses());
 	}
 
-	public Container(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<DescMeta<?>> descMetadata) {
-		super("container", id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descMetadata);
+	public Container(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<Desc> descriptions) {
+		super("container", id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descriptions);
 	}
 
-	public Container(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<DescMeta<?>> descMetadata, Long childCount, boolean searchable, List<UPNP.CreateClass> createClasses, List<UPNP.SearchClass> searchClasses, List<Item> items) {
-		this(id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descMetadata);
+	public Container(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<Desc> descriptions, Long childCount, boolean searchable, List<UPNP.CreateClass> createClasses, List<UPNP.SearchClass> searchClasses, List<Item> items) {
+		this(id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descriptions);
 		setChildCount(childCount);
 		setSearchable(searchable);
 		setCreateClasses(createClasses);

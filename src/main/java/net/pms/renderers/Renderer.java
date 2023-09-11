@@ -848,7 +848,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		return getUpnpMode() == UPNP_POSTPONE;
 	}
 
-	public boolean isUpnpAllowed() {
+	public final boolean isUpnpAllowed() {
 		return getUpnpMode() > UPNP_NONE;
 	}
 

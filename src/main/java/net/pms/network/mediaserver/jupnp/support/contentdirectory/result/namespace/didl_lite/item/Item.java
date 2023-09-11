@@ -21,11 +21,11 @@ import java.util.List;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Property;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.DIDL_LITE;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.WriteStatusValue;
-import org.jupnp.support.model.DescMeta;
 
 /**
  * Item is a first-level class derived directly from object.
@@ -44,12 +44,12 @@ public class Item extends BaseObject {
 		setRefID(other.getRefID());
 	}
 
-	public Item(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<DescMeta<?>> descMetadata) {
-		super("item", id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descMetadata);
+	public Item(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<Desc> descriptions) {
+		super("item", id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descriptions);
 	}
 
-	public Item(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<DescMeta<?>> descMetadata, String refID) {
-		this(id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descMetadata);
+	public Item(String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<Desc> descriptions, String refID) {
+		this(id, parentID, title, creator, restricted, writeStatus, upnpClass, resources, properties, descriptions);
 		setRefID(refID);
 	}
 
