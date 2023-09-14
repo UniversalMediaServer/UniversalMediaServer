@@ -351,7 +351,7 @@ public class MediaInfoParser {
 							currentVideoTrack.setHDRFormatCompatibility(value);
 						}
 
-						value = StreamVideo.getLanguageString(MI, i);
+						value = StreamVideo.getLanguageString3(MI, i);
 						if (StringUtils.isNotBlank(value)) {
 							currentVideoTrack.setLang(Iso639.getISO639_2Code(value));
 						}
@@ -391,7 +391,7 @@ public class MediaInfoParser {
 					}
 
 					String languageCode = null;
-					value = StreamAudio.getLanguageString(MI, i);
+					value = StreamAudio.getLanguageString3(MI, i);
 					if (StringUtils.isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value);
 						currentAudioTrack.setLang(languageCode);
@@ -462,7 +462,7 @@ public class MediaInfoParser {
 					));
 					currentSubTrack.setId(media.getSubtitlesTracks().size());
 					String languageCode = null;
-					value = StreamSubtitle.getLanguageString(MI, i);
+					value = StreamSubtitle.getLanguageString3(MI, i);
 					if (StringUtils.isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value);
 						currentSubTrack.setLang(languageCode);
