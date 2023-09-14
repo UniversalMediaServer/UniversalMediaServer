@@ -93,7 +93,7 @@ abstract class MediaLibraryAbstract extends LibraryContainer {
 	protected static final String FROM_FILES_STATUS = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS;
 	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
 
-	protected static final String SELECT_DISTINCT_TVSEASON = SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_TVSEASON + FROM_FILES_VIDEOMETA;
+	protected static final String SELECT_DISTINCT_TVSEASON = SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_TVSEASON + FROM_FILES_STATUS_VIDEOMETA;
 	protected static final String SELECT_FILES_STATUS_WHERE = SELECT + "*" + FROM_FILES_STATUS + WHERE;
 	protected static final String SELECT_FILES_STATUS_VIDEO_WHERE = SELECT + "*" + FROM_FILES_STATUS_VIDEOMETA + WHERE;
 

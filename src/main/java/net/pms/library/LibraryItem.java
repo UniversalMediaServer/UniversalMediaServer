@@ -1300,9 +1300,6 @@ public abstract class LibraryItem extends LibraryResource {
 
 	/**
 	 * Checks if a thumbnail exists, and, if not, generates one (if possible).
-	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD
-	 * /get/0$1$0$42$3/thumbnail0000%5BExample.mkv Calls
-	 * DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
 	 *
 	 * @param inputFile File to check or generate the thumbnail for.
 	 */

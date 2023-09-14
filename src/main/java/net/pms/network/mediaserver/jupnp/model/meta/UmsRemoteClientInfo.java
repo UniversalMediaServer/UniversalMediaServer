@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.renderers.ConnectedRenderers;
+import net.pms.renderers.JUPnPDeviceHelper;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.model.profile.RemoteClientInfo;
@@ -30,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsRemoteClientInfo extends RemoteClientInfo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsRemoteClientInfo.class);
 	// Used to filter out known headers when the renderer is not recognized
 	private static final String[] KNOWN_HEADERS = {
@@ -56,43 +58,58 @@ public class UmsRemoteClientInfo extends RemoteClientInfo {
 	}
 
 	public static Renderer toRenderer(RemoteClientInfo info) {
-		// Attempt 1: try to recognize the renderer by its socket address from previous requests
-		Renderer renderer = ConnectedRenderers.getRendererBySocketAddress(info.getRemoteAddress());
+		Renderer renderer = null;
+		ConnectedRenderers.RENDERER_LOCK.lock();
+		try {
+			// Attempt 1: try to recognize the renderer by upnp registred remote devices.
+			// it is an upnp service, so it should know it.
+			String uuid = JUPnPDeviceHelper.getUUID(info.getRemoteAddress());
+			if (uuid != null) {
+				renderer = ConnectedRenderers.getOrCreateUuidRenderer(uuid);
+			}
 
-		// If the renderer exists but isn't marked as loaded it means it's unrecognized
-		// by upnp and we still need to attempt http recognition here.
-		if (renderer == null || !renderer.isLoaded()) {
-			// Attempt 2: try to recognize the renderer by matching headers
-			//let's take only the first header as getRendererConfigurationByHeaders doesn't support multiple values
-			Map<String, String> headers = new HashMap<>();
-			for (Entry<String, List<String>> header : info.getRequestHeaders().entrySet()) {
-				headers.put(header.getKey(), header.getValue().get(0));
+			if (renderer == null) {
+				// Attempt 2: try to recognize the renderer by its socket address from previous requests
+				renderer = ConnectedRenderers.getRendererBySocketAddress(info.getRemoteAddress());
 			}
-			renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
-		}
-		// Still no media renderer recognized?
-		if (renderer == null) {
-			// Attempt 3: Not really an attempt; all other attempts to recognize
-			// the renderer have failed. The only option left is to assume the
-			// default renderer.
-			renderer = ConnectedRenderers.resolve(info.getRemoteAddress(), null);
-			// If RendererConfiguration.resolve() didn't return the default renderer
-			// it means we know via upnp that it's not really a renderer.
-			if (renderer != null) {
-				LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
-				if (info.getRequestUserAgent() != null && !info.getRequestUserAgent().equals("FDSSDP")) {
-					// We have found an unknown renderer
-					List<String> identifiers = getIdentifiers(info);
-					renderer.setIdentifiers(identifiers);
-					LOGGER.info(
-							"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-							StringUtils.join(identifiers, "\n")
-					);
-					PMS.get().setRendererFound(renderer);
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
+			if (renderer == null || !renderer.isLoaded()) {
+				// Attempt 3: try to recognize the renderer by matching headers
+				//let's take only the first header as getRendererConfigurationByHeaders doesn't support multiple values
+				Map<String, String> headers = new HashMap<>();
+				for (Entry<String, List<String>> header : info.getRequestHeaders().entrySet()) {
+					headers.put(header.getKey(), header.getValue().get(0));
 				}
+				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entrySet(), info.getRemoteAddress());
 			}
-		} else if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
+			// Still no media renderer recognized?
+			if (renderer == null) {
+				// Attempt 4: Not really an attempt; all other attempts to recognize
+				// the renderer have failed. The only option left is to assume the
+				// default renderer.
+				renderer = ConnectedRenderers.resolve(info.getRemoteAddress(), null);
+				// If RendererConfiguration.resolve() didn't return the default renderer
+				// it means we know via upnp that it's not really a renderer.
+				if (renderer != null) {
+					LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
+					if (info.getRequestUserAgent() != null && !info.getRequestUserAgent().equals("FDSSDP")) {
+						// We have found an unknown renderer
+						List<String> identifiers = getIdentifiers(info);
+						renderer.setIdentifiers(identifiers);
+						LOGGER.info(
+								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+								StringUtils.join(identifiers, "\n")
+						);
+						PMS.get().setRendererFound(renderer);
+					}
+				}
+			} else if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
+			}
+		} finally {
+			ConnectedRenderers.RENDERER_LOCK.unlock();
 		}
 		return renderer;
 	}

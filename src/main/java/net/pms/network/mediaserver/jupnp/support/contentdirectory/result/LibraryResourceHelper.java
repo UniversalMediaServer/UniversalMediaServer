@@ -796,7 +796,7 @@ public class LibraryResourceHelper {
 		if (resElement.isThumbnail()) {
 			url = resource.getThumbnailURL(resElement.getProfile());
 		} else {
-			url = resource.getURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
+			url = resource.getMediaURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
 				"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
 				resElement.getProfile().toString()) + "_");
 		}

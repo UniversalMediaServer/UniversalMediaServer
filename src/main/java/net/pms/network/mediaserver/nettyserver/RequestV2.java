@@ -59,8 +59,6 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.DbIdMediaType;
-import net.pms.library.DbIdResourceLocator;
 import net.pms.library.LibraryContainer;
 import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
@@ -73,8 +71,8 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
-import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.ApiHandler;
+import net.pms.network.mediaserver.handlers.MediaStreamHandler;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
@@ -144,7 +142,7 @@ public class RequestV2 extends HTTPResource {
 	 * from.
 	 */
 	private long lowRange;
-	private Renderer mediaRenderer;
+	private Renderer renderer;
 	private String transferMode;
 	private String contentFeatures;
 	private final TimeRange range = new TimeRange();
@@ -156,11 +154,11 @@ public class RequestV2 extends HTTPResource {
 	private long highRange;
 
 	public Renderer getMediaRenderer() {
-		return mediaRenderer;
+		return renderer;
 	}
 
 	public void setMediaRenderer(Renderer renderer) {
-		this.mediaRenderer = renderer;
+		this.renderer = renderer;
 		// Use device-specific pms conf
 		configuration = renderer.getUmsConfiguration();
 	}
@@ -322,36 +320,24 @@ public class RequestV2 extends HTTPResource {
 			if (uri.startsWith("api/")) {
 				ApiHandler api = new ApiHandler();
 				response.append(api.handleApiRequest(method, content, output, uri.substring(4), event));
-			} else if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("get/")) {
+			} else if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 				// Request to retrieve a file
-
+				//here, renderer should has been registred.
+				String umsUri = StringUtils.substringAfter(uri, "ums/");
 				/**
-				 * Skip the leading "get/" e.g. "get/0$1$5$3$4/Foo.mp4" ->
-				 * "0$1$5$3$4/Foo.mp4"
-				 *
-				 * ExSport: I spotted on Android it is asking for
-				 * "/get/0$2$4$2$1$3" which generates exception with response:
-				 * "Http: Response, HTTP/1.1, Status: Internal server error,
-				 * URL: /get/0$2$4$2$1$3" This should fix it
+				 * part 1 : renderer uuid
+				 * part 2 : action
+				 * part 3 : resource id
+				 * part 4 : optional
 				 */
-				// Note: we intentionally include the trailing filename here because it may
-				// be used to reconstruct lost Temp items.
-				String id = uri.substring(uri.indexOf("get/") + 4);
-
-				// Some clients escape the separators in their request: unescape them.
-				id = id.replace("%24", "$");
-
-				// Retrieve the LibraryResource itself.
-				if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-					try {
-						resource = DbIdResourceLocator.locateResource(mediaRenderer, id.substring(0, id.indexOf('/')));
-					} catch (Exception e) {
-						LOGGER.error("", e);
-					}
-				} else {
-					resource = mediaRenderer.getRootFolder().getLibraryResource(id);
+				String[] requestData = umsUri.split("/", 4);
+				if (requestData.length > 2) {
+					// Retrieve the LibraryResource itself.
+					// Some clients escape the separators in their request: unescape them.
+					String id = requestData[2].replace("%24", "$");
+					// Get resource
+					resource = renderer.getRootFolder().getLibraryResource(id);
 				}
-				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (transferMode != null) {
 					output.headers().set("TransferMode.DLNA.ORG", transferMode);
@@ -359,9 +345,9 @@ public class RequestV2 extends HTTPResource {
 
 				// if we found a folder we MUST be asked for thumbnails
 				// otherwise this is not allowed
-				if (resource != null && fileName.startsWith("thumbnail0000")) {
+				if (resource != null && MediaStreamHandler.THUMBNAIL.equals(requestData[1])) {
 					// This is a request for a thumbnail file.
-					DLNAImageProfile imageProfile = ImagesUtil.parseThumbRequest(fileName);
+					DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(requestData[3], DLNAImageProfile.JPEG_TN);
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, imageProfile.getMimeType());
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
@@ -376,13 +362,12 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					BufferedImageFilterChain filterChain = null;
-					if (mediaRenderer.isThumbnails() && resource.isFullyPlayedMark()) {
+					if (renderer.isThumbnails() && resource.isFullyPlayedMark()) {
 						filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 					}
 					filterChain = resource.addFlagFilters(filterChain);
-					inputStream = thumbInputStream.transcode(
-							imageProfile,
-							mediaRenderer != null && mediaRenderer.isThumbnailPadding(),
+					inputStream = thumbInputStream.transcode(imageProfile,
+							renderer != null && renderer.isThumbnailPadding(),
 							filterChain
 					);
 					if (contentFeatures != null) {
@@ -398,37 +383,39 @@ public class RequestV2 extends HTTPResource {
 					}
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-				} else if (resource != null && resource instanceof LibraryItem item) {
+				} else if (resource instanceof LibraryItem item) {
 					// LibraryResource was found.
-					if (fileName.endsWith("/chapters.vtt")) {
+					if (requestData[3].endsWith("/chapters.vtt")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
 						response.append(HlsHelper.getChaptersWebVtt(item));
-					} else if (fileName.endsWith("/chapters.json")) {
+					} else if (requestData[3].endsWith("/chapters.json")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.JSON_TYPEMIME);
 						response.append(HlsHelper.getChaptersHls(item));
-					} else if (fileName.startsWith("hls/")) {
+					} else if (requestData[3].startsWith("hls/")) {
 						//HLS
-						if (fileName.endsWith(".m3u8")) {
+						if (requestData[3].endsWith(".m3u8")) {
 							//HLS rendition m3u8 file
-							String rendition = fileName.replace("hls/", "").replace(".m3u8", "");
+							String rendition = requestData[3].replace("hls/", "").replace(".m3u8", "");
 							if (HlsHelper.getByKey(rendition) != null) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-								response.append(HlsHelper.getHLSm3u8ForRendition(item, mediaRenderer, "/get/", rendition));
+								String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+								response.append(HlsHelper.getHLSm3u8ForRendition(item, renderer, baseUrl, rendition));
 							}
 						} else {
 							//HLS stream request
 							cLoverride = LibraryResource.TRANS_SIZE;
-							inputStream = HlsHelper.getInputStream("/" + fileName, item);
-							if (fileName.endsWith(".ts")) {
+							inputStream = HlsHelper.getInputStream("/" + requestData[3], item);
+							if (requestData[3].endsWith(".ts")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-							} else if (fileName.endsWith(".vtt")) {
+							} else if (requestData[3].endsWith(".vtt")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
 							}
 						}
-					} else if (fileName.endsWith("_transcoded_to.m3u8")) {
+					} else if (requestData[3].endsWith("_transcoded_to.m3u8")) {
 						//HLS start m3u8 file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.HLS_TYPEMIME);
-						response.append(HlsHelper.getHLSm3u8(item, mediaRenderer, "/get/"));
+						String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+						response.append(HlsHelper.getHLSm3u8(item, renderer, baseUrl));
 						if (contentFeatures != null) {
 							//output.headers().set("transferMode.HlsHelper.org", "Streaming");
 							if (item.getMediaInfo().getDurationInSeconds() > 0) {
@@ -442,7 +429,7 @@ public class RequestV2 extends HTTPResource {
 					} else if (item.getMediaInfo() != null && item.getMediaInfo().getMediaType() == MediaType.IMAGE && item.isCodeValid(item)) {
 						// This is a request for an image
 						Services.postponeSleep();
-						DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(fileName, null);
+						DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(requestData[3], null);
 						if (imageProfile == null) {
 							// Parsing failed for some reason, we'll have to pick a profile
 							if (item.getMediaInfo().getImageInfo() != null && item.getMediaInfo().getImageInfo().getFormat() != null) {
@@ -474,7 +461,7 @@ public class RequestV2 extends HTTPResource {
 								imageInputStream = item.getInputStream();
 							}
 							if (imageInputStream == null) {
-								LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", fileName);
+								LOGGER.warn("Input stream returned for \"{}\" was null, no image will be sent to renderer", requestData[3]);
 							} else {
 								inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 								if (contentFeatures != null) {
@@ -507,7 +494,7 @@ public class RequestV2 extends HTTPResource {
 							LOGGER.trace("", ie);
 							return future;
 						}
-					} else if (item.getMediaInfo() != null && fileName.contains("subtitle0000") && item.isCodeValid(item)) {
+					} else if (item.getMediaInfo() != null && MediaStreamHandler.SUBTITLES.equals(requestData[1]) && item.isCodeValid(item)) {
 						// This is a request for a subtitles file
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 						output.headers().set(HttpHeaders.Names.EXPIRES, getFutureDate() + " GMT");
@@ -523,7 +510,7 @@ public class RequestV2 extends HTTPResource {
 									LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
 								} else {
 									try {
-										if (sub.getType() == SubtitleType.SUBRIP && mediaRenderer.isRemoveTagsFromSRTsubs()) {
+										if (sub.getType() == SubtitleType.SUBRIP && renderer.isRemoveTagsFromSRTsubs()) {
 											// Remove tags from .srt subtitles if the renderer doesn't support them
 											inputStream = SubtitleUtils.removeSubRipTags(sub.getExternalFile());
 										} else {
@@ -558,7 +545,7 @@ public class RequestV2 extends HTTPResource {
 						}
 
 						long totalsize = item.length();
-						boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
+						boolean ignoreTranscodeByteRangeRequests = renderer.ignoreTranscodeByteRangeRequests();
 
 						// Ignore ByteRangeRequests while media is transcoded
 						if (!ignoreTranscodeByteRangeRequests ||
@@ -581,20 +568,12 @@ public class RequestV2 extends HTTPResource {
 										item.getMediaSubtitle() != null &&
 										item.getMediaSubtitle().isExternal() &&
 										!configuration.isDisableSubtitles() &&
-										mediaRenderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
-									String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-									if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || mediaRenderer.streamSubsForTranscodedVideo())) {
+										renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
+									String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
+									if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
 										MediaSubtitle sub = item.getMediaSubtitle();
-										String subtitleUrl;
-										String subExtension = sub.getType().getExtension();
-										if (StringUtils.isNotBlank(subExtension)) {
-											subExtension = "." + subExtension;
-										}
-										subtitleUrl = MediaServer.getURL() + "/get/" +
-												id.substring(0, id.indexOf('/')) + "/subtitle0000" + subExtension;
-
-										output.headers().set(subtitleHttpHeader, subtitleUrl);
+										output.headers().set(subtitleHttpHeader, item.getSubsURL(sub));
 									} else {
 										LOGGER.trace(
 												"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
@@ -613,7 +592,7 @@ public class RequestV2 extends HTTPResource {
 										reasons.add("dlna.getMediaSubtitle() is null");
 									} else if (!item.getMediaSubtitle().isExternal()) {
 										reasons.add("the subtitles are internal/embedded");
-									} else if (!mediaRenderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
+									} else if (!renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 										reasons.add("the external subtitles format isn't supported by the renderer");
 									}
 									LOGGER.trace("Did not send subtitle headers because {}", StringUtil.createReadableCombinedString(reasons));
@@ -637,7 +616,7 @@ public class RequestV2 extends HTTPResource {
 							}
 
 							// Try to determine the content type of the file
-							String rendererMimeType = mediaRenderer.getMimeType(item);
+							String rendererMimeType = renderer.getMimeType(item);
 
 							if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
@@ -646,7 +625,7 @@ public class RequestV2 extends HTTPResource {
 							// Response generation:
 							// We use -1 for arithmetic convenience but don't send it as a value.
 							// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-							boolean chunked = mediaRenderer.isChunkedTransfer();
+							boolean chunked = renderer.isChunkedTransfer();
 
 							// Determine the total size. Note: when transcoding the length is
 							// not known in advance, so MediaInfo.TRANS_SIZE will be returned instead.
@@ -714,7 +693,7 @@ public class RequestV2 extends HTTPResource {
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 					response.append(getSortCapabilitiesHandler());
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
-					response.append(getSearchCapabilitiesHandler(mediaRenderer));
+					response.append(getSearchCapabilitiesHandler(renderer));
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Browse")) {
 					response.append(browseHandler());
 				} else if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
@@ -950,16 +929,16 @@ public class RequestV2 extends HTTPResource {
 
 	private String getRendererName() {
 		String rendererName;
-		if (mediaRenderer != null) {
-			if (StringUtils.isNotBlank(mediaRenderer.getRendererName())) {
-				if (StringUtils.isBlank(mediaRenderer.getConfName()) ||
-						mediaRenderer.getRendererName().equals(mediaRenderer.getConfName())) {
-					rendererName = mediaRenderer.getRendererName();
+		if (renderer != null) {
+			if (StringUtils.isNotBlank(renderer.getRendererName())) {
+				if (StringUtils.isBlank(renderer.getConfName()) ||
+						renderer.getRendererName().equals(renderer.getConfName())) {
+					rendererName = renderer.getRendererName();
 				} else {
-					rendererName = mediaRenderer.getRendererName() + " [" + mediaRenderer.getConfName() + "]";
+					rendererName = renderer.getRendererName() + " [" + renderer.getConfName() + "]";
 				}
-			} else if (StringUtils.isNotBlank(mediaRenderer.getConfName())) {
-				rendererName = mediaRenderer.getConfName();
+			} else if (StringUtils.isNotBlank(renderer.getConfName())) {
+				rendererName = renderer.getConfName();
 			} else {
 				rendererName = "Unnamed";
 			}
@@ -1004,7 +983,7 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder samsungGetFeaturesListHandler() {
 		StringBuilder features = new StringBuilder();
-		String rootFolderId = mediaRenderer.getRootFolder().getResourceId();
+		String rootFolderId = renderer.getRootFolder().getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
@@ -1035,7 +1014,7 @@ public class RequestV2 extends HTTPResource {
 	private StringBuilder searchHandler() throws ContentDirectoryException {
 		SearchRequest requestMessage = getPayload(SearchRequest.class);
 		try {
-			return searchRequestHandler.createSearchResponse(requestMessage, mediaRenderer);
+			return searchRequestHandler.createSearchResponse(requestMessage, renderer);
 		} catch (Exception e) {
 			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
 			return browseHandler();
@@ -1051,7 +1030,7 @@ public class RequestV2 extends HTTPResource {
 	 * @return Soap response as a XML string
 	 */
 	private StringBuilder browseSearchHandler(BrowseSearchRequest requestMessage) throws ContentDirectoryException {
-		boolean xbox360 = mediaRenderer.isXbox360();
+		boolean xbox360 = renderer.isXbox360();
 		String objectID = requestMessage.getObjectId();
 		String containerID = null;
 		if ((objectID == null || objectID.length() == 0)) {
@@ -1083,8 +1062,8 @@ public class RequestV2 extends HTTPResource {
 
 		// Xbox 360 virtual containers ... d'oh!
 		String searchCriteria = null;
-		if (xbox360 && configuration.getUseCache() && mediaRenderer.getRootFolder().getLibrary().isEnabled() && containerID != null) {
-			MediaLibrary library = mediaRenderer.getRootFolder().getLibrary();
+		if (xbox360 && configuration.getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && containerID != null) {
+			MediaLibrary library = renderer.getRootFolder().getLibrary();
 			if (containerID.equals("7") && library.getAlbumFolder() != null) {
 				objectID = library.getAlbumFolder().getResourceId();
 			} else if (containerID.equals("6") && library.getArtistFolder() != null) {
@@ -1106,7 +1085,7 @@ public class RequestV2 extends HTTPResource {
 			searchCriteria = requestMessage.getSearchCriteria();
 		}
 
-		List<LibraryResource> resources = mediaRenderer.getRootFolder().getLibraryResources(
+		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
 				objectID,
 				browseDirectChildren,
 				startingIndex,
@@ -1139,7 +1118,7 @@ public class RequestV2 extends HTTPResource {
 				if (resource instanceof LibraryContainer) {
 					filesData.append(DidlHelper.getDidlString(resource));
 				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
-						(item.getEngine() == null || item.getEngine().isEngineCompatible(mediaRenderer)) ||
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
 						resources.get(0).isInsideTranscodeFolder())) {
@@ -1178,7 +1157,7 @@ public class RequestV2 extends HTTPResource {
 		if (resources != null && filessize > 0) {
 			parentFolder = resources.get(0).getParent();
 		} else {
-			LibraryResource resource = mediaRenderer.getRootFolder().getLibraryResource(objectID);
+			LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
 			if (resource instanceof LibraryContainer libraryContainer) {
 				parentFolder = libraryContainer;
 			} else {
@@ -1186,7 +1165,7 @@ public class RequestV2 extends HTTPResource {
 			}
 		}
 
-		if (browseDirectChildren && mediaRenderer.isUseMediaInfo() && mediaRenderer.isDLNATreeHack()) {
+		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, resources are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
@@ -1271,12 +1250,12 @@ public class RequestV2 extends HTTPResource {
 				// No need to update database in such case.
 				LOGGER.debug("Skipping \"set bookmark\". Position=0");
 			} else {
-				LibraryResource resource = mediaRenderer.getRootFolder().getLibraryResource(payload.getObjectId());
+				LibraryResource resource = renderer.getRootFolder().getLibraryResource(payload.getObjectId());
 				if (resource.getMediaStatus() != null) {
 					try {
 						File file = new File(resource.getFileName());
 						String path = file.getCanonicalPath();
-						MediaStatusStore.setBookmark(path, mediaRenderer.getAccountUserId(), payload.getPosSecond());
+						MediaStatusStore.setBookmark(path, renderer.getAccountUserId(), payload.getPosSecond());
 					} catch (IOException ex) {
 						LOGGER.error("Cannot set bookmark", ex);
 					}

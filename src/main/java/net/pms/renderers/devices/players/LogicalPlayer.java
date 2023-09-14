@@ -71,7 +71,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 				// Note: here metadata (if any) is actually the resource name
 				LibraryResource resource = renderer.getRootFolder().getValidResource(uri, metadata);
 				if (resource != null) {
-					return new PlaylistItem(resource.getURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
+					return new PlaylistItem(resource.getMediaURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
 				}
 			}
 		}
@@ -170,7 +170,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 				// skip these
 				continue;
 			}
-			playlist.add(index, r.getURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
+			playlist.add(index, r.getMediaURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
 		}
 	}
 

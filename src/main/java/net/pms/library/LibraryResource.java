@@ -40,7 +40,7 @@ import net.pms.library.container.FileTranscodeVirtualFolder;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.handlers.MediaStreamHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.util.FullyPlayedAction;
@@ -467,7 +467,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * @return An empty URL
 	 */
 	public String getFileURL() {
-		return getURL("");
+		return getMediaURL("");
 	}
 
 	/**
@@ -476,8 +476,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	public String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = new StringBuilder(MediaServer.getURL());
-		sb.append("/get/").append(getResourceId()).append("/thumbnail0000");
+		StringBuilder sb = MediaStreamHandler.getServerThumbnailURL(renderer.getUUID(), getResourceId());
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
 				sb.append("JPEG_RES").append(profile.getH()).append("x");
@@ -501,21 +500,17 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * @return Returns a URL for a given mediaInfo item. Not used for container
 	 * types.
 	 */
-	public String getURL(String prefix) {
-		return getURL(prefix, false);
+	public String getMediaURL(String prefix) {
+		return LibraryResource.this.getMediaURL(prefix, false);
 	}
 
-	public String getURL(String prefix, boolean useSystemName) {
-		return getURL(prefix, useSystemName, true);
+	public String getMediaURL(String prefix, boolean useSystemName) {
+		return LibraryResource.this.getMediaURL(prefix, useSystemName, true);
 	}
 
-	public String getURL(String prefix, boolean useSystemName, boolean urlEncode) {
+	public String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
+		StringBuilder sb = MediaStreamHandler.getServerMediaURL(renderer.getUUID(), getResourceId());
 		String uri = useSystemName ? getSystemName() : getName();
-		StringBuilder sb = new StringBuilder();
-		sb.append(MediaServer.getURL());
-		sb.append("/get/");
-		sb.append(getResourceId()); // id
-		sb.append('/');
 		sb.append(prefix);
 		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
@@ -527,12 +522,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * types.
 	 */
 	public String getSubsURL(MediaSubtitle subs) {
-		StringBuilder sb = new StringBuilder();
-		sb.append(MediaServer.getURL());
-		sb.append("/get/");
-		sb.append(getResourceId()); // id
-		sb.append('/');
-		sb.append("subtitle0000");
+		StringBuilder sb = MediaStreamHandler.getServerSubtitlesURL(renderer.getUUID(), getResourceId());
 		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
@@ -845,19 +835,19 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(MediaServer.getURL() + "/get/");
+		return url != null && url.startsWith(MediaStreamHandler.getBaseURL().toString()) && url.contains(MediaStreamHandler.MEDIA_PATH);
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if
 	// any or null
 	public static String parseResourceId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", "get/", "/") : null;
+		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaStreamHandler.MEDIA_PATH, "/") : null;
 	}
 
 	// Returns the url's objectId (i.e. index including trailing filename) if
 	// any or null
 	public static String parseObjectId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringAfter(url, "get/") : null;
+		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaStreamHandler.MEDIA_PATH) : null;
 	}
 
 	public boolean isRendererAllowed() {
