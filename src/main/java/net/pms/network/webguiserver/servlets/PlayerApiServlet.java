@@ -277,14 +277,19 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static synchronized WebGuiRenderer getRenderer(HttpServletRequest req, String uuid) {
-		if (ConnectedRenderers.hasWebPlayerRenderer(uuid)) {
-			return ConnectedRenderers.getWebPlayerRenderer(uuid);
-		}
-		if (ConnectedRenderers.isValidUUID(uuid)) {
-			createRenderer(req, uuid);
+		ConnectedRenderers.RENDERER_LOCK.lock();
+		try {
 			if (ConnectedRenderers.hasWebPlayerRenderer(uuid)) {
 				return ConnectedRenderers.getWebPlayerRenderer(uuid);
 			}
+			if (ConnectedRenderers.isValidUUID(uuid)) {
+				createRenderer(req, uuid);
+				if (ConnectedRenderers.hasWebPlayerRenderer(uuid)) {
+					return ConnectedRenderers.getWebPlayerRenderer(uuid);
+				}
+			}
+		} finally {
+			ConnectedRenderers.RENDERER_LOCK.unlock();
 		}
 		return null;
 	}

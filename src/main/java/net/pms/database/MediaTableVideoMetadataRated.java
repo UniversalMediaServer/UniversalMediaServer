@@ -54,8 +54,8 @@ public final class MediaTableVideoMetadataRated extends MediaTable {
 	/**
 	 * SQL Jointures
 	 */
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = "LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = "LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = " LEFT JOIN " + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID;
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = " LEFT JOIN " + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID;
 
 	/**
 	 * SQL Queries

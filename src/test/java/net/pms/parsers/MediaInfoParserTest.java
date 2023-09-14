@@ -187,7 +187,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h264-heaac.mp4").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 6356992, Overall Bitrate: 7121, Duration: 1:59:01.690, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 5.1, Stream Order: 0, Duration: 1:59:01.683, Resolution: 1280 x 544, Display Aspect Ratio: 2.35:1, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 1], Audio Tracks: 1 [Audio Id: 0, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 6270615, Overall Bitrate: 8339970, Duration: 0:00:06.015, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 5.1, Stream Order: 0, Duration: 0:00:06.006, Resolution: 1280 x 544, Display Aspect Ratio: 2.35:1, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 1], Audio Tracks: 1 [Audio Id: 0, Language Code: fre, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 1536000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h264-eac3.mkv").toString()
 		);
 		assertEquals(

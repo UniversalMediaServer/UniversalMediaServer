@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.media.MediaLang;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -61,6 +63,9 @@ public final class Iso639 {
 	private static final List<String> CODES;
 
 	private static final Map<String, String> COMMON_MISSPELLINGS;
+
+	private static final String LANGUAGE_REGEX = "(\\w{2,3})\\s\\(\\w{2,3}\\)";
+	private static final Pattern LANGUAGE_REGEX_PATTERN = Pattern.compile(LANGUAGE_REGEX);
 
 	static {
 		// Make sure everything is initialized before it is retrieved.
@@ -128,7 +133,15 @@ public final class Iso639 {
 			return null;
 		}
 
-		code = code.trim().toLowerCase(Locale.ROOT);
+		code = code.trim();
+
+		Matcher matcher = LANGUAGE_REGEX_PATTERN.matcher(code);
+		if (matcher.find()) {
+			code = matcher.group(1);
+		} else {
+			code = code.toLowerCase(Locale.ROOT);
+		}
+
 		if (LOCAL_ALIAS.equals(code)) {
 			code = normalize(code);
 			if (isBlank(code)) {

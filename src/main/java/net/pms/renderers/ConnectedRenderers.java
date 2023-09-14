@@ -28,6 +28,8 @@ import java.util.Map.Entry;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
@@ -48,6 +50,10 @@ public class ConnectedRenderers {
 	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	/**
+	 * A lock to prevent multiple renderer creation.
+	 */
+	public static final Lock RENDERER_LOCK = new ReentrantLock();
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -180,6 +186,7 @@ public class ConnectedRenderers {
 			LOGGER.trace("", e);
 		} catch (InterruptedException e) {
 			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		if (!recognized) {
@@ -359,7 +366,7 @@ public class ConnectedRenderers {
 	 * @param uuid
 	 * @return Renderer
 	 */
-	public static void markRenderer(String uuid, int property, Object value) {
+	public static void markUpnpRenderer(String uuid, int property, Object value) {
 		Renderer renderer = UUID_RENDERER_ASSOCIATION.get(uuid);
 		switch (property) {
 			case JUPnPDeviceHelper.ACTIVE ->
@@ -374,15 +381,15 @@ public class ConnectedRenderers {
 		}
 	}
 
-	public static boolean hasUpNPRenderer(String uuid) {
+	public static boolean hasUuidRenderer(String uuid) {
 		return (UUID_RENDERER_ASSOCIATION.containsKey(uuid));
 	}
 
-	public static Renderer addUpNPRenderer(String uuid, Renderer renderer) {
+	public static Renderer addUuidRenderer(String uuid, Renderer renderer) {
 		return UUID_RENDERER_ASSOCIATION.put(uuid, renderer);
 	}
 
-	public static Renderer getUpNPRenderer(String uuid) {
+	public static Renderer getUuidRenderer(String uuid) {
 		return UUID_RENDERER_ASSOCIATION.get(uuid);
 	}
 
@@ -392,19 +399,21 @@ public class ConnectedRenderers {
 	 * @param uuid
 	 * @return Renderer
 	 */
-	public static Renderer getOrCreateUpNPRenderer(String uuid) {
-		if (!hasUpNPRenderer(uuid)) {
+	public static Renderer getOrCreateUuidRenderer(String uuid) {
+		if (!hasUuidRenderer(uuid)) {
 			try {
-				addUpNPRenderer(uuid, new Renderer(uuid));
-			} catch (InterruptedException | ConfigurationException e) {
+				addUuidRenderer(uuid, new Renderer(uuid));
+			} catch (ConfigurationException e) {
 				LOGGER.error("Error instantiating item {}: {}", uuid, e.getMessage());
 				LOGGER.trace("", e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
-		return getUpNPRenderer(uuid);
+		return getUuidRenderer(uuid);
 	}
 
-	public static List<Renderer> getUpNPRenderers(int type) {
+	public static List<Renderer> getUPnPRenderers(int type) {
 		ArrayList<Renderer> renderers = new ArrayList<>();
 		for (Renderer r : UUID_RENDERER_ASSOCIATION.values()) {
 			if (r.isActive() && r.isControllable(type)) {
@@ -428,7 +437,7 @@ public class ConnectedRenderers {
 	}
 
 	public static List<Renderer> getConnectedAVTransportPlayers() {
-		return getUpNPRenderers(JUPnPDeviceHelper.AVT);
+		return getUPnPRenderers(JUPnPDeviceHelper.AVT);
 	}
 
 	public static List<Renderer> getConnectedControlPlayers() {

@@ -24,6 +24,7 @@ import java.net.URI;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.DIDL_LITE;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Res;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Album;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
@@ -56,14 +57,11 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.WriteStatusValue;
 import org.jupnp.model.types.Datatype;
 import org.jupnp.model.types.InvalidValueException;
-import org.jupnp.support.model.DescMeta;
 import org.jupnp.support.model.ProtocolInfo;
 import org.jupnp.util.io.IO;
 import org.jupnp.xml.SAXParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -123,8 +121,8 @@ public class Parser extends SAXParser {
 		return new ResHandler(instance, parent);
 	}
 
-	protected DescMetaHandler createDescMetaHandler(DescMeta<?> instance, SAXParser.Handler<?> parent) {
-		return new DescMetaHandler(instance, parent);
+	protected DescHandler createDescHandler(Desc instance, SAXParser.Handler<?> parent) {
+		return new DescHandler(instance, parent);
 	}
 
 	protected Container createContainer(Attributes attributes) {
@@ -237,8 +235,8 @@ public class Parser extends SAXParser {
 		return res;
 	}
 
-	protected DescMeta<?> createDescMeta(Attributes attributes) {
-		DescMeta<?> desc = new DescMeta<>();
+	protected Desc createDescription(Attributes attributes) {
+		Desc desc = new Desc();
 
 		desc.setId(attributes.getValue("id"));
 
@@ -247,7 +245,7 @@ public class Parser extends SAXParser {
 		}
 
 		if ((attributes.getValue("nameSpace") != null)) {
-			desc.setNameSpace(URI.create(attributes.getValue("nameSpace")));
+			desc.setNameSpace(attributes.getValue("nameSpace"));
 		}
 
 		return desc;
@@ -260,21 +258,36 @@ public class Parser extends SAXParser {
 			return item;
 		} else {
 			return switch (genericType) {
-				case DIDL_LITE.OBJECT_ITEM_TYPE -> item;
-				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_TYPE -> (AudioItem) item;
-				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_MUSICTRACK_TYPE -> (MusicTrack) item;
-				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_AUDIOBOOK_TYPE -> (AudioBook) item;
-				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_AUDIOBROADCAST_TYPE -> (AudioBroadcast) item;
-				case DIDL_LITE.OBJECT_ITEM_BOOKMARKITEM_TYPE -> (BookmarkItem) item;
-				case DIDL_LITE.OBJECT_ITEM_IMAGEITEM_TYPE -> (ImageItem) item;
-				case DIDL_LITE.OBJECT_ITEM_IMAGEITEM_PHOTO_TYPE -> (Photo) item;
-				case DIDL_LITE.OBJECT_ITEM_PLAYLISTITEM_TYPE -> (PlaylistItem) item;
-				case DIDL_LITE.OBJECT_ITEM_TEXTITEM_TYPE -> (TextItem) item;
-				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_TYPE -> (VideoItem) item;
-				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_MOVIE_TYPE -> (Movie) item;
-				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_MUSICVIDEOCLIP_TYPE -> (MusicVideoClip) item;
-				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_VIDEOBROADCAST_TYPE -> (VideoBroadcast) item;
-				default -> item;
+				case DIDL_LITE.OBJECT_ITEM_TYPE ->
+					item;
+				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_TYPE ->
+					(AudioItem) item;
+				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_MUSICTRACK_TYPE ->
+					(MusicTrack) item;
+				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_AUDIOBOOK_TYPE ->
+					(AudioBook) item;
+				case DIDL_LITE.OBJECT_ITEM_AUDIOITEM_AUDIOBROADCAST_TYPE ->
+					(AudioBroadcast) item;
+				case DIDL_LITE.OBJECT_ITEM_BOOKMARKITEM_TYPE ->
+					(BookmarkItem) item;
+				case DIDL_LITE.OBJECT_ITEM_IMAGEITEM_TYPE ->
+					(ImageItem) item;
+				case DIDL_LITE.OBJECT_ITEM_IMAGEITEM_PHOTO_TYPE ->
+					(Photo) item;
+				case DIDL_LITE.OBJECT_ITEM_PLAYLISTITEM_TYPE ->
+					(PlaylistItem) item;
+				case DIDL_LITE.OBJECT_ITEM_TEXTITEM_TYPE ->
+					(TextItem) item;
+				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_TYPE ->
+					(VideoItem) item;
+				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_MOVIE_TYPE ->
+					(Movie) item;
+				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_MUSICVIDEOCLIP_TYPE ->
+					(MusicVideoClip) item;
+				case DIDL_LITE.OBJECT_ITEM_VIDEOITEM_VIDEOBROADCAST_TYPE ->
+					(VideoBroadcast) item;
+				default ->
+					item;
 			};
 		}
 	}
@@ -285,20 +298,34 @@ public class Parser extends SAXParser {
 			return container;
 		} else {
 			return switch (genericType) {
-				case DIDL_LITE.OBJECT_CONTAINER_TYPE -> container;
-				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_TYPE -> (Album) container;
-				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_MUSICALBUM_TYPE -> (MusicAlbum) container;
-				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_PHOTOALBUM_TYPE -> (PhotoAlbum) container;
-				case DIDL_LITE.OBJECT_CONTAINER_GENRE_TYPE -> (GenreContainer) container;
-				case DIDL_LITE.OBJECT_CONTAINER_GENRE_MOVIEGENRE_TYPE -> (MovieGenre) container;
-				case DIDL_LITE.OBJECT_CONTAINER_GENRE_MUSICGENRE_TYPE -> (MusicGenre) container;
-				case DIDL_LITE.OBJECT_CONTAINER_PERSON_TYPE -> (Person) container;
-				case DIDL_LITE.OBJECT_CONTAINER_PERSON_MUSICARTIST_TYPE -> (MusicArtist) container;
-				case DIDL_LITE.OBJECT_CONTAINER_PLAYLISTCONTAINER_TYPE -> (PlaylistContainer) container;
-				case DIDL_LITE.OBJECT_CONTAINER_STORAGEFOLDER_TYPE -> (StorageFolder) container;
-				case DIDL_LITE.OBJECT_CONTAINER_STORAGESYSTEM_TYPE -> (StorageSystem) container;
-				case DIDL_LITE.OBJECT_CONTAINER_STORAGEVOLUME_TYPE -> (StorageVolume) container;
-				default -> container;
+				case DIDL_LITE.OBJECT_CONTAINER_TYPE ->
+					container;
+				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_TYPE ->
+					(Album) container;
+				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_MUSICALBUM_TYPE ->
+					(MusicAlbum) container;
+				case DIDL_LITE.OBJECT_CONTAINER_ALBUM_PHOTOALBUM_TYPE ->
+					(PhotoAlbum) container;
+				case DIDL_LITE.OBJECT_CONTAINER_GENRE_TYPE ->
+					(GenreContainer) container;
+				case DIDL_LITE.OBJECT_CONTAINER_GENRE_MOVIEGENRE_TYPE ->
+					(MovieGenre) container;
+				case DIDL_LITE.OBJECT_CONTAINER_GENRE_MUSICGENRE_TYPE ->
+					(MusicGenre) container;
+				case DIDL_LITE.OBJECT_CONTAINER_PERSON_TYPE ->
+					(Person) container;
+				case DIDL_LITE.OBJECT_CONTAINER_PERSON_MUSICARTIST_TYPE ->
+					(MusicArtist) container;
+				case DIDL_LITE.OBJECT_CONTAINER_PLAYLISTCONTAINER_TYPE ->
+					(PlaylistContainer) container;
+				case DIDL_LITE.OBJECT_CONTAINER_STORAGEFOLDER_TYPE ->
+					(StorageFolder) container;
+				case DIDL_LITE.OBJECT_CONTAINER_STORAGESYSTEM_TYPE ->
+					(StorageSystem) container;
+				case DIDL_LITE.OBJECT_CONTAINER_STORAGEVOLUME_TYPE ->
+					(StorageVolume) container;
+				default ->
+					container;
 			};
 		}
 	}
@@ -529,11 +556,6 @@ public class Parser extends SAXParser {
 					getInstance().addItem(item);
 					createItemHandler(item, this);
 				}
-				case "desc" -> {
-					DescMeta<?> desc = createDescMeta(attributes);
-					getInstance().addDescMetadata(desc);
-					createDescMetaHandler(desc, this);
-				}
 				default -> {
 					//nothing to do
 				}
@@ -562,9 +584,11 @@ public class Parser extends SAXParser {
 
 			switch (localName) {
 				case "desc" -> {
-					DescMeta<?> desc = createDescMeta(attributes);
-					getInstance().addDescMetadata(desc);
-					createDescMetaHandler(desc, this);
+					Desc desc = createDescription(attributes);
+					if (desc != null) {
+						getInstance().addDescription(desc);
+						createDescHandler(desc, this);
+					}
 				}
 				case "res" -> {
 					Res res = createResource(attributes);
@@ -623,10 +647,11 @@ public class Parser extends SAXParser {
 
 			} else if (localName.equals("desc")) {
 
-				DescMeta<?> desc = createDescMeta(attributes);
-				getInstance().addDescMetadata(desc);
-				createDescMetaHandler(desc, this);
-
+				Desc desc = createDescription(attributes);
+				if (desc != null) {
+					getInstance().addDescription(desc);
+					createDescHandler(desc, this);
+				}
 			}
 		}
 
@@ -671,60 +696,22 @@ public class Parser extends SAXParser {
 	 * </p>
 	 */
 	@SuppressWarnings({"rawtypes", "unchecked"})
-	public class DescMetaHandler extends SAXParser.Handler<DescMeta> {
+	public class DescHandler extends SAXParser.Handler<Desc> {
 
-		protected Element current;
-
-		public DescMetaHandler(DescMeta instance, SAXParser.Handler<?> parent) {
+		public DescHandler(Desc instance, SAXParser.Handler<?> parent) {
 			super(instance, parent);
-			instance.setMetadata(instance.createMetadataDocument());
-			current = getInstance().getMetadata().getDocumentElement();
-		}
-
-		@Override
-		public final DescMeta<Document> getInstance() {
-			return super.getInstance();
-		}
-
-		@Override
-		public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-			super.startElement(uri, localName, qName, attributes);
-
-			Element newEl = getInstance().getMetadata().createElementNS(uri, qName);
-			for (int i = 0; i < attributes.getLength(); i++) {
-				newEl.setAttributeNS(
-						attributes.getURI(i),
-						attributes.getQName(i),
-						attributes.getValue(i)
-				);
-			}
-			current.appendChild(newEl);
-			current = newEl;
 		}
 
 		@Override
 		public void endElement(String uri, String localName, String qName) throws SAXException {
 			super.endElement(uri, localName, qName);
-			if (isLastElement(uri, localName, qName)) {
-				return;
-			}
-
-			// Ignore whitespace
-			if (getCharacters().length() > 0 && !getCharacters().matches("[\\t\\n\\x0B\\f\\r\\s]+")) {
-				current.appendChild(getInstance().getMetadata().createTextNode(getCharacters()));
-			}
-
-			current = (Element) current.getParentNode();
-
-			// Reset this so we can continue parsing child nodes with this handler
-			characters = new StringBuilder();
-			attributes = null;
 		}
 
 		@Override
 		protected boolean isLastElement(String uri, String localName, String qName) {
 			return Result.NAMESPACE_URI.equals(uri) && "desc".equals(localName);
 		}
+
 	}
 
 }

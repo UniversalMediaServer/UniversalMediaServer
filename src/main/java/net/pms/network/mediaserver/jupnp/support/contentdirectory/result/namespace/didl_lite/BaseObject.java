@@ -17,13 +17,11 @@
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite;
 
 import com.google.common.primitives.UnsignedInteger;
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Property;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.WriteStatusValue;
-import org.jupnp.support.model.DescMeta;
 
 /**
  * This is the root class of the entire ContentDirectory service class
@@ -38,8 +36,6 @@ import org.jupnp.support.model.DescMeta;
  * items and logical collections of these items.
  */
 public abstract class BaseObject extends Property {
-
-	protected List<DescMeta<?>> descMetadata = new ArrayList<>();
 
 	protected BaseObject(String qualifiedName) {
 		super(null, qualifiedName);
@@ -56,11 +52,11 @@ public abstract class BaseObject extends Property {
 				other.getUpnpClass(),
 				null,
 				other.getProperties().get(),
-				other.getDescMetadata()
+				other.getDescriptions()
 		);
 	}
 
-	protected BaseObject(String qualifiedName, String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<DescMeta<?>> descMetadata) {
+	protected BaseObject(String qualifiedName, String id, String parentID, String title, String creator, boolean restricted, WriteStatusValue writeStatus, UPNP.Class upnpClass, List<Res> resources, List<Property<?>> properties, List<Desc> descriptions) {
 		super(null, qualifiedName);
 		this.properties.set(properties);
 		setId(id);
@@ -73,7 +69,9 @@ public abstract class BaseObject extends Property {
 		if (resources != null) {
 			setResources(resources);
 		}
-		this.descMetadata = descMetadata;
+		if (descriptions != null) {
+			setDescriptions(descriptions);
+		}
 	}
 
 	public String getId() {
@@ -226,6 +224,40 @@ public abstract class BaseObject extends Property {
 		return addProperty(resource);
 	}
 
+	/**
+	 * @since ContentDirectory v1
+	 */
+	public List<Desc> getDescriptions() {
+		return properties.getAll(Desc.class);
+	}
+
+	/**
+	 * @since ContentDirectory v1
+	 */
+	public final BaseObject setDescriptions(List<Desc> descriptions) {
+		properties.remove(Desc.class);
+		for (Desc description : descriptions) {
+			properties.add(description);
+		}
+		return this;
+	}
+
+	/**
+	 * @since ContentDirectory v1
+	 */
+	public BaseObject setDescriptions(Desc[] descriptions) {
+		properties.remove(Desc.class);
+		properties.addAll(descriptions);
+		return this;
+	}
+
+	/**
+	 * @since ContentDirectory v1
+	 */
+	public BaseObject addDescription(Desc description) {
+		return addProperty(description);
+	}
+
 	public BaseObject addProperty(Property<?> property) {
 		properties.add(property);
 		return this;
@@ -284,19 +316,6 @@ public abstract class BaseObject extends Property {
 	 */
 	public final void setObjectUpdateID(UnsignedInteger objectUpdateID) {
 		properties.set(new UPNP.ObjectUpdateID(objectUpdateID));
-	}
-
-	public List<DescMeta<?>> getDescMetadata() {
-		return descMetadata;
-	}
-
-	public void setDescMetadata(List<DescMeta<?>> descMetadata) {
-		this.descMetadata = descMetadata;
-	}
-
-	public BaseObject addDescMetadata(DescMeta<?> descMetadata) {
-		getDescMetadata().add(descMetadata);
-		return this;
 	}
 
 	/**

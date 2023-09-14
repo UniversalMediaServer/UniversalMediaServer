@@ -142,7 +142,7 @@ public class Playlist extends DefaultComboBoxModel {
 			// Repair the item if possible
 			LibraryResource resource = renderer.getRootFolder().getValidResource(item.getUri(), item.getName());
 			if (resource != null) {
-				item.setUri(resource.getURL("", true));
+				item.setUri(resource.getMediaURL("", true));
 				item.setMetadata(DidlHelper.getDidlString(resource));
 				return true;
 			}

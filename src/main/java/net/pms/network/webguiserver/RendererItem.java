@@ -235,7 +235,7 @@ public class RendererItem implements IRendererGuiListener {
 		try {
 			List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
 			if (!resources.isEmpty()) {
-				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
+				renderer.getPlayer().setURI(resources.get(0).getMediaURL("", true), null);
 			}
 		} catch (IOException ex) {
 		}

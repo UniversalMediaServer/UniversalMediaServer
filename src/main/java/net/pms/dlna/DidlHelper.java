@@ -481,29 +481,29 @@ public class DidlHelper extends DlnaHelper {
 				}
 				closeTag(sb, "desc");
 			}
-		}
 
-		if (subsAreValidForStreaming && mediaSubtitle != null) {
-			String subsURL = resource.getSubsURL(mediaSubtitle);
-			if (renderer.useClosedCaption()) {
-				openTag(sb, "sec:CaptionInfoEx");
-				addAttribute(sb, "sec:type", "srt");
-				endTag(sb);
-				sb.append(subsURL);
-				closeTag(sb, "sec:CaptionInfoEx");
-				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
-			} else if (renderer.offerSubtitlesAsResource()) {
-				openTag(sb, "res");
-				String subtitlesFormat = mediaSubtitle.getType().getExtension();
-				if (StringUtils.isBlank(subtitlesFormat)) {
-					subtitlesFormat = "plain";
+			if (subsAreValidForStreaming && mediaSubtitle != null) {
+				String subsURL = resource.getSubsURL(mediaSubtitle);
+				if (renderer.useClosedCaption()) {
+					openTag(sb, "sec:CaptionInfoEx");
+					addAttribute(sb, "sec:type", "srt");
+					endTag(sb);
+					sb.append(subsURL);
+					closeTag(sb, "sec:CaptionInfoEx");
+					LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
+				} else if (renderer.offerSubtitlesAsResource()) {
+					openTag(sb, "res");
+					String subtitlesFormat = mediaSubtitle.getType().getExtension();
+					if (StringUtils.isBlank(subtitlesFormat)) {
+						subtitlesFormat = "plain";
+					}
+
+					addAttribute(sb, "protocolInfo", "http-get:*:text/" + subtitlesFormat + ":*");
+					endTag(sb);
+					sb.append(subsURL);
+					closeTag(sb, "res");
+					LOGGER.trace("Network debugger: http-get:*:text/" + subtitlesFormat + ":*" + subsURL);
 				}
-
-				addAttribute(sb, "protocolInfo", "http-get:*:text/" + subtitlesFormat + ":*");
-				endTag(sb);
-				sb.append(subsURL);
-				closeTag(sb, "res");
-				LOGGER.trace("Network debugger: http-get:*:text/" + subtitlesFormat + ":*" + subsURL);
 			}
 		}
 
@@ -825,7 +825,7 @@ public class DidlHelper extends DlnaHelper {
 		if (resElement.isThumbnail()) {
 			url = resource.getThumbnailURL(resElement.getProfile());
 		} else {
-			url = resource.getURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
+			url = resource.getMediaURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
 				"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
 				resElement.getProfile().toString()) + "_");
 		}

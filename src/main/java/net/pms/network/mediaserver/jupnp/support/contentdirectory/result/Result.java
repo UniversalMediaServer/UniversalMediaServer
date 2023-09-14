@@ -19,9 +19,9 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
-import org.jupnp.support.model.DescMeta;
 
 public class Result {
 
@@ -29,7 +29,7 @@ public class Result {
 
 	protected List<Container> containers = new ArrayList<>();
 	protected List<Item> items = new ArrayList<>();
-	protected List<DescMeta<?>> descMetadata = new ArrayList<>();
+	protected List<Desc> descriptions = new ArrayList<>();
 
 	public Result addContainer(Container container) {
 		containers.add(container);
@@ -70,17 +70,17 @@ public class Result {
 		this.items = items;
 	}
 
-	public Result addDescMetadata(DescMeta<?> descMetadata) {
-		this.descMetadata.add(descMetadata);
+	public Result addDescription(Desc description) {
+		this.descriptions.add(description);
 		return this;
 	}
 
-	public List<DescMeta<?>> getDescMetadata() {
-		return descMetadata;
+	public List<Desc> getDescriptions() {
+		return descriptions;
 	}
 
-	public void setDescMetadata(List<DescMeta<?>> descMetadata) {
-		this.descMetadata = descMetadata;
+	public void setDescriptions(List<Desc> descriptions) {
+		this.descriptions = descriptions;
 	}
 
 	public long getCount() {

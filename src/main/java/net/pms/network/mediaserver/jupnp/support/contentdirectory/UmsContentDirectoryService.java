@@ -276,6 +276,7 @@ public class UmsContentDirectoryService {
 		} catch (ContentDirectoryException ex) {
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
 		}
 	}
@@ -466,7 +467,12 @@ public class UmsContentDirectoryService {
 		}
 
 		long containerUpdateID = getDbSystemUpdateId().getValue();
-		String result = DidlHelper.getDidlResults(resultResources);
+		String result;
+		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+			result = getJUPnPDidlResults(resultResources);
+		} else {
+			result = DidlHelper.getDidlResults(resultResources);
+		}
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
@@ -635,7 +641,12 @@ public class UmsContentDirectoryService {
 		}
 
 		long containerUpdateID = getDbSystemUpdateId().getValue();
-		String result = DidlHelper.getDidlResults(resultResources);
+		String result;
+		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+			result = getJUPnPDidlResults(resultResources);
+		} else {
+			result = DidlHelper.getDidlResults(resultResources);
+		}
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
