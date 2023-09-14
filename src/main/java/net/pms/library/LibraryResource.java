@@ -501,11 +501,11 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * types.
 	 */
 	public String getMediaURL(String prefix) {
-		return LibraryResource.this.getMediaURL(prefix, false);
+		return getMediaURL(prefix, false);
 	}
 
 	public String getMediaURL(String prefix, boolean useSystemName) {
-		return LibraryResource.this.getMediaURL(prefix, useSystemName, true);
+		return getMediaURL(prefix, useSystemName, true);
 	}
 
 	public String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
