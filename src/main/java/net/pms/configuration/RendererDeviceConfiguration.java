@@ -47,7 +47,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	protected String uuid;
 
 	public RendererDeviceConfiguration(RendererConfiguration ref, InetAddress ia, String uuid) throws ConfigurationException, InterruptedException {
-		initDeviceConfiguration(ia);
+		initDeviceConfiguration(ia, uuid);
 		inherit(ref);
 		if (uuid != null) {
 			this.uuid = uuid;
@@ -128,7 +128,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 			uuidChanged();
 			// Switch to the custom device conf for this new uuid, if any
 			if (RendererConfigurations.isDeviceConfigurationChanged(uuid, deviceConf)) {
-				initDeviceConfiguration(null);
+				initDeviceConfiguration(null, uuid);
 				reset();
 			}
 		}
@@ -147,7 +147,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 		//let renderer know uuid was changed
 	}
 
-	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia) {
+	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia, String uuid) {
 		//try first the uuid if exists then ip address
 		String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(ia);
 		if (ia != null && (id == null || !RendererConfigurations.hasDeviceConfiguration(id))) {

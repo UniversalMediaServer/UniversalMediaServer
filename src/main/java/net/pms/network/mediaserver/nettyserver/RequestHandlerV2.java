@@ -21,7 +21,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -31,13 +30,11 @@ import java.util.regex.Pattern;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
-import net.pms.renderers.JUPnPDeviceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
@@ -70,29 +67,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		this.group = group;
 	}
 
-	// Used to filter out known headers when the renderer is not recognized
-	private static final String[] KNOWN_HEADERS = {
-		"accept",
-		"accept-language",
-		"accept-encoding",
-		"callback",
-		"connection",
-		"content-length",
-		"content-type",
-		"date",
-		"host",
-		"nt",
-		"sid",
-		"timeout",
-		"user-agent"
-	};
-
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
 		RequestV2 request;
-		Renderer renderer = null;
+		Renderer renderer;
 		String userAgentString = null;
-		ArrayList<String> identifiers = new ArrayList<>();
 
 		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
 		HttpHeaders headers = nettyRequest.headers();
@@ -115,10 +94,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		String uri = getUri(nettyRequest.getUri());
 		request = new RequestV2(method, uri);
 
-		// The handler makes a couple of attempts to recognize a renderer from its requests.
-		// IP address matches from previous requests are preferred, when that fails request
-		// header matches are attempted and if those fail as well we're stuck with the
-		// default renderer.
 		if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 			// Request to retrieve a media stream.
 			// Renderer should has been registred.
@@ -146,139 +121,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			}
 		} else {
 			//ContentDirectory Service
-			ConnectedRenderers.RENDERER_LOCK.lock();
-			try {
-				// Attempt 1: try to recognize the renderer by upnp registred remote devices.
-				// it is an upnp service, so it should know it.
-				String uuid = JUPnPDeviceHelper.getUUID(ia);
-				if (uuid != null) {
-					renderer = ConnectedRenderers.getOrCreateUuidRenderer(uuid);
-				}
-				if (renderer == null) {
-					// Attempt 2: try to recognize the renderer by its socket address from previous requests
-					renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
-				}
-
-				// If the renderer exists but isn't marked as loaded it means it's unrecognized
-				// by upnp and we still need to attempt http recognition here.
-				if (renderer == null || !renderer.isLoaded()) {
-					// Attempt 3: try to recognize the renderer by matching headers
-					renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers.entries(), ia);
-				}
-
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-				}
-
-				Set<String> headerNames = headers.names();
-				for (String name : headerNames) {
-					String headerLine = name + ": " + headers.get(name);
-
-					if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
-						userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-					} else if (renderer != null && name.equals("X-PANASONIC-DMP-Profile")) {
-						PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
-					}
-
-					try {
-						StringTokenizer s = new StringTokenizer(headerLine);
-						String temp = s.nextToken();
-						if (temp.equalsIgnoreCase("SOAPACTION:")) {
-							request.setSoapaction(s.nextToken());
-						} else if (temp.equalsIgnoreCase("CALLBACK:")) {
-							request.setSoapaction(s.nextToken());
-						} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
-							String nums = headerLine.substring(headerLine.toUpperCase().indexOf("RANGE: BYTES=") + 13).trim();
-							StringTokenizer st = new StringTokenizer(nums, "-");
-							if (!nums.startsWith("-")) {
-								request.setLowRange(Long.parseLong(st.nextToken()));
-							}
-							if (!nums.startsWith("-") && !nums.endsWith("-")) {
-								request.setHighRange(Long.parseLong(st.nextToken()));
-							} else {
-								request.setHighRange(-1);
-							}
-						} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
-							request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-						} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
-							request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
-						} else {
-							Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
-							if (matcher.find()) {
-								String first = matcher.group(1);
-								if (first != null) {
-									request.setTimeRangeStartString(first);
-								}
-								String end = matcher.group(2);
-								if (end != null) {
-									request.setTimeRangeEndString(end);
-								}
-							} else {
-								/**
-								 * If we made it to here, none of the previous
-								 * header checks matched. Unknown headers make
-								 * interesting logging info when we cannot recognize
-								 * the media renderer, so keep track of the truly
-								 * unknown ones.
-								 */
-								boolean isKnown = false;
-
-								// Try to match known headers.
-								String lowerCaseHeaderLine = headerLine.toLowerCase();
-								for (String knownHeaderString : KNOWN_HEADERS) {
-									if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
-										isKnown = true;
-										break;
-									}
-								}
-
-								// It may be unusual but already known
-								if (!isKnown && renderer != null) {
-									String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
-									if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
-										isKnown = true;
-									}
-								}
-
-								if (!isKnown) {
-									// Truly unknown header, therefore interesting. Save for later use.
-									identifiers.add(headerLine);
-								}
-							}
-						}
-					} catch (NumberFormatException ee) {
-						LOGGER.error("Error parsing HTTP headers: {}", ee.getMessage());
-						LOGGER.trace("", ee);
-					}
-				}
-
-				// Still no media renderer recognized?
-				if (renderer == null) {
-
-					// Attempt 4: Not really an attempt; all other attempts to recognize
-					// the renderer have failed. The only option left is to assume the
-					// default renderer.
-					renderer = ConnectedRenderers.resolve(ia, null);
-					if (renderer != null) {
-						LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
-
-						if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-							// We have found an unknown renderer
-							identifiers.add(0, "User-Agent: " + userAgentString);
-							renderer.setIdentifiers(identifiers);
-							LOGGER.info(
-									"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-									StringUtils.join(identifiers, "\n")
-							);
-							PMS.get().setRendererFound(renderer);
-						}
-					}
-				} else if (LOGGER.isDebugEnabled()) {
-					LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
-				}
-			} finally {
-				ConnectedRenderers.RENDERER_LOCK.unlock();
-			}
+			renderer = ConnectedRenderers.getRenderer(ia, headers.get(HttpHeaders.Names.USER_AGENT), headers.entries());
 		}
 
 		if (renderer == null) {
@@ -293,8 +136,61 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			sendError(ctx, HttpResponseStatus.UNAUTHORIZED);
 			return;
 		}
-
 		request.setMediaRenderer(renderer);
+
+		Set<String> headerNames = headers.names();
+		for (String name : headerNames) {
+			String headerLine = name + ": " + headers.get(name);
+
+			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
+				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+			} else if (name.equals("X-PANASONIC-DMP-Profile")) {
+				PanasonicDmpProfiles.parsePanasonicDmpProfiles(headers.get(name), renderer);
+			}
+
+			try {
+				StringTokenizer s = new StringTokenizer(headerLine);
+				String temp = s.nextToken();
+				if (temp.equalsIgnoreCase("SOAPACTION:")) {
+					request.setSoapaction(s.nextToken());
+				} else if (temp.equalsIgnoreCase("CALLBACK:")) {
+					request.setSoapaction(s.nextToken());
+				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
+					String nums = headerLine.substring(headerLine.toUpperCase().indexOf("RANGE: BYTES=") + 13).trim();
+					StringTokenizer st = new StringTokenizer(nums, "-");
+					if (!nums.startsWith("-")) {
+						request.setLowRange(Long.parseLong(st.nextToken()));
+					}
+					if (!nums.startsWith("-") && !nums.endsWith("-")) {
+						request.setHighRange(Long.parseLong(st.nextToken()));
+					} else {
+						request.setHighRange(-1);
+					}
+				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
+					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
+				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
+					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
+				} else if (headerLine.toLowerCase().contains("getmediainfo.sec:")) {
+					request.setSamsungMediaInfo(headerLine.substring(headerLine.toLowerCase().indexOf("getmediainfo.sec:") + 17).trim());
+				} else {
+					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
+					if (matcher.find()) {
+						String first = matcher.group(1);
+						if (first != null) {
+							request.setTimeRangeStartString(first);
+						}
+						String end = matcher.group(2);
+						if (end != null) {
+							request.setTimeRangeEndString(end);
+						}
+					}
+				}
+			} catch (NumberFormatException ee) {
+				LOGGER.error("Error parsing HTTP headers: {}", ee.getMessage());
+				LOGGER.trace("", ee);
+			}
+		}
+
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			byte[] data = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
@@ -321,8 +217,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	}
 
 	/**
-	 * Removes all preceding slashes from uri. Samsung 2012 TVs have a
-	 * problematic (additional) preceding slash that needs to be also removed.
+	 * Removes all preceding slashes from uri.
+	 *
+	 * Samsung 2012 TVs have a problematic (additional) preceding slash that
+	 * needs to be also removed.
 	 *
 	 * @param rawUri requested uri
 	 * @return uri without preceding slash

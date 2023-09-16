@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
@@ -37,6 +38,7 @@ import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,9 +49,25 @@ public class ConnectedRenderers {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
 	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
-	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, InetAddress> UUID_ADDRESS_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	// Used to filter out known headers when the renderer is not recognized
+	private static final String[] KNOWN_HEADERS = {
+		"accept",
+		"accept-language",
+		"accept-encoding",
+		"callback",
+		"connection",
+		"content-length",
+		"content-type",
+		"date",
+		"host",
+		"nt",
+		"sid",
+		"timeout",
+		"user-agent"
+	};
 	/**
 	 * A lock to prevent multiple renderer creation.
 	 */
@@ -59,6 +77,63 @@ public class ConnectedRenderers {
 	 * This class is not meant to be instantiated.
 	 */
 	private ConnectedRenderers() {
+	}
+
+	/**
+	 * The handler makes a couple of attempts to recognize a renderer from its
+	 * requests.
+	 *
+	 * IP address matches from previous requests are preferred, then upnp uuid
+	 * is checked, when that fails request header matches are attempted and if
+	 * those fail as well we're stuck with the default renderer.
+	 *
+	 * @param ia
+	 * @param userAgentString
+	 * @param headers
+	 * @return
+	 */
+	public static Renderer getRenderer(InetAddress ia, String userAgentString, Collection<Map.Entry<String, String>> headers) {
+		Renderer renderer = null;
+		RENDERER_LOCK.lock();
+		try {
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = getRendererBySocketAddress(ia);
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
+			if (renderer == null || !renderer.isLoaded()) {
+				// Attempt 2: try to recognize the renderer by matching headers
+				renderer = getRendererConfigurationByHeaders(headers, ia);
+			}
+
+			// Still no media renderer recognized?
+			if (renderer == null) {
+				// Attempt 3: Not really an attempt; all other attempts to recognize
+				// the renderer have failed. The only option left is to assume the
+				// default renderer.
+				renderer = resolve(ia, null);
+				// If RendererConfiguration.resolve() didn't return the default renderer
+				// it means we know via upnp that it's not really a renderer.
+				if (renderer != null) {
+					LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
+					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+						// We have found an unknown renderer
+						List<String> identifiers = getIdentifiers(userAgentString, headers);
+						renderer.setIdentifiers(identifiers);
+						LOGGER.info(
+								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+								StringUtils.join(identifiers, "\n")
+						);
+						PMS.get().setRendererFound(renderer);
+					}
+				}
+			} else if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
+			}
+		} finally {
+			RENDERER_LOCK.unlock();
+		}
+		return renderer;
 	}
 
 	/**
@@ -74,6 +149,28 @@ public class ConnectedRenderers {
 		// Ensure any remaining secondary common-ip renderers (which are no longer in address association) are added
 		renderers.addAll(PMS.get().getFoundRenderers());
 		return renderers;
+	}
+
+	private static List<String> getIdentifiers(String userAgentString, Collection<Map.Entry<String, String>> headers) {
+		List<String> identifiers = new ArrayList<>();
+		identifiers.add("User-Agent: " + userAgentString);
+		for (Map.Entry<String, String> header : headers) {
+			boolean isKnown = false;
+
+			// Try to match known headers.
+			String headerName = header.getKey().toLowerCase();
+			for (String knownHeaderString : KNOWN_HEADERS) {
+				if (headerName.startsWith(knownHeaderString)) {
+					isKnown = true;
+					break;
+				}
+			}
+			if (!isKnown) {
+				// Truly unknown header, therefore interesting.
+				identifiers.add(header.getKey() + ": " + header.getValue());
+			}
+		}
+		return identifiers;
 	}
 
 	/**
@@ -289,20 +386,26 @@ public class ConnectedRenderers {
 	}
 
 	public static void addUuidAssociation(InetAddress ia, String id) {
-		if (ia != null && id.startsWith("uuid:")) {
-			// FIXME: this assumes one uuid per address
-			ADDRESS_UUID_ASSOCIATION.put(ia, id);
+		if (ia != null && id != null) {
+			UUID_ADDRESS_ASSOCIATION.put(id, ia);
 		}
 	}
 
 	public static String getUuidOf(InetAddress ia) {
-		// FIXME: this assumes one uuid per address
-		return ia != null ? ADDRESS_UUID_ASSOCIATION.get(ia) : null;
+		if (ia != null) {
+			Optional<Map.Entry<String, InetAddress>> res = UUID_ADDRESS_ASSOCIATION.entrySet().stream().filter(entry -> ia.equals(entry.getValue())).findFirst();
+			if (res.isPresent()) {
+				return res.get().getKey();
+			}
+		}
+		return null;
 	}
 
 	private static void removeUuidOf(InetAddress ia) {
 		if (ia != null) {
-			ADDRESS_UUID_ASSOCIATION.remove(ia);
+			while (UUID_ADDRESS_ASSOCIATION.values().remove(ia)) {
+				//it will end by itself
+			}
 		}
 	}
 

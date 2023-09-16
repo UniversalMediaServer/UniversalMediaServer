@@ -32,9 +32,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
-import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAImageInputStream;
@@ -73,7 +70,6 @@ import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 
 /**
  * This is the core stream server.
@@ -321,6 +317,10 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 			if (exchange.getRequestHeaders().containsKey("getcontentfeatures.dlna.org")) {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
+			String samsungMediaInfo = null;
+			if (exchange.getRequestHeaders().containsKey("getmediainfo.sec")) {
+				samsungMediaInfo = exchange.getRequestHeaders().getFirst("getmediainfo.sec");
+			}
 
 			// LibraryResource was found.
 			if (filename.endsWith("/chapters.vtt")) {
@@ -346,11 +346,23 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					if (inputStream != null) {
 						if (filename.endsWith(".ts")) {
 							exchange.getResponseHeaders().set("Content-Type", HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+							try {
+								startStopListenerDelegate = new StartStopListenerDelegate(exchange.getRemoteAddress().getAddress().getHostAddress());
+								startStopListenerDelegate.start(item);
+								LOGGER.trace("Sending inputstream for " + filename);
+								sendResponse(exchange, renderer, 200, inputStream, LibraryResource.TRANS_SIZE, true);
+							} finally {
+								if (startStopListenerDelegate != null) {
+									startStopListenerDelegate.stop();
+								}
+							}
 						} else if (filename.endsWith(".vtt")) {
 							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
+							LOGGER.trace("Sending inputstream for " + filename);
+							sendResponse(exchange, renderer, 200, inputStream, LibraryResource.TRANS_SIZE, true);
 						}
-						sendResponse(exchange, renderer, 200, inputStream, LibraryResource.TRANS_SIZE, true);
 					} else {
+						LOGGER.error("No inputstream for " + filename);
 						sendResponse(exchange, renderer, 404, null);
 					}
 				}
@@ -359,14 +371,19 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 				//HLS start m3u8 file
 				if (contentFeatures != null) {
 					//output.headers().set("transferMode.HlsHelper.org", "Streaming");
+					//only time seek, transcoded
+					exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+
 					if (item.getMediaInfo().getDurationInSeconds() > 0) {
 						String durationStr = String.format(Locale.ENGLISH, "%.3f", item.getMediaInfo().getDurationInSeconds());
 						exchange.getResponseHeaders().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 						exchange.getResponseHeaders().set("X-AvailableSeekRange", "npt=0-" + durationStr);
-						//only time seek, transcoded
-						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
 					}
 				}
+				if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+					exchange.getResponseHeaders().set("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
+				}
+
 				String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
 				sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8(item, renderer, baseUrl), HTTPResource.HLS_TYPEMIME);
 				return;
@@ -582,6 +599,10 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 					if (contentFeatures != null) {
 						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
+					}
+
+					if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+						exchange.getResponseHeaders().set("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 					}
 
 					exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
@@ -807,16 +828,11 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		} else {
 			String formattedResponse = null;
 			if (StringUtils.isNotBlank(response)) {
-				try {
-					formattedResponse = StringUtil.prettifyXML(response, StandardCharsets.UTF_8, 4);
-				} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-					formattedResponse = "  Content isn't valid XML, using text formatting: " + e.getMessage() + "\n";
-					formattedResponse += "    " + response.replace("\n", "\n    ");
-				}
+				formattedResponse += "    " + response.replace("\n", "\n    ");
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-						"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
+						"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}\n{}",
 						rendererName,
 						HTTPSERVER_RESPONSE_BEGIN,
 						responseCode,
