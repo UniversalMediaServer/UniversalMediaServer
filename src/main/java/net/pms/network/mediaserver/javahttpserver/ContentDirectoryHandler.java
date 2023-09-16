@@ -36,7 +36,6 @@ import java.net.Socket;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -69,7 +68,6 @@ import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.ConnectedRenderers;
-import net.pms.renderers.JUPnPDeviceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
@@ -124,7 +122,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 			}
 
 			Collection<Map.Entry<String, String>> headers = getHeaders(exchange);
-			renderer = getRenderer(ia, userAgentString, headers);
+			renderer = ConnectedRenderers.getRenderer(ia, userAgentString, headers);
 			if (renderer == null) {
 				// If RendererConfiguration.resolve() didn't return the default renderer
 				// it means we know via upnp that it's not really a renderer.
@@ -813,97 +811,6 @@ public class ContentDirectoryHandler implements HttpHandler {
 		return SDF.format(new Date(10000000000L + System.currentTimeMillis()));
 	}
 
-	// Used to filter out known headers when the renderer is not recognized
-	private static final String[] KNOWN_HEADERS = {
-		"accept",
-		"accept-language",
-		"accept-encoding",
-		"callback",
-		"connection",
-		"content-length",
-		"content-type",
-		"date",
-		"host",
-		"nt",
-		"sid",
-		"timeout",
-		"user-agent"
-	};
-
-	private static Renderer getRenderer(InetAddress ia, String userAgentString, Collection<Map.Entry<String, String>> headers) {
-		Renderer renderer = null;
-		ConnectedRenderers.RENDERER_LOCK.lock();
-		try {
-			// Attempt 1: try to recognize the renderer by upnp registred remote devices.
-			// it is an upnp service, so it should know it.
-			String uuid = JUPnPDeviceHelper.getUUID(ia);
-			if (uuid != null) {
-				renderer = ConnectedRenderers.getOrCreateUuidRenderer(uuid);
-			}
-
-			if (renderer == null) {
-				// Attempt 2: try to recognize the renderer by its socket address from previous requests
-				renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
-			}
-
-			// If the renderer exists but isn't marked as loaded it means it's unrecognized
-			// by upnp and we still need to attempt http recognition here.
-			if (renderer == null || !renderer.isLoaded()) {
-				// Attempt 3: try to recognize the renderer by matching headers
-				renderer = ConnectedRenderers.getRendererConfigurationByHeaders(headers, ia);
-			}
-			// Still no media renderer recognized?
-			if (renderer == null) {
-				// Attempt 4: Not really an attempt; all other attempts to recognize
-				// the renderer have failed. The only option left is to assume the
-				// default renderer.
-				renderer = ConnectedRenderers.resolve(ia, null);
-				// If RendererConfiguration.resolve() didn't return the default renderer
-				// it means we know via upnp that it's not really a renderer.
-				if (renderer != null) {
-					LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
-					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-						// We have found an unknown renderer
-						List<String> identifiers = getIdentifiers(userAgentString, headers);
-						renderer.setIdentifiers(identifiers);
-						LOGGER.info(
-								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
-								StringUtils.join(identifiers, "\n")
-						);
-						PMS.get().setRendererFound(renderer);
-					}
-				}
-			} else if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
-			}
-		} finally {
-			ConnectedRenderers.RENDERER_LOCK.unlock();
-		}
-		return renderer;
-	}
-
-	private static List<String> getIdentifiers(String userAgentString, Collection<Map.Entry<String, String>> headers) {
-		List<String> identifiers = new ArrayList<>();
-		identifiers.add("User-Agent: " + userAgentString);
-		for (Map.Entry<String, String> header : headers) {
-			boolean isKnown = false;
-
-			// Try to match known headers.
-			String headerName = header.getKey().toLowerCase();
-			for (String knownHeaderString : KNOWN_HEADERS) {
-				if (headerName.startsWith(knownHeaderString)) {
-					isKnown = true;
-					break;
-				}
-			}
-			if (!isKnown) {
-				// Truly unknown header, therefore interesting.
-				identifiers.add(header.getKey() + ": " + header.getValue());
-			}
-		}
-		return identifiers;
-	}
-
 	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, Renderer renderer) {
 		StringBuilder header = new StringBuilder();
 		for (Map.Entry<String, List<String>> headers : exchange.getResponseHeaders().entrySet()) {
@@ -942,7 +849,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 			}
 			if (StringUtils.isNotBlank(formattedResponse)) {
 				LOGGER.trace(
-						"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}{}",
+						"Response sent to {}:\n{}\n{}\n{}\nCONTENT:\n{}\n{}",
 						rendererName,
 						HTTPSERVER_RESPONSE_BEGIN,
 						responseCode,

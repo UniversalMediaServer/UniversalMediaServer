@@ -145,6 +145,7 @@ public class RequestV2 extends HTTPResource {
 	private Renderer renderer;
 	private String transferMode;
 	private String contentFeatures;
+	private String samsungMediaInfo;
 	private final TimeRange range = new TimeRange();
 
 	/**
@@ -200,6 +201,14 @@ public class RequestV2 extends HTTPResource {
 
 	public void setContentFeatures(String contentFeatures) {
 		this.contentFeatures = contentFeatures;
+	}
+
+	public String getSamsungMediaInfo() {
+		return samsungMediaInfo;
+	}
+
+	public void setSamsungMediaInfo(String samsungMediaInfo) {
+		this.samsungMediaInfo = samsungMediaInfo;
 	}
 
 	public void setTimeRangeStart(Double timeseek) {
@@ -418,13 +427,16 @@ public class RequestV2 extends HTTPResource {
 						response.append(HlsHelper.getHLSm3u8(item, renderer, baseUrl));
 						if (contentFeatures != null) {
 							//output.headers().set("transferMode.HlsHelper.org", "Streaming");
+							//only time seek, transcoded
+							output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
 							if (item.getMediaInfo().getDurationInSeconds() > 0) {
 								String durationStr = String.format(Locale.ENGLISH, "%.3f", item.getMediaInfo().getDurationInSeconds());
 								output.headers().set("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 								output.headers().set("X-AvailableSeekRange", "npt=0-" + durationStr);
-								//only time seek, transcoded
-								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
 							}
+						}
+						if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+							output.headers().set("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 						}
 					} else if (item.getMediaInfo() != null && item.getMediaInfo().getMediaType() == MediaType.IMAGE && item.isCodeValid(item)) {
 						// This is a request for an image
@@ -576,20 +588,20 @@ public class RequestV2 extends HTTPResource {
 										output.headers().set(subtitleHttpHeader, item.getSubsURL(sub));
 									} else {
 										LOGGER.trace(
-												"Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader() returned {}",
+												"Did not send subtitle headers because renderer.getSubtitleHttpHeader() returned {}",
 												subtitleHttpHeader == null ? "null" : "\"" + subtitleHttpHeader + "\""
 										);
 									}
 								} else {
 									ArrayList<String> reasons = new ArrayList<>();
 									if (item.getMediaInfo() == null) {
-										reasons.add("dlna.getMedia() is null");
+										reasons.add("item.getMedia() is null");
 									}
 									if (configuration.isDisableSubtitles()) {
 										reasons.add("configuration.isDisabledSubtitles() is true");
 									}
 									if (item.getMediaSubtitle() == null) {
-										reasons.add("dlna.getMediaSubtitle() is null");
+										reasons.add("item.getMediaSubtitle() is null");
 									} else if (!item.getMediaSubtitle().isExternal()) {
 										reasons.add("the subtitles are internal/embedded");
 									} else if (!renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
@@ -671,8 +683,14 @@ public class RequestV2 extends HTTPResource {
 								output.headers().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
 							}
 
+							if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+								output.headers().set("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
+							}
+
 							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+							if (HttpMethod.GET.equals(method)) {
+								output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+							}
 						}
 					}
 				}

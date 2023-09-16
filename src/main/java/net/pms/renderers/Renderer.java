@@ -440,7 +440,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		// If we have a uuid look up the UPnP device address, which is always
 		// correct even if another device has overwritten our association
 		if (uuid != null) {
-			InetAddress address = JUPnPDeviceHelper.getAddress(uuid);
+			InetAddress address = JUPnPDeviceHelper.getInetAddress(uuid);
 			if (address != null) {
 				return address;
 			}

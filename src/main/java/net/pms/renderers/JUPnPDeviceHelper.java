@@ -24,6 +24,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,18 +122,23 @@ public class JUPnPDeviceHelper {
 	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {
-		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
-			LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
-			addIgnoredDeviceToList(device);
-		}
-		// This may be unnecessary, but we might as well be thorough
-		if (device.hasEmbeddedDevices()) {
-			for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
-				if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
-					LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
-					addIgnoredDeviceToList((RemoteDevice) embedded);
+		ConnectedRenderers.RENDERER_LOCK.lock();
+		try {
+			if (isBlocked(getUUID(device)) || !addRenderer(device)) {
+				LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+				addIgnoredDeviceToList(device);
+			}
+			// This may be unnecessary, but we might as well be thorough
+			if (device.hasEmbeddedDevices()) {
+				for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
+					if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
+						LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+						addIgnoredDeviceToList((RemoteDevice) embedded);
+					}
 				}
 			}
+		} finally {
+			ConnectedRenderers.RENDERER_LOCK.unlock();
 		}
 	}
 
@@ -200,13 +206,22 @@ public class JUPnPDeviceHelper {
 		return invocation == null ? null : invocation.getOutput();
 	}
 
-	public static InetAddress getAddress(String uuid) {
+	public static InetAddress getInetAddress(String uuid) {
+		Device device = JUPnPDeviceHelper.getDevice(uuid);
+		if (device != null) {
+			return JUPnPDeviceHelper.getInetAddress(device);
+		}
+		return null;
+	}
+
+	private static InetAddress getInetAddress(Device device) {
 		try {
-			Device device = JUPnPDeviceHelper.getDevice(uuid);
-			if (device != null) {
-				return InetAddress.getByName(getURL(device).getHost());
+			URL url = getURL(device);
+			if (url != null && url.getHost() != null) {
+				return InetAddress.getByName(url.getHost());
 			}
 		} catch (UnknownHostException e) {
+			//no IP address for the host could be found.
 		}
 		return null;
 	}
@@ -217,9 +232,10 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static synchronized boolean addRenderer(Device<?, RemoteDevice, ?> device) {
-		if (device != null) {
+		if (device != null && isMediaRenderer(device)) {
 			String uuid = getUUID(device);
-			if (isMediaRenderer(device) && uuid != null) {
+			if (uuid != null) {
+				ConnectedRenderers.addUuidAssociation(getInetAddress(device), uuid);
 				Renderer renderer = rendererFound(device, uuid);
 				if (renderer != null) {
 					LOGGER.debug("Adding device: {} {}", device.getType(), device.toString());
@@ -237,7 +253,7 @@ public class JUPnPDeviceHelper {
 	private static Renderer rendererFound(Device device, String uuid) {
 		// Create or retrieve an instance
 		try {
-			InetAddress socket = InetAddress.getByName(getURL(device).getHost());
+			InetAddress socket = JUPnPDeviceHelper.getInetAddress(device);
 			Renderer renderer = ConnectedRenderers.getRendererBySocketAddress(socket);
 			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
 				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(device));
@@ -306,16 +322,13 @@ public class JUPnPDeviceHelper {
 				}
 			}
 			return renderer;
-		} catch (UnknownHostException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(device) + ": " + e);
 		}
 		return null;
 	}
 
 	private static boolean isBlocked(String uuid) {
-		if (uuid.startsWith("uuid:")) {
-			ConnectedRenderers.addUuidAssociation(getAddress(uuid), uuid);
-		}
 		int mode = RendererConfigurations.getDeviceUpnpMode(uuid);
 		if (mode != Renderer.UPNP_ALLOW) {
 			LOGGER.debug("Upnp service is {} for {}", Renderer.getUpnpModeString(mode), uuid);
@@ -362,18 +375,9 @@ public class JUPnPDeviceHelper {
 	private static Device getRendererDevice(InetAddress socket) {
 		if (MediaServer.upnpService != null) {
 			for (DeviceType r : MEDIA_RENDERER_TYPES) {
-				for (Device d : MediaServer.upnpService.getRegistry().getDevices(r)) {
-					try {
-						URL url = getURL(d);
-						if (url != null) {
-							InetAddress devsocket = InetAddress.getByName(url.getHost());
-							if (devsocket.equals(socket)) {
-								return d;
-							}
-						}
-					} catch (UnknownHostException e) {
-						//IP address could not be determined.
-					}
+				Device device = getDevice(socket, MediaServer.upnpService.getRegistry().getDevices(r));
+				if (device != null) {
+					return device;
 				}
 			}
 		}
@@ -399,14 +403,32 @@ public class JUPnPDeviceHelper {
 	 */
 	public static Device getDevice(InetAddress socket) {
 		if (MediaServer.upnpService != null) {
-			for (Device d : MediaServer.upnpService.getRegistry().getDevices()) {
-				try {
-					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-					if (devsocket.equals(socket)) {
-						return d;
+			return getDevice(socket, MediaServer.upnpService.getRegistry().getDevices());
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the first device regardless of type at the given address, if any.
+	 * Seems not used.
+	 *
+	 * @param socket address of the checked remote device.
+	 * @return Device
+	 */
+	private static Device getDevice(InetAddress socket, Collection<Device> devices) {
+		for (Device device : devices) {
+			try {
+				URL url = getURL(device);
+				if (url != null && url.getHost() != null) {
+					InetAddress[] addresses = InetAddress.getAllByName(url.getHost());
+					for (InetAddress address : addresses) {
+						if (address.equals(socket)) {
+							return device;
+						}
 					}
-				} catch (UnknownHostException e) {
 				}
+			} catch (UnknownHostException e) {
+				//no IP address for the host could be found
 			}
 		}
 		return null;
@@ -529,7 +551,7 @@ public class JUPnPDeviceHelper {
 	}
 
 	/**
-	 * seems not used.
+	 * Get the device uuid if exists.
 	 */
 	public static String getUUID(InetAddress socket) {
 		Device d = getRendererDevice(socket);
