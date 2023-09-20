@@ -172,6 +172,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
 				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
 					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
+				} else if (headerLine.toLowerCase().contains("getmediainfo.sec:")) {
+					request.setSamsungMediaInfo(headerLine.substring(headerLine.toLowerCase().indexOf("getmediainfo.sec:") + 17).trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
 					if (matcher.find()) {

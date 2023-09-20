@@ -399,6 +399,10 @@ public class RequestHandler implements HttpHandler {
 			if (exchange.getRequestHeaders().containsKey("getcontentfeatures.dlna.org")) {
 				contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 			}
+			String samsungMediaInfo = null;
+			if (exchange.getRequestHeaders().containsKey("getmediainfo.sec")) {
+				samsungMediaInfo = exchange.getRequestHeaders().getFirst("getmediainfo.sec");
+			}
 			// DLNAresource was found.
 			if (fileName.endsWith("/chapters.vtt")) {
 				sendResponse(exchange, renderer, 200, MediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
@@ -443,6 +447,10 @@ public class RequestHandler implements HttpHandler {
 						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
 					}
 				}
+				if (samsungMediaInfo != null && dlna.getMedia().getDurationInSeconds() > 0) {
+					exchange.getResponseHeaders().set("MediaInfo.sec", "SEC_Duration=" + (long) (dlna.getMedia().getDurationInSeconds() * 1000));
+				}
+
 				sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8(dlna, renderer, "/get/"), HTTPResource.HLS_TYPEMIME);
 				return;
 			} else if (fileName.startsWith("thumbnail0000")) {
@@ -743,6 +751,10 @@ public class RequestHandler implements HttpHandler {
 
 					if (contentFeatures != null) {
 						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(renderer));
+					}
+
+					if (samsungMediaInfo != null && dlna.getMedia().getDurationInSeconds() > 0) {
+						exchange.getResponseHeaders().set("MediaInfo.sec", "SEC_Duration=" + (long) (dlna.getMedia().getDurationInSeconds() * 1000));
 					}
 
 					exchange.getResponseHeaders().set("Accept-Ranges", "bytes");

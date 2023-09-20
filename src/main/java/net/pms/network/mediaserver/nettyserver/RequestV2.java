@@ -145,6 +145,7 @@ public class RequestV2 extends HTTPResource {
 	private Renderer mediaRenderer;
 	private String transferMode;
 	private String contentFeatures;
+	private String samsungMediaInfo;
 	private final TimeRange range = new TimeRange();
 
 	/**
@@ -196,6 +197,10 @@ public class RequestV2 extends HTTPResource {
 
 	public void setContentFeatures(String contentFeatures) {
 		this.contentFeatures = contentFeatures;
+	}
+
+	public void setSamsungMediaInfo(String samsungMediaInfo) {
+		this.samsungMediaInfo = samsungMediaInfo;
 	}
 
 	public void setTimeRangeStart(Double timeseek) {
@@ -389,6 +394,9 @@ public class RequestV2 extends HTTPResource {
 								//only time seek, transcoded
 								output.headers().set("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=41700000000000000000000000000000");
 							}
+						}
+						if (samsungMediaInfo != null && dlna.getMedia().getDurationInSeconds() > 0) {
+							output.headers().set("MediaInfo.sec", "SEC_Duration=" + (long) (dlna.getMedia().getDurationInSeconds() * 1000));
 						}
 					} else if (fileName.startsWith("thumbnail0000")) {
 						// This is a request for a thumbnail file.
@@ -703,8 +711,14 @@ public class RequestV2 extends HTTPResource {
 								output.headers().set("ContentFeatures.DLNA.ORG", dlna.getDlnaContentFeatures(mediaRenderer));
 							}
 
+							if (samsungMediaInfo != null && dlna.getMedia().getDurationInSeconds() > 0) {
+								output.headers().set("MediaInfo.sec", "SEC_Duration=" + (long) (dlna.getMedia().getDurationInSeconds() * 1000));
+							}
+
 							output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
-							output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+							if (HttpMethod.GET.equals(method)) {
+								output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+							}
 						}
 						if (origRendering != null) {
 							// Restore original rendering details
