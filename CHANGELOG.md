@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### General
+- Faster playback start and seeking via tsMuxeR
+
+### Dependencies
+- Update tsMuxeR to 2023-09-20-01-52-31
+
 ## [13.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.6.0...13.7.0) (2023-09-06)
 
 ### General
