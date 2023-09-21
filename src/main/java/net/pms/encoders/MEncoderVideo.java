@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
@@ -45,8 +44,6 @@ import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.Renderer;
 import net.pms.util.*;
-import net.pms.util.ExecutableErrorType;
-import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import static net.pms.util.AudioUtils.getLPCMChannelMappingForMencoder;
 import static net.pms.util.StringUtil.quoteArg;
@@ -504,9 +501,9 @@ public class MEncoderVideo extends Engine {
 		} else if (dlna.isInsideTranscodeFolder()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the TRANSCODE folder.");
-		} else if (!params.getMediaRenderer().isMuxH264MpegTS()) {
+		} else if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+			LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", media.getCodecV(), params.getMediaRenderer().getTranscodingContainer());
 		} else if (params.getSid() != null) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
@@ -516,7 +513,7 @@ public class MEncoderVideo extends Engine {
 		} else if (isAviSynthEngine()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		} else if (params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
+		} else if (media.isH264() && params.getMediaRenderer().isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.getMediaRenderer())) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 		} else if (!media.isMuxable(params.getMediaRenderer())) {
