@@ -313,7 +313,7 @@ public class MediaInfo implements Cloneable {
 	 * @return
 	 */
 	public boolean isMuxable(Renderer renderer) {
-		// Make sure the file is H.264 video
+		// Make sure the file is H.264 or H.265 video
 		boolean muxable = (isH264() || isH265());
 
 		// Check if the renderer supports the resolution of the video

@@ -2056,13 +2056,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							/**
-							 * If: - There are no subtitles - This is not a DVD
-							 * track - The media is muxable - The renderer
-							 * accepts media muxed to MPEG-TS then the file is
-							 * MPEG-TS
+							 * If:
+							 * - There are no subtitles
+							 * - This is not a DVD track
+							 * - The media is muxable
+							 * - The renderer accepts the video codec muxed to MPEG-TS
+							 * then the file is MPEG-TS
+							 *
+							 * Note: This is an oversimplified duplicate of the engine logic, that
+							 * should be fixed.
 							 */
-							if (mediaSubtitle == null && !hasExternalSubtitles() && media != null && media.getDvdtrack() == 0 &&
-								media.isMuxable(renderer) && renderer.isMuxH264MpegTS()) {
+							if (
+								mediaSubtitle == null &&
+								!hasExternalSubtitles() &&
+								media != null &&
+								media.getDvdtrack() == 0 &&
+								media.isMuxable(renderer) &&
+								renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)
+							) {
 								isOutputtingMPEGTS = true;
 							}
 						}
