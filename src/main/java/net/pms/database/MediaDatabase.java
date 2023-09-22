@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
  * later.
  */
 public class MediaDatabase extends Database {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	public static final String DATABASE_NAME = "medias";
 	/**
@@ -40,9 +41,9 @@ public class MediaDatabase extends Database {
 	/**
 	 * Initializes the database connection pool for the current profile.
 	 *
-	 * Will create the "UMS-tests" profile directory and put the database
-	 * in there if it doesn't exist, in order to prevent overwriting
-	 * real databases.
+	 * Will create the "UMS-tests" profile directory and put the database in
+	 * there if it doesn't exist, in order to prevent overwriting real
+	 * databases.
 	 */
 	public MediaDatabase() {
 		super(DATABASE_NAME);
@@ -115,6 +116,8 @@ public class MediaDatabase extends Database {
 				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
+
+				MediaTableLibraryIds.checkTable(connection);
 			}
 			tablesChecked = true;
 		}
@@ -171,6 +174,7 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Returns the MediaDatabase instance.
+	 *
 	 * Will create the database instance as needed.
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
@@ -184,6 +188,7 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
 	 */
 	public static synchronized void init() {
@@ -192,7 +197,9 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
+	 *
 	 * Will check all tables.
 	 */
 	public static synchronized void initForce() {
@@ -202,8 +209,8 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance.
 	 *
-	 * @return <code>true</code> if the MediaDatabase is instantiated
-	 * , <code>false</code> otherwise
+	 * @return <code>true</code> if the MediaDatabase is instantiated ,
+	 * <code>false</code> otherwise
 	 */
 	public static boolean isInstantiated() {
 		return instance != null;
@@ -212,8 +219,8 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance availability.
 	 *
-	 * @return {@code true } if the MediaDatabase is instanciated and opened
-	 * , <code>false</code> otherwise
+	 * @return {@code true } if the MediaDatabase is instanciated and opened ,
+	 * <code>false</code> otherwise
 	 */
 	public static boolean isAvailable() {
 		return isInstantiated() && instance.isOpened();
@@ -221,25 +228,30 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Get a MediaDatabase connection.
-	 * Will not try to init the database.
-	 * Give a connection only if the database status is OPENED.
+	 *
+	 * Will not try to init the database. Give a connection only if the database
+	 * status is OPENED.
 	 *
 	 * Prevent for init or giving a connection on db closing
 	 *
-	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>null</code> otherwise
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available,
+	 * <code>null</code> otherwise
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
 			try {
 				return instance.getConnection();
-			} catch (SQLException ex) {}
+			} catch (SQLException ex) {
+			}
 		}
 		return null;
 	}
 
 	/**
 	 * Reset the media database cache.
+	 *
 	 * Recreate all tables related to media cache except files status.
+	 *
 	 * @throws java.sql.SQLException
 	 */
 	public static synchronized void resetCache() throws SQLException {

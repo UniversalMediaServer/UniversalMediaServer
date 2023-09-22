@@ -358,7 +358,7 @@ public class LibraryContainer extends LibraryResource {
 				container.clearChildren();
 			}
 			resources.remove();
-			renderer.getGlobalRepo().delete(resource);
+			renderer.getRootFolder().deleteWeakResource(resource);
 		}
 	}
 
@@ -395,7 +395,7 @@ public class LibraryContainer extends LibraryResource {
 			if (child != found) {
 				// Replace
 				child.setParent(this);
-				renderer.getGlobalRepo().replace(found, child);
+				renderer.getRootFolder().replaceWeakResource(found, child);
 				children.set(children.indexOf(found), child);
 			}
 			// Renew
@@ -410,7 +410,7 @@ public class LibraryContainer extends LibraryResource {
 		if (children.contains(child)) {
 			children.remove(child);
 		}
-		renderer.getGlobalRepo().delete(child);
+		renderer.getRootFolder().deleteWeakResource(child);
 	}
 
 	/**
@@ -442,8 +442,21 @@ public class LibraryContainer extends LibraryResource {
 		children.add(child);
 		child.setParent(this);
 
-		if (isAddGlobally) {
-			renderer.getGlobalRepo().add(child);
+		if (isAddGlobally && this.getLongId() != null) {
+			//if this is not yet linked to parent, child will be added when it will.
+			addGlobalRepo(child);
+		}
+	}
+
+	/**
+	 * GlobalRepo will set the id from db.
+	 */
+	private void addGlobalRepo(LibraryResource resource) {
+		renderer.getRootFolder().addWeakResource(resource);
+		if (resource instanceof LibraryContainer container) {
+			for (LibraryResource child : container.children) {
+				addGlobalRepo(child);
+			}
 		}
 	}
 

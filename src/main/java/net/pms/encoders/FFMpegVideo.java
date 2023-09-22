@@ -956,9 +956,9 @@ public class FFMpegVideo extends Engine {
 			if (resource.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (defaultVideoTrack.isH264() && !renderer.isMuxH264MpegTS()) {
+			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				deferToTsmuxer = false;
-				LOGGER.debug(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), renderer.getTranscodingContainer());
 			} else if (params.getSid() != null && !(defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))) {
 				deferToTsmuxer = false;
 				/**

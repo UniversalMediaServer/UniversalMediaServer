@@ -168,6 +168,14 @@ public class RendererItem implements IRendererGuiListener {
 				entryObject.addProperty("value", address);
 				detailsArray.add(entryObject);
 			}
+			if (renderer.getIdentifiers() != null) {
+				for (String identifier : renderer.getIdentifiers()) {
+					entryObject = new JsonObject();
+					entryObject.addProperty("key", "");
+					entryObject.addProperty("value", identifier);
+					detailsArray.add(entryObject);
+				}
+			}
 		}
 		result.add("details", detailsArray);
 		return result;

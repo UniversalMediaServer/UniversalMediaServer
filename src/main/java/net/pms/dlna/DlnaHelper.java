@@ -259,33 +259,39 @@ public class DlnaHelper {
 							}
 
 							/**
-							 * If: - There are no subtitles - This is not a DVD
-							 * track - The media is muxable - The renderer
-							 * accepts media muxed to MPEG-TS then the file is
-							 * MPEG-TS
+							 * If:
+							 * - There are no subtitles
+							 * - This is not a DVD track
+							 * - The media is muxable
+							 * - The renderer accepts the video codec muxed to MPEG-TS
+							 * then the file is MPEG-TS
+							 *
+							 * Note: This is an oversimplified duplicate of the engine logic, that
+							 * should be fixed.
 							 */
-							if (resolvedSubtitle == null && !item.hasExternalSubtitles() && mediaInfo != null && mediaInfo.getDvdtrack() == 0 &&
-								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) && renderer.isMuxH264MpegTS()) {
+							if (resolvedSubtitle == null &&
+									!item.hasExternalSubtitles() &&
+									mediaInfo != null &&
+									mediaInfo.getDvdtrack() == 0 &&
+									Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+									renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo)) {
 								isOutputtingMPEGTS = true;
 							}
 						}
 
 						if (isOutputtingMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, false);
 							if (renderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, false);
+							} else {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, false);
 							}
 						}
-					} else if (mediaInfo != null) {
+					} else if (mediaInfo != null && mediaInfo.isMpegTS()) {
 						// In this block, we are streaming the file
-						if (mediaInfo.isMpegTS()) {
-							if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, engine == null);
-							} else {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, engine == null);
-							}
+						if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
+						} else {
+							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
 						}
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MPEGTS_TYPEMIME)) {
@@ -294,7 +300,7 @@ public class DlnaHelper {
 					if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
 					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {
 					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("h265") && defaultAudioTrack != null &&

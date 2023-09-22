@@ -73,7 +73,6 @@ import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webplayerserver.WebPlayerServer;
@@ -114,6 +113,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PMS {
+
 	private static final String SCROLLBARS = "scrollbars";
 	private static final String NATIVELOOK_ARG = "nativelook";
 	private static final String CONSOLE_ARG = "console";
@@ -705,7 +705,6 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
 	/**

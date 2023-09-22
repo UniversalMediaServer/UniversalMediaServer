@@ -105,6 +105,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			if (requestData.length > 2) {
 				renderer = ConnectedRenderers.getUuidRenderer(requestData[0]);
 				if (renderer == null) {
+					//find renderer by uuid and ip for non registred upnp devices
+					renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
+					if (renderer != null && !requestData[0].equals(renderer.getId())) {
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), requestData[0]);
+						}
+						renderer = null;
+					}
+				}
+
+				if (renderer == null) {
 					// If uuid not known, it mean the renderer is not registred
 					sendError(ctx, HttpResponseStatus.UNAUTHORIZED);
 					return;

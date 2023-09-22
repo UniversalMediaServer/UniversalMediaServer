@@ -1013,7 +1013,7 @@ public abstract class Engine {
 		if (videoTrack == null) {
 			return false;
 		}
-		// Make sure the file is H.264 video
+		// Make sure the file is H.264 or H.265 video
 		boolean muxable = (videoTrack.isH264() || videoTrack.isH265());
 
 		// Check if the renderer supports the resolution of the video
