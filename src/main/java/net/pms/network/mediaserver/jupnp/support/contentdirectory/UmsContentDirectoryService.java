@@ -19,17 +19,15 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableMetadata;
 import net.pms.dlna.DidlHelper;
 import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryIds;
 import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.library.container.MediaLibrary;
@@ -64,8 +62,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @UpnpService(
-		serviceId = @UpnpServiceId("ContentDirectory"),
-		serviceType = @UpnpServiceType(value = "ContentDirectory", version = 1)
+		serviceId =
+		@UpnpServiceId("ContentDirectory"),
+		serviceType =
+		@UpnpServiceType(value = "ContentDirectory", version = 1)
 )
 
 @UpnpStateVariables({
@@ -187,25 +187,29 @@ public class UmsContentDirectoryService {
 		 * different resource IDs than last time UMS ran. It also populates our
 		 * in-memory value with the database value if the database is enabled.
 		 */
-		bumpSystemUpdateId();
-		systemUpdateID = new UnsignedIntegerFourBytes(getDbSystemUpdateId().getValue());
+		//Todo : this may not be necessary if we follow the upnp rules.
+		LibraryIds.incrementSystemUpdateId();
+		systemUpdateID = new UnsignedIntegerFourBytes(LibraryIds.getSystemUpdateId().getValue());
 		propertyChangeSupport = new PropertyChangeSupport(this);
 		systemUpdateIdTimer.schedule(systemUpdateIdTask, 0, 200);
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "SearchCaps"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "SearchCaps"))
 	public CSV<String> getSearchCapabilities() {
 		return searchCapabilities;
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "SortCaps"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "SortCaps"))
 	public CSV<String> getSortCapabilities() {
 		return sortCapabilities;
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "Id"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "Id"))
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
-		return getDbSystemUpdateId();
+		return LibraryIds.getSystemUpdateId();
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
@@ -214,7 +218,7 @@ public class UmsContentDirectoryService {
 
 	private void systemUpdateIdChanged() {
 		long oldValue = systemUpdateID.getValue();
-		long newValue = getDbSystemUpdateId().getValue();
+		long newValue = LibraryIds.getSystemUpdateId().getValue();
 		if (oldValue != newValue) {
 			getPropertyChangeSupport().firePropertyChange(
 					"SystemUpdateID",
@@ -222,7 +226,6 @@ public class UmsContentDirectoryService {
 					newValue
 			);
 			systemUpdateID = new UnsignedIntegerFourBytes(newValue);
-			storeDbSystemUpdateId();
 			LOGGER.trace("Send event \"SystemUpdateID\" update from {} to {}", oldValue, newValue);
 		}
 	}
@@ -466,7 +469,7 @@ public class UmsContentDirectoryService {
 			totalMatches = 1;
 		}
 
-		long containerUpdateID = getDbSystemUpdateId().getValue();
+		long containerUpdateID = LibraryIds.getSystemUpdateId().getValue();
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
 			result = getJUPnPDidlResults(resultResources);
@@ -640,7 +643,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long containerUpdateID = getDbSystemUpdateId().getValue();
+		long containerUpdateID = LibraryIds.getSystemUpdateId().getValue();
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
 			result = getJUPnPDidlResults(resultResources);
@@ -739,78 +742,6 @@ public class UmsContentDirectoryService {
 		response.append(StringEscapeUtils.escapeXml10(features.toString()));
 		response.append("</FeatureList>").append(CRLF);
 		return response.toString();
-	}
-
-	/**
-	 * Returns the updates id for all resources.
-	 *
-	 * When all resources need to be refreshed, this id is updated.
-	 *
-	 * @return The system updated id.
-	 * @since 1.50
-	 */
-	public static UnsignedIntegerFourBytes getDbSystemUpdateId() {
-		LOCK_SYSTEM_UPDATE_ID.readLock().lock();
-		try {
-			if (dbSystemUpdateID != null) {
-				return dbSystemUpdateID;
-			}
-		} finally {
-			LOCK_SYSTEM_UPDATE_ID.readLock().unlock();
-		}
-		LOCK_SYSTEM_UPDATE_ID.writeLock().lock();
-		try {
-			if (PMS.getConfiguration().getUseCache()) {
-				Connection connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					LOCK_SYSTEM_UPDATE_ID.readLock().lock();
-					String systemUpdateIdFromDb = MediaTableMetadata.getMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID);
-					if (systemUpdateIdFromDb != null) {
-						try {
-							dbSystemUpdateID = new UnsignedIntegerFourBytes(systemUpdateIdFromDb);
-						} catch (NumberFormatException ex) {
-							LOGGER.debug("" + ex);
-						}
-					}
-				}
-			}
-			if (dbSystemUpdateID == null) {
-				dbSystemUpdateID = new UnsignedIntegerFourBytes(0);
-			}
-			return dbSystemUpdateID;
-		} finally {
-			LOCK_SYSTEM_UPDATE_ID.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Returns the updates id for all resources.
-	 *
-	 * When all resources need to be refreshed, this id is updated.
-	 *
-	 * @return The system updated id.
-	 * @since 1.50
-	 */
-	private static void storeDbSystemUpdateId() {
-		if (PMS.getConfiguration().getUseCache()) {
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			// Persist the new value to the database
-			if (connection != null) {
-				MediaTableMetadata.setOrUpdateMetadataValue(connection, METADATA_TABLE_KEY_SYSTEMUPDATEID, getDbSystemUpdateId().toString());
-			}
-			MediaDatabase.close(connection);
-		}
-	}
-
-	/**
-	 * Call this method after making changes to your content directory.
-	 * <p>
-	 * This will notify clients that their view of the content directory is
-	 * potentially outdated and has to be refreshed.
-	 * </p>
-	 */
-	public static synchronized void bumpSystemUpdateId() {
-		getDbSystemUpdateId().increment(true);
 	}
 
 	private static String getJUPnPDidlResults(List<LibraryResource> resultResources) {

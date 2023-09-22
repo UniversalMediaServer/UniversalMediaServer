@@ -19,6 +19,7 @@ package net.pms.library;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -70,7 +71,6 @@ import net.pms.library.item.WebAudioStream;
 import net.pms.library.item.WebVideoStream;
 import net.pms.library.utils.IOList;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileUtil;
 import net.pms.util.SimpleThreadFactory;
@@ -82,6 +82,7 @@ public class RootFolder extends LibraryContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 
+	private final Map<Long, WeakReference<LibraryResource>> weakResources = new HashMap<>();
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
@@ -98,7 +99,7 @@ public class RootFolder extends LibraryContainer {
 		super(renderer, "root", null);
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
-		setIndexId(0);
+		setLongId(0);
 		addVirtualMyMusicFolder();
 	}
 
@@ -362,14 +363,14 @@ public class RootFolder extends LibraryContainer {
 	 * Clear all resources in children.
 	 */
 	public void clearBackupChildren() {
-		Iterator<LibraryResource> resources = backupChildren.iterator();
-		while (resources.hasNext()) {
-			LibraryResource resource = resources.next();
+		Iterator<LibraryResource> backupResources = backupChildren.iterator();
+		while (backupResources.hasNext()) {
+			LibraryResource resource = backupResources.next();
 			if (resource instanceof LibraryContainer container) {
 				container.clearChildren();
 			}
-			resources.remove();
-			renderer.getGlobalRepo().delete(resource);
+			backupResources.remove();
+			deleteWeakResource(resource);
 		}
 		backupChildren.clear();
 	}
@@ -414,7 +415,6 @@ public class RootFolder extends LibraryContainer {
 				renderer.setAccount(AccountService.getAccountByUserId(userId));
 				reset();
 				discoverChildren();
-				UmsContentDirectoryService.bumpSystemUpdateId();
 			}
 			return this;
 		}
@@ -432,8 +432,92 @@ public class RootFolder extends LibraryContainer {
 			return this;
 		} else {
 			// only allow the last one here
-			return renderer.getGlobalRepo().get(ids[ids.length - 1]);
+			return getWeakResource(ids[ids.length - 1]);
 		}
+	}
+
+	private LibraryResource getWeakResource(String objectId) {
+		Long id = parseIndex(objectId);
+		if (id == null) {
+			return null;
+		}
+		if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+			return weakResources.get(id).get();
+		} else {
+			// object id not founded, try recreate
+			return recreateLibraryResource(id);
+		}
+	}
+
+	/**
+	 * Try to recreate the item tree if possible.
+	 *
+	 * @param id
+	 * @return
+	 */
+	private LibraryResource recreateLibraryResource(long id) {
+		List<LibraryId> libraryIds = LibraryIds.getLibraryResourceTree(id);
+		if (!libraryIds.isEmpty()) {
+			for (LibraryId libraryId : libraryIds) {
+				if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
+					LibraryResource resource = weakResources.get(libraryId.getId()).get();
+					if (resource instanceof LibraryContainer container) {
+						container.discoverChildren();
+					}
+				}
+			}
+			//now that parent folders are discovered, try to get the resource
+			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+				return weakResources.get(id).get();
+			}
+		}
+		return null;
+	}
+
+	public synchronized boolean weakResourceExists(String objectId) {
+		Long id = parseIndex(objectId);
+		return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
+	}
+
+	public boolean addWeakResource(LibraryResource resource) {
+		Long id = LibraryIds.getLibraryResourceId(resource);
+		if (id != null) {
+			weakResources.put(id, new WeakReference<>(resource));
+			return true;
+		}
+		return false;
+	}
+
+	public void replaceWeakResource(LibraryResource a, LibraryResource b) {
+		Long id = parseIndex(a.getId());
+		if (id != null && weakResources.containsKey(id)) {
+			weakResources.get(id).clear();
+			weakResources.put(id, new WeakReference<>(b));
+		}
+	}
+
+	public synchronized void deleteWeakResource(LibraryResource resource) {
+		Long id = parseIndex(resource.getId());
+		if (id != null && weakResources.containsKey(id)) {
+			weakResources.get(id).clear();
+			weakResources.remove(id);
+		}
+	}
+
+	public synchronized void clearWeakResources() {
+		weakResources.clear();
+	}
+
+	private synchronized List<LibraryResource> findSystemFileResources(File file) {
+		List<LibraryResource> systemFileResources = new ArrayList<>();
+		for (WeakReference<LibraryResource> resource : weakResources.values()) {
+			if (resource.get() instanceof SystemFileResource systemFileResource &&
+					file.equals(systemFileResource.getSystemFile()) &&
+					systemFileResource instanceof LibraryResource libraryResource) {
+				systemFileResources.add(libraryResource);
+			}
+		}
+		return systemFileResources;
 	}
 
 	/**
@@ -480,7 +564,7 @@ public class RootFolder extends LibraryContainer {
 					LOGGER.error("", e);
 				}
 			} else {
-				resource = renderer.getGlobalRepo().get(ids[ids.length - 1]);
+				resource = getWeakResource(ids[ids.length - 1]);
 			}
 		}
 
@@ -564,7 +648,7 @@ public class RootFolder extends LibraryContainer {
 			if (searchId.equals("0")) {
 				resource = this;
 			} else {
-				resource = renderer.getGlobalRepo().get(searchId);
+				resource = getWeakResource(searchId);
 			}
 
 			if (resource == null) {
@@ -577,12 +661,12 @@ public class RootFolder extends LibraryContainer {
 			}
 		}
 
-		return renderer.getGlobalRepo().get(searchIds[searchIds.length - 1]);
+		return getWeakResource(searchIds[searchIds.length - 1]);
 	}
 
 	public void fileRemoved(String filename) {
 		File file = new File(filename);
-		for (LibraryResource libraryResource : renderer.getGlobalRepo().findSystemFileResources(file)) {
+		for (LibraryResource libraryResource : findSystemFileResources(file)) {
 			libraryResource.getParent().removeChild(libraryResource);
 			libraryResource.getParent().notifyRefresh();
 		}
@@ -591,7 +675,7 @@ public class RootFolder extends LibraryContainer {
 	public void fileAdded(String filename) {
 		File file = new File(filename);
 		File parentFile = file.getParentFile();
-		for (LibraryResource libraryResource : renderer.getGlobalRepo().findSystemFileResources(parentFile)) {
+		for (LibraryResource libraryResource : findSystemFileResources(parentFile)) {
 			if (libraryResource instanceof VirtualFolder virtualFolder) {
 				virtualFolder.addFile(file);
 			}
@@ -728,6 +812,15 @@ public class RootFolder extends LibraryContainer {
 	@Override
 	public String toString() {
 		return "RootFolder[" + getChildren() + "]";
+	}
+
+	private static Long parseIndex(String id) {
+		try {
+			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
+			return Long.valueOf(StringUtils.substringBefore(id, "$"));
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	/**

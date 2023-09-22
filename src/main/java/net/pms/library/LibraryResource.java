@@ -41,7 +41,6 @@ import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.mediaserver.handlers.MediaStreamHandler;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.Renderer;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.GenericIcons;
@@ -152,14 +151,18 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Returns the integer representation of the id of this LibraryResource
+	 * Returns the long representation of the id of this LibraryResource
 	 * based on the index in its parent container.
 	 *
 	 * @return The id integer.
 	 * @since 6.4.1
 	 */
-	public int getIntId() {
-		return Integer.parseInt(getId());
+	public Long getLongId() {
+		try {
+		return Long.valueOf(getId());
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	/**
@@ -223,8 +226,8 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 * @see #setId(String)
 	 * @param id
 	 */
-	protected void setIndexId(int id) {
-		setId(Integer.toString(id));
+	protected void setLongId(long id) {
+		setId(Long.toString(id));
 	}
 
 	/**
@@ -307,7 +310,7 @@ public abstract class LibraryResource implements Cloneable, Runnable {
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		UmsContentDirectoryService.bumpSystemUpdateId();
+		LibraryIds.incrementUpdateId(getLongId());
 	}
 
 	@Override

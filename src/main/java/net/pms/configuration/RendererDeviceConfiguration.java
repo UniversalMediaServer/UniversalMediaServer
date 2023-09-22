@@ -18,6 +18,7 @@ package net.pms.configuration;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.util.UUID;
 import net.pms.PMS;
 import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -49,6 +50,10 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	public RendererDeviceConfiguration(RendererConfiguration ref, InetAddress ia, String uuid) throws ConfigurationException, InterruptedException {
 		initDeviceConfiguration(ia, uuid);
 		inherit(ref);
+		if (uuid == null && ia != null) {
+			//create a temp uuid to serve files
+			uuid = UUID.nameUUIDFromBytes(ia.getAddress()).toString();
+		}
 		if (uuid != null) {
 			this.uuid = uuid;
 		}

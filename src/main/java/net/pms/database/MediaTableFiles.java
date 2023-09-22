@@ -600,6 +600,7 @@ public class MediaTableFiles extends MediaTable {
 				if (rs.next()) {
 					media = new MediaInfo();
 					int id = rs.getInt(COL_ID);
+					media.setFileId(id);
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));

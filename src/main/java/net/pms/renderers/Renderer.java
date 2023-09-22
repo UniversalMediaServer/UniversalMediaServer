@@ -40,12 +40,10 @@ import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
-import net.pms.library.GlobalIdRepo;
 import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
@@ -105,7 +103,6 @@ public class Renderer extends RendererDeviceConfiguration {
 	private String automaticVideoQuality;
 
 	private volatile RootFolder rootFolder;
-	private GlobalIdRepo globalRepo;
 	private List<String> sharedPath;
 	protected Account account;
 
@@ -259,7 +256,6 @@ public class Renderer extends RendererDeviceConfiguration {
 	 */
 	public synchronized RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			getGlobalRepo();
 			rootFolder = new RootFolder(this);
 			if (umsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
@@ -269,23 +265,13 @@ public class Renderer extends RendererDeviceConfiguration {
 		return rootFolder;
 	}
 
-	public synchronized GlobalIdRepo getGlobalRepo() {
-		if (globalRepo == null) {
-			globalRepo = new GlobalIdRepo();
-		}
-		return globalRepo;
-	}
-
 	public synchronized void clearLibrary() {
 		clearSharedFolders();
 		if (rootFolder != null) {
 			rootFolder.clearChildren();
 			rootFolder.setDiscovered(false);
+			rootFolder.clearWeakResources();
 		}
-		if (globalRepo != null) {
-			globalRepo.clear();
-		}
-		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
 	public synchronized void resetLibrary() {
@@ -293,7 +279,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		if (rootFolder != null) {
 			rootFolder.reset();
 		}
-		UmsContentDirectoryService.bumpSystemUpdateId();
 	}
 
 	public synchronized void addFolderLimit(LibraryResource res) {

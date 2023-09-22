@@ -40,7 +40,6 @@ import net.pms.library.container.RealFolder;
 import net.pms.library.container.VirtualFolder;
 import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfoStore;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
@@ -339,7 +338,7 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 
 		if (rf.isValid()) {
 			LOGGER.info("New file {} was detected and added to the Media Library", file.getName());
-			UmsContentDirectoryService.bumpSystemUpdateId();
+			LibraryIds.incrementSystemUpdateId();
 
 			/*
 			 * Something about this process causes Java to hold onto the
@@ -389,7 +388,7 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 			renderer.getRootFolder().fileRemoved(filename);
 		}
 		if (MediaInfoStore.removeMediaEntriesInFolder(filename)) {
-			UmsContentDirectoryService.bumpSystemUpdateId();
+			LibraryIds.incrementSystemUpdateId();
 		}
 	}
 
@@ -399,7 +398,7 @@ public class LibraryScanner extends LibraryContainer implements SharedContentLis
 			for (Renderer renderer : ConnectedRenderers.getConnectedRenderers()) {
 				renderer.getRootFolder().fileRemoved(filename);
 			}
-			UmsContentDirectoryService.bumpSystemUpdateId();
+			LibraryIds.incrementSystemUpdateId();
 		}
 	}
 

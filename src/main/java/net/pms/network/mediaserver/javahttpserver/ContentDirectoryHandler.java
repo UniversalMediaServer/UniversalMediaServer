@@ -53,6 +53,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.library.LibraryContainer;
+import net.pms.library.LibraryIds;
 import net.pms.library.LibraryItem;
 import net.pms.library.LibraryResource;
 import net.pms.library.container.MediaLibrary;
@@ -66,7 +67,6 @@ import net.pms.network.mediaserver.handlers.message.BrowseRequest;
 import net.pms.network.mediaserver.handlers.message.BrowseSearchRequest;
 import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.StringUtil;
@@ -407,7 +407,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(LibraryIds.getSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -691,7 +691,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(UmsContentDirectoryService.getDbSystemUpdateId());
+		response.append(LibraryIds.getSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -775,7 +775,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + UmsContentDirectoryService.getDbSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + LibraryIds.getSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -794,7 +794,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(UmsContentDirectoryService.getDbSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(LibraryIds.getSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

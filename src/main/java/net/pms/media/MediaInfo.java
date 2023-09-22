@@ -57,6 +57,7 @@ public class MediaInfo implements Cloneable {
 	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS = getAudioOrVideoContainers();
 
 	// Stored in database
+	private int fileId;
 	private String lastParser;
 	private Double durationSec;
 	private int bitrate;
@@ -79,12 +80,11 @@ public class MediaInfo implements Cloneable {
 	private List<MediaAudio> audioTracks = new ArrayList<>();
 	private List<MediaSubtitle> subtitleTracks = new ArrayList<>();
 	private List<MediaChapter> chapters = new ArrayList<>();
+	private String mimeType;
 
 	/**
 	 * Not stored in database.
 	 */
-	private String mimeType;
-
 	/**
 	 * isUseMediaInfo-related, used to manage thumbnail management separated
 	 * from the main parsing process.
@@ -106,6 +106,14 @@ public class MediaInfo implements Cloneable {
 		this.chapters.clear();
 		this.imageInfo = null;
 		this.imageCount = 0;
+	}
+
+	public int getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(int value) {
+		fileId = value;
 	}
 
 	public int getVideoTrackCount() {
