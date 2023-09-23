@@ -110,11 +110,10 @@ const Renderers = (
         label={i18n.get['LinkRendererTo']}
         defaultValue={userChanger?.userId.toString()}
         onChange={(value) => {setUserChangerValue(value)}}
-        dropdownPosition='bottom'
         maxDropdownHeight={60}
         data={getAccountNameList()}
       />
-      <Group position='right' mt='md'>
+      <Group justify='flex-end' mt='md'>
         <Button
           disabled={!userChangerValue || userChangerValue == userChanger?.userId.toString()}
           onClick={() => { userChanger && setUserId(userChanger.uuid, userChangerValue); setUserChanger(null) }}
@@ -148,11 +147,11 @@ const Renderers = (
   }
 
   const renderersCards = renderers.map((renderer: Renderer) => allowed == renderer.isAllowed && (
-    <Grid.Col span={12} xs={6} key={renderer.id}>
+    <Grid.Col span={{ base: 12, xs: 6 }} key={renderer.id}>
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
-          <Group position='apart'>
-            <Text weight={500} color={getNameColor(renderer)}>{renderer.name}</Text>
+          <Group justify='space-between'>
+            <Text fw={500} color={getNameColor(renderer)}>{renderer.name}</Text>
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
@@ -160,26 +159,26 @@ const Renderers = (
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
+                <Menu.Item leftSection={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
                 {canModify && (<>
-                  <Menu.Item icon={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
+                  <Menu.Item leftSection={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
                   {!renderer.isAuthenticated && renderer.uuid && (
                     <Menu.Item
-                      icon={<Link size={14} />}
+                      leftSection={<Link size={14} />}
                       onClick={() => setUserChanger(renderer)}
                     >
                       {getAccountName(renderer.userId)}
                     </Menu.Item>
                   )}
                   {!renderer.isAuthenticated && !renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item icon={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
                   )}
                   {!renderer.isAuthenticated && renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get['Block']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get['Block']}</Menu.Item>
                   )}
                 </>)}
                 {canControlRenderers && (
-                  <Menu.Item icon={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
+                  <Menu.Item leftSection={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -190,12 +189,12 @@ const Renderers = (
             src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
             height={160}
             fit='contain'
-            sx={!renderer.isActive ? { filter: 'grayscale(95%)' } : undefined}
+            style={!renderer.isActive ? { filter: 'grayscale(95%)' } : undefined}
             alt={renderer.name}
           />
         </Card.Section>
         {renderer.address &&
-          <Text align='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' color='dimmed'>
             {renderer.address}
           </Text>
         }
@@ -203,12 +202,12 @@ const Renderers = (
           <Progress value={renderer.progressPercent} />
         }
         {renderer.playing &&
-          <Text align='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' color='dimmed'>
             {renderer.playing}
           </Text>
         }
         {renderer.time &&
-          <Text align='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' color='dimmed'>
             {renderer.time}
           </Text>
         }
@@ -227,14 +226,14 @@ const Renderers = (
     >
       <Stack>
         {!rendererControlled.isActive &&
-          <Text align='center' color='red'>{i18n.get['RendererNoLongerControllable']}</Text>
+          <Text ta='center' color='red'>{i18n.get['RendererNoLongerControllable']}</Text>
         }
         {rendererControlled.isActive && rendererControlled.playing && (<>
-          <Text align='center' color='blue'>{rendererControlled.playing}</Text>
-          <Text align='center'>{rendererControlled.time}</Text>
+          <Text ta='center' color='blue'>{rendererControlled.playing}</Text>
+          <Text ta='center'>{rendererControlled.time}</Text>
         </>)}
         {((rendererControlled.controls & 1) === 1) && rendererControlled.isActive &&
-          <Group spacing='xs' grow mt='md'>
+          <Group gap='xs' grow mt='md'>
             <ActionIcon style={{ flexGrow: 'unset' }} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
               {rendererControlled.state.mute ?
                 <VolumeOff />
@@ -249,7 +248,7 @@ const Renderers = (
           </Group>
         }
         {((rendererControlled.controls & 2) === 2) && rendererControlled.isActive &&
-          <Group position='center'>
+          <Group justify='center'>
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack /></ActionIcon>
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev /></ActionIcon>
             {rendererControlled.state.playback === 1 ?
@@ -262,7 +261,7 @@ const Renderers = (
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward /></ActionIcon>
           </Group>
         }
-        {rendererControlled.isActive && (<Group position='center'>
+        {rendererControlled.isActive && (<Group justify='center'>
           <MediaChooser
             disabled={!canModify}
             size='xs'
@@ -279,8 +278,8 @@ const Renderers = (
   const renderersHeader = (!allowed && (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
-        <Group position='apart'>
-          <Text weight={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['RenderersBlockedByDefault'] : i18n.get['RenderersAllowedByDefault']}</Text>
+        <Group justify='space-between'>
+          <Text fw={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['RenderersBlockedByDefault'] : i18n.get['RenderersAllowedByDefault']}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
@@ -291,9 +290,9 @@ const Renderers = (
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item icon={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
                   ) : (
-                    <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
                   )}
                 </>
               </Menu.Dropdown>

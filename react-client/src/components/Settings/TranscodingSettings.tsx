@@ -14,9 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { CodeHighlight } from '@mantine/code-highlight';
 import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { Prism } from '@mantine/prism';
 import { useContext, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
 import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
@@ -122,14 +122,14 @@ export default function TranscodingSettings(
           canModify && moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
         }}
         renderList={({ children, props }) => (
-          <Stack justify='flex-start' align='flex-start' spacing='xs' {...props}>
+          <Stack justify='flex-start' align='flex-start' gap='xs' {...props}>
             {children}
           </Stack>
         )}
         renderItem={({ value, props, isDragged, isSelected }) => (
-          <Button {...props} color='gray' size='xs' compact
+          <Button {...props} color='gray' size='compact-xs'
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
-            leftIcon={
+            leftSection={
               <>
                 <ActionIcon data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
                   {engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
@@ -144,10 +144,10 @@ export default function TranscodingSettings(
         )}
       />
     ) : (
-      <Stack justify='flex-start' align='flex-start' spacing='xs'>
+      <Stack justify='flex-start' align='flex-start' gap='xs'>
         {engines.map((value: string) => (
-          <Button variant='subtle' color='gray' size='xs' compact key={value}
-            leftIcon={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
+          <Button variant='subtle' color='gray' size='compact-xs' key={value}
+            leftSection={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
             {selectionSettings.transcodingEngines[value].name}
@@ -191,11 +191,11 @@ export default function TranscodingSettings(
   const getTranscodingCommon = () => {
     return (<>
       <Title mt='sm' order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
-      <Stack spacing='xs'>
+      <Stack gap='xs'>
         <TextInput
           label={i18n.get['MaximumTranscodeBufferSize']}
           name='maximum_video_buffer_size'
-          sx={{ flex: 1 }}
+          style={{ flex: 1 }}
           size='xs'
           disabled={!canModify}
           {...form.getInputProps('maximum_video_buffer_size')}
@@ -220,7 +220,7 @@ export default function TranscodingSettings(
           <Grid.Col span={2}>
             <TextInput
               size='xs'
-              sx={{ flex: 1 }}
+              style={{ flex: 1 }}
               disabled={!canModify || !form.values['chapter_support']}
               {...form.getInputProps('chapter_interval')}
             />
@@ -239,7 +239,7 @@ export default function TranscodingSettings(
             <Tabs.Tab value='TranscodingSubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='TranscodingVideoSettings'>
-            <Stack spacing='xs'>
+            <Stack gap='xs'>
               <Checkbox
                 mt='xs'
                 disabled={!canModify}
@@ -259,7 +259,7 @@ export default function TranscodingSettings(
                 <TextInput
                   label={i18n.get['TranscodingQualityMpeg2']}
                   size='xs'
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   disabled={!canModify || form.values['automatic_maximum_bitrate']}
                   {...form.getInputProps('mpeg2_main_settings')}
                 />
@@ -268,7 +268,7 @@ export default function TranscodingSettings(
                 <TextInput
                   label={i18n.get['TranscodingQualityH264']}
                   size='xs'
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   disabled={!canModify || form.values['automatic_maximum_bitrate']}
                   {...form.getInputProps('x264_constant_rate_factor')}
                 />
@@ -277,20 +277,20 @@ export default function TranscodingSettings(
                 disabled={!canModify}
                 label={i18n.get['SkipTranscodingFollowingExtensions']}
                 size='xs'
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 {...form.getInputProps('disable_transcode_for_extensions')}
               />
               <TextInput
                 disabled={!canModify}
                 size='xs'
                 label={i18n.get['ForceTranscodingFollowingExtensions']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 {...form.getInputProps('force_transcode_for_extensions')}
               />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingAudioSettings'>
-            <Stack spacing='xs'>
+            <Stack gap='xs'>
               <Select
                 disabled={!canModify}
                 label={i18n.get['MaximumNumberAudioChannelsOutput']}
@@ -325,26 +325,26 @@ export default function TranscodingSettings(
               <TextInput
                 disabled={!canModify}
                 label={i18n.get['Ac3ReencodingAudioBitrate']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('audio_bitrate')}
               />
               <TextInput
                 disabled={!canModify}
                 label={i18n.get['AudioLanguagePriority']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('audio_languages')}
               />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingSubtitlesSettings'>
-            <Stack spacing='xs'>
+            <Stack gap='xs'>
               <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
                 <TextInput
                   disabled={!canModify}
                   label={i18n.get['SubtitlesLanguagePriority']}
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('subtitles_languages')}
                 />
@@ -352,14 +352,14 @@ export default function TranscodingSettings(
               <TextInput
                 disabled={!canModify}
                 label={i18n.get['ForcedLanguage']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('forced_subtitle_language')}
               />
               <TextInput
                 disabled={!canModify}
                 label={i18n.get['ForcedTags']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('forced_subtitle_tags')}
               />
@@ -367,7 +367,7 @@ export default function TranscodingSettings(
                 <TextInput
                   disabled={!canModify}
                   label={i18n.get['AudioSubtitlesLanguagePriority']}
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('audio_subtitles_languages')}
                 />
@@ -408,7 +408,7 @@ export default function TranscodingSettings(
                   <TextInput
                     disabled={!canModify}
                     label={i18n.get['FontScale']}
-                    sx={{ flex: 1 }}
+                    style={{ flex: 1 }}
                     size='xs'
                     {...form.getInputProps('subtitles_ass_scale')}
                   />
@@ -484,7 +484,7 @@ export default function TranscodingSettings(
                 <TextInput
                   disabled={!canModify}
                   label={i18n.get['Color']}
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('subtitles_color')}
                 />
@@ -535,7 +535,7 @@ export default function TranscodingSettings(
   const getSimpleTranscodingCommon = () => {
     return (<>
       <Title mt='sm' order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
-      <Stack spacing='xs'>
+      <Stack gap='xs'>
         <Checkbox
           size='xs'
           disabled={!canModify}
@@ -552,7 +552,7 @@ export default function TranscodingSettings(
       return (
         <>
           <Title my='sm' order={5}>{currentEngine.name}</Title>
-          <Stack spacing='xs'>
+          <Stack gap='xs'>
             <Text size='xs'><ExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get['ThisEngineNotLoaded']}</Text>
             <Text size='xs'>{i18n.getI18nFormat(currentEngine.statusText)}</Text>
           </Stack>
@@ -570,7 +570,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack justify='flex-start' align='flex-start' spacing='xs'>
+        <Stack justify='flex-start' align='flex-start' gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -596,7 +596,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -616,7 +616,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -643,7 +643,7 @@ export default function TranscodingSettings(
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
         <Title mb='sm' order={6}>{i18n.get['GeneralSettings']}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -675,7 +675,7 @@ export default function TranscodingSettings(
               <TextInput
                 disabled={!canModify || !form.values['mencoder_scaler']}
                 label={i18n.get['Width']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('mencoder_scalex')}
               />
@@ -726,20 +726,23 @@ export default function TranscodingSettings(
               label={i18n.get['UseApplicationDefaults']}
               {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
             />
-            <Prism language={'markup'}>{
-              i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
-              i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
-              i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
-              i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
-              i18n.get['MencoderConfigScript.5.SpecialOptions'] +
-              i18n.get['MencoderConfigScript.6.Noass'] +
-              i18n.get['MencoderConfigScript.7.Nosync'] +
-              i18n.get['MencoderConfigScript.8.Quality'] +
-              i18n.get['MencoderConfigScript.9.Nomux'] +
-              i18n.get['MencoderConfigScript.10.YouCanPut'] +
-              i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
-              i18n.get['MencoderConfigScript.12.ToRemux']}
-            </Prism>
+            <CodeHighlight
+              language={'markup'}
+              code = {
+                i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
+                i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
+                i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
+                i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
+                i18n.get['MencoderConfigScript.5.SpecialOptions'] +
+                i18n.get['MencoderConfigScript.6.Noass'] +
+                i18n.get['MencoderConfigScript.7.Nosync'] +
+                i18n.get['MencoderConfigScript.8.Quality'] +
+                i18n.get['MencoderConfigScript.9.Nomux'] +
+                i18n.get['MencoderConfigScript.10.YouCanPut'] +
+                i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
+                i18n.get['MencoderConfigScript.12.ToRemux']
+              }
+            />
             <Textarea
               disabled={!canModify}
               label={i18n.get['CustomParameters']}
@@ -748,8 +751,8 @@ export default function TranscodingSettings(
               {...form.getInputProps('mencoder_codec_specific_script')}
             />
           </Modal>
-          <Group position='center'>
-            <Button variant='subtle' compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
+          <Group justify='center'>
+            <Button variant='subtle' size='compact-md' onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
           </Group>
           <Grid>
             <Grid.Col span={6}>
@@ -762,7 +765,7 @@ export default function TranscodingSettings(
               <TextInput
                 disabled={!canModify}
                 label={i18n.get['Height'] + '(%)'}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('mencoder_overscan_compensation_height')}
               />
@@ -778,7 +781,7 @@ export default function TranscodingSettings(
           </Grid>
         </Stack>
         <Title my='sm' order={6}>{i18n.get['SubtitlesSettings']}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -804,7 +807,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
@@ -841,7 +844,7 @@ export default function TranscodingSettings(
               <Tabs.Tab value='2Dto3DConversionSettings'>{i18n.get['2Dto3DConversionSettings']}</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value='2Dto3DConversionSettings'>
-              <Stack spacing='xs'>
+              <Stack gap='xs'>
                 <Checkbox
                   mt='xs'
                   disabled={!canModify}
@@ -939,7 +942,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Select
             disabled={!canModify}
             size='xs'

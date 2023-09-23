@@ -171,7 +171,7 @@ const Home = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Tabs keepMounted={false} defaultValue='renderers'>
         <Tabs.List>
           <Tabs.Tab value='renderers'>{i18n.get['DetectedMediaRenderers']}</Tabs.Tab>

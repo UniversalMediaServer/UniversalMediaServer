@@ -18,7 +18,7 @@ import { Box, Button, Checkbox, Divider, Group, Modal, MultiSelect, Pagination, 
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { Prism } from '@mantine/prism';
+import { CodeHighlight } from '@mantine/code-highlight';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
@@ -30,7 +30,6 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
 import { allowHtml, defaultTooltipSettings, logsApiUrl } from '../../utils';
-import './prism-ums';
 
 const Logs = () => {
   const i18n = useContext(I18nContext);
@@ -277,7 +276,7 @@ const Logs = () => {
   }
 
   return canModify ? (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Modal
         centered
         opened={filterOpened}
@@ -310,7 +309,7 @@ const Logs = () => {
           </Tooltip>
           <Button
             type='submit'
-            leftIcon={<ListSearch />}
+            leftSection={<ListSearch />}
           >
             {i18n.get['Search']}
           </Button>
@@ -357,11 +356,11 @@ const Logs = () => {
           </Tooltip>
           {traceMode === 0 &&
             <Tooltip label={allowHtml(i18n.get['RestartUniversalMediaServerTrace'])} {...defaultTooltipSettings}>
-              <Button leftIcon={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get['CreateTraceLogs']}</Button>
+              <Button leftSection={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get['CreateTraceLogs']}</Button>
             </Tooltip>
           }
           <Tooltip label={allowHtml(i18n.get['PackLogConfigurationFileCompressed'])} {...defaultTooltipSettings}>
-            <Button leftIcon={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get['PackDebugFiles']}</Button>
+            <Button leftSection={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get['PackDebugFiles']}</Button>
           </Tooltip>
         </Stack>
       </Modal>
@@ -397,34 +396,33 @@ const Logs = () => {
           onChange={setFileMode}
           data={[{ label: i18n.get['Server'], value: '' }, { label: i18n.get['File'], value: 'file' }]}
         />
-        <Button leftIcon={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get['Filter']}</Button>
+        <Button leftSection={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get['Filter']}</Button>
         {fileMode ?
           <Dropzone
-            padding={5}
+            p={5}
             onDrop={(files: FileWithPath[]) => readLogFile(files)}
             maxFiles={1}
           >
-            <Text align='center'>Drop/Select log here</Text>
+            <Text ta='center'>Drop/Select log here</Text>
           </Dropzone>
           :
-          <Button leftIcon={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get['Options']}</Button>
+          <Button leftSection={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get['Options']}</Button>
         }
       </Group>
       <Divider my='sm' />
       <Pagination value={activePage} onChange={setActivePage} total={totalPage} />
       <Divider my='sm' />
       <ScrollArea offsetScrollbars style={{ height: 'calc(100vh - 275px)' }}>
-        <Prism
-          noCopy
+        <CodeHighlight
+          code={activeLogs.join(fileMode ? '\n' : '')}
           language={'ums' as any}
-        >
-          {activeLogs.join(fileMode ? '\n' : '')}
-        </Prism>
+          withCopyButton={false}
+        />
       </ScrollArea>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   )
 };

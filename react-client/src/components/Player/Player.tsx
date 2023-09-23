@@ -73,7 +73,7 @@ export const Player = () => {
         mb='xs'
         shadow='xs'
         p='sm'
-        sx={(theme: MantineTheme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
+        style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
       >
         <Group>
           <Breadcrumbs
@@ -86,7 +86,7 @@ export const Player = () => {
                 onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
                 color='gray'
                 variant='subtle'
-                compact
+                size='compact-md'
               >
                 {breadcrumb.name === 'root' ? (<Home />) : (breadcrumb.name)}
               </Button>)
@@ -169,7 +169,7 @@ export const Player = () => {
       >
         {image}
         <div className='thumbnail-text-wrapper'>
-          <Text align='left' size='sm' lineClamp={1} className='thumbnail-text'>
+          <Text ta='left' size='sm' lineClamp={1} className='thumbnail-text'>
             {media.name}
           </Text>
         </div>
@@ -191,7 +191,7 @@ export const Player = () => {
       const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Title order={2} mb='md' size='h4' weight={400}>{i18n.get[title]}</Title><div className='front-page-grid'>{medias}</div></>);
+      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div className='front-page-grid'>{medias}</div></>);
     }
   }
 
@@ -208,19 +208,19 @@ export const Player = () => {
 
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group spacing='xs' mt='sm' sx={(theme: MantineTheme) => ({ color: theme.colorScheme === 'dark' ? 'white' : 'black', })}>
-        <Text weight={700}>{i18n.get[title]}: </Text>
+      return (<Group gap='xs' mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+        <Text fw={700}>{i18n.get[title]}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
             <Badge
               key={media.id}
-              sx={(theme: MantineTheme) => ({
+              style={(theme: MantineTheme) => ({
                 cursor: 'pointer',
-                color: theme.colorScheme === 'dark' ? 'white' : 'black',
-                backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                color: theme.activeClassName === 'dark' ? 'white' : 'black',
+                backgroundColor: theme.activeClassName === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
                 '&:hover': {
                   backgroundColor:
-                    theme.colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
+                    theme.activeClassName === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
               onClick={() => { media.id && sse.askBrowseId(media.id) }}
@@ -241,8 +241,8 @@ export const Player = () => {
   const getMetadataString = (title: string, mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' sx={(theme: MantineTheme) => ({ color: theme.colorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text weight={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+          <Text fw={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
   }
@@ -250,7 +250,7 @@ export const Player = () => {
   const getMetadataTagLine = (mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' sx={(theme: MantineTheme) => ({ color: theme.colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
           <Tag /><Text fs='italic'>{mediaString}</Text>
         </Group>);
     }
@@ -259,8 +259,8 @@ export const Player = () => {
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
-        <Group mt='sm' sx={(theme: MantineTheme) => ({ color: theme.colorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text weight={700}>{i18n.get['Ratings']}: </Text>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+          <Text fw={700}>{i18n.get['Ratings']}: </Text>
         </Group>
         <List withPadding>
           {ratingsList.map((media: MediaRating) => {
@@ -313,7 +313,7 @@ export const Player = () => {
           logo = (
             <Group pb='xs'>
               <img src={metadata.imageBaseURL + 'w500' + betterLogo.file_path} style={{ maxHeight: '150px', maxWidth: 'calc(100% - 61px)' }} alt={metadata.originalTitle}></img>
-              <Stack spacing={0}>{imdb}{tmdb}</Stack>
+              <Stack gap={0}>{imdb}{tmdb}</Stack>
             </Group>
           );
         }
@@ -341,7 +341,7 @@ export const Player = () => {
         logo = (
           <Group pb='xs'>
             <Text pb='xs'>{title}</Text>
-            <Stack spacing={0}>{imdb}{tmdb}</Stack>
+            <Stack gap={0}>{imdb}{tmdb}</Stack>
           </Group>
         );
       }
@@ -426,18 +426,18 @@ export const Player = () => {
     if (data.goal === 'show') {
       return (
         <Button.Group>
-          <Button variant='default' compact leftIcon={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get['Play']}</Button>
+          <Button variant='default' size='compact-md' leftSection={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get['Play']}</Button>
           {data.useWebControl && (
             <Tooltip withinPortal label={i18n.get['PlayOnAnotherRenderer']}>
-              <Button variant='default' disabled compact onClick={() => { }}><Cast size={14} /></Button>
+              <Button variant='default' disabled size='compact-md' onClick={() => { }}><Cast size={14} /></Button>
             </Tooltip>
           )}
           <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
-            <Button variant='default' disabled compact onClick={() => { }}><PlaylistAdd size={14} /></Button>
+            <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
           </Tooltip>
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get['Download']}>
-              <Button variant='default' compact onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
+              <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
@@ -455,7 +455,7 @@ export const Player = () => {
                 {images.poster}
               </Grid.Col>
               <Grid.Col span={12}>
-                <Card shadow='sm' p='lg' radius='md' sx={(theme: MantineTheme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   {images.logo}
                   {getPlayControls()}
                   {getMetadataTagLine(metadata.tagline)}
@@ -488,7 +488,7 @@ export const Player = () => {
                 <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
-                <Card shadow='sm' p='lg' radius='md' sx={(theme: MantineTheme) => ({ backgroundColor: theme.colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   <Text pb='xs'>{media.name}</Text>
                   {getPlayControls()}
                 </Card>
@@ -569,9 +569,9 @@ export const Player = () => {
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
-            compact
-            styles={{ inner: { justifyContent: 'normal' }, root: { fontWeight: 400, '&:hover': { fontWeight: 600 } } }}
-            leftIcon={getFolderIcon(folder)}
+            size='compact-md'
+            styles={{ inner: { justifyContent: 'normal' }, root: { fontWeight: 400 } }}
+            leftSection={getFolderIcon(folder)}
           >
             {folder.name}
           </Button>
@@ -586,9 +586,9 @@ export const Player = () => {
             onClick={() => sse.askBrowseId(folder.id)}
             color='gray'
             variant='subtle'
-            compact
-            styles={{ inner: { justifyContent: 'normal' }, root: { fontWeight: 400, '&:hover': { fontWeight: 600 } } }}
-            leftIcon={getFolderIcon(folder)}
+            size='compact-md'
+            styles={{ inner: { justifyContent: 'normal' }, root: { fontWeight: 400 } }}
+            leftSection={getFolderIcon(folder)}
           >
             {folder.name}
           </Button>
@@ -632,7 +632,7 @@ export const Player = () => {
       </div>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );

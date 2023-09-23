@@ -36,7 +36,7 @@ export const ServerEventStatus = () => {
   ];
 
   return (
-    <Tooltip label={connectionStatusTooltip[sse.connectionStatus]} width={350} color='blue' multiline withArrow>
+    <Tooltip label={connectionStatusTooltip[sse.connectionStatus]} style={{ width: 350 }} color='blue' multiline withArrow>
       <ThemeIcon variant='light' color={connectionStatusStr[sse.connectionStatus]}>
         {sse.connectionStatus === 1 ? <PlugConnected /> : <PlugConnectedX />}
       </ThemeIcon>

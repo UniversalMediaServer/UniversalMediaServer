@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
@@ -113,7 +113,7 @@ export default function GeneralSettings(
                 label={i18n.get['ServerName']}
                 placeholder={defaultConfiguration.server_name}
                 name='server_name'
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 {...form.getInputProps('server_name')}
               />
               <Tooltip label={allowHtml(i18n.get['WhenEnabledUmsProfileName'])} {...defaultTooltipSettings}>
@@ -125,7 +125,7 @@ export default function GeneralSettings(
                 />
               </Tooltip>
             </Group>
-            <Divider mt='md' label={i18n.get['MediaServer']} labelProps={{ size: 'md' }} />
+            <Divider mt='md' label={<Text fz='md'>{i18n.get['MediaServer']}</Text>} />
             <Tooltip label={allowHtml(i18n.get['DefaultOptionIsHighlyRecommended'])} {...defaultTooltipSettings}>
               <Select
                 disabled={!canModify}
@@ -160,7 +160,7 @@ export default function GeneralSettings(
                 {...form.getInputProps('chromecast_extension', { type: 'checkbox' })}
               />
             </Stack>
-            <Divider mt='md' label={i18n.get['WebPlayer']} labelProps={{ size: 'md' }} />
+            <Divider mt='md' label={<Text fz='md'>{i18n.get['WebPlayer']}</Text>} />
             <Checkbox
               disabled={!canModify}
               label={i18n.get['EnableWebPlayer']}
@@ -213,7 +213,7 @@ export default function GeneralSettings(
               <NumberInput
                 label={i18n.get['MaximumBandwidthMbs']}
                 disabled={!canModify || form.values['automatic_maximum_bitrate']}
-                sx={{ flex: 1 }}
+                style={{ flex: 1 }}
                 placeholder={i18n.get['Mbs']}
                 hideControls
                 {...form.getInputProps('maximum_bitrate')}

@@ -49,7 +49,7 @@ export default function NavigationSettings(
       <Accordion.Item value='NavigationGeneralSettings'>
         <Accordion.Control>{i18n.get['GeneralSettings']}</Accordion.Control>
         <Accordion.Panel>
-          <Group position='apart'>
+          <Group justify='space-between'>
             <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
               <Checkbox
                 disabled={!canModify}

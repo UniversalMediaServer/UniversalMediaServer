@@ -259,7 +259,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color='blue'
-          icon=<ZoomCheck />
+          leftSection=<ZoomCheck />
           disabled={!canModify || !value.uri || isLoading}
           onClick={() => updateSharedContentFeedName(value)}
         >
@@ -275,7 +275,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color={value.monitored ? 'green' : 'red'}
-          icon={value.monitored ? <Analyze /> : <AnalyzeOff />}
+          leftSection={value.monitored ? <Analyze /> : <AnalyzeOff />}
           disabled={!canModify || !configuration.use_cache}
           onClick={() => toggleFolderMonitored(value)}
         >
@@ -283,7 +283,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='blue'
-          icon=<EyeCheck />
+          leftSection=<EyeCheck />
           disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
@@ -291,7 +291,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='green'
-          icon=<EyeOff />
+          leftSection=<EyeOff />
           disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
@@ -387,7 +387,7 @@ export default function SharedContentSettings(
                   {getSharedContentView(value)}
                 </td>
                 <td>
-                  <Group position='right'>
+                  <Group justify='flex-end'>
                     <Menu zIndex={5000}>
                       <Menu.Target>
                         <ActionIcon variant='default' size={30}>
@@ -397,7 +397,7 @@ export default function SharedContentSettings(
                       <Menu.Dropdown>
                         <Menu.Item
                           color='green'
-                          icon=<Edit />
+                          leftSection=<Edit />
                           disabled={!canModify}
                           onClick={() => editSharedContentItem(value)}
                         >
@@ -405,7 +405,7 @@ export default function SharedContentSettings(
                         </Menu.Item>
                         <Menu.Item
                           color={value.active ? 'blue' : 'orange'}
-                          icon={value.active ? <Share /> : <ShareOff />}
+                          leftSection={value.active ? <Share /> : <ShareOff />}
                           disabled={!canModify}
                           onClick={() => toogleSharedContentItemActive(value)}
                         >
@@ -415,7 +415,7 @@ export default function SharedContentSettings(
                         <Menu.Divider />
                         <Menu.Item
                           color='red'
-                          icon=<SquareX />
+                          leftSection=<SquareX />
                           disabled={!canModify}
                           onClick={() => removeSharedContentItem(value)}
                         >
@@ -453,7 +453,7 @@ export default function SharedContentSettings(
 
   const getSharedContentChildsDirectoryChooser = () => {
     return modalForm.values['contentChilds'].map((child: Folder, index) => (
-      <Group key={index} position='apart' spacing={0}>
+      <Group key={index} justify='space-between' gap={0}>
         <DirectoryChooser
           disabled={!canModify}
           size='xs'
@@ -518,7 +518,7 @@ export default function SharedContentSettings(
             label={i18n.get['Name']}
             placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get['NamesSetAutomaticallyFeeds'] : ''}
             name='contentName'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentName')}
           />
         )}
@@ -528,7 +528,7 @@ export default function SharedContentSettings(
             label={i18n.get['Path']}
             placeholder={modalForm.values['contentType'] !== 'VirtualFolder' ? 'Web' : ''}
             name='contentPath'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentPath')}
           />
         )}
@@ -547,7 +547,7 @@ export default function SharedContentSettings(
             disabled={!canModify}
             label={i18n.get['SourceURLColon']}
             name='contentSource'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentSource')}
           />
         )}
@@ -562,7 +562,7 @@ export default function SharedContentSettings(
           ></DirectoryChooser>
         </>)}
         <MultiSelect
-          icon={<Users />}
+          leftSection={<Users />}
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get['AuthorizedGroups']}
@@ -570,7 +570,7 @@ export default function SharedContentSettings(
           maxDropdownHeight={120}
           {...modalForm.getInputProps('contentGroups')}
         />
-        <Group position='right' mt='sm'>
+        <Group justify='flex-end' mt='sm'>
           <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
             {canModify ? isNew ? i18n.get['Add'] : i18n.get['Apply'] : i18n.get['Close']}
           </Button>
@@ -689,7 +689,7 @@ export default function SharedContentSettings(
   return (
     <>
       <Group>
-        <Button leftIcon={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
+        <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get['AddNewSharedContent']}
         </Button>
         {getScanSharedFoldersButton()}

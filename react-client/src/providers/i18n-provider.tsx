@@ -98,7 +98,7 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
       get: i18n,
       getI18nString: getI18nString,
       getI18nFormat: getI18nFormat,
-      language: language,
+      language: language || 'en-US',
       rtl: rtl,
       languages: languages,
       setLanguage: setLanguage

@@ -78,8 +78,8 @@ const NetworkDevices = (
   const networkDevicesHeader = (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
-        <Group position='apart'>
-          <Text weight={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['NetworkDevicesBlockedByDefault'] : i18n.get['NetworkDevicesAllowedByDefault']}</Text>
+        <Group justify='space-between'>
+          <Text fw={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['NetworkDevicesBlockedByDefault'] : i18n.get['NetworkDevicesAllowedByDefault']}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
@@ -90,12 +90,12 @@ const NetworkDevices = (
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item icon={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
                   ) : (
-                    <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
                   )}
-                  <Menu.Item icon={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get['Refresh']}</Menu.Item>
-                  <Menu.Item icon={<CodePlus size={14} />} onClick={() => open()}>{i18n.get['AddCustomFilter']}</Menu.Item>
+                  <Menu.Item leftSection={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get['Refresh']}</Menu.Item>
+                  <Menu.Item leftSection={<CodePlus size={14} />} onClick={() => open()}>{i18n.get['AddCustomFilter']}</Menu.Item>
                 </>
               </Menu.Dropdown>
             </Menu>
@@ -120,11 +120,11 @@ const NetworkDevices = (
   );
 
   const networkDevicesCards = networkDeviceFilters && networkDeviceFilters.map((deviceFilter: NetworkDevicesFilter) => (
-    <Grid.Col span={12} xs={6} key={deviceFilter.name}>
+    <Grid.Col span={{ base: 12, xs: 6 }} key={deviceFilter.name}>
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
-          <Group position='apart'>
-            <Text weight={500} color={deviceFilter.isAllowed ? 'green' : 'red'}>{deviceFilter.name}</Text>
+          <Group justify='space-between'>
+            <Text fw={500} color={deviceFilter.isAllowed ? 'green' : 'red'}>{deviceFilter.name}</Text>
             {canModify && !deviceFilter.isDefault && (
               <Menu withinPortal position='bottom-end' shadow='sm'>
                 <Menu.Target>
@@ -135,10 +135,10 @@ const NetworkDevices = (
                 <Menu.Dropdown>
                   <>
                     {!deviceFilter.isAllowed && (
-                      <Menu.Item icon={<DevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
+                      <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
                     )}
                     {deviceFilter.isAllowed && (
-                      <Menu.Item icon={<DevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get['Block']}</Menu.Item>
+                      <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get['Block']}</Menu.Item>
                     )}
                   </>
                 </Menu.Dropdown>
@@ -148,16 +148,16 @@ const NetworkDevices = (
         </Card.Section>
         {deviceFilter.devices && deviceFilter.devices.map((device: NetworkDevice, index) => (
           <Card.Section key={'devices' + index}>
-            <Text align='center' size='sm'>
+            <Text ta='center' size='sm'>
               {device.hostName}
             </Text>
             {device.ipAddress != device.hostName && (
-              <Text align='center' size='sm' color='dimmed'>
+              <Text ta='center' size='sm' color='dimmed'>
                 {device.ipAddress}
               </Text>
             )}
             {device.lastSeen && (
-              <Text align='center' size='sm' color='dimmed'>
+              <Text ta='center' size='sm' color='dimmed'>
                 {getFormatedInterval(device.lastSeen)}
               </Text>
             )}

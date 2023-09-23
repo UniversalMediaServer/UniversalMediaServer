@@ -48,7 +48,7 @@ const Actions = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       {canRestartServer &&
         <Modal
           centered
@@ -57,12 +57,12 @@ const Actions = () => {
           onClose={() => setRestartServerOpened(false)}
           title={(<Text color='red'>{i18n.get['Warning']}</Text>)}
         >
-          <Text weight={600}>{i18n.get['ThisRestartsMediaServices']}</Text>
+          <Text fw={600}>{i18n.get['ThisRestartsMediaServices']}</Text>
           <List>
             <List.Item><Code>{i18n.get['NetworkConnectionsWillClosed']}</Code></List.Item>
           </List>
           <Text>{i18n.get['AreYouSureContinue']}</Text>
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button onClick={() => setRestartServerOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color='red' onClick={() => { setRestartServerOpened(false); restartServer() }}>{i18n.get['Confirm']}</Button>
           </Group>
@@ -76,13 +76,13 @@ const Actions = () => {
           onClose={() => setRestartApplicationOpened(false)}
           title={<Text color='red'>{i18n.get['Warning']}</Text>}
         >
-          <Text weight={600}>{i18n.get['ThisStopsRestartsApp']}</Text>
+          <Text fw={600}>{i18n.get['ThisStopsRestartsApp']}</Text>
           <List>
             <List.Item><Code>{i18n.get['NetworkConnectionsWillClosed']}</Code></List.Item>
             <List.Item><Code>{i18n.get['YouWillTemporarilyNotAbleAccessServer']}</Code></List.Item>
           </List>
           <Text>{i18n.get['AreYouSureContinue']}</Text>
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button onClick={() => setRestartApplicationOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color='red' onClick={() => { setRestartApplicationOpened(false); restartApplication() }}>{i18n.get['Confirm']}</Button>
           </Group>
@@ -96,13 +96,13 @@ const Actions = () => {
           onClose={() => setShutdownApplicationOpened(false)}
           title={<Text color='red'>{i18n.get['Warning']}</Text>}
         >
-          <Text weight={600}>{i18n.get['ThisClosesApp']}</Text>
+          <Text fw={600}>{i18n.get['ThisClosesApp']}</Text>
           <List>
             <List.Item><Code>{i18n.get['NetworkConnectionsWillClosed']}</Code></List.Item>
             <List.Item><Code color='red'>{i18n.get['YouWillNotAbleAccessServer']}</Code></List.Item>
           </List>
           <Text>{i18n.get['AreYouSureContinue']}</Text>
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button onClick={() => setShutdownApplicationOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color='red' onClick={() => { setShutdownApplicationOpened(false); shutdownApplication() }}>{i18n.get['Confirm']}</Button>
           </Group>
@@ -110,21 +110,21 @@ const Actions = () => {
       }
       <Stack>
         {canModify && (
-          <Button leftIcon={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
+          <Button leftSection={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
         )}
         {canRestartServer && (
           <Tooltip label={i18n.get['ThisRestartsMediaServices']} {...defaultTooltipSettings}>
-            <Button leftIcon={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get['RestartServer']}</Button>
+            <Button leftSection={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get['RestartServer']}</Button>
           </Tooltip>
         )}
         {canRestartApplication && (
           <Tooltip label={i18n.get['ThisStopsRestartsApp']} {...defaultTooltipSettings}>
-            <Button leftIcon={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get['RestartApplication']}</Button>
+            <Button leftSection={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get['RestartApplication']}</Button>
           </Tooltip>
         )}
         {canShutdownApplication && (
           <Tooltip label={i18n.get['ThisClosesApp']} {...defaultTooltipSettings}>
-            <Button leftIcon={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
+            <Button leftSection={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
           </Tooltip>
         )}
       </Stack>

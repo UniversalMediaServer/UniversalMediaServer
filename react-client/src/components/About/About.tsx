@@ -37,9 +37,9 @@ const About = () => {
     <tr key={language.id}>
       <td><Group style={{ cursor: 'default' }}><ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} /><Text>{language.name}</Text></Group></td>
       {language.id === 'en-US' ? (
-        <td><Group style={{ cursor: 'default' }} position='right'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></td>
+        <td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></td>
       ) : (
-        <td><Group style={{ cursor: 'default' }} position='right'>
+        <td><Group style={{ cursor: 'default' }} justify='flex-end'>
           <Text>{language.coverage === 100 ? i18n.get['Completed'] : i18n.get['InProgress'] + ' (' + language.coverage + '%)'}</Text>
           <ActionIcon variant='default' onClick={() => { window.open('https://crowdin.com/project/universalmediaserver/' + language.id, '_blank'); }}>
             <Edit />
@@ -50,7 +50,7 @@ const About = () => {
   ));
   const linksRows = aboutDatas.links.map((link: { key: string, value: string }) => (
     <tr key={link.key}>
-      <td><Text align='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></td>
+      <td><Text ta='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></td>
     </tr>
   ));
 
@@ -71,7 +71,7 @@ const About = () => {
   }, [i18n]);
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Tabs defaultValue='application'>
         <Tabs.List>
           <Tabs.Tab value='application'>{i18n.get['Application']}</Tabs.Tab>
@@ -82,7 +82,7 @@ const About = () => {
           <Table striped>
             <thead>
               <tr>
-                <th colSpan={2}><Text color='blue' size='lg' align='center'>{aboutDatas.app}</Text></th>
+                <th colSpan={2}><Text color='blue' size='lg' ta='center'>{aboutDatas.app}</Text></th>
               </tr>
             </thead>
             <tbody>
@@ -106,7 +106,7 @@ const About = () => {
             {(canView && !session.player) && <>
               <thead>
                 <tr>
-                  <th colSpan={2}><Text color='blue' size='lg' align='center'>{i18n.get['System']}</Text></th>
+                  <th colSpan={2}><Text color='blue' size='lg' ta='center'>{i18n.get['System']}</Text></th>
                 </tr>
               </thead>
               <tbody>

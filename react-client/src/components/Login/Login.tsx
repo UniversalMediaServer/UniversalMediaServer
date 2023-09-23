@@ -91,7 +91,7 @@ const Login = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 300 }} mx='auto'>
+    <Box style={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
         <Text size='xl'>Universal Media Server</Text>
         <Text size='lg'>{session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn']}</Text>
@@ -99,17 +99,17 @@ const Login = () => {
         <TextInput
           required
           label={i18n.get['Username']}
-          icon={<User size={14} />}
+          leftSection={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
           label={i18n.get['Password']}
           type='password'
-          icon={<Lock size={14} />}
+          leftSection={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
-        <Group position='right' mt='md'>
+        <Group justify='flex-end' mt='md'>
           <Button type='submit'>{session.noAdminFound ? i18n.get['Create'] : i18n.get['LogIn']}</Button>
         </Group>
         {session.noAdminFound && session.authenticate && (
@@ -122,12 +122,12 @@ const Login = () => {
               title={i18n.get['Warning']}
             >
               <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
-              <Group position='right' mt='md'>
+              <Group justify='flex-end' mt='md'>
                 <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
                 <Button color='red' onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
               </Group>
             </Modal>
-            <Group position='center' mt='md'>
+            <Group justify='center' mt='md'>
               <Button color='red' onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
             </Group>
           </>
