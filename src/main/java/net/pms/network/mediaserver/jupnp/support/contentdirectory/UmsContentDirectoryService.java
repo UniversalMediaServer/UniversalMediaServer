@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.PMS;
 import net.pms.dlna.DidlHelper;
 import net.pms.library.LibraryContainer;
@@ -150,9 +149,6 @@ public class UmsContentDirectoryService {
 	private static final List<String> CAPS_SEARCH = List.of();
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
-	private static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
-	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
-	private static UnsignedIntegerFourBytes dbSystemUpdateID;
 
 	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
@@ -195,19 +191,22 @@ public class UmsContentDirectoryService {
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "SearchCaps"))
+			@UpnpOutputArgument(name = "SearchCaps")
+	)
 	public CSV<String> getSearchCapabilities() {
 		return searchCapabilities;
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "SortCaps"))
+			@UpnpOutputArgument(name = "SortCaps")
+	)
 	public CSV<String> getSortCapabilities() {
 		return sortCapabilities;
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "Id"))
+			@UpnpOutputArgument(name = "Id")
+	)
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
 		return LibraryIds.getSystemUpdateId();
 	}

@@ -32,6 +32,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "analyze": "source-map-explorer '../src/main/external-resources/web/react-client/static/js/*.js'",
     "build-player": "REACT_APP_MODE=player react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -58,15 +59,16 @@
     "@testing-library/react": "14.0.0",
     "@testing-library/user-event": "14.5.1",
     "@types/jest": "29.5.5",
-    "@types/lodash": "4.14.198",
+    "@types/lodash": "4.14.199",
     "@types/node": "18.17.18",
     "@types/react": "18.2.21",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.2.7",
     "@typescript-eslint/eslint-plugin": "6.7.2",
     "@typescript-eslint/parser": "6.7.2",
-    "eslint": "8.49.0",
+    "eslint": "8.50.0",
     "eslint-plugin-react": "7.33.2",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "source-map-explorer": "2.5.3"
   }
 }
