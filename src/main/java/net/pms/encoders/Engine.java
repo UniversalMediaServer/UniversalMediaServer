@@ -36,12 +36,12 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
@@ -142,21 +142,21 @@ public abstract class Engine {
 	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public abstract ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException;
 
 	/**
 	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link LibraryItem}. If {@code resource} is {@code null} {@code false}
+	 * {@link StoreItem}. If {@code resource} is {@code null} {@code false}
 	 * will be returned.
 	 *
-	 * @param resource the {@link LibraryItem} to be matched.
+	 * @param resource the {@link StoreItem} to be matched.
 	 * @return {@code true} if {@code resource} can be handled, {@code false}
 	 *         otherwise.
 	 */
-	public abstract boolean isCompatible(LibraryItem resource);
+	public abstract boolean isCompatible(StoreItem resource);
 
 	protected abstract boolean isSpecificTest();
 
@@ -964,7 +964,7 @@ public abstract class Engine {
 	 * @param media The MediaInfo metadata for the file.
 	 * @param params The parameters to populate.
 	 */
-	public static void setAudioAndSubs(LibraryItem resource, OutputParams params) {
+	public static void setAudioAndSubs(StoreItem resource, OutputParams params) {
 		if (resource == null || params == null || resource.getMediaInfo() == null) {
 			return;
 		}
@@ -994,7 +994,7 @@ public abstract class Engine {
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
-	 * Also used by LibraryResource to help determine the DLNA.ORG_PN (file type)
+	 * Also used by StoreResource to help determine the DLNA.ORG_PN (file type)
 	 * value to send to the renderer.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since

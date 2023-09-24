@@ -28,12 +28,12 @@ import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.io.*;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.*;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -427,7 +427,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(LibraryItem resource, MediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(StoreItem resource, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
 		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		final String filename = resource.getFileName();
@@ -617,7 +617,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		// Only handle local video - not web video or audio
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

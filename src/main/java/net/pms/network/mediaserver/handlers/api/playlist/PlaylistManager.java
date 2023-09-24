@@ -32,7 +32,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
-import net.pms.library.LibraryScanner;
+import net.pms.store.MediaScanner;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -280,7 +280,7 @@ public class PlaylistManager {
 
 		createNewEmptyPlaylistFile(newPlaylist);
 		checkPlaylistDirectoryConfiguration();
-		LibraryScanner.scanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
+		MediaScanner.scanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
 	}
 
 	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {

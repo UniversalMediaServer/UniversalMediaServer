@@ -18,7 +18,7 @@ package net.pms.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import net.pms.library.LibraryScanner;
+import net.pms.store.MediaScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public class MediaDatabase extends Database {
 
 	@Override
 	public final void onOpeningFail(boolean force) {
-		LibraryScanner.stopScanLibrary();
+		MediaScanner.stopMediaScan();
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class MediaDatabase extends Database {
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
 
-				MediaTableLibraryIds.checkTable(connection);
+				MediaTableStoreIds.checkTable(connection);
 			}
 			tablesChecked = true;
 		}

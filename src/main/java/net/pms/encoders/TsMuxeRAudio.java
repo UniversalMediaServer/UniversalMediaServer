@@ -20,9 +20,9 @@ import java.io.IOException;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
@@ -53,7 +53,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -83,7 +83,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);
 	}
 }

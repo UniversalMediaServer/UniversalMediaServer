@@ -90,8 +90,8 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void setScanLibraryStatus(boolean enabled, boolean running) {
-		SseApiServlet.setScanLibraryStatus(enabled, running);
+	public void setMediaScanStatus(boolean running) {
+		SseApiServlet.setMediaScanStatus(running);
 	}
 
 	@Override

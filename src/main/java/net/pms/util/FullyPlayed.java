@@ -26,9 +26,9 @@ import net.pms.Messages;
 import net.pms.formats.Format;
 import net.pms.image.BufferedImageFilter;
 import net.pms.image.NonGeometricBufferedImageOp;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaType;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,7 @@ public class FullyPlayed {
 	private static final BufferedImage THUMBNAIL_OVERLAY_IMAGE = getThumbnailOverlayImage();
 
 	/** A static cache of the fully played overlay {@link BufferedImageFilter} */
-	private static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(LibraryResource.THUMBNAIL_HINTS);
+	private static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(StoreResource.THUMBNAIL_HINTS);
 
 	// Hide the constructor
 	private FullyPlayed() {
@@ -63,14 +63,14 @@ public class FullyPlayed {
 	 * Prefixes the specified string with a "fully played" text.
 	 *
 	 * @param displayName the {@link String} to prefix.
-	 * @param resource the {@link LibraryResource} representing the media.
+	 * @param resource the {@link StoreResource} representing the media.
 	 * @return The prefixed {@link String}.
 	 */
-	public static String addFullyPlayedNamePrefix(String displayName, LibraryResource resource) {
+	public static String addFullyPlayedNamePrefix(String displayName, StoreResource resource) {
 		MediaType mediaType;
 		if (resource.getMediaInfo() != null) {
 			mediaType = resource.getMediaInfo().getMediaType();
-		} else if (resource instanceof LibraryItem item && item.getFormat() != null) {
+		} else if (resource instanceof StoreItem item && item.getFormat() != null) {
 			mediaType = switch (item.getFormat().getType()) {
 				case Format.AUDIO -> MediaType.AUDIO;
 				case Format.IMAGE -> MediaType.IMAGE;

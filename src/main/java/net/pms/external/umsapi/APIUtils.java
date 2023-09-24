@@ -50,6 +50,7 @@ import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
+import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -60,9 +61,9 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaStoreIds;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
-import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.lang3.StringUtils;
@@ -287,11 +288,6 @@ public class APIUtils {
 
 			if (!CONFIGURATION.isUseInfoFromIMDb()) {
 				LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
-				return;
-			}
-
-			if (!CONFIGURATION.getUseCache()) {
-				LOGGER.trace("Not doing background API lookup because cache/database is disabled");
 				return;
 			}
 
@@ -547,6 +543,8 @@ public class APIUtils {
 					MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
 				}
 
+				//let store know that we change media metadata
+				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);

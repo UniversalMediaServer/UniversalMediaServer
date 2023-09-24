@@ -47,8 +47,6 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
@@ -61,6 +59,8 @@ import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
 import net.pms.service.sleep.SleepManager;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
@@ -163,7 +163,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 				String id = requestData[2].replace("%24", "$");
 
 				// Get resource
-				LibraryResource resource = renderer.getRootFolder().getLibraryResource(id);
+				StoreResource resource = renderer.getMediaStore().getResource(id);
 				if (resource == null) {
 					//resource not founded
 					sendErrorResponse(exchange, renderer, 404);
@@ -257,7 +257,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 			if (cLoverride == 0) {
 				//mean no content, HttpExchange use the -1 value for it.
 				contentLength = -1;
-			} else if (cLoverride > -1 && cLoverride != LibraryResource.TRANS_SIZE) {
+			} else if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
@@ -311,9 +311,9 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		exchange.close();
 	}
 
-	private static void sendMediaResponse(final HttpExchange exchange, final Renderer renderer, LibraryResource resource, String filename) throws IOException {
+	private static void sendMediaResponse(final HttpExchange exchange, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a file
-		if (resource instanceof LibraryItem item) {
+		if (resource instanceof StoreItem item) {
 			TimeRange timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 			ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
 			int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
@@ -361,7 +361,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 								startStopListenerDelegate = new StartStopListenerDelegate(exchange.getRemoteAddress().getAddress().getHostAddress());
 								startStopListenerDelegate.start(item);
 								LOGGER.trace("Sending inputstream for " + filename);
-								sendResponse(exchange, renderer, 200, inputStream, LibraryResource.TRANS_SIZE, true);
+								sendResponse(exchange, renderer, 200, inputStream, StoreResource.TRANS_SIZE, true);
 							} finally {
 								if (startStopListenerDelegate != null) {
 									startStopListenerDelegate.stop();
@@ -370,7 +370,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 						} else if (filename.endsWith(".vtt")) {
 							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
 							LOGGER.trace("Sending inputstream for " + filename);
-							sendResponse(exchange, renderer, 200, inputStream, LibraryResource.TRANS_SIZE, true);
+							sendResponse(exchange, renderer, 200, inputStream, StoreResource.TRANS_SIZE, true);
 						}
 					} else {
 						LOGGER.error("No inputstream for " + filename);
@@ -449,7 +449,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 							if (range.getStart() > 0) {
 								inputStream.skip(range.getStart());
 							}
-							inputStream = LibraryItem.wrap(inputStream, range.getEnd(), range.getStart());
+							inputStream = StoreItem.wrap(inputStream, range.getEnd(), range.getStart());
 						}
 					}
 				} catch (IOException ie) {
@@ -479,10 +479,10 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 				// Ignore ByteRangeRequests while media is transcoded
 				if (!ignoreTranscodeByteRangeRequests ||
-						totalsize != LibraryResource.TRANS_SIZE ||
+						totalsize != StoreResource.TRANS_SIZE ||
 						(ignoreTranscodeByteRangeRequests &&
 						range.getStart() == 0 &&
-						totalsize == LibraryResource.TRANS_SIZE)) {
+						totalsize == StoreResource.TRANS_SIZE)) {
 					inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
 					if (item.isResume()) {
 						// Update range to possibly adjusted resume time
@@ -570,7 +570,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 					// Determine the total size. Note: when transcoding the length is
 					// not known in advance, so MediaInfo.TRANS_SIZE will be returned instead.
-					if (chunked && totalsize == LibraryResource.TRANS_SIZE) {
+					if (chunked && totalsize == StoreResource.TRANS_SIZE) {
 						// In chunked mode we try to avoid arbitrary values.
 						totalsize = -1;
 					}
@@ -683,7 +683,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		return timeSeekRange;
 	}
 
-	private static void sendThumbnailResponse(final HttpExchange exchange, final Renderer renderer, LibraryResource resource, String filename) throws IOException {
+	private static void sendThumbnailResponse(final HttpExchange exchange, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a thumbnail
 		ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
 		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
@@ -731,13 +731,13 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 			if (range.getStart() > 0) {
 				inputStream.skip(range.getStart());
 			}
-			inputStream = LibraryItem.wrap(inputStream, range.getEnd(), range.getStart());
+			inputStream = StoreItem.wrap(inputStream, range.getEnd(), range.getStart());
 		}
 
 		sendResponse(exchange, renderer, status, inputStream, -2, true);
 	}
 
-	private static void sendSubtitlesResponse(final HttpExchange exchange, final Renderer renderer, LibraryResource resource) throws IOException {
+	private static void sendSubtitlesResponse(final HttpExchange exchange, final Renderer renderer, StoreResource resource) throws IOException {
 		// Request to retrieve a subtitles
 		TimeRange timeseekrange = getTimeSeekRange(exchange.getRequestHeaders().getFirst("timeseekrange.dlna.org"));
 		ByteRange range = getRange(exchange.getRequestHeaders().getFirst("Range"));
@@ -750,7 +750,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		}
 
 		// Only valid if resource is item
-		if (resource instanceof LibraryItem item &&
+		if (resource instanceof StoreItem item &&
 				item.isCodeValid(item) &&
 				item.getMediaInfo() != null) {
 			// This is a request for a subtitles file

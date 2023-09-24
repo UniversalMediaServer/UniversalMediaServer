@@ -16,8 +16,8 @@
  */
 package net.pms.network.mediaserver.handlers.api;
 
-import net.pms.library.LibraryScanner;
 import net.pms.network.mediaserver.handlers.ApiResponseHandler;
+import net.pms.store.MediaScanner;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -36,8 +36,8 @@ public class FolderScanner implements ApiResponseHandler {
 		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
 		output.setStatus(HttpResponseStatus.NO_CONTENT);
 		switch (uri) {
-			case "rescan" -> rescanLibrary();
-			case "rescanFileOrFolder" -> LibraryScanner.scanFileOrFolder(content);
+			case "rescan" -> rescanMediaStore();
+			case "rescanFileOrFolder" -> MediaScanner.scanFileOrFolder(content);
 			default -> {
 				LOGGER.warn("Invalid API call. Unknown path : " + uri);
 				output.setStatus(HttpResponseStatus.NOT_FOUND);
@@ -47,13 +47,13 @@ public class FolderScanner implements ApiResponseHandler {
 	}
 
 	/**
-	 * rescan library
+	 * rescan MediaScanner store
 	 */
-	private void rescanLibrary() {
-		if (!LibraryScanner.isScanLibraryRunning()) {
-			LibraryScanner.scanLibrary();
+	private void rescanMediaStore() {
+		if (!MediaScanner.isMediaScanRunning()) {
+			MediaScanner.startMediaScan();
 		} else {
-			LOGGER.warn("library scan already in progress");
+			LOGGER.warn("Media scan already in progress");
 		}
 	}
 

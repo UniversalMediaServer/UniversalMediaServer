@@ -27,13 +27,6 @@ import net.pms.encoders.Engine;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
-import net.pms.library.LibraryContainer;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.DVDISOFile;
-import net.pms.library.container.PlaylistFolder;
-import net.pms.library.container.VirtualFolderDbId;
-import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.MediaType;
@@ -44,6 +37,13 @@ import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.DVDISOFile;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.container.VirtualFolderDbId;
+import net.pms.store.item.RealFile;
 import net.pms.util.FullyPlayed;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -62,10 +62,10 @@ public class DidlHelper extends DlnaHelper {
 	protected DidlHelper() {
 	}
 
-	public static final String getDidlResults(List<LibraryResource> resultResources) {
+	public static final String getDidlResults(List<StoreResource> resultResources) {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
-		for (LibraryResource resource : resultResources) {
+		for (StoreResource resource : resultResources) {
 			filesData.append(DidlHelper.getDidlString(resource));
 		}
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
@@ -81,12 +81,12 @@ public class DidlHelper extends DlnaHelper {
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted
 	 *         ="1">}
 	 */
-	public static final String getDidlString(LibraryResource resource) {
+	public static final String getDidlString(StoreResource resource) {
 		final Renderer renderer = resource.getDefaultRenderer();
 		final MediaInfo mediaInfo = resource.getMediaInfo();
 		final MediaStatus mediaStatus = resource.getMediaStatus();
-		final LibraryContainer container = resource instanceof LibraryContainer libraryContainer ? libraryContainer : null;
-		final LibraryItem item = resource instanceof LibraryItem libraryItem ? libraryItem : null;
+		final StoreContainer container = resource instanceof StoreContainer storeContainer ? storeContainer : null;
+		final StoreItem item = resource instanceof StoreItem storeItem ? storeItem : null;
 		final Engine engine = item != null ? item.getEngine() : null;
 		final Format format = item != null ? item.getFormat() : null;
 		final MediaSubtitle mediaSubtitle = item != null ? item.getMediaSubtitle() : null;
@@ -415,7 +415,7 @@ public class DidlHelper extends DlnaHelper {
 						addAttribute(sb, "size", resource.length());
 					}
 				} else {
-					addAttribute(sb, "size", LibraryResource.TRANS_SIZE);
+					addAttribute(sb, "size", StoreResource.TRANS_SIZE);
 					addAttribute(sb, "duration", "09:59:59");
 					addAttribute(sb, "bitrate", "1000000");
 				}
@@ -569,7 +569,7 @@ public class DidlHelper extends DlnaHelper {
 	 * @param sb The {@link StringBuilder} to append the elements to.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private static void appendImage(LibraryResource resource, StringBuilder sb) {
+	private static void appendImage(StoreResource resource, StringBuilder sb) {
 		/*
 		 * There's no technical difference between the image itself and the
 		 * thumbnail for an object.item.imageItem, they are all simply listed as
@@ -682,10 +682,10 @@ public class DidlHelper extends DlnaHelper {
 	 * {@code upnp:albumArtURI} entries for the thumbnail.
 	 *
 	 * @param sb the {@link StringBuilder} to append the response to.
-	 * @param mediaType the {@link MediaType} of this {@link LibraryResource}.
+	 * @param mediaType the {@link MediaType} of this {@link StoreResource}.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private static void appendThumbnail(LibraryResource resource, StringBuilder sb, MediaType mediaType) {
+	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or
@@ -814,7 +814,7 @@ public class DidlHelper extends DlnaHelper {
 		}
 	}
 
-	private static void addImageResource(LibraryResource resource, StringBuilder sb, DLNAImageResElement resElement) {
+	private static void addImageResource(StoreResource resource, StringBuilder sb, DLNAImageResElement resElement) {
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -859,7 +859,7 @@ public class DidlHelper extends DlnaHelper {
 		}
 	}
 
-	private static void addAlbumArt(LibraryResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
+	private static void addAlbumArt(StoreResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
 		String albumArtURL = resource.getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			openTag(sb, "upnp:albumArtURI");
@@ -871,7 +871,7 @@ public class DidlHelper extends DlnaHelper {
 		}
 	}
 
-	private static void addBookmark(LibraryResource resource, StringBuilder sb, String title) {
+	private static void addBookmark(StoreResource resource, StringBuilder sb, String title) {
 		if (resource.getMediaStatus() != null) {
 			LOGGER.debug("Setting bookmark for {} => {}", title, resource.getMediaStatus().getBookmark());
 			addXMLTagAndAttribute(sb, "sec:dcmInfo", encodeXML(String.format("CREATIONDATE=0,FOLDER=%s,BM=%d", title, resource.getMediaStatus().getBookmark())));

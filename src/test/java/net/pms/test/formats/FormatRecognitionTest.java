@@ -35,7 +35,6 @@ import net.pms.formats.audio.OGA;
 import net.pms.formats.audio.WAV;
 import net.pms.formats.image.RAW;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.library.item.RealFile;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -44,6 +43,7 @@ import net.pms.network.HTTPResource;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
+import net.pms.store.item.RealFile;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -292,7 +292,7 @@ public class FormatRecognitionTest {
 
 	/**
 	 * When UMS is in the process of starting up, something particular happens.
-	 * The RootFolder is initialized and several VirtualVideoActions are added
+	 * The MediaStore is initialized and several VirtualVideoActions are added
 	 * as children. VirtualVideoActions use the MPG format and, at the time of
 	 * initialization getDefaultRenderer(), is used to determine whether or not
 	 * the format can be streamed.

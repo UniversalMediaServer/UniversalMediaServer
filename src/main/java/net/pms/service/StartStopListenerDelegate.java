@@ -17,12 +17,12 @@
 package net.pms.service;
 
 import net.pms.formats.Format;
-import net.pms.library.LibraryItem;
+import net.pms.store.StoreItem;
 
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
 public class StartStopListenerDelegate {
 	private final String rendererId;
-	private LibraryItem resource;
+	private StoreItem resource;
 	private boolean started = false;
 	private boolean stopped = false;
 
@@ -32,7 +32,7 @@ public class StartStopListenerDelegate {
 
 	// technically, these don't need to be synchronized as there should be
 	// one thread per request/response, but it doesn't hurt to enforce the contract
-	public synchronized void start(LibraryItem resource) {
+	public synchronized void start(StoreItem resource) {
 		assert this.resource == null;
 		this.resource = resource;
 		Format ext = resource.getFormat();

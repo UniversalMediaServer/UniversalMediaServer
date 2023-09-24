@@ -39,9 +39,9 @@ import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,11 +82,11 @@ public enum GenericIcons {
 	 * Retrieves or creates the appropriate generic icon/thumbnail for
 	 * {@code resource}.
 	 *
-	 * @param resource the {@link LibraryResource} the return a generic icon for.
+	 * @param resource the {@link StoreResource} the return a generic icon for.
 	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if one couldn't be generated.
 	 */
-	public DLNAThumbnailInputStream getGenericIcon(LibraryResource resource) {
+	public DLNAThumbnailInputStream getGenericIcon(StoreResource resource) {
 		/*
 		 * This should be the same format as the source images since OpenJDK
 		 * will fail to write JPEGs if the cached BufferedImage has 4 color
@@ -112,7 +112,7 @@ public enum GenericIcons {
 		}
 
 		IconType iconType = IconType.UNKNOWN;
-		Format format = resource instanceof LibraryItem item ? item.getFormat() : null;
+		Format format = resource instanceof StoreItem item ? item.getFormat() : null;
 		if (resource.getMediaInfo() != null) {
 			if (resource.getMediaInfo().isAudio()) {
 				iconType = IconType.AUDIO;

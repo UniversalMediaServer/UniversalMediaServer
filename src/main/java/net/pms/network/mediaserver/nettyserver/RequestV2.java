@@ -59,14 +59,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.library.LibraryContainer;
-import net.pms.library.LibraryIds;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.MediaLibrary;
-import net.pms.library.container.PlaylistFolder;
 import net.pms.media.MediaInfo;
-import net.pms.media.MediaStatusStore;
 import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -82,6 +75,13 @@ import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
@@ -302,7 +302,7 @@ public class RequestV2 extends HTTPResource {
 	 * @param close Set to true to close the channel after sending the response.
 	 * By default the channel is not closed after sending.
 	 * @param startStopListenerDelegate The {@link StartStopListenerDelegate}
-	 * object that is used to notify plugins that the {@link LibraryResource} is
+	 * object that is used to notify plugins that the {@link StoreResource} is
 	 * about to start playing.
 	 * @return The {@link ChannelFuture} object via which the response was sent.
 	 * @throws IOException
@@ -316,7 +316,7 @@ public class RequestV2 extends HTTPResource {
 		PMS.REALTIME_LOCK.lock();
 		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
-		LibraryResource resource = null;
+		StoreResource resource = null;
 		InputStream inputStream = null;
 		ChannelFuture future = null;
 		try {
@@ -341,11 +341,11 @@ public class RequestV2 extends HTTPResource {
 				 */
 				String[] requestData = umsUri.split("/", 4);
 				if (requestData.length > 2) {
-					// Retrieve the LibraryResource itself.
+					// Retrieve the StoreResource itself.
 					// Some clients escape the separators in their request: unescape them.
 					String id = requestData[2].replace("%24", "$");
 					// Get resource
-					resource = renderer.getRootFolder().getLibraryResource(id);
+					resource = renderer.getMediaStore().getResource(id);
 				}
 
 				if (transferMode != null) {
@@ -388,12 +388,12 @@ public class RequestV2 extends HTTPResource {
 						if (lowRange > 0) {
 							inputStream.skip(lowRange);
 						}
-						inputStream = LibraryItem.wrap(inputStream, highRange, lowRange);
+						inputStream = StoreItem.wrap(inputStream, highRange, lowRange);
 					}
 					output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 					output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-				} else if (resource instanceof LibraryItem item) {
-					// LibraryResource was found.
+				} else if (resource instanceof StoreItem item) {
+					// StoreResource was found.
 					if (requestData[3].endsWith("/chapters.vtt")) {
 						output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.WEBVTT_TYPEMIME);
 						response.append(HlsHelper.getChaptersWebVtt(item));
@@ -412,7 +412,7 @@ public class RequestV2 extends HTTPResource {
 							}
 						} else {
 							//HLS stream request
-							cLoverride = LibraryResource.TRANS_SIZE;
+							cLoverride = StoreResource.TRANS_SIZE;
 							inputStream = HlsHelper.getInputStream("/" + requestData[3], item);
 							if (requestData[3].endsWith(".ts")) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
@@ -485,7 +485,7 @@ public class RequestV2 extends HTTPResource {
 									if (lowRange > 0) {
 										inputStream.skip(lowRange);
 									}
-									inputStream = LibraryItem.wrap(inputStream, highRange, lowRange);
+									inputStream = StoreItem.wrap(inputStream, highRange, lowRange);
 								}
 								output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, HttpHeaders.Values.BYTES);
 								output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
@@ -543,7 +543,7 @@ public class RequestV2 extends HTTPResource {
 					} else if (item.isCodeValid(item)) {
 						// This is a request for a regular file.
 
-						// If range has not been initialized yet and the LibraryResource has its
+						// If range has not been initialized yet and the StoreResource has its
 						// own start and end defined, initialize range with those values before
 						// requesting the input stream.
 						TimeRange splitRange = item.getSplitRange();
@@ -561,10 +561,10 @@ public class RequestV2 extends HTTPResource {
 
 						// Ignore ByteRangeRequests while media is transcoded
 						if (!ignoreTranscodeByteRangeRequests ||
-								totalsize != LibraryResource.TRANS_SIZE ||
+								totalsize != StoreResource.TRANS_SIZE ||
 								(ignoreTranscodeByteRangeRequests &&
 								lowRange == 0 &&
-								totalsize == LibraryResource.TRANS_SIZE)) {
+								totalsize == StoreResource.TRANS_SIZE)) {
 							inputStream = item.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()));
 							if (item.isResume()) {
 								// Update range to possibly adjusted resume time
@@ -641,7 +641,7 @@ public class RequestV2 extends HTTPResource {
 
 							// Determine the total size. Note: when transcoding the length is
 							// not known in advance, so MediaInfo.TRANS_SIZE will be returned instead.
-							if (chunked && totalsize == LibraryResource.TRANS_SIZE) {
+							if (chunked && totalsize == StoreResource.TRANS_SIZE) {
 								// In chunked mode we try to avoid arbitrary values.
 								totalsize = -1;
 							}
@@ -752,7 +752,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (cLoverride > -2) {
 					// Content-Length override has been set, send or omit as appropriate
-					if (cLoverride > -1 && cLoverride != LibraryResource.TRANS_SIZE) {
+					if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
 						// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 						// as the PS3 will display a network error and request the last seconds of the
 						// transcoded video. Better to send no Content-Length at all.
@@ -764,7 +764,7 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + contentLength);
 				}
 
-				if (range.isStartOffsetAvailable() && resource instanceof LibraryItem item) {
+				if (range.isStartOffsetAvailable() && resource instanceof StoreItem item) {
 					// Add timeseek information headers.
 					String timeseekValue = StringUtil.formatDLNADuration(range.getStartOrZero());
 					String timetotalValue = item.getMediaInfo().getDurationString();
@@ -982,7 +982,7 @@ public class RequestV2 extends HTTPResource {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(LibraryIds.getSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(MediaStoreIds.getSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -1001,15 +1001,15 @@ public class RequestV2 extends HTTPResource {
 
 	private StringBuilder samsungGetFeaturesListHandler() {
 		StringBuilder features = new StringBuilder();
-		String rootFolderId = renderer.getRootFolder().getResourceId();
+		String mediaStoreId = renderer.getMediaStore().getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
 		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
 		// we may use here different container IDs in the future
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
 
@@ -1080,8 +1080,8 @@ public class RequestV2 extends HTTPResource {
 
 		// Xbox 360 virtual containers ... d'oh!
 		String searchCriteria = null;
-		if (xbox360 && configuration.getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && containerID != null) {
-			MediaLibrary library = renderer.getRootFolder().getLibrary();
+		if (xbox360 && containerID != null) {
+			MediaLibrary library = renderer.getMediaStore().getMediaLibrary();
 			if (containerID.equals("7") && library.getAlbumFolder() != null) {
 				objectID = library.getAlbumFolder().getResourceId();
 			} else if (containerID.equals("6") && library.getArtistFolder() != null) {
@@ -1103,7 +1103,7 @@ public class RequestV2 extends HTTPResource {
 			searchCriteria = requestMessage.getSearchCriteria();
 		}
 
-		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
 				browseDirectChildren,
 				startingIndex,
@@ -1113,15 +1113,15 @@ public class RequestV2 extends HTTPResource {
 
 		if (searchCriteria != null && resources != null) {
 			UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
-			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof LibraryContainer libraryContainer) {
-				resources = libraryContainer.getChildren();
+			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer storeContainer) {
+				resources = storeContainer.getChildren();
 			}
 		}
 
 		int minus = 0;
 		StringBuilder filesData = new StringBuilder();
 		if (resources != null) {
-			for (LibraryResource resource : resources) {
+			for (StoreResource resource : resources) {
 				if (resource instanceof PlaylistFolder playlistFolder) {
 					File f = new File(resource.getFileName());
 					if (resource.getLastModified() < f.lastModified()) {
@@ -1133,9 +1133,9 @@ public class RequestV2 extends HTTPResource {
 					resource.setFakeParentId(containerID);
 				}
 
-				if (resource instanceof LibraryContainer) {
+				if (resource instanceof StoreContainer) {
 					filesData.append(DidlHelper.getDidlString(resource));
-				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
@@ -1170,14 +1170,14 @@ public class RequestV2 extends HTTPResource {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		LibraryContainer parentFolder;
+		StoreContainer parentFolder;
 
 		if (resources != null && filessize > 0) {
 			parentFolder = resources.get(0).getParent();
 		} else {
-			LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
-			if (resource instanceof LibraryContainer libraryContainer) {
-				parentFolder = libraryContainer;
+			StoreResource resource = renderer.getMediaStore().getResource(objectID);
+			if (resource instanceof StoreContainer storeContainer) {
+				parentFolder = storeContainer;
 			} else {
 				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 			}
@@ -1230,7 +1230,7 @@ public class RequestV2 extends HTTPResource {
 		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(LibraryIds.getSystemUpdateId());
+		response.append(MediaStoreIds.getSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -1268,7 +1268,7 @@ public class RequestV2 extends HTTPResource {
 				// No need to update database in such case.
 				LOGGER.debug("Skipping \"set bookmark\". Position=0");
 			} else {
-				LibraryResource resource = renderer.getRootFolder().getLibraryResource(payload.getObjectId());
+				StoreResource resource = renderer.getMediaStore().getResource(payload.getObjectId());
 				if (resource.getMediaStatus() != null) {
 					try {
 						File file = new File(resource.getFileName());
@@ -1366,7 +1366,7 @@ public class RequestV2 extends HTTPResource {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + LibraryIds.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + MediaStoreIds.getSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -1387,7 +1387,7 @@ public class RequestV2 extends HTTPResource {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(LibraryIds.getSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(MediaStoreIds.getSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

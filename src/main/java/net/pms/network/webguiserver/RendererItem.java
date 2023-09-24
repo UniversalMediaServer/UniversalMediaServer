@@ -28,10 +28,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.IRendererGuiListener;
-import net.pms.library.LibraryResource;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
+import net.pms.store.StoreResource;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -241,7 +241,7 @@ public class RendererItem implements IRendererGuiListener {
 
 	private void playerSetMediaId(String id) {
 		try {
-			List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(id, false, 0, 0);
+			List<StoreResource> resources = renderer.getMediaStore().getResources(id, false, 0, 0);
 			if (!resources.isEmpty()) {
 				renderer.getPlayer().setURI(resources.get(0).getMediaURL("", true), null);
 			}
@@ -348,9 +348,9 @@ public class RendererItem implements IRendererGuiListener {
 				JsonObject result = new JsonObject();
 				JsonArray parents = new JsonArray();
 				JsonArray childrens = new JsonArray();
-				List<LibraryResource> resources = renderer.renderer.getRootFolder().getLibraryResources(media, true, 0, 0);
+				List<StoreResource> resources = renderer.renderer.getMediaStore().getResources(media, true, 0, 0);
 				if (!resources.isEmpty()) {
-					LibraryResource parentFromResources = resources.get(0).getParent();
+					StoreResource parentFromResources = resources.get(0).getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
 						JsonObject parent = new JsonObject();
 						parent.addProperty("value", parentFromResources.getResourceId());
@@ -364,7 +364,7 @@ public class RendererItem implements IRendererGuiListener {
 							parents.add(parent);
 						}
 					}
-					for (LibraryResource resource : resources) {
+					for (StoreResource resource : resources) {
 						if (resource == null) {
 							continue;
 						}

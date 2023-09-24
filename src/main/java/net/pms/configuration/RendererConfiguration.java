@@ -32,8 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -42,6 +40,8 @@ import net.pms.network.HTTPResource;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.FileWatcher;
 import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
@@ -632,7 +632,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return The renderer specific mime type  for given resource. If the generic mime
 	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(LibraryItem resource) {
+	public String getMimeType(StoreItem resource) {
 		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
@@ -1254,14 +1254,14 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param resource The {@link LibraryItem} information parsed from the
+	 * @param resource The {@link StoreItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(LibraryItem resource, Format format, UmsConfiguration configuration) {
+	public boolean isCompatible(StoreItem resource, Format format, UmsConfiguration configuration) {
 		MediaInfo mediaInfo;
 		if (resource != null) {
 			mediaInfo = resource.getMediaInfo();
@@ -1325,13 +1325,13 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param resource The {@link LibraryItem} information parsed from the
+	 * @param resource The {@link StoreItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(LibraryItem resource, Format format) {
+	public boolean isCompatible(StoreItem resource, Format format) {
 		return isCompatible(resource, format, null);
 	}
 
@@ -1426,7 +1426,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource The actual resource
 	 * @return Reformatted name
 	 */
-	public String getDcTitle(String name, String suffix, LibraryResource resource) {
+	public String getDcTitle(String name, String suffix, StoreResource resource) {
 		// Wrap + truncate
 		int len = 0;
 		if (suffix == null) {
@@ -1547,7 +1547,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryItem resource) {
+	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, StoreItem resource) {
 		if (subtitle == null || subtitle.getType() == null || resource == null) {
 			return false;
 		}
@@ -1601,7 +1601,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource The resource
 	 * @return whether the renderer specifies support for the subtitles
 	 */
-	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, LibraryItem resource) {
+	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, StoreItem resource) {
 		if (subtitle == null) {
 			return false;
 		}
@@ -1759,7 +1759,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(LibraryItem resource) {
+	public boolean isVideoBitDepthSupported(StoreItem resource) {
 		Integer videoBitDepth = null;
 		if (resource.getMediaInfo() != null && resource.getMediaInfo().getDefaultVideoTrack() != null) {
 			videoBitDepth = resource.getMediaInfo().getDefaultVideoTrack().getBitDepth();

@@ -744,8 +744,8 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	}
 
 	@Override
-	public void setScanLibraryStatus(boolean enabled, boolean running) {
-		SharedContentTab.setScanLibraryEnabled(enabled, running);
+	public void setMediaScanStatus(boolean running) {
+		SharedContentTab.setMediaScanEnabled(running);
 	}
 
 	/**

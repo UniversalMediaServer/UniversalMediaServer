@@ -45,7 +45,6 @@ public class ParserTest {
 		} catch (InterruptedException | ConfigurationException ex) {
 			throw new AssertionError(ex);
 		}
-		PMS.getConfiguration().setUseCache(false);
 	}
 
 	public static File getTestFile(String testFile) {

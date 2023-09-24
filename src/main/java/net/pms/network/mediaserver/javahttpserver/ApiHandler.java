@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
-import net.pms.library.LibraryScanner;
 import net.pms.network.NetworkDeviceFilter;
+import net.pms.store.MediaScanner;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -66,12 +66,13 @@ public class ApiHandler implements HttpHandler {
 				} else if (validApiKeyPresent(serverApiKey, clientApiKey)) {
 					switch (call) {
 						case "rescan" -> {
-							rescanLibrary();
+							rescanMediaStore();
 						}
 						case "rescanFileOrFolder" -> {
 							String filename = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-							LibraryScanner.scanFileOrFolder(filename);
+							MediaScanner.scanFileOrFolder(filename);
 						}
+
 					}
 					exchange.sendResponseHeaders(204, 0); //No Content
 				} else {
@@ -119,13 +120,13 @@ public class ApiHandler implements HttpHandler {
 	}
 
 	/**
-	 * rescan library
+	 * rescan MediaScanner store
 	 */
-	private static void rescanLibrary() {
-		if (!LibraryScanner.isScanLibraryRunning()) {
-			LibraryScanner.scanLibrary();
+	private static void rescanMediaStore() {
+		if (!MediaScanner.isMediaScanRunning()) {
+			MediaScanner.startMediaScan();
 		} else {
-			LOGGER.warn("library scan already in progress");
+			LOGGER.warn("Media scan already in progress");
 		}
 	}
 }
