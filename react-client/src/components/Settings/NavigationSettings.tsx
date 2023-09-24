@@ -50,18 +50,10 @@ export default function NavigationSettings(
         <Accordion.Control>{i18n.get['GeneralSettings']}</Accordion.Control>
         <Accordion.Panel>
           <Group position='apart'>
-            <Tooltip label={allowHtml(i18n.get['DisablingWillDisableFullyPlayed'])} {...defaultTooltipSettings}>
-              <Checkbox
-                disabled={!canModify}
-                label={i18n.get['EnableCache']}
-                {...form.getInputProps('use_cache', { type: 'checkbox' })}
-              />
-            </Tooltip>
             {canModify && (<Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
               <Button
                 size='xs'
                 onClick={() => resetCache()}
-                disabled={!form.values['use_cache']}
               >
                 {i18n.get['ResetCache']}
               </Button>

@@ -32,15 +32,15 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
-import net.pms.library.DbIdMediaType;
-import net.pms.library.DbIdResourceLocator;
-import net.pms.library.DbIdTypeAndIdent;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.VirtualFolderDbId;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
+import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.StoreResource;
+import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.BrowseResult;
@@ -129,12 +129,12 @@ public class SearchRequestHandler {
 
 		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
-		for (LibraryResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
+		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
 		}
 
 		folder.discoverChildren();
-		for (LibraryResource uf : folder.getChildren()) {
+		for (StoreResource uf : folder.getChildren()) {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
@@ -156,12 +156,12 @@ public class SearchRequestHandler {
 
 		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
 		String sqlFiles = convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-		for (LibraryResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
+		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
 		}
 
 		folder.discoverChildren();
-		for (LibraryResource uf : folder.getChildren()) {
+		for (StoreResource uf : folder.getChildren()) {
 			numberReturned++;
 			uf.resolve();
 			uf.setFakeParentId("0");
@@ -513,8 +513,8 @@ public class SearchRequestHandler {
 	 * @param query
 	 * @return
 	 */
-	private List<LibraryResource> getLibraryResourceFromSQL(Renderer renderer, String query, DbIdMediaType type) {
-		ArrayList<LibraryResource> filesList = new ArrayList<>();
+	private List<StoreResource> getLibraryResourceFromSQL(Renderer renderer, String query, DbIdMediaType type) {
+		ArrayList<StoreResource> filesList = new ArrayList<>();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
@@ -559,13 +559,14 @@ public class SearchRequestHandler {
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										LibraryResource item = DbIdResourceLocator.createResourceFromFile(
+										StoreResource item = DbIdResourceLocator.createResourceFromFile(
 											renderer,
 											new File(realFileName),
 											new DbIdTypeAndIdent(type, resultSet.getString("FID")));
 										filesList.add(item);
 									}
 								}
+
 							}
 						}
 					}

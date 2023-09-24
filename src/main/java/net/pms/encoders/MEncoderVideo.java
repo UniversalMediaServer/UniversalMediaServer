@@ -33,8 +33,6 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
-import net.pms.library.LibraryItem;
-import net.pms.library.item.DVDISOTitle;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
@@ -43,6 +41,8 @@ import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.item.DVDISOTitle;
 import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -418,7 +418,7 @@ public class MEncoderVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -2239,7 +2239,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

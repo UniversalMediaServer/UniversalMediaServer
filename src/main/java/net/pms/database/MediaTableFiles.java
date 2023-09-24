@@ -30,6 +30,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.store.MediaStoreIds;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,8 +78,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 36: rename indexes
 	 * - 37: remove video infos
 	 * - 38: added Mime type
+	 * - 39: typo on column name
 	 */
-	private static final int TABLE_VERSION = 38;
+	private static final int TABLE_VERSION = 39;
 
 	/**
 	 * COLUMNS NAMES
@@ -91,7 +93,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
-	private static final String COL_MIMETYPE = "COL_MIMETYPE";
+	private static final String COL_MIMETYPE = "MIMETYPE";
 	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
 	private static final String COL_DURATION = "DURATION";
 	private static final String COL_BITRATE = "BITRATE";
@@ -429,6 +431,9 @@ public class MediaTableFiles extends MediaTable {
 					case 37 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MIMETYPE + VARCHAR_32);
 					}
+					case 38 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "COL_MIMETYPE" + RENAME_TO + COL_MIMETYPE);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -646,8 +651,8 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
 	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
+		long fileId = -1;
 		try {
-			long fileId = -1;
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_FILENAME,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
@@ -706,6 +711,10 @@ public class MediaTableFiles extends MediaTable {
 		} finally {
 			if (media != null && media.getThumb() != null) {
 				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1, false);
+			}
+			if (fileId > -1) {
+				//let store know that we change media metadata
+				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 			}
 		}
 	}

@@ -44,9 +44,9 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
-import net.pms.media.MediaInfoStore;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
+import net.pms.store.MediaInfoStore;
 import static net.pms.util.Constants.*;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
@@ -726,12 +726,10 @@ public class FileUtil {
 
 		// Attempt to get API metadata from the database if it wasn't passed via the mediaInfo parameter
 		MediaVideoMetadata videoMetadata = null;
-		if (PMS.getConfiguration().getUseCache()) {
-			if (mediaInfo == null && absolutePath != null) {
-				videoMetadata = MediaInfoStore.getMediaVideoMetadata(absolutePath);
-			} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && isNotBlank(mediaInfo.getVideoMetadata().getMovieOrShowName())) {
-				videoMetadata = mediaInfo.getVideoMetadata();
-			}
+		if (mediaInfo == null && absolutePath != null) {
+			videoMetadata = MediaInfoStore.getMediaVideoMetadata(absolutePath);
+		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && isNotBlank(mediaInfo.getVideoMetadata().getMovieOrShowName())) {
+			videoMetadata = mediaInfo.getVideoMetadata();
 		}
 
 		// Populate the variables from the data if we can, otherwise from the filename

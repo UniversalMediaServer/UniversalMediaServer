@@ -37,10 +37,10 @@ import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.Group;
 import net.pms.iam.Permissions;
-import net.pms.library.container.Feed;
-import net.pms.media.MediaStatusStore;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.container.Feed;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +70,6 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 				JsonObject jsonResponse = new JsonObject();
 
 				// immutable data
-				jsonResponse.addProperty("use_cache", CONFIGURATION.getUseCache());
 				jsonResponse.add("shared_content", SharedContentConfiguration.getAsJsonArray());
 				jsonResponse.addProperty("show_itunes_library", Platform.isMac() || Platform.isWindows());
 				jsonResponse.addProperty("show_iphoto_library", Platform.isMac());

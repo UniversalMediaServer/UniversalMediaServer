@@ -24,7 +24,7 @@ export const ServerEventContext: Context<ServerEventInterface> = createContext({
   reloadable: false as boolean,
   userConfiguration: null,
   setUserConfiguration: (config: any) => { },
-  scanLibrary: { enabled: false as boolean, running: false as boolean },
+  mediaScan: false as boolean,
   hasRendererAction: false as boolean,
   getRendererAction: () => null,
   hasNewLogLine: false as boolean,
@@ -39,7 +39,7 @@ export interface ServerEventInterface {
   reloadable: boolean;
   userConfiguration: any;
   setUserConfiguration: (config: any) => void;
-  scanLibrary: { enabled: boolean, running: boolean };
+  mediaScan: boolean;
   hasRendererAction: boolean;
   getRendererAction: () => any;
   hasNewLogLine: boolean;

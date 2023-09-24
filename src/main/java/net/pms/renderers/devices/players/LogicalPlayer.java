@@ -19,11 +19,11 @@ package net.pms.renderers.devices.players;
 import java.io.File;
 import java.util.List;
 import net.pms.dlna.DidlHelper;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.RealFolder;
-import net.pms.library.item.VirtualVideoAction;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreResource;
+import net.pms.store.container.RealFolder;
+import net.pms.store.item.VirtualVideoAction;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,7 +69,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 			} else {
 				// It's new to us, find or create the resource as required.
 				// Note: here metadata (if any) is actually the resource name
-				LibraryResource resource = renderer.getRootFolder().getValidResource(uri, metadata);
+				StoreResource resource = renderer.getMediaStore().getValidResource(uri, metadata);
 				if (resource != null) {
 					return new PlaylistItem(resource.getMediaURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
 				}
@@ -151,10 +151,10 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void add(int index, String uri, String name, String metadata, boolean select) {
 		if (!StringUtils.isBlank(uri)) {
-			if (addAllSiblings && LibraryResource.isResourceUrl(uri)) {
-				LibraryResource d = renderer.getRootFolder().getLibraryResource(LibraryResource.parseResourceId(uri));
+			if (addAllSiblings && StoreResource.isResourceUrl(uri)) {
+				StoreResource d = renderer.getMediaStore().getResource(StoreResource.parseResourceId(uri));
 				if (d != null && d.getParent() != null) {
-					List<LibraryResource> list = d.getParent().getChildren();
+					List<StoreResource> list = d.getParent().getChildren();
 					addAll(index, list, list.indexOf(d));
 					return;
 				}
@@ -163,9 +163,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 		}
 	}
 
-	public void addAll(int index, List<LibraryResource> list, int selIndex) {
+	public void addAll(int index, List<StoreResource> list, int selIndex) {
 		for (int i = 0; i < list.size(); i++) {
-			LibraryResource r = list.get(i);
+			StoreResource r = list.get(i);
 			if ((r instanceof VirtualVideoAction) || r == null || r.isFolder()) {
 				// skip these
 				continue;

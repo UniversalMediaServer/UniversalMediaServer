@@ -41,7 +41,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.io.StreamModifier;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
@@ -50,6 +49,7 @@ import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.OutputOverride;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.CodecUtil;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
  *
  *     public List<String> getAudioBitrateOptions(
  *         String filename,
- *         LibraryResource resource,
+ *         StoreResource resource,
  *         MediaInfo media,
  *         OutputParams params
  *     )
@@ -117,7 +117,7 @@ public class FFMpegVideo extends Engine {
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(LibraryItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
+	public List<String> getVideoFilterOptions(StoreItem resource, MediaInfo mediaInfo, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
@@ -331,7 +331,7 @@ public class FFMpegVideo extends Engine {
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public synchronized List<String> getVideoTranscodeOptions(LibraryItem resource, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
+	public synchronized List<String> getVideoTranscodeOptions(StoreItem resource, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = resource.getFileName();
 		final Renderer renderer = params.getMediaRenderer();
@@ -500,7 +500,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(LibraryItem resource, MediaInfo media, OutputParams params, boolean dtsRemux) {
+	public List<String> getVideoBitrateOptions(StoreItem resource, MediaInfo media, OutputParams params, boolean dtsRemux) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 		Renderer renderer = params.getMediaRenderer();
@@ -702,7 +702,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(LibraryItem resource, MediaInfo media, OutputParams params) {
+	public List<String> getAudioBitrateOptions(StoreItem resource, MediaInfo media, OutputParams params) {
 		Renderer renderer = params.getMediaRenderer();
 		List<String> audioBitrateOptions = new ArrayList<>();
 
@@ -799,7 +799,7 @@ public class FFMpegVideo extends Engine {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -1354,7 +1354,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	public synchronized ProcessWrapper launchHlsTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -1745,7 +1745,7 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
 			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
@@ -1761,10 +1761,10 @@ public class FFMpegVideo extends Engine {
 	 * Set up a filter to parse ffmpeg's stderr output for info
 	 * (e.g. duration) if required.
 	 */
-	public void setOutputParsing(UmsConfiguration configuration, final LibraryItem resource, ProcessWrapperImpl pw, boolean force) {
+	public void setOutputParsing(UmsConfiguration configuration, final StoreItem resource, ProcessWrapperImpl pw, boolean force) {
 		if (configuration.isResumeEnabled() && resource.getMediaInfo() != null) {
 			long duration = force ? 0 : (long) resource.getMediaInfo().getDurationInSeconds();
-			if (duration == 0 || duration == LibraryItem.TRANS_SIZE) {
+			if (duration == 0 || duration == StoreItem.TRANS_SIZE) {
 				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
 					public boolean filter(String line) {

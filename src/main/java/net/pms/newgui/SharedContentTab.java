@@ -54,14 +54,14 @@ import net.pms.configuration.sharedcontent.StreamContent;
 import net.pms.configuration.sharedcontent.StreamVideoContent;
 import net.pms.configuration.sharedcontent.VirtualFolderContent;
 import net.pms.database.MediaDatabase;
-import net.pms.library.LibraryScanner;
-import net.pms.library.container.Feed;
-import net.pms.media.MediaStatusStore;
 import net.pms.newgui.components.AnimatedIcon;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
 import net.pms.newgui.util.FormLayoutUtil;
 import net.pms.newgui.util.ShortcutFileSystemView;
+import net.pms.store.MediaScanner;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.container.Feed;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -399,27 +399,25 @@ public class SharedContentTab implements SharedContentListener {
 		SCAN_BUSY_ICON.start();
 		SCAN_BUSY_DISABLED_ICON.start();
 		SCAN_BUTTON.addActionListener((ActionEvent e) -> {
-			if (configuration.getUseCache()) {
-				if (LibraryScanner.isScanLibraryRunning()) {
-					int option = JOptionPane.showConfirmDialog(
-							looksFrame,
-							Messages.getString("DoYouWantStopScan"),
-							Messages.getString("Question"),
-							JOptionPane.YES_NO_OPTION);
-					if (option == JOptionPane.YES_OPTION) {
-						LibraryScanner.stopScanLibrary();
-						looksFrame.setStatusLine(Messages.getString("CancelingScan"));
-						SCAN_BUTTON.setEnabled(false);
-						SCAN_BUTTON.setToolTipText(Messages.getString("CancelingScan"));
-					}
-				} else {
-					LibraryScanner.scanLibrary();
-					SCAN_BUTTON.setIcon(SCAN_BUSY_ICON);
-					SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
-					SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
-					SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
-					SCAN_BUTTON.setToolTipText(Messages.getString("CancelScanningSharedFolders"));
+			if (MediaScanner.isMediaScanRunning()) {
+				int option = JOptionPane.showConfirmDialog(
+						looksFrame,
+						Messages.getString("DoYouWantStopScan"),
+						Messages.getString("Question"),
+						JOptionPane.YES_NO_OPTION);
+				if (option == JOptionPane.YES_OPTION) {
+					MediaScanner.stopMediaScan();
+					looksFrame.setStatusLine(Messages.getString("CancelingScan"));
+					SCAN_BUTTON.setEnabled(false);
+					SCAN_BUTTON.setToolTipText(Messages.getString("CancelingScan"));
 				}
+			} else {
+				MediaScanner.startMediaScan();
+				SCAN_BUTTON.setIcon(SCAN_BUSY_ICON);
+				SCAN_BUTTON.setRolloverIcon(SCAN_BUSY_ROLLOVER_ICON);
+				SCAN_BUTTON.setPressedIcon(SCAN_BUSY_PRESSED_ICON);
+				SCAN_BUTTON.setDisabledIcon(SCAN_BUSY_DISABLED_ICON);
+				SCAN_BUTTON.setToolTipText(Messages.getString("CancelScanningSharedFolders"));
 			}
 		});
 		/*
@@ -429,13 +427,12 @@ public class SharedContentTab implements SharedContentListener {
 		if (!configuration.isHideAdvancedOptions()) {
 			builderFolder.add(SCAN_BUTTON, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 		}
-		SCAN_BUTTON.setEnabled(configuration.getUseCache());
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setSelected(configuration.isScanSharedFoldersOnStartup());
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setContentAreaFilled(false);
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.addItemListener((ItemEvent e) -> {
 			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
 		});
-		setScanLibraryEnabled(configuration.getUseCache(), false);
+		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisControlsUmsScanShared"));
 		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 		JScrollPane pane = new JScrollPane(sharedContentList);
@@ -537,8 +534,7 @@ public class SharedContentTab implements SharedContentListener {
 		component.setComponentPopupMenu(popupMenu);
 	}
 
-	public static void setScanLibraryEnabled(boolean enabled, boolean running) {
-		SCAN_BUTTON.setEnabled(enabled);
+	public static void setMediaScanEnabled(boolean running) {
 		SCAN_BUTTON.setIcon(running ? SCAN_BUSY_ICON : SCAN_NORMAL_ICON);
 		SCAN_BUTTON.setRolloverIcon(running ? SCAN_BUSY_ROLLOVER_ICON : SCAN_ROLLOVER_ICON);
 		SCAN_BUTTON.setPressedIcon(running ? SCAN_BUSY_PRESSED_ICON : SCAN_PRESSED_ICON);
@@ -547,14 +543,6 @@ public class SharedContentTab implements SharedContentListener {
 				Messages.getString("CancelScanningSharedFolders") :
 				Messages.getString("ScanAllSharedFolders")
 		);
-
-		if (enabled) {
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(true);
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisControlsUmsScanShared"));
-		} else {
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setEnabled(false);
-			IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisFeatureRequiresTheCache"));
-		}
 	}
 
 	private class SharedContentTableModel extends DefaultTableModel {

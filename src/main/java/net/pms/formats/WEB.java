@@ -16,8 +16,8 @@
  */
 package net.pms.formats;
 
-import net.pms.library.LibraryItem;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.FileUtil;
 
 public class WEB extends Format {
@@ -35,7 +35,7 @@ public class WEB extends Format {
 	 * Matches the supplied filename against this format,
 	 * returning true if the filename is a valid URI
 	 * and false otherwise. Protocol-specific matches
-	 * are handled by {@link net.pms.encoders.Player#isCompatible(LibraryResource)}.
+	 * are handled by {@link net.pms.encoders.Player#isCompatible(StoreResource)}.
 	 *
 	 * @param filename the filename to match against
 	 * @return <code>true</code> if the filename matches, <code>false</code> otherwise.
@@ -61,7 +61,7 @@ public class WEB extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(LibraryItem resource, Renderer renderer) {
+	public boolean isCompatible(StoreItem resource, Renderer renderer) {
 		return type == IMAGE;
 	}
 

@@ -42,11 +42,11 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.MetadataExtractorParser;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
@@ -88,7 +88,7 @@ public class DCRaw extends ImageEngine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -315,7 +315,7 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return resource != null && resource.getFormat() != null && resource.getFormat().getIdentifier() == Format.Identifier.RAW;
 	}
 
