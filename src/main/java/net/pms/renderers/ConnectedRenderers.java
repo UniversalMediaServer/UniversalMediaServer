@@ -329,7 +329,7 @@ public class ConnectedRenderers {
 							removeUuidOf(ia);
 						}
 					}
-					renderer.clearLibrary();
+					renderer.clearMediaStore();
 				}
 			}
 		};
@@ -347,7 +347,7 @@ public class ConnectedRenderers {
 
 	public static void resetAllRenderers() {
 		for (Renderer r : getConnectedRenderers()) {
-			r.resetLibrary();
+			r.resetMediaStore();
 		}
 	}
 

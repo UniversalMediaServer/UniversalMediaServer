@@ -40,14 +40,14 @@ import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
-import net.pms.library.RootFolder;
 import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.renderers.devices.players.UPNPPlayer;
+import net.pms.store.MediaStore;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -97,12 +97,12 @@ public class Renderer extends RendererDeviceConfiguration {
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private LibraryItem playingRes;
+	private StoreItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
 	private String automaticVideoQuality;
 
-	private volatile RootFolder rootFolder;
+	private volatile MediaStore mediaStore;
 	private List<String> sharedPath;
 	protected Account account;
 
@@ -188,7 +188,7 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	public void setAccount(Account account) {
 		this.account = account;
-		resetLibrary();
+		resetMediaStore();
 	}
 
 	public int getAccountGroupId() {
@@ -232,7 +232,7 @@ public class Renderer extends RendererDeviceConfiguration {
 				setUserId(RendererUser.getUserId(uuid));
 			}
 		}
-		resetLibrary();
+		resetMediaStore();
 		// update gui
 		updateRendererGui();
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
@@ -250,40 +250,38 @@ public class Renderer extends RendererDeviceConfiguration {
 	}
 
 	/**
-	 * Returns the RootFolder.
+	 * Returns the MediaStore.
 	 *
-	 * @return The RootFolder.
+	 * @return The MediaStore.
 	 */
-	public synchronized RootFolder getRootFolder() {
-		if (rootFolder == null) {
-			rootFolder = new RootFolder(this);
-			if (umsConfiguration.getUseCache()) {
-				rootFolder.discoverChildren();
-			}
+	public synchronized MediaStore getMediaStore() {
+		if (mediaStore == null) {
+			mediaStore = new MediaStore(this);
+			mediaStore.discoverChildren();
 		}
 
-		return rootFolder;
+		return mediaStore;
 	}
 
-	public synchronized void clearLibrary() {
+	public synchronized void clearMediaStore() {
 		clearSharedFolders();
-		if (rootFolder != null) {
-			rootFolder.clearChildren();
-			rootFolder.setDiscovered(false);
-			rootFolder.clearWeakResources();
+		if (mediaStore != null) {
+			mediaStore.clearChildren();
+			mediaStore.setDiscovered(false);
+			mediaStore.clearWeakResources();
 		}
 	}
 
-	public synchronized void resetLibrary() {
+	public synchronized void resetMediaStore() {
 		clearSharedFolders();
-		if (rootFolder != null) {
-			rootFolder.reset();
+		if (mediaStore != null) {
+			mediaStore.reset();
 		}
 	}
 
-	public synchronized void addFolderLimit(LibraryResource res) {
-		if (rootFolder != null) {
-			rootFolder.setFolderLim(res);
+	public synchronized void addFolderLimit(StoreResource res) {
+		if (mediaStore != null) {
+			mediaStore.setFolderLim(res);
 		}
 	}
 
@@ -467,11 +465,11 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public LibraryItem getPlayingRes() {
+	public StoreItem getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(LibraryItem resource) {
+	public void setPlayingRes(StoreItem resource) {
 		playingRes = resource;
 		getPlayer();
 		if (resource != null) {

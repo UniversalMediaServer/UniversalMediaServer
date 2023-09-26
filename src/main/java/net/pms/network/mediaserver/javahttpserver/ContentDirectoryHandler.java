@@ -52,13 +52,6 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.library.LibraryContainer;
-import net.pms.library.LibraryIds;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.MediaLibrary;
-import net.pms.library.container.PlaylistFolder;
-import net.pms.media.MediaStatusStore;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
@@ -69,6 +62,13 @@ import net.pms.network.mediaserver.handlers.message.SamsungBookmark;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -278,7 +278,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 			if (cLoverride == 0) {
 				//mean no content, HttpExchange use the -1 value for it.
 				contentLength = -1;
-			} else if (cLoverride > -1 && cLoverride != LibraryResource.TRANS_SIZE) {
+			} else if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
@@ -407,7 +407,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	private static String getSystemUpdateIdHandler() {
 		StringBuilder payload = new StringBuilder();
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER).append(CRLF);
-		payload.append("<Id>").append(LibraryIds.getSystemUpdateId()).append("</Id>").append(CRLF);
+		payload.append("<Id>").append(MediaStoreIds.getSystemUpdateId()).append("</Id>").append(CRLF);
 		payload.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 		return createResponse(payload.toString()).toString();
 	}
@@ -423,7 +423,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 				LOGGER.debug("Skipping \"set bookmark\". Position=0");
 			} else {
 				try {
-					LibraryResource resource = renderer.getRootFolder().getLibraryResource(payload.getObjectId());
+					StoreResource resource = renderer.getMediaStore().getResource(payload.getObjectId());
 					File file = new File(resource.getFileName());
 					String path = file.getCanonicalPath();
 					MediaStatusStore.setBookmark(path, renderer.getAccountUserId(), payload.getPosSecond());
@@ -450,15 +450,15 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 	private static String samsungGetFeaturesListHandler(Renderer renderer) {
 		StringBuilder features = new StringBuilder();
-		String rootFolderId = renderer.getRootFolder().getResourceId();
+		String mediaStoreId = renderer.getMediaStore().getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
 		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
 		// we may use here different container IDs in the future
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
 
@@ -541,8 +541,8 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 		// Xbox 360 virtual containers ... d'oh!
 		String searchCriteria = null;
-		if (xbox360 && CONFIGURATION.getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && containerID != null) {
-			MediaLibrary library = renderer.getRootFolder().getLibrary();
+		if (xbox360 && containerID != null) {
+			MediaLibrary library = renderer.getMediaStore().getMediaLibrary();
 			if (containerID.equals("7") && library.getAlbumFolder() != null) {
 				objectID = library.getAlbumFolder().getResourceId();
 			} else if (containerID.equals("6") && library.getArtistFolder() != null) {
@@ -564,7 +564,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 			searchCriteria = requestMessage.getSearchCriteria();
 		}
 
-		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
 				browseDirectChildren,
 				startingIndex,
@@ -574,7 +574,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 		if (searchCriteria != null && resources != null) {
 			UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
-			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof LibraryContainer libraryContainer) {
+			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer libraryContainer) {
 				resources = libraryContainer.getChildren();
 			}
 		}
@@ -582,7 +582,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		int minus = 0;
 		StringBuilder filesData = new StringBuilder();
 		if (resources != null) {
-			for (LibraryResource resource : resources) {
+			for (StoreResource resource : resources) {
 				if (resource instanceof PlaylistFolder playlistFolder) {
 					File f = new File(resource.getFileName());
 					if (resource.getLastModified() < f.lastModified()) {
@@ -594,9 +594,9 @@ public class ContentDirectoryHandler implements HttpHandler {
 					resource.setFakeParentId(containerID);
 				}
 
-				if (resource instanceof LibraryContainer) {
+				if (resource instanceof StoreContainer) {
 					filesData.append(DidlHelper.getDidlString(resource));
-				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
@@ -631,13 +631,13 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		LibraryContainer parentFolder;
+		StoreContainer parentFolder;
 
 		if (resources != null && filessize > 0) {
 			parentFolder = resources.get(0).getParent();
 		} else {
-			LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
-			if (resource instanceof LibraryContainer libraryContainer) {
+			StoreResource resource = renderer.getMediaStore().getResource(objectID);
+			if (resource instanceof StoreContainer libraryContainer) {
 				parentFolder = libraryContainer;
 			} else {
 				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
@@ -691,7 +691,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		 * point would not have been aware that it had stale data.
 		 */
 		response.append("<UpdateID>");
-		response.append(LibraryIds.getSystemUpdateId());
+		response.append(MediaStoreIds.getSystemUpdateId());
 		response.append("</UpdateID>");
 		response.append(CRLF);
 
@@ -775,7 +775,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 		response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 		response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
-		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + LibraryIds.getSystemUpdateId()));
+		response.append(HTTPXMLHelper.eventProp("SystemUpdateID", "" + MediaStoreIds.getSystemUpdateId()));
 		response.append(HTTPXMLHelper.EVENT_FOOTER);
 		return response.toString();
 	}
@@ -794,7 +794,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 		response.append("<ContainerUpdateIDs></ContainerUpdateIDs>");
 		response.append("</e:property>");
 		response.append("<e:property>");
-		response.append("<SystemUpdateID>").append(LibraryIds.getSystemUpdateId()).append("</SystemUpdateID>");
+		response.append("<SystemUpdateID>").append(MediaStoreIds.getSystemUpdateId()).append("</SystemUpdateID>");
 		response.append("</e:property>");
 		response.append("</e:propertyset>");
 		return response.toString();

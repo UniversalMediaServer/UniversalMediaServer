@@ -31,10 +31,10 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreResource;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -63,13 +63,13 @@ public class UMSUtils {
 	 * @param isExpectOneResult whether to only return one result
 	 * @param isExactMatch whether to only return exact matches
 	 */
-	public static void filterResourcesByName(List<LibraryResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
+	public static void filterResourcesByName(List<StoreResource> resources, String searchString, boolean isExpectOneResult, boolean isExactMatch) {
 		if (resources == null || searchString == null) {
 			return;
 		}
 		searchString = searchString.toLowerCase();
 		for (int i = resources.size() - 1; i >= 0; i--) {
-			LibraryResource res = resources.get(i);
+			StoreResource res = resources.get(i);
 
 			if (res.isSearched()) {
 				continue;

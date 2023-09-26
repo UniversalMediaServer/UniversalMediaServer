@@ -23,21 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.PMS;
 import net.pms.dlna.DidlHelper;
-import net.pms.library.LibraryContainer;
-import net.pms.library.LibraryIds;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
-import net.pms.library.container.MediaLibrary;
-import net.pms.library.container.PlaylistFolder;
-import net.pms.media.MediaStatusStore;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.LibraryResourceHelper;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
@@ -150,9 +148,6 @@ public class UmsContentDirectoryService {
 	private static final List<String> CAPS_SEARCH = List.of();
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
-	private static final String METADATA_TABLE_KEY_SYSTEMUPDATEID = "SystemUpdateID";
-	private static final ReentrantReadWriteLock LOCK_SYSTEM_UPDATE_ID = new ReentrantReadWriteLock();
-	private static UnsignedIntegerFourBytes dbSystemUpdateID;
 
 	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
@@ -188,28 +183,31 @@ public class UmsContentDirectoryService {
 		 * in-memory value with the database value if the database is enabled.
 		 */
 		//Todo : this may not be necessary if we follow the upnp rules.
-		LibraryIds.incrementSystemUpdateId();
-		systemUpdateID = new UnsignedIntegerFourBytes(LibraryIds.getSystemUpdateId().getValue());
+		MediaStoreIds.incrementSystemUpdateId();
+		systemUpdateID = new UnsignedIntegerFourBytes(MediaStoreIds.getSystemUpdateId().getValue());
 		propertyChangeSupport = new PropertyChangeSupport(this);
 		systemUpdateIdTimer.schedule(systemUpdateIdTask, 0, 200);
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "SearchCaps"))
+			@UpnpOutputArgument(name = "SearchCaps")
+	)
 	public CSV<String> getSearchCapabilities() {
 		return searchCapabilities;
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "SortCaps"))
+			@UpnpOutputArgument(name = "SortCaps")
+	)
 	public CSV<String> getSortCapabilities() {
 		return sortCapabilities;
 	}
 
 	@UpnpAction(out =
-			@UpnpOutputArgument(name = "Id"))
+			@UpnpOutputArgument(name = "Id")
+	)
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
-		return LibraryIds.getSystemUpdateId();
+		return MediaStoreIds.getSystemUpdateId();
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
@@ -218,7 +216,7 @@ public class UmsContentDirectoryService {
 
 	private void systemUpdateIdChanged() {
 		long oldValue = systemUpdateID.getValue();
-		long newValue = LibraryIds.getSystemUpdateId().getValue();
+		long newValue = MediaStoreIds.getSystemUpdateId().getValue();
 		if (oldValue != newValue) {
 			getPropertyChangeSupport().firePropertyChange(
 					"SystemUpdateID",
@@ -396,7 +394,7 @@ public class UmsContentDirectoryService {
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
-		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
 				browseDirectChildren,
 				(int) startingIndex,
@@ -404,13 +402,13 @@ public class UmsContentDirectoryService {
 				null
 		);
 
-		List<LibraryResource> resultResources = new ArrayList<>();
+		List<StoreResource> resultResources = new ArrayList<>();
 		long resourcesCount = 0;
 		long badResourceCount = 0;
 
 		if (resources != null) {
 			resourcesCount = resources.size();
-			for (LibraryResource resource : resources) {
+			for (StoreResource resource : resources) {
 				if (resource instanceof PlaylistFolder playlistFolder) {
 					File f = new File(resource.getFileName());
 					if (resource.getLastModified() < f.lastModified()) {
@@ -418,9 +416,9 @@ public class UmsContentDirectoryService {
 					}
 				}
 
-				if (resource instanceof LibraryContainer container) {
+				if (resource instanceof StoreContainer container) {
 					resultResources.add(container);
-				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
@@ -448,13 +446,13 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else if (browseDirectChildren) {
-			LibraryContainer parentFolder;
+			StoreContainer parentFolder;
 			if (resources != null && resourcesCount > 0) {
 				parentFolder = resources.get(0).getParent();
 			} else {
-				LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
-				if (resource instanceof LibraryContainer libraryContainer) {
-					parentFolder = libraryContainer;
+				StoreResource resource = renderer.getMediaStore().getResource(objectID);
+				if (resource instanceof StoreContainer storeContainer) {
+					parentFolder = storeContainer;
 				} else {
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
@@ -469,7 +467,7 @@ public class UmsContentDirectoryService {
 			totalMatches = 1;
 		}
 
-		long containerUpdateID = LibraryIds.getSystemUpdateId().getValue();
+		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
 			result = getJUPnPDidlResults(resultResources);
@@ -541,9 +539,9 @@ public class UmsContentDirectoryService {
 		}
 
 		// Xbox 360 virtual containers ... d'oh!
-		if (xbox360 && PMS.getConfiguration().getUseCache() && renderer.getRootFolder().getLibrary().isEnabled() && xboxId != null) {
+		if (xbox360 && xboxId != null) {
 			searchCriteria = null;
-			MediaLibrary library = renderer.getRootFolder().getLibrary();
+			MediaLibrary library = renderer.getMediaStore().getMediaLibrary();
 			if (xboxId.equals("7") && library.getAlbumFolder() != null) {
 				containerId = library.getAlbumFolder().getResourceId();
 			} else if (xboxId.equals("6") && library.getArtistFolder() != null) {
@@ -563,7 +561,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		List<LibraryResource> resources = renderer.getRootFolder().getLibraryResources(
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				containerId,
 				true,
 				(int) startingIndex,
@@ -571,19 +569,19 @@ public class UmsContentDirectoryService {
 				searchCriteria
 		);
 
-		List<LibraryResource> resultResources = new ArrayList<>();
+		List<StoreResource> resultResources = new ArrayList<>();
 		long resourceCount = 0;
 		long badResourceCount = 0;
 
 		if (resources != null) {
 			if (searchCriteria != null) {
 				UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
-				if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof LibraryContainer libraryContainer) {
-					resources = libraryContainer.getChildren();
+				if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer storeContainer) {
+					resources = storeContainer.getChildren();
 				}
 			}
 			resourceCount = resources.size();
-			for (LibraryResource resource : resources) {
+			for (StoreResource resource : resources) {
 				if (resource instanceof PlaylistFolder playlistFolder) {
 					File f = new File(resource.getFileName());
 					if (resource.getLastModified() < f.lastModified()) {
@@ -595,9 +593,9 @@ public class UmsContentDirectoryService {
 					resource.setFakeParentId(xboxId);
 				}
 
-				if (resource instanceof LibraryContainer container) {
+				if (resource instanceof StoreContainer container) {
 					resultResources.add(container);
-				} else if (resource instanceof LibraryItem item && (item.isCompatible() &&
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
 						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
 						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
 						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
@@ -625,13 +623,13 @@ public class UmsContentDirectoryService {
 				totalMatches = startingIndex;
 			}
 		} else {
-			LibraryContainer parentFolder;
+			StoreContainer parentFolder;
 			if (resources != null && resourceCount > 0) {
 				parentFolder = resources.get(0).getParent();
 			} else {
-				LibraryResource resource = renderer.getRootFolder().getLibraryResource(containerId);
-				if (resource instanceof LibraryContainer libraryContainer) {
-					parentFolder = libraryContainer;
+				StoreResource resource = renderer.getMediaStore().getResource(containerId);
+				if (resource instanceof StoreContainer storeContainer) {
+					parentFolder = storeContainer;
 				} else {
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
@@ -643,7 +641,7 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long containerUpdateID = LibraryIds.getSystemUpdateId().getValue();
+		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
 			result = getJUPnPDidlResults(resultResources);
@@ -695,7 +693,7 @@ public class UmsContentDirectoryService {
 			LOGGER.debug("Skipping \"set bookmark\". Position=0");
 		} else {
 			try {
-				LibraryResource resource = renderer.getRootFolder().getLibraryResource(objectID);
+				StoreResource resource = renderer.getMediaStore().getResource(objectID);
 				File file = new File(resource.getFileName());
 				String path = file.getCanonicalPath();
 				MediaStatusStore.setBookmark(path, renderer.getAccountUserId(), (int) posSecond);
@@ -725,15 +723,15 @@ public class UmsContentDirectoryService {
 		}
 
 		StringBuilder features = new StringBuilder();
-		String rootFolderId = renderer.getRootFolder().getResourceId();
+		String mediaStoreId = renderer.getMediaStore().getResourceId();
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
 		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
 		// we may use here different container IDs in the future
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
 
@@ -744,13 +742,13 @@ public class UmsContentDirectoryService {
 		return response.toString();
 	}
 
-	private static String getJUPnPDidlResults(List<LibraryResource> resultResources) {
+	private static String getJUPnPDidlResults(List<StoreResource> resultResources) {
 		Result didlResult = new Result();
-		for (LibraryResource resource : resultResources) {
-			if (resource instanceof LibraryContainer container) {
-				didlResult.addObject(LibraryResourceHelper.getContainer(container));
-			} else if (resource instanceof LibraryItem item) {
-				didlResult.addObject(LibraryResourceHelper.getItem(item));
+		for (StoreResource resource : resultResources) {
+			if (resource instanceof StoreContainer container) {
+				didlResult.addObject(StoreResourceHelper.getContainer(container));
+			} else if (resource instanceof StoreItem item) {
+				didlResult.addObject(StoreResourceHelper.getItem(item));
 			}
 		}
 		return didlResult.toString();

@@ -30,6 +30,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.store.MediaStoreIds;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -77,8 +78,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 36: rename indexes
 	 * - 37: remove video infos
 	 * - 38: added Mime type
+	 * - 39: typo on column name
 	 */
-	private static final int TABLE_VERSION = 38;
+	private static final int TABLE_VERSION = 39;
 
 	/**
 	 * COLUMNS NAMES
@@ -91,7 +93,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_PARSER = "PARSER";
 	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
 	private static final String COL_CONTAINER = "CONTAINER";
-	private static final String COL_MIMETYPE = "COL_MIMETYPE";
+	private static final String COL_MIMETYPE = "MIMETYPE";
 	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
 	private static final String COL_DURATION = "DURATION";
 	private static final String COL_BITRATE = "BITRATE";
@@ -135,7 +137,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 	private static final String SQL_GET_ID_FILENAME = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_UPDATE_THUMBID_BY_FILENAME = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + MediaTableThumbnails.TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + EQUAL + PARAMETER + LIMIT_1;
@@ -429,6 +431,9 @@ public class MediaTableFiles extends MediaTable {
 					case 37 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MIMETYPE + VARCHAR_32);
 					}
+					case 38 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "COL_MIMETYPE" + RENAME_TO + COL_MIMETYPE);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -609,11 +614,7 @@ public class MediaTableFiles extends MediaTable {
 					media.setDuration(toDouble(rs, COL_DURATION));
 					media.setBitRate(rs.getInt(COL_BITRATE));
 					media.setFrameRate(toDouble(rs, COL_FRAMERATE));
-					try {
-						media.setThumb((DLNAThumbnail) rs.getObject(MediaTableThumbnails.COL_THUMBNAIL));
-					} catch (SQLException se) {
-						//thumb will be recreated on next thumb request
-					}
+					media.setThumbId(toLong(rs, COL_THUMBID));
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
 					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
@@ -646,8 +647,8 @@ public class MediaTableFiles extends MediaTable {
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
 	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
+		long fileId = -1;
 		try {
-			long fileId = -1;
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_FILENAME,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
@@ -665,6 +666,7 @@ public class MediaTableFiles extends MediaTable {
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
+						result.updateLong(COL_THUMBID, media.getThumbId());
 						result.updateLong(COL_MEDIA_SIZE, media.getSize());
 						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
 						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
@@ -704,8 +706,9 @@ public class MediaTableFiles extends MediaTable {
 			}
 			throw se;
 		} finally {
-			if (media != null && media.getThumb() != null) {
-				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1, false);
+			if (fileId > -1) {
+				//let store know that we change media metadata
+				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 			}
 		}
 	}
@@ -804,15 +807,15 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static void updateThumbnailId(final Connection connection, String fullPathToFile, int thumbId) {
+	public static void updateThumbnailId(final Connection connection, int fileId, Long thumbId) {
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_FILENAME);
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_ID);
 			) {
-				ps.setInt(1, thumbId);
-				ps.setString(2, fullPathToFile);
+				ps.setLong(1, thumbId);
+				ps.setInt(2, fileId);
 				ps.executeUpdate();
-				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
+				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fileId);
 			}
 		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
@@ -905,27 +908,6 @@ public class MediaTableFiles extends MediaTable {
 			}
 
 			/*
-			 * Cleanup of THUMBNAILS table
-			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
-			 */
-			try (
-				PreparedStatement ps = connection.prepareStatement(
-					DELETE_FROM + MediaTableThumbnails.TABLE_NAME +
-					WHERE + NOT + EXISTS + "(" +
-						SELECT + TABLE_COL_ID + FROM + TABLE_NAME +
-						WHERE + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID +
-						LIMIT_1 +
-					")" + AND + NOT + EXISTS + "(" +
-						SELECT + MediaTableTVSeries.TABLE_COL_ID + FROM + MediaTableTVSeries.TABLE_NAME +
-						WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID +
-						LIMIT_1 +
-					");"
-			)) {
-				ps.execute();
-			}
-
-			/*
 			 * Cleanup of FILES_STATUS table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
@@ -957,6 +939,15 @@ public class MediaTableFiles extends MediaTable {
 			)) {
 				ps.execute();
 			}
+
+			/*
+			 * Cleanup of THUMBNAILS table
+			 *
+			 * Removes entries that are not referenced by any rows in the FILES
+			 * table or TV_SERIES table.
+			 */
+			MediaTableThumbnails.cleanup(connection);
+
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {

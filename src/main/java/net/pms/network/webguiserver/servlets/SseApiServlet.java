@@ -380,7 +380,7 @@ public class SseApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		broadcastSettingsMessage("{\"action\":\"set_scanlibrary_status\",\"enabled\":" + (enabled ? "true" : "false") + ",\"running\":" + (running ? "true" : "false") + "}");
+	public static void setMediaScanStatus(boolean running) {
+		broadcastSettingsMessage("{\"action\":\"set_media_scan_status\",\"running\":" + (running ? "true" : "false") + "}");
 	}
 }

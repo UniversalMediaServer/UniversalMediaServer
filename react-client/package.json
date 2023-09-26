@@ -4,13 +4,13 @@
   "private": true,
   "proxy": "http://localhost:9001",
   "dependencies": {
-    "@mantine/code-highlight": "7.0.0",
-    "@mantine/core": "7.0.0",
-    "@mantine/dropzone": "7.0.0",
-    "@mantine/form": "7.0.0",
-    "@mantine/hooks": "7.0.0",
-    "@mantine/modals": "7.0.0",
-    "@mantine/notifications": "7.0.0",
+    "@mantine/code-highlight": "7.0.2",
+    "@mantine/core": "7.0.2",
+    "@mantine/dropzone": "7.0.2",
+    "@mantine/form": "7.0.2",
+    "@mantine/hooks": "7.0.2",
+    "@mantine/modals": "7.0.2",
+    "@mantine/notifications": "7.0.2",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.5.0",
     "jwt-decode": "3.1.2",
@@ -25,12 +25,13 @@
     "stylis-plugin-rtl": "2.1.1",
     "tabler-icons-react": "1.56.0",
     "typescript": "5.2.2",
-    "video.js": "8.5.3",
+    "video.js": "8.6.0",
     "web-vitals": "3.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "analyze": "source-map-explorer '../src/main/external-resources/web/react-client/static/js/*.js'",
     "build-player": "REACT_APP_MODE=player react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -57,15 +58,16 @@
     "@testing-library/react": "14.0.0",
     "@testing-library/user-event": "14.5.1",
     "@types/jest": "29.5.5",
-    "@types/lodash": "4.14.198",
-    "@types/node": "18.17.18",
+    "@types/lodash": "4.14.199",
+    "@types/node": "18.18.0",
     "@types/react": "18.2.22",
     "@types/react-color": "3.0.6",
     "@types/react-dom": "18.2.7",
-    "@typescript-eslint/eslint-plugin": "6.7.2",
-    "@typescript-eslint/parser": "6.7.2",
-    "eslint": "8.49.0",
+    "@typescript-eslint/eslint-plugin": "6.7.3",
+    "@typescript-eslint/parser": "6.7.3",
+    "eslint": "8.50.0",
     "eslint-plugin-react": "7.33.2",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "source-map-explorer": "2.5.3"
   }
 }

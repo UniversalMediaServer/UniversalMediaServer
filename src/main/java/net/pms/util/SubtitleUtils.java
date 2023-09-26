@@ -53,13 +53,13 @@ import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreResource;
 import static net.pms.util.Constants.*;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
@@ -220,7 +220,7 @@ public class SubtitleUtils {
 	 * fontconfig setting to that converted file and applies timeseeking when
 	 * required.
 	 *
-	 * @param resource LibraryResource
+	 * @param resource StoreResource
 	 * @param media MediaInfo
 	 * @param params Output parameters
 	 * @param configuration
@@ -229,7 +229,7 @@ public class SubtitleUtils {
 	 * @throws IOException
 	 */
 	public static File getSubtitles(
-		LibraryResource resource,
+		StoreResource resource,
 		MediaInfo media,
 		OutputParams params,
 		UmsConfiguration configuration,

@@ -61,13 +61,13 @@ import net.pms.database.UserDatabase;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.YoutubeDl;
+import net.pms.external.umsapi.APIUtils;
+import net.pms.external.update.AutoUpdater;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.ThreadedProcessWrapper;
-import net.pms.library.LibraryScanner;
-import net.pms.library.container.CodeEnter;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
 import net.pms.network.NetworkDeviceFilter;
@@ -92,8 +92,8 @@ import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererFilter;
 import net.pms.renderers.RendererUser;
 import net.pms.service.Services;
-import net.pms.external.update.AutoUpdater;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.store.MediaScanner;
+import net.pms.store.container.CodeEnter;
 import net.pms.util.CodeDb;
 import net.pms.util.CredMgr;
 import net.pms.util.FileUtil;
@@ -404,7 +404,7 @@ public class PMS {
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
 		RendererUser.reset();
-		LibraryScanner.init();
+		MediaScanner.init();
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -475,7 +475,7 @@ public class PMS {
 			umsConfiguration.setHasRunOnce();
 		}
 
-		GuiManager.setScanLibraryStatus(umsConfiguration.getUseCache(), false);
+		GuiManager.setMediaScanStatus(false);
 		if (!isHeadless()) {
 			GuiManager.addGui(new LooksFrame(autoUpdater, umsConfiguration, windowConfiguration));
 		} else {
@@ -500,8 +500,8 @@ public class PMS {
 					resetWebPlayerServer();
 				} else if (UmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetMediaLibrary();
-				} else if (UmsConfiguration.NEED_RENDERERS_ROOT_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					resetRenderersRoot();
+				} else if (UmsConfiguration.NEED_RENDERERS_MEDIA_STORE_RELOAD_FLAGS.contains(event.getPropertyName())) {
+					resetRenderersMediaStore();
 				}
 				GuiManager.setConfigurationChanged(event.getPropertyName());
 			}
@@ -645,9 +645,9 @@ public class PMS {
 
 		umsConfiguration.setAutoSave();
 
-		// Initiate a library scan in case files were added to folders while UMS was closed.
-		if (umsConfiguration.getUseCache() && umsConfiguration.isScanSharedFoldersOnStartup()) {
-			LibraryScanner.scanLibrary();
+		// Initiate a media scan in case files were added to folders while UMS was closed.
+		if (umsConfiguration.isScanSharedFoldersOnStartup()) {
+			MediaScanner.startMediaScan();
 		}
 
 		return true;
@@ -696,14 +696,14 @@ public class PMS {
 	 * The trigger is configuration change.
 	 */
 	public void resetMediaLibrary() {
-		resetRenderersRoot();
+		resetRenderersMediaStore();
 	}
 
 	/**
-	 * Reset all renderers Root Folder.
+	 * Reset all renderers MediaStore.
 	 * The trigger is configuration change.
 	 */
-	public void resetRenderersRoot() {
+	public void resetRenderersMediaStore() {
 		ConnectedRenderers.resetAllRenderers();
 	}
 
@@ -1118,14 +1118,12 @@ public class PMS {
 			System.err.println("Unable to shut down logging gracefully");
 		}
 
-		// Shut down library scanner
-		if (getConfiguration().getUseCache()) {
-			if (LibraryScanner.isScanLibraryRunning()) {
-				LOGGER.debug("LibraryScanner is still running, attempting to stop it");
-				LibraryScanner.stopScanLibrary();
-			} else {
-				LOGGER.debug("LibraryScanner already stopped");
-			}
+		// Shut down media scanner
+		if (MediaScanner.isMediaScanRunning()) {
+			LOGGER.debug("MediaScanner is still running, attempting to stop it");
+			MediaScanner.stopMediaScan();
+		} else {
+			LOGGER.debug("MediaScanner already stopped");
 		}
 
 		if (MediaDatabase.isInstantiated()) {

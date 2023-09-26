@@ -36,8 +36,7 @@ import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
-import net.pms.parsers.Parser;
-import net.pms.util.InputFile;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,7 +56,7 @@ public class MediaInfo implements Cloneable {
 	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS = getAudioOrVideoContainers();
 
 	// Stored in database
-	private int fileId;
+	private Integer fileId;
 	private String lastParser;
 	private Double durationSec;
 	private int bitrate;
@@ -67,7 +66,7 @@ public class MediaInfo implements Cloneable {
 	private String title;
 	private String aspectRatioDvdIso;
 
-	private volatile DLNAThumbnail thumb = null;
+	private Long thumbnailId = null;
 
 	private MediaVideoMetadata videoMetadata;
 	private MediaAudioMetadata audioMetadata;
@@ -85,12 +84,6 @@ public class MediaInfo implements Cloneable {
 	/**
 	 * Not stored in database.
 	 */
-	/**
-	 * isUseMediaInfo-related, used to manage thumbnail management separated
-	 * from the main parsing process.
-	 */
-	private volatile boolean thumbready;
-
 	private Integer dvdtrack;
 
 	private final Object parsingLock = new Object();
@@ -108,11 +101,11 @@ public class MediaInfo implements Cloneable {
 		this.imageCount = 0;
 	}
 
-	public int getFileId() {
+	public Integer getFileId() {
 		return fileId;
 	}
 
-	public void setFileId(int value) {
+	public void setFileId(Integer value) {
 		fileId = value;
 	}
 
@@ -194,14 +187,6 @@ public class MediaInfo implements Cloneable {
 
 	public boolean isImage() {
 		return MediaType.IMAGE == getMediaType();
-	}
-
-	/**
-	 * FIXME : This should not set current thumb.
-	 * Thumbnail is linked to status, renderer, ...
-	 */
-	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
-		thumb = Parser.getThumbnail(this, input, ext, type, seekPosition);
 	}
 
 	/**
@@ -359,19 +344,15 @@ public class MediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public DLNAThumbnail getThumb() {
-		return thumb;
+		return ThumbnailStore.getThumbnail(thumbnailId);
 	}
 
-	/**
-	 * Sets the {@link DLNAThumbnail} instance to use for this {@link MediaInfo} instance.
-	 *
-	 * @param thumbnail the {@link DLNAThumbnail} to set.
-	 */
-	public void setThumb(DLNAThumbnail thumbnail) {
-		this.thumb = thumbnail;
-		if (thumbnail != null) {
-			thumbready = true;
-		}
+	public Long getThumbId() {
+		return thumbnailId;
+	}
+
+	public void setThumbId(Long thumbnailId) {
+		this.thumbnailId = thumbnailId;
 	}
 
 	/**
@@ -379,18 +360,11 @@ public class MediaInfo implements Cloneable {
 	 * @since 1.50.0
 	 */
 	public boolean isThumbready() {
-		return thumbready;
-	}
-
-	/**
-	 * @param thumbready the thumbready to set
-	 * @since 1.50.0
-	 */
-	public void setThumbready(boolean thumbready) {
-		this.thumbready = thumbready;
+		return getThumb() != null;
 	}
 
 	public DLNAThumbnailInputStream getThumbnailInputStream() {
+		DLNAThumbnail thumb = getThumb();
 		return thumb != null ? new DLNAThumbnailInputStream(thumb) : null;
 	}
 

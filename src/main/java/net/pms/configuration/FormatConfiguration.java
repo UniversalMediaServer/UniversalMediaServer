@@ -28,9 +28,9 @@ import java.util.regex.PatternSyntaxException;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
 import net.pms.io.OutputParams;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
+import net.pms.store.StoreItem;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -619,12 +619,12 @@ public class FormatConfiguration {
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param resource The LibraryResource
+	 * @param item The StoreItem
 	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(LibraryItem resource, RendererConfiguration renderer) {
-		MediaInfo media = resource.getMediaInfo();
+	public String getMatchedMIMEtype(StoreItem item, RendererConfiguration renderer) {
+		MediaInfo media = item.getMediaInfo();
 		if (media == null) {
 			return null;
 		}
@@ -657,8 +657,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
-				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -688,8 +688,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
-				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -710,8 +710,8 @@ public class FormatConfiguration {
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
-				resource.getMediaSubtitle() != null ? resource.getMediaSubtitle().getType().toString() : null,
-				resource.getMediaSubtitle() != null && resource.getMediaSubtitle().isExternal(),
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;

@@ -44,8 +44,7 @@ public class GuiManager {
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
 	private static boolean needLogFile = false;
-	private static boolean libraryScanEnabled = false;
-	private static boolean libraryScanRunning = false;
+	private static boolean mediaScanRunning = false;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -70,7 +69,7 @@ public class GuiManager {
 			gui.setPeakBitrate(peakBitrate);
 			gui.setReloadable(reloadable);
 			gui.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
-			gui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+			gui.setMediaScanStatus(mediaScanRunning);
 			if (serverReady) {
 				gui.serverReady();
 			}
@@ -209,15 +208,14 @@ public class GuiManager {
 		}
 	}
 
-	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		if (enabled != libraryScanEnabled || running != libraryScanRunning) {
-			libraryScanEnabled = enabled;
-			libraryScanRunning = running;
+	public static void setMediaScanStatus(boolean running) {
+		if (running != mediaScanRunning) {
+			mediaScanRunning = running;
 			if (swingFrame != null) {
-				swingFrame.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+				swingFrame.setMediaScanStatus(mediaScanRunning);
 			}
 			if (webGui != null) {
-				webGui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+				webGui.setMediaScanStatus(mediaScanRunning);
 			}
 		}
 	}

@@ -19,7 +19,7 @@ package net.pms.renderers;
 import java.util.List;
 import net.pms.encoders.Engine;
 import net.pms.io.OutputParams;
-import net.pms.library.LibraryResource;
+import net.pms.store.StoreResource;
 
 public interface OutputOverride {
 	/**
@@ -33,7 +33,7 @@ public interface OutputOverride {
 	 *
 	 * @return whether the options have been finalized
 	 */
-	public boolean getOutputOptions(List<String> cmdList, LibraryResource resource, Engine engine, OutputParams params);
+	public boolean getOutputOptions(List<String> cmdList, StoreResource resource, Engine engine, OutputParams params);
 
 	public boolean addSubtitles();
 }

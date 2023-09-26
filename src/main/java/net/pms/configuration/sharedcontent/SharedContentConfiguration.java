@@ -176,7 +176,7 @@ public class SharedContentConfiguration {
 				}
 				sendSseApiUpdate();
 				if (PMS.isReady()) {
-					PMS.get().resetRenderersRoot();
+					PMS.get().resetRenderersMediaStore();
 				}
 				updated = true;
 			} else {

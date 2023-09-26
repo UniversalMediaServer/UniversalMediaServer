@@ -74,6 +74,7 @@ public class TvSeriesMetadata {
 	private Double totalSeasons;
 	private String apiVersion;
 	private String votes;
+	private Long thumbnailId;
 
 	public ApiStringArray getActors() {
 		return actors;
@@ -517,6 +518,14 @@ public class TvSeriesMetadata {
 
 	public void setTotalSeasons(Double value) {
 		this.totalSeasons = value;
+	}
+
+	public Long getThumbnailId() {
+		return thumbnailId;
+	}
+
+	public void setThumbnailId(Long value) {
+		this.thumbnailId = value;
 	}
 
 	public String getVotes() {

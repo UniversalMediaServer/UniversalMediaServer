@@ -22,9 +22,9 @@ import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 import net.pms.util.UMSUtils;
 
@@ -84,7 +84,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
@@ -136,7 +136,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 }

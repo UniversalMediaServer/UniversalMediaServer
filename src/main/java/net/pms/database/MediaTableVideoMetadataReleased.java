@@ -21,11 +21,16 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableVideoMetadataReleased extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataReleased.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_RELEASED";
 
@@ -34,7 +39,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
@@ -120,6 +125,9 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ")" + ON_DELETE_CASCADE);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ")" + ON_DELETE_CASCADE);
 				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_RELEASEDATE + TIMESTAMP);
+				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
 				}
@@ -131,14 +139,14 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			CREATE_TABLE + TABLE_NAME + "(" +
+				CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID            + IDENTITY            + PRIMARY_KEY + COMMA +
 				COL_TVSERIESID    + INTEGER                           + COMMA +
 				COL_FILEID        + INTEGER                           + COMMA +
-				COL_RELEASEDATE   + VARCHAR_1024        + NOT_NULL    + COMMA +
+				COL_RELEASEDATE   + TIMESTAMP           + NOT_NULL    + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + ON_DELETE_CASCADE + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
-			")"
+				")"
 		);
 	}
 
@@ -154,6 +162,17 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 		if (StringUtils.isBlank(released)) {
 			return;
 		}
+		Timestamp timestamp = null;
+		try {
+			Instant instant = Instant.from(DateTimeFormatter.ISO_INSTANT.parse(released));
+			timestamp = Timestamp.from(instant);
+		} catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
+			LOGGER.trace("String \"{}\" cannot converts to Timestamp", released);
+		}
+		if (timestamp == null) {
+			return;
+		}
+
 		final String sqlSelect;
 		final String sqlInsert;
 		final int id;
@@ -171,7 +190,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 
 		try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
 			ps.setInt(1, id);
-			ps.setString(2, StringUtils.left(released, 1024));
+			ps.setTimestamp(2, timestamp);
 			try (ResultSet rs = ps.executeQuery()) {
 				if (rs.next()) {
 					LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fileId, released);
@@ -179,8 +198,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 					try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
 						insertStatement.clearParameters();
 						insertStatement.setInt(1, id);
-						insertStatement.setString(2, StringUtils.left(released, 1024));
-
+						insertStatement.setTimestamp(2, timestamp);
 						insertStatement.executeUpdate();
 						try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
 							if (rs2.next()) {
@@ -202,7 +220,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 				ps.setLong(1, fileId);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						return rs.getString(1);
+						return rs.getTimestamp(1).toString();
 					}
 				}
 			}
@@ -219,7 +237,7 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 				ps.setLong(1, tvSerieId);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
-						return rs.getString(1);
+						return rs.getTimestamp(1).toString();
 					}
 				}
 			}

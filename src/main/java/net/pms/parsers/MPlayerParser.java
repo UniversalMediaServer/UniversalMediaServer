@@ -40,6 +40,7 @@ import net.pms.media.MediaLang;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.InputFile;
 import net.pms.util.Iso639;
 import net.pms.util.MPlayerDvdAudioStreamChannels;
@@ -199,10 +200,9 @@ public class MPlayerParser {
 			LOGGER.info("Error parsing information from the file: " + file);
 		} else {
 			if (generateThumbnails) {
-				media.setThumb(MPlayerParser.getThumbnail(frameName));
+				Long thumbId = ThumbnailStore.getId(MPlayerParser.getThumbnail(frameName));
+				media.setThumbId(thumbId);
 			}
-			// No point in trying to re-parse the thumbnail later
-			media.setThumbready(true);
 			parseDvdTitleInfo(media, pw.getOtherResults(), title);
 		}
 		media.setParsing(false);

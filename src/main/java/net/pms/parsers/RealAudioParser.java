@@ -28,13 +28,14 @@ import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.musicbrainz.coverart.CoverUtil;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.CoverSupplier;
-import net.pms.external.musicbrainz.coverart.CoverUtil;
 import net.pms.util.InputFile;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.tag.id3.ID3v1Tag;
@@ -265,7 +266,7 @@ public class RealAudioParser {
 				tag.setArtist(audioMetadata.getArtist());
 			}
 			try {
-				mediaInfo.setThumb(DLNAThumbnail.toThumbnail(
+				Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
 					CoverUtil.get().getThumbnail(tag),
 					640,
 					480,
@@ -273,6 +274,7 @@ public class RealAudioParser {
 					ImageFormat.SOURCE,
 					false
 				));
+				mediaInfo.setThumbId(thumbId);
 			} catch (IOException e) {
 				LOGGER.error(
 					"An error occurred while generating thumbnail for RealAudio source: [\"{}\", \"{}\"]",
@@ -281,7 +283,6 @@ public class RealAudioParser {
 				);
 			}
 		}
-		mediaInfo.setThumbready(true);
 		mediaInfo.setMediaParser(PARSER_NAME);
 
 		return true;

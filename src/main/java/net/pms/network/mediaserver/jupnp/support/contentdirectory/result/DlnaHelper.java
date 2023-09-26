@@ -26,14 +26,14 @@ import net.pms.encoders.TsMuxeRVideo;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.image.ImageInfo;
-import net.pms.library.LibraryItem;
-import net.pms.library.LibraryResource;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +48,7 @@ public class DlnaHelper {
 	protected DlnaHelper() {
 	}
 
-	public static String getDlnaContentFeatures(LibraryItem resource) {
+	public static String getDlnaContentFeatures(StoreItem resource) {
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
 		String dlnaOrgPnFlags = getDlnaOrgPnFlags(resource, localizationValue);
@@ -56,7 +56,7 @@ public class DlnaHelper {
 			";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
-	public static String getDlnaContentFeatures(LibraryResource resource, DLNAImageProfile profile, boolean thumbnailRequest) {
+	public static String getDlnaContentFeatures(StoreResource resource, DLNAImageProfile profile, boolean thumbnailRequest) {
 		StringBuilder sb = new StringBuilder();
 		if (profile != null) {
 			sb.append("DLNA.ORG_PN=").append(profile);
@@ -123,7 +123,7 @@ public class DlnaHelper {
 	 *
 	 * @return String representation of the DLNA.ORG_OP flags
 	 */
-	protected static String getDlnaOrgOpFlags(LibraryItem item) {
+	protected static String getDlnaOrgOpFlags(StoreItem item) {
 		String dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
 		final Engine engine = item.getEngine();
@@ -175,7 +175,7 @@ public class DlnaHelper {
 	 * @param localizationValue
 	 * @return String representation of the DLNA.ORG_PN flags
 	 */
-	protected static String getDlnaOrgPnFlags(LibraryItem item, int localizationValue) {
+	protected static String getDlnaOrgPnFlags(StoreItem item, int localizationValue) {
 		// Use device-specific UMS conf, if any
 		String mime = item.getRendererMimeType();
 		final Renderer renderer = item.getDefaultRenderer();

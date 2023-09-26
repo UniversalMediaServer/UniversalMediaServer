@@ -24,11 +24,11 @@ import java.util.Objects;
 /**
  * Virtual folders allow you to combine real folders into virtual ones and
  * give them custom names.
- * Will be ignored if 'virtual_folders_file' is used.
+ *
  * If you add a folder here, it will be scanned and its content added to
- * the Media Library.
+ * the Media Store.
  * For each virtual folder you can decide whether you want its content scanned
- * and added to the Media Library.
+ * and added to the Media Store.
  */
 public class VirtualFolderContent extends SharedContentWithPath {
 	protected static final String TYPE = "VirtualFolder";

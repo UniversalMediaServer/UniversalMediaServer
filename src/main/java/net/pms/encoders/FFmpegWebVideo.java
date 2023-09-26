@@ -29,12 +29,12 @@ import net.pms.io.OutputParams;
 import net.pms.io.OutputTextLogger;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.library.LibraryItem;
 import net.pms.media.MediaInfo;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.OutputOverride;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.FFmpegExecutableInfo;
 import net.pms.util.PlayerUtil;
@@ -75,7 +75,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		LibraryItem resource,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -276,7 +276,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(LibraryItem resource) {
+	public boolean isCompatible(StoreItem resource) {
 		if (PlayerUtil.isWebVideo(resource)) {
 			String url = resource.getFileName();
 
@@ -311,7 +311,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * Parse media info from ffmpeg headers during playback
 	 */
-	public static void parseMediaInfo(String filename, final LibraryItem resource, final ProcessWrapperImpl pw) {
+	public static void parseMediaInfo(String filename, final StoreItem resource, final ProcessWrapperImpl pw) {
 		if (resource.getMediaInfo() == null) {
 			resource.setMediaInfo(new MediaInfo());
 		} else if (resource.getMediaInfo().isMediaParsed()) {

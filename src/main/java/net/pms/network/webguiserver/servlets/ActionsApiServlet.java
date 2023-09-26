@@ -28,9 +28,9 @@ import net.pms.database.MediaDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
-import net.pms.library.LibraryScanner;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.store.MediaScanner;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +98,8 @@ public class ActionsApiServlet extends GuiHttpServlet {
 							}
 							case "Server.ScanAllSharedFolders" -> {
 								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
-									if (CONFIGURATION.getUseCache() && !LibraryScanner.isScanLibraryRunning()) {
-										LibraryScanner.scanLibrary();
+									if (!MediaScanner.isMediaScanRunning()) {
+										MediaScanner.startMediaScan();
 									}
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 								} else {
@@ -108,8 +108,8 @@ public class ActionsApiServlet extends GuiHttpServlet {
 							}
 							case "Server.ScanAllSharedFoldersCancel" -> {
 								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
-									if (LibraryScanner.isScanLibraryRunning()) {
-										LibraryScanner.stopScanLibrary();
+									if (MediaScanner.isMediaScanRunning()) {
+										MediaScanner.stopMediaScan();
 									}
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 								} else {

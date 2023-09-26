@@ -276,7 +276,7 @@ export default function SharedContentSettings(
         <Menu.Item
           color={value.monitored ? 'green' : 'red'}
           leftSection={value.monitored ? <Analyze /> : <AnalyzeOff />}
-          disabled={!canModify || !configuration.use_cache}
+          disabled={!canModify}
           onClick={() => toggleFolderMonitored(value)}
         >
           {i18n.get['MonitorPlayedStatusFiles']}
@@ -284,7 +284,7 @@ export default function SharedContentSettings(
         <Menu.Item
           color='blue'
           leftSection=<EyeCheck />
-          disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
+          disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
           {i18n.get['MarkContentsFullyPlayed']}
@@ -292,7 +292,7 @@ export default function SharedContentSettings(
         <Menu.Item
           color='green'
           leftSection=<EyeOff />
-          disabled={!canModify || !value.file || isLoading || !configuration.use_cache}
+          disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
           {i18n.get['MarkContentsUnplayed']}
@@ -649,17 +649,17 @@ export default function SharedContentSettings(
   const getScanSharedFoldersButton = () => {
     const haveFolder = sharedContents.find(sharedContent => sharedContent.type.startsWith('Folder'));
     return haveFolder ? (
-      <Tooltip label={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']} {...defaultTooltipSettings}>
+      <Tooltip label={i18n.get[sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']} {...defaultTooltipSettings}>
         <ActionIcon
           size='xl'
-          disabled={!canModify || isLoading || !sse.scanLibrary.enabled || (!configuration.use_cache && !sse.scanLibrary.running)}
+          disabled={!canModify || isLoading}
           variant='transparent'
-          color={sse.scanLibrary.running ? 'red' : 'blue'}
-          title={i18n.get[sse.scanLibrary.running ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
-          onClick={() => sse.scanLibrary.running ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+          color={sse.mediaScan ? 'red' : 'blue'}
+          title={i18n.get[sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
+          onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
         >
           <ListSearch />
-          {sse.scanLibrary.running && (<Loader />)}
+          {sse.mediaScan && (<Loader />)}
         </ActionIcon>
       </Tooltip>
     ) : null;

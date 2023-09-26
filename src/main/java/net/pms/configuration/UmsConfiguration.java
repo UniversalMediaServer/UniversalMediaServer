@@ -53,7 +53,6 @@ import net.pms.encoders.FFmpegLogLevels;
 import net.pms.encoders.StandardEngineId;
 import net.pms.formats.Format;
 import net.pms.gui.GuiManager;
-import net.pms.library.container.CodeEnter;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.TempFolder;
@@ -62,6 +61,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.service.Services;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
+import net.pms.store.container.CodeEnter;
 import net.pms.util.CoverSupplier;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FilePermissions;
@@ -427,7 +427,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	private static final String KEY_UPNP_PORT = "upnp_port";
-	private static final String KEY_USE_CACHE = "use_cache";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
@@ -561,19 +560,18 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * The set of keys defining when the media library has to reset due to a
 	 * configuration change.
 	 *
-	 * It will need a renderers reload as renderers build from it.
+	 * It will need a media store reload as renderers build from it.
 	 */
 	public static final Set<String> NEED_MEDIA_LIBRARY_RELOAD_FLAGS = Set.of(
 		KEY_FULLY_PLAYED_ACTION,
-		KEY_SHOW_RECENTLY_PLAYED_FOLDER,
-		KEY_USE_CACHE
+		KEY_SHOW_RECENTLY_PLAYED_FOLDER
 	);
 
 	/**
-	 * The set of keys defining when the renderers has to rebuid their root folder
+	 * The set of keys defining when the renderers has to rebuid their media store
 	 * due to a configuration change.
 	 */
-	public static final Set<String> NEED_RENDERERS_ROOT_RELOAD_FLAGS = Set.of(
+	public static final Set<String> NEED_RENDERERS_MEDIA_STORE_RELOAD_FLAGS = Set.of(
 		KEY_ATZ_LIMIT,
 		KEY_AUDIO_THUMBNAILS_METHOD,
 		KEY_CHAPTER_SUPPORT,
@@ -2764,27 +2762,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setFullyPlayedOutputDirectory(String value) {
 		configuration.setProperty(KEY_FULLY_PLAYED_OUTPUT_DIRECTORY, value);
-	}
-
-	/**
-	 * Returns true if PMS should cache scanned media in its internal database,
-	 * speeding up later retrieval. When false is returned, PMS will not use
-	 * cache and media will have to be rescanned.
-	 *
-	 * @return True if PMS should cache media.
-	 */
-	public boolean getUseCache() {
-		return getBoolean(KEY_USE_CACHE, true);
-	}
-
-	/**
-	 * Set to true if PMS should cache scanned media in its internal database,
-	 * speeding up later retrieval.
-	 *
-	 * @param value True if PMS should cache media.
-	 */
-	public void setUseCache(boolean value) {
-		configuration.setProperty(KEY_USE_CACHE, value);
 	}
 
 	/**
@@ -5662,7 +5639,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
 		jObj.addProperty(KEY_UPNP_ENABLED, true);
 		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
-		jObj.addProperty(KEY_USE_CACHE, true);
 		jObj.addProperty(KEY_USE_IMDB_INFO, true);
 		jObj.addProperty(KEY_USE_SYMLINKS_TARGET_FILE, true);
 		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);

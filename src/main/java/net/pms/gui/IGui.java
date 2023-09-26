@@ -31,7 +31,7 @@ public interface IGui {
 	public void setSecondaryStatusLine(String line);
 	public void serverReady();
 	public void updateServerStatus();
-	public void setScanLibraryStatus(boolean enabled, boolean running);
+	public void setMediaScanStatus(boolean running);
 	public void enableWebUiButton();
 	public void showErrorMessage(String message, String title);
 	public void setConfigurationChanged(String key);

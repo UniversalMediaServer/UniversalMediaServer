@@ -21,13 +21,13 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.image.ImageFormat;
-import net.pms.library.LibraryItem;
 import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
 import net.pms.service.StartStopListenerDelegate;
+import net.pms.store.StoreItem;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -235,7 +235,7 @@ public class WebGuiRenderer extends Renderer {
 		}
 	}
 
-	public void start(LibraryItem item) {
+	public void start(StoreItem item) {
 		// Stop playing any previous media on the renderer
 		if (getPlayingRes() != null && getPlayingRes() != item) {
 			stop();

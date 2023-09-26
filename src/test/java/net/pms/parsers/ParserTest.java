@@ -39,13 +39,13 @@ public class ParserTest {
 		PMS.configureJNA();
 		try {
 			PMS.setConfiguration(new UmsConfiguration(false));
+			PMS.getConfiguration().setExternalNetwork(false);
 			Services.destroy();
 			Services.create();
 			EngineFactory.initialize();
 		} catch (InterruptedException | ConfigurationException ex) {
 			throw new AssertionError(ex);
 		}
-		PMS.getConfiguration().setUseCache(false);
 	}
 
 	public static File getTestFile(String testFile) {

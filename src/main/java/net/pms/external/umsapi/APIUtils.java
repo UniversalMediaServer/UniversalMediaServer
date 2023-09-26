@@ -46,10 +46,10 @@ import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMetadata;
 import net.pms.database.MediaTableTVSeries;
-import net.pms.database.MediaTableThumbnails;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
+import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -60,9 +60,10 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
-import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.lang3.StringUtils;
@@ -290,11 +291,6 @@ public class APIUtils {
 				return;
 			}
 
-			if (!CONFIGURATION.getUseCache()) {
-				LOGGER.trace("Not doing background API lookup because cache/database is disabled");
-				return;
-			}
-
 			if (!MediaDatabase.isAvailable()) {
 				LOGGER.trace("Database is closed");
 				return;
@@ -475,7 +471,8 @@ public class APIUtils {
 					videoMetadata.setPoster(posterFromApi);
 					media.waitMediaParsing(5);
 					media.setParsing(true);
-					media.setThumb(getThumbnailFromUri(posterFromApi));
+					Long thumbId = ThumbnailStore.getId(getThumbnailFromUri(posterFromApi));
+					media.setThumbId(thumbId);
 					media.setParsing(false);
 				}
 				if (isTVEpisode) {
@@ -543,10 +540,8 @@ public class APIUtils {
 				Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, true);
 
-				if (media.getThumb() != null) {
-					MediaTableThumbnails.setThumbnail(connection, media.getThumb(), file.getAbsolutePath(), -1, false);
-				}
-
+				//let store know that we change media metadata
+				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
@@ -768,12 +763,16 @@ public class APIUtils {
 			}
 			seriesMetadata.setVotes(getStringOrNull(seriesMetadataFromAPI, "votes"));
 
-			MediaTableTVSeries.updateAPIMetadata(connection, seriesMetadata, tvSeriesId);
-
 			//Create/Update Thumbnail
 			if (posterFromApi != null) {
-				MediaTableThumbnails.setThumbnail(connection, getThumbnailFromUri(posterFromApi), null, tvSeriesId, false);
+				DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
+				if (thumbnail != null) {
+					Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId);
+					seriesMetadata.setThumbnailId(thumbnailId);
+				}
 			}
+
+			MediaTableTVSeries.updateAPIMetadata(connection, seriesMetadata, tvSeriesId);
 
 			// Replace any close-but-not-exact titles in the FILES table
 			if (
