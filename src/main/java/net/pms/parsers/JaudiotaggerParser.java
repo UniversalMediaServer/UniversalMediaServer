@@ -32,6 +32,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -116,7 +117,7 @@ public class JaudiotaggerParser {
 
 				if (t != null) {
 					if (!t.getArtworkList().isEmpty()) {
-						media.setThumb(DLNAThumbnail.toThumbnail(
+						Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
 							t.getArtworkList().get(0).getBinaryData(),
 							640,
 							480,
@@ -124,8 +125,9 @@ public class JaudiotaggerParser {
 							ImageFormat.SOURCE,
 							false
 						));
+						media.setThumbId(thumbId);
 					} else if (!CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
-						media.setThumb(DLNAThumbnail.toThumbnail(
+						Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
 							CoverUtil.get().getThumbnail(t),
 							640,
 							480,
@@ -133,6 +135,7 @@ public class JaudiotaggerParser {
 							ImageFormat.SOURCE,
 							false
 						));
+						media.setThumbId(thumbId);
 					}
 
 					audioMetadata.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));

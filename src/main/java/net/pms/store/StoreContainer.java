@@ -255,7 +255,7 @@ public class StoreContainer extends StoreResource {
 					}
 
 					if (resumeRes != null && resumeRes.getMediaInfo() != null) {
-						resumeRes.getMediaInfo().setThumbready(false);
+						resumeRes.getMediaInfo().setThumbId(null);
 						resumeRes.getMediaInfo().setMimeType(HTTPResource.VIDEO_TRANSCODE);
 					}
 

@@ -55,7 +55,7 @@ public class JaudiotaggerParserTest {
 			getTestFileMediaInfo("audio-mp3.mp3").toString()
 		);
 		assertEquals(
-			"Container: MPEG-1 LAYER 3, Size: 107290, Overall Bitrate: 206, Duration: 0:00:04.000, Audio Tracks: 1 [Audio Id: 0, Codec: mpeg-1 layer 3, Bitrate: 0, Channels: 2, Sample Frequency: 44100 Hz], Artist: Test Performer1/Performer2, Composer: Test Composer1/Composer2, Conductor: Test Conductor, Album: Test Album, Track Name: Test Title, Year: 2023, Track: 12, Genre: Rock & Roll, Mime Type: audio/mpeg",
+			"Container: MPEG-1 LAYER 3, Size: 107290, Overall Bitrate: 206, Duration: 0:00:04.000, Audio Tracks: 1 [Audio Id: 0, Codec: mpeg-1 layer 3, Bitrate: 0, Channels: 2, Sample Frequency: 44100 Hz], Artist: Test Performer1/Performer2, Composer: Test Composer1/Composer2, Conductor: Test Conductor, Album: Test Album, Track Name: Test Title, Year: 2023, Track: 12, Genre: Rock & Roll, DLNAThumbnail: [Format = JPEG, Resolution = 480×480, Size = 47491, DLNA Profile = JPEG_RES_480_480], Mime Type: audio/mpeg",
 			getTestFileMediaInfo("audio-mp3-infos.mp3").toString()
 		);
 		assertEquals(

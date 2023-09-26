@@ -36,7 +36,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
-import net.pms.database.MediaTableThumbnails;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
@@ -56,6 +56,7 @@ import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
+import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.OpenSubtitleFolder;
@@ -1112,7 +1113,7 @@ public abstract class StoreItem extends StoreResource {
 			if (resume.isDone()) {
 				getParent().removeChild(this);
 			} else if (getMediaInfo() != null) {
-				mediaInfo.setThumbready(false);
+				mediaInfo.setThumbId(null);
 			}
 		} else {
 			for (StoreResource res : getParent().getChildren()) {
@@ -1124,7 +1125,7 @@ public abstract class StoreItem extends StoreResource {
 					}
 
 					if (res.getMediaInfo() != null) {
-						res.mediaInfo.setThumbready(false);
+						res.mediaInfo.setThumbId(null);
 					}
 
 					return res;
@@ -1137,7 +1138,7 @@ public abstract class StoreItem extends StoreResource {
 				clone.resume = r;
 				clone.resHash = resHash;
 				if (clone.mediaInfo != null) {
-					clone.mediaInfo.setThumbready(false);
+					clone.mediaInfo.setThumbId(null);
 				}
 
 				clone.engine = engine;
@@ -1304,8 +1305,10 @@ public abstract class StoreItem extends StoreResource {
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		// Use device-specific conf, if any
-		if (mediaInfo != null && !mediaInfo.isThumbready() && renderer.getUmsConfiguration().isThumbnailGenerationEnabled() &&
-				(renderer.isThumbnails())) {
+		if (mediaInfo != null &&
+				!mediaInfo.isThumbready() &&
+				renderer.getUmsConfiguration().isThumbnailGenerationEnabled() &&
+				renderer.isThumbnails()) {
 			Double seekPosition = (double) renderer.getUmsConfiguration().getThumbnailSeekPos();
 			if (isResume()) {
 				Double resumePosition = resume.getTimeOffset() / 1000d;
@@ -1315,9 +1318,13 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 
-			mediaInfo.generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
-			if (!isResume() && mediaInfo.getThumb() != null && inputFile.getFile() != null) {
-				MediaTableThumbnails.setThumbnail(mediaInfo.getThumb(), inputFile.getFile().getAbsolutePath(), -1);
+			DLNAThumbnail thumbnail = Parser.getThumbnail(mediaInfo, inputFile, getFormat(), getType(), seekPosition);
+			if (thumbnail != null) {
+				if (!isResume() && mediaInfo.getFileId() != null) {
+					mediaInfo.setThumbId(ThumbnailStore.getId(thumbnail, mediaInfo.getFileId()));
+				} else {
+					mediaInfo.setThumbId(ThumbnailStore.getTempId(thumbnail));
+				}
 			}
 		}
 	}
@@ -1439,6 +1446,7 @@ public abstract class StoreItem extends StoreResource {
 		return filterChain;
 	}
 
+	@Override
 	public synchronized void syncResolve() {
 		resolve();
 		if (mediaInfo != null && mediaInfo.isVideo()) {
