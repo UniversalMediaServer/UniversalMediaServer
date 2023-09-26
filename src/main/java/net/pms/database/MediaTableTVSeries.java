@@ -29,6 +29,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -470,6 +471,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						if (seriesMetadata.getTotalSeasons() != null) {
 							rs.updateDouble(COL_TOTALSEASONS, seriesMetadata.getTotalSeasons());
 						}
+						if (seriesMetadata.getThumbnailId() != null) {
+							rs.updateLong(COL_THUMBID, seriesMetadata.getThumbnailId());
+						}
 						rs.updateString(COL_VOTES, seriesMetadata.getVotes());
 						rs.updateRow();
 					} else {
@@ -552,6 +556,7 @@ public final class MediaTableTVSeries extends MediaTable {
 						metadata.setTitle(rs.getString(COL_TITLE));
 						metadata.setTmdbId(rs.getLong(COL_TMDBID));
 						metadata.setTotalSeasons(rs.getDouble(COL_TOTALSEASONS));
+						metadata.setThumbnailId(toLong(rs, COL_THUMBID));
 						metadata.setVotes(rs.getString(COL_VOTES));
 						return metadata;
 					}
@@ -666,15 +671,15 @@ public final class MediaTableTVSeries extends MediaTable {
 	 */
 	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
-		Integer thumbnailId = null;
-		Integer tvSeriesId = null;
+		Long thumbnailId = null;
+		Long tvSeriesId = null;
 
 		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_THUMBNAIL_BY_SIMPLIFIEDTITLE)) {
 			statement.setString(1, simplifiedTitle);
 			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
-					thumbnailId = resultSet.getInt(COL_THUMBID);
-					tvSeriesId = resultSet.getInt(COL_ID);
+					thumbnailId = resultSet.getLong(COL_THUMBID);
+					tvSeriesId = resultSet.getLong(COL_ID);
 					return (DLNAThumbnail) resultSet.getObject(COL_THUMBNAIL);
 				}
 			}
@@ -696,11 +701,14 @@ public final class MediaTableTVSeries extends MediaTable {
 
 			String posterURL = (String) posterInfo[0];
 			Long tvSeriesDatabaseId = (Long) posterInfo[1];
-			DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(posterURL);
-			if (thumbnail != null) {
-				MediaTableThumbnails.setThumbnail(connection, thumbnail, null, tvSeriesDatabaseId, true);
+			if (posterURL != null) {
+				DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(posterURL);
+				if (thumbnail != null) {
+					thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesDatabaseId);
+					updateThumbnailId(connection, tvSeriesDatabaseId, thumbnailId);
+					return thumbnail;
+				}
 			}
-			return thumbnail;
 		}
 
 		return null;
@@ -728,12 +736,12 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
-	public static void updateThumbnailId(final Connection connection, long id, int thumbId) {
+	public static void updateThumbnailId(final Connection connection, Long id, Long thumbId) {
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID);
 			) {
-				ps.setInt(1, thumbId);
+				ps.setLong(1, thumbId);
 				ps.setLong(2, id);
 				ps.executeUpdate();
 				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
@@ -893,10 +901,10 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param connection the db connection
 	 * @param id the ID to unset
 	 */
-	public static void unsetApiIdsForId(final Connection connection, final Integer id) {
+	public static void unsetApiIdsForId(final Connection connection, final Long id) {
 		try {
 			try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_IMDBID_TMDBID_NULL)) {
-				statement.setInt(1, id);
+				statement.setLong(1, id);
 				int row = statement.executeUpdate();
 				LOGGER.trace("Removed IMDb ID and TMDB ID from {} in " + TABLE_NAME + " for ID \"{}\"", row, id);
 			}
