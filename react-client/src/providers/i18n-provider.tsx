@@ -21,14 +21,14 @@ import { ReactNode, useEffect, useState } from 'react';
 import { ExclamationMark } from 'tabler-icons-react';
 import I18nContext, { LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
+import { Direction, useDirection } from '@mantine/core';
 
 interface Props {
   children?: ReactNode,
-  rtl: boolean,
-  setRtl: (val: boolean) => void,
 }
 
-export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
+export const I18nProvider = ({ children, ...props }: Props) => {
+  const { dir, setDirection } = useDirection();
   const [i18n, setI18n] = useState<{ [key: string]: string }>(
     {
       'Error': 'Error',
@@ -71,7 +71,7 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
       .then(function(response: any) {
         setLanguages(response.data.languages);
         setI18n(response.data.i18n);
-        setRtl(response.data.isRtl);
+        setDirection(response.data.isRtl ? 'rtl' : 'ltr');
       })
       .catch(function(error) {
         if (!error.response && error.request) {
@@ -99,7 +99,7 @@ export const I18nProvider = ({ rtl, setRtl, children, ...props }: Props) => {
       getI18nString: getI18nString,
       getI18nFormat: getI18nFormat,
       language: language || 'en-US',
-      rtl: rtl,
+      dir: dir,
       languages: languages,
       setLanguage: setLanguage
     }}>

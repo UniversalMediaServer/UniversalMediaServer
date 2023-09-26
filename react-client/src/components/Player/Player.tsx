@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, ScrollArea, Stack, Text, Title, Tooltip } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
@@ -39,6 +39,7 @@ export const Player = () => {
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
+  const { colorScheme } = useMantineColorScheme();
 
   const getUuid = () => {
     if (sessionStorage.getItem('player')) {
@@ -73,7 +74,7 @@ export const Player = () => {
         mb='xs'
         shadow='xs'
         p='sm'
-        style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
+        style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
       >
         <Group>
           <Breadcrumbs
@@ -137,7 +138,7 @@ export const Player = () => {
     if (media.icon) {
       switch (media.icon) {
         case 'back':
-          return i18n.rtl ? ArrowBigRight : ArrowBigLeft;
+          return i18n.dir === 'rtl' ? ArrowBigRight : ArrowBigLeft;
         case 'video':
           return Movie;
         case 'audio':
@@ -208,7 +209,7 @@ export const Player = () => {
 
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group gap='xs' mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+      return (<Group gap='xs' mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
         <Text fw={700}>{i18n.get[title]}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
@@ -216,11 +217,11 @@ export const Player = () => {
               key={media.id}
               style={(theme: MantineTheme) => ({
                 cursor: 'pointer',
-                color: theme.activeClassName === 'dark' ? 'white' : 'black',
-                backgroundColor: theme.activeClassName === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                color: colorScheme === 'dark' ? 'white' : 'black',
+                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
                 '&:hover': {
                   backgroundColor:
-                    theme.activeClassName === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
+                    colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
               onClick={() => { media.id && sse.askBrowseId(media.id) }}
@@ -241,7 +242,7 @@ export const Player = () => {
   const getMetadataString = (title: string, mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
@@ -250,7 +251,7 @@ export const Player = () => {
   const getMetadataTagLine = (mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Tag /><Text fs='italic'>{mediaString}</Text>
         </Group>);
     }
@@ -259,7 +260,7 @@ export const Player = () => {
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: theme.activeClassName === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get['Ratings']}: </Text>
         </Group>
         <List withPadding>
@@ -455,7 +456,7 @@ export const Player = () => {
                 {images.poster}
               </Grid.Col>
               <Grid.Col span={12}>
-                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   {images.logo}
                   {getPlayControls()}
                   {getMetadataTagLine(metadata.tagline)}
@@ -488,7 +489,7 @@ export const Player = () => {
                 <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
-                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: theme.activeClassName === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   <Text pb='xs'>{media.name}</Text>
                   {getPlayControls()}
                 </Card>

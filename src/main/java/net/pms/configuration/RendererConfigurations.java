@@ -376,10 +376,8 @@ public class RendererConfigurations {
 				Thread.currentThread().interrupt();
 			}
 
-			File[] renderersDirs = new File[]{getProfileRenderersDir(), getRenderersDir()};
-			for (File renderersDir : renderersDirs) {
-				loadConfigurations(renderersDir);
-			}
+			loadConfigurations(getProfileRenderersDir(), true);
+			loadConfigurations(getRenderersDir(), false);
 		}
 
 		LOGGER.info("Enabled " + ENABLED_RENDERERS_CONFS.size() + " configurations, listed in order of loading priority:");
@@ -409,7 +407,7 @@ public class RendererConfigurations {
 		Collections.sort(ALL_RENDERERS_NAMES, String.CASE_INSENSITIVE_ORDER);
 	}
 
-	private static void loadConfigurations(File renderersDir) {
+	private static void loadConfigurations(File renderersDir, boolean profile) {
 		if (renderersDir != null) {
 			LOGGER.info("Loading renderer and device configurations from " + renderersDir.getAbsolutePath());
 
@@ -425,7 +423,7 @@ public class RendererConfigurations {
 							loadDeviceConfiguration(rendererConf);
 						} else {
 							//renderer specific conf
-							loadRendererConfiguration(rendererConf);
+							loadRendererConfiguration(rendererConf, profile);
 						}
 						FileWatcher.add(new FileWatcher.Watch(file.getPath(), RELOADER));
 					} catch (ConfigurationException ce) {
@@ -436,9 +434,12 @@ public class RendererConfigurations {
 		}
 	}
 
-	private static void loadRendererConfiguration(RendererConfiguration rendererConf) {
+	private static void loadRendererConfiguration(RendererConfiguration rendererConf, boolean profile) {
 		List<String> selectedRenderers = PMS.getConfiguration().getSelectedRenderers();
 		String rendererName = rendererConf.getConfName();
+		if (profile) {
+			rendererName = rendererName + "*";
+		}
 		ALL_RENDERERS_NAMES.add(rendererName);
 		String renderersGroup = null;
 		if (rendererName.indexOf(' ') > 0) {
