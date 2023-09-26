@@ -3834,24 +3834,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:3.5.3":
-  version: 3.5.3
-  resolution: "@videojs/http-streaming@npm:3.5.3"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 4.0.0
-    aes-decrypter: 4.0.1
-    global: ^4.4.0
-    m3u8-parser: ^7.1.0
-    mpd-parser: ^1.1.1
-    mux.js: 7.0.0
-    video.js: ^7 || ^8
-  peerDependencies:
-    video.js: ^7 || ^8
-  checksum: 8150ea62a240219fd6596793882f66c4125f885eb667604086b483d7be91a7e42d29e939eb9a6fa172170705a897b3d294aab7c388f243f4ec8d813d71c003de
-  languageName: node
-  linkType: hard
-
 "@videojs/http-streaming@npm:3.6.0":
   version: 3.6.0
   resolution: "@videojs/http-streaming@npm:3.6.0"
@@ -10120,7 +10102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.1.1, mpd-parser@npm:^1.2.2":
+"mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.2.2":
   version: 1.2.2
   resolution: "mpd-parser@npm:1.2.2"
   dependencies:
@@ -14069,7 +14051,7 @@ __metadata:
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.2.2
-    video.js: 8.5.3
+    video.js: 8.6.0
     web-vitals: 3.4.0
   languageName: unknown
   linkType: soft
@@ -14352,29 +14334,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.5.3":
-  version: 8.5.3
-  resolution: "video.js@npm:8.5.3"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 3.5.3
-    "@videojs/vhs-utils": ^4.0.0
-    "@videojs/xhr": 2.6.0
-    aes-decrypter: ^4.0.1
-    global: 4.4.0
-    keycode: 2.2.0
-    m3u8-parser: ^6.0.0
-    mpd-parser: ^1.0.1
-    mux.js: ^6.2.0
-    safe-json-parse: 4.0.0
-    videojs-contrib-quality-levels: 4.0.0
-    videojs-font: 4.1.0
-    videojs-vtt.js: 0.15.5
-  checksum: a130bee75c8f94ebeea3a720baa60bda0328b318f87bfc450ab78b67672f06c830c3ff22af5f8f59ce325e3e57ecd38f20e4446e4b795b8e75914d5828d15b39
-  languageName: node
-  linkType: hard
-
-"video.js@npm:^7 || ^8":
+"video.js@npm:8.6.0, video.js@npm:^7 || ^8":
   version: 8.6.0
   resolution: "video.js@npm:8.6.0"
   dependencies:
