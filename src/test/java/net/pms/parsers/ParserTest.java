@@ -39,6 +39,7 @@ public class ParserTest {
 		PMS.configureJNA();
 		try {
 			PMS.setConfiguration(new UmsConfiguration(false));
+			PMS.getConfiguration().setExternalNetwork(false);
 			Services.destroy();
 			Services.create();
 			EngineFactory.initialize();
