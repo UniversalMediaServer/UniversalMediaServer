@@ -666,17 +666,17 @@ public class MediaTableFiles extends MediaTable {
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
-						result.updateLong(COL_THUMBID, media.getThumbId());
+						updateLong(result, COL_THUMBID, media.getThumbId());
 						result.updateLong(COL_MEDIA_SIZE, media.getSize());
 						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
 						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
-						result.updateString(COL_TITLECONTAINER, StringUtils.left(media.getTitle(), SIZE_MAX));
+						updateString(result, COL_TITLECONTAINER, media.getTitle(), SIZE_MAX);
 						updateDouble(result, COL_DURATION, media.getDurationInSeconds());
 						updateInteger(result, COL_BITRATE, media.getBitRate());
 						updateDouble(result, COL_FRAMERATE, media.getFrameRate());
 						//not media related
 						result.updateInt(COL_IMAGECOUNT, media.getImageCount());
-						result.updateString(COL_ASPECTRATIODVD, StringUtils.left(media.getAspectRatioDvdIso(), SIZE_MAX));
+						updateString(result, COL_ASPECTRATIODVD, media.getAspectRatioDvdIso(), SIZE_MAX);
 						updateObject(result, COL_IMAGEINFO, media.getImageInfo());
 					}
 					if (isCreatingNewRecord) {
