@@ -97,7 +97,7 @@ function UserMenu() {
         </Menu.Item>
         {session.authenticate && session.account?.user.id !== 2147483647 && (
           <Menu.Item
-            color='red'
+            color="rgba(255, 0, 0, 1)"
             leftSection={<Logout size={14} />}
             onClick={() => {
               redirectToLogin();

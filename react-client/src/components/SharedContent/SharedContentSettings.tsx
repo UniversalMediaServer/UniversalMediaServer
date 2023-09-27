@@ -14,14 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Table, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, Table, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { CSSProperties, useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { Analyze, AnalyzeOff, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
+import { Analyze, AnalyzeOff, ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -339,6 +339,58 @@ export default function SharedContentSettings(
     setSharedContents(sharedContentsTemp);
   }
 
+  const getMovableActionIcon = (value: SharedContent, isDragged: boolean, isSelected: boolean) => {
+    return <ActionIcon
+      data-movable-handle
+      size={20}
+      style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
+      variant={isDragged || isSelected ? 'outline' : 'subtle'}
+      disabled={!canModify}
+    >
+      {sharedContents.indexOf(value) === 0 ? (<ArrowNarrowDown />) : sharedContents.indexOf(value) === sharedContents.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+    </ActionIcon>
+  }
+
+  const getSharedContentMenu = (value: SharedContent) => {
+    return <Group justify='flex-end'>
+      <Menu zIndex={5000}>
+        <Menu.Target>
+          <ActionIcon variant='default' size={30}>
+            <Menu2 size={16} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            color='green'
+            leftSection=<Edit />
+            disabled={!canModify}
+            onClick={() => editSharedContentItem(value)}
+          >
+            {i18n.get['Edit']}
+          </Menu.Item>
+          <Menu.Item
+            color={value.active ? 'blue' : 'orange'}
+            leftSection={value.active ? <Share /> : <ShareOff />}
+            disabled={!canModify}
+            onClick={() => toogleSharedContentItemActive(value)}
+          >
+            {value.active ? i18n.get['Disable'] : i18n.get['Enable']}
+          </Menu.Item>
+          {getSharedContentActions(value)}
+          <Menu.Divider />
+          <Menu.Item
+            color='red'
+            leftSection=<SquareX />
+            disabled={!canModify}
+            onClick={() => removeSharedContentItem(value)}
+          >
+            {i18n.get['Delete']}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
+  }
+
   const getSharedContentsList = () => {
     return (
       <List
@@ -350,18 +402,9 @@ export default function SharedContentSettings(
         renderList={
           ({ children, props }) => {
             return (
-              <Table highlightOnHover>
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Share</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody {...props}>
-                  {children}
-                </tbody>
-              </Table>
+              <Stack {...props}>
+                {children}
+              </Stack>
             )
           }
         }
@@ -371,61 +414,17 @@ export default function SharedContentSettings(
             // eslint-disable-next-line
             props.style = props.style ? {...props.style, zIndex: isSelected ? 5000 : 'auto'} as CSSProperties : {} as CSSProperties;
             return (
-              <tr {...props}>
-                <td>
-                  <ActionIcon
-                    data-movable-handle
-                    size={20}
-                    style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
-                    variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                    disabled={!canModify}
-                  >
-                    <ArrowsVertical />
-                  </ActionIcon>
-                </td>
-                <td>
-                  {getSharedContentView(value)}
-                </td>
-                <td>
-                  <Group justify='flex-end'>
-                    <Menu zIndex={5000}>
-                      <Menu.Target>
-                        <ActionIcon variant='default' size={30}>
-                          <Menu2 size={16} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          color='green'
-                          leftSection=<Edit />
-                          disabled={!canModify}
-                          onClick={() => editSharedContentItem(value)}
-                        >
-                          {i18n.get['Edit']}
-                        </Menu.Item>
-                        <Menu.Item
-                          color={value.active ? 'blue' : 'orange'}
-                          leftSection={value.active ? <Share /> : <ShareOff />}
-                          disabled={!canModify}
-                          onClick={() => toogleSharedContentItemActive(value)}
-                        >
-                          {value.active ? i18n.get['Disable'] : i18n.get['Enable']}
-                        </Menu.Item>
-                        {getSharedContentActions(value)}
-                        <Menu.Divider />
-                        <Menu.Item
-                          color='red'
-                          leftSection=<SquareX />
-                          disabled={!canModify}
-                          onClick={() => removeSharedContentItem(value)}
-                        >
-                          {i18n.get['Delete']}
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
+              <Card shadow='sm' withBorder {...props}>
+                <Group justify='space-between'>
+                  <Group justify='flex-start'>
+                    {getMovableActionIcon(value, isDragged, isSelected)}
+                    {getSharedContentView(value)}
                   </Group>
-                </td>
-              </tr>
+                  <Group justify='flex-end'>
+                    {getSharedContentMenu(value)}
+                  </Group>
+                </Group>
+              </Card>
             )
           }
         }

@@ -18,10 +18,10 @@ import { Box, Button, Checkbox, Divider, Group, Modal, MultiSelect, Pagination, 
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { CodeHighlight } from '@mantine/code-highlight';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import SyntaxHighlighter from 'react-syntax-highlighter';
 import { Activity, FileDescription, FileZip, Filter, ListSearch } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -412,13 +412,9 @@ const Logs = () => {
       <Divider my='sm' />
       <Pagination value={activePage} onChange={setActivePage} total={totalPage} />
       <Divider my='sm' />
-      <ScrollArea offsetScrollbars style={{ height: 'calc(100vh - 275px)' }}>
-        <CodeHighlight
-          code={activeLogs.join(fileMode ? '\n' : '')}
-          language={'ums' as any}
-          withCopyButton={false}
-        />
-      </ScrollArea>
+      <SyntaxHighlighter language='text'>
+        {activeLogs.join(fileMode ? '\n' : '')}
+      </SyntaxHighlighter>
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

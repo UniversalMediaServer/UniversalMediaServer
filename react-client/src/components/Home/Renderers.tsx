@@ -81,10 +81,10 @@ const Renderers = (
     >
       <Table><tbody>
         {infos?.details.map((detail: RendererDetail) => (
-          <tr key={detail.key}>
-            <td>{i18n.getI18nString(detail.key)}</td>
-            <td>{detail.value}</td>
-          </tr>
+          <Table.Tr key={detail.key}>
+            <Table.Td>{i18n.getI18nString(detail.key)}</Table.Td>
+            <Table.Td>{detail.value}</Table.Td>
+          </Table.Tr>
         ))}
       </tbody></Table>
     </Modal>

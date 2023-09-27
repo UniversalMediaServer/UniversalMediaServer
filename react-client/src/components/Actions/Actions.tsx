@@ -55,7 +55,7 @@ const Actions = () => {
           scrollAreaComponent={ScrollArea.Autosize}
           opened={restartServerOpened}
           onClose={() => setRestartServerOpened(false)}
-          title={(<Text color='red'>{i18n.get['Warning']}</Text>)}
+          title={(<Text c='red'>{i18n.get['Warning']}</Text>)}
         >
           <Text fw={600}>{i18n.get['ThisRestartsMediaServices']}</Text>
           <List>
@@ -74,7 +74,7 @@ const Actions = () => {
           scrollAreaComponent={ScrollArea.Autosize}
           opened={restartApplicationOpened}
           onClose={() => setRestartApplicationOpened(false)}
-          title={<Text color='red'>{i18n.get['Warning']}</Text>}
+          title={<Text c='red'>{i18n.get['Warning']}</Text>}
         >
           <Text fw={600}>{i18n.get['ThisStopsRestartsApp']}</Text>
           <List>
@@ -94,7 +94,7 @@ const Actions = () => {
           scrollAreaComponent={ScrollArea.Autosize}
           opened={shutdownApplicationOpened}
           onClose={() => setShutdownApplicationOpened(false)}
-          title={<Text color='red'>{i18n.get['Warning']}</Text>}
+          title={<Text c='red'>{i18n.get['Warning']}</Text>}
         >
           <Text fw={600}>{i18n.get['ThisClosesApp']}</Text>
           <List>
@@ -110,21 +110,21 @@ const Actions = () => {
       }
       <Stack>
         {canModify && (
-          <Button leftSection={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
+          <Button variant='default' leftSection={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
         )}
         {canRestartServer && (
           <Tooltip label={i18n.get['ThisRestartsMediaServices']} {...defaultTooltipSettings}>
-            <Button leftSection={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get['RestartServer']}</Button>
+            <Button variant='default' leftSection={<Refresh />} onClick={() => { setRestartServerOpened(true) }}>{i18n.get['RestartServer']}</Button>
           </Tooltip>
         )}
         {canRestartApplication && (
           <Tooltip label={i18n.get['ThisStopsRestartsApp']} {...defaultTooltipSettings}>
-            <Button leftSection={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get['RestartApplication']}</Button>
+            <Button variant='default' leftSection={<RefreshAlert />} onClick={() => { setRestartApplicationOpened(true) }}>{i18n.get['RestartApplication']}</Button>
           </Tooltip>
         )}
         {canShutdownApplication && (
           <Tooltip label={i18n.get['ThisClosesApp']} {...defaultTooltipSettings}>
-            <Button leftSection={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
+            <Button variant='default' leftSection={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
           </Tooltip>
         )}
       </Stack>

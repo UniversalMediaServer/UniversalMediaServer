@@ -91,13 +91,15 @@ export default function TranscodingSettings(
     if (!engine.isAvailable) {
       return (
         <Tooltip label={allowHtml(i18n.get['ThereIsProblemTranscodingEngineX']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+          <ActionIcon variant='transparent' size={20}>
+            <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+          </ActionIcon>
         </Tooltip>
       )
     } else if (items.includes(engine.id)) {
       return (
         <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation(); }}>
+          <ActionIcon variant='transparent' size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation(); }}>
             <PlayerPlay strokeWidth={2} color={'green'} size={14} />
           </ActionIcon>
         </Tooltip>
@@ -131,7 +133,7 @@ export default function TranscodingSettings(
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
             leftSection={
               <>
-                <ActionIcon data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                <ActionIcon variant='transparent' data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
                   {engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
                 </ActionIcon>
                 {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
@@ -727,7 +729,7 @@ export default function TranscodingSettings(
               {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
             />
             <CodeHighlight
-              language={'markup'}
+              language={'text'}
               code = {
                 i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
                 i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
