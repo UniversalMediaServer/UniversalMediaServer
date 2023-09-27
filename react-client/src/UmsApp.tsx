@@ -71,17 +71,17 @@ function UmsApp() {
                 <div dir={dir} className='bodyBackgroundImageScreen'>
                   <AppShell
                     padding='md'
-                    navbar={{
+                    navbar=  {navbar.value ?{
                       width: { sm: 200, lg: 300 },
                       breakpoint: 'sm',
-                    }}
+                      collapsed: { mobile: !navbar.opened, desktop: false }
+                    }: undefined}
                     header={{ height: 50 }}
                     styles={(theme) => ({
                       main: { backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
                     })}
                   >
                     {navbar.value && <AppShell.Navbar
-                      hidden={!navbar.opened}
                       p='xs'
                       style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
@@ -91,11 +91,11 @@ function UmsApp() {
                       p='xs'
                       style={(theme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
-                      <Group justify='flex-end'>
+                      <Group justify='space-between'>
                         <Group justify='left'>
                           {navbar.value &&
                             <Burger
-                              hiddenFrom='md'
+                              hiddenFrom='sm'
                               opened={navbar.opened}
                               onClick={() => navbar.setOpened((o: boolean) => !o)}
                               size='sm'
