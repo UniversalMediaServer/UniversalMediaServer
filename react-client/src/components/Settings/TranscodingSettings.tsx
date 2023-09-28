@@ -14,8 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { CodeHighlight } from '@mantine/code-highlight';
-import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
@@ -728,9 +727,8 @@ export default function TranscodingSettings(
               label={i18n.get['UseApplicationDefaults']}
               {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
             />
-            <CodeHighlight
-              language={'text'}
-              code = {
+            <Code block>
+              {
                 i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
                 i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
                 i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
@@ -744,7 +742,7 @@ export default function TranscodingSettings(
                 i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
                 i18n.get['MencoderConfigScript.12.ToRemux']
               }
-            />
+            </Code>
             <Textarea
               disabled={!canModify}
               label={i18n.get['CustomParameters']}

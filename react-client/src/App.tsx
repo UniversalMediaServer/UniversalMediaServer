@@ -16,7 +16,6 @@
  */
 import { ColorSchemeScript, DirectionProvider, MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
-import '@mantine/code-highlight/styles.css';
 import '@mantine/core/styles.css';
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';

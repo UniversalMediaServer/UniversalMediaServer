@@ -14,14 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, Checkbox, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
+import { Box, Button, Checkbox, Code, Divider, Group, Modal, MultiSelect, Pagination, ScrollArea, SegmentedControl, Select, Stack, Switch, Text, TextInput, Tooltip } from '@mantine/core';
 import { Dropzone, FileWithPath } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import SyntaxHighlighter from 'react-syntax-highlighter';
 import { Activity, FileDescription, FileZip, Filter, ListSearch } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -172,6 +171,7 @@ const Logs = () => {
   useEffect(() => {
     if (logSearchFilterIndex < 0) { return }
     const reqIndex = logSearchFilterIndexes[logSearchFilterIndex];
+    if (isNaN(reqIndex)) { return }
     const reqPage = Math.max(Math.ceil(reqIndex / 500), 1);
     setActivePage(reqPage);
   }, [filteredLogs, logSearchFilterIndex, logSearchFilterIndexes]);
@@ -186,7 +186,7 @@ const Logs = () => {
     const max = 500 * activePage;
     const min = max - 500;
     const logsTemp = filteredLogs.slice(min, max);
-    if (activeLogs.at(0) !== logsTemp.at(0) && activeLogs.at(-1) !== logsTemp.at(-1)) {
+    if (activeLogs.at(0) !== logsTemp.at(0) || activeLogs.at(-1) !== logsTemp.at(-1)) {
       setActiveLogs(logsTemp);
     }
   }, [activeLogs, activePage, filteredLogs]);
@@ -412,9 +412,9 @@ const Logs = () => {
       <Divider my='sm' />
       <Pagination value={activePage} onChange={setActivePage} total={totalPage} />
       <Divider my='sm' />
-      <SyntaxHighlighter language='text'>
+      <Code block>
         {activeLogs.join(fileMode ? '\n' : '')}
-      </SyntaxHighlighter>
+      </Code>
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

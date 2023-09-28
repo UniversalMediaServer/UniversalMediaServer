@@ -15,7 +15,6 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { ActionIcon, AppShell, Box, Burger, Center, Group, Loader, MantineTheme, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
-import '@mantine/code-highlight/styles.css';
 import '@mantine/core/styles.css';
 import '@mantine/dropzone/styles.css';
 import '@mantine/notifications/styles.css';
