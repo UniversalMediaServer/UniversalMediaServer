@@ -3436,13 +3436,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-color@npm:3.0.6":
-  version: 3.0.6
-  resolution: "@types/react-color@npm:3.0.6"
+"@types/react-color@npm:3.0.7":
+  version: 3.0.7
+  resolution: "@types/react-color@npm:3.0.7"
   dependencies:
     "@types/react": "*"
     "@types/reactcss": "*"
-  checksum: 8cd881d6eb725190be942c1d71f7917d3dd1b418417740f64fa6c03ae3ba16cb91d07c4b3b348cf5bae20071c8ca5d4aaf514c9a5318077d5e50bd782a5e8da2
+  checksum: 0463679bdeb3680a67cb5faa7568f68c568512c4eed97b4a4548f17857613894f6d8aaf5aca005df037e1c148831d439131b6bca889a7ad2b07caea9c4c9aedd
   languageName: node
   linkType: hard
 
@@ -14066,7 +14066,7 @@ __metadata:
     "@types/lodash": 4.14.199
     "@types/node": 18.17.18
     "@types/react": 18.2.22
-    "@types/react-color": 3.0.6
+    "@types/react-color": 3.0.7
     "@types/react-dom": 18.2.7
     "@types/video.js": 7.3.52
     "@types/videojs-hls-quality-selector": 1.1.0
