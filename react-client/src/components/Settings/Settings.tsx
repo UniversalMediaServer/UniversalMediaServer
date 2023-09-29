@@ -174,7 +174,7 @@ export default function Settings() {
   };
 
   return canView ? (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs defaultValue='GeneralSettings'>
           <Tabs.List>
@@ -205,7 +205,7 @@ export default function Settings() {
           </Tabs.Panel>
         </Tabs>
         {canModify && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>
               {i18n.get['Save']}
             </Button>
@@ -214,8 +214,8 @@ export default function Settings() {
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 }

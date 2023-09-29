@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, PinInput, Select, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { useContext, useState } from 'react';
@@ -24,7 +24,7 @@ import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
+import { allowHtml } from '../../utils';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
@@ -40,14 +40,14 @@ const Accounts = () => {
     const groupDisplayName = group.displayName.length !== 0 ? ' ('.concat(group.displayName).concat(')') : '';
     const displayName = showAsUsername ? user.username : user.displayName;
     return (
-      <Group noWrap>
+      <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg' src={user.avatar}>
           {!user.avatar && (user.id === 0 ? (<UserPlus size={24} />) : (<User size={24} />))}
         </Avatar>
         <div>
           <Text>{displayName}{groupDisplayName}</Text>
           {!showAsUsername && (
-            <Text size='sm' color='dimmed' weight={400}>
+            <Text size='sm' c='dimmed' fw={400}>
               {user.username}
             </Text>
           )}
@@ -91,7 +91,7 @@ const Accounts = () => {
           {...newUserForm.getInputProps('groupid')}
         />
         {newUserForm.isValid() && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit'>
               {i18n.get['Create']}
             </Button>
@@ -123,7 +123,7 @@ const Accounts = () => {
           type='password'
           {...userIdentityForm.getInputProps('password')}
         />
-        <Group position='right' mt='md'>
+        <Group justify='flex-end' mt='md'>
           <Button type='submit'>
             {i18n.get['Apply']}
           </Button>
@@ -170,7 +170,7 @@ const Accounts = () => {
               files[0] && reader.readAsDataURL(files[0]);
             }}
           >
-            <Group position='center'>
+            <Group justify='center'>
               <Dropzone.Accept>
                 <PhotoUp />
               </Dropzone.Accept>
@@ -203,7 +203,7 @@ const Accounts = () => {
                 <Text inline>
                   Drag image here or click to select file
                 </Text>
-                <Text size='sm' color='dimmed' inline mt={7}>
+                <Text size='sm' c='dimmed' inline mt={7}>
                   File should not exceed 2mb
                 </Text>
               </div>
@@ -228,7 +228,7 @@ const Accounts = () => {
         </Tooltip>
         */}
         {userProfileForm.isDirty() && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit'>
               {i18n.get['Apply']}
             </Button>
@@ -255,7 +255,7 @@ const Accounts = () => {
           {...userGroupForm.getInputProps('groupId')}
         />
         {canManageGroups && userGroupForm.isDirty() && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit'>
               {i18n.get['Apply']}
             </Button>
@@ -276,19 +276,19 @@ const Accounts = () => {
       <form onSubmit={userDeleteForm.onSubmit(handleUserDeleteSubmit)}>
         <Divider my='sm' />
         {opened ? (
-          <Group position='right' mt='md'>
-            <Text color='red'>{i18n.get['WarningUserWillBeDeleted']}</Text>
+          <Group justify='flex-end' mt='md'>
+            <Text c='red'>{i18n.get['WarningUserWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
-            <Button type='submit' color='red' leftIcon={<ExclamationMark />} rightIcon={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
               {i18n.get['Confirm']}
             </Button>
           </Group>
         ) : (
-          <Group position='right' mt='md'>
-            <Text color='red'>{i18n.get['DeleteUser']}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftIcon={<X />}>
+          <Group justify='flex-end' mt='md'>
+            <Text c='red'>{i18n.get['DeleteUser']}</Text>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
               {i18n.get['Delete']}
             </Button>
           </Group>
@@ -345,7 +345,7 @@ const Accounts = () => {
 
   function GroupAccordionLabel(group: UmsGroup) {
     return (
-      <Group noWrap>
+      <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg'>
           {group.id === 0 ? (<FolderPlus size={24} />) : (<Folder size={24} />)}
         </Avatar>
@@ -368,7 +368,7 @@ const Accounts = () => {
           name='displayName'
           {...groupDisplayNameForm.getInputProps('displayName')}
         />
-        <Group position='right' mt='md'>
+        <Group justify='flex-end' mt='md'>
           <Button type='submit'>
             {i18n.get['Update_verb']}
           </Button>
@@ -407,7 +407,7 @@ const Accounts = () => {
           <Checkbox disabled={group.id < 2} label={i18n.get['DownloadWebPlayer']} checked={(permissions & Permissions.web_player_download) === Permissions.web_player_download} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.web_player_download) : removePermission(Permissions.web_player_download)} />
         </Stack>
         {group.id > 1 && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit'>
               {i18n.get['Update_verb']}
             </Button>
@@ -428,19 +428,19 @@ const Accounts = () => {
       <form onSubmit={groupDeleteForm.onSubmit(handleGroupDeleteSubmit)}>
         <Divider my='sm' />
         {opened ? (
-          <Group position='right' mt='md'>
-            <Text color='red'>{i18n.get['WarningGroupWillBeDeleted']}</Text>
+          <Group justify='flex-end' mt='md'>
+            <Text c='red'>{i18n.get['WarningGroupWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
-            <Button type='submit' color='red' leftIcon={<ExclamationMark />} rightIcon={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
               {i18n.get['Confirm']}
             </Button>
           </Group>
         ) : (
-          <Group position='right' mt='md'>
-            <Text color='red'>{i18n.get['DeleteGroup']}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftIcon={<X />}>
+          <Group justify='flex-end' mt='md'>
+            <Text c='red'>{i18n.get['DeleteGroup']}</Text>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
               {i18n.get['Delete']}
             </Button>
           </Group>
@@ -481,7 +481,7 @@ const Accounts = () => {
           name='displayName'
           {...newGroupForm.getInputProps('displayName')}
         />
-        <Group position='right' mt='md'>
+        <Group justify='flex-end' mt='md'>
           <Button type='submit'>
             {i18n.get['Create']}
           </Button>
@@ -522,12 +522,12 @@ const Accounts = () => {
       postAccountAuthAction(data, i18n.get['AuthenticationServiceNotToggled']);
     }
     return accounts.localhost ? (
-      <Group position='left' mt='md'>
+      <Group justify='flex-start' mt='md'>
         <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Disable']}</Button>
         <Text>{i18n.get['AuthenticateLocalhostAdminEnabled']}</Text>
       </Group>
     ) : (<>
-      <Group position='left' mt='md'>
+      <Group justify='flex-start' mt='md'>
         <Modal
           centered
           opened={localhostOpened}
@@ -535,7 +535,7 @@ const Accounts = () => {
           title={i18n.get['Warning']}
         >
           <Text>{i18n.get['EnablingAuthenticateLocalhost']}</Text>
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button onClick={() => setLocalhostOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color='red' onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get['Confirm']}</Button>
           </Group>
@@ -553,7 +553,7 @@ const Accounts = () => {
       postAccountAuthAction(data, accounts.enabled ? i18n.get['AuthenticationServiceNotDisabled'] : i18n.get['AuthenticationServiceNotEnabled']);
     }
     return accounts.enabled ? (<>
-      <Group position='left' mt='md'>
+      <Group justify='flex-start' mt='md'>
         <Modal
           centered
           opened={authOpened}
@@ -561,7 +561,7 @@ const Accounts = () => {
           title={i18n.get['Warning']}
         >
           <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button onClick={() => setAuthOpened(false)}>{i18n.get['Cancel']}</Button>
             <Button color='red' onClick={() => handleAuthenticationToggle()}>{i18n.get['Confirm']}</Button>
           </Group>
@@ -571,7 +571,7 @@ const Accounts = () => {
       </Group>
       <AuthenticateLocalhostAdmin />
     </>) : (
-      <Group position='left' mt='md'>
+      <Group justify='flex-start' mt='md'>
         <Button onClick={() => handleAuthenticationToggle()}>{i18n.get['Enable']}</Button>
         <Text>{i18n.get['AuthenticationServiceDisabled']}</Text>
       </Group>
@@ -579,7 +579,7 @@ const Accounts = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       {canManageGroups ? (
         <Tabs defaultValue={accounts.enabled ? 'users' : 'settings'}>
           <Tabs.List>
@@ -618,8 +618,8 @@ const Accounts = () => {
       ) : session.authenticate ? (
         <UsersAccordions />
       ) : (
-        <Box sx={{ maxWidth: 1024 }} mx='auto'>
-          <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+        <Box style={{ maxWidth: 1024 }} mx='auto'>
+          <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
         </Box>
       )}
     </Box>

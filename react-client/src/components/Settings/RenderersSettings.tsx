@@ -51,7 +51,7 @@ export default function RenderersSettings(
             />
             <Select
               disabled={!canModify}
-              sx={{ flex: 1 }}
+              style={{ flex: 1 }}
               label={i18n.get['DefaultRendererWhenAutoFails']}
               data={getI18nSelectData(selectionSettings.enabledRendererNames)}
               {...form.getInputProps('renderer_default')}

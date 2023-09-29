@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Tabs } from '@mantine/core';
+import { Box, LoadingOverlay, Tabs } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -41,6 +41,7 @@ const Home = () => {
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
   const canControlRenderers = havePermission(session, Permissions.devices_control);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!sse.hasRendererAction) {
@@ -81,6 +82,7 @@ const Home = () => {
   }, [i18n]);
 
   const refreshData = async () => {
+    setLoading(true);
     axios.get(renderersApiUrl)
       .then(function(response: any) {
         setRenderers(response.data.renderers);
@@ -97,10 +99,14 @@ const Home = () => {
           message: i18n.get['DataNotReceived'],
           autoClose: 3000,
         });
+      })
+      .then(function() {
+        setLoading(false);
       });
   }
 
   const refreshDeviceData = async () => {
+    setLoading(true);
     axios.get(renderersApiUrl + 'devices')
       .then(function(response: any) {
         setNetworkDeviceFilters(response.data.networkDevices);
@@ -115,6 +121,9 @@ const Home = () => {
           message: i18n.get['DataNotReceived'],
           autoClose: 3000,
         });
+      })
+      .then(function() {
+        setLoading(false);
       });
   }
 
@@ -171,7 +180,8 @@ const Home = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <LoadingOverlay visible={loading} />
       <Tabs keepMounted={false} defaultValue='renderers'>
         <Tabs.List>
           <Tabs.Tab value='renderers'>{i18n.get['DetectedMediaRenderers']}</Tabs.Tab>

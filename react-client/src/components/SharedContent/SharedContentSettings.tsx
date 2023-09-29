@@ -14,14 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Table, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput, Tooltip } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { CSSProperties, useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { Analyze, AnalyzeOff, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
+import { Analyze, AnalyzeOff, ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -259,7 +259,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color='blue'
-          icon=<ZoomCheck />
+          leftSection=<ZoomCheck />
           disabled={!canModify || !value.uri || isLoading}
           onClick={() => updateSharedContentFeedName(value)}
         >
@@ -275,7 +275,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color={value.monitored ? 'green' : 'red'}
-          icon={value.monitored ? <Analyze /> : <AnalyzeOff />}
+          leftSection={value.monitored ? <Analyze /> : <AnalyzeOff />}
           disabled={!canModify}
           onClick={() => toggleFolderMonitored(value)}
         >
@@ -283,7 +283,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='blue'
-          icon=<EyeCheck />
+          leftSection=<EyeCheck />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
@@ -291,7 +291,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='green'
-          icon=<EyeOff />
+          leftSection=<EyeOff />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
@@ -339,6 +339,58 @@ export default function SharedContentSettings(
     setSharedContents(sharedContentsTemp);
   }
 
+  const getMovableActionIcon = (value: SharedContent, isDragged: boolean, isSelected: boolean) => {
+    return <ActionIcon
+      data-movable-handle
+      size={20}
+      style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
+      variant={isDragged || isSelected ? 'outline' : 'subtle'}
+      disabled={!canModify}
+    >
+      {sharedContents.indexOf(value) === 0 ? (<ArrowNarrowDown />) : sharedContents.indexOf(value) === sharedContents.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+    </ActionIcon>
+  }
+
+  const getSharedContentMenu = (value: SharedContent) => {
+    return <Group justify='flex-end'>
+      <Menu zIndex={5000}>
+        <Menu.Target>
+          <ActionIcon variant='default' size={30}>
+            <Menu2 size={16} />
+          </ActionIcon>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            color='green'
+            leftSection=<Edit />
+            disabled={!canModify}
+            onClick={() => editSharedContentItem(value)}
+          >
+            {i18n.get['Edit']}
+          </Menu.Item>
+          <Menu.Item
+            color={value.active ? 'blue' : 'orange'}
+            leftSection={value.active ? <Share /> : <ShareOff />}
+            disabled={!canModify}
+            onClick={() => toogleSharedContentItemActive(value)}
+          >
+            {value.active ? i18n.get['Disable'] : i18n.get['Enable']}
+          </Menu.Item>
+          {getSharedContentActions(value)}
+          <Menu.Divider />
+          <Menu.Item
+            color='red'
+            leftSection=<SquareX />
+            disabled={!canModify}
+            onClick={() => removeSharedContentItem(value)}
+          >
+            {i18n.get['Delete']}
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
+    </Group>
+  }
+
   const getSharedContentsList = () => {
     return (
       <List
@@ -350,18 +402,9 @@ export default function SharedContentSettings(
         renderList={
           ({ children, props }) => {
             return (
-              <Table highlightOnHover>
-                <thead>
-                  <tr>
-                    <th></th>
-                    <th>Share</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody {...props}>
-                  {children}
-                </tbody>
-              </Table>
+              <Stack {...props}>
+                {children}
+              </Stack>
             )
           }
         }
@@ -371,61 +414,17 @@ export default function SharedContentSettings(
             // eslint-disable-next-line
             props.style = props.style ? {...props.style, zIndex: isSelected ? 5000 : 'auto'} as CSSProperties : {} as CSSProperties;
             return (
-              <tr {...props}>
-                <td>
-                  <ActionIcon
-                    data-movable-handle
-                    size={20}
-                    style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
-                    variant={isDragged || isSelected ? 'outline' : 'subtle'}
-                    disabled={!canModify}
-                  >
-                    <ArrowsVertical />
-                  </ActionIcon>
-                </td>
-                <td>
-                  {getSharedContentView(value)}
-                </td>
-                <td>
-                  <Group position='right'>
-                    <Menu zIndex={5000}>
-                      <Menu.Target>
-                        <ActionIcon variant='default' size={30}>
-                          <Menu2 size={16} />
-                        </ActionIcon>
-                      </Menu.Target>
-                      <Menu.Dropdown>
-                        <Menu.Item
-                          color='green'
-                          icon=<Edit />
-                          disabled={!canModify}
-                          onClick={() => editSharedContentItem(value)}
-                        >
-                          {i18n.get['Edit']}
-                        </Menu.Item>
-                        <Menu.Item
-                          color={value.active ? 'blue' : 'orange'}
-                          icon={value.active ? <Share /> : <ShareOff />}
-                          disabled={!canModify}
-                          onClick={() => toogleSharedContentItemActive(value)}
-                        >
-                          {value.active ? i18n.get['Disable'] : i18n.get['Enable']}
-                        </Menu.Item>
-                        {getSharedContentActions(value)}
-                        <Menu.Divider />
-                        <Menu.Item
-                          color='red'
-                          icon=<SquareX />
-                          disabled={!canModify}
-                          onClick={() => removeSharedContentItem(value)}
-                        >
-                          {i18n.get['Delete']}
-                        </Menu.Item>
-                      </Menu.Dropdown>
-                    </Menu>
+              <Card shadow='sm' withBorder {...props}>
+                <Group justify='space-between'>
+                  <Group justify='flex-start'>
+                    {getMovableActionIcon(value, isDragged, isSelected)}
+                    {getSharedContentView(value)}
                   </Group>
-                </td>
-              </tr>
+                  <Group justify='flex-end'>
+                    {getSharedContentMenu(value)}
+                  </Group>
+                </Group>
+              </Card>
             )
           }
         }
@@ -453,7 +452,7 @@ export default function SharedContentSettings(
 
   const getSharedContentChildsDirectoryChooser = () => {
     return modalForm.values['contentChilds'].map((child: Folder, index) => (
-      <Group key={index} position='apart' spacing={0}>
+      <Group key={index} justify='space-between' gap={0}>
         <DirectoryChooser
           disabled={!canModify}
           size='xs'
@@ -518,7 +517,7 @@ export default function SharedContentSettings(
             label={i18n.get['Name']}
             placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get['NamesSetAutomaticallyFeeds'] : ''}
             name='contentName'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentName')}
           />
         )}
@@ -528,7 +527,7 @@ export default function SharedContentSettings(
             label={i18n.get['Path']}
             placeholder={modalForm.values['contentType'] !== 'VirtualFolder' ? 'Web' : ''}
             name='contentPath'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentPath')}
           />
         )}
@@ -547,7 +546,7 @@ export default function SharedContentSettings(
             disabled={!canModify}
             label={i18n.get['SourceURLColon']}
             name='contentSource'
-            sx={{ flex: 1 }}
+            style={{ flex: 1 }}
             {...modalForm.getInputProps('contentSource')}
           />
         )}
@@ -562,15 +561,16 @@ export default function SharedContentSettings(
           ></DirectoryChooser>
         </>)}
         <MultiSelect
-          icon={<Users />}
+          leftSection={<Users />}
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get['AuthorizedGroups']}
-          placeholder={i18n.get['NoGroupRestrictions']}
+          placeholder={modalForm.values['contentGroups'].length > 0 ? undefined : i18n.get['NoGroupRestrictions']}
           maxDropdownHeight={120}
+          hidePickedOptions
           {...modalForm.getInputProps('contentGroups')}
         />
-        <Group position='right' mt='sm'>
+        <Group justify='flex-end' mt='sm'>
           <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
             {canModify ? isNew ? i18n.get['Add'] : i18n.get['Apply'] : i18n.get['Close']}
           </Button>
@@ -689,7 +689,7 @@ export default function SharedContentSettings(
   return (
     <>
       <Group>
-        <Button leftIcon={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
+        <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get['AddNewSharedContent']}
         </Button>
         {getScanSharedFoldersButton()}

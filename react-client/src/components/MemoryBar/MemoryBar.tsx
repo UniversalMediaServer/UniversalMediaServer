@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Group, Progress, Text } from '@mantine/core';
+import { Group, Progress, Text, Tooltip } from '@mantine/core';
 
 import { I18nInterface } from '../../contexts/i18n-context';
 import { ServerEventInterface } from '../../contexts/server-event-context';
@@ -28,20 +28,25 @@ export const MemoryBar = ({ decorate, sse, i18n }: { decorate?: boolean, sse: Se
   const DbCacheMemLabel = () => { return DbCacheMemPercent().toString() + ' %'; }
   const BufferMemPercent = () => { return Math.floor((sse.memory.buffer / sse.memory.max) * 100) };
   const MemoryBarProgress =
-    <Progress
-      size='xl'
-      radius='xl'
-      sections={[
-        { value: UsedMemPercent(), color: 'pink', label: UsedMemPercent() > 10 ? UsedMemLabel() : '', tooltip: 'UMS: ' + UsedMem() + ' ' + i18n.get['Mb'] },
-        { value: DbCacheMemPercent(), color: 'grape', label: DbCacheMemPercent() > 10 ? DbCacheMemLabel() : '', tooltip: i18n.get['DatabaseCache'] + ' ' + sse.memory.dbcache + ' ' + i18n.get['Mb'] },
-        { value: BufferMemPercent(), color: 'orange', tooltip: sse.memory.buffer + ' ' + i18n.get['Mb'] },
-      ]}
-      style={{ marginTop: '4px' }}
-    />
+    <Progress.Root size='xl' mt='4px'>
+      <Tooltip label={ 'UMS: ' + UsedMem() + ' ' + i18n.get['Mb'] }>
+        <Progress.Section value={UsedMemPercent()} color='pink'>
+          <Progress.Label>{UsedMemPercent() > 10 ? UsedMemLabel() : ''}</Progress.Label>
+        </Progress.Section>
+      </Tooltip>
+      <Tooltip label={ i18n.get['DatabaseCache'] + ' ' + sse.memory.dbcache + ' ' + i18n.get['Mb'] }>
+        <Progress.Section value={DbCacheMemPercent()} color='grape'>
+          <Progress.Label>{DbCacheMemPercent() > 10 ? DbCacheMemLabel() : ''}</Progress.Label>
+        </Progress.Section>
+      </Tooltip>
+      <Tooltip label={ sse.memory.buffer + ' ' + i18n.get['Mb'] }>
+        <Progress.Section value={BufferMemPercent()} color='orange' />
+      </Tooltip>
+    </Progress.Root>
   ;
 
   return decorate ? (
-    <Group position='center' spacing='xs' grow>
+    <Group justify='center' gap='xs' grow>
       <Text>{i18n.get['MemoryUsage']}</Text>
       {MemoryBarProgress}
       <Text>{MaxMemLabel() + ' ' + i18n.get['Mb']}</Text>

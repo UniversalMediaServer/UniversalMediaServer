@@ -49,7 +49,7 @@ export default function NavigationSettings(
       <Accordion.Item value='NavigationGeneralSettings'>
         <Accordion.Control>{i18n.get['GeneralSettings']}</Accordion.Control>
         <Accordion.Panel>
-          <Group position='apart'>
+          <Group justify='space-between'>
             {canModify && (<Tooltip label={allowHtml(i18n.get['CacheEmptiedExceptFullyPlayed'])} {...defaultTooltipSettings}>
               <Button
                 size='xs'
