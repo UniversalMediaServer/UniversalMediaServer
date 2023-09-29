@@ -565,8 +565,9 @@ export default function SharedContentSettings(
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get['AuthorizedGroups']}
-          placeholder={i18n.get['NoGroupRestrictions']}
+          placeholder={modalForm.values['contentGroups'].length > 0 ? undefined : i18n.get['NoGroupRestrictions']}
           maxDropdownHeight={120}
+          hidePickedOptions
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group justify='flex-end' mt='sm'>
