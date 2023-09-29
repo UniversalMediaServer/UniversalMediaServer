@@ -215,7 +215,7 @@ export default function Settings() {
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 }

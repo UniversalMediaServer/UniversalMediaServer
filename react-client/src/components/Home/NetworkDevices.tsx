@@ -79,7 +79,7 @@ const NetworkDevices = (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
         <Group justify='space-between'>
-          <Text fw={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['NetworkDevicesBlockedByDefault'] : i18n.get['NetworkDevicesAllowedByDefault']}</Text>
+          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['NetworkDevicesBlockedByDefault'] : i18n.get['NetworkDevicesAllowedByDefault']}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
@@ -124,7 +124,7 @@ const NetworkDevices = (
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
           <Group justify='space-between'>
-            <Text fw={500} color={deviceFilter.isAllowed ? 'green' : 'red'}>{deviceFilter.name}</Text>
+            <Text fw={500} c={deviceFilter.isAllowed ? 'green' : 'red'}>{deviceFilter.name}</Text>
             {canModify && !deviceFilter.isDefault && (
               <Menu withinPortal position='bottom-end' shadow='sm'>
                 <Menu.Target>
@@ -152,12 +152,12 @@ const NetworkDevices = (
               {device.hostName}
             </Text>
             {device.ipAddress != device.hostName && (
-              <Text ta='center' size='sm' color='dimmed'>
+              <Text ta='center' size='sm' c='dimmed'>
                 {device.ipAddress}
               </Text>
             )}
             {device.lastSeen && (
-              <Text ta='center' size='sm' color='dimmed'>
+              <Text ta='center' size='sm' c='dimmed'>
                 {getFormatedInterval(device.lastSeen)}
               </Text>
             )}

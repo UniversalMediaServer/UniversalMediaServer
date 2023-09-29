@@ -45,6 +45,7 @@ export const Player = () => {
     if (sessionStorage.getItem('player')) {
       setUuid(sessionStorage.getItem('player') as string);
     } else {
+      setLoading(true);
       axios.get(playerApiUrl)
         .then(function(response: any) {
           if (response.data.uuid) {
@@ -60,6 +61,9 @@ export const Player = () => {
             message: 'Your player session was not received from the server.',
             autoClose: 3000,
           });
+        })
+        .then(function() {
+          setLoading(false);
         });
     }
   };
@@ -78,7 +82,8 @@ export const Player = () => {
       >
         <Group>
           <Breadcrumbs
-            styles={{ separator: { margin: '0' } }}
+            separatorMargin={0}
+            styles={{ root: { flexWrap: 'wrap' } }}
           >
             {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
               <Button
@@ -209,7 +214,7 @@ export const Player = () => {
 
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group gap='xs' mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+      return (<Group gap='xs' mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
         <Text fw={700}>{i18n.get[title]}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
@@ -242,7 +247,7 @@ export const Player = () => {
   const getMetadataString = (title: string, mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
@@ -251,7 +256,7 @@ export const Player = () => {
   const getMetadataTagLine = (mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Tag /><Text fs='italic'>{mediaString}</Text>
         </Group>);
     }
@@ -260,7 +265,7 @@ export const Player = () => {
   const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
-        <Group mt='sm' style={(theme: MantineTheme) => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get['Ratings']}: </Text>
         </Group>
         <List withPadding>
@@ -632,7 +637,7 @@ export const Player = () => {
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 };

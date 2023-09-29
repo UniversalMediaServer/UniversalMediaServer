@@ -151,7 +151,7 @@ const Renderers = (
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
           <Group justify='space-between'>
-            <Text fw={500} color={getNameColor(renderer)}>{renderer.name}</Text>
+            <Text fw={500} c={getNameColor(renderer)}>{renderer.name}</Text>
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
@@ -194,7 +194,7 @@ const Renderers = (
           />
         </Card.Section>
         {renderer.address &&
-          <Text ta='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' c='dimmed'>
             {renderer.address}
           </Text>
         }
@@ -202,12 +202,12 @@ const Renderers = (
           <Progress value={renderer.progressPercent} />
         }
         {renderer.playing &&
-          <Text ta='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' c='dimmed'>
             {renderer.playing}
           </Text>
         }
         {renderer.time &&
-          <Text ta='center' size='sm' color='dimmed'>
+          <Text ta='center' size='sm' c='dimmed'>
             {renderer.time}
           </Text>
         }
@@ -226,10 +226,10 @@ const Renderers = (
     >
       <Stack>
         {!rendererControlled.isActive &&
-          <Text ta='center' color='red'>{i18n.get['RendererNoLongerControllable']}</Text>
+          <Text ta='center' c='red'>{i18n.get['RendererNoLongerControllable']}</Text>
         }
         {rendererControlled.isActive && rendererControlled.playing && (<>
-          <Text ta='center' color='blue'>{rendererControlled.playing}</Text>
+          <Text ta='center' c='blue'>{rendererControlled.playing}</Text>
           <Text ta='center'>{rendererControlled.time}</Text>
         </>)}
         {((rendererControlled.controls & 1) === 1) && rendererControlled.isActive &&
@@ -279,7 +279,7 @@ const Renderers = (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
         <Group justify='space-between'>
-          <Text fw={500} color={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['RenderersBlockedByDefault'] : i18n.get['RenderersAllowedByDefault']}</Text>
+          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['RenderersBlockedByDefault'] : i18n.get['RenderersAllowedByDefault']}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>

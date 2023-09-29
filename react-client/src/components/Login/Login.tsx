@@ -42,7 +42,7 @@ const Login = () => {
       () => {
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'pwd-error',
           color: 'red',
@@ -60,7 +60,7 @@ const Login = () => {
       () => {
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'user-creation-error',
           color: 'red',
@@ -78,7 +78,7 @@ const Login = () => {
         clearJwt();
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'auth-disable-error',
           color: 'red',

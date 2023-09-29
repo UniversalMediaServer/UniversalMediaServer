@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, PinInput, Select, Stack, Tabs, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { useContext, useState } from 'react';
@@ -24,7 +24,7 @@ import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml, defaultTooltipSettings } from '../../utils';
+import { allowHtml } from '../../utils';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
@@ -47,7 +47,7 @@ const Accounts = () => {
         <div>
           <Text>{displayName}{groupDisplayName}</Text>
           {!showAsUsername && (
-            <Text size='sm' color='dimmed' fw={400}>
+            <Text size='sm' c='dimmed' fw={400}>
               {user.username}
             </Text>
           )}
@@ -203,7 +203,7 @@ const Accounts = () => {
                 <Text inline>
                   Drag image here or click to select file
                 </Text>
-                <Text size='sm' color='dimmed' inline mt={7}>
+                <Text size='sm' c='dimmed' inline mt={7}>
                   File should not exceed 2mb
                 </Text>
               </div>
@@ -277,7 +277,7 @@ const Accounts = () => {
         <Divider my='sm' />
         {opened ? (
           <Group justify='flex-end' mt='md'>
-            <Text color='red'>{i18n.get['WarningUserWillBeDeleted']}</Text>
+            <Text c='red'>{i18n.get['WarningUserWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
@@ -287,7 +287,7 @@ const Accounts = () => {
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
-            <Text color='red'>{i18n.get['DeleteUser']}</Text>
+            <Text c='red'>{i18n.get['DeleteUser']}</Text>
             <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
               {i18n.get['Delete']}
             </Button>
@@ -429,7 +429,7 @@ const Accounts = () => {
         <Divider my='sm' />
         {opened ? (
           <Group justify='flex-end' mt='md'>
-            <Text color='red'>{i18n.get['WarningGroupWillBeDeleted']}</Text>
+            <Text c='red'>{i18n.get['WarningGroupWillBeDeleted']}</Text>
             <Button onClick={() => setOpened(false)}>
               {i18n.get['Cancel']}
             </Button>
@@ -439,7 +439,7 @@ const Accounts = () => {
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
-            <Text color='red'>{i18n.get['DeleteGroup']}</Text>
+            <Text c='red'>{i18n.get['DeleteGroup']}</Text>
             <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
               {i18n.get['Delete']}
             </Button>
@@ -619,7 +619,7 @@ const Accounts = () => {
         <UsersAccordions />
       ) : (
         <Box style={{ maxWidth: 1024 }} mx='auto'>
-          <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+          <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
         </Box>
       )}
     </Box>

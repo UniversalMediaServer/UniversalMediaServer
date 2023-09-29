@@ -14,10 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Burger, Center, Group, Loader, MantineTheme, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
-import '@mantine/core/styles.css';
-import '@mantine/dropzone/styles.css';
-import '@mantine/notifications/styles.css';
+import { ActionIcon, AppShell, Box, Burger, Center, Group, Loader, MantineTheme, ScrollArea, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
 
 import { useEffect } from 'react';
 import {
@@ -84,7 +81,9 @@ function UmsApp() {
                       p='xs'
                       style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
-                      <Stack gap={0}>{navbar.value}</Stack>
+                      <AppShell.Section grow my="md" component={ScrollArea}>
+                        <Stack gap={0}>{navbar.value}</Stack>
+                      </AppShell.Section>
                     </AppShell.Navbar>}
                     <AppShell.Header
                       p='xs'
