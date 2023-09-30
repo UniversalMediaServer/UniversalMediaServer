@@ -40,6 +40,7 @@ import net.pms.media.MediaLang;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.InputFile;
 import net.pms.util.Iso639;
@@ -200,16 +201,16 @@ public class MPlayerParser {
 			LOGGER.info("Error parsing information from the file: " + file);
 		} else {
 			if (generateThumbnails) {
-				Long thumbId = ThumbnailStore.getId(MPlayerParser.getThumbnail(frameName));
-				media.setThumbId(thumbId);
+				DLNAThumbnail thumbnail = MPlayerParser.getThumbnail(frameName);
+				if (thumbnail != null) {
+					Long thumbId = ThumbnailStore.getId(thumbnail);
+					media.setThumbnailId(thumbId);
+					media.setThumbnailSource(ThumbnailSource.MPLAYER_SEEK);
+				}
 			}
 			parseDvdTitleInfo(media, pw.getOtherResults(), title);
 		}
 		media.setParsing(false);
-	}
-
-	public static DLNAThumbnail getThumbnail(MediaInfo media, InputFile inputFile) {
-		return getThumbnail(media, inputFile, null);
 	}
 
 	public static DLNAThumbnail getThumbnail(MediaInfo media, InputFile inputFile, Double seekPosition) {
@@ -270,7 +271,11 @@ public class MPlayerParser {
 			LOGGER.info("Error parsing information from the file: " + file);
 			return null;
 		}
-		return MPlayerParser.getThumbnail(frameName);
+		DLNAThumbnail thumbnail = MPlayerParser.getThumbnail(frameName);
+		if (thumbnail != null) {
+			media.setThumbnailSource(ThumbnailSource.MPLAYER_SEEK);
+		}
+		return thumbnail;
 	}
 
 	private static DLNAThumbnail getThumbnail(String frameName) {

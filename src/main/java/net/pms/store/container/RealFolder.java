@@ -74,7 +74,7 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 		try {
 			if (cachedThumbnail != null) {
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-			} else if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}
 		} catch (IOException e) {

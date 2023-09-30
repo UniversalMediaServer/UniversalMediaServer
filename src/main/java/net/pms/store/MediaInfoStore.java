@@ -176,7 +176,7 @@ public class MediaInfoStore {
 
 		// If the in-memory mediaInfo has not already been populated with filename metadata, we attempt it
 		try {
-			if (!mediaInfo.hasVideoMetadata()) {
+			if (mediaInfo.isVideo() && !mediaInfo.hasVideoMetadata()) {
 				MediaVideoMetadata videoMetadata = new MediaVideoMetadata();
 				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
 				String titleFromFilename = metadataFromFilename[0];

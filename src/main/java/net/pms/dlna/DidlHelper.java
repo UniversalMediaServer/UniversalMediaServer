@@ -590,8 +590,8 @@ public class DidlHelper extends DlnaHelper {
 		ImageInfo thumbnailImageInf = null;
 		if (resource.getThumbnailImageInfo() != null) {
 			thumbnailImageInf = resource.getThumbnailImageInfo();
-		} else if (mediaInfo != null && mediaInfo.getThumb() != null && mediaInfo.getThumb().getImageInfo() != null) {
-			thumbnailImageInf = mediaInfo.getThumb().getImageInfo();
+		} else if (mediaInfo != null && mediaInfo.getThumbnail() != null && mediaInfo.getThumbnail().getImageInfo() != null) {
+			thumbnailImageInf = mediaInfo.getThumbnail().getImageInfo();
 		}
 
 		// Only include GIF elements if the source is a GIF and it's supported
@@ -750,8 +750,8 @@ public class DidlHelper extends DlnaHelper {
 			ImageInfo imageInfo = null;
 			if (resource.getThumbnailImageInfo() != null) {
 				imageInfo = resource.getThumbnailImageInfo();
-			} else if (mediaInfo != null && mediaInfo.getThumb() != null && mediaInfo.getThumb().getImageInfo() != null) {
-				imageInfo = mediaInfo.getThumb().getImageInfo();
+			} else if (mediaInfo != null && mediaInfo.getThumbnail() != null && mediaInfo.getThumbnail().getImageInfo() != null) {
+				imageInfo = mediaInfo.getThumbnail().getImageInfo();
 			}
 
 			// Only include GIF elements if the source is a GIF and it's

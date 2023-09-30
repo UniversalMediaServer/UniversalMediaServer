@@ -59,7 +59,7 @@ public class ThumbnailStore {
 		}
 	}
 
-	public static Long getId(DLNAThumbnail thumbnail, Integer fileId) {
+	public static Long getId(DLNAThumbnail thumbnail, Integer fileId, ThumbnailSource thumbnailSource) {
 		if (thumbnail == null) {
 			return null;
 		}
@@ -73,7 +73,7 @@ public class ThumbnailStore {
 					if (id != null) {
 						STORE.put(id, new WeakReference<>(thumbnail));
 						if (fileId != null) {
-							MediaTableFiles.updateThumbnailId(connection, fileId, id);
+							MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
 						}
 					}
 				}
@@ -84,7 +84,7 @@ public class ThumbnailStore {
 		}
 	}
 
-	public static Long getIdForTvSerie(DLNAThumbnail thumbnail, long tvSeriesId) {
+	public static Long getIdForTvSerie(DLNAThumbnail thumbnail, long tvSeriesId, ThumbnailSource thumbnailSource) {
 		if (thumbnail == null) {
 			return null;
 		}
@@ -96,7 +96,7 @@ public class ThumbnailStore {
 				id = MediaTableThumbnails.setThumbnail(connection, thumbnail, false);
 				if (id != null) {
 					STORE.put(id, new WeakReference<>(thumbnail));
-					MediaTableTVSeries.updateThumbnailId(connection, tvSeriesId, id);
+					MediaTableTVSeries.updateThumbnailId(connection, tvSeriesId, id, thumbnailSource.toString());
 				}
 			}
 		} finally {
@@ -145,6 +145,24 @@ public class ThumbnailStore {
 	public static DLNAThumbnailInputStream getThumbnailInputStream(Long id) {
 		DLNAThumbnail thumbnail = getThumbnail(id);
 		return thumbnail != null ? new DLNAThumbnailInputStream(thumbnail) : null;
+	}
+
+	public static void resetLanguage() {
+		synchronized (STORE) {
+			STORE.clear();
+			tempId = Long.MAX_VALUE;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaTableFiles.resetLocalizedThumbnail(connection);
+					MediaTableTVSeries.resetLocalizedThumbnail(connection);
+					MediaTableThumbnails.cleanup(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
 	}
 
 }

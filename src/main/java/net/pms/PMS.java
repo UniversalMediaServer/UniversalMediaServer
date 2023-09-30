@@ -92,7 +92,10 @@ import net.pms.renderers.Renderer;
 import net.pms.renderers.RendererFilter;
 import net.pms.renderers.RendererUser;
 import net.pms.service.Services;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaScanner;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.ThumbnailStore;
 import net.pms.store.container.CodeEnter;
 import net.pms.util.CodeDb;
 import net.pms.util.CredMgr;
@@ -498,8 +501,8 @@ public class PMS {
 					GuiManager.setReloadable(true);
 				} else if (UmsConfiguration.NEED_WEB_PLAYER_SERVER_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetWebPlayerServer();
-				} else if (UmsConfiguration.NEED_MEDIA_LIBRARY_RELOAD_FLAGS.contains(event.getPropertyName())) {
-					resetMediaLibrary();
+				} else if (UmsConfiguration.LANGUAGE_CHANGED.contains(event.getPropertyName())) {
+					resetLanguage();
 				} else if (UmsConfiguration.NEED_RENDERERS_MEDIA_STORE_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					resetRenderersMediaStore();
 				}
@@ -692,11 +695,13 @@ public class PMS {
 	}
 
 	/**
-	 * Reset the media library.
+	 * Reset the media store cache language.
 	 * The trigger is configuration change.
 	 */
-	public void resetMediaLibrary() {
-		resetRenderersMediaStore();
+	public void resetLanguage() {
+		ThumbnailStore.resetLanguage();
+		MediaStatusStore.clear();
+		MediaInfoStore.clear();
 	}
 
 	/**

@@ -18,6 +18,7 @@ package net.pms.media.video.metadata;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
+import net.pms.store.ThumbnailSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,6 +76,16 @@ public class TvSeriesMetadata {
 	private String apiVersion;
 	private String votes;
 	private Long thumbnailId;
+	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
+	private Long tvSeriesId;
+
+	public Long getTvSeriesId() {
+		return tvSeriesId;
+	}
+
+	public void setTvSeriesId(Long value) {
+		tvSeriesId = value;
+	}
 
 	public ApiStringArray getActors() {
 		return actors;
@@ -526,6 +537,18 @@ public class TvSeriesMetadata {
 
 	public void setThumbnailId(Long value) {
 		this.thumbnailId = value;
+	}
+
+	public ThumbnailSource getThumbnailSource() {
+		return thumbnailSource;
+	}
+
+	public void setThumbnailSource(ThumbnailSource value) {
+		this.thumbnailSource = value;
+	}
+
+	public void setThumbnailSource(String value) {
+		this.thumbnailSource = ThumbnailSource.valueOfName(value);
 	}
 
 	public String getVotes() {

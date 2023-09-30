@@ -145,7 +145,7 @@ public class ZippedEntry extends StoreItem implements IPushOutput {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+		if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 			return getMediaInfo().getThumbnailInputStream();
 		} else {
 			return super.getThumbnailInputStream();

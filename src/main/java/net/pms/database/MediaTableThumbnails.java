@@ -246,6 +246,9 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * @param id the ID to remove
 	 */
 	public static void removeById(final Connection connection, final Long id) {
+		if (id == null) {
+			return;
+		}
 		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_ID)) {
 			statement.setLong(1, id);
 			int rows = statement.executeUpdate();
@@ -261,7 +264,7 @@ public final class MediaTableThumbnails extends MediaTable {
 	 *
 	 * @param connection
 	 */
-	protected static void cleanup(final Connection connection) {
+	public static void cleanup(final Connection connection) {
 		try (PreparedStatement statement = connection.prepareStatement(SQL_CLEANUP)) {
 			int rows = statement.executeUpdate();
 			LOGGER.trace("Removed {} entries in \"{}\"", rows, TABLE_NAME);

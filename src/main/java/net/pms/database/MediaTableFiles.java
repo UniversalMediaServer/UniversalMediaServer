@@ -23,14 +23,18 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.umsapi.APIUtils;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
 import net.pms.store.MediaStoreIds;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -79,14 +83,16 @@ public class MediaTableFiles extends MediaTable {
 	 * - 37: remove video infos
 	 * - 38: added Mime type
 	 * - 39: typo on column name
+	 * - 40: added thumbnail source
 	 */
-	private static final int TABLE_VERSION = 39;
+	private static final int TABLE_VERSION = 40;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	public static final String COL_ID = "ID";
 	public static final String COL_THUMBID = "THUMBID";
+	private static final String COL_THUMB_SRC = "THUMB_SRC";
 	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
 	public static final String COL_FILENAME = "FILENAME";
 	private static final String COL_MODIFIED = "MODIFIED";
@@ -137,7 +143,8 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 	private static final String SQL_GET_ID_FILENAME = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + MediaTableThumbnails.TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + EQUAL + PARAMETER + LIMIT_1;
@@ -434,6 +441,9 @@ public class MediaTableFiles extends MediaTable {
 					case 38 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "COL_MIMETYPE" + RENAME_TO + COL_MIMETYPE);
 					}
+					case 39 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_THUMB_SRC + VARCHAR_32);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -485,6 +495,7 @@ public class MediaTableFiles extends MediaTable {
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_ID                      + INTEGER         + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
 				COL_THUMBID                 + BIGINT                                         + COMMA +
+				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
 				COL_MODIFIED                + TIMESTAMP       + NOT_NULL                     + COMMA +
 				COL_PARSER                  + VARCHAR_32                                     + COMMA +
@@ -604,8 +615,8 @@ public class MediaTableFiles extends MediaTable {
 			) {
 				if (rs.next()) {
 					media = new MediaInfo();
-					int id = rs.getInt(COL_ID);
-					media.setFileId(id);
+					int fileId = rs.getInt(COL_ID);
+					media.setFileId(fileId);
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
 					media.setContainer(rs.getString(COL_CONTAINER));
@@ -614,18 +625,35 @@ public class MediaTableFiles extends MediaTable {
 					media.setDuration(toDouble(rs, COL_DURATION));
 					media.setBitRate(rs.getInt(COL_BITRATE));
 					media.setFrameRate(toDouble(rs, COL_FRAMERATE));
-					media.setThumbId(toLong(rs, COL_THUMBID));
+					media.setThumbnailId(toLong(rs, COL_THUMBID));
+					media.setThumbnailSource(rs.getString(COL_THUMB_SRC));
 					//not media related
 					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
 					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
 					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
-					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, id));
-					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, id));
-					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, id));
-					media.setChapters(MediaTableChapters.getChapters(connection, id));
-					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, id));
-					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, id));
+					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, fileId));
+					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, fileId));
+					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, fileId));
+					media.setChapters(MediaTableChapters.getChapters(connection, fileId));
+					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, fileId));
+					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, fileId));
+					//get localized thumb if thumb was not localized
+					if (media.getVideoMetadata() != null &&
+						media.getVideoMetadata().getPoster() != null &&
+						!media.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
+						) {
+						DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(media.getVideoMetadata().getPoster());
+						if (thumbnail != null) {
+							Long thumbnailId = ThumbnailStore.getId(thumbnail);
+							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
+								media.setThumbnailId(thumbnailId);
+								MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+							}
+							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
+						}
+					}
 				}
 			}
 		}
@@ -666,7 +694,10 @@ public class MediaTableFiles extends MediaTable {
 					result.updateInt(COL_FORMAT_TYPE, type);
 					if (media != null) {
 						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
-						updateLong(result, COL_THUMBID, media.getThumbId());
+						updateLong(result, COL_THUMBID, media.getThumbnailId());
+						if (media.getThumbnailSource() != null) {
+							updateString(result, COL_THUMB_SRC, media.getThumbnailSource().toString(), 32);
+						}
 						result.updateLong(COL_MEDIA_SIZE, media.getSize());
 						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
 						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
@@ -808,18 +839,35 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static void updateThumbnailId(final Connection connection, int fileId, Long thumbId) {
+	public static void updateThumbnailId(final Connection connection, int fileId, Long thumbId, String thumbnailSource) {
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_ID);
 			) {
 				ps.setLong(1, thumbId);
-				ps.setInt(2, fileId);
+				ps.setString(2, thumbnailSource);
+				ps.setInt(3, fileId);
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fileId);
 			}
 		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
+	public static void resetLocalizedThumbnail(final Connection connection) {
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMB_SRC_LOC);
+			) {
+				ps.setString(1, ThumbnailSource.TMDB.toString());
+				ps.setString(2, ThumbnailSource.TMDB_LOC.toString());
+				ps.executeUpdate();
+				LOGGER.trace("Thumbnail source updated from {} to {}", ThumbnailSource.TMDB_LOC.toString(), ThumbnailSource.TMDB.toString());
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating thumbnail source: {}", se.getMessage());
 			LOGGER.trace("", se);
 		}
 	}

@@ -29,6 +29,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +45,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 10: added thumbnail source
 	 */
-	private static final int TABLE_VERSION = 9;
+	private static final int TABLE_VERSION = 10;
 
 	/**
 	 * COLUMNS
@@ -57,7 +61,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String COL_MODIFIED = "MODIFIED";
 	private static final String COL_OVERVIEW = "OVERVIEW";
 	private static final String COL_THUMBID = "THUMBID";
-	private static final String COL_THUMBNAIL = "THUMBNAIL";
+	private static final String COL_THUMB_SRC = "THUMB_SRC";
 	private static final String COL_TMDBID = "TMDBID";
 	private static final String COL_SIMPLIFIEDTITLE = "SIMPLIFIEDTITLE";
 	private static final String COL_STARTYEAR = "STARTYEAR";
@@ -122,7 +126,8 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String SQL_GET_IMAGES_BY_SIMPLIFIEDTITLE = SELECT + TABLE_COL_IMAGES + FROM + TABLE_NAME + WHERE + TABLE_COL_SIMPLIFIEDTITLE + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_STARTYEAR_BY_SIMPLIFIEDTITLE = SELECT + TABLE_COL_STARTYEAR + FROM + TABLE_NAME + WHERE + TABLE_COL_SIMPLIFIEDTITLE + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_TITLE_BY_SIMPLIFIEDTITLE = SELECT + TABLE_COL_TITLE + FROM + TABLE_NAME + WHERE + TABLE_COL_SIMPLIFIEDTITLE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_UPDATE_THUMBID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMBID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_IMDBID_TMDBID_NULL = UPDATE + TABLE_NAME + SET + COL_IMDBID + EQUAL + NULL + ", " + COL_TMDBID + EQUAL + NULL + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_INSERT_TITLE = INSERT_INTO + TABLE_NAME + " (" + COL_SIMPLIFIEDTITLE + ", " + COL_TITLE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
 
@@ -270,6 +275,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						executeUpdate(connection, ALTER_TABLE + IF_EXISTS + TABLE_NAME +  ALTER_COLUMN + IF_EXISTS + "TMDB_ID" + RENAME_TO + COL_TMDBID);
 					}
 				}
+				case 9 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_THUMB_SRC + VARCHAR_32);
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -289,48 +297,49 @@ public final class MediaTableTVSeries extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
-				COL_ID + "                   IDENTITY           PRIMARY KEY , " +
-				COL_MODIFIED + "             BIGINT                         , " +
-				COL_IMDBID + "               VARCHAR(1024)                  , " +
-				COL_TMDBID + "               BIGINT                         , " +
-				COL_THUMBID + "              BIGINT                         , " +
-				COL_OVERVIEW + "             VARCHAR(20000)                 , " +
-				COL_TITLE + "                VARCHAR(1024)      NOT NULL    , " +
-				COL_SIMPLIFIEDTITLE + "      VARCHAR(1024)      NOT NULL    , " +
-				COL_STARTYEAR + "            VARCHAR(1024)                  , " +
-				COL_ENDYEAR + "              VARCHAR(1024)                  , " +
-				COL_TOTALSEASONS + "         DOUBLE PRECISION               , " +
-				COL_API_VERSION + "          VARCHAR(1024)                  , " +
-				COL_VOTES + "                VARCHAR(1024)                  , " +
-				COL_CREATEDBY + "            VARCHAR                        , " +
-				COL_CREDITS + "              VARCHAR                        , " +
-				COL_EXTERNALIDS + "          VARCHAR                        , " +
-				COL_FIRSTAIRDATE + "         VARCHAR                        , " +
-				COL_HOMEPAGE + "             VARCHAR                        , " +
-				COL_IMAGES + "               VARCHAR                        , " +
-				COL_INPRODUCTION + "         BOOLEAN                        , " +
-				COL_LANGUAGES  + "           VARCHAR                        , " +
-				COL_LASTAIRDATE  + "         VARCHAR                        , " +
-				COL_NETWORKS     + "         VARCHAR                        , " +
-				COL_NUMBEROFEPISODES  + "    DOUBLE PRECISION               , " +
-				COL_NUMBEROFSEASONS + "      DOUBLE PRECISION               , " +
-				COL_ORIGINCOUNTRY  + "       VARCHAR                        , " +
-				COL_ORIGINALLANGUAGE  + "    VARCHAR                        , " +
-				COL_ORIGINALTITLE  + "       VARCHAR                        , " +
-				COL_PRODUCTIONCOMPANIES  + " VARCHAR                        , " +
-				COL_PRODUCTIONCOUNTRIES  + " VARCHAR                        , " +
-				COL_SEASONS   + "            VARCHAR                        , " +
-				COL_SERIESTYPE     + "       VARCHAR                        , " +
-				COL_SPOKENLANGUAGES  + "     VARCHAR                        , " +
-				COL_STATUS        + "        VARCHAR                        , " +
-				COL_TAGLINE      + "         VARCHAR                          " +
+				COL_ID +                     IDENTITY     + PRIMARY_KEY  + COMMA +
+				COL_MODIFIED +               BIGINT                      + COMMA +
+				COL_IMDBID +                 VARCHAR_1024                + COMMA +
+				COL_TMDBID +                 BIGINT                      + COMMA +
+				COL_THUMBID +                BIGINT                      + COMMA +
+				COL_THUMB_SRC +              VARCHAR_32                  + COMMA +
+				COL_OVERVIEW +               VARCHAR                     + COMMA +
+				COL_TITLE +                  VARCHAR_1024 + NOT_NULL     + COMMA +
+				COL_SIMPLIFIEDTITLE +        VARCHAR_1024 + NOT_NULL     + COMMA +
+				COL_STARTYEAR +              VARCHAR_1024                + COMMA +
+				COL_ENDYEAR +                VARCHAR_1024                + COMMA +
+				COL_TOTALSEASONS +           DOUBLE_PRECISION            + COMMA +
+				COL_API_VERSION +            VARCHAR_1024                + COMMA +
+				COL_VOTES +                  VARCHAR_1024                + COMMA +
+				COL_CREATEDBY +              VARCHAR                     + COMMA +
+				COL_CREDITS +                VARCHAR                     + COMMA +
+				COL_EXTERNALIDS +            VARCHAR                     + COMMA +
+				COL_FIRSTAIRDATE +           VARCHAR                     + COMMA +
+				COL_HOMEPAGE +               VARCHAR                     + COMMA +
+				COL_IMAGES +                 VARCHAR                     + COMMA +
+				COL_INPRODUCTION +           BOOLEAN                     + COMMA +
+				COL_LANGUAGES +              VARCHAR                     + COMMA +
+				COL_LASTAIRDATE +            VARCHAR                     + COMMA +
+				COL_NETWORKS +               VARCHAR                     + COMMA +
+				COL_NUMBEROFEPISODES +       DOUBLE_PRECISION            + COMMA +
+				COL_NUMBEROFSEASONS +        DOUBLE_PRECISION            + COMMA +
+				COL_ORIGINCOUNTRY +          VARCHAR                     + COMMA +
+				COL_ORIGINALLANGUAGE +       VARCHAR                     + COMMA +
+				COL_ORIGINALTITLE +          VARCHAR                     + COMMA +
+				COL_PRODUCTIONCOMPANIES +    VARCHAR                     + COMMA +
+				COL_PRODUCTIONCOUNTRIES +    VARCHAR                     + COMMA +
+				COL_SEASONS +                VARCHAR                     + COMMA +
+				COL_SERIESTYPE +             VARCHAR                     + COMMA +
+				COL_SPOKENLANGUAGES +        VARCHAR                     + COMMA +
+				COL_STATUS +                 VARCHAR                     + COMMA +
+				COL_TAGLINE +                VARCHAR                             +
 			")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_IMDBID + "_IDX" + ON + TABLE_NAME + "(" + COL_IMDBID + ")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_TMDBID + "_IDX " + ON + TABLE_NAME + "(" + COL_TMDBID + ")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_TMDBID + "_" + COL_IMDBID + "_" + COL_API_VERSION + "_IDX " + ON + TABLE_NAME + "(" + COL_TMDBID + ", " + COL_IMDBID + ", " + COL_API_VERSION + ")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_TITLE + "_IDX " + ON + TABLE_NAME + "(" + COL_TITLE + ")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_SIMPLIFIEDTITLE + "_IDX " + ON + TABLE_NAME + "(" + COL_SIMPLIFIEDTITLE + ")",
-			CREATE_INDEX + TABLE_NAME + "_" + COL_THUMBID + "_IDX " + ON + TABLE_NAME + "(" + COL_THUMBID + ")"
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_IMDBID + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID + CONSTRAINT_SEPARATOR + COL_IMDBID + CONSTRAINT_SEPARATOR + COL_API_VERSION + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + COMMA + COL_IMDBID + COMMA + COL_API_VERSION + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TITLE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TITLE + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_SIMPLIFIEDTITLE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_SIMPLIFIEDTITLE + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")"
 		);
 	}
 
@@ -474,6 +483,9 @@ public final class MediaTableTVSeries extends MediaTable {
 						if (seriesMetadata.getThumbnailId() != null) {
 							rs.updateLong(COL_THUMBID, seriesMetadata.getThumbnailId());
 						}
+						if (seriesMetadata.getThumbnailSource() != null) {
+							updateString(rs, COL_THUMB_SRC, seriesMetadata.getThumbnailSource().toString(), 32);
+						}
 						rs.updateString(COL_VOTES, seriesMetadata.getVotes());
 						rs.updateRow();
 					} else {
@@ -514,6 +526,7 @@ public final class MediaTableTVSeries extends MediaTable {
 					if (rs.next()) {
 						Long tvSeriesId = rs.getLong(COL_ID);
 						TvSeriesMetadata metadata = new TvSeriesMetadata();
+						metadata.setTvSeriesId(tvSeriesId);
 						metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSerie(connection, tvSeriesId));
 						metadata.setApiVersion(rs.getString(COL_API_VERSION));
 						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSerie(connection, tvSeriesId));
@@ -557,7 +570,31 @@ public final class MediaTableTVSeries extends MediaTable {
 						metadata.setTmdbId(rs.getLong(COL_TMDBID));
 						metadata.setTotalSeasons(rs.getDouble(COL_TOTALSEASONS));
 						metadata.setThumbnailId(toLong(rs, COL_THUMBID));
+						metadata.setThumbnailSource(rs.getString(COL_THUMB_SRC));
 						metadata.setVotes(rs.getString(COL_VOTES));
+						String lang = CONFIGURATION.getLanguageRawString();
+						if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
+							VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, tvSeriesId, true, lang, metadata.getIMDbID(), "tv", metadata.getTmdbId(), null, null);
+							if (loc != null) {
+								loc.localizeTvSeriesMetadata(metadata);
+								//store tmdbID if it was not before
+								if (metadata.getTmdbId() == 0 && loc.getTmdbID() != null) {
+									updateTmdbId(connection, tvSeriesId, loc.getTmdbID());
+									metadata.setTmdbId(loc.getTmdbID());
+								}
+							}
+						}
+						//get localized thumb if thumb was not localized
+						if (metadata.getPoster() != null &&
+							!metadata.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
+							) {
+							DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(metadata.getPoster());
+							if (thumbnail != null) {
+								Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
+								metadata.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+								metadata.setThumbnailId(thumbnailId);
+							}
+						}
 						return metadata;
 					}
 				}
@@ -680,7 +717,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				if (resultSet.next()) {
 					thumbnailId = resultSet.getLong(COL_THUMBID);
 					tvSeriesId = resultSet.getLong(COL_ID);
-					return (DLNAThumbnail) resultSet.getObject(COL_THUMBNAIL);
+					return (DLNAThumbnail) resultSet.getObject(MediaTableThumbnails.COL_THUMBNAIL);
 				}
 			}
 		} catch (Exception e) {
@@ -704,8 +741,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			if (posterURL != null) {
 				DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(posterURL);
 				if (thumbnail != null) {
-					thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesDatabaseId);
-					updateThumbnailId(connection, tvSeriesDatabaseId, thumbnailId);
+					ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesDatabaseId, ThumbnailSource.TMDB);
 					return thumbnail;
 				}
 			}
@@ -736,19 +772,36 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
-	public static void updateThumbnailId(final Connection connection, Long id, Long thumbId) {
+	public static void updateThumbnailId(final Connection connection, Long id, Long thumbId, String thumbnailSource) {
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID);
 			) {
 				ps.setLong(1, thumbId);
-				ps.setLong(2, id);
+				ps.setString(2, thumbnailSource);
+				ps.setLong(3, id);
 				ps.executeUpdate();
 				LOGGER.trace("TV series THUMBID updated to {} for {}", thumbId, id);
 			}
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "updating cached thumbnail", TABLE_NAME, id, e.getMessage());
 			LOGGER.trace("", e);
+		}
+	}
+
+	public static void resetLocalizedThumbnail(final Connection connection) {
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMB_SRC_LOC);
+			) {
+				ps.setString(1, ThumbnailSource.TMDB.toString());
+				ps.setString(2, ThumbnailSource.TMDB_LOC.toString());
+				ps.executeUpdate();
+				LOGGER.trace("Thumbnail source updated from {} to {}", ThumbnailSource.TMDB_LOC.toString(), ThumbnailSource.TMDB.toString());
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating thumbnail source: {}", se.getMessage());
+			LOGGER.trace("", se);
 		}
 	}
 
