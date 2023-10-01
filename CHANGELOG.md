@@ -4,6 +4,10 @@
 
 ### General
 - Faster playback start and seeking via tsMuxeR
+- Fixed broken language parsing for locale-specific variants, like "en (US)" or "fr (CA)"
+- Fixed incorrect DLNA.ORG_PN values for transcoded video
+- Fixed deferring to tsMuxeR when video codec is not supported
+- Fixed settings changes not saving
 
 ### Dependencies
 - Update tsMuxeR to 2023-09-20-01-52-31
