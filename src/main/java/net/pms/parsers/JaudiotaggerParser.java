@@ -26,12 +26,12 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.musicbrainz.coverart.CoverUtil;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil;
 import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FileUtil;
@@ -114,30 +114,12 @@ public class JaudiotaggerParser {
 				}
 
 				Tag t = af.getTag();
-
 				if (t != null) {
-					if (!t.getArtworkList().isEmpty()) {
-						Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
-							t.getArtworkList().get(0).getBinaryData(),
-							640,
-							480,
-							ImagesUtil.ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						));
-						media.setThumbId(thumbId);
-					} else if (!CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
-						Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
-							CoverUtil.get().getThumbnail(t),
-							640,
-							480,
-							ImagesUtil.ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						));
-						media.setThumbId(thumbId);
+					DLNAThumbnail thumbnail = getThumbnail(media, t);
+					if (thumbnail != null) {
+						Long thumbId = ThumbnailStore.getId(thumbnail);
+						media.setThumbnailId(thumbId);
 					}
-
 					audioMetadata.setAlbum(extractAudioTagKeyValue(t, FieldKey.ALBUM));
 					audioMetadata.setArtist(extractAudioTagKeyValue(t, FieldKey.ARTIST));
 					audioMetadata.setComposer(extractAudioTagKeyValue(t, FieldKey.COMPOSER));
@@ -218,7 +200,7 @@ public class JaudiotaggerParser {
 		}
 	}
 
-	public static DLNAThumbnail getThumbnail(File file) {
+	public static DLNAThumbnail getThumbnail(MediaInfo media, File file) {
 		if (file != null) {
 			try {
 				AudioFile af;
@@ -228,27 +210,7 @@ public class JaudiotaggerParser {
 					af = AudioFileIO.read(file);
 				}
 				Tag t = af.getTag();
-				if (t != null) {
-					if (!t.getArtworkList().isEmpty()) {
-						return DLNAThumbnail.toThumbnail(
-							t.getArtworkList().get(0).getBinaryData(),
-							640,
-							480,
-							ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						);
-					} else if (!CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.NONE)) {
-						return DLNAThumbnail.toThumbnail(
-							CoverUtil.get().getThumbnail(t),
-							640,
-							480,
-							ScaleType.MAX,
-							ImageFormat.SOURCE,
-							false
-						);
-					}
-				}
+				return getThumbnail(media, t);
 			} catch (CannotReadException e) {
 				if (e.getMessage().startsWith(
 					ErrorMessage.NO_READER_FOR_THIS_FORMAT.getMsg().substring(0, ErrorMessage.NO_READER_FOR_THIS_FORMAT.getMsg().indexOf("{"))
@@ -261,6 +223,56 @@ public class JaudiotaggerParser {
 			} catch (IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
 				LOGGER.debug("Error parsing audio file tag for \"{}\": {}", file.getName(), e.getMessage());
 				LOGGER.trace("", e);
+			}
+		}
+		return null;
+	}
+
+	private static DLNAThumbnail getThumbnail(MediaInfo media, Tag t) {
+		if (t != null) {
+			if (!t.getArtworkList().isEmpty()) {
+				byte[] cover = t.getArtworkList().get(0).getBinaryData();
+				if (cover != null && cover.length > 0) {
+					try {
+						DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
+							cover,
+							640,
+							480,
+							ScaleType.MAX,
+							ImageFormat.SOURCE,
+							false
+						);
+						if (thumbnail != null) {
+							media.setThumbnailSource(ThumbnailSource.EMBEDDED);
+							return thumbnail;
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error parsing embedded audio artwork for \"{}\": {}", media.getTitle(), e.getMessage());
+						LOGGER.trace("", e);
+					}
+				}
+			}
+			if (CONFIGURATION.getAudioThumbnailMethod().equals(CoverSupplier.COVER_ART_ARCHIVE)) {
+				byte[] cover = CoverUtil.get().getThumbnail(t);
+				if (cover != null && cover.length > 0) {
+					try {
+						DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
+							cover,
+							640,
+							480,
+							ScaleType.MAX,
+							ImageFormat.SOURCE,
+							false
+						);
+						if (thumbnail != null) {
+							media.setThumbnailSource(ThumbnailSource.MUSICBRAINZ);
+							return thumbnail;
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error parsing cover art archive audio artwork for \"{}\": {}", media.getTitle(), e.getMessage());
+						LOGGER.trace("", e);
+					}
+				}
 			}
 		}
 		return null;

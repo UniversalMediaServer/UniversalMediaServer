@@ -21,8 +21,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
@@ -31,7 +29,6 @@ import net.pms.media.MediaStatus;
 
 public class MediaStatusStore {
 
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final Map<Integer, Map<String, MediaStatus>> STORE = new HashMap<>();
 
 	private MediaStatusStore() {

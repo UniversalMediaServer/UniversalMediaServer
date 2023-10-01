@@ -33,6 +33,7 @@ import net.pms.image.ImagesUtil;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.network.HTTPResource;
+import net.pms.store.ThumbnailSource;
 import net.pms.util.InputFile;
 import net.pms.util.UnknownFormatException;
 import org.slf4j.Logger;
@@ -219,10 +220,8 @@ public class Parser {
 			File file = inputFile.getFile();
 
 			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
-				return JaudiotaggerParser.getThumbnail(file);
-			}
-
-			if (type == Format.IMAGE && file != null) {
+				return JaudiotaggerParser.getThumbnail(media, file);
+			} else if (type == Format.IMAGE && file != null) {
 				// Create the thumbnail image
 				try {
 					if (media.getImageInfo() instanceof ExifInfo exifInfo && exifInfo.hasExifThumbnail() && !exifInfo.isImageIOSupported()) {
@@ -240,7 +239,7 @@ public class Parser {
 						 */
 					} else {
 						// This will fail with UnknownFormatException for any image formats not supported by ImageIO
-						return DLNAThumbnail.toThumbnail(
+						DLNAThumbnail thumb = DLNAThumbnail.toThumbnail(
 								Files.newInputStream(file.toPath()),
 								320,
 								320,
@@ -248,6 +247,10 @@ public class Parser {
 								ImageFormat.SOURCE,
 								false
 						);
+						if (thumb != null) {
+							media.setThumbnailSource(ThumbnailSource.EMBEDDED);
+							return thumb;
+						}
 					}
 				} catch (EOFException e) {
 					LOGGER.debug(
@@ -260,22 +263,29 @@ public class Parser {
 					LOGGER.debug("Error generating thumbnail for \"{}\": {}", file.getName(), e.getMessage());
 					LOGGER.trace("", e);
 				}
-			}
-			if (type == Format.VIDEO) {
-				DLNAThumbnail thumb = null;
+			} else if (type == Format.VIDEO) {
+				DLNAThumbnail thumb;
 				if (seekPosition == null && media.hasVideoMetadata() && media.getVideoMetadata().getPoster() != null) {
 					//API Poster
 					thumb = APIUtils.getThumbnailFromUri(media.getVideoMetadata().getPoster());
+					if (thumb != null) {
+						//if here, metadata was localized
+						media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+						return thumb;
+					}
 				}
-				if (thumb == null && CONFIGURATION.isUseMplayerForVideoThumbs()) {
+				if (CONFIGURATION.isUseMplayerForVideoThumbs()) {
 					//Mplayer parsing
 					thumb = MPlayerParser.getThumbnail(media, inputFile, seekPosition);
+					if (thumb != null) {
+						return thumb;
+					}
 				}
-				if (thumb == null) {
-					//FFmpeg parsing
-					thumb = FFmpegParser.getThumbnail(media, inputFile, seekPosition);
+				//FFmpeg parsing
+				thumb = FFmpegParser.getThumbnail(media, inputFile, seekPosition);
+				if (thumb != null) {
+					return thumb;
 				}
-				return thumb;
 			}
 		}
 		return null;

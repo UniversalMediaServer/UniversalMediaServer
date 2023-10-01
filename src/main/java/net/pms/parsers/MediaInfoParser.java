@@ -52,6 +52,7 @@ import net.pms.parsers.mediainfo.StreamKind;
 import net.pms.parsers.mediainfo.StreamMenu;
 import net.pms.parsers.mediainfo.StreamSubtitle;
 import net.pms.parsers.mediainfo.StreamVideo;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
@@ -171,15 +172,19 @@ public class MediaInfoParser {
 			value = StreamContainer.getCoverData(MI, 0);
 			if (!value.isEmpty()) {
 				try {
-					Long thumbId = ThumbnailStore.getId(DLNAThumbnail.toThumbnail(
+					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
 						new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
 						640,
 						480,
 						ScaleType.MAX,
 						ImageFormat.SOURCE,
 						false
-					));
-					media.setThumbId(thumbId);
+					);
+					if (thumbnail != null) {
+						Long thumbId = ThumbnailStore.getId(thumbnail);
+						media.setThumbnailId(thumbId);
+						media.setThumbnailSource(ThumbnailSource.EMBEDDED);
+					}
 				} catch (EOFException e) {
 					LOGGER.debug(
 						"Error reading \"{}\" thumbnail from MediaInfo: Unexpected end of stream, probably corrupt or read error.",

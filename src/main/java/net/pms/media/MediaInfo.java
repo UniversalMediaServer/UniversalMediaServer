@@ -36,6 +36,7 @@ import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
@@ -67,6 +68,7 @@ public class MediaInfo implements Cloneable {
 	private String aspectRatioDvdIso;
 
 	private Long thumbnailId = null;
+	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
 
 	private MediaVideoMetadata videoMetadata;
 	private MediaAudioMetadata audioMetadata;
@@ -340,31 +342,43 @@ public class MediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the thumb
+	 * @return the thumbnail
 	 * @since 1.50.0
 	 */
-	public DLNAThumbnail getThumb() {
+	public DLNAThumbnail getThumbnail() {
 		return ThumbnailStore.getThumbnail(thumbnailId);
 	}
 
-	public Long getThumbId() {
+	public Long getThumbnailId() {
 		return thumbnailId;
 	}
 
-	public void setThumbId(Long thumbnailId) {
+	public void setThumbnailId(Long thumbnailId) {
 		this.thumbnailId = thumbnailId;
 	}
 
+	public ThumbnailSource getThumbnailSource() {
+		return thumbnailSource;
+	}
+
+	public void setThumbnailSource(ThumbnailSource value) {
+		this.thumbnailSource = value;
+	}
+
+	public void setThumbnailSource(String value) {
+		this.thumbnailSource = ThumbnailSource.valueOfName(value);
+	}
+
 	/**
-	 * @return the thumbready
+	 * @return the thumbnail is ready
 	 * @since 1.50.0
 	 */
-	public boolean isThumbready() {
-		return getThumb() != null;
+	public boolean isThumbnailReady() {
+		return getThumbnail() != null;
 	}
 
 	public DLNAThumbnailInputStream getThumbnailInputStream() {
-		DLNAThumbnail thumb = getThumb();
+		DLNAThumbnail thumb = getThumbnail();
 		return thumb != null ? new DLNAThumbnailInputStream(thumb) : null;
 	}
 
@@ -834,8 +848,8 @@ public class MediaInfo implements Cloneable {
 			}
 		}
 
-		if (getThumb() != null) {
-			result.append(", ").append(getThumb());
+		if (getThumbnail() != null) {
+			result.append(", ").append(getThumbnail());
 		}
 
 		if (getMimeType() != null) {

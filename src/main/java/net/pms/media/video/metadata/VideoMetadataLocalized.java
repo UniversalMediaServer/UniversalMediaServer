@@ -97,4 +97,41 @@ public class VideoMetadataLocalized {
 			jsonObject.addProperty("title", title);
 		}
 	}
+
+	public void localizeMediaVideoMetadata(final MediaVideoMetadata mediaVideoMetadata) {
+		if (StringUtils.isNotBlank(homepage)) {
+			mediaVideoMetadata.setHomepage(homepage);
+		}
+		if (StringUtils.isNotBlank(overview)) {
+			mediaVideoMetadata.setOverview(overview);
+		}
+		if (StringUtils.isNotBlank(poster)) {
+			mediaVideoMetadata.setPoster(poster);
+		}
+		if (StringUtils.isNotBlank(tagline)) {
+			mediaVideoMetadata.setTagline(tagline);
+		}
+		if (StringUtils.isNotBlank(title)) {
+			mediaVideoMetadata.setOriginalTitle(title);
+		}
+	}
+
+	public void localizeTvSeriesMetadata(final TvSeriesMetadata tvSeriesMetadata) {
+		if (StringUtils.isNotBlank(homepage)) {
+			tvSeriesMetadata.setHomepage(homepage);
+		}
+		if (StringUtils.isNotBlank(overview)) {
+			tvSeriesMetadata.setOverview(overview);
+		}
+		if (StringUtils.isNotBlank(poster)) {
+			tvSeriesMetadata.setPoster(poster);
+		}
+		if (StringUtils.isNotBlank(tagline)) {
+			tvSeriesMetadata.setTagline(tagline);
+		}
+		if (StringUtils.isNotBlank(title)) {
+			tvSeriesMetadata.setTitle(title);
+		}
+	}
+
 }

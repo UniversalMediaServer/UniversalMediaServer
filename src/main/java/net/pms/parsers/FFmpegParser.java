@@ -40,6 +40,7 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
+import net.pms.store.ThumbnailSource;
 import net.pms.util.InputFile;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
@@ -167,10 +168,6 @@ public class FFmpegParser {
 		media.setParsing(false);
 	}
 
-	public static DLNAThumbnail getThumbnail(MediaInfo media, InputFile inputFile) {
-		return getThumbnail(media, inputFile, null);
-	}
-
 	public static DLNAThumbnail getThumbnail(MediaInfo media, InputFile inputFile, Double seekPosition) {
 		/*
 		 * Note: The text output from FFmpeg is used by renderers that do
@@ -184,7 +181,7 @@ public class FFmpegParser {
 		}
 		ArrayList<String> args = new ArrayList<>();
 		args.add(engine);
-		DLNAThumbnail result = null;
+		DLNAThumbnail thumbnail = null;
 		args.add("-ss");
 		double thumbnailSeekPos = seekPosition != null ? seekPosition : CONFIGURATION.getThumbnailSeekPos();
 		thumbnailSeekPos = Math.min(thumbnailSeekPos, media.getDurationInSeconds());
@@ -233,7 +230,10 @@ public class FFmpegParser {
 			byte[] bytes = pw.getOutputByteArray().toByteArray();
 			if (bytes != null && bytes.length > 0) {
 				try {
-					result = DLNAThumbnail.toThumbnail(bytes);
+					thumbnail = DLNAThumbnail.toThumbnail(bytes);
+					if (thumbnail != null) {
+						media.setThumbnailSource(ThumbnailSource.FFMPEG_SEEK);
+					}
 				} catch (IOException e) {
 					LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
 					LOGGER.trace("", e);
@@ -241,7 +241,7 @@ public class FFmpegParser {
 			}
 		}
 		media.setParsing(false);
-		return result;
+		return thumbnail;
 	}
 
 	/**

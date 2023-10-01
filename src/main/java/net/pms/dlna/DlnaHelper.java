@@ -64,8 +64,8 @@ public class DlnaHelper {
 		ImageInfo thumbnailImageInf = null;
 		if (resource.getThumbnailImageInfo() != null) {
 			thumbnailImageInf = resource.getThumbnailImageInfo();
-		} else if (mediaInfo != null && mediaInfo.getThumb() != null && mediaInfo.getThumb().getImageInfo() != null) {
-			thumbnailImageInf = mediaInfo.getThumb().getImageInfo();
+		} else if (mediaInfo != null && mediaInfo.getThumbnail() != null && mediaInfo.getThumbnail().getImageInfo() != null) {
+			thumbnailImageInf = mediaInfo.getThumbnail().getImageInfo();
 		}
 		ImageInfo imageInfo = null;
 		if (thumbnailRequest) {

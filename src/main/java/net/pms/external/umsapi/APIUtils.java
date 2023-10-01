@@ -61,6 +61,7 @@ import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
 import net.pms.store.MediaStoreIds;
+import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
@@ -471,8 +472,12 @@ public class APIUtils {
 					videoMetadata.setPoster(posterFromApi);
 					media.waitMediaParsing(5);
 					media.setParsing(true);
-					Long thumbId = ThumbnailStore.getId(getThumbnailFromUri(posterFromApi));
-					media.setThumbId(thumbId);
+					DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
+					if (thumbnail != null) {
+						Long thumbnailId = ThumbnailStore.getId(thumbnail);
+						media.setThumbnailSource(ThumbnailSource.TMDB);
+						media.setThumbnailId(thumbnailId);
+					}
 					media.setParsing(false);
 				}
 				if (isTVEpisode) {
@@ -767,7 +772,8 @@ public class APIUtils {
 			if (posterFromApi != null) {
 				DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
 				if (thumbnail != null) {
-					Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId);
+					Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
+					seriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
 					seriesMetadata.setThumbnailId(thumbnailId);
 				}
 			}
@@ -1109,6 +1115,7 @@ public class APIUtils {
 
 	public static DLNAThumbnail getThumbnailFromUri(String uri) {
 		try {
+			LOGGER.trace("Downloading image from {}", uri);
 			byte[] image = JavaHttpClient.getBytes(uri);
 			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
 		} catch (EOFException e) {
@@ -1187,7 +1194,7 @@ public class APIUtils {
 					metadata.setOverview(localizedMetadataFromAPI.get("overview").getAsString());
 				}
 				if (localizedMetadataFromAPI.has("posterRelativePath") && localizedMetadataFromAPI.get("posterRelativePath").isJsonPrimitive()) {
-					metadata.setPoster(APIUtils.getPosterUrlFromApiInfo(null, localizedMetadataFromAPI.get("posterRelativePath").getAsString()));
+					metadata.setPoster(getPosterUrlFromApiInfo(null, localizedMetadataFromAPI.get("posterRelativePath").getAsString()));
 				}
 				if (localizedMetadataFromAPI.has("tagline") && localizedMetadataFromAPI.get("tagline").isJsonPrimitive()) {
 					metadata.setTagline(localizedMetadataFromAPI.get("tagline").getAsString());

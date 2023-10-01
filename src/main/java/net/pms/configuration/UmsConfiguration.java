@@ -557,14 +557,10 @@ public class UmsConfiguration extends BaseConfiguration {
 	);
 
 	/**
-	 * The set of keys defining when the media library has to reset due to a
-	 * configuration change.
-	 *
-	 * It will need a media store reload as renderers build from it.
+	 * The set of keys defining when the server language was changed.
 	 */
-	public static final Set<String> NEED_MEDIA_LIBRARY_RELOAD_FLAGS = Set.of(
-		KEY_FULLY_PLAYED_ACTION,
-		KEY_SHOW_RECENTLY_PLAYED_FOLDER
+	public static final Set<String> LANGUAGE_CHANGED = Set.of(
+		KEY_LANGUAGE
 	);
 
 	/**
@@ -578,11 +574,13 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 		KEY_DISABLE_TRANSCODING,
 		KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
+		KEY_FULLY_PLAYED_ACTION,
 		KEY_HIDE_EMPTY_FOLDERS,
 		KEY_OPEN_ARCHIVES,
 		KEY_PRETTIFY_FILENAMES,
 		KEY_SHOW_LIVE_SUBTITLES_FOLDER,
 		KEY_SHOW_MEDIA_LIBRARY_FOLDER,
+		KEY_SHOW_RECENTLY_PLAYED_FOLDER,
 		KEY_SHOW_SERVER_SETTINGS_FOLDER,
 		KEY_SHOW_TRANSCODE_FOLDER,
 		KEY_SORT_METHOD
@@ -1929,28 +1927,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the number of seconds from the start of a video file (the seek
-	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 4 seconds.
-	 *
-	 * @return The seek position in seconds.
-	 */
-	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 4);
-	}
-
-	/**
-	 * Sets the number of seconds from the start of a video file (the seek
-	 * position) where the thumbnail image for the movie should be extracted
-	 * from.
-	 *
-	 * @param value The seek position in seconds.
-	 */
-	public void setThumbnailSeekPos(int value) {
-		configuration.setProperty(KEY_THUMBNAIL_SEEK_POS, value);
-	}
-
-	/**
 	 * Returns whether the user wants ASS/SSA subtitle support. Default is
 	 * true.
 	 *
@@ -2515,6 +2491,28 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setThumbnailGenerationEnabled(boolean value) {
 		configuration.setProperty(KEY_THUMBNAIL_GENERATION_ENABLED, value);
+	}
+
+	/**
+	 * Returns the number of seconds from the start of a video file (the seek
+	 * position) where the thumbnail image for the movie should be extracted
+	 * from. Default is 4 seconds.
+	 *
+	 * @return The seek position in seconds.
+	 */
+	public int getThumbnailSeekPos() {
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 4);
+	}
+
+	/**
+	 * Sets the number of seconds from the start of a video file (the seek
+	 * position) where the thumbnail image for the movie should be extracted
+	 * from.
+	 *
+	 * @param value The seek position in seconds.
+	 */
+	public void setThumbnailSeekPos(int value) {
+		configuration.setProperty(KEY_THUMBNAIL_SEEK_POS, value);
 	}
 
 	/**

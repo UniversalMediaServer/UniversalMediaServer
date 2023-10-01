@@ -242,12 +242,12 @@ public class RealFile extends StoreItem {
 			}
 		}
 
-		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumb() != null;
+		boolean hasAlreadyEmbeddedCoverArt = getType() == Format.AUDIO && getMediaInfo() != null && getMediaInfo().getThumbnail() != null;
 		DLNAThumbnailInputStream result = null;
 		try {
 			if (cachedThumbnail != null && !hasAlreadyEmbeddedCoverArt) {
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-			} else if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+			} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 				result = getMediaInfo().getThumbnailInputStream();
 			}
 		} catch (IOException e) {

@@ -138,7 +138,7 @@ public class DVDISOTitle extends StoreItem {
 
 		if (cachedThumbnail != null) {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(cachedThumbnail));
-		} else if (getMediaInfo() != null && getMediaInfo().getThumb() != null) {
+		} else if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
 			return getMediaInfo().getThumbnailInputStream();
 		} else {
 			return getGenericThumbnailInputStream(null);

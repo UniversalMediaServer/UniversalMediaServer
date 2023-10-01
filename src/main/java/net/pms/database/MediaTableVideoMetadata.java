@@ -462,6 +462,32 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setTmdbId(rs.getLong(COL_TMDBID));
 						metadata.setTmdbTvId(rs.getLong(COL_TMDBTVID));
 						metadata.setVotes(rs.getString(COL_VOTES));
+						String lang = CONFIGURATION.getLanguageRawString();
+						if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
+							if (metadata.isTVEpisode()) {
+								String season = rs.getString(COL_TVSEASON);
+								String episode = rs.getString(COL_TVEPISODENUMBER);
+								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, metadata.getIMDbID(), "tv_episode", metadata.getTmdbTvId(), season, episode);
+								if (loc != null) {
+									loc.localizeMediaVideoMetadata(metadata);
+									//store tmdbTvID if it was not before
+									if (metadata.getTmdbTvId() == 0 && loc.getTmdbID() != null) {
+										updateTmdbId(connection, fileId, loc.getTmdbID(), true);
+										metadata.setTmdbTvId(loc.getTmdbID());
+									}
+								}
+							} else {
+								VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(connection, fileId, false, lang, metadata.getIMDbID(), "movie", metadata.getTmdbId(), null, null);
+								if (loc != null) {
+									loc.localizeMediaVideoMetadata(metadata);
+									//store tmdbID if it was not before
+									if (metadata.getTmdbId() == 0 && loc.getTmdbID() != null) {
+										updateTmdbId(connection, fileId, loc.getTmdbID(), false);
+										metadata.setTmdbId(loc.getTmdbID());
+									}
+								}
+							}
+						}
 						return metadata;
 					}
 				}

@@ -1113,7 +1113,8 @@ public abstract class StoreItem extends StoreResource {
 			if (resume.isDone()) {
 				getParent().removeChild(this);
 			} else if (getMediaInfo() != null) {
-				mediaInfo.setThumbId(null);
+				mediaInfo.setThumbnailId(null);
+				mediaInfo.setThumbnailSource(ThumbnailSource.UNKNOWN);
 			}
 		} else {
 			for (StoreResource res : getParent().getChildren()) {
@@ -1125,7 +1126,8 @@ public abstract class StoreItem extends StoreResource {
 					}
 
 					if (res.getMediaInfo() != null) {
-						res.mediaInfo.setThumbId(null);
+						res.mediaInfo.setThumbnailId(null);
+						res.mediaInfo.setThumbnailSource(ThumbnailSource.UNKNOWN);
 					}
 
 					return res;
@@ -1138,7 +1140,8 @@ public abstract class StoreItem extends StoreResource {
 				clone.resume = r;
 				clone.resHash = resHash;
 				if (clone.mediaInfo != null) {
-					clone.mediaInfo.setThumbId(null);
+					clone.mediaInfo.setThumbnailId(null);
+					clone.mediaInfo.setThumbnailSource(ThumbnailSource.UNKNOWN);
 				}
 
 				clone.engine = engine;
@@ -1306,24 +1309,27 @@ public abstract class StoreItem extends StoreResource {
 	protected void checkThumbnail(InputFile inputFile) {
 		// Use device-specific conf, if any
 		if (mediaInfo != null &&
-				!mediaInfo.isThumbready() &&
+				!mediaInfo.isThumbnailReady() &&
 				renderer.getUmsConfiguration().isThumbnailGenerationEnabled() &&
 				renderer.isThumbnails()) {
-			Double seekPosition = (double) renderer.getUmsConfiguration().getThumbnailSeekPos();
-			if (isResume()) {
+			Double seekPosition = null;
+			boolean isResume = isResume();
+			if (isResume) {
 				Double resumePosition = resume.getTimeOffset() / 1000d;
 
 				if (mediaInfo.getDurationInSeconds() > 0 && resumePosition < mediaInfo.getDurationInSeconds()) {
 					seekPosition = resumePosition;
+				} else {
+					seekPosition = (double) renderer.getUmsConfiguration().getThumbnailSeekPos();
 				}
 			}
 
 			DLNAThumbnail thumbnail = Parser.getThumbnail(mediaInfo, inputFile, getFormat(), getType(), seekPosition);
 			if (thumbnail != null) {
-				if (!isResume() && mediaInfo.getFileId() != null) {
-					mediaInfo.setThumbId(ThumbnailStore.getId(thumbnail, mediaInfo.getFileId()));
+				if (!isResume && mediaInfo.getFileId() != null) {
+					mediaInfo.setThumbnailId(ThumbnailStore.getId(thumbnail, mediaInfo.getFileId(), mediaInfo.getThumbnailSource()));
 				} else {
-					mediaInfo.setThumbId(ThumbnailStore.getTempId(thumbnail));
+					mediaInfo.setThumbnailId(ThumbnailStore.getTempId(thumbnail));
 				}
 			}
 		}
@@ -1451,9 +1457,6 @@ public abstract class StoreItem extends StoreResource {
 		resolve();
 		if (mediaInfo != null && mediaInfo.isVideo()) {
 			registerExternalSubtitles(false);
-			if (this instanceof RealFile realfile && realfile.getFile() != null) {
-				MediaInfoStore.setMetadataFromFileName(realfile.getFile(), mediaInfo);
-			}
 		}
 	}
 

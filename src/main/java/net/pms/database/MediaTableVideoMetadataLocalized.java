@@ -245,4 +245,5 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		set(connection, id, fromTvSeries, result, language);
 		return result;
 	}
+
 }
