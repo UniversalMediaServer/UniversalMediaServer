@@ -441,8 +441,11 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			setVisible(true);
 			setExtendedState(Frame.ICONIFIED);
 		}
-
-		PlatformUtils.INSTANCE.addSystemTray(this);
+		boolean updateAvailable = false;
+		if (autoUpdater != null) {
+			updateAvailable = autoUpdater.isUpdateAvailable();
+		}
+		PlatformUtils.INSTANCE.addSystemTray(this, updateAvailable);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
