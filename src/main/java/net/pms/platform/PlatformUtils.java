@@ -212,6 +212,9 @@ public class PlatformUtils implements IPlatformUtils {
 				browseURI(PMS.get().getGuiServer().getUrl());
 			});
 			try {
+				if (tray.getTrayIcons().length > 0) {
+					tray.remove(tray.getTrayIcons()[0]);
+				}
 				tray.add(trayIcon);
 			} catch (AWTException e) {
 				LOGGER.debug("Caught exception", e);
@@ -273,7 +276,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	protected String getTrayIconUpdate() {
-		return "icon-24-update.png";
+		return "icon-updatable-2.png";
 	}
 
 	/**
