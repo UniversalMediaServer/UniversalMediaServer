@@ -418,6 +418,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
 	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
+	private static final String KEY_TMDB_API_KEY = "tmdb_api_key";
 	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
@@ -429,6 +430,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
+	private static final String KEY_USE_TMDB_INFO = "use_tmdb_info";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
 	private static final String KEY_UUID = "uuid";
@@ -4659,6 +4661,22 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
 	}
 
+	public boolean isUseInfoFromTMDB() {
+		return getBoolean(KEY_USE_TMDB_INFO, true);
+	}
+
+	public void setUseInfoFromTMDB(boolean value) {
+		configuration.setProperty(KEY_USE_TMDB_INFO, value);
+	}
+
+	public String getTmdbApiKey() {
+		return getString(KEY_TMDB_API_KEY, "");
+	}
+
+	public void setTmdbApiKey(String value) {
+		configuration.setProperty(KEY_TMDB_API_KEY, value);
+	}
+
 	/* Credential path handling */
 	public static final String KEY_CRED_PATH = "cred.path";
 
@@ -5635,9 +5653,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_ASS_SCALE, 1.4);
 		jObj.addProperty(KEY_ASS_SHADOW, 1);
 		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
+		jObj.addProperty(KEY_TMDB_API_KEY, "");
 		jObj.addProperty(KEY_UPNP_ENABLED, true);
 		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
 		jObj.addProperty(KEY_USE_IMDB_INFO, true);
+		jObj.addProperty(KEY_USE_TMDB_INFO, true);
 		jObj.addProperty(KEY_USE_SYMLINKS_TARGET_FILE, true);
 		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);
 		jObj.addProperty(KEY_VLC_USE_EXPERIMENTAL_CODECS, false);

@@ -24,7 +24,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.JavaHttpClient;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
 import net.pms.image.ExifInfo;
@@ -267,7 +267,7 @@ public class Parser {
 				DLNAThumbnail thumb;
 				if (seekPosition == null && media.hasVideoMetadata() && media.getVideoMetadata().getPoster() != null) {
 					//API Poster
-					thumb = APIUtils.getThumbnailFromUri(media.getVideoMetadata().getPoster());
+					thumb = JavaHttpClient.getThumbnail(media.getVideoMetadata().getPoster());
 					if (thumb != null) {
 						//if here, metadata was localized
 						media.setThumbnailSource(ThumbnailSource.TMDB_LOC);

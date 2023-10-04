@@ -28,7 +28,7 @@ import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
@@ -643,7 +643,7 @@ public class MediaTableFiles extends MediaTable {
 						media.getVideoMetadata().getPoster() != null &&
 						!media.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
 						) {
-						DLNAThumbnail thumbnail = APIUtils.getThumbnailFromUri(media.getVideoMetadata().getPoster());
+						DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(media.getVideoMetadata().getPoster());
 						if (thumbnail != null) {
 							Long thumbnailId = ThumbnailStore.getId(thumbnail);
 							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
@@ -839,14 +839,14 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static void updateThumbnailId(final Connection connection, int fileId, Long thumbId, String thumbnailSource) {
+	public static void updateThumbnailId(final Connection connection, long fileId, Long thumbId, String thumbnailSource) {
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_ID);
 			) {
 				ps.setLong(1, thumbId);
 				ps.setString(2, thumbnailSource);
-				ps.setInt(3, fileId);
+				ps.setLong(3, fileId);
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fileId);
 			}

@@ -29,7 +29,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.tmdb.TMDB;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
@@ -254,7 +254,7 @@ public class MediaInfoStore {
 			LOGGER.debug("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
-			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
+			TMDB.backgroundLookupAndAddMetadata(file, mediaInfo);
 		}
 	}
 

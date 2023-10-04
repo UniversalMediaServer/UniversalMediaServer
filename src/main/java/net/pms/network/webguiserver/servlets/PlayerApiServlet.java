@@ -44,7 +44,7 @@ import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
 import net.pms.encoders.StandardEngineId;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.tmdb.TMDB;
 import net.pms.formats.Format;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
@@ -1148,7 +1148,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, renderer);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, renderer);
 		addStringDlnaId(result, "rated", ratedFolder, renderer);
-		result.addProperty("imageBaseURL", APIUtils.getApiImageBaseURL());
+		result.addProperty("imageBaseURL", TMDB.getTmdbImageBaseURL());
 
 		return result;
 	}

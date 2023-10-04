@@ -250,6 +250,17 @@ export default function GeneralSettings(
                 {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
               />
             </Tooltip>
+            <Checkbox
+              disabled={!canModify}
+              label={i18n.get['UseInfoFromTMDB']}
+              {...form.getInputProps('use_tmdb_info', { type: 'checkbox' })}
+            />
+            <TextInput
+              disabled={!canModify || !form.values['use_tmdb_info']}
+              mt='xs'
+              label={i18n.get['TMDBApiKey']}
+              {...form.getInputProps('tmdb_api_key')}
+            />
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>

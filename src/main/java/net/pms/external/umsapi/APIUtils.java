@@ -21,7 +21,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,8 +50,6 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.gui.GuiManager;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.ApiRatingSource;
 import net.pms.media.video.metadata.ApiRatingSourceArray;
@@ -66,7 +63,6 @@ import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
 import net.pms.util.SimpleThreadFactory;
-import net.pms.util.UnknownFormatException;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -472,7 +468,7 @@ public class APIUtils {
 					videoMetadata.setPoster(posterFromApi);
 					media.waitMediaParsing(5);
 					media.setParsing(true);
-					DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
+					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
 					if (thumbnail != null) {
 						Long thumbnailId = ThumbnailStore.getId(thumbnail);
 						media.setThumbnailSource(ThumbnailSource.TMDB);
@@ -770,7 +766,7 @@ public class APIUtils {
 
 			//Create/Update Thumbnail
 			if (posterFromApi != null) {
-				DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
+				DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
 				if (thumbnail != null) {
 					Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
 					seriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
@@ -1111,25 +1107,6 @@ public class APIUtils {
 			}
 		}
 		return result;
-	}
-
-	public static DLNAThumbnail getThumbnailFromUri(String uri) {
-		try {
-			LOGGER.trace("Downloading image from {}", uri);
-			byte[] image = JavaHttpClient.getBytes(uri);
-			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-		} catch (EOFException e) {
-			LOGGER.debug(
-				"Error reading thumbnail from uri \"{}\": Unexpected end of stream, probably corrupt or read error.",
-				uri
-			);
-		} catch (UnknownFormatException e) {
-			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage());
-		} catch (IOException e) {
-			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
 	}
 
 	/**

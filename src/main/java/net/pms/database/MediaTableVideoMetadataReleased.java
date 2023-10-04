@@ -22,8 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -164,8 +163,8 @@ public final class MediaTableVideoMetadataReleased extends MediaTable {
 		}
 		Timestamp timestamp = null;
 		try {
-			Instant instant = Instant.from(DateTimeFormatter.ISO_INSTANT.parse(released));
-			timestamp = Timestamp.from(instant);
+				LocalDate date = LocalDate.parse(released.length() > 10 ? released.substring(0, 10) : released);
+				timestamp = Timestamp.valueOf(date.atStartOfDay());
 		} catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
 			LOGGER.trace("String \"{}\" cannot converts to Timestamp", released);
 		}

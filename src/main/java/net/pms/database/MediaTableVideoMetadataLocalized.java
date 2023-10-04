@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.tmdb.TMDB;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -67,6 +67,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_LANGUAGE_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
+	private static final String SQL_GET_TVSERIESID_SIMPLIFIEDTITLE = SELECT + COL_TVSERIESID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + IS_NOT_NULL + AND + "REGEXP_REPLACE(LOWER(" + COL_TITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER;
 
 	/**
 	 * Database column sizes
@@ -117,7 +118,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MODIFIED + BIGINT);
 				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
@@ -241,9 +242,27 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		//here we now we do not have the language in db, let search it.
-		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(language, mediaType, imdbId, tmdbId, season, episode);
+		VideoMetadataLocalized result = TMDB.getVideoMetadataLocalized(language, mediaType, imdbId, tmdbId, season, episode);
 		set(connection, id, fromTvSeries, result, language);
 		return result;
+	}
+
+	protected static Long getTvSeriesIdFromTitle(final Connection connection, final String titleSimplified) {
+		if (connection == null || StringUtils.isBlank(titleSimplified)) {
+			return null;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_TVSERIESID_SIMPLIFIEDTITLE)) {
+			ps.setString(1, titleSimplified);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.first()) {
+					return toLong(rs, COL_TVSERIESID);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", titleSimplified, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 }
