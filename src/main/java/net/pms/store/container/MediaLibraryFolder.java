@@ -187,7 +187,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 		// If the query does not already join the right metadata table, do that now
 		if (!firstSql.contains(LEFT_JOIN + tableName)) {
-			String joinSection = LEFT_JOIN + tableName + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableVideoMetadata.COL_FILEID;
+			String joinSection = LEFT_JOIN + tableName + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableFiles.CHILD_ID;
 			query.insert(indexAfterFromInFirstQuery, joinSection);
 		}
 
@@ -206,7 +206,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
 		String condition = columnName + EQUAL + "'${0}'" + AND;
 		if (!sql.contains(LEFT_JOIN + tableName)) {
-			String joinSection = LEFT_JOIN + tableName + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableVideoMetadata.COL_FILEID;
+			String joinSection = LEFT_JOIN + tableName + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableFiles.CHILD_ID;
 			query.insert(indexAfterFrom, joinSection);
 		}
 		int indexAfterWhere = query.indexOf(WHERE) + WHERE.length();

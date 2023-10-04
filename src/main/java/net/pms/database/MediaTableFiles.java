@@ -84,8 +84,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 38: added Mime type
 	 * - 39: typo on column name
 	 * - 40: added thumbnail source
+	 * - 41: ID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 40;
+	private static final int TABLE_VERSION = 41;
 
 	/**
 	 * COLUMNS NAMES
@@ -148,6 +149,11 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + MediaTableThumbnails.TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + EQUAL + PARAMETER + LIMIT_1;
+
+	/**
+	 * Used by child tables
+	 */
+	public static final String CHILD_ID = "FILEID";
 
 	public static final String NONAME = "###";
 
@@ -444,6 +450,9 @@ public class MediaTableFiles extends MediaTable {
 					case 39 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_THUMB_SRC + VARCHAR_32);
 					}
+					case 40 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + BIGINT);
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -493,7 +502,7 @@ public class MediaTableFiles extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_ID                      + INTEGER         + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
+				COL_ID                      + BIGINT          + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
@@ -615,7 +624,7 @@ public class MediaTableFiles extends MediaTable {
 			) {
 				if (rs.next()) {
 					media = new MediaInfo();
-					int fileId = rs.getInt(COL_ID);
+					long fileId = rs.getLong(COL_ID);
 					media.setFileId(fileId);
 					media.setMediaParser(rs.getString(COL_PARSER));
 					media.setSize(rs.getLong(COL_MEDIA_SIZE));
@@ -720,7 +729,7 @@ public class MediaTableFiles extends MediaTable {
 			}
 
 			if (media != null && fileId > -1) {
-				media.setFileId((int) fileId);
+				media.setFileId(fileId);
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
 				MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
@@ -839,14 +848,14 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
-	public static void updateThumbnailId(final Connection connection, int fileId, Long thumbId, String thumbnailSource) {
+	public static void updateThumbnailId(final Connection connection, long fileId, Long thumbId, String thumbnailSource) {
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_ID);
 			) {
 				ps.setLong(1, thumbId);
 				ps.setString(2, thumbnailSource);
-				ps.setInt(3, fileId);
+				ps.setLong(3, fileId);
 				ps.executeUpdate();
 				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fileId);
 			}
