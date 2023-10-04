@@ -57,7 +57,7 @@ public class MediaInfo implements Cloneable {
 	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS = getAudioOrVideoContainers();
 
 	// Stored in database
-	private Integer fileId;
+	private Long fileId;
 	private String lastParser;
 	private Double durationSec;
 	private int bitrate;
@@ -103,11 +103,11 @@ public class MediaInfo implements Cloneable {
 		this.imageCount = 0;
 	}
 
-	public Integer getFileId() {
+	public Long getFileId() {
 		return fileId;
 	}
 
-	public void setFileId(Integer value) {
+	public void setFileId(Long value) {
 		fileId = value;
 	}
 
