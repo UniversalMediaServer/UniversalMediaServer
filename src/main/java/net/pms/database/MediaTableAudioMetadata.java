@@ -43,13 +43,16 @@ public class MediaTableAudioMetadata extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 2: FILEID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * COLUMNS NAMES
 	 */
-	public static final String COL_FILEID = "FILEID";
+	public static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_DISC = "DISC";
 	public static final String COL_COMPOSER = "COMPOSER";
 	public static final String COL_CONDUCTOR = "CONDUCTOR";
@@ -126,6 +129,9 @@ public class MediaTableAudioMetadata extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -146,7 +152,7 @@ public class MediaTableAudioMetadata extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_FILEID              + INTEGER                        + PRIMARY_KEY       + COMMA +
+				COL_FILEID              + BIGINT                         + PRIMARY_KEY       + COMMA +
 				COL_AUDIOTRACK_ID       + INTEGER                        + AUTO_INCREMENT    + COMMA +
 				COL_ALBUM               + VARCHAR_SIZE_MAX                                   + COMMA +
 				COL_ARTIST              + VARCHAR_SIZE_MAX                                   + COMMA +

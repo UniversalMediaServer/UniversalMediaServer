@@ -36,15 +36,18 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 3: FILEID and TVSERIESID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_LANGUAGE = "LANGUAGE";
 	private static final String COL_ID = "ID";
-	private static final String COL_FILEID = "FILEID";
+	private static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	private static final String COL_HOMEPAGE = "HOMEPAGE";
 	private static final String COL_MODIFIED = "MODIFIED";
@@ -120,6 +123,10 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 				case 1 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MODIFIED + BIGINT);
 				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSERIESID + BIGINT);
+				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
 				}
@@ -134,8 +141,8 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID            + IDENTITY          + PRIMARY_KEY + COMMA +
 				COL_LANGUAGE      + VARCHAR_5         + NOT_NULL    + COMMA +
-				COL_TVSERIESID    + INTEGER                         + COMMA +
-				COL_FILEID        + INTEGER                         + COMMA +
+				COL_TVSERIESID    + BIGINT                          + COMMA +
+				COL_FILEID        + BIGINT                          + COMMA +
 				COL_MODIFIED      + BIGINT                          + COMMA +
 				COL_HOMEPAGE      + VARCHAR                         + COMMA +
 				COL_OVERVIEW      + CLOB                            + COMMA +

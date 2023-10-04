@@ -47,15 +47,18 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 5: FILEID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 4;
+	private static final int TABLE_VERSION = 5;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_API_VERSION = "API_VERSION";
 	private static final String COL_EXTRAINFORMATION = "EXTRAINFORMATION";
-	public static final String COL_FILEID = "FILEID";
+	protected static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_IMDBID = "IMDBID";
 	private static final String COL_TMDBID = "TMDBID";
 	private static final String COL_TMDBTVID = "TMDBTVID";
@@ -182,6 +185,9 @@ public class MediaTableVideoMetadata extends MediaTable {
 				case 3 -> {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MODIFIED + BIGINT);
 				}
+				case 4 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -202,7 +208,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_FILEID                  + INTEGER                            + PRIMARY_KEY + COMMA +
+				COL_FILEID                  + BIGINT                             + PRIMARY_KEY + COMMA +
 				COL_MODIFIED                + BIGINT                                           + COMMA +
 				COL_IMDBID                  + VARCHAR + "(" + SIZE_IMDBID + ")"                + COMMA +
 				COL_TMDBID                  + BIGINT                                           + COMMA +
@@ -641,7 +647,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 
 		try {
 			try (PreparedStatement statement = connection.prepareStatement(sql)) {
-				statement.setInt(1, fileId.intValue());
+				statement.setLong(1, fileId.intValue());
 				if (latestVersion != null) {
 					statement.setString(2, latestVersion);
 				}

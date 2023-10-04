@@ -49,7 +49,7 @@ public class MediaTableVideotracks extends MediaTable {
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	protected static final String COL_FILEID = "FILEID";
+	protected static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_LANG = "LANG";
 	private static final String COL_STREAMID = "STREAMID";
 	private static final String COL_DEFAULT_FLAG = "DEFAULT_FLAG";

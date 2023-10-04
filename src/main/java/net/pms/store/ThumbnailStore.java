@@ -59,7 +59,7 @@ public class ThumbnailStore {
 		}
 	}
 
-	public static Long getId(DLNAThumbnail thumbnail, Integer fileId, ThumbnailSource thumbnailSource) {
+	public static Long getId(DLNAThumbnail thumbnail, Long fileId, ThumbnailSource thumbnailSource) {
 		if (thumbnail == null) {
 			return null;
 		}

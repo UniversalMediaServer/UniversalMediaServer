@@ -50,7 +50,7 @@ public class MediaTableChapters extends MediaTable {
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	protected static final String COL_FILEID = "FILEID";
+	protected static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_LANG = "LANG";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_START_TIME = "START_TIME";

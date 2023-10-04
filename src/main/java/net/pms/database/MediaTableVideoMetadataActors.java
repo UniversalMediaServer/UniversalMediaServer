@@ -35,14 +35,17 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 3: FILEID and TVSERIESID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	private static final String COL_FILEID = "FILEID";
+	private static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	private static final String COL_ACTOR = "ACTOR";
 
@@ -122,6 +125,10 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ")" + ON_DELETE_CASCADE);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ")" + ON_DELETE_CASCADE);
 				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSERIESID + BIGINT);
+				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
 				}
@@ -135,8 +142,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID           + IDENTITY           + PRIMARY_KEY + COMMA +
-				COL_TVSERIESID   + INTEGER                          + COMMA +
-				COL_FILEID       + INTEGER                          + COMMA +
+				COL_TVSERIESID   + BIGINT                           + COMMA +
+				COL_FILEID       + BIGINT                           + COMMA +
 				COL_ACTOR        + VARCHAR_1024       + NOT_NULL    + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + ON_DELETE_CASCADE + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
@@ -158,15 +165,15 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		}
 		final String sqlSelect;
 		final String sqlInsert;
-		final int id;
+		final long id;
 		if (tvSeriesID != null) {
 			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
 			sqlInsert = SQL_INSERT_TVSERIESID;
-			id = tvSeriesID.intValue();
+			id = tvSeriesID;
 		} else if (fileId != null) {
 			sqlSelect = SQL_GET_FILEID_EXISTS;
 			sqlInsert = SQL_INSERT_FILEID;
-			id = fileId.intValue();
+			id = fileId;
 		} else {
 			return;
 		}
@@ -174,7 +181,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		try {
 			for (String actor : actors) {
 				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
-					ps.setInt(1, id);
+					ps.setLong(1, id);
 					ps.setString(2, StringUtils.left(actor, 1024));
 					try (ResultSet rs = ps.executeQuery()) {
 						if (rs.next()) {
@@ -182,7 +189,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 						} else {
 							try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
 								insertStatement.clearParameters();
-								insertStatement.setInt(1, id);
+								insertStatement.setLong(1, id);
 								insertStatement.setString(2, StringUtils.left(actor, 1024));
 
 								insertStatement.executeUpdate();
