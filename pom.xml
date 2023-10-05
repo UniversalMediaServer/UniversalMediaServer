@@ -858,6 +858,31 @@
 					<wtpversion>1.5</wtpversion>
 				</configuration>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<version>3.1.1</version>
+				<executions>
+					<execution>
+						<id>install-external-tmdbapi</id>
+						<phase>clean</phase>
+						<configuration>
+							<file>${project.basedir}/src/main/external-resources/tmdbapi/tmdbapi-0.1.jar</file>
+							<sources>${project.basedir}/src/main/external-resources/tmdbapi/tmdbapi-0.1-sources.jar</sources>
+							<javadoc>${project.basedir}/src/main/external-resources/tmdbapi/tmdbapi-0.1-javadoc.jar</javadoc>
+							<groupId>net.ums</groupId>
+							<artifactId>tmdbapi</artifactId>
+							<version>0.1</version>
+							<packaging>jar</packaging>
+							<generatePom>true</generatePom>
+							<createChecksum>true</createChecksum>
+						</configuration>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
