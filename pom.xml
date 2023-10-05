@@ -865,7 +865,7 @@
 				<executions>
 					<execution>
 						<id>install-external-tmdbapi</id>
-						<phase>clean</phase>
+						<phase>validate</phase>
 						<configuration>
 							<file>${project.basedir}/src/main/external-resources/tmdbapi/tmdbapi-0.1.jar</file>
 							<sources>${project.basedir}/src/main/external-resources/tmdbapi/tmdbapi-0.1-sources.jar</sources>
@@ -875,7 +875,6 @@
 							<version>0.1</version>
 							<packaging>jar</packaging>
 							<generatePom>true</generatePom>
-							<createChecksum>true</createChecksum>
 						</configuration>
 						<goals>
 							<goal>install-file</goal>
