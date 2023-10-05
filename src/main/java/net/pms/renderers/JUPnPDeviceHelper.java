@@ -621,8 +621,8 @@ public class JUPnPDeviceHelper {
 						LOGGER.debug(
 							"GetProtocolInfo from \"{}\" failed with status code {}: {} ({})",
 							name,
-							operation.getStatusCode(),
-							operation.getStatusMessage(),
+							operation != null ? operation.getStatusCode() : invocation.getFailure().getErrorCode(),
+							operation != null ? operation.getStatusMessage() : invocation.getFailure().getMessage(),
 							defaultMsg
 						);
 					}
