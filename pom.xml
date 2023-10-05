@@ -665,6 +665,7 @@
 			<groupId>net.ums</groupId>
 			<artifactId>tmdbapi</artifactId>
 			<version>0.1</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 	<build>
