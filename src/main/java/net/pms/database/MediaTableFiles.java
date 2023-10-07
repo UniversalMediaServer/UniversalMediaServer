@@ -85,8 +85,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 39: typo on column name
 	 * - 40: added thumbnail source
 	 * - 41: ID as BIGINT
+	 * - 42: ID as IDENTITY
 	 */
-	private static final int TABLE_VERSION = 41;
+	private static final int TABLE_VERSION = 42;
 
 	/**
 	 * COLUMNS NAMES
@@ -453,6 +454,10 @@ public class MediaTableFiles extends MediaTable {
 					case 40 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + BIGINT);
 					}
+					case 41 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + IDENTITY);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + COL_ID + " RESTART WITH (SELECT MAX(ID) + 1 FROM FILES)");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -502,7 +507,7 @@ public class MediaTableFiles extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_ID                      + BIGINT          + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
+				COL_ID                      + IDENTITY                                       + COMMA +
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +

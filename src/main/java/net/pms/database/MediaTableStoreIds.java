@@ -149,7 +149,7 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 		long parentId = resource.getParent().getLongId();
 		String name = resource.getDisplayNameBase();
-		long fileId = resource.getMediaInfo() != null ? resource.getMediaInfo().getFileId() : -1;
+		Long fileId = resource.getMediaInfo() != null && resource.getMediaInfo().getFileId() != null ? resource.getMediaInfo().getFileId() : -1;
 
 		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME_FILEID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
 			stmt.setLong(1, parentId);

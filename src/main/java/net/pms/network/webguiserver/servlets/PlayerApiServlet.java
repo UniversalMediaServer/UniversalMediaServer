@@ -58,6 +58,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
+import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
@@ -73,12 +74,15 @@ import net.pms.store.StoreResource;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.item.DVDISOTitle;
+import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.util.ByteRange;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
+import net.ums.tmdbapi.schema.movie.MovieShortSchema;
+import net.ums.tmdbapi.schema.tv.TvSimpleSchema;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -235,6 +239,62 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						JsonObject play = getPlayPage(renderer, id, lang);
 						if (play != null) {
 							WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+							return;
+						}
+					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
+				}
+				case "/edit" -> {
+					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+					} else if (!TMDB.isReady()) {
+						WebGuiServletHelper.respondNotFound(req, resp);
+					} else if (action.has("id")) {
+						String id = action.get("id").getAsString();
+						JsonObject edit = getEditData(renderer, id);
+						if (edit != null) {
+							WebGuiServletHelper.respond(req, resp, edit.toString(), 200, "application/json");
+							return;
+						}
+					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
+				}
+				case "/findMetadata" -> {
+					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+					} else if (!TMDB.isReady()) {
+						WebGuiServletHelper.respondNotFound(req, resp);
+					} else if (action.has("id") && !action.get("id").isJsonNull() &&
+						action.has("search") && !action.get("search").isJsonNull() &&
+						action.has("is_episode") && !action.get("is_episode").isJsonNull()) {
+						String id = action.get("id").getAsString();
+						String search = action.get("search").getAsString();
+						boolean isEpisode = action.get("is_episode").getAsBoolean();
+						String year = action.has("year") && !action.get("year").isJsonNull() ? action.get("year").getAsString() : null;
+						String lang = action.has("lang") && !action.get("lang").isJsonNull() ? action.get("lang").getAsString() : null;
+						JsonArray editResults = getMetadataResults(renderer, id, isEpisode, search, year, lang);
+						if (editResults != null) {
+							WebGuiServletHelper.respond(req, resp, editResults.toString(), 200, "application/json");
+							return;
+						}
+					}
+					WebGuiServletHelper.respondBadRequest(req, resp);
+				}
+				case "/setMetadata" -> {
+					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
+						WebGuiServletHelper.respondForbidden(req, resp);
+					} else if (!TMDB.isReady()) {
+						WebGuiServletHelper.respondNotFound(req, resp);
+					} else if (action.has("id") && !action.get("id").isJsonNull() &&
+						action.has("tmdb_id") && !action.get("tmdb_id").isJsonNull() &&
+						action.has("is_episode") && !action.get("is_episode").isJsonNull()) {
+						String id = action.get("id").getAsString();
+						Long tmdbId = action.get("tmdb_id").getAsLong();
+						//boolean includeSimilars = action.has("include_similars") && !action.get("include_similars").isJsonNull() && action.get("include_similars").getAsBoolean();
+						boolean isEpisode = action.get("is_episode").getAsBoolean();
+						boolean changed = setMetadata(renderer, id, tmdbId, isEpisode);
+						if (changed) {
+							WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							return;
 						}
 					}
@@ -661,6 +721,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
+			media.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 
 			media.add("surroundMedias", getSurroundingByType(item));
 
@@ -681,6 +742,127 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			result.add("breadcrumbs", getBreadcrumbs(item));
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			return result;
+		} finally {
+			PMS.REALTIME_LOCK.unlock();
+		}
+	}
+
+	private JsonObject getEditData(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
+		PMS.REALTIME_LOCK.lockInterruptibly();
+		try {
+			LOGGER.debug("Make edit data " + id);
+			StoreResource resource = renderer.getMediaStore().getResource(id);
+			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+			if (item == null) {
+				LOGGER.debug("Bad web edit id: " + id);
+				throw new IOException("Bad Id");
+			}
+			JsonObject result = new JsonObject();
+			if (item.getMediaInfo().isVideo() &&
+					item.getMediaInfo().hasVideoMetadata()) {
+				MediaVideoMetadata metadata = item.getMediaInfo().getVideoMetadata();
+				String movieOrShowName = metadata.getMovieOrShowName();
+				String year = metadata.getYear();
+				result.addProperty("is_episode", metadata.isTVEpisode());
+				if (item instanceof RealFile realFile && realFile.getFile() != null) {
+					String filename = realFile.getFile().getName();
+					String absolutePath = realFile.getFile().getParent();
+					result.addProperty("filename", filename);
+					result.addProperty("folder", absolutePath);
+					if (StringUtils.isBlank(movieOrShowName)) {
+						movieOrShowName = FileUtil.basicPrettify(filename);
+					}
+				}
+				result.addProperty("search", movieOrShowName);
+				result.addProperty("year", year);
+			}
+			return result;
+		} finally {
+			PMS.REALTIME_LOCK.unlock();
+		}
+	}
+
+	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, boolean isEpisode, String search, String year, String lang) throws IOException, InterruptedException {
+		PMS.REALTIME_LOCK.lockInterruptibly();
+		try {
+			LOGGER.debug("Make metadata results " + id);
+			StoreResource resource = renderer.getMediaStore().getResource(id);
+			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+			if (item == null) {
+				LOGGER.debug("Bad web edit id: " + id);
+				throw new IOException("Bad Id");
+			}
+			JsonArray result = new JsonArray();
+			if (isEpisode) {
+				Long currentId;
+				if (item.getMediaInfo() != null &&
+					item.getMediaInfo().hasVideoMetadata() &&
+					item.getMediaInfo().getVideoMetadata().isTVEpisode()) {
+					currentId = item.getMediaInfo().getVideoMetadata().getTmdbTvId();
+				} else {
+					currentId = null;
+				}
+				List<TvSimpleSchema> tvShows = TMDB.getTvShowsFromEpisode(search, year, lang);
+				for (TvSimpleSchema tvShow : tvShows) {
+					JsonObject tvShowObject = new JsonObject();
+					tvShowObject.addProperty("id", tvShow.getId());
+					tvShowObject.addProperty("title", tvShow.getName());
+					tvShowObject.addProperty("poster", TMDB.getStillUrl(tvShow.getPosterPath()));
+					tvShowObject.addProperty("overview", tvShow.getOverview());
+					tvShowObject.addProperty("year", tvShow.getFirstAirDate());
+					tvShowObject.addProperty("original_language", tvShow.getOriginalLanguage());
+					tvShowObject.addProperty("original_title", tvShow.getOriginalName());
+					tvShowObject.addProperty("selected", tvShow.getId().equals(currentId));
+					result.add(tvShowObject);
+				}
+			} else {
+				Long currentId;
+				if (item.getMediaInfo() != null &&
+					item.getMediaInfo().hasVideoMetadata() &&
+					!item.getMediaInfo().getVideoMetadata().isTVEpisode()) {
+					currentId = item.getMediaInfo().getVideoMetadata().getTmdbId();
+				} else {
+					currentId = null;
+				}
+				List<MovieShortSchema> movies = TMDB.getMovies(search, year, lang);
+				for (MovieShortSchema movie : movies) {
+					JsonObject movieObject = new JsonObject();
+					movieObject.addProperty("id", movie.getId());
+					movieObject.addProperty("title", movie.getTitle());
+					movieObject.addProperty("poster", TMDB.getPosterUrl(movie.getPosterPath()));
+					movieObject.addProperty("overview", movie.getOverview());
+					movieObject.addProperty("year", movie.getReleaseDate());
+					movieObject.addProperty("original_language", movie.getOriginalLanguage());
+					movieObject.addProperty("original_title", movie.getOriginalTitle());
+					movieObject.addProperty("selected", movie.getId().equals(currentId));
+					result.add(movieObject);
+				}
+			}
+			return result;
+		} finally {
+			PMS.REALTIME_LOCK.unlock();
+		}
+	}
+
+	private boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, boolean isEpisode) throws IOException, InterruptedException {
+		PMS.REALTIME_LOCK.lockInterruptibly();
+		try {
+			LOGGER.debug("Setd metadata " + id);
+			StoreResource resource = renderer.getMediaStore().getResource(id);
+			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+			if (item == null || tmdbId == null) {
+				LOGGER.debug("Bad metadata id: " + id);
+				throw new IOException("Bad Id");
+			}
+			if (item.getMediaInfo() != null && item.getMediaInfo().getFileId() != null) {
+				if (isEpisode) {
+					return TMDB.setTvShowForEpisode(item.getMediaInfo(), tmdbId);
+				} else {
+					return TMDB.setMovieMetadata(item.getMediaInfo(), tmdbId);
+				}
+			} else {
+				return false;
+			}
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}

@@ -249,6 +249,16 @@ public class TMDB {
 			return;
 		}
 		LOGGER.trace("TMDB data matches filename data for " + file.getName());
+		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
+		setMovieMetadata(connection, fileId, mediaInfo, movieDetails);
+
+		//advertise queue size (only when a new real lookup is done to not flood)
+		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
+	}
+
+	private static void setMovieMetadata(Connection connection, final Long fileId, final MediaInfo mediaInfo, MovieDetailsSchema movieDetails) throws SQLException {
+		MediaVideoMetadata videoMetadata = mediaInfo.hasVideoMetadata() ? mediaInfo.getVideoMetadata() : new MediaVideoMetadata();
+		String titleFromFilename = videoMetadata.getMovieOrShowName();
 
 		// Now that we are happy with the TMDB data, let's make some clearer variables
 		String title = StringUtils.isNotBlank(movieDetails.getTitle()) ? movieDetails.getTitle() : titleFromFilename;
@@ -309,8 +319,7 @@ public class TMDB {
 		videoMetadata.setVotes(movieDetails.getVoteCount().toString());
 		mediaInfo.setVideoMetadata(videoMetadata);
 
-		LOGGER.trace("setting movie metadata for " + file.getName());
-		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
+		LOGGER.trace("setting movie metadata for " + title);
 		//store unlocalized data first
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
 		//now localize data if needed
@@ -336,8 +345,6 @@ public class TMDB {
 		}
 		//let store know that we change media metadata
 		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
-		//advertise queue size (only when a new real lookup is done to not flood)
-		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
 
 	private static void lookupAndAddTvEpisodeMetadata(Connection connection, final File file, final MediaInfo mediaInfo) throws SQLException {
@@ -394,7 +401,7 @@ public class TMDB {
 				}
 				tvShowId = tvDetails.getId();
 				//attempt to enhance TV series data
-				lookupAndAddTvShowMetadata(connection, tvDetails, titleFromFilename, videoMetadata);
+				setTvShowMetadata(connection, titleFromFilename, videoMetadata, tvDetails);
 			}
 			videoMetadata.setTmdbTvId(tvShowId);
 
@@ -421,7 +428,6 @@ public class TMDB {
 			return;
 		}
 		// At this point, this is the episode title if it is an episode
-		String tvEpisodeTitleFromTMDB = tvEpisodeDetails.getName();
 		Long tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber();
 		Long tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber();
 
@@ -447,15 +453,29 @@ public class TMDB {
 		}
 
 		LOGGER.trace("TMDB data matches filename data for " + file.getName());
+		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
+		setTvEpisodeMetadata(connection, fileId, mediaInfo, tvEpisodeDetails);
+		//advertise queue size (only when a new real lookup is done to not flood)
+		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
+	}
+
+	private static void setTvEpisodeMetadata(Connection connection, final Long fileId, final MediaInfo mediaInfo, final TvEpisodeDetailsSchema tvEpisodeDetails) throws SQLException {
+		MediaVideoMetadata videoMetadata = mediaInfo.hasVideoMetadata() ? mediaInfo.getVideoMetadata() : new MediaVideoMetadata();
+		String titleFromFilename = videoMetadata.getMovieOrShowName();
+
+		// At this point, this is the episode title if it is an episode
+		String tvEpisodeTitleFromTMDB = tvEpisodeDetails.getName();
+		Long tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber();
+		Long tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber();
 
 		// Now that we are happy with the TMDB data, let's make some clearer variables
-		String titleFromDatabase = MediaTableTVSeries.getTitleByTmdbId(connection, tvShowId);
+		String titleFromDatabase = MediaTableTVSeries.getTitleByTmdbId(connection, videoMetadata.getTmdbTvId());
 		String title = StringUtils.isBlank(titleFromDatabase) ? titleFromFilename : titleFromDatabase;
 		String titleSimplified = FileUtil.getSimplifiedShowName(title);
 
 		videoMetadata.setMovieOrShowName(title);
 		videoMetadata.setSimplifiedMovieOrShowName(titleSimplified);
-		videoMetadata.setYear(tvEpisodeDetails.getAirDate());
+		videoMetadata.setYear(tvEpisodeDetails.getAirDate() != null ? tvEpisodeDetails.getAirDate().substring(0, 4) : null);
 
 		videoMetadata.setTmdbId(tvEpisodeDetails.getId());
 		videoMetadata.setIMDbID(tvEpisodeDetails.getExternalIds() != null ? tvEpisodeDetails.getExternalIds().getImdbId() : null);
@@ -488,8 +508,7 @@ public class TMDB {
 		videoMetadata.setVotes(tvEpisodeDetails.getVoteAverage().toString());
 		mediaInfo.setVideoMetadata(videoMetadata);
 
-		LOGGER.trace("setting tv episode metadata for " + file.getName());
-		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
+		LOGGER.trace("setting tv episode metadata for " + title + " " + tvSeasonFromTMDB + "-" + tvEpisodeNumberFromTMDB);
 		//store unlocalized data first
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
 		//now localize data if needed
@@ -515,8 +534,6 @@ public class TMDB {
 		}
 		//let store know that we change media metadata
 		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
-		//advertise queue size (only when a new real lookup is done to not flood)
-		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
 
 	/**
@@ -529,15 +546,11 @@ public class TMDB {
 	 * table.
 	 *
 	 * @param connection
-	 * @param seriesTmdbIdFromTMDB
+	 * @param tvDetails
 	 * @param titleFromFilename
-	 * @param startYear
-	 * @param titleSimplifiedFromFilename
-	 * @param file
-	 * @param media
-	 * @return the title of the series.
+	 * @param videoMetadata
 	 */
-	private static void lookupAndAddTvShowMetadata(final Connection connection, TvDetailsSchema tvDetails, String titleFromFilename, MediaVideoMetadata videoMetadata) {
+	private static void setTvShowMetadata(final Connection connection, String titleFromFilename, MediaVideoMetadata videoMetadata, TvDetailsSchema tvDetails) {
 		String title;
 		String titleSimplified;
 		String titleSimplifiedFromFilename = FileUtil.getSimplifiedShowName(titleFromFilename);
@@ -667,6 +680,7 @@ public class TMDB {
 		}
 		//update MediaVideoMetadata
 		if (videoMetadata != null) {
+			videoMetadata.setTmdbTvId(tvDetails.getId());
 			videoMetadata.setMovieOrShowName(tvSeriesMetadata.getTitle());
 			videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 			videoMetadata.setTVSeriesStartYear(tvSeriesMetadata.getStartYear());
@@ -756,6 +770,80 @@ public class TMDB {
 			}
 		}
 		return null;
+	}
+
+	public static boolean setTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId) {
+		Connection connection = null;
+		try {
+			Long episode = getLong(mediaInfo.getVideoMetadata().getTVEpisodeNumber());
+			Long season = getLong(mediaInfo.getVideoMetadata().getTVSeason());
+			if (season == null || episode == null) {
+				return false;
+			}
+			TvDetailsSchema tvDetails = getTvShowInfo(tvShowId);
+			TvEpisodeDetailsSchema tvEpisodeDetails = getTvEpisodeInfo(tvShowId, season, episode);
+			if (tvDetails != null && tvEpisodeDetails != null && mediaInfo.getFileId() != null) {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection == null) {
+					return false;
+				}
+				setTvShowMetadata(connection, null, mediaInfo.getVideoMetadata(), tvDetails);
+				mediaInfo.getVideoMetadata().setSimplifiedMovieOrShowName(mediaInfo.getVideoMetadata().getSeriesMetadata().getSimplifiedTitle());
+				setTvEpisodeMetadata(connection, mediaInfo.getFileId(), mediaInfo, tvEpisodeDetails);
+				return true;
+			}
+		} catch (IOException | SQLException ex) {
+			LOGGER.trace("Error in setMovieMetadata:", ex);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return false;
+	}
+
+	public static List<TvSimpleSchema> getTvShowsFromEpisode(String title, String year, String lang) throws IOException {
+		Integer yearInt = getInteger(year);
+		SearchTvEndpoint searchTvEndpoint = CLIENT.search(title).forTvShow();
+		if (yearInt != null && yearInt > 0) {
+			searchTvEndpoint.setFirstAirDateYear(yearInt);
+		}
+		if (lang != null) {
+			searchTvEndpoint.setLanguage(lang);
+		}
+		TvSimpleResultsSchema tvSimpleResultsSchema = searchTvEndpoint.getResults();
+		return tvSimpleResultsSchema.getResults();
+	}
+
+	public static List<MovieShortSchema> getMovies(String title, String year, String lang) throws IOException {
+		Integer yearInt = getInteger(year);
+		SearchMovieEndpoint searchMovieEndpoint = CLIENT.search(title).forMovie();
+		if (yearInt != null && yearInt != 0) {
+			searchMovieEndpoint.setYear(yearInt);
+		}
+		if (lang != null) {
+			searchMovieEndpoint.setLanguage(lang);
+		}
+		MovieShortResultsSchema movieShortResults = searchMovieEndpoint.getResults();
+		return movieShortResults.getResults();
+	}
+
+	public static boolean setMovieMetadata(final MediaInfo mediaInfo, final Long tmdbId) {
+		Connection connection = null;
+		try {
+			MovieDetailsSchema movieDetails = getMovieInfo(tmdbId, null);
+			if (movieDetails != null && mediaInfo.getFileId() != null) {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection == null) {
+					return false;
+				}
+				setMovieMetadata(connection, mediaInfo.getFileId(), mediaInfo, movieDetails);
+				return true;
+			}
+		} catch (IOException | SQLException ex) {
+			LOGGER.trace("Error in setMovieMetadata:", ex);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return false;
 	}
 
 	/**
@@ -1144,7 +1232,7 @@ public class TMDB {
 	 * @param posterPath this is a "poster_path" from TMDB
 	 * @return a full URL to an image
 	 */
-	private static String getPosterUrl(String posterPath) {
+	public static String getPosterUrl(String posterPath) {
 		if (posterPath != null) {
 			return getTmdbImageBaseURL() + "original" + posterPath;
 		}
@@ -1156,7 +1244,7 @@ public class TMDB {
 	 * @param imagePath this is a "still_path" from TMDB
 	 * @return a full URL to an image
 	 */
-	private static String getStillUrl(String stillPath) {
+	public static String getStillUrl(String stillPath) {
 		if (stillPath != null) {
 			return getTmdbImageBaseURL() + "original" + stillPath;
 		}
