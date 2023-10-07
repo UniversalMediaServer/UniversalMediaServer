@@ -1411,6 +1411,15 @@ public class MediaInfo implements Cloneable {
 	}
 
 	/**
+	 * Whether the file contains MPEG-2 video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isMpeg2() {
+		return codecV != null && codecV.startsWith(FormatConfiguration.MPEG2);
+	}
+
+	/**
 	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug.
 	 * @return isValidForLPCMTranscoding
 	 */
