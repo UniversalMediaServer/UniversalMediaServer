@@ -98,7 +98,7 @@ public class MediaLibrary extends VirtualFolder {
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(Messages.getString("Unsorted"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND NOT " + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + " AND (" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " IS NULL OR " + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + " = '')" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(Messages.getString("RecentlyAdded"), SELECT_FILES_STATUS_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC LIMIT 100", MediaLibraryFolder.FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(Messages.getString("AllVideos"), SELECT_FILES_STATUS_WHERE  + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_FILENAME + " ASC", MediaLibraryFolder.FILES);
-		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
+		MediaLibraryFolder unwatchedVideosByDate = new MediaLibraryFolder(
 			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') " + MediaLibraryFolder.FROM_FILES_STATUS_VIDEOMETA + "WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4" + unwatchedCondition + " ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
@@ -154,7 +154,7 @@ public class MediaLibrary extends VirtualFolder {
 			SELECT_FILES_STATUS_VIDEO_WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 AND " + MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + " IS NOT NULL ORDER BY " + MediaTableFilesStatus.TABLE_COL_PLAYCOUNT + " DESC LIMIT 100",
 			MediaLibraryFolder.FILES_NOSORT
 		);
-		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
+		MediaLibraryFolder videosByDate = new MediaLibraryFolder(
 			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 4 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
@@ -187,7 +187,7 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(unwatchedRecentlyAddedVideos);
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(unwatchedAllVideosFolder);
-			vfVideo.addChild(unwatchedMlfVideo02);
+			vfVideo.addChild(unwatchedVideosByDate);
 			vfVideo.addChild(unwatchedMlfVideo03);
 			vfVideo.addChild(unwatchedMlfVideo04);
 			vfVideo.addChild(unwatchedMlfVideo05);
@@ -209,7 +209,7 @@ public class MediaLibrary extends VirtualFolder {
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(mostPlayedVideos);
 			vfVideo.addChild(allVideosFolder);
-			vfVideo.addChild(mlfVideo02);
+			vfVideo.addChild(videosByDate);
 			vfVideo.addChild(mlfVideo03);
 			vfVideo.addChild(mlfVideo04);
 			vfVideo.addChild(mlfVideo05);
@@ -277,7 +277,7 @@ public class MediaLibrary extends VirtualFolder {
 			new int[]{MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.TEXTS, MediaLibraryFolder.FILES}
 		);
 		vfAudio.addChild(mlf7);
-		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(
+		MediaLibraryFolder audioByDate = new MediaLibraryFolder(
 			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + ", " + MediaTableAudiotracks.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_ID + " = " + MediaTableAudiotracks.TABLE_COL_FILEID + " AND " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 1 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
@@ -285,7 +285,7 @@ public class MediaLibrary extends VirtualFolder {
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);
-		vfAudio.addChild(mlfAudioDate);
+		vfAudio.addChild(audioByDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(
 			Messages.getString("ByLetterArtistAlbum"),
@@ -307,7 +307,7 @@ public class MediaLibrary extends VirtualFolder {
 			MediaLibraryFolder.FILES
 		);
 		vfImage.addChild(mlfPhoto01);
-		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(
+		MediaLibraryFolder photoByDate = new MediaLibraryFolder(
 			Messages.getString("ByDate"),
 			new String[]{
 				"SELECT FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d') FROM " + MediaTableFiles.TABLE_NAME + " WHERE " + MediaTableFiles.TABLE_COL_FORMAT_TYPE + " = 2 ORDER BY " + MediaTableFiles.TABLE_COL_MODIFIED + " DESC",
@@ -315,7 +315,7 @@ public class MediaLibrary extends VirtualFolder {
 			},
 			new int[]{MediaLibraryFolder.TEXTS_NOSORT, MediaLibraryFolder.FILES}
 		);
-		vfImage.addChild(mlfPhoto02);
+		vfImage.addChild(photoByDate);
 		addChild(vfImage);
 	}
 
