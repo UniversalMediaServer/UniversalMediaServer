@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import net.pms.Messages;
@@ -907,7 +907,7 @@ public class MediaTableFiles extends MediaTable {
 
 	public static List<String> getStrings(final Connection connection, String sql) {
 		List<String> list = new ArrayList<>();
-		Set<String> set = new HashSet<>();
+		Set<String> set = new LinkedHashSet<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + WHERE + sql));
