@@ -2056,42 +2056,51 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							/**
-							 * If: - There are no subtitles - This is not a DVD
-							 * track - The media is muxable - The renderer
-							 * accepts media muxed to MPEG-TS then the file is
-							 * MPEG-TS
+							 * If:
+							 * - There are no subtitles
+							 * - This is not a DVD track
+							 * - The media is muxable
+							 * - The renderer accepts the video codec muxed to MPEG-TS
+							 * then the file is MPEG-TS
+							 *
+							 * Note: This is an oversimplified duplicate of the engine logic, that
+							 * should be fixed.
 							 */
-							if (mediaSubtitle == null && !hasExternalSubtitles() && media != null && media.getDvdtrack() == 0 &&
-								media.isMuxable(renderer) && renderer.isMuxH264MpegTS()) {
+							if (
+								mediaSubtitle == null &&
+								!hasExternalSubtitles() &&
+								media != null &&
+								media.getDvdtrack() == 0 &&
+								media.isMuxable(renderer) &&
+								renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)
+							) {
 								isOutputtingMPEGTS = true;
 							}
 						}
 
 						if (isOutputtingMPEGTS) {
-							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, false);
 							if (renderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, false);
+							} else if (renderer.isTranscodeToMPEG2()) {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, media, renderer, false);
 							}
 						}
 					} else if (media != null) {
 						// In this block, we are streaming the file
 						if (media.isMpegTS()) {
-							if ((engine == null && media.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
-							} else {
-								dlnaOrgPnFlags = "DLNA.ORG_PN=" +
-									getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
+							if (media.isH264()) {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
+							} else if (engine == null && media.isMpeg2()) {
+								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, media, renderer, engine == null);
 							}
 						}
 					}
 				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
-					// patters - on Sony BDP m2ts clips aren't listed without
-					// this
+					// patters - on Sony BDP m2ts clips aren't listed without this
 					if ((engine == null && media.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
-					} else {
-						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
+					} else if ((engine == null && media.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, media, renderer, engine == null);
 					}
 				} else if (media != null && mime.equals(MP4_TYPEMIME)) {
 					if (engine == null && media.getCodecV().equals("h265") && media.getFirstAudioTrack() != null &&
