@@ -38,12 +38,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 
-public class ITunesLibrary extends StoreContainer {
+public class ITunesLibrary extends LocalizedStoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ITunesLibrary.class);
 
 	public ITunesLibrary(Renderer renderer) {
-		super(renderer, "iTunes Library", null);
+		super(renderer, "ItunesLibrary");
 	}
 
 	/**
@@ -93,10 +93,10 @@ public class ITunesLibrary extends StoreContainer {
 							StoreContainer musicFolder = new StoreContainer(renderer, playlist.get("Name").toString(), null);
 							res.addChild(musicFolder);
 
-							StoreContainer virtualFolderArtists = new StoreContainer(renderer, Messages.getString("BrowseByArtist"), null);
-							StoreContainer virtualFolderAlbums = new StoreContainer(renderer, Messages.getString("BrowseByAlbum"), null);
-							StoreContainer virtualFolderGenres = new StoreContainer(renderer, Messages.getString("BrowseByGenre"), null);
-							StoreContainer virtualFolderAllTracks = new StoreContainer(renderer, Messages.getString("AllAudioTracks"), null);
+							LocalizedStoreContainer virtualFolderArtists = new LocalizedStoreContainer(renderer, "BrowseByArtist");
+							LocalizedStoreContainer virtualFolderAlbums = new LocalizedStoreContainer(renderer, "BrowseByAlbum");
+							LocalizedStoreContainer virtualFolderGenres = new LocalizedStoreContainer(renderer, "BrowseByGenre");
+							LocalizedStoreContainer virtualFolderAllTracks = new LocalizedStoreContainer(renderer, "AllAudioTracks");
 							playlistTracks = (List<?>) playlist.get("Playlist Items"); // list of tracks in a playlist
 
 							String artistName;
@@ -180,7 +180,7 @@ public class ITunesLibrary extends StoreContainer {
 										if (individualArtistFolder == null) {
 											individualArtistFolder = new StoreContainer(renderer, artistName, null);
 											virtualFolderArtists.addChild(individualArtistFolder);
-											individualArtistAllTracksFolder = new StoreContainer(renderer, Messages.getString("AllAudioTracks"), null);
+											individualArtistAllTracksFolder = new LocalizedStoreContainer(renderer, "AllAudioTracks");
 											individualArtistFolder.addChild(individualArtistAllTracksFolder);
 										} else {
 											individualArtistAllTracksFolder = (StoreContainer) individualArtistFolder.getChildren().get(0);

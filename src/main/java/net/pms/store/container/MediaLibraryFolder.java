@@ -21,8 +21,9 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
-import net.pms.Messages;
+import java.util.Set;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
@@ -40,7 +41,6 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaStoreIds;
-import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.item.RealFile;
 import net.pms.util.UMSUtils;
@@ -68,29 +68,18 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	private List<String> populatedVirtualFoldersListFromDb;
 	private List<String> populatedFilesListFromDb;
 
-	public MediaLibraryFolder(Renderer renderer, String name, String sql, int expectedOutput) {
-		this(renderer, name, new String[]{sql}, new int[]{expectedOutput}, null, false, false);
+	public MediaLibraryFolder(Renderer renderer, String i18nName, String sql, int expectedOutput) {
+		this(renderer, i18nName, new String[]{sql}, new int[]{expectedOutput}, null, false, false);
 	}
 
-	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput) {
-		this(renderer, name, sql, expectedOutput, null, false, false);
+	public MediaLibraryFolder(Renderer renderer, String i18nName, String[] sql, int[] expectedOutput) {
+		this(renderer, i18nName, sql, expectedOutput, null, false, false);
 	}
 
-	public MediaLibraryFolder(Renderer renderer, String name, String sql, int expectedOutput, String nameToDisplay) {
-		this(renderer, name, new String[]{sql}, new int[]{expectedOutput}, nameToDisplay, false, false);
-	}
-
-	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput, String nameToDisplay) {
-		this(renderer, name, sql, expectedOutput, nameToDisplay, false, false);
-	}
-
-	public MediaLibraryFolder(Renderer renderer, String name, String[] sql, int[] expectedOutput, String nameToDisplay, boolean isTVSeriesFolder, boolean isMoviesFolder) {
-		super(renderer, name, null);
+	public MediaLibraryFolder(Renderer renderer, String i18nName, String[] sql, int[] expectedOutput, String formatString, boolean isTVSeriesFolder, boolean isMoviesFolder) {
+		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		if (nameToDisplay != null) {
-			this.displayNameOverride = nameToDisplay;
-		}
 		if (isTVSeriesFolder) {
 			this.isTVSeries = true;
 		}
@@ -381,8 +370,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				MediaDatabase.close(connection);
 			}
 		}
-		List<File> newFiles = new ArrayList<>();
-		List<String> newVirtualFolders = new ArrayList<>();
+		Set<File> newFiles = new LinkedHashSet<>();
+		Set<String> newVirtualFolders = new LinkedHashSet<>();
 		List<StoreResource> oldFiles = new ArrayList<>();
 		List<StoreResource> oldVirtualFolders = new ArrayList<>();
 
@@ -442,56 +431,56 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
 
 			if (!unwatchedSqls.isEmpty() && !watchedSqls.isEmpty()) {
-				StoreContainer filterByProgress = new StoreContainer(renderer, Messages.getString("FilterByProgress"), null);
+				LocalizedStoreContainer filterByProgress = new LocalizedStoreContainer(renderer, "FilterByProgress");
 				filterByProgress.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Unwatched"),
+					"Unwatched",
 					unwatchedSqls.toArray(String[]::new),
 					filteredExpectedOutputs
 				));
 				filterByProgress.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Watched"),
+					"Watched",
 					watchedSqls.toArray(String[]::new),
 					filteredExpectedOutputs
 				));
 				addChild(filterByProgress);
 			}
 			if (!genresSqls.isEmpty()) {
-				StoreContainer filterByInformation = new StoreContainer(renderer, Messages.getString("FilterByInformation"), null);
+				LocalizedStoreContainer filterByInformation = new LocalizedStoreContainer(renderer, "FilterByInformation");
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Actors"),
+					"Actors",
 					actorsSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Country"),
+					"Country",
 					countriesSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Director"),
+					"Director",
 					directorsSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Genres"),
+					"Genres",
 					genresSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Rated"),
+					"Rated",
 					ratedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Released"),
+					"Released",
 					releasedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
 				));
@@ -510,7 +499,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
 					System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 
-					String nameToDisplay = null;
+					String i18nName = null;
 					if (expectedOutput == EPISODES) {
 						expectedOutputs2 = new int[]{MediaLibraryFolder.EPISODES_WITHIN_SEASON};
 						StringBuilder episodesWithinSeasonQuery = new StringBuilder(sqls[0]);
@@ -521,7 +510,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						if (virtualFolderName.length() != 4) {
-							nameToDisplay = Messages.getString("Season") + " " + virtualFolderName;
+							i18nName = "SeasonX";
+							//nameToDisplay = Messages.getString("Season") + " " + virtualFolderName;
 						}
 					}
 
@@ -533,54 +523,68 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					 * @todo this doesn't work for TV series because we are querying by the external tables. fix that
 					 */
 					if (expectedOutput == TEXTS || expectedOutput == TEXTS_NOSORT) {
-						StoreResource resource = this;
+						MediaLibraryFolder resource = this;
 
-						if (resource.getName() != null && "###".equals(virtualFolderName)) {
-							if (resource.getName().equals(Messages.getString("Actors"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataActors.TABLE_COL_ACTOR + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataActors.TABLE_COL_FILEID + IS_NULL);
+						if (resource.getName() != null && MediaTableFiles.NONAME.equals(virtualFolderName)) {
+							switch (resource.getSystemName()) {
+								case "Actors" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataActors.TABLE_COL_ACTOR + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataActors.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("Country"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataCountries.TABLE_COL_FILEID + IS_NULL);
+								case "Country" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataCountries.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("Director"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataDirectors.TABLE_COL_FILEID + IS_NULL);
+								case "Director" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataDirectors.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("Genres"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + IS_NULL);
+								case "Genres" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("Rated"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataRated.TABLE_COL_RATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataRated.TABLE_COL_FILEID + IS_NULL);
+								case "Rated" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadataRated.TABLE_COL_RATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataRated.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
-							} else if (resource.getName().equals(Messages.getString("Released"))) {
-								for (int i = 0; i < sqls2.length; i++) {
-									sqls2[i] = sqls2[i].replace(WHERE + RELEASEDATE_FORMATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataReleased.TABLE_COL_FILEID + IS_NULL);
+								case "Released" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + RELEASEDATE_FORMATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadataReleased.TABLE_COL_FILEID + IS_NULL);
+									}
+									i18nName = "Unknown";
 								}
-								nameToDisplay = "Unknown";
+								default -> {
+									//nothing to do
+								}
 							}
 						}
 					}
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
-					addChild(new MediaLibraryFolder(renderer, virtualFolderName, sqls2, expectedOutputs2, nameToDisplay, isExpectedTVSeries, isExpectedMovieFolder));
+					if (i18nName != null) {
+						addChild(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName, isExpectedTVSeries, isExpectedMovieFolder));
+					} else {
+						addChild(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null, isExpectedTVSeries, isExpectedMovieFolder));
+					}
 				}
 			}
 		}
 
 		// Recommendations for TV series, episodes and movies
 		if (expectedOutput == EPISODES) {
-			StoreContainer recommendations = new MediaLibraryFolder(
+			MediaLibraryFolder recommendations = new MediaLibraryFolder(
 				renderer,
-				Messages.getString("Recommendations"),
+				"Recommendations",
 				new String[]{
 					"WITH ratedSubquery AS (" +
 						SELECT + MediaTableVideoMetadataRated.TABLE_COL_RATED + FROM + MediaTableVideoMetadataRated.TABLE_NAME +
@@ -621,9 +625,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					firstSql = firstSql.replaceFirst(SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED, SELECT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME);
 				}
 
-				StoreContainer recommendations = new MediaLibraryFolder(
+				MediaLibraryFolder recommendations = new MediaLibraryFolder(
 					renderer,
-					Messages.getString("Recommendations"),
+					"Recommendations",
 					new String[]{
 						firstSql,
 						"WITH ratedSubquery AS (" +

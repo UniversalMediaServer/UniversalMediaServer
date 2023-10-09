@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -662,7 +662,7 @@ public class MediaTableFiles extends MediaTable {
 							Long thumbnailId = ThumbnailStore.getId(thumbnail);
 							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
 								media.setThumbnailId(thumbnailId);
-								MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+								MediaStoreIds.incrementUpdateIdForFileId(connection, filename);
 							}
 							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
 							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
@@ -754,7 +754,7 @@ public class MediaTableFiles extends MediaTable {
 		} finally {
 			if (fileId > -1) {
 				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+				MediaStoreIds.incrementUpdateIdForFileId(connection, name);
 			}
 		}
 	}
@@ -888,7 +888,7 @@ public class MediaTableFiles extends MediaTable {
 
 	public static List<String> getStrings(final Connection connection, String sql) {
 		List<String> list = new ArrayList<>();
-		Set<String> set = new HashSet<>();
+		Set<String> set = new LinkedHashSet<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + WHERE + sql));

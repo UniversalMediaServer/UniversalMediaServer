@@ -34,12 +34,12 @@ import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
 
-public class ApertureLibraries extends StoreContainer {
+public class ApertureLibraries extends LocalizedStoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ApertureLibraries.class);
 
 	public ApertureLibraries(Renderer renderer) {
-		super(renderer, "Aperture libraries", null);
+		super(renderer, "ApertureLibrary");
 	}
 
 	/**

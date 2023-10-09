@@ -342,10 +342,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					resources.get(0).getParent() != null &&
 					resources.get(0).getParent().isFolder()) {
 				StoreResource thisResourceFromResources = resources.get(0).getParent();
-				String thisName = thisResourceFromResources.getDisplayName();
-				if (thisName.equals(Messages.getString("MediaLibrary"))) {
+				String thisName = thisResourceFromResources.getSystemName();
+				if (thisName.equals("MediaLibrary")) {
 					for (StoreResource resource : resources) {
-						String icon = switch (resource.getDisplayName()) {
+						String icon = switch (resource.getSystemName()) {
 							case "Video" ->
 								"video";
 							case "Audio" ->
@@ -358,7 +358,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						hasFile = true;
 						JsonObject jMedia = new JsonObject();
 						jMedia.addProperty("id", resource.getResourceId());
-						jMedia.addProperty("name", resource.getDisplayName());
+						jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
 						jMedia.addProperty("icon", icon);
 						jMedias.add(jMedia);
 					}
@@ -396,7 +396,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					hasFile = true;
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
-					jMedia.addProperty("name", resource.getDisplayName());
+					jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
 					jMedias.add(jMedia);
 					continue;
 				}
@@ -409,21 +409,21 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					* - This is a filtered metadata folder within TV shows, or
 					* - This is Recommendations
 					 */
-					if (resource.getParent().getDisplayName().equals(Messages.getString("TvShows")) ||
-							resource.getParent().getDisplayName().equals(Messages.getString("Recommendations")) ||
+					if (resource.getParent().getSystemName().equals("TvShows") ||
+							resource.getParent().getSystemName().equals("Recommendations") ||
 							(resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))) ||
+							resource.getParent().getParent().getSystemName().equals("FilterByProgress")) ||
 							(resource.getParent().getParent() != null &&
 							resource.getParent().getParent().getParent() != null &&
-							resource.getParent().getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation")))) {
+							resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation"))) {
 						isDisplayFoldersAsThumbnails = true;
 					}
 
-					if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && (resource instanceof MediaLibraryFolder))) {
+					if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && resource instanceof MediaLibraryFolder)) {
 						boolean addFolderToFoldersListOnLeft = true;
 
 						// Populate the front page
-						if (id.equals("0") && resource.getName().equals(Messages.getString("MediaLibrary"))) {
+						if (id.equals("0") && resource.getSystemName().equals("MediaLibrary")) {
 							List<StoreResource> videoSearchResults = renderer.getMediaStore().getResources(resource.getId(), true, 0, 0, Messages.getString("Video"));
 							UMSUtils.filterResourcesByName(videoSearchResults, Messages.getString("Video"), true, true);
 							JsonObject mediaLibraryFolder = new JsonObject();
@@ -431,7 +431,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							if (!videoSearchResults.isEmpty()) {
 								videoFolder = videoSearchResults.get(0);
 								mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", videoFolder.getDisplayName());
+								mediaLibraryFolder.addProperty("name", videoFolder.getUnlocalizedDisplayName());
 								mediaLibraryFolder.addProperty("icon", "video");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -442,7 +442,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								StoreResource audioFolder = audioSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", audioFolder.getDisplayName());
+								mediaLibraryFolder.addProperty("name", audioFolder.getUnlocalizedDisplayName());
 								mediaLibraryFolder.addProperty("icon", "audio");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -453,7 +453,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								StoreResource imagesFolder = imageSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", imagesFolder.getDisplayName());
+								mediaLibraryFolder.addProperty("name", imagesFolder.getUnlocalizedDisplayName());
 								mediaLibraryFolder.addProperty("icon", "image");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -473,7 +473,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							// The HlsHelper is a folder
 							JsonObject jFolder = new JsonObject();
 							jFolder.addProperty("id", resource.getResourceId());
-							jFolder.addProperty("name", resource.getDisplayName());
+							jFolder.addProperty("name", resource.getUnlocalizedDisplayName());
 							jFolders.add(jFolder);
 						}
 					}
@@ -493,13 +493,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 
 				// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
-				if (folder.getDisplayName().equals(Messages.getString("TvShows")) ||
-						folder.getDisplayName().equals(Messages.getString("Recommendations")) ||
+				if (folder.getSystemName().equals("TvShows") ||
+						folder.getSystemName().equals("Recommendations") ||
 						(folder.getParent() != null &&
-						folder.getParent().getDisplayName().equals(Messages.getString("FilterByProgress"))) ||
+						folder.getParent().getSystemName().equals("FilterByProgress")) ||
 						(folder.getParent() != null &&
 						folder.getParent().getParent() != null &&
-						folder.getParent().getParent().getDisplayName().equals(Messages.getString("FilterByInformation")))) {
+						folder.getParent().getParent().getSystemName().equals("FilterByInformation"))) {
 					for (StoreResource resource : resources) {
 						if (resource instanceof MediaLibraryFolder) {
 							hasFile = true;
@@ -521,7 +521,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			result.addProperty("name", id.equals("0") || resource == null ? CONFIGURATION.getServerDisplayName() : resource.getDisplayName());
+			result.addProperty("name", id.equals("0") || resource == null ? CONFIGURATION.getServerDisplayName() : resource.getUnlocalizedDisplayName());
 			result.addProperty("hasFile", hasFile);
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			result.add("breadcrumbs", jBreadcrumbs);
@@ -538,7 +538,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
-			jMedia.addProperty("name", resource.getDisplayName());
+			jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
 		} else if (resource instanceof StoreItem item) {
 			if (item.getFormat() != null && item.getFormat().isVideo()) {
 				jMedia.addProperty("goal", "show");
@@ -555,14 +555,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonArray jBreadcrumbs = new JsonArray();
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
-		jBreadcrumb.addProperty("name", resource.getDisplayName());
+		jBreadcrumb.addProperty("name", resource.getUnlocalizedDisplayName());
 		jBreadcrumbs.add(jBreadcrumb);
 		StoreResource thisResourceFromResources = resource;
 		while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 			thisResourceFromResources = thisResourceFromResources.getParent();
 			jBreadcrumb = new JsonObject();
 			jBreadcrumb.addProperty("id", thisResourceFromResources.getResourceId());
-			jBreadcrumb.addProperty("name", thisResourceFromResources.getDisplayName());
+			jBreadcrumb.addProperty("name", thisResourceFromResources.getUnlocalizedDisplayName());
 			jBreadcrumbs.add(jBreadcrumb);
 		}
 		JsonArray jBreadcrumbsInverted = new JsonArray();
@@ -1130,16 +1130,25 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 			for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
 				StoreResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-				if (filterByInformationChild.getDisplayName().equals(Messages.getString("Actors"))) {
-					actorsFolder = filterByInformationChild;
-				} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Country"))) {
-					countriesFolder = filterByInformationChild;
-				} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Director"))) {
-					directorsFolder = filterByInformationChild;
-				} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Genres"))) {
-					genresFolder = filterByInformationChild;
-				} else if (filterByInformationChild.getDisplayName().equals(Messages.getString("Rated"))) {
-					ratedFolder = filterByInformationChild;
+				switch (filterByInformationChild.getSystemName()) {
+					case "Actors" -> {
+						actorsFolder = filterByInformationChild;
+					}
+					case "Country" -> {
+						countriesFolder = filterByInformationChild;
+					}
+					case "Director" -> {
+						directorsFolder = filterByInformationChild;
+					}
+					case "Genres" -> {
+						genresFolder = filterByInformationChild;
+					}
+					case "Rated" -> {
+						ratedFolder = filterByInformationChild;
+					}
+					default -> {
+						//nothing to do
+					}
 				}
 			}
 		}

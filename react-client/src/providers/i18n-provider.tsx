@@ -57,9 +57,9 @@ export const I18nProvider = ({ children, ...props }: Props) => {
     let result = getI18nString(value[0]);
     for (let i = 1; i < value.length; i++) {
       const str = '%' + i.toString() + '$s';
-      if (value[i].includes(str)) {
+      if (result.includes(str)) {
         result = result.replace(str, getI18nString(value[i]));
-      } else if (value[i].includes('%s')) {
+      } else if (result.includes('%s')) {
         result = result.replace('%s', getI18nString(value[i]));
       }
     }

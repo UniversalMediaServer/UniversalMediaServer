@@ -24,9 +24,8 @@ import net.pms.database.MediaTableVideoMetadataReleased;
 import net.pms.database.MediaTableVideotracks;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
-abstract class MediaLibraryAbstract extends StoreContainer {
+abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	/**
 	 * According to the Academy of Motion Picture Arts and Sciences, the American
 	 * Film Institute, and the British Film Institute, a feature film runs for
@@ -116,8 +115,12 @@ abstract class MediaLibraryAbstract extends StoreContainer {
 	protected static final int MOVIE_FOLDERS = 16;
 	protected static final int FILES_NOSORT_DEDUPED = 17;
 
-	MediaLibraryAbstract(Renderer renderer, String name, String thumbnailIcon) {
-		super(renderer, name, thumbnailIcon);
+	MediaLibraryAbstract(Renderer renderer, String i18nName, String thumbnailIcon) {
+		this(renderer, i18nName, thumbnailIcon, null);
+	}
+
+	MediaLibraryAbstract(Renderer renderer, String i18nName, String thumbnailIcon, String formatString) {
+		super(renderer, i18nName, thumbnailIcon, formatString);
 	}
 
 	private static String getUserCondition(int userId) {
