@@ -16,11 +16,10 @@
  */
 package net.pms.store.container;
 
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.util.CodeDb;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -28,15 +27,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
- * @author nicol
+ * @author Surf@ceS
  */
-public class VideoSettingsFolder extends StoreContainer {
+public class VideoSettingsFolder extends LocalizedStoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(VideoSettingsFolder.class);
 
 	public VideoSettingsFolder(Renderer renderer) {
-		super(renderer, Messages.getString("VideoSettings_FolderName"), null);
+		super(renderer, "VideoSettings_FolderName");
 	}
 
 	/**
@@ -49,7 +47,7 @@ public class VideoSettingsFolder extends StoreContainer {
 
 		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
 			res = new VideoSettingsFolder(renderer);
-			StoreContainer vfSub = new StoreContainer(renderer, Messages.getString("Subtitles"), null);
+			LocalizedStoreContainer vfSub = new LocalizedStoreContainer(renderer, "Subtitles");
 			res.addChild(vfSub);
 
 			if (renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid() &&
@@ -71,7 +69,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				res.addChild(ce1);
 			}
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("AvSyncAlternativeMethod"), renderer.getUmsConfiguration().isMencoderNoOutOfSync(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "AvSyncAlternativeMethod", renderer.getUmsConfiguration().isMencoderNoOutOfSync(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setMencoderNoOutOfSync(!renderer.getUmsConfiguration().isMencoderNoOutOfSync());
@@ -79,7 +77,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("DefaultH264RemuxMencoder"), renderer.getUmsConfiguration().isMencoderMuxWhenCompatible(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "DefaultH264RemuxMencoder", renderer.getUmsConfiguration().isMencoderMuxWhenCompatible(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setMencoderMuxWhenCompatible(!renderer.getUmsConfiguration().isMencoderMuxWhenCompatible());
@@ -97,7 +95,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("DeinterlaceFilter"), renderer.getUmsConfiguration().isMencoderYadif(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "DeinterlaceFilter", renderer.getUmsConfiguration().isMencoderYadif(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setMencoderYadif(!renderer.getUmsConfiguration().isMencoderYadif());
@@ -106,7 +104,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("DisableSubtitles"), renderer.getUmsConfiguration().isDisableSubtitles(), null) {
+			vfSub.addChild(new VirtualVideoActionLocalized(renderer, "DisableSubtitles", renderer.getUmsConfiguration().isDisableSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = renderer.getUmsConfiguration().isDisableSubtitles();
@@ -116,7 +114,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("AutomaticallyLoadSrtSubtitles"), renderer.getUmsConfiguration().isAutoloadExternalSubtitles(), null) {
+			vfSub.addChild(new VirtualVideoActionLocalized(renderer, "AutomaticallyLoadSrtSubtitles", renderer.getUmsConfiguration().isAutoloadExternalSubtitles(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = renderer.getUmsConfiguration().isAutoloadExternalSubtitles();
@@ -126,7 +124,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(renderer, Messages.getString("UseEmbeddedStyle"), renderer.getUmsConfiguration().isUseEmbeddedSubtitlesStyle(), null) {
+			vfSub.addChild(new VirtualVideoActionLocalized(renderer, "UseEmbeddedStyle", renderer.getUmsConfiguration().isUseEmbeddedSubtitlesStyle(), null) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = renderer.getUmsConfiguration().isUseEmbeddedSubtitlesStyle();
@@ -136,7 +134,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("SkipLoopFilterDeblocking"), renderer.getUmsConfiguration().getSkipLoopFilterEnabled(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "SkipLoopFilterDeblocking", renderer.getUmsConfiguration().getSkipLoopFilterEnabled(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setSkipLoopFilterEnabled(!renderer.getUmsConfiguration().getSkipLoopFilterEnabled());
@@ -144,7 +142,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("KeepDtsTracks"), renderer.getUmsConfiguration().isAudioEmbedDtsInPcm(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "KeepDtsTracks", renderer.getUmsConfiguration().isAudioEmbedDtsInPcm(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setAudioEmbedDtsInPcm(!renderer.getUmsConfiguration().isAudioEmbedDtsInPcm());
@@ -152,7 +150,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("SaveConfiguration"), true, null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "SaveConfiguration", true, null) {
 				@Override
 				public boolean enable() {
 					try {
@@ -164,7 +162,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("RestartServer"), true, null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "RestartServer", true, null) {
 				@Override
 				public boolean enable() {
 					PMS.get().resetMediaServer();
@@ -172,7 +170,7 @@ public class VideoSettingsFolder extends StoreContainer {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("ShowLiveSubtitlesFolder"), renderer.getUmsConfiguration().isShowLiveSubtitlesFolder(), null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "ShowLiveSubtitlesFolder", renderer.getUmsConfiguration().isShowLiveSubtitlesFolder(), null) {
 				@Override
 				public boolean enable() {
 					renderer.getUmsConfiguration().setShowLiveSubtitlesFolder(renderer.getUmsConfiguration().isShowLiveSubtitlesFolder());

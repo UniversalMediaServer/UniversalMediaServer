@@ -51,7 +51,6 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String COL_NAME = "NAME";
 	private static final String COL_OBJECT_TYPE = "OBJECT_TYPE";
 	private static final String COL_UPDATE_ID = "UPDATE_ID";
-	private static final String COL_FILE_ID = "FILE_ID";
 
 	/**
 	 * COLUMNS with table name
@@ -59,14 +58,13 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	private static final String TABLE_COL_PARENT_ID = TABLE_NAME + "." + COL_PARENT_ID;
 	private static final String TABLE_COL_NAME = TABLE_NAME + "." + COL_NAME;
-	private static final String TABLE_COL_FILE_ID = TABLE_NAME + "." + COL_FILE_ID;
 
 	/**
 	 * SQL Queries
 	 */
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
-	private static final String SQL_GET_ALL_PARENTID_NAME_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER + AND + TABLE_COL_FILE_ID + EQUAL + PARAMETER;
-	private static final String SQL_GET_ID_FILEID = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILE_ID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
@@ -88,12 +86,10 @@ public class MediaTableStoreIds extends MediaTable {
 				LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB, DATABASE_NAME, TABLE_NAME, DATABASE.getDatabaseFilename());
 			}
 		} else {
-			// Fixme : remove table LIBRARY_IDS (for dev that run ums with old table name).
-			// this can be removed before RELEASE.
-			dropTable(connection, "LIBRARY_IDS");
 			createTable(connection);
 			MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 		}
+		ensureSystemId(connection);
 	}
 
 	private static void upgradeTable(Connection connection, Integer currentVersion) throws SQLException {
@@ -125,11 +121,10 @@ public class MediaTableStoreIds extends MediaTable {
 					COL_PARENT_ID +       BIGINT           + NOT_NULL + COMMA +
 					COL_NAME +            VARCHAR          + NOT_NULL + COMMA +
 					COL_OBJECT_TYPE +     VARCHAR          + NOT_NULL + COMMA +
-					COL_UPDATE_ID +       BIGINT                      + COMMA +
-					COL_FILE_ID +         BIGINT                      +
+					COL_UPDATE_ID +       BIGINT                              +
 				")",
 				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_PARENT_ID + ")",
-				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILE_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILE_ID + ")"
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ")"
 		);
 		ensureSystemId(connection);
 	}
@@ -148,13 +143,11 @@ public class MediaTableStoreIds extends MediaTable {
 			return null;
 		}
 		long parentId = resource.getParent().getLongId();
-		String name = resource.getDisplayNameBase();
-		long fileId = resource.getMediaInfo() != null ? resource.getMediaInfo().getFileId() : -1;
+		String name = resource.getFileName();
 
-		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME_FILEID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_PARENTID_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
 			stmt.setLong(1, parentId);
 			stmt.setString(2, name);
-			stmt.setLong(3, fileId);
 			try (ResultSet elements = stmt.executeQuery()) {
 				if (elements.next()) {
 					return getMediaStoreId(connection, elements.getLong(COL_ID));
@@ -164,7 +157,6 @@ public class MediaTableStoreIds extends MediaTable {
 					elements.updateString(COL_NAME, name);
 					elements.updateString(COL_OBJECT_TYPE, resource.getClass().getSimpleName());
 					elements.updateLong(COL_UPDATE_ID, 0);
-					elements.updateLong(COL_FILE_ID, fileId);
 					elements.insertRow();
 					return getResourceMediaStoreId(connection, resource);
 				}
@@ -200,7 +192,6 @@ public class MediaTableStoreIds extends MediaTable {
 					result.setName(elements.getString(COL_NAME));
 					result.setObjectType(elements.getString(COL_OBJECT_TYPE));
 					result.setUpdateId(elements.getLong(COL_UPDATE_ID));
-					result.setFileId(elements.getLong(COL_FILE_ID));
 					return result;
 				}
 			}
@@ -226,20 +217,20 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 	}
 
-	public static List<Long> getMediaStoreIdsForFileId(Connection connection, long fileId) {
+	public static List<Long> getMediaStoreIdsForFilename(Connection connection, String filename) {
 		List<Long> result = new ArrayList<>();
 		if (connection == null) {
 			return result;
 		}
-		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_FILEID)) {
-			stmt.setLong(1, fileId);
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_NAME)) {
+			stmt.setString(1, filename);
 			try (ResultSet elements = stmt.executeQuery()) {
 				while (elements.next()) {
 					result.add(elements.getLong(COL_ID));
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for fileId \"{}\": {}", fileId, e.getMessage());
+			LOGGER.error("Database error in " + TABLE_NAME + " for filename \"{}\": {}", filename, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;
@@ -260,7 +251,6 @@ public class MediaTableStoreIds extends MediaTable {
 					elements.updateString(COL_NAME, "System");
 					elements.updateString(COL_OBJECT_TYPE, "");
 					elements.updateLong(COL_UPDATE_ID, systemUpdateId.longValue());
-					elements.updateLong(COL_FILE_ID, -1);
 					elements.insertRow();
 				}
 			}
@@ -275,7 +265,6 @@ public class MediaTableStoreIds extends MediaTable {
 					elements.updateString(COL_NAME, "Root");
 					elements.updateString(COL_OBJECT_TYPE, "MediaStore");
 					elements.updateLong(COL_UPDATE_ID, systemUpdateId.longValue());
-					elements.updateLong(COL_FILE_ID, -1);
 					elements.insertRow();
 				}
 			}

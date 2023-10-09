@@ -36,12 +36,12 @@ import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
 import xmlwise.XmlParseException;
 
-public class IPhotoLibrary extends StoreContainer {
+public class IPhotoLibrary extends LocalizedStoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(IPhotoLibrary.class);
 
 	public IPhotoLibrary(Renderer renderer) {
-		super(renderer, "iPhoto Library", null);
+		super(renderer, "IphotoLibrary");
 	}
 
 	/**

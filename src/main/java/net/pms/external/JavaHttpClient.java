@@ -25,8 +25,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 /**
- *
- * @author nicol
+ * @author Surf@ceS
  */
 public class JavaHttpClient {
 

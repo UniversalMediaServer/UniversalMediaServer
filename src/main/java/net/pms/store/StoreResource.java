@@ -398,6 +398,15 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		return getDisplayName(true);
 	}
 
+	/**
+	 * Returns the unlocalized display name for the renderer.
+	 *
+	 * @return The unlocalized display name.
+	 */
+	public String getUnlocalizedDisplayName() {
+		return getDisplayName();
+	}
+
 	public void truncateDisplayName(String end) {
 		nametruncate = getName().lastIndexOf(end);
 	}

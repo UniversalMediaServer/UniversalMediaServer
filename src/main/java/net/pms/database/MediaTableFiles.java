@@ -662,7 +662,7 @@ public class MediaTableFiles extends MediaTable {
 							Long thumbnailId = ThumbnailStore.getId(thumbnail);
 							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
 								media.setThumbnailId(thumbnailId);
-								MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+								MediaStoreIds.incrementUpdateIdForFileId(connection, filename);
 							}
 							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
 							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
@@ -754,7 +754,7 @@ public class MediaTableFiles extends MediaTable {
 		} finally {
 			if (fileId > -1) {
 				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+				MediaStoreIds.incrementUpdateIdForFileId(connection, name);
 			}
 		}
 	}

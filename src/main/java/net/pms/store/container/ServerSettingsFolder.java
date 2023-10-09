@@ -18,12 +18,11 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
-import net.pms.Messages;
 import net.pms.io.StreamGobbler;
 import net.pms.renderers.Renderer;
 import net.pms.store.ResumeObj;
-import net.pms.store.StoreContainer;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 
@@ -31,10 +30,10 @@ import net.pms.util.ProcessUtil;
  * Server Settings folder. Used by manageRoot, so it is usually used as a folder
  * at the root folder. Child objects are created when this folder is created.
  */
-public class ServerSettingsFolder extends StoreContainer {
+public class ServerSettingsFolder extends LocalizedStoreContainer {
 
 	public ServerSettingsFolder(Renderer renderer) {
-		super(renderer, Messages.getString("ServerSettings"), null);
+		super(renderer, "ServerSettings");
 	}
 
 	public static ServerSettingsFolder getServerSettingsFolder(Renderer renderer) {
@@ -49,7 +48,7 @@ public class ServerSettingsFolder extends StoreContainer {
 			final File scriptDir = new File(renderer.getUmsConfiguration().getScriptDir());
 
 			if (scriptDir.exists()) {
-				res.addChild(new StoreContainer(renderer, Messages.getString("Scripts"), null) {
+				res.addChild(new LocalizedStoreContainer(renderer, "Scripts") {
 					@Override
 					public void discoverChildren() {
 						File[] files = scriptDir.listFiles();
@@ -92,11 +91,11 @@ public class ServerSettingsFolder extends StoreContainer {
 
 		// Resume file management
 		if (renderer.getUmsConfiguration().isResumeEnabled()) {
-			res.addChild(new StoreContainer(renderer, Messages.getString("ManageResumeFiles"), null) {
+			res.addChild(new LocalizedStoreContainer(renderer, "ManageResumeFiles") {
 				@Override
 				public void discoverChildren() {
 					final File[] files = ResumeObj.resumeFiles();
-					addChild(new VirtualVideoAction(renderer, Messages.getString("DeleteAllFiles"), true, null) {
+					addChild(new VirtualVideoActionLocalized(renderer, "DeleteAllFiles", true, null) {
 						@Override
 						public boolean enable() {
 							for (File f : files) {
@@ -123,7 +122,7 @@ public class ServerSettingsFolder extends StoreContainer {
 		}
 
 		// Restart UMS
-		res.addChild(new VirtualVideoAction(renderer, Messages.getString("RestartUms"), true, "images/icon-videothumbnail-restart.png") {
+		res.addChild(new VirtualVideoActionLocalized(renderer, "RestartUms", true, "images/icon-videothumbnail-restart.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.reboot();
@@ -133,7 +132,7 @@ public class ServerSettingsFolder extends StoreContainer {
 		});
 
 		// Shut down computer
-		res.addChild(new VirtualVideoAction(renderer, Messages.getString("ShutDownComputer"), true, "images/icon-videothumbnail-shutdown.png") {
+		res.addChild(new VirtualVideoActionLocalized(renderer, "ShutDownComputer", true, "images/icon-videothumbnail-shutdown.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.shutDownComputer();

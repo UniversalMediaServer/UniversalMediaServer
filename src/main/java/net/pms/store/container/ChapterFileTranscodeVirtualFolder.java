@@ -17,7 +17,6 @@
 package net.pms.store.container;
 
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.TimeRange;
@@ -30,7 +29,7 @@ import net.pms.util.TimeRange;
  * to the user in the "#Transcode#" folder when the option "Chapter #Transcode#
  * folder support" is activated in the settings.
  */
-public class ChapterFileTranscodeVirtualFolder extends StoreContainer {
+public class ChapterFileTranscodeVirtualFolder extends LocalizedStoreContainer {
 	private final int interval;
 
 	/**
@@ -44,7 +43,7 @@ public class ChapterFileTranscodeVirtualFolder extends StoreContainer {
 	 * 			placed.
 	 */
 	public ChapterFileTranscodeVirtualFolder(Renderer renderer, String name, StoreResource child, int interval) {
-		super(renderer, name, null);
+		super(renderer, "ChapterX", null, name);
 		this.interval = interval;
 		addChildInternal(child);
 	}

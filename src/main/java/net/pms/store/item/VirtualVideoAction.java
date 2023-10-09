@@ -36,13 +36,14 @@ import org.apache.commons.lang.StringUtils;
  * However this is just cosmetic. Any action can be performed.
  */
 public abstract class VirtualVideoAction extends StoreItem {
-	private final String name;
+
 	private final String thumbnailIconOK;
 	private final String thumbnailIconKO;
 	private final String videoOk;
 	private final String videoKo;
 	private boolean enabled;
 	private long timer1;
+	protected String name;
 
 	/**
 	 * Constructor for this class. Recommended instantiation includes overriding
@@ -174,7 +175,7 @@ public abstract class VirtualVideoAction extends StoreItem {
 	 */
 	@Override
 	public boolean isValid() {
-		setFormat(FormatFactory.getAssociatedFormat("toto.mpg"));
+		setFormat(FormatFactory.getAssociatedFormat(this.videoOk));
 		return true;
 	}
 
