@@ -542,7 +542,7 @@ public class APIUtils {
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, true);
 
 				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+				MediaStoreIds.incrementUpdateIdForFileId(connection, file.getAbsolutePath());
 				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);

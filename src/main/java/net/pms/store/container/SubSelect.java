@@ -17,16 +17,14 @@
 package net.pms.store.container;
 
 import java.io.IOException;
-import net.pms.Messages;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
-public class SubSelect extends StoreContainer {
+public class SubSelect extends LocalizedStoreContainer {
 
 	public SubSelect(Renderer renderer) {
-		super(renderer, Messages.getString("LiveSubtitles_FolderName"), null);
+		super(renderer, "LiveSubtitles_FolderName");
 	}
 
 	@Override

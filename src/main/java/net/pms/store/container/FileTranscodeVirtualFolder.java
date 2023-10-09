@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import net.pms.Messages;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
@@ -44,7 +43,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	private final StoreItem originalResource;
 
 	public FileTranscodeVirtualFolder(Renderer renderer, StoreItem resource) {
-		super(renderer, resource.getDisplayNameBase(), (String) null);
+		super(renderer, resource.getDisplayNameBase());
 		originalResource = resource;
 	}
 
@@ -100,7 +99,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			copy.setNoName(true);
 			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
 					renderer,
-					String.format(Messages.getString("ChapterX"), resource.getDisplayName()),
+					resource.getDisplayName(),
 					copy,
 					chapterInterval);
 

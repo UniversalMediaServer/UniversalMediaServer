@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -85,8 +85,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 39: typo on column name
 	 * - 40: added thumbnail source
 	 * - 41: ID as BIGINT
+	 * - 42: ID as IDENTITY
 	 */
-	private static final int TABLE_VERSION = 41;
+	private static final int TABLE_VERSION = 42;
 
 	/**
 	 * COLUMNS NAMES
@@ -453,6 +454,10 @@ public class MediaTableFiles extends MediaTable {
 					case 40 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + BIGINT);
 					}
+					case 41 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + IDENTITY);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + COL_ID + " RESTART WITH (SELECT MAX(ID) + 1 FROM FILES)");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -502,7 +507,7 @@ public class MediaTableFiles extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_ID                      + BIGINT          + AUTO_INCREMENT + PRIMARY_KEY + COMMA +
+				COL_ID                      + IDENTITY                                       + COMMA +
 				COL_THUMBID                 + BIGINT                                         + COMMA +
 				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
 				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
@@ -657,7 +662,7 @@ public class MediaTableFiles extends MediaTable {
 							Long thumbnailId = ThumbnailStore.getId(thumbnail);
 							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
 								media.setThumbnailId(thumbnailId);
-								MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+								MediaStoreIds.incrementUpdateIdForFileId(connection, filename);
 							}
 							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
 							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
@@ -749,7 +754,7 @@ public class MediaTableFiles extends MediaTable {
 		} finally {
 			if (fileId > -1) {
 				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+				MediaStoreIds.incrementUpdateIdForFileId(connection, name);
 			}
 		}
 	}
@@ -883,7 +888,7 @@ public class MediaTableFiles extends MediaTable {
 
 	public static List<String> getStrings(final Connection connection, String sql) {
 		List<String> list = new ArrayList<>();
-		Set<String> set = new HashSet<>();
+		Set<String> set = new LinkedHashSet<>();
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + WHERE + sql));

@@ -16,19 +16,16 @@
  */
 package net.pms.store.container;
 
-import net.pms.configuration.UmsConfiguration;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 
-public class TranscodeVirtualFolder extends StoreContainer {
+/**
+ * @author Surf@ceS
+ */
+public class MediaLibraryFolderNamed extends MediaLibraryFolder {
 
-	public TranscodeVirtualFolder(Renderer renderer, UmsConfiguration configuration) {
-		super(renderer, configuration.getTranscodeFolderName(), null);
-	}
-
-	// Sub class constructor
-	protected TranscodeVirtualFolder(Renderer renderer, String name) {
-		super(renderer, name, null);
+	public MediaLibraryFolderNamed(Renderer renderer, String virtualFolderName, String[] sql, int[] expectedOutput, String formatString, boolean isTVSeriesFolder, boolean isMoviesFolder) {
+		super(renderer, null, sql, expectedOutput, null, isTVSeriesFolder, isMoviesFolder);
+		this.name = virtualFolderName;
 	}
 
 }

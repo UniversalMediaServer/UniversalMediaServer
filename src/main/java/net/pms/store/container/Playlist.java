@@ -18,12 +18,12 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.util.List;
-import net.pms.Messages;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.store.utils.IOList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,7 +106,7 @@ public class Playlist extends StoreContainer {
 			final Playlist self = this;
 			// Save
 			if (!isMode(IOList.AUTOSAVE)) {
-				addChild(new VirtualVideoAction(renderer, Messages.getString("Save"), true, null) {
+				addChild(new VirtualVideoActionLocalized(renderer, "Save", true, null) {
 					@Override
 					public boolean enable() {
 						self.save();
@@ -115,7 +115,7 @@ public class Playlist extends StoreContainer {
 				});
 			}
 			// Clear
-			addChild(new VirtualVideoAction(renderer, Messages.getString("Clear"), true, null) {
+			addChild(new VirtualVideoActionLocalized(renderer, "Clear", true, null) {
 				@Override
 				public boolean enable() {
 					self.clear();

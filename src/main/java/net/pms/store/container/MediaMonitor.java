@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
@@ -37,14 +36,14 @@ import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.item.RealFile;
-import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayedAction;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MediaMonitor extends StoreContainer {
+public class MediaMonitor extends LocalizedStoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 
@@ -53,7 +52,7 @@ public class MediaMonitor extends StoreContainer {
 	private final File[] dirs;
 
 	public MediaMonitor(Renderer renderer, File[] dirs) {
-		super(renderer, Messages.getString("Unused"), "images/thumbnail-folder-256.png");
+		super(renderer, "Unused", "images/thumbnail-folder-256.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 	}
@@ -61,7 +60,7 @@ public class MediaMonitor extends StoreContainer {
 	public void scanDir(File[] files, final StoreContainer res) {
 		if (files != null) {
 			final StoreContainer mm = this;
-			res.addChild(new VirtualVideoAction(renderer, Messages.getString("MarkAllAsPlayed"), true, null) {
+			res.addChild(new VirtualVideoActionLocalized(renderer, "MarkAllAsPlayed", true, null) {
 				@Override
 				public boolean enable() {
 					for (StoreResource r : res.getChildren()) {

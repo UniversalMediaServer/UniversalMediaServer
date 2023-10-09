@@ -196,7 +196,7 @@ public class MediaStore extends StoreContainer {
 		setSharedContents();
 
 		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			StoreResource serverSettingsFolder = findVirtualFolderInResources(backupChildren, Messages.getString("ServerSettings"));
+			StoreResource serverSettingsFolder = findSystemNameInResources(backupChildren, "ServerSettings");
 			if (serverSettingsFolder != null) {
 				addChildInternal(serverSettingsFolder, false);
 				backupChildren.remove(serverSettingsFolder);
@@ -213,13 +213,13 @@ public class MediaStore extends StoreContainer {
 		setDiscovered(true);
 	}
 
-	private StoreContainer findVirtualFolderInResources(List<StoreResource> resources, String name) {
-		if (name == null) {
+	private StoreContainer findSystemNameInResources(List<StoreResource> resources, String systemName) {
+		if (systemName == null) {
 			return null;
 		}
 		for (StoreResource resource : resources) {
-			if (resource instanceof StoreContainer virtualFolder && name.equals(virtualFolder.getName())) {
-				return virtualFolder;
+			if (resource instanceof StoreContainer container && systemName.equals(container.getSystemName())) {
+				return container;
 			}
 		}
 		return null;
@@ -259,7 +259,7 @@ public class MediaStore extends StoreContainer {
 		}
 
 		if (renderer.getUmsConfiguration().getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(renderer, Messages.getString("SearchDiscFolders"), new FileSearch(realSystemFileResources));
+			SearchFolder sf = new SearchFolder(renderer, "SearchDiscFolders", new FileSearch(realSystemFileResources));
 			addChild(sf);
 		}
 	}
@@ -288,7 +288,7 @@ public class MediaStore extends StoreContainer {
 	private void setITunesContent(ITunesContent iTunesContent) {
 		int osType = Platform.getOSType();
 		if (osType == Platform.MAC || osType == Platform.WINDOWS) {
-			StoreResource iTunesRes = findVirtualFolderInResources(backupChildren, "iTunes Library");
+			StoreResource iTunesRes = findSystemNameInResources(backupChildren, "ItunesLibrary");
 			if (iTunesRes != null) {
 				addChildInternal(iTunesRes, false);
 				backupChildren.remove(iTunesRes);
@@ -304,7 +304,7 @@ public class MediaStore extends StoreContainer {
 	private void setApertureContent() {
 		int osType = Platform.getOSType();
 		if (osType == Platform.MAC) {
-			StoreResource apertureRes = findVirtualFolderInResources(backupChildren, "Aperture libraries");
+			StoreResource apertureRes = findSystemNameInResources(backupChildren, "ApertureLibrary");
 			if (apertureRes != null) {
 				addChildInternal(apertureRes, false);
 				backupChildren.remove(apertureRes);
@@ -320,7 +320,7 @@ public class MediaStore extends StoreContainer {
 	private void setIPhotoContent() {
 		int osType = Platform.getOSType();
 		if (osType == Platform.MAC) {
-			StoreResource iPhotoRes = findVirtualFolderInResources(backupChildren, "iPhoto Library");
+			StoreResource iPhotoRes = findSystemNameInResources(backupChildren, "IphotoLibrary");
 			if (iPhotoRes != null) {
 				addChildInternal(iPhotoRes, false);
 				backupChildren.remove(iPhotoRes);

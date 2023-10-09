@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
@@ -31,11 +30,13 @@ import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
+import net.pms.store.container.LocalizedStoreContainer;
 import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.container.SubSelect;
 import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.VirtualVideoActionLocalized;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -481,13 +482,12 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (dynamicPls == null) {
-			dynamicPls = new StoreContainer(renderer, Messages.getString("DynamicPlaylist_FolderName"), null);
+			dynamicPls = new LocalizedStoreContainer(renderer, "DynamicPlaylist_FolderName");
 			addChildInternal(dynamicPls);
 			dynamicPls.addChild(dynPls);
 		}
 
-		String str = Messages.getString("Add") + " " + child.getDisplayName() + " " + Messages.getString("ToDynamicPlaylist");
-		VirtualVideoAction vva = new VirtualVideoAction(renderer, str, true, null) {
+		VirtualVideoAction vva = new VirtualVideoActionLocalized(renderer, "AddXToDynamicPlaylist", true, null, child.getDisplayName()) {
 			@Override
 			public boolean enable() {
 				renderer.getMediaStore().getDynamicPls().add(child);
@@ -621,7 +621,7 @@ public class StoreContainer extends StoreResource {
 			}
 		}
 
-		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(renderer, null, renderer.getUmsConfiguration());
+		TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(renderer, renderer.getUmsConfiguration());
 		addChildInternal(transcodeFolder);
 		return transcodeFolder;
 	}

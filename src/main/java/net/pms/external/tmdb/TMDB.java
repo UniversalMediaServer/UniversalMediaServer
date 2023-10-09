@@ -335,7 +335,7 @@ public class TMDB {
 			mediaInfo.setParsing(false);
 		}
 		//let store know that we change media metadata
-		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+		MediaStoreIds.incrementUpdateIdForFileId(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
 		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
@@ -514,7 +514,7 @@ public class TMDB {
 			mediaInfo.setParsing(false);
 		}
 		//let store know that we change media metadata
-		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
+		MediaStoreIds.incrementUpdateIdForFileId(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
 		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
