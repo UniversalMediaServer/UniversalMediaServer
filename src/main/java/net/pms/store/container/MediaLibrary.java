@@ -65,7 +65,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder unwatchedUnsortedFolder = new MediaLibraryFolder(renderer, "Unsorted", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + UNSORTED_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedRecentlyAddedVideos = new MediaLibraryFolder(renderer, "RecentlyAdded", SELECT_FILES_STATUS_WHERE + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100, FILES_NOSORT);
 		MediaLibraryFolder unwatchedAllVideosFolder = new MediaLibraryFolder(renderer, "AllVideos", SELECT_FILES_STATUS_WHERE  + FORMAT_TYPE_VIDEO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
-		MediaLibraryFolder unwatchedMlfVideo02 = new MediaLibraryFolder(
+		MediaLibraryFolder unwatchedVideosByDate = new MediaLibraryFolder(
 			renderer,
 			"ByDate",
 			new String[]{
@@ -130,7 +130,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + getWasPlayedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFilesStatus.TABLE_COL_PLAYCOUNT + DESC + LIMIT_100,
 			FILES_NOSORT
 		);
-		MediaLibraryFolder mlfVideo02 = new MediaLibraryFolder(
+		MediaLibraryFolder videosByDate = new MediaLibraryFolder(
 			renderer,
 			"ByDate",
 			new String[]{
@@ -167,7 +167,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(unwatchedRecentlyAddedVideos);
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(unwatchedAllVideosFolder);
-			vfVideo.addChild(unwatchedMlfVideo02);
+			vfVideo.addChild(unwatchedVideosByDate);
 			vfVideo.addChild(unwatchedMlfVideo03);
 			vfVideo.addChild(unwatchedMlfVideo04);
 			vfVideo.addChild(unwatchedMlfVideo05);
@@ -190,7 +190,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(mostPlayedVideos);
 			vfVideo.addChild(allVideosFolder);
-			vfVideo.addChild(mlfVideo02);
+			vfVideo.addChild(videosByDate);
 			vfVideo.addChild(mlfVideo03);
 			vfVideo.addChild(mlfVideo04);
 			vfVideo.addChild(mlfVideo05);
@@ -267,7 +267,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			new int[]{TEXTS, TEXTS, TEXTS, FILES}
 		);
 		vfAudio.addChild(mlf7);
-		MediaLibraryFolder mlfAudioDate = new MediaLibraryFolder(
+		MediaLibraryFolder audioByDate = new MediaLibraryFolder(
 			renderer,
 			"ByDate",
 			new String[]{
@@ -276,7 +276,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			},
 			new int[]{TEXTS_NOSORT, FILES}
 		);
-		vfAudio.addChild(mlfAudioDate);
+		vfAudio.addChild(audioByDate);
 
 		MediaLibraryFolder mlf8 = new MediaLibraryFolder(
 			renderer,
@@ -302,7 +302,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			FILES
 		);
 		vfImage.addChild(mlfPhoto01);
-		MediaLibraryFolder mlfPhoto02 = new MediaLibraryFolder(
+		MediaLibraryFolder photoByDate = new MediaLibraryFolder(
 			renderer,
 			"ByDate",
 			new String[]{
@@ -311,7 +311,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			},
 			new int[]{TEXTS_NOSORT, FILES}
 		);
-		vfImage.addChild(mlfPhoto02);
+		vfImage.addChild(photoByDate);
 		addChild(vfImage);
 	}
 
