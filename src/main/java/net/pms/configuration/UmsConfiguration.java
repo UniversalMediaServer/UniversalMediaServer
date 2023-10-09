@@ -1974,7 +1974,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return True if subtitles should be disabled, false otherwise.
 	 */
 	public boolean isDisableSubtitles() {
-		return getBoolean(KEY_DISABLE_SUBTITLES, false);
+		return getBoolean(KEY_DISABLE_SUBTITLES, true);
 	}
 
 	/**
