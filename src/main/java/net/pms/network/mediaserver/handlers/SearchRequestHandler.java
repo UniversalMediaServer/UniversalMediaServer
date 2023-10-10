@@ -168,7 +168,8 @@ public class SearchRequestHandler {
 			dlnaItems.append(uf.getDidlString(renderer));
 		}
 
-		return new BrowseResult(dlnaItems.toString(), numberReturned, totalMatches, updateID.getAndIncrement());
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
+		return new BrowseResult(response.toString(), numberReturned, totalMatches, updateID.getAndIncrement());
 	}
 
 	/**
