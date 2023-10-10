@@ -21,9 +21,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.media.video.metadata.ApiStringArray;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,10 +67,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 */
 	private static final String SQL_GET_GENRE_FILEID = SELECT + TABLE_COL_GENRE + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_GENRE_TVSERIESID = SELECT + TABLE_COL_GENRE + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
-	private static final String SQL_GET_TVSERIESID_EXISTS = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER + AND + TABLE_COL_GENRE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_FILEID_EXISTS = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_GENRE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_INSERT_TVSERIESID = INSERT_INTO + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_GENRE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
-	private static final String SQL_INSERT_FILEID = INSERT_INTO + TABLE_NAME + " (" + COL_FILEID + ", " + COL_GENRE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
+	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -166,51 +164,50 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param tvSeriesID
 	 */
 	public static void set(final Connection connection, final Long fileId, final ApiStringArray genres, final Long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
+		if (genres == null) {
 			return;
 		}
 		final String sqlSelect;
-		final String sqlInsert;
+		final String tableColumn;
 		final long id;
 		if (tvSeriesID != null) {
-			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
-			sqlInsert = SQL_INSERT_TVSERIESID;
+			sqlSelect = SQL_GET_ALL_TVSERIESID;
+			tableColumn = COL_TVSERIESID;
 			id = tvSeriesID;
 		} else if (fileId != null) {
-			sqlSelect = SQL_GET_FILEID_EXISTS;
-			sqlInsert = SQL_INSERT_FILEID;
+			sqlSelect = SQL_GET_ALL_FILEID;
+			tableColumn = COL_FILEID;
 			id = fileId;
 		} else {
 			return;
 		}
 
+		List<String> newGenres = new ArrayList<>(genres);
 		try {
-			for (String genre : genres) {
-				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
-					ps.setLong(1, id);
-					ps.setString(2, StringUtils.left(genre, 1024));
-					try (ResultSet rs = ps.executeQuery()) {
-						if (rs.next()) {
-							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fileId, genre);
+			try (PreparedStatement ps = connection.prepareStatement(sqlSelect, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+				ps.setLong(1, id);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						String genre = rs.getString(COL_GENRE);
+						if (newGenres.contains(genre)) {
+							LOGGER.trace("Record \"{}\" already exists {} {} {}", genre, tableColumn, id);
+							newGenres.remove(genre);
 						} else {
-							try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
-								insertStatement.clearParameters();
-								insertStatement.setLong(1, id);
-								insertStatement.setString(2, StringUtils.left(genre, 1024));
-
-								insertStatement.executeUpdate();
-								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
-									if (rs2.next()) {
-										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fileId, tvSeriesID, genre);
-									}
-								}
-							}
+							LOGGER.trace("Removing record \"{}\" for {} {}", genre, tableColumn, id);
+							rs.deleteRow();
 						}
+					}
+					for (String genre : newGenres) {
+						rs.moveToInsertRow();
+						rs.updateLong(tableColumn, id);
+						rs.updateString(COL_GENRE, genre);
+						rs.insertRow();
+						LOGGER.trace("Set new entry \"{}\" successfully in " + TABLE_NAME + " with {} {}", genre, tableColumn, id);
 					}
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fileId, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fileId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

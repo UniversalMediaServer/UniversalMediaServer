@@ -505,6 +505,31 @@ public class MediaTableVideoMetadata extends MediaTable {
 		return null;
 	}
 
+	public static VideoMetadataLocalized getVideoMetadataLocalized(final Connection connection, final long fileId) {
+		if (connection == null || fileId < 0) {
+			return null;
+		}
+		try {
+			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_VIDEO_METADATA_BY_FILEID_WITH_IMDBID_OR_TMDBID_EXIST)) {
+				selectStatement.setLong(1, fileId);
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						VideoMetadataLocalized metadata = new VideoMetadataLocalized();
+						metadata.setHomepage(rs.getString(COL_HOMEPAGE));
+						metadata.setOverview(rs.getString(COL_OVERVIEW));
+						metadata.setTagline(rs.getString(COL_TAGLINE));
+						metadata.setTitle(rs.getString(COL_MOVIEORSHOWNAME));
+						return metadata;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", fileId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
 	/**
 	 * @param connection the db connection
 	 * @param path the full path of the media.

@@ -71,6 +71,8 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String SQL_GET_ALL_LANGUAGE_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 	private static final String SQL_GET_TVSERIESID_SIMPLIFIEDTITLE = SELECT + COL_TVSERIESID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + IS_NOT_NULL + AND + "REGEXP_REPLACE(LOWER(" + COL_TITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_FILEID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_TVSERIESID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
 	/**
 	 * Database column sizes
@@ -249,9 +251,46 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		//here we now we do not have the language in db, let search it.
+		LOGGER.trace("Looking for localized metadata for \"{}\": {}", mediaType, id);
 		VideoMetadataLocalized result = TMDB.getVideoMetadataLocalized(language, mediaType, imdbId, tmdbId, season, episode);
+		//remove not translated fields from base data
+		if (result != null) {
+			VideoMetadataLocalized baseData;
+			if (fromTvSeries) {
+				baseData = MediaTableTVSeries.getTvSeriesMetadataLocalized(connection, id);
+			} else {
+				baseData = MediaTableVideoMetadata.getVideoMetadataLocalized(connection, id);
+			}
+			if (baseData != null) {
+				if (result.getHomepage() != null && result.getHomepage().equals(baseData.getHomepage())) {
+					result.setHomepage(null);
+				}
+				if (result.getOverview() != null && result.getOverview().equals(baseData.getOverview())) {
+					result.setOverview(null);
+				}
+				if (result.getTagline() != null && result.getTagline().equals(baseData.getTagline())) {
+					result.setTagline(null);
+				}
+				if (result.getTitle() != null && result.getTitle().equals(baseData.getTitle())) {
+					result.setTitle(null);
+				}
+			}
+		}
 		set(connection, id, fromTvSeries, result, language);
 		return result;
+	}
+
+	public static void clearVideoMetadataLocalized(final Connection connection, final Long id, final boolean fromTvSeries) {
+		if (connection == null || id == null || id < 0) {
+			return;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(fromTvSeries ? SQL_DELETE_TVSERIESID : SQL_DELETE_FILEID)) {
+			ps.setLong(1, id);
+			ps.execute();
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for deleting \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
 	}
 
 	protected static Long getTvSeriesIdFromTitle(final Connection connection, final String titleSimplified) {

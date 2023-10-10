@@ -282,24 +282,23 @@ public class DlnaHelper {
 						if (isOutputtingMPEGTS) {
 							if (renderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, false);
-							} else {
+							} else if (renderer.isTranscodeToMPEG2()) {
 								dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, false);
 							}
 						}
-					} else if (mediaInfo != null && mediaInfo.isMpegTS()) {
+					} else if (mediaInfo != null && mediaInfo.isMpegTS() && defaultVideoTrack != null) {
 						// In this block, we are streaming the file
-						if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
+						if (defaultVideoTrack.isH264()) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
-						} else {
+						} else if (defaultVideoTrack.isMpeg2()) {
 							dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
 						}
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MPEGTS_TYPEMIME)) {
-					// patters - on Sony BDP m2ts clips aren't listed without
-					// this
+					// patters - on Sony BDP m2ts clips aren't listed without this
 					if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
-					} else {
+					} else if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {

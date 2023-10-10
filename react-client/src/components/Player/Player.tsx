@@ -69,6 +69,15 @@ export const Player = () => {
     }
   };
 
+  const getI18nName = (name: string|undefined) => {
+    const nameData = name ? name.split('|') : [''];
+    if (nameData.length > 1) {
+      return i18n.getI18nFormat(nameData);
+    } else {
+      return i18n.getI18nString(nameData[0]);
+    }
+  }
+
   const hasBreadcrumbs = () => {
     return data.breadcrumbs.length > 1;
   }
@@ -95,7 +104,7 @@ export const Player = () => {
                 variant='subtle'
                 size='compact-md'
               >
-                {breadcrumb.name === 'root' ? (<Home />) : (breadcrumb.name)}
+                {breadcrumb.name === 'root' ? (<Home />) : (getI18nName(breadcrumb.name))}
               </Button>)
             )}
           </Breadcrumbs>
@@ -177,7 +186,7 @@ export const Player = () => {
         {image}
         <div className='thumbnail-text-wrapper'>
           <Text ta='left' size='sm' lineClamp={1} className='thumbnail-text'>
-            {media.name}
+            {getI18nName(media.name)}
           </Text>
         </div>
       </div>
@@ -232,7 +241,7 @@ export const Player = () => {
               })}
               onClick={() => { media.id && sse.askBrowseId(media.id) }}
             >
-              {media.name}
+              {getI18nName(media.name)}
             </Badge>);
         })}
       </Group>);
@@ -343,7 +352,7 @@ export const Player = () => {
       }
     }
     if (!logo) {
-      const title = metadata?.title || metadata?.originalTitle || media?.name;
+      const title = metadata?.title || metadata?.originalTitle || getI18nName(media?.name);
       if (title) {
         logo = (
           <Group pb='xs'>
@@ -499,7 +508,7 @@ export const Player = () => {
               </Grid.Col>
               <Grid.Col span={12}  >
                 <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
-                  <Text pb='xs'>{media.name}</Text>
+                  <Text pb='xs'>{getI18nName(media.name)}</Text>
                   {getPlayControls()}
                 </Card>
               </Grid.Col>
@@ -582,7 +591,7 @@ export const Player = () => {
             size='compact-md'
             leftSection={getFolderIcon(folder)}
           >
-            {folder.name}
+            {getI18nName(folder.name)}
           </Button>
         );
       });
@@ -598,7 +607,7 @@ export const Player = () => {
             size='compact-md'
             leftSection={getFolderIcon(folder)}
           >
-            {folder.name}
+            {getI18nName(folder.name)}
           </Button>
         );
       });

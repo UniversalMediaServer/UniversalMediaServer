@@ -21,9 +21,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.media.video.metadata.ApiStringArray;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,6 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
-	private static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 	private static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String TABLE_COL_ACTOR = TABLE_NAME + "." + COL_ACTOR;
@@ -62,10 +61,8 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	 */
 	private static final String SQL_GET_ACTORS_FILEID = SELECT + TABLE_COL_ACTOR + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ACTORS_TVSERIESID = SELECT + TABLE_COL_ACTOR + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
-	private static final String SQL_GET_TVSERIESID_EXISTS = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER + AND + TABLE_COL_ACTOR + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_FILEID_EXISTS = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_ACTOR + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_INSERT_TVSERIESID = INSERT_INTO + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_ACTOR + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
-	private static final String SQL_INSERT_FILEID = INSERT_INTO + TABLE_NAME + " (" + COL_FILEID + ", " + COL_ACTOR + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
+	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -160,46 +157,45 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 	 * @param tvSeriesID
 	 */
 	public static void set(final Connection connection, final Long fileId, final ApiStringArray actors, final Long tvSeriesID) {
-		if (actors == null || actors.isEmpty()) {
+		if (actors == null) {
 			return;
 		}
 		final String sqlSelect;
-		final String sqlInsert;
+		final String tableColumn;
 		final long id;
 		if (tvSeriesID != null) {
-			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
-			sqlInsert = SQL_INSERT_TVSERIESID;
+			sqlSelect = SQL_GET_ALL_TVSERIESID;
+			tableColumn = COL_TVSERIESID;
 			id = tvSeriesID;
 		} else if (fileId != null) {
-			sqlSelect = SQL_GET_FILEID_EXISTS;
-			sqlInsert = SQL_INSERT_FILEID;
+			sqlSelect = SQL_GET_ALL_FILEID;
+			tableColumn = COL_FILEID;
 			id = fileId;
 		} else {
 			return;
 		}
 
+		List<String> newActors = new ArrayList<>(actors);
 		try {
-			for (String actor : actors) {
-				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
-					ps.setLong(1, id);
-					ps.setString(2, StringUtils.left(actor, 1024));
-					try (ResultSet rs = ps.executeQuery()) {
-						if (rs.next()) {
-							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fileId, actor);
+			try (PreparedStatement ps = connection.prepareStatement(sqlSelect, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+				ps.setLong(1, id);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						String actor = rs.getString(COL_ACTOR);
+						if (newActors.contains(actor)) {
+							LOGGER.trace("Record \"{}\" already exists {} {} {}", actor, tableColumn, id);
+							newActors.remove(actor);
 						} else {
-							try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
-								insertStatement.clearParameters();
-								insertStatement.setLong(1, id);
-								insertStatement.setString(2, StringUtils.left(actor, 1024));
-
-								insertStatement.executeUpdate();
-								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
-									if (rs2.next()) {
-										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fileId, tvSeriesID, actor);
-									}
-								}
-							}
+							LOGGER.trace("Removing record \"{}\" for {} {}", actor, tableColumn, id);
+							rs.deleteRow();
 						}
+					}
+					for (String actor : newActors) {
+						rs.moveToInsertRow();
+						rs.updateLong(tableColumn, id);
+						rs.updateString(COL_ACTOR, actor);
+						rs.insertRow();
+						LOGGER.trace("Set new entry \"{}\" successfully in " + TABLE_NAME + " with {} {}", actor, tableColumn, id);
 					}
 				}
 			}

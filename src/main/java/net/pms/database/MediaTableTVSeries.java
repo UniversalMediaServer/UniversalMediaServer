@@ -864,6 +864,32 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
+	public static VideoMetadataLocalized getTvSeriesMetadataLocalized(final Connection connection, final Long tvSeriesId) {
+		if (connection == null || tvSeriesId == null || tvSeriesId < 0) {
+			return null;
+		}
+		try {
+			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_BY_ID)) {
+				selectStatement.setLong(1, tvSeriesId);
+				try (ResultSet rs = selectStatement.executeQuery()) {
+					if (rs.next()) {
+						VideoMetadataLocalized result = new VideoMetadataLocalized();
+						result.setHomepage(rs.getString(COL_HOMEPAGE));
+						result.setOverview(rs.getString(COL_OVERVIEW));
+						result.setTagline(rs.getString(COL_TAGLINE));
+						result.setTitle(rs.getString(COL_TITLE));
+						return result;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", tvSeriesId, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
 	public static void updateThumbnailId(final Connection connection, Long id, Long thumbId, String thumbnailSource) {
 		try {
 			try (

@@ -617,6 +617,15 @@ public class MediaVideo extends MediaLang implements Cloneable {
 		return codec != null && codec.startsWith(FormatConfiguration.H265);
 	}
 
+	/**
+	 * Whether the file contains MPEG-2 video.
+	 *
+	 * @return {boolean}
+	 */
+	public boolean isMpeg2() {
+		return codec != null && codec.startsWith(FormatConfiguration.MPEG2);
+	}
+
 	public boolean isHDVideo() {
 		return (width > 864 || height > 576);
 	}

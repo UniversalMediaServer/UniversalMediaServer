@@ -252,6 +252,8 @@ public class TMDB {
 		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
 		setMovieMetadata(connection, fileId, mediaInfo, movieDetails);
 
+		//let store know that we change media metadata
+		MediaStoreIds.incrementUpdateIdForFilename(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
 		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
@@ -322,6 +324,8 @@ public class TMDB {
 		LOGGER.trace("setting movie metadata for " + title);
 		//store unlocalized data first
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
+		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, mediaInfo.getFileId(), false);
+
 		//now localize data if needed
 		String lang = CONFIGURATION.getLanguageRawString();
 		if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
@@ -343,8 +347,6 @@ public class TMDB {
 			}
 			mediaInfo.setParsing(false);
 		}
-		//let store know that we change media metadata
-		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 	}
 
 	private static void lookupAndAddTvEpisodeMetadata(Connection connection, final File file, final MediaInfo mediaInfo) throws SQLException {
@@ -455,6 +457,9 @@ public class TMDB {
 		LOGGER.trace("TMDB data matches filename data for " + file.getName());
 		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
 		setTvEpisodeMetadata(connection, fileId, mediaInfo, tvEpisodeDetails);
+
+		//let store know that we change media metadata
+		MediaStoreIds.incrementUpdateIdForFilename(connection, file.getAbsolutePath());
 		//advertise queue size (only when a new real lookup is done to not flood)
 		LOGGER.info("TMDB: {} background task in queue", BACKGROUND_EXECUTOR.getQueue().size());
 	}
@@ -511,6 +516,8 @@ public class TMDB {
 		LOGGER.trace("setting tv episode metadata for " + title + " " + tvSeasonFromTMDB + "-" + tvEpisodeNumberFromTMDB);
 		//store unlocalized data first
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
+		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, fileId, false);
+
 		//now localize data if needed
 		String lang = CONFIGURATION.getLanguageRawString();
 		if (lang != null && !"en-us".equalsIgnoreCase(lang)) {
@@ -532,8 +539,6 @@ public class TMDB {
 			}
 			mediaInfo.setParsing(false);
 		}
-		//let store know that we change media metadata
-		MediaStoreIds.incrementUpdateIdForFileId(connection, fileId);
 	}
 
 	/**
@@ -648,6 +653,7 @@ public class TMDB {
 
 			//store unlocalized data first
 			MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+			MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, tvSeriesId, true);
 
 			//now localize data if needed
 			String lang = CONFIGURATION.getLanguageRawString();
@@ -772,7 +778,7 @@ public class TMDB {
 		return null;
 	}
 
-	public static boolean setTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId) {
+	public static boolean updateTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId) {
 		Connection connection = null;
 		try {
 			Long episode = getLong(mediaInfo.getVideoMetadata().getTVEpisodeNumber());
@@ -790,6 +796,11 @@ public class TMDB {
 				setTvShowMetadata(connection, null, mediaInfo.getVideoMetadata(), tvDetails);
 				mediaInfo.getVideoMetadata().setSimplifiedMovieOrShowName(mediaInfo.getVideoMetadata().getSeriesMetadata().getSimplifiedTitle());
 				setTvEpisodeMetadata(connection, mediaInfo.getFileId(), mediaInfo, tvEpisodeDetails);
+				//let store know that we change media metadata
+				String filename = MediaTableFiles.getFilenameById(connection, mediaInfo.getFileId());
+				if (filename != null) {
+					MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
+				}
 				return true;
 			}
 		} catch (IOException | SQLException ex) {
@@ -836,6 +847,11 @@ public class TMDB {
 					return false;
 				}
 				setMovieMetadata(connection, mediaInfo.getFileId(), mediaInfo, movieDetails);
+				//let store know that we change media metadata
+				String filename = MediaTableFiles.getFilenameById(connection, mediaInfo.getFileId());
+				if (filename != null) {
+					MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
+				}
 				return true;
 			}
 		} catch (IOException | SQLException ex) {

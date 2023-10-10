@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
+import net.pms.store.container.VirtualFolderDbId;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
 
 /**
@@ -43,6 +44,9 @@ public class MediaStoreIds {
 	}
 
 	public static synchronized Long getMediaStoreResourceId(StoreResource resource) {
+		if (resource == null || resource instanceof VirtualFolderDbId) {
+			return null;
+		}
 		//parse db
 		Connection connection = null;
 		try {
@@ -90,8 +94,8 @@ public class MediaStoreIds {
 		return mediaStoreIds;
 	}
 
-	public static void incrementUpdateIdForFileId(Connection connection, long fileId) {
-		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForFileId(connection, fileId);
+	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
+		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForFilename(connection, filename);
 		for (Long id : ids) {
 			incrementUpdateId(connection, id);
 		}

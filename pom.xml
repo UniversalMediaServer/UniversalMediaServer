@@ -125,7 +125,7 @@
 		-->
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.0</junit5.version>
-	 <maven.compiler.release>${project.jre-version}</maven.compiler.release>
+		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -3571,7 +3571,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.12.3</version>
+								<version>10.12.4</version>
 							</dependency>
 						</dependencies>
 						<configuration>

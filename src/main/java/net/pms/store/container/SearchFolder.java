@@ -16,21 +16,19 @@
  */
 package net.pms.store.container;
 
-import net.pms.Messages;
 import net.pms.renderers.Renderer;
 import net.pms.store.SearchObj;
-import net.pms.store.StoreContainer;
 
-public class SearchFolder extends StoreContainer {
+public class SearchFolder extends LocalizedStoreContainer {
 
 	private SearchObj sobj;
 
 	public SearchFolder(Renderer renderer, SearchObj sobj) {
-		this(renderer, Messages.getString("Search"), sobj);
+		this(renderer, "Search", sobj);
 	}
 
-	public SearchFolder(Renderer renderer, String name, SearchObj sobj) {
-		super(renderer, name, null);
+	public SearchFolder(Renderer renderer, String i18nName, SearchObj sobj) {
+		super(renderer, i18nName);
 		this.sobj = sobj;
 	}
 
