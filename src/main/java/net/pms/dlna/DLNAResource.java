@@ -228,6 +228,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean isExternalSubtitlesParsed;
 
 	private double lastTimeSeek = -1.0;
+	protected static final String RECENTLY_ADDED = "Recently Added";
 
 	protected DLNAResource() {
 		this.specificType = Format.UNKNOWN;
@@ -668,15 +669,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
-								VirtualFolder vf = getSubSelector(true);
-								if (vf != null) {
-									DLNAResource newChild = child.clone();
-									newChild.engine = transcodingEngine;
-									newChild.media = child.media;
-									LOGGER.trace("Adding live subtitles folder for \"{}\" with engine {}", child.getName(),
-										transcodingEngine);
-
-									vf.addChild(new SubSelFile(newChild), true);
+								LOGGER.info(child.parent.getDisplayName());
+								String folder_name = child.parent.getDisplayName();
+								if(!folder_name.equalsIgnoreCase(RECENTLY_ADDED))
+								{
+									VirtualFolder vf = getSubSelector(true);
+									if (vf != null) {
+										DLNAResource newChild = child.clone();
+										newChild.engine = transcodingEngine;
+										newChild.media = child.media;
+										LOGGER.trace("Adding live subtitles folder for \"{}\" with engine {}", child.getName(),
+											transcodingEngine);
+										vf.addChild(new SubSelFile(newChild), true);
+									}
 								}
 							}
 
