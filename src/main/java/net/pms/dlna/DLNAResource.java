@@ -229,6 +229,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private double lastTimeSeek = -1.0;
 	protected static final String RECENTLY_ADDED = "Recently Added";
+	protected static final String RECENTLY_PLAYED = "Recently Played";
+	protected static final String IN_PROGRESS = "In Progress";
 
 	protected DLNAResource() {
 		this.specificType = Format.UNKNOWN;
@@ -671,7 +673,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
 								LOGGER.info(child.parent.getDisplayName());
 								String folder_name = child.parent.getDisplayName();
-								if(!folder_name.equalsIgnoreCase(RECENTLY_ADDED))
+								if(!folder_name.equalsIgnoreCase(RECENTLY_ADDED) && !folder_name.equalsIgnoreCase(RECENTLY_PLAYED) && !folder_name.equalsIgnoreCase(IN_PROGRESS))
 								{
 									VirtualFolder vf = getSubSelector(true);
 									if (vf != null) {
