@@ -671,7 +671,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
-								LOGGER.info(child.parent.getDisplayName());
+								// Enhancement - 3052
+								LOGGER.trace("Added :" + child.getName() + " in "+  child.parent.getDisplayName());
+								//Bug Fix - 3669
 								String folder_name = child.parent.getDisplayName();
 								if(!folder_name.equalsIgnoreCase(RECENTLY_ADDED) && !folder_name.equalsIgnoreCase(RECENTLY_PLAYED) && !folder_name.equalsIgnoreCase(IN_PROGRESS))
 								{
@@ -737,6 +739,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (isNew) {
 					addChildInternal(child, isAddGlobally);
+				}
+				else
+				{
+					// Enhancement - 3052
+					LOGGER.trace("Details on media being imported :" + child);
 				}
 
 				if (resumeRes != null) {
