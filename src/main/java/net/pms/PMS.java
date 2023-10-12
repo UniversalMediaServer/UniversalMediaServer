@@ -877,6 +877,8 @@ public class PMS {
 	}
 
 	public static void main(String[] args) {
+		String javaVersion = System.getProperty("java.specification.version");
+        System.out.println("Java Specification Version: " + javaVersion);
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
