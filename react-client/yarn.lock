@@ -3592,13 +3592,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/video.js@npm:7.3.53":
-  version: 7.3.53
-  resolution: "@types/video.js@npm:7.3.53"
-  checksum: 2b42d8e9268992a5c08542054ed249773d47316449556b6d992eda14f0f55ac4b57b2990e197632a1be5b780122930a62fed27512532f63ed502f21b04e45a8a
-  languageName: node
-  linkType: hard
-
 "@types/videojs-hls-quality-selector@npm:1.1.1":
   version: 1.1.1
   resolution: "@types/videojs-hls-quality-selector@npm:1.1.1"
@@ -14167,7 +14160,6 @@ __metadata:
     "@types/react": 18.2.28
     "@types/react-color": 3.0.7
     "@types/react-dom": 18.2.13
-    "@types/video.js": 7.3.53
     "@types/videojs-hls-quality-selector": 1.1.1
     "@typescript-eslint/eslint-plugin": 6.7.5
     "@typescript-eslint/parser": 6.7.5
