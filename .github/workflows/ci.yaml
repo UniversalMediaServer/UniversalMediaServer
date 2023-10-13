@@ -33,6 +33,32 @@ jobs:
       - name: Run tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
+  macos-arm:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
+    name: macOS ARM
+    runs-on: macos-13-xlarge
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Run tests (XCode ${{ matrix.xcode }})
+        run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+
   windows-latest:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
