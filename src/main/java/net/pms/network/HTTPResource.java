@@ -400,4 +400,68 @@ public abstract class HTTPResource {
 
 		return orgPN;
 	}
+
+	public static final String getMp4H264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
+		String orgPN = "AVC_MP4";
+
+		if (!(isStreaming && media.getFirstAudioTrack().isHEAAC())) {
+			if (media == null || (media.getH264Profile() != null && media.getH264Profile().contains("high"))) {
+				orgPN += "_HP";
+			} else if (media.getH264Profile() != null && media.getH264Profile().contains("baseline")) {
+				orgPN += "_BL";
+			} else {
+				orgPN += "_MP";
+			}
+		}
+
+		if (media == null || media.isHDVideo() || media.getFirstAudioTrack().isHEAAC()) {
+			orgPN += "_HD";
+		} else {
+			orgPN += "_SD";
+		}
+
+		if (media != null && media.getFirstAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					media.getFirstAudioTrack().isAACLC()
+				) || (
+					!isStreaming &&
+					renderer.isTranscodeToAAC()
+				)
+			) {
+				orgPN += "_AAC_MULT5";
+			} else if (
+				(
+					isStreaming &&
+					(
+						media.getFirstAudioTrack().isAC3() ||
+						media.getFirstAudioTrack().isEAC3()
+					)
+				) || (
+					!isStreaming &&
+					renderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isDTSHD()
+			) {
+				orgPN += "_DTSHD";
+			} else if (
+				isStreaming &&
+				media.getFirstAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HEAACv2_L6";
+			}
+		}
+
+		return orgPN;
+	}
 }
