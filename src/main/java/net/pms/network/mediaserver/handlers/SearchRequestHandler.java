@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.BrowseResult;
 import org.jupnp.support.model.SortCriterion;
@@ -168,7 +169,9 @@ public class SearchRequestHandler {
 			dlnaItems.append(uf.getDidlString(renderer));
 		}
 
-		return new BrowseResult(dlnaItems.toString(), numberReturned, totalMatches, updateID.getAndIncrement());
+		// Info: The engine using this method seems not to unescape to proper XML
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
+		return new BrowseResult(StringEscapeUtils.unescapeXml(response.toString()), numberReturned, totalMatches, updateID.getAndIncrement());
 	}
 
 	/**
