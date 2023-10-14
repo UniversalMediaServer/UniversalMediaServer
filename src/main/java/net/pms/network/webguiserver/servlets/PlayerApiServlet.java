@@ -582,7 +582,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<DLNAResource> libraryVideos = renderer.getRootFolder().getDLNAResources(librayFolder.getId(), true, 0, 6, renderer);
 
 		for (DLNAResource libraryVideo : libraryVideos) {
-			// Skip the #--TRANSCODE--#  and \#--LIVE SUBTITLES--\# entries - issue-fix-3669 
+			// Skip the #--TRANSCODE--# and \#--LIVE SUBTITLES--\# entries - issue-fix-3669
 			if (libraryVideo.resumeName().equals(Messages.getString("Transcode_FolderName")) || libraryVideo.resumeName().equals(Messages.getString("LiveSubtitles_FolderName"))) {
 				continue;
 			}
