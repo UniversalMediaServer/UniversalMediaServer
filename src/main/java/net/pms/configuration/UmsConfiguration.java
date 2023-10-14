@@ -740,7 +740,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		//keep ip_filter if it was presents
 		String oldIpFilter = getString("ip_filter", null);
 		if (StringUtils.isNotBlank(oldIpFilter)) {
-			configuration.setProperty(KEY_BLOCK_RENDERERS_BY_DEFAULT, true);
+			configuration.setProperty(KEY_BLOCK_NETWORK_DEVICES_BY_DEFAULT, true);
 			configuration.setProperty(KEY_NETWORK_DEVICES_FILTER, oldIpFilter);
 			configuration.clearProperty("ip_filter");
 		}
