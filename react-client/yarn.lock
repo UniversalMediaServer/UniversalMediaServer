@@ -3907,24 +3907,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:3.6.0":
-  version: 3.6.0
-  resolution: "@videojs/http-streaming@npm:3.6.0"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 4.0.0
-    aes-decrypter: 4.0.1
-    global: ^4.4.0
-    m3u8-parser: ^7.1.0
-    mpd-parser: ^1.2.2
-    mux.js: 7.0.0
-    video.js: ^7 || ^8
-  peerDependencies:
-    video.js: ^7 || ^8
-  checksum: fc6f75153602d9b1c53a4f6c6f6dcc6ad4d144569417576e30d6d2ba43f466d38e1eeef8bd9902ed209c0b82da978194031f3d17739accaa857315cd391f4ca8
-  languageName: node
-  linkType: hard
-
 "@videojs/vhs-utils@npm:4.0.0, @videojs/vhs-utils@npm:^4.0.0":
   version: 4.0.0
   resolution: "@videojs/vhs-utils@npm:4.0.0"
@@ -10272,7 +10254,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.1.1, mpd-parser@npm:^1.2.2":
+"mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.1.1":
   version: 1.2.2
   resolution: "mpd-parser@npm:1.2.2"
   dependencies:
@@ -14179,7 +14161,7 @@ __metadata:
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.2.2
-    video.js: 8.6.0
+    video.js: 8.5.2
     videojs-contrib-quality-levels: 4.0.0
     web-vitals: 3.4.0
   languageName: unknown
@@ -14463,12 +14445,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.6.0":
-  version: 8.6.0
-  resolution: "video.js@npm:8.6.0"
+"video.js@npm:8.5.2":
+  version: 8.5.2
+  resolution: "video.js@npm:8.5.2"
   dependencies:
     "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 3.6.0
+    "@videojs/http-streaming": 3.5.3
     "@videojs/vhs-utils": ^4.0.0
     "@videojs/xhr": 2.6.0
     aes-decrypter: ^4.0.1
@@ -14481,7 +14463,7 @@ __metadata:
     videojs-contrib-quality-levels: 4.0.0
     videojs-font: 4.1.0
     videojs-vtt.js: 0.15.5
-  checksum: de950f685ba584dfa76cb3cf2f1c18038bc7d6d0a06a50a50ee58af769c67f0abcdedbfb421e32be93557fd0b83d1239e9b2d8df1434b64f1a8d7bbc43ddd3ab
+  checksum: 2415cd7f08f1cff84c71d0a001455a0f489d9a554180f4cb408f5d83c5f0a32581ac10229b4d2990206ab49ce479f0e049c8627ee081330c55458eeed674bc0a
   languageName: node
   linkType: hard
 
