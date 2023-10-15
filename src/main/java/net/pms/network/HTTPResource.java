@@ -406,32 +406,16 @@ public abstract class HTTPResource {
 
 		if (!(isStreaming && media.getFirstAudioTrack().isHEAAC())) {
 			if (media == null || (media.getH264Profile() != null && media.getH264Profile().contains("high"))) {
-				orgPN += "_HP";
+				orgPN += "_HP_HD";
 			} else if (media.getH264Profile() != null && media.getH264Profile().contains("baseline")) {
 				orgPN += "_BL";
 			} else {
-				orgPN += "_MP";
+				orgPN += "_MP_SD";
 			}
-		}
-
-		if (media == null || media.isHDVideo() || media.getFirstAudioTrack().isHEAAC()) {
-			orgPN += "_HD";
-		} else {
-			orgPN += "_SD";
 		}
 
 		if (media != null && media.getFirstAudioTrack() != null) {
 			if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isAACLC()
-				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAAC()
-				)
-			) {
-				orgPN += "_AAC_MULT5";
-			} else if (
 				(
 					isStreaming &&
 					(
@@ -458,7 +442,7 @@ public abstract class HTTPResource {
 				isStreaming &&
 				media.getFirstAudioTrack().isHEAAC()
 			) {
-				orgPN += "_HEAACv2_L6";
+				orgPN += "_HD_HEAACv2_L6";
 			}
 		}
 
