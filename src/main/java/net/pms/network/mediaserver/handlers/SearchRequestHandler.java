@@ -42,6 +42,7 @@ import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.StoreResource;
 import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.BrowseResult;
 import org.jupnp.support.model.SortCriterion;
@@ -168,7 +169,9 @@ public class SearchRequestHandler {
 			dlnaItems.append(DidlHelper.getDidlString(uf));
 		}
 
-		return new BrowseResult(dlnaItems.toString(), numberReturned, totalMatches, updateID.getAndIncrement());
+		// Info: The engine using this method seems not to unescape to proper XML
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
+		return new BrowseResult(StringEscapeUtils.unescapeXml(response.toString()), numberReturned, totalMatches, updateID.getAndIncrement());
 	}
 
 	/**

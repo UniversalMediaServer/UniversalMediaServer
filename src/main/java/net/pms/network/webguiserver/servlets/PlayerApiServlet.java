@@ -71,6 +71,7 @@ import net.pms.store.StoreResource;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MediaLibraryTvSeries;
+import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.item.DVDISOTitle;
 import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
@@ -648,8 +649,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		List<StoreResource> libraryVideos = renderer.getMediaStore().getResources(librayFolder.getId(), true, 0, 6);
 
 		for (StoreResource libraryVideo : libraryVideos) {
-			// Skip the #--TRANSCODE--# entry
-			if (libraryVideo.getDisplayName().equals(Messages.getString("Transcode_FolderName"))) {
+			// Skip the #--TRANSCODE--# and \#--LIVE SUBTITLES--\# entries
+			if (libraryVideo.getSystemName().equals("LiveSubtitles_FolderName") || libraryVideo instanceof TranscodeVirtualFolder) {
 				continue;
 			}
 			jLibraryVideos.add(getMediaJsonObject(libraryVideo, lang));

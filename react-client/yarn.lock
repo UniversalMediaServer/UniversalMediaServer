@@ -3544,6 +3544,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@videojs/http-streaming@npm:3.7.0":
+  version: 3.7.0
+  resolution: "@videojs/http-streaming@npm:3.7.0"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    "@videojs/vhs-utils": 4.0.0
+    aes-decrypter: 4.0.1
+    global: ^4.4.0
+    m3u8-parser: ^7.1.0
+    mpd-parser: ^1.2.2
+    mux.js: 7.0.1
+    video.js: ^7 || ^8
+  peerDependencies:
+    video.js: ^7 || ^8
+  checksum: ea97db79841d08d9dba8db703dc9ccb45a85576662b54386a5b3a9c44248979ecf2e33fe2da25f22364a91105bdeb1df74c0d761e073568ccaaa2c94e6f56d00
+  languageName: node
+  linkType: hard
+
 "@videojs/vhs-utils@npm:4.0.0, @videojs/vhs-utils@npm:^4.0.0":
   version: 4.0.0
   resolution: "@videojs/vhs-utils@npm:4.0.0"
