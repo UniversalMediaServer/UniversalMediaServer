@@ -19,11 +19,14 @@ package net.pms.util;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
+import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebStream;
 import static net.pms.util.PlayerUtil.*;
+import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,7 +43,8 @@ public class PlayerUtilTest {
 	private static WebStream webAudio;
 
 	@BeforeAll
-	public static void setUpClass() {
+	public static void setUpClass() throws ConfigurationException, InterruptedException {
+		PMS.setConfiguration(new UmsConfiguration(false));
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
 		image = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.jpg"));

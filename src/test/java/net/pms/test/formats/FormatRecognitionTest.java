@@ -64,20 +64,16 @@ public class FormatRecognitionTest {
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
 		PMS.configureJNA();
 		PMS.forceHeadless();
-		try {
-			PMS.setConfiguration(new UmsConfiguration(false));
-		} catch (InterruptedException | ConfigurationException ex) {
-			throw new AssertionError(ex);
-		}
+
+		// Initialize the RendererConfiguration
+		configuration = new UmsConfiguration(false);
+		PMS.setConfiguration(configuration);
 		RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
 		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
-
-		// Initialize the RendererConfiguration
-		configuration = new UmsConfiguration(false);
 	}
 
 	/**
