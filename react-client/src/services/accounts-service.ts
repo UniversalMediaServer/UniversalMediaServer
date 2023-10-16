@@ -33,6 +33,7 @@ export const Permissions = {
   'application_shutdown': 1 << 21,
   'web_player_browse': 1 << 25,
   'web_player_download': 1 << 26,
+  'web_player_edit': 1 << 27,
   'all': -1
 };
 

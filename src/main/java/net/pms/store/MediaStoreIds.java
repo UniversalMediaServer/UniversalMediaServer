@@ -94,7 +94,7 @@ public class MediaStoreIds {
 		return mediaStoreIds;
 	}
 
-	public static void incrementUpdateIdForFileId(Connection connection, String filename) {
+	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
 		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForFilename(connection, filename);
 		for (Long id : ids) {
 			incrementUpdateId(connection, id);

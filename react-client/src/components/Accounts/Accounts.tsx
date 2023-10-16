@@ -405,6 +405,7 @@ const Accounts = () => {
           <Checkbox disabled={group.id < 2} label={i18n.get['ShutdownApplication']} checked={(permissions & Permissions.application_shutdown) === Permissions.application_shutdown} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.application_shutdown) : removePermission(Permissions.application_shutdown)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['BrowseWebPlayer']} checked={(permissions & Permissions.web_player_browse) === Permissions.web_player_browse} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.web_player_browse) : removePermission(Permissions.web_player_browse)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['DownloadWebPlayer']} checked={(permissions & Permissions.web_player_download) === Permissions.web_player_download} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.web_player_download) : removePermission(Permissions.web_player_download)} />
+          <Checkbox disabled={group.id < 2} label={i18n.get['EditMetadataWebPlayer']} checked={(permissions & Permissions.web_player_edit) === Permissions.web_player_edit} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.web_player_edit) : removePermission(Permissions.web_player_edit)} />
         </Stack>
         {group.id > 1 && (
           <Group justify='flex-end' mt='md'>

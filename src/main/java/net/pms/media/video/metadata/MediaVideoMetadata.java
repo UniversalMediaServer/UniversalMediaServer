@@ -17,7 +17,13 @@
 package net.pms.media.video.metadata;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.database.MediaTableVideoMetadataLocalized;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,20 +34,20 @@ import org.slf4j.LoggerFactory;
 public class MediaVideoMetadata {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaVideoMetadata.class);
 	private static final Gson GSON = new Gson();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * Metadata gathered from either the filename or our API.
 	 */
+	private Long fileId;
 	private String imdbID;
 	private String year;
-	private String tvShowName;
-	private String simplifiedTvShowName;
+	private String title;
+	private Long tvSeriesId;
 	private String tvSeason;
 	private String tvEpisodeNumber;
-	private String tvEpisodeName;
-	private String tvSeriesStartYear;
 	private String extraInformation;
-	private boolean isTVEpisode;
+	private boolean isTvEpisode;
 	/**
 	 * Metadata gathered from our API.
 	 */
@@ -73,6 +79,15 @@ public class MediaVideoMetadata {
 	private Long tmdbTvId;
 	private String version;
 	private String votes;
+	private Map<String, VideoMetadataLocalized> translations;
+
+	public Long getFileId() {
+		return fileId;
+	}
+
+	public void setFileId(Long value) {
+		this.fileId = value;
+	}
 
 	public String getIMDbID() {
 		return imdbID;
@@ -90,67 +105,86 @@ public class MediaVideoMetadata {
 		this.year = value;
 	}
 
-	public String getTVSeriesStartYear() {
-		return tvSeriesStartYear;
+	public String getTitle() {
+		return title;
 	}
 
-	public void setTVSeriesStartYear(String value) {
-		this.tvSeriesStartYear = value;
+	public void setTitle(String value) {
+		this.title = value;
 	}
 
-	public String getMovieOrShowName() {
-		return tvShowName;
+	public Long getTvSeriesId() {
+		return tvSeriesId;
 	}
 
-	public void setMovieOrShowName(String value) {
-		this.tvShowName = value;
+	public void setTvSeriesId(Long value) {
+		this.tvSeriesId = value;
 	}
 
-	public String getSimplifiedMovieOrShowName() {
-		return simplifiedTvShowName;
-	}
-
-	public void setSimplifiedMovieOrShowName(String value) {
-		this.simplifiedTvShowName = value;
-	}
-
-	public String getTVSeason() {
+	public String getTvSeason() {
 		return tvSeason;
 	}
 
-	public void setTVSeason(String value) {
+	public void setTvSeason(String value) {
 		this.tvSeason = value;
 	}
 
-	public String getTVEpisodeNumber() {
+	public String getTvEpisodeNumber() {
 		return tvEpisodeNumber;
 	}
 
-	public String getTVEpisodeNumberUnpadded() {
+	public String getTvEpisodeNumberUnpadded() {
 		if (StringUtils.isNotBlank(tvEpisodeNumber) && tvEpisodeNumber.length() > 1 && tvEpisodeNumber.startsWith("0")) {
 			return tvEpisodeNumber.substring(1);
 		}
 		return tvEpisodeNumber;
 	}
 
-	public void setTVEpisodeNumber(String value) {
+	public void setTvEpisodeNumber(String value) {
 		this.tvEpisodeNumber = value;
 	}
 
-	public String getTVEpisodeName() {
-		return tvEpisodeName;
+	public String getTvEpisodeName() {
+		if (isTvEpisode) {
+			return getTitle(null);
+		}
+		return null;
 	}
 
-	public void setTVEpisodeName(String value) {
-		this.tvEpisodeName = value;
+	public String getTvEpisodeName(String lang) {
+		if (isTvEpisode) {
+			return getTitle(lang);
+		}
+		return null;
 	}
 
-	public boolean isTVEpisode() {
-		return isTVEpisode;
+	public boolean isTvEpisode() {
+		return isTvEpisode;
 	}
 
-	public void setIsTVEpisode(boolean value) {
-		this.isTVEpisode = value;
+	public void setIsTvEpisode(boolean value) {
+		this.isTvEpisode = value;
+	}
+
+	public String getTvSeriesStartYear() {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getStartYear();
+		}
+		return null;
+	}
+
+	public String getTvSeriesTitle() {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getTitle(null);
+		}
+		return null;
+	}
+
+	public String getTvSeriesTitle(String lang) {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getTitle(lang);
+		}
+		return null;
 	}
 
 	/**
@@ -284,7 +318,7 @@ public class MediaVideoMetadata {
 	}
 
 	public String getHomepage() {
-		return homepage;
+		return getHomepage(null);
 	}
 
 	public void setHomepage(String value) {
@@ -325,7 +359,7 @@ public class MediaVideoMetadata {
 	}
 
 	public String getOverview() {
-		return overview;
+		return getOverview(null);
 	}
 
 	public void setOverview(String value) {
@@ -333,7 +367,7 @@ public class MediaVideoMetadata {
 	}
 
 	public String getPoster() {
-		return poster;
+		return getPoster(null);
 	}
 
 	public void setPoster(String value) {
@@ -440,7 +474,7 @@ public class MediaVideoMetadata {
 	}
 
 	public String getTagline() {
-		return tagline;
+		return getTagline(null);
 	}
 
 	public void setTagline(String value) {
@@ -477,6 +511,134 @@ public class MediaVideoMetadata {
 
 	public void setApiVersion(String value) {
 		this.version = value;
+	}
+
+	public String getMovieOrShowName() {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getTitle();
+		}
+		return title;
+	}
+
+	public String getMovieOrShowName(String lang) {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getTitle(lang);
+		}
+		return getTitle(lang);
+	}
+
+	public void setTranslations(Map<String, VideoMetadataLocalized> value) {
+		this.translations = value;
+	}
+
+	public void ensureHavingTranslation(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		if (lang != null && !"en-us".equals(lang) && !hasTranslation(lang) && fileId != null && fileId > -1) {
+			VideoMetadataLocalized loc;
+			if (isTvEpisode) {
+				loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(fileId, false, lang, imdbID, "tv_episode", tmdbTvId, tvSeason, tvEpisodeNumber);
+			} else {
+				loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(fileId, false, lang, imdbID, "movie", tmdbId, null, null);
+			}
+			if (loc != null) {
+				addTranslation(lang, loc);
+			}
+		}
+	}
+
+	private void addTranslation(String lang, VideoMetadataLocalized value) {
+		if (lang == null || value == null) {
+			return;
+		}
+		if (this.translations == null)  {
+			this.translations = new HashMap<>();
+		}
+		this.translations.put(lang.toLowerCase(), value);
+	}
+
+	private boolean hasTranslation(String lang) {
+		return this.translations != null && this.translations.containsKey(lang.toLowerCase());
+	}
+
+	private VideoMetadataLocalized getTranslation(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		if (hasTranslation(lang)) {
+			return this.translations.get(lang);
+		}
+		return null;
+	}
+
+	public String getHomepage(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getHomepage())) {
+			return translation.getHomepage();
+		}
+		return homepage;
+	}
+
+	public String getOverview(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getOverview())) {
+			return translation.getOverview();
+		}
+		return overview;
+	}
+
+	public String getPoster(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getPoster())) {
+			return translation.getPoster();
+		}
+		return poster;
+	}
+
+	public String getTagline(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getTagline())) {
+			return translation.getTagline();
+		}
+		return tagline;
+	}
+
+	public String getTitle(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getTitle())) {
+			return translation.getTitle();
+		}
+		return title;
+	}
+
+	public JsonObject asJsonObject(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		ensureHavingTranslation(lang);
+		JsonObject result = new JsonObject();
+		result.addProperty("imdbID", imdbID);
+		result.add("actors", GSON.toJsonTree(actors));
+		result.addProperty("awards", awards);
+		result.add("countries", GSON.toJsonTree(countries));
+		result.add("directors", GSON.toJsonTree(directors));
+		result.add("externalIDs", GSON.toJsonTree(externalIDs));
+		result.add("genres", GSON.toJsonTree(genres));
+		result.addProperty("homepage", getHomepage(lang));
+		result.add("images", GSON.toJsonTree(images));
+		result.addProperty("mediaType", isTvEpisode ? "tv_episode" : "movie");
+		result.addProperty("overview", getOverview(lang));
+		result.addProperty("poster", getPoster(lang));
+		result.addProperty("production", production);
+		result.addProperty("rated", rated);
+		result.addProperty("rating", rating);
+		result.add("ratings", GSON.toJsonTree(ratings));
+		result.addProperty("released", released);
+		result.addProperty("tagline", getTagline(lang));
+		result.addProperty("tmdbID", tmdbId);
+		result.addProperty("tmdbTvID", tmdbTvId);
+		result.addProperty("tvEpisode", tvEpisodeNumber);
+		result.addProperty("tvSeason", tvSeason);
+		result.addProperty("votes", votes);
+		if (isTvEpisode && seriesMetadata != null) {
+			result.add("seriesImages", GSON.toJsonTree(seriesMetadata.getImages()));
+		}
+		return result;
 	}
 
 }

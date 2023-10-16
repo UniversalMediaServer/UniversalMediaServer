@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
 		To build UMS, do:
@@ -105,7 +105,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.15.2</jackson.version>
+		<jackson.version>2.15.3</jackson.version>
 
 		<surefire-version>3.1.2</surefire-version>
 
@@ -119,10 +119,10 @@
 		<jna-version>5.13.0</jna-version>
 
 		<!--
-			 use the Windows makensis.exe for Windows builds unless
-			 the system makensis is explicitly selected via the
-			 system-makensis profile
-		 -->
+			use the Windows makensis.exe for Windows builds unless
+			the system makensis is explicitly selected via the
+			system-makensis profile
+		-->
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.0</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
@@ -145,10 +145,10 @@
 			<version>${slf4j-api-version}</version>
 		</dependency>
 		<dependency>
-		    <groupId>com.auth0</groupId>
-		    <artifactId>java-jwt</artifactId>
-		    <version>4.4.0</version>
-		    <exclusions>
+			<groupId>com.auth0</groupId>
+			<artifactId>java-jwt</artifactId>
+			<version>4.4.0</version>
+			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
 					<artifactId>jackson-databind</artifactId>
@@ -279,9 +279,9 @@
 		</dependency>
 
 		<!--
-			If any ImageIO plugins are added or removed, corresponding changes
-		 	must be made in src/main/external-resources/META-INF/services
-		 -->
+		   If any ImageIO plugins are added or removed, corresponding changes
+		   must be made in src/main/external-resources/META-INF/services
+		-->
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
@@ -1057,7 +1057,7 @@
 									<target>
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
@@ -1381,7 +1381,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1528,7 +1528,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1675,7 +1675,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1830,7 +1830,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1985,7 +1985,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2148,15 +2148,15 @@
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
 										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+											  failonerror="true"
+											  outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2392,15 +2392,15 @@
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
 										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+											  failonerror="true"
+											  outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 5946207 from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2632,15 +2632,15 @@
 									<target name="bundle">
 										<!-- Obtain path to the selected JRE -->
 										<exec executable="/usr/libexec/java_home"
-													failonerror="true"
-													outputproperty="runtime">
+											  failonerror="true"
+											  outputproperty="runtime">
 											<arg value="-v"/>
 											<arg value="${project.jre-version}"/>
 										</exec>
 
 										<!-- This appbundler version is 12422ee from https://github.com/TheInfiniteKind/appbundler -->
 										<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask"
-											classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
+												 classpath="${basedir}/src/main/external-resources/osx/appbundler-1.0ea.jar"/>
 										<bundleapp 
 											jrePreferred="true"
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
@@ -2784,7 +2784,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3019,7 +3019,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3165,7 +3165,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-													tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3310,7 +3310,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
+											  tofile="/Applications/Universal Media Server.app/Contents/Java/${project.artifactId}-${project.version}-jar-with-dependencies.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3437,7 +3437,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>

@@ -88,6 +88,7 @@ public class MediaInfo implements Cloneable {
 	 */
 	private Integer dvdtrack;
 
+	private long lastExternalLookup = 0;
 	private final Object parsingLock = new Object();
 	private boolean parsing = false;
 
@@ -649,6 +650,14 @@ public class MediaInfo implements Cloneable {
 		}
 	}
 
+	public long getLastExternalLookup() {
+		return lastExternalLookup;
+	}
+
+	public void setLastExternalLookup(long lastExternalLookup) {
+		this.lastExternalLookup = lastExternalLookup;
+	}
+
 	/**
 	 * @return the height
 	 */
@@ -791,14 +800,14 @@ public class MediaInfo implements Cloneable {
 				if (StringUtils.isNotBlank(videoMetadata.getYear())) {
 					result.append(", Year: ").append(videoMetadata.getYear());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getMovieOrShowName())) {
-					result.append(", Movie/TV series name: ").append(videoMetadata.getMovieOrShowName());
+				if (StringUtils.isNotBlank(videoMetadata.getTitle())) {
+					result.append(", Movie/TV series name: ").append(videoMetadata.getTitle());
 				}
-				if (videoMetadata.isTVEpisode()) {
-					result.append(", TV season: ").append(videoMetadata.getTVSeason());
-					result.append(", TV episode number: ").append(videoMetadata.getTVEpisodeNumber());
-					if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeName())) {
-						result.append(", TV episode name: ").append(videoMetadata.getTVEpisodeName());
+				if (videoMetadata.isTvEpisode()) {
+					result.append(", TV season: ").append(videoMetadata.getTvSeason());
+					result.append(", TV episode number: ").append(videoMetadata.getTvEpisodeNumber());
+					if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeName())) {
+						result.append(", TV episode name: ").append(videoMetadata.getTvEpisodeName());
 					}
 				}
 			}

@@ -35,7 +35,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableSubtracks;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
@@ -145,6 +145,7 @@ public abstract class StoreItem extends StoreResource {
 	protected StoreItem(Renderer renderer, int specificType) {
 		super(renderer);
 		this.specificType = specificType;
+		this.isSortableByDisplayName = true;
 	}
 
 	@Override
@@ -1172,6 +1173,10 @@ public abstract class StoreItem extends StoreResource {
 		return resumeStr(getDisplayName());
 	}
 
+	public String getLocalizedResumeName(String lang) {
+		return resumeStr(getLocalizedDisplayName(lang));
+	}
+
 	public long getStartTime() {
 		return startTime;
 	}
@@ -1487,9 +1492,9 @@ public abstract class StoreItem extends StoreResource {
 			}
 
 			if (!renderer.getUmsConfiguration().isDisableSubtitles() && renderer.getUmsConfiguration().isAutoloadExternalSubtitles()) {
-				SubtitleUtils.searchAndAttachExternalSubtitles(file, mediaInfo, forceRefresh);
+				boolean changed = SubtitleUtils.searchAndAttachExternalSubtitles(file, mediaInfo, forceRefresh);
 				// update the database if enabled
-				if (mediaInfo.isMediaParsed() && !mediaInfo.isParsing()) {
+				if (changed && mediaInfo.isMediaParsed() && !mediaInfo.isParsing()) {
 					Connection connection = null;
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
@@ -1499,7 +1504,7 @@ public abstract class StoreItem extends StoreResource {
 							if (currentAutoCommit) {
 								connection.setAutoCommit(false);
 							}
-							MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), getType(), mediaInfo);
+							MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, mediaInfo.getFileId(), mediaInfo);
 							if (currentAutoCommit) {
 								connection.commit();
 								connection.setAutoCommit(true);

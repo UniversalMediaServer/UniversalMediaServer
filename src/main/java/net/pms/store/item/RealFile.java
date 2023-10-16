@@ -33,6 +33,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -61,10 +62,12 @@ public class RealFile extends StoreItem {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	private final Object displayNameBaseLock = new Object();
+	private String lang;
+	private volatile String baseNamePrettified;
+
 	private final File file;
 	private boolean addToMediaLibrary = true;
 	private String name;
-	private volatile String baseNamePrettified;
 	private volatile String baseNameWithoutExtension;
 	private int splitTrack;
 
@@ -77,16 +80,6 @@ public class RealFile extends StoreItem {
 		this.file = file;
 		this.name = name;
 		setLastModified(file.lastModified());
-	}
-
-	public RealFile(Renderer renderer, File file, boolean isEpisodeWithinSeasonFolder) {
-		this(renderer, file, null);
-		setIsEpisodeWithinSeasonFolder(isEpisodeWithinSeasonFolder);
-	}
-
-	public RealFile(Renderer renderer, File file, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
-		this(renderer, file, isEpisodeWithinSeasonFolder);
-		setIsEpisodeWithinTVSeriesFolder(isEpisodeWithinTVSeriesFolder);
 	}
 
 	@Override
@@ -363,6 +356,24 @@ public class RealFile extends StoreItem {
 		return name.replaceAll("_imdb([^_]+)_", "");
 	}
 
+	/**
+	 * Returns the localized display name.
+	 *
+	 * @return The localized display name.
+	 */
+	@Override
+	public String getLocalizedDisplayName(String lang) {
+		synchronized (displayNameBaseLock) {
+			lang = CONFIGURATION.getTranslationLanguage(lang);
+			if (lang != null && !lang.equals(this.lang) || this.lang != null) {
+				//language changed
+				this.lang = lang;
+				baseNamePrettified = null;
+			}
+		}
+		return getDisplayName();
+	}
+
 	@Override
 	public String getDisplayNameBase() {
 		if (getParent() instanceof OpenSubtitleFolder && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
@@ -380,13 +391,18 @@ public class RealFile extends StoreItem {
 		return super.getDisplayNameBase();
 	}
 
-	private String getBaseNamePrettified() {
+	protected String getBaseNamePrettified(boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder) {
 		synchronized (displayNameBaseLock) {
 			if (baseNamePrettified == null) {
-				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), getMediaInfo(), isEpisodeWithinSeasonFolder(), isEpisodeWithinTVSeriesFolder(), getFile().getAbsolutePath());
+				MediaVideoMetadata videoMetadata = getMediaInfo() != null ? getMediaInfo().getVideoMetadata() : null;
+				baseNamePrettified = FileUtil.getFileNamePrettified(super.getDisplayNameBase(), videoMetadata, isEpisodeWithinSeasonFolder, isEpisodeWithinTVSeriesFolder, file.getAbsolutePath(), lang);
 			}
 			return baseNamePrettified;
 		}
+	}
+
+	protected String getBaseNamePrettified() {
+		return getBaseNamePrettified(false, false);
 	}
 
 	private String getBaseNameWithoutExtension() {

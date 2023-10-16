@@ -20,6 +20,7 @@ import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableRegexpRules;
+import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.database.MediaTableVideotracks;
 import net.pms.renderers.Renderer;
@@ -54,8 +55,8 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"TvShows",
 			new String[]{
-				SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + FROM_FILES_STATUS_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + ASC,
-				SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
+				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
@@ -83,8 +84,8 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"TvShows",
 			new String[]{
-				SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + ASC,
-				SELECT + "*" + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAME + EQUAL + "'${0}'" + ORDER_BY + "TVSEASON, TVEPISODENUMBER"
+				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
+				SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
@@ -115,7 +116,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
 			renderer,
 			"RecentlyAdded",
-			new String[]{SELECT + "*" + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
+			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
 			new int[]{FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(

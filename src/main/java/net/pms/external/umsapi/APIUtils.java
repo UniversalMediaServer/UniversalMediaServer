@@ -21,7 +21,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 import java.io.BufferedReader;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,8 +50,6 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.gui.GuiManager;
-import net.pms.image.ImageFormat;
-import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.ApiRatingSource;
 import net.pms.media.video.metadata.ApiRatingSourceArray;
@@ -66,7 +63,6 @@ import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
 import net.pms.util.SimpleThreadFactory;
-import net.pms.util.UnknownFormatException;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -320,9 +316,9 @@ public class APIUtils {
 				String year                        = videoMetadata.getYear();
 				String titleFromFilename           = videoMetadata.getMovieOrShowName();
 				String titleSimplifiedFromFilename = FileUtil.getSimplifiedShowName(titleFromFilename);
-				String tvSeasonFromFilename        = videoMetadata.getTVSeason();
-				String tvEpisodeNumberFromFilename = videoMetadata.getTVEpisodeNumber();
-				String tvSeriesStartYear           = videoMetadata.getTVSeriesStartYear();
+				String tvSeasonFromFilename        = videoMetadata.getTvSeason();
+				String tvEpisodeNumberFromFilename = videoMetadata.getTvEpisodeNumber();
+				String tvSeriesStartYear           = videoMetadata.getTvSeriesStartYear();
 
 				// unset tvSeriesStartYear if it is NOT in the title because it must have come from the API earlier and will mess up the matching logic
 				// todo: use better matching logic
@@ -333,11 +329,11 @@ public class APIUtils {
 					}
 				}
 
-				boolean isTVEpisode = videoMetadata.isTVEpisode();
+				boolean isTVEpisode = videoMetadata.isTvEpisode();
 
 				try {
 					if (isTVEpisode) {
-						metadataFromAPI = getAPIMetadata(file, titleFromFilename, tvSeriesStartYear, tvSeasonFromFilename, videoMetadata.getTVEpisodeNumberUnpadded());
+						metadataFromAPI = getAPIMetadata(file, titleFromFilename, tvSeriesStartYear, tvSeasonFromFilename, videoMetadata.getTvEpisodeNumberUnpadded());
 					} else {
 						metadataFromAPI = getAPIMetadata(file, titleFromFilename, year, null, null);
 					}
@@ -348,7 +344,7 @@ public class APIUtils {
 
 						// File lookup failed, but before we return, attempt to enhance TV series data
 						if (isTVEpisode) {
-							setTVSeriesInfo(connection, null, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
+							setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, null, null);
 						}
 
 						exitLookupAndAddMetadata(connection);
@@ -368,13 +364,7 @@ public class APIUtils {
 				boolean isTVEpisodeFromAPI = isNotBlank(typeFromAPI) && typeFromAPI.equals("episode");
 
 				// At this point, this is the episode title if it is an episode
-				String titleFromAPI = null;
-				String tvEpisodeTitleFromAPI = null;
-				if (isTVEpisodeFromAPI) {
-					tvEpisodeTitleFromAPI = getStringOrNull(metadataFromAPI, "title");
-				} else {
-					titleFromAPI = getStringOrNull(metadataFromAPI, "title");
-				}
+				String titleFromAPI = getStringOrNull(metadataFromAPI, "title");
 
 				String tvSeasonFromAPI = getStringOrNull(metadataFromAPI, "season");
 				String tvEpisodeNumberFromAPI = getStringOrNull(metadataFromAPI, "episode");
@@ -382,6 +372,7 @@ public class APIUtils {
 					tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
 				}
 				String seriesIMDbIDFromAPI = getStringOrNull(metadataFromAPI, "seriesIMDbID");
+				Long tmdbTvIDFromAPI = getLongOrNull(metadataFromAPI, "tmdbTvID");
 
 				/**
 				 * Only continue if the API returned a result that agrees with our filename.
@@ -403,7 +394,7 @@ public class APIUtils {
 							isBlank(tvEpisodeNumberFromFilename) ||
 							isBlank(tvEpisodeNumberFromAPI) ||
 							!tvEpisodeNumberFromFilename.startsWith(tvEpisodeNumberFromAPI) ||
-							isBlank(seriesIMDbIDFromAPI)
+							(isBlank(seriesIMDbIDFromAPI) && tmdbTvIDFromAPI == null)
 						)
 					) ||
 					(
@@ -423,7 +414,7 @@ public class APIUtils {
 
 					// Before we return, attempt to enhance TV series data
 					if (isTVEpisode) {
-						setTVSeriesInfo(connection, null, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
+						setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, null, null);
 					}
 
 					exitLookupAndAddMetadata(connection);
@@ -432,35 +423,33 @@ public class APIUtils {
 
 				LOGGER.trace("API data matches filename data for " + file.getName());
 
-				// Now that we are happy with the API data, let's make some clearer variables
-				String title = null;
-				String tvEpisodeNumber = tvEpisodeNumberFromAPI;
-				String tvEpisodeTitle  = tvEpisodeTitleFromAPI;
-				String tvSeason        = tvSeasonFromAPI;
-				year                   = yearFromAPI;
-
 				if (isTVEpisode) {
-					String titleFromDatabase = setTVSeriesInfo(connection, seriesIMDbIDFromAPI, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media);
-					if (titleFromDatabase != null) {
-						title = titleFromDatabase;
+					Long tvSeriesId = setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
+					videoMetadata.setTvSeriesId(tvSeriesId);
+					TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+					if (isNotBlank(titleFromAPI)) {
+						LOGGER.trace("Setting episode name from api: " + titleFromAPI);
+						videoMetadata.setTitle(titleFromAPI);
 					}
+					videoMetadata.setTmdbTvId(tvSeriesMetadata.getTmdbId());
+					videoMetadata.setTvSeason(tvSeasonFromAPI);
+					videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromAPI);
+					videoMetadata.setIsTvEpisode(true);
 				} else {
-					title = isNotBlank(titleFromAPI) ? titleFromAPI : titleFromFilename;
+					String title = isNotBlank(titleFromAPI) ? titleFromAPI : titleFromFilename;
+					videoMetadata.setTitle(title);
 				}
 
-				if (isBlank(title)) {
-					title = titleFromFilename;
+				videoMetadata.setYear(yearFromAPI);
+
+				if (metadataFromAPI.has("tmdbID")) {
+					videoMetadata.setTmdbId(metadataFromAPI.get("tmdbID").getAsLong());
 				}
-				String titleSimplified = FileUtil.getSimplifiedShowName(title);
-
-				videoMetadata.setMovieOrShowName(title);
-				videoMetadata.setSimplifiedMovieOrShowName(titleSimplified);
-				videoMetadata.setYear(year);
-
 				videoMetadata.setIMDbID(getStringOrNull(metadataFromAPI, "imdbID"));
-				if (videoMetadata.getIMDbID() == null) {
-					LOGGER.debug("API data does not contain IMDb ID, storing the API data but do not retry now.");
-					MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "IMDbID missing", true);
+				if (videoMetadata.getIMDbID() == null && videoMetadata.getTmdbId() == null) {
+					LOGGER.debug("API data does not contain IMDb/tmdb ID, storing the API data but do not retry now.");
+					MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "IMDbID/tmdbId missing", true);
 				}
 
 				// Set the poster as the thumbnail
@@ -472,23 +461,13 @@ public class APIUtils {
 					videoMetadata.setPoster(posterFromApi);
 					media.waitMediaParsing(5);
 					media.setParsing(true);
-					DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
+					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
 					if (thumbnail != null) {
 						Long thumbnailId = ThumbnailStore.getId(thumbnail);
 						media.setThumbnailSource(ThumbnailSource.TMDB);
 						media.setThumbnailId(thumbnailId);
 					}
 					media.setParsing(false);
-				}
-				if (isTVEpisode) {
-					videoMetadata.setTVSeason(tvSeason);
-					videoMetadata.setTVEpisodeNumber(tvEpisodeNumber);
-					if (isNotBlank(tvEpisodeTitle)) {
-						LOGGER.trace("Setting episode name from api: " + tvEpisodeTitle);
-						videoMetadata.setTVEpisodeName(tvEpisodeTitle);
-					}
-
-					videoMetadata.setIsTVEpisode(true);
 				}
 				if (metadataFromAPI.has("actors")) {
 					videoMetadata.setActors(getApiStringArrayFromJsonElement(metadataFromAPI.get("actors")));
@@ -546,7 +525,7 @@ public class APIUtils {
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, true);
 
 				//let store know that we change media metadata
-				MediaStoreIds.incrementUpdateIdForFileId(connection, file.getAbsolutePath());
+				MediaStoreIds.incrementUpdateIdForFilename(connection, file.getAbsolutePath());
 				exitLookupAndAddMetadata(connection);
 			} catch (SQLException ex) {
 				LOGGER.trace("Error in API parsing:", ex);
@@ -594,216 +573,205 @@ public class APIUtils {
 	 * FILES table.
 	 *
 	 * @param connection
-	 * @param seriesIMDbIDFromAPI
 	 * @param titleFromFilename
 	 * @param startYear
 	 * @param titleSimplifiedFromFilename
 	 * @param file
 	 * @param media
-	 * @return the title of the series.
+	 * @param seriesIMDbIDFromAPI
+	 * @param tmdbTvIDFromAPI
+	 * @return the tvSeriesId of the series.
 	 */
-	private static String setTVSeriesInfo(final Connection connection, String seriesIMDbIDFromAPI, String titleFromFilename, String startYear, String titleSimplifiedFromFilename, File file, MediaInfo media) {
-		String title = null;
-		String titleSimplified;
-
-		String failedLookupKey = titleSimplifiedFromFilename;
-		if (seriesIMDbIDFromAPI != null) {
-			failedLookupKey += seriesIMDbIDFromAPI;
-		}
-
+	private static Long setTVSeriesInfo(final Connection connection, String titleFromFilename, String startYear, String titleSimplifiedFromFilename, File file, MediaInfo media, String seriesIMDbIDFromAPI, Long tmdbTvIDFromAPI) {
 		/*
-		 * Get the TV series title from our database, or from our API if it's not
+		 * Get the TV series metadata from our database, or from our API if it's not
 		 * in our database yet, and persist it to our database.
 		 */
 		try {
-			if (seriesIMDbIDFromAPI != null) {
-				title = MediaTableTVSeries.getTitleByIMDbID(connection, seriesIMDbIDFromAPI);
+			TvSeriesMetadata tvSeriesMetadata = null;
+			if (tmdbTvIDFromAPI != null) {
+				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromTmdbId(connection, tmdbTvIDFromAPI);
+			}
+			if (tvSeriesMetadata == null && seriesIMDbIDFromAPI != null) {
+				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromImdbId(connection, seriesIMDbIDFromAPI);
 			}
 
-			if (title != null) {
-				LOGGER.trace("TV series with API data already found in database {}", title);
-				return title;
-			}
+			if (tvSeriesMetadata != null) {
+				LOGGER.trace("TV series with API data already found in database {}", tvSeriesMetadata.getTitle());
+			} else {
+				/*
+				 * This either means there is no entry in the TV Series table for this series, or
+				 * there is but it only contains filename info - not API yet.
+				 */
+				LOGGER.trace("API metadata for TV series {} (IMDb ID: {}, tmdbId: {}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
 
-			/*
-			 * This either means there is no entry in the TV Series table for this series, or
-			 * there is but it only contains filename info - not API yet.
-			 */
-			LOGGER.trace("API metadata for TV series {} (IMDb ID: {}) does not already exist in the database", titleFromFilename, seriesIMDbIDFromAPI);
-
-			// Start by checking if we have already failed this lookup recently
-			if (MediaTableFailedLookups.hasLookupFailedRecently(connection, failedLookupKey, false)) {
-				return null;
-			}
-
-			JsonObject seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, startYear);
-			if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.has("statusCode")) {
-				if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.has("statusCode") && "500".equals(seriesMetadataFromAPI.get("statusCode").getAsString())) {
-					LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
-				} else {
-					LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
-					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "No API result - expected ", false);
+				String failedLookupKey = titleSimplifiedFromFilename;
+				if (seriesIMDbIDFromAPI != null) {
+					failedLookupKey += seriesIMDbIDFromAPI;
 				}
-				return null;
-			}
-
-			title = getStringOrNull(seriesMetadataFromAPI, "title");
-			if (isNotBlank(startYear)) {
-				title += " (" + startYear + ")";
-			}
-			titleSimplified = FileUtil.getSimplifiedShowName(title);
-			String typeFromAPI = getStringOrNull(seriesMetadataFromAPI, "type");
-			boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
-
-			String validationFailedPrepend = "not storing the series API lookup result because ";
-			// Only continue if the simplified titles match
-			if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
-				LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
-				MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
-				return null;
-			} else if (!isSeriesFromAPI) {
-				LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
-				MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
-				return null;
-			}
-
-			/*
-			 * Now we have an API result for the TV series, we need to see whether
-			 * to insert it or update existing data, so we attempt to find or
-			 * create an entry based on the title.
-			 */
-			Long tvSeriesId = MediaTableTVSeries.set(connection, title);
-			if (tvSeriesId == null) {
-				LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
-				return null;
-			}
-
-			// Restore the startYear appended to the title if it is in the filename
-			if (isNotBlank(startYear)) {
-				String titleFromAPI = getStringOrNull(seriesMetadataFromAPI, "title") + " (" + startYear + ")";
-				seriesMetadataFromAPI.remove("title");
-				seriesMetadataFromAPI.addProperty("title", titleFromAPI);
-			}
-			String posterFromApi = getPosterUrlFromApiInfo(
-				getStringOrNull(seriesMetadataFromAPI, "poster"),
-				getStringOrNull(seriesMetadataFromAPI, "posterRelativePath")
-			);
-
-			//create the TvSeriesMetadata
-			TvSeriesMetadata seriesMetadata = new TvSeriesMetadata();
-			seriesMetadata.setActors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("actors")));
-			seriesMetadata.setApiVersion(getApiDataSeriesVersion());
-			seriesMetadata.setAwards(getStringOrNull(seriesMetadataFromAPI, "awards"));
-			seriesMetadata.setCountries(getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")));
-			if (seriesMetadataFromAPI.has("createdBy")) {
-				seriesMetadata.setCreatedBy(seriesMetadataFromAPI.get("createdBy").toString());
-			}
-			if (seriesMetadataFromAPI.has("credits")) {
-				seriesMetadata.setCredits(seriesMetadataFromAPI.get("credits").toString());
-			}
-			seriesMetadata.setDirectors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")));
-			seriesMetadata.setEndYear(getStringOrNull(seriesMetadataFromAPI, "endYear"));
-			if (seriesMetadataFromAPI.has("externalIDs")) {
-				seriesMetadata.setExternalIDs(seriesMetadataFromAPI.get("externalIDs").toString());
-			}
-			seriesMetadata.setFirstAirDate(getStringOrNull(seriesMetadataFromAPI, "firstAirDate"));
-			seriesMetadata.setGenres(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("genres")));
-			seriesMetadata.setHomepage(getStringOrNull(seriesMetadataFromAPI, "homepage"));
-			if (seriesMetadataFromAPI.has("images")) {
-				seriesMetadata.setImages(seriesMetadataFromAPI.get("images").toString());
-			}
-			seriesMetadata.setIMDbID(getStringOrNull(seriesMetadataFromAPI, "imdbID"));
-			if (seriesMetadataFromAPI.has("inProduction")) {
-				seriesMetadata.setInProduction(seriesMetadataFromAPI.get("inProduction").getAsBoolean());
-			}
-			seriesMetadata.setLanguages(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("languages")));
-			seriesMetadata.setLastAirDate(getStringOrNull(seriesMetadataFromAPI, "lastAirDate"));
-			if (seriesMetadataFromAPI.has("networks")) {
-				seriesMetadata.setNetworks(seriesMetadataFromAPI.get("networks").toString());
-			}
-			if (seriesMetadataFromAPI.has("numberOfEpisodes")  && seriesMetadataFromAPI.get("numberOfEpisodes").isJsonPrimitive()) {
-				seriesMetadata.setNumberOfEpisodes(seriesMetadataFromAPI.get("numberOfEpisodes").getAsDouble());
-			}
-			if (seriesMetadataFromAPI.has("numberOfSeasons")  && seriesMetadataFromAPI.get("numberOfSeasons").isJsonPrimitive()) {
-				seriesMetadata.setNumberOfSeasons(seriesMetadataFromAPI.get("numberOfSeasons").getAsDouble());
-			}
-			seriesMetadata.setOriginCountry(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("originCountry")));
-			seriesMetadata.setOriginalLanguage(getStringOrNull(seriesMetadataFromAPI, "originalLanguage"));
-			seriesMetadata.setOriginalTitle(getStringOrNull(seriesMetadataFromAPI, "originalTitle"));
-
-			seriesMetadata.setOverview(getStringOrNull(seriesMetadataFromAPI, "plot"));
-			seriesMetadata.setPoster(posterFromApi);
-			seriesMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
-			if (seriesMetadataFromAPI.has("productionCompanies")) {
-				seriesMetadata.setProductionCompanies(seriesMetadataFromAPI.get("productionCompanies").toString());
-			}
-			if (seriesMetadataFromAPI.has("productionCountries")) {
-				seriesMetadata.setProductionCountries(seriesMetadataFromAPI.get("productionCountries").toString());
-			}
-			seriesMetadata.setRated(getStringOrNull(seriesMetadataFromAPI, "rated"));
-			if (seriesMetadataFromAPI.has("rating")  && seriesMetadataFromAPI.get("rating").isJsonPrimitive()) {
-				Double rating = seriesMetadataFromAPI.get("rating").getAsDouble();
-				if (rating != 0) {
-					seriesMetadata.setRating(Double.toString(rating));
+				if (tmdbTvIDFromAPI != null) {
+					failedLookupKey += tmdbTvIDFromAPI;
 				}
-			}
-			seriesMetadata.setRatings(getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")));
-			seriesMetadata.setReleased(getStringOrNull(seriesMetadataFromAPI, "released"));
-			if (seriesMetadataFromAPI.has("seasons")) {
-				seriesMetadata.setSeasons(seriesMetadataFromAPI.get("seasons").toString());
-			}
-			seriesMetadata.setSeriesType(getStringOrNull(seriesMetadataFromAPI, "seriesType"));
-			if (seriesMetadataFromAPI.has("spokenLanguages")) {
-				seriesMetadata.setSpokenLanguages(seriesMetadataFromAPI.get("spokenLanguages").toString());
-			}
-			seriesMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
-			seriesMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
-			seriesMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
-			if (seriesMetadataFromAPI.has("tmdbID")) {
-				seriesMetadata.setTmdbId(seriesMetadataFromAPI.get("tmdbID").getAsLong());
-			}
-			seriesMetadata.setTitle(getStringOrNull(seriesMetadataFromAPI, "title"));
-			if (seriesMetadataFromAPI.has("totalSeasons")  && seriesMetadataFromAPI.get("totalSeasons").isJsonPrimitive()) {
-				seriesMetadata.setTotalSeasons(seriesMetadataFromAPI.get("totalSeasons").getAsDouble());
-			}
-			seriesMetadata.setVotes(getStringOrNull(seriesMetadataFromAPI, "votes"));
-
-			//Create/Update Thumbnail
-			if (posterFromApi != null) {
-				DLNAThumbnail thumbnail = getThumbnailFromUri(posterFromApi);
-				if (thumbnail != null) {
-					Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
-					seriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
-					seriesMetadata.setThumbnailId(thumbnailId);
+				// Start by checking if we have already failed this lookup recently
+				if (MediaTableFailedLookups.hasLookupFailedRecently(connection, failedLookupKey, false)) {
+					return null;
 				}
-			}
 
-			MediaTableTVSeries.updateAPIMetadata(connection, seriesMetadata, tvSeriesId);
-
-			// Replace any close-but-not-exact titles in the FILES table
-			if (
-				titleFromFilename != null &&
-				titleSimplifiedFromFilename != null &&
-				!title.equals(titleFromFilename) &&
-				titleSimplified.equals(titleSimplifiedFromFilename)
-			) {
-				LOGGER.trace("Converting rows in FILES table with the show name " + titleFromFilename + " to " + title);
-				MediaTableVideoMetadata.updateMovieOrShowName(connection, titleFromFilename, title);
-				if (media.hasVideoMetadata()) {
-					media.getVideoMetadata().setMovieOrShowName(title);
+				JsonObject seriesMetadataFromAPI = getTVSeriesInfo(titleFromFilename, seriesIMDbIDFromAPI, startYear);
+				if (seriesMetadataFromAPI == null || seriesMetadataFromAPI.has("statusCode")) {
+					if (seriesMetadataFromAPI != null && seriesMetadataFromAPI.has("statusCode") && "500".equals(seriesMetadataFromAPI.get("statusCode").getAsString())) {
+						LOGGER.debug("Got a 500 error while looking for TV series with title {} and IMDb API {}", titleFromFilename, seriesIMDbIDFromAPI);
+					} else {
+						LOGGER.trace("Did not find matching series for the episode in our API for {}", file.getName());
+						MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "No API result - expected ", false);
+					}
+					return null;
 				}
+
+				String title = getStringOrNull(seriesMetadataFromAPI, "title");
+				if (isNotBlank(startYear)) {
+					title += " (" + startYear + ")";
+				}
+				String titleSimplified = FileUtil.getSimplifiedShowName(title);
+				String typeFromAPI = getStringOrNull(seriesMetadataFromAPI, "type");
+				boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
+
+				String validationFailedPrepend = "not storing the series API lookup result because ";
+				// Only continue if the simplified titles match
+				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
+					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
+					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
+					return null;
+				} else if (!isSeriesFromAPI) {
+					LOGGER.debug(validationFailedPrepend + "we received a non-series from API");
+					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Type mismatch - expected series but got " + typeFromAPI, false);
+					return null;
+				}
+
+				/*
+				 * Now we have an API result for the TV series, we need to see whether
+				 * to insert it or update existing data, so we attempt to find or
+				 * create an entry based on the title.
+				 */
+				Long tvSeriesId = MediaTableTVSeries.set(connection, title);
+				if (tvSeriesId == null) {
+					LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
+					return null;
+				}
+
+				// Restore the startYear appended to the title if it is in the filename
+				if (isNotBlank(startYear)) {
+					String titleFromAPI = getStringOrNull(seriesMetadataFromAPI, "title") + " (" + startYear + ")";
+					seriesMetadataFromAPI.remove("title");
+					seriesMetadataFromAPI.addProperty("title", titleFromAPI);
+				}
+				String posterFromApi = getPosterUrlFromApiInfo(
+					getStringOrNull(seriesMetadataFromAPI, "poster"),
+					getStringOrNull(seriesMetadataFromAPI, "posterRelativePath")
+				);
+
+				//create the TvSeriesMetadata
+				tvSeriesMetadata = new TvSeriesMetadata();
+				tvSeriesMetadata.setActors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("actors")));
+				tvSeriesMetadata.setApiVersion(getApiDataSeriesVersion());
+				tvSeriesMetadata.setAwards(getStringOrNull(seriesMetadataFromAPI, "awards"));
+				tvSeriesMetadata.setCountries(getCountriesFromJsonElement(seriesMetadataFromAPI.get("country")));
+				if (seriesMetadataFromAPI.has("createdBy")) {
+					tvSeriesMetadata.setCreatedBy(seriesMetadataFromAPI.get("createdBy").toString());
+				}
+				if (seriesMetadataFromAPI.has("credits")) {
+					tvSeriesMetadata.setCredits(seriesMetadataFromAPI.get("credits").toString());
+				}
+				tvSeriesMetadata.setDirectors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")));
+				tvSeriesMetadata.setEndYear(getStringOrNull(seriesMetadataFromAPI, "endYear"));
+				if (seriesMetadataFromAPI.has("externalIDs")) {
+					tvSeriesMetadata.setExternalIDs(seriesMetadataFromAPI.get("externalIDs").toString());
+				}
+				tvSeriesMetadata.setFirstAirDate(getStringOrNull(seriesMetadataFromAPI, "firstAirDate"));
+				tvSeriesMetadata.setGenres(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("genres")));
+				tvSeriesMetadata.setHomepage(getStringOrNull(seriesMetadataFromAPI, "homepage"));
+				if (seriesMetadataFromAPI.has("images")) {
+					tvSeriesMetadata.setImages(seriesMetadataFromAPI.get("images").toString());
+				}
+				tvSeriesMetadata.setIMDbID(getStringOrNull(seriesMetadataFromAPI, "imdbID"));
+				if (seriesMetadataFromAPI.has("inProduction")) {
+					tvSeriesMetadata.setInProduction(seriesMetadataFromAPI.get("inProduction").getAsBoolean());
+				}
+				tvSeriesMetadata.setLanguages(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("languages")));
+				tvSeriesMetadata.setLastAirDate(getStringOrNull(seriesMetadataFromAPI, "lastAirDate"));
+				if (seriesMetadataFromAPI.has("networks")) {
+					tvSeriesMetadata.setNetworks(seriesMetadataFromAPI.get("networks").toString());
+				}
+				if (seriesMetadataFromAPI.has("numberOfEpisodes")  && seriesMetadataFromAPI.get("numberOfEpisodes").isJsonPrimitive()) {
+					tvSeriesMetadata.setNumberOfEpisodes(seriesMetadataFromAPI.get("numberOfEpisodes").getAsDouble());
+				}
+				if (seriesMetadataFromAPI.has("numberOfSeasons")  && seriesMetadataFromAPI.get("numberOfSeasons").isJsonPrimitive()) {
+					tvSeriesMetadata.setNumberOfSeasons(seriesMetadataFromAPI.get("numberOfSeasons").getAsDouble());
+				}
+				tvSeriesMetadata.setOriginCountry(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("originCountry")));
+				tvSeriesMetadata.setOriginalLanguage(getStringOrNull(seriesMetadataFromAPI, "originalLanguage"));
+				tvSeriesMetadata.setOriginalTitle(getStringOrNull(seriesMetadataFromAPI, "originalTitle"));
+
+				tvSeriesMetadata.setOverview(getStringOrNull(seriesMetadataFromAPI, "plot"));
+				tvSeriesMetadata.setPoster(posterFromApi);
+				tvSeriesMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
+				if (seriesMetadataFromAPI.has("productionCompanies")) {
+					tvSeriesMetadata.setProductionCompanies(seriesMetadataFromAPI.get("productionCompanies").toString());
+				}
+				if (seriesMetadataFromAPI.has("productionCountries")) {
+					tvSeriesMetadata.setProductionCountries(seriesMetadataFromAPI.get("productionCountries").toString());
+				}
+				tvSeriesMetadata.setRated(getStringOrNull(seriesMetadataFromAPI, "rated"));
+				if (seriesMetadataFromAPI.has("rating")  && seriesMetadataFromAPI.get("rating").isJsonPrimitive()) {
+					Double rating = seriesMetadataFromAPI.get("rating").getAsDouble();
+					if (rating != 0) {
+						tvSeriesMetadata.setRating(Double.toString(rating));
+					}
+				}
+				tvSeriesMetadata.setRatings(getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")));
+				tvSeriesMetadata.setReleased(getStringOrNull(seriesMetadataFromAPI, "released"));
+				if (seriesMetadataFromAPI.has("seasons")) {
+					tvSeriesMetadata.setSeasons(seriesMetadataFromAPI.get("seasons").toString());
+				}
+				tvSeriesMetadata.setSeriesType(getStringOrNull(seriesMetadataFromAPI, "seriesType"));
+				if (seriesMetadataFromAPI.has("spokenLanguages")) {
+					tvSeriesMetadata.setSpokenLanguages(seriesMetadataFromAPI.get("spokenLanguages").toString());
+				}
+				tvSeriesMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
+				tvSeriesMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
+				tvSeriesMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
+				if (seriesMetadataFromAPI.has("tmdbID")) {
+					tvSeriesMetadata.setTmdbId(seriesMetadataFromAPI.get("tmdbID").getAsLong());
+				}
+				tvSeriesMetadata.setTitle(getStringOrNull(seriesMetadataFromAPI, "title"));
+				if (seriesMetadataFromAPI.has("totalSeasons")  && seriesMetadataFromAPI.get("totalSeasons").isJsonPrimitive()) {
+					tvSeriesMetadata.setTotalSeasons(seriesMetadataFromAPI.get("totalSeasons").getAsDouble());
+				}
+				tvSeriesMetadata.setVotes(getStringOrNull(seriesMetadataFromAPI, "votes"));
+
+				//Create/Update Thumbnail
+				if (posterFromApi != null) {
+					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
+					if (thumbnail != null) {
+						Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
+						tvSeriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
+						tvSeriesMetadata.setThumbnailId(thumbnailId);
+					}
+				}
+
+				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
 			}
 			//update MediaVideoMetadata
 			if (media.hasVideoMetadata()) {
-				media.getVideoMetadata().setSeriesMetadata(seriesMetadata);
-				media.getVideoMetadata().setTVSeriesStartYear(seriesMetadata.getStartYear());
+				media.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
+				media.getVideoMetadata().setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+				media.getVideoMetadata().setTmdbTvId(tvSeriesMetadata.getTmdbId());
 			}
-			return title;
+			return tvSeriesMetadata.getTvSeriesId();
 		} catch (IOException e) {
 			LOGGER.error("Error getting \"{}\" TV series info from API: {}", file.getName(), e.getMessage());
 			LOGGER.trace("", e);
 		}
-
 		return null;
 	}
 
@@ -1111,25 +1079,6 @@ public class APIUtils {
 			}
 		}
 		return result;
-	}
-
-	public static DLNAThumbnail getThumbnailFromUri(String uri) {
-		try {
-			LOGGER.trace("Downloading image from {}", uri);
-			byte[] image = JavaHttpClient.getBytes(uri);
-			return DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-		} catch (EOFException e) {
-			LOGGER.debug(
-				"Error reading thumbnail from uri \"{}\": Unexpected end of stream, probably corrupt or read error.",
-				uri
-			);
-		} catch (UnknownFormatException e) {
-			LOGGER.debug("Could not read thumbnail from uri \"{}\": {}", uri, e.getMessage());
-		} catch (IOException e) {
-			LOGGER.error("Error reading thumbnail from uri \"{}\": {}", uri, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
 	}
 
 	/**

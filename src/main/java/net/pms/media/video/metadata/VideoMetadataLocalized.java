@@ -16,9 +16,6 @@
  */
 package net.pms.media.video.metadata;
 
-import com.google.gson.JsonObject;
-import org.apache.commons.lang3.StringUtils;
-
 public class VideoMetadataLocalized {
 	private String homepage;
 	private String overview;
@@ -73,65 +70,6 @@ public class VideoMetadataLocalized {
 
 	public void setTmdbID(Long value) {
 		this.tmdbID = value;
-	}
-
-	public void localizeJsonObject(final JsonObject jsonObject) {
-		if (StringUtils.isNotBlank(homepage)) {
-			jsonObject.remove("homepage");
-			jsonObject.addProperty("homepage", homepage);
-		}
-		if (StringUtils.isNotBlank(overview)) {
-			jsonObject.remove("overview");
-			jsonObject.addProperty("overview", overview);
-		}
-		if (StringUtils.isNotBlank(poster)) {
-			jsonObject.remove("poster");
-			jsonObject.addProperty("poster", poster);
-		}
-		if (StringUtils.isNotBlank(tagline)) {
-			jsonObject.remove("tagline");
-			jsonObject.addProperty("tagline", tagline);
-		}
-		if (StringUtils.isNotBlank(title)) {
-			jsonObject.remove("title");
-			jsonObject.addProperty("title", title);
-		}
-	}
-
-	public void localizeMediaVideoMetadata(final MediaVideoMetadata mediaVideoMetadata) {
-		if (StringUtils.isNotBlank(homepage)) {
-			mediaVideoMetadata.setHomepage(homepage);
-		}
-		if (StringUtils.isNotBlank(overview)) {
-			mediaVideoMetadata.setOverview(overview);
-		}
-		if (StringUtils.isNotBlank(poster)) {
-			mediaVideoMetadata.setPoster(poster);
-		}
-		if (StringUtils.isNotBlank(tagline)) {
-			mediaVideoMetadata.setTagline(tagline);
-		}
-		if (StringUtils.isNotBlank(title)) {
-			mediaVideoMetadata.setOriginalTitle(title);
-		}
-	}
-
-	public void localizeTvSeriesMetadata(final TvSeriesMetadata tvSeriesMetadata) {
-		if (StringUtils.isNotBlank(homepage)) {
-			tvSeriesMetadata.setHomepage(homepage);
-		}
-		if (StringUtils.isNotBlank(overview)) {
-			tvSeriesMetadata.setOverview(overview);
-		}
-		if (StringUtils.isNotBlank(poster)) {
-			tvSeriesMetadata.setPoster(poster);
-		}
-		if (StringUtils.isNotBlank(tagline)) {
-			tvSeriesMetadata.setTagline(tagline);
-		}
-		if (StringUtils.isNotBlank(title)) {
-			tvSeriesMetadata.setTitle(title);
-		}
 	}
 
 }

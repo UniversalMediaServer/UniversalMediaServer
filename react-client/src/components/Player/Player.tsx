@@ -28,6 +28,7 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { playerApiUrl } from '../../utils';
 import { VideoJsPlayer } from './VideoJsPlayer';
+import VideoMetadataEditButton from './VideoMetadataEditButton';
 
 export const Player = () => {
   const [uuid, setUuid] = useState('');
@@ -450,12 +451,19 @@ export const Player = () => {
           <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
             <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
           </Tooltip>
+          {((data.medias[0]) as PlayMedia).mediaType === 'video' && ((data.medias[0]) as VideoMedia).metadata?.isEditable && (
+            <VideoMetadataEditButton uuid={uuid} id={data.medias[0].id} callback={() => location.reload()} />
+          )}
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get['Download']}>
               <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
+      )
+    } else if (data.goal === 'browse' && data.metadata?.isEditable) {
+      return (
+        <VideoMetadataEditButton uuid={uuid} id={sse.reqId} callback={() => location.reload()} />
       )
     }
   }
@@ -741,6 +749,7 @@ interface VideoMetadata {
   tvSeason?: string,
   totalSeasons?: number,
   votes?: string,
+  isEditable: boolean,
 }
 
 interface VideoMetadataImages {

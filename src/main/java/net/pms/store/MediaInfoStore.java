@@ -24,15 +24,18 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
-import net.pms.external.umsapi.APIUtils;
+import net.pms.external.tmdb.TMDB;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
 import net.pms.util.FileUtil;
@@ -48,6 +51,28 @@ public class MediaInfoStore {
 
 	private MediaInfoStore() {
 		//should not be instantiated
+	}
+
+	public static MediaInfo getMediaInfo(String filename) {
+		synchronized (STORE) {
+			if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
+				return STORE.get(filename).get();
+			}
+		}
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				File file = new File(filename);
+				return MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+			}
+		} catch (IOException | SQLException e) {
+			LOGGER.debug("Error while getting cached information about {}: {}", filename, e.getMessage());
+			LOGGER.trace("", e);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
@@ -156,6 +181,45 @@ public class MediaInfoStore {
 		return null;
 	}
 
+	public static void updateTvEpisodesTvSeriesId(final Long oldTvSeriesId, Long tvSeriesId) {
+		if (oldTvSeriesId == null || tvSeriesId == null) {
+			return;
+		}
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+				List<String> filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, oldTvSeriesId);
+				for (String filename : filenames) {
+					//remove FailedLookups entry on db if exists
+					MediaTableFailedLookups.remove(connection, filename, true);
+					MediaInfo mediaInfo = getMediaInfo(filename);
+					if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
+						mediaInfo.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
+						if (!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
+							//changed, remove old values to lookup for new metadata
+							mediaInfo.getVideoMetadata().setTvSeriesId(tvSeriesId);
+							mediaInfo.getVideoMetadata().setYear(tvSeriesMetadata.getStartYear());
+							mediaInfo.getVideoMetadata().setTmdbId(null);
+							mediaInfo.getVideoMetadata().setIMDbID(null);
+							try {
+								MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, mediaInfo.getFileId(), mediaInfo, true);
+							} catch (SQLException ex) {
+							}
+							File file = new File(filename);
+							TMDB.backgroundLookupAndAddMetadata(file, mediaInfo);
+						}
+					}
+				}
+				//cleanup MediaTableTVSeries
+				MediaTableTVSeries.cleanup(connection);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
 	/**
 	 * Populates the mediaInfo Title, Year, Edition, TVSeason, TVEpisodeNumber and
 	 * TVEpisodeName parsed from the mediaInfo file name and if enabled insert them
@@ -185,65 +249,50 @@ public class MediaInfoStore {
 				String tvSeasonFromFilename = metadataFromFilename[3];
 				String tvEpisodeNumberFromFilename = metadataFromFilename[4];
 				String tvEpisodeNameFromFilename = metadataFromFilename[5];
-				String titleFromFilenameSimplified = FileUtil.getSimplifiedShowName(titleFromFilename);
-
-				videoMetadata.setMovieOrShowName(titleFromFilename);
-				videoMetadata.setSimplifiedMovieOrShowName(titleFromFilenameSimplified);
 
 				// Apply the metadata from the filename.
 				if (StringUtils.isNotBlank(titleFromFilename) && StringUtils.isNotBlank(tvSeasonFromFilename)) {
-					videoMetadata.setTVSeason(tvSeasonFromFilename);
+					TvSeriesMetadata tvSeriesMetadata = new TvSeriesMetadata();
+					tvSeriesMetadata.setTitle(titleFromFilename);
+					videoMetadata.setTvSeason(tvSeasonFromFilename);
 					if (StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
-						videoMetadata.setTVEpisodeNumber(tvEpisodeNumberFromFilename);
+						videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromFilename);
 					}
 					if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
-						videoMetadata.setTVEpisodeName(tvEpisodeNameFromFilename);
+						videoMetadata.setTitle(tvEpisodeNameFromFilename);
 					}
-
-					videoMetadata.setIsTVEpisode(true);
+					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+					videoMetadata.setIsTvEpisode(true);
+				} else {
+					videoMetadata.setTitle(titleFromFilename);
 				}
 
 				if (yearFromFilename != null) {
-					if (videoMetadata.isTVEpisode()) {
-						videoMetadata.setTVSeriesStartYear(yearFromFilename);
-					} else {
-						videoMetadata.setYear(yearFromFilename);
-					}
+					videoMetadata.setYear(yearFromFilename);
 				}
 
 				if (extraInformationFromFilename != null) {
 					videoMetadata.setExtraInformation(extraInformationFromFilename);
 				}
+				mediaInfo.setVideoMetadata(videoMetadata);
 
 				if (MediaDatabase.isAvailable()) {
 					try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 						if (connection != null) {
-							if (videoMetadata.isTVEpisode()) {
-								/**
-								* Overwrite the title from the filename if it's very similar to one
-								* we already have in our database. This is to avoid minor
-								* grammatical differences like "Word and Word" vs. "Word & Word"
-								* from creating two virtual folders.
-								*/
-								String titleFromDatabase = MediaTableTVSeries.getSimilarTVSeriesName(connection, titleFromFilename);
-								String titleFromDatabaseSimplified = FileUtil.getSimplifiedShowName(titleFromDatabase);
-								if (titleFromFilenameSimplified.equals(titleFromDatabaseSimplified)) {
-									videoMetadata.setMovieOrShowName(titleFromDatabase);
+							if (videoMetadata.isTvEpisode() && videoMetadata.getTvSeriesId() == null) {
+								Long tvSeriesId = MediaTableTVSeries.getIdBySimilarTitle(connection, videoMetadata.getSeriesMetadata().getTitle());
+								if (tvSeriesId == null) {
+									// Creates a minimal TV series row with just the title, that
+									// might be enhanced later by the API
+									tvSeriesId = MediaTableTVSeries.set(connection, videoMetadata.getTitle());
 								}
+								TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+								videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+								videoMetadata.setTvSeriesId(tvSeriesId);
 							}
-							mediaInfo.setVideoMetadata(videoMetadata);
-							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), mediaInfo, false);
-
-							// Creates a minimal TV series row with just the title, that
-							// might be enhanced later by the API
-							if (videoMetadata.isTVEpisode()) {
-								// TODO: Make this check if it already exists instead of always setting it
-								MediaTableTVSeries.set(connection, videoMetadata.getMovieOrShowName());
-							}
+							MediaTableVideoMetadata.insertVideoMetadata(connection, absolutePath, file.lastModified(), mediaInfo);
 						}
 					}
-				} else {
-					mediaInfo.setVideoMetadata(videoMetadata);
 				}
 			}
 		} catch (SQLException e) {
@@ -254,7 +303,7 @@ public class MediaInfoStore {
 			LOGGER.debug("", e);
 		} finally {
 			// Attempt to enhance the metadata via our API.
-			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
+			TMDB.backgroundLookupAndAddMetadata(file, mediaInfo);
 		}
 	}
 

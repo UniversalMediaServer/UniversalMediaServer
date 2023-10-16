@@ -249,18 +249,18 @@ public class DidlHelper extends DlnaHelper {
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
 			MediaVideoMetadata videoMetadata = mediaInfo.getVideoMetadata();
-			if (videoMetadata.isTVEpisode()) {
-				if (StringUtils.isNotBlank(videoMetadata.getTVSeason())) {
-					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTVSeason());
+			if (videoMetadata.isTvEpisode()) {
+				if (StringUtils.isNotBlank(videoMetadata.getTvSeason())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTvSeason());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeNumber())) {
-					addXMLTagAndAttribute(sb, "upnp:episodeNumber", videoMetadata.getTVEpisodeNumberUnpadded());
+				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {
+					addXMLTagAndAttribute(sb, "upnp:episodeNumber", videoMetadata.getTvEpisodeNumberUnpadded());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getMovieOrShowName())) {
-					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(videoMetadata.getMovieOrShowName()));
+				if (StringUtils.isNotBlank(videoMetadata.getTvSeriesTitle())) {
+					addXMLTagAndAttribute(sb, "upnp:seriesTitle", encodeXML(videoMetadata.getTvSeriesTitle(null)));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeName())) {
-					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
+				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeName())) {
+					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTvEpisodeName(null)));
 				}
 			}
 			if (mediaStatus != null) {
@@ -538,7 +538,7 @@ public class DidlHelper extends DlnaHelper {
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTVEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
+		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
 		} else {
