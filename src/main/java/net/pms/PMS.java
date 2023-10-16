@@ -1176,7 +1176,7 @@ public class PMS {
 		try {
 			killProc();
 		} catch (SecurityException e) {
-			LOGGER.error("Failed to check for already running instance: " + e.getMessage()+ (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file": ""));
+			LOGGER.error("Failed to check for already running instance: " + e.getMessage() + (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : ""));
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
 		} catch (IOException e) {
@@ -1205,7 +1205,7 @@ public class PMS {
 		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(),charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
