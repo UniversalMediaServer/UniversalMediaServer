@@ -80,7 +80,6 @@ public class RealFile extends StoreItem {
 		this.file = file;
 		this.name = name;
 		setLastModified(file.lastModified());
-		lang = CONFIGURATION.getTranslationLanguage(null);
 	}
 
 	@Override
