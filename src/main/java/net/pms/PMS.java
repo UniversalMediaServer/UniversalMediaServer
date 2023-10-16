@@ -718,7 +718,6 @@ public class PMS {
 
 	/**
 	 * Reset renderers. The trigger is configuration change.
-	 * 
 	 * @param delete True if removal of known renderers is needed
 	 */
 	public void resetRenderers(boolean delete) {
@@ -727,7 +726,6 @@ public class PMS {
 			ConnectedRenderers.deleteAllConnectedRenderers();
 		}
 	}
-
 	/**
 	 * Reset the media library. The trigger is configuration change.
 	 */
@@ -737,7 +735,6 @@ public class PMS {
 		}
 		resetRenderersRoot();
 	}
-
 	/**
 	 * Reset all renderers Root Folder. The trigger is configuration change.
 	 */
@@ -745,7 +742,6 @@ public class PMS {
 		ConnectedRenderers.resetAllRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
-
 	/**
 	 * Reset the web graphical user interface server. The trigger is init.
 	 */
@@ -758,8 +754,7 @@ public class PMS {
 			webGuiServer = WebGuiServer.createServer(umsConfiguration.getWebGuiServerPort());
 		} catch (BindException b) {
 			try {
-				LOGGER.info("Unable to bind web interface on port: " + umsConfiguration.getWebGuiServerPort()
-						+ ", because: " + b.getMessage());
+				LOGGER.info("Unable to bind web interface on port: " + umsConfiguration.getWebGuiServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Falling back to random port.");
 				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
@@ -774,7 +769,6 @@ public class PMS {
 			LOGGER.info("GUI is available at: " + webGuiServer.getUrl());
 		}
 	}
-
 	/**
 	 * Reset the web player server. The trigger is init and configuration change.
 	 */
@@ -787,8 +781,7 @@ public class PMS {
 				webPlayerServer = WebPlayerServer.createServer(umsConfiguration.getWebPlayerServerPort());
 				GuiManager.updateServerStatus();
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web player on port: "
-						+ umsConfiguration.getWebPlayerServerPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + umsConfiguration.getWebPlayerServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
@@ -822,7 +815,6 @@ public class PMS {
 	}
 	/**
 	 * Returns the user friendly name of the UMS server.
-	 * 
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -836,7 +828,6 @@ public class PMS {
 			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
-
 		return serverName;
 	}
 	/**
@@ -854,7 +845,6 @@ public class PMS {
 		if (instance == null) {
 			createInstance();
 		}
-
 		return instance;
 	}
 
@@ -888,10 +878,8 @@ public class PMS {
 		checkCompatibilityWithJavaVersion();
 		// This must be called before JNA is used
 		configureJNA();
-
 		// Start caching log messages until the logger is configured
 		CacheLogger.startCaching();
-
 		// Set headless options if given as a system property when launching the JVM
 		if (System.getProperty(CONSOLE_ARG, "").equalsIgnoreCase(Boolean.toString(true))) {
 			forceHeadless();
@@ -899,7 +887,6 @@ public class PMS {
 		if (System.getProperty(NOCONSOLE_ARG, "").equalsIgnoreCase(Boolean.toString(true))) {
 			denyHeadless = true;
 		}
-
 		if (args.length > 0) {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
@@ -932,10 +919,8 @@ public class PMS {
 		if (!GuiUtil.initDefaultToolkit()) {
 			forceHeadless();
 		}
-
 		if (isHeadless() && denyHeadless) {
-			System.err.println("Either a graphics environment isn't available or headless "
-					+ "mode is forced, but \"noconsole\" is specified. " + PMS.NAME + " can't start, exiting.");
+			System.err.println("Either a graphics environment isn't available or headless " + "mode is forced, but \"noconsole\" is specified. " + PMS.NAME + " can't start, exiting.");
 			System.exit(1);
 		} else if (!isHeadless()) {
 			LooksFrame.initializeLookAndFeel();
@@ -958,7 +943,6 @@ public class PMS {
 		try {
 			umsConfiguration = new UmsConfiguration();
 			assert umsConfiguration != null;
-
 			// Log whether the service is installed as it may help with debugging and
 			// support
 			if (Platform.isWindows()) {
@@ -967,22 +951,18 @@ public class PMS {
 					LOGGER.info("The Windows service is installed.");
 				}
 			}
-
 			/*
 			 * Rename previous log file to .prev Log file location is unknown at this point,
 			 * it's finally decided during loadFile() below but the file is also truncated
 			 * at the same time, so we'll have to try a qualified guess for the file
 			 * location.
 			 */
-
 			// Set root level from configuration here so that logging is available during
 			// renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(umsConfiguration.getRootLogLevel()));
-
 			// Load the (optional) LogBack config file.
 			// This has to be called after 'new UmsConfiguration'
 			LoggingConfig.loadFile();
-
 			// Check TRACE mode
 			if (traceMode == 2) {
 				LoggingConfig.setRootLevel(Level.TRACE);
@@ -991,7 +971,6 @@ public class PMS {
 				// Remember whether logging level was TRACE/ALL at startup
 				traceMode = LoggingConfig.getRootLevel().toInt() <= Level.TRACE_INT ? 1 : 0;
 			}
-
 			// Configure syslog unless in forced trace mode
 			if (traceMode != 2 && umsConfiguration.getLoggingUseSyslog()) {
 				LoggingConfig.setSyslog();
@@ -1208,10 +1187,7 @@ public class PMS {
 		try {
 			dumpPid();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("Failed to write PID file: " + e.getMessage()
-					+ (PlatformUtils.isWindows()
-							? "\nUMS might need to run as an administrator to enforce single instance"
-							: ""));
+			LOGGER.error("Failed to write PID file: " + e.getMessage() + (PlatformUtils.isWindows()? "\nUMS might need to run as an administrator to enforce single instance": ""));
 		} catch (IOException e) {
 			LOGGER.error("Error dumping PID " + e);
 		}
@@ -1232,8 +1208,7 @@ public class PMS {
 		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(),
-					charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(),charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1255,8 +1230,7 @@ public class PMS {
 		}
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
-		boolean ums = tmp[tmp.length - 1].contains("universal media server")
-				|| tmp[tmp.length - 2].contains("universal media server");
+		boolean ums = tmp[tmp.length - 1].contains("universal media server") || tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
@@ -1342,7 +1316,6 @@ public class PMS {
 
 	/**
 	 * Checks if UMS is running in headless (console) mode.
-	 * 
 	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
@@ -1369,7 +1342,6 @@ public class PMS {
 			HEADLESS_LOCK.writeLock().unlock();
 		}
 	}
-
 	private static Locale locale = null;
 	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
@@ -1503,10 +1475,7 @@ public class PMS {
 
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
-					umsConfiguration.getDynamicPlsSavePath(),
-					(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0)
-							| UMSUtils.IOList.PERMANENT);
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),umsConfiguration.getDynamicPlsSavePath(),(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0)| UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
@@ -1568,9 +1537,7 @@ public class PMS {
 	public static void configureJNA() {
 		// Set JNA "jnidispatch" resolution rules
 		try {
-			if (System.getProperty("os.name") != null && System.getProperty("os.name").startsWith("Windows")
-					&& StringUtils.isNotBlank(System.getProperty("os.version"))
-					&& Double.parseDouble(System.getProperty("os.version")) < 5.2) {
+			if (System.getProperty("os.name") != null && System.getProperty("os.name").startsWith("Windows") && StringUtils.isNotBlank(System.getProperty("os.version")) && Double.parseDouble(System.getProperty("os.version")) < 5.2) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";
 				if (new File(developmentPath).exists()) {
 					System.setProperty("jna.boot.library.path", developmentPath);
@@ -1582,8 +1549,7 @@ public class PMS {
 			}
 		} catch (NullPointerException | NumberFormatException e) {
 			System.setProperty("jna.nosys", "true");
-			System.err.println("Could not determine Windows version from " + System.getProperty("os.version")
-					+ ". Not applying Windows XP hack");
+			System.err.println("Could not determine Windows version from " + System.getProperty("os.version") + ". Not applying Windows XP hack");
 		}
 	}
 
