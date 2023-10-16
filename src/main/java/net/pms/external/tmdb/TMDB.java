@@ -17,6 +17,8 @@
 package net.pms.external.tmdb;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -889,7 +891,8 @@ public class TMDB {
 		return false;
 	}
 
-	public static List<TvSimpleSchema> getTvShowsFromEpisode(String title, String year, String lang) throws IOException {
+	public static JsonArray getTvShowsFromEpisode(String title, String year, String lang, Long currentId) throws IOException {
+		JsonArray result = new JsonArray();
 		Integer yearInt = getInteger(year);
 		SearchTvEndpoint searchTvEndpoint = CLIENT.search(title).forTvShow();
 		if (yearInt != null && yearInt > 0) {
@@ -899,10 +902,23 @@ public class TMDB {
 			searchTvEndpoint.setLanguage(lang);
 		}
 		TvSimpleResultsSchema tvSimpleResultsSchema = searchTvEndpoint.getResults();
-		return tvSimpleResultsSchema.getResults();
+		for (TvSimpleSchema tvShow : tvSimpleResultsSchema.getResults()) {
+			JsonObject tvShowObject = new JsonObject();
+			tvShowObject.addProperty("id", tvShow.getId());
+			tvShowObject.addProperty("title", tvShow.getName());
+			tvShowObject.addProperty("poster", TMDB.getStillUrl(tvShow.getPosterPath()));
+			tvShowObject.addProperty("overview", tvShow.getOverview());
+			tvShowObject.addProperty("year", tvShow.getFirstAirDate());
+			tvShowObject.addProperty("original_language", tvShow.getOriginalLanguage());
+			tvShowObject.addProperty("original_title", tvShow.getOriginalName());
+			tvShowObject.addProperty("selected", tvShow.getId().equals(currentId));
+			result.add(tvShowObject);
+		}
+		return result;
 	}
 
-	public static List<MovieShortSchema> getMovies(String title, String year, String lang) throws IOException {
+	public static JsonArray getMovies(String title, String year, String lang, Long currentId) throws IOException {
+		JsonArray result = new JsonArray();
 		Integer yearInt = getInteger(year);
 		SearchMovieEndpoint searchMovieEndpoint = CLIENT.search(title).forMovie();
 		if (yearInt != null && yearInt != 0) {
@@ -912,7 +928,19 @@ public class TMDB {
 			searchMovieEndpoint.setLanguage(lang);
 		}
 		MovieShortResultsSchema movieShortResults = searchMovieEndpoint.getResults();
-		return movieShortResults.getResults();
+		for (MovieShortSchema movie : movieShortResults.getResults()) {
+			JsonObject movieObject = new JsonObject();
+			movieObject.addProperty("id", movie.getId());
+			movieObject.addProperty("title", movie.getTitle());
+			movieObject.addProperty("poster", TMDB.getPosterUrl(movie.getPosterPath()));
+			movieObject.addProperty("overview", movie.getOverview());
+			movieObject.addProperty("year", movie.getReleaseDate());
+			movieObject.addProperty("original_language", movie.getOriginalLanguage());
+			movieObject.addProperty("original_title", movie.getOriginalTitle());
+			movieObject.addProperty("selected", movie.getId().equals(currentId));
+			result.add(movieObject);
+		}
+		return result;
 	}
 
 	public static boolean updateMovieMetadata(final MediaInfo mediaInfo, final Long tmdbId) {

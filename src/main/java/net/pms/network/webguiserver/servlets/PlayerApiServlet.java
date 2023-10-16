@@ -80,8 +80,6 @@ import net.pms.util.FileUtil;
 import net.pms.util.FullyPlayed;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.UMSUtils;
-import net.ums.tmdbapi.schema.movie.MovieShortSchema;
-import net.ums.tmdbapi.schema.tv.TvSimpleSchema;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -802,7 +800,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("Bad web edit id: " + id);
 				throw new IOException("Bad Id");
 			}
-			JsonArray result = new JsonArray();
+			JsonArray result = null;
 			if ("tv".equals(mediaType) || "tv_episode".equals(mediaType)) {
 				Long currentId;
 				if (item != null &&
@@ -816,19 +814,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				} else {
 					currentId = null;
 				}
-				List<TvSimpleSchema> tvShows = TMDB.getTvShowsFromEpisode(search, year, lang);
-				for (TvSimpleSchema tvShow : tvShows) {
-					JsonObject tvShowObject = new JsonObject();
-					tvShowObject.addProperty("id", tvShow.getId());
-					tvShowObject.addProperty("title", tvShow.getName());
-					tvShowObject.addProperty("poster", TMDB.getStillUrl(tvShow.getPosterPath()));
-					tvShowObject.addProperty("overview", tvShow.getOverview());
-					tvShowObject.addProperty("year", tvShow.getFirstAirDate());
-					tvShowObject.addProperty("original_language", tvShow.getOriginalLanguage());
-					tvShowObject.addProperty("original_title", tvShow.getOriginalName());
-					tvShowObject.addProperty("selected", tvShow.getId().equals(currentId));
-					result.add(tvShowObject);
-				}
+				result = TMDB.getTvShowsFromEpisode(search, year, lang, currentId);
 			} else if ("movie".equals(mediaType) && item != null) {
 				Long currentId;
 				if (item.getMediaInfo() != null &&
@@ -838,19 +824,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				} else {
 					currentId = null;
 				}
-				List<MovieShortSchema> movies = TMDB.getMovies(search, year, lang);
-				for (MovieShortSchema movie : movies) {
-					JsonObject movieObject = new JsonObject();
-					movieObject.addProperty("id", movie.getId());
-					movieObject.addProperty("title", movie.getTitle());
-					movieObject.addProperty("poster", TMDB.getPosterUrl(movie.getPosterPath()));
-					movieObject.addProperty("overview", movie.getOverview());
-					movieObject.addProperty("year", movie.getReleaseDate());
-					movieObject.addProperty("original_language", movie.getOriginalLanguage());
-					movieObject.addProperty("original_title", movie.getOriginalTitle());
-					movieObject.addProperty("selected", movie.getId().equals(currentId));
-					result.add(movieObject);
-				}
+				result = TMDB.getMovies(search, year, lang, currentId);
 			}
 			return result;
 		} finally {
