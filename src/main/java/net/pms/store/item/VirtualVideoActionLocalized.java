@@ -66,7 +66,7 @@ public abstract class VirtualVideoActionLocalized extends VirtualVideoAction {
 	 * @return The unlocalized display name.
 	 */
 	@Override
-	public String getUnlocalizedDisplayName() {
+	public String getLocalizedDisplayName(String lang) {
 		if (i18nName != null) {
 			return "i18n@" + getSystemName();
 		}

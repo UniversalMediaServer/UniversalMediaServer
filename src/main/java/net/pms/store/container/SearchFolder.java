@@ -78,12 +78,12 @@ public class SearchFolder extends LocalizedStoreContainer {
 
 	@Override
 	public boolean refreshChildren() {
-		refreshChildren(null);
+		refreshChildren(null, null);
 		return true;
 	}
 
 	@Override
-	public boolean refreshChildren(String str) {
+	public boolean refreshChildren(String str, String lang) {
 		if (str == null) {
 			return false;
 		}

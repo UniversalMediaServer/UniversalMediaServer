@@ -908,10 +908,12 @@ public class SubtitleUtils {
 	 * @param forceRefresh if {@code true} forces a new scan for external
 	 *            subtitles instead of relying on cached information (if it
 	 *            exists).
+	 * @return {@code true} if subtitles file attached changed,
+	 *         {@code false} otherwise.
 	 */
-	public static void searchAndAttachExternalSubtitles(File file, MediaInfo media, boolean forceRefresh) {
+	public static boolean searchAndAttachExternalSubtitles(File file, MediaInfo media, boolean forceRefresh) {
 		if (file == null || media == null) {
-			return;
+			return false;
 		}
 		File subFolder;
 		if (file.isAbsolute()) {
@@ -921,12 +923,12 @@ public class SubtitleUtils {
 				subFolder = file.getCanonicalFile().getParentFile();
 			} catch (IOException e) {
 				LOGGER.error("Could not find the folder for \"{}\" when looking for external subtitles", file);
-				return;
+				return false;
 			}
 		}
 
 		if (subFolder == null) {
-			return;
+			return false;
 		}
 
 		LOGGER.trace("Searching for external subtitles for {}", file.getName());
@@ -949,7 +951,7 @@ public class SubtitleUtils {
 
 		if (folders.isEmpty()) {
 			LOGGER.trace("There are no folders to search for subtitles for {}", file.getName());
-			return;
+			return false;
 		}
 
 		final Set<String> supportedFileExtensions = SubtitleType.getSupportedFileExtensions();
@@ -1035,6 +1037,7 @@ public class SubtitleUtils {
 			}
 		}
 
+		boolean changed = false;
 		// Parse subtitles that are not in the existing list
 		String baseFileName = FileUtil.getFileNameWithoutExtension(file.getName()).toLowerCase(Locale.ROOT);
 		for (File subtitlesFile : folderSubtitles) {
@@ -1048,12 +1051,14 @@ public class SubtitleUtils {
 				List<String> suffixParts = Arrays
 					.asList(FileUtil.getFileNameWithoutExtension(subtitlesNameLower).replace(baseFileName, "").split("[\\s\\.-]+"));
 				attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+				changed = true;
 			} else if (isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null) {
 				// Subtitles subfolder that doesn't start with video file name
 				List<String> suffixParts = Arrays.asList(FileUtil.getFileNameWithoutExtension(subtitlesNameLower).split("[\\s\\.-]+"));
 				for (String suffixPart : suffixParts) {
 					if (Iso639.isValid(suffixPart)) {
 						attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+						changed = true;
 						break;
 					}
 				}
@@ -1068,9 +1073,11 @@ public class SubtitleUtils {
 				!(subtitles instanceof MediaOnDemandSubtitle) &&
 				!folderSubtitles.contains(subtitles.getExternalFile())
 			) {
+				changed = true;
 				iterator.remove();
 			}
 		}
+		return changed;
 	}
 
 	/**

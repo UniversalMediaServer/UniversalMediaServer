@@ -58,9 +58,9 @@ export default function VideoMetadataEditButton(props: {
       });
   }
 
-  const getMetadataResults = (is_episode: boolean, search: string, year: string) => {
+  const getMetadataResults = (media_type: string, search: string, year: string) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'findMetadata', { uuid: props.uuid, id: props.id, is_episode: is_episode, search: search, year: year, lang: i18n.language })
+    axios.post(playerApiUrl + 'findMetadata', { uuid: props.uuid, id: props.id, media_type: media_type, search: search, year: year, lang: i18n.language })
       .then(function(response: any) {
         setEditResults(response.data);
       })
@@ -78,9 +78,9 @@ export default function VideoMetadataEditButton(props: {
       });
   }
 
-  const setMetadataChange = (is_episode: boolean, tmdb_id: number, include_similars: boolean) => {
+  const setMetadataChange = (tmdb_id: number) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setMetadata', { uuid: props.uuid, id: props.id, is_episode, tmdb_id, include_similars })
+    axios.post(playerApiUrl + 'setMetadata', { uuid: props.uuid, id: props.id, media_type: editData?.media_type, tmdb_id })
       .then(function() {
         setOpened(false);
         props.callback();
@@ -100,7 +100,7 @@ export default function VideoMetadataEditButton(props: {
   }
 
   const handleSearchForm = (values: any) => {
-    getMetadataResults(values.is_episode ? true : false, values.search, values.year);
+    getMetadataResults(values.media_type, values.search, values.year);
   }
 
   const getMetadataResultsForm = () => {
@@ -116,7 +116,7 @@ export default function VideoMetadataEditButton(props: {
   }
 
   const getMetadataResultCard = (tmdbResult: TmdbResult) => {
-    const is_episode = editData?.is_episode ? true : false;
+    const buttonText = tmdbResult.selected ? i18n.get['SelectedMedia'] : editData?.media_type=='tv_episode' ? i18n.get['UpdateEpisode'] : editData?.media_type=='tv' ? i18n.get['UpdateTvSeries'] : i18n.get['UpdateMovie'];
     return (
       <Card shadow='sm' padding='lg' radius='md' withBorder>
         <Flex
@@ -149,29 +149,17 @@ export default function VideoMetadataEditButton(props: {
             </Spoiler>
           </Flex>
         </Flex>
-        {tmdbResult.selected ? (
-          <Button
-            disabled={true}
-            fullWidth
-            mt='md'
-            radius='md'
-            size='compact-md'
-          >
-            {i18n.get['SelectedMedia']}
-          </Button>
-        ) : (
-          <Button
-            disabled={tmdbResult.selected}
-            fullWidth
-            mt='md'
-            radius='md'
-            loading={isLoading}
-            size='compact-md'
-            onClick={() => setMetadataChange(is_episode, tmdbResult.id, false)}
-          >
-            {is_episode ? i18n.get['UpdateEpisode'] : i18n.get['UpdateMovie']}
-          </Button>
-        )}
+        <Button
+          fullWidth
+          mt='md'
+          radius='md'
+          loading={isLoading}
+          size='compact-md'
+          color={tmdbResult.selected ? 'teal' : undefined}
+          onClick={() => setMetadataChange(tmdbResult.id)}
+        >
+          {buttonText}
+        </Button>
       </Card>
     )
   };
@@ -219,11 +207,13 @@ export default function VideoMetadataEditButton(props: {
 }
 
 interface BaseEdit {
-  is_episode: boolean,
-  search?: string,
   filename?: string,
   folder?: string,
+  search?: string,
   year?: string,
+  media_type: string,
+  episode?: number,
+  season?: number,
 }
 
 interface TmdbResult {

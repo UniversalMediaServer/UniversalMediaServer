@@ -219,6 +219,27 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	}
 
 	public static VideoMetadataLocalized getVideoMetadataLocalized(
+		final Long id,
+		final boolean fromTvSeries,
+		final String language,
+		final String imdbId,
+		final String mediaType,
+		final Long tmdbId,
+		final String season,
+		final String episode
+	) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection != null) {
+				return getVideoMetadataLocalized(connection, id, fromTvSeries, language, imdbId, mediaType, tmdbId, season, episode);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while getting metadata for web interface");
+			LOGGER.debug("", e);
+		}
+		return null;
+	}
+
+	public static VideoMetadataLocalized getVideoMetadataLocalized(
 		final Connection connection,
 		final Long id,
 		final boolean fromTvSeries,

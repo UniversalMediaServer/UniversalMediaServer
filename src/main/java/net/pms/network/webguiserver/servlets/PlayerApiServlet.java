@@ -25,7 +25,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.sql.Connection;
 import java.util.List;
 import javax.servlet.AsyncContext;
 import javax.servlet.annotation.WebServlet;
@@ -35,9 +34,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableTVSeries;
-import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
@@ -59,6 +55,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
@@ -73,7 +70,9 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.MediaLibraryFolder;
+import net.pms.store.container.MediaLibraryTvSeries;
 import net.pms.store.item.DVDISOTitle;
+import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.util.ByteRange;
@@ -265,14 +264,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					} else if (!TMDB.isReady()) {
 						WebGuiServletHelper.respondNotFound(req, resp);
 					} else if (action.has("id") && !action.get("id").isJsonNull() &&
-						action.has("search") && !action.get("search").isJsonNull() &&
-						action.has("is_episode") && !action.get("is_episode").isJsonNull()) {
+						action.has("media_type") && !action.get("media_type").isJsonNull() &&
+						action.has("search") && !action.get("search").isJsonNull()) {
 						String id = action.get("id").getAsString();
+						String mediaType = action.get("media_type").getAsString();
 						String search = action.get("search").getAsString();
-						boolean isEpisode = action.get("is_episode").getAsBoolean();
 						String year = action.has("year") && !action.get("year").isJsonNull() ? action.get("year").getAsString() : null;
 						String lang = action.has("lang") && !action.get("lang").isJsonNull() ? action.get("lang").getAsString() : null;
-						JsonArray editResults = getMetadataResults(renderer, id, isEpisode, search, year, lang);
+						JsonArray editResults = getMetadataResults(renderer, id, mediaType, search, year, lang);
 						if (editResults != null) {
 							WebGuiServletHelper.respond(req, resp, editResults.toString(), 200, "application/json");
 							return;
@@ -287,12 +286,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						WebGuiServletHelper.respondNotFound(req, resp);
 					} else if (action.has("id") && !action.get("id").isJsonNull() &&
 						action.has("tmdb_id") && !action.get("tmdb_id").isJsonNull() &&
-						action.has("is_episode") && !action.get("is_episode").isJsonNull()) {
+						action.has("media_type") && !action.get("media_type").isJsonNull()) {
 						String id = action.get("id").getAsString();
 						Long tmdbId = action.get("tmdb_id").getAsLong();
-						//boolean includeSimilars = action.has("include_similars") && !action.get("include_similars").isJsonNull() && action.get("include_similars").getAsBoolean();
-						boolean isEpisode = action.get("is_episode").getAsBoolean();
-						boolean changed = setMetadata(renderer, id, tmdbId, isEpisode);
+						String mediaType = action.get("media_type").getAsString();
+						//Long episode = action.has("episode") && !action.get("episode").isJsonNull() ? action.get("episode").getAsLong() : null;
+						//Long season = action.has("season") && !action.get("season").isJsonNull() ? action.get("season").getAsLong() : null;
+						boolean changed = setMetadata(renderer, id, tmdbId, mediaType);
 						if (changed) {
 							WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 							return;
@@ -375,7 +375,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getBrowsePage(Renderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
+	private JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -387,7 +387,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			JsonArray jMedias = new JsonArray();
 			StoreResource rootResource = id.equals("0") ? null : renderer.getMediaStore().getResource(id);
 
-			List<StoreResource> resources = renderer.getMediaStore().getResources(id, true, 0, 0, search);
+			List<StoreResource> resources = renderer.getMediaStore().getResources(id, true, 0, 0, search, lang);
 			if (!resources.isEmpty() &&
 					resources.get(0).getParent() != null &&
 					(resources.get(0).getParent() instanceof CodeEnter)) {
@@ -418,12 +418,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						hasFile = true;
 						JsonObject jMedia = new JsonObject();
 						jMedia.addProperty("id", resource.getResourceId());
-						jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
+						jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
 						jMedia.addProperty("icon", icon);
 						jMedias.add(jMedia);
 					}
 				}
-				jBreadcrumbs = getBreadcrumbs(thisResourceFromResources);
+				jBreadcrumbs = getBreadcrumbs(thisResourceFromResources, lang);
 
 				if (resources.get(0).getParent().getParent() != null) {
 					StoreResource parentFromResources = resources.get(0).getParent().getParent();
@@ -435,7 +435,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 			if (resources.isEmpty() && rootResource != null && rootResource.isFolder()) {
-				jBreadcrumbs = getBreadcrumbs(rootResource);
+				jBreadcrumbs = getBreadcrumbs(rootResource, lang);
 				if (rootResource.getParent() != null) {
 					StoreResource parentFromResources = rootResource.getParent();
 					JsonObject jFolder = new JsonObject();
@@ -456,7 +456,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					hasFile = true;
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
-					jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
+					jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
 					jMedias.add(jMedia);
 					continue;
 				}
@@ -491,7 +491,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							if (!videoSearchResults.isEmpty()) {
 								videoFolder = videoSearchResults.get(0);
 								mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", videoFolder.getUnlocalizedDisplayName());
+								mediaLibraryFolder.addProperty("name", videoFolder.getLocalizedDisplayName(lang));
 								mediaLibraryFolder.addProperty("icon", "video");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -502,7 +502,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								StoreResource audioFolder = audioSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", audioFolder.getUnlocalizedDisplayName());
+								mediaLibraryFolder.addProperty("name", audioFolder.getLocalizedDisplayName(lang));
 								mediaLibraryFolder.addProperty("icon", "audio");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
@@ -513,17 +513,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 								StoreResource imagesFolder = imageSearchResults.get(0);
 								mediaLibraryFolder = new JsonObject();
 								mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", imagesFolder.getUnlocalizedDisplayName());
+								mediaLibraryFolder.addProperty("name", imagesFolder.getLocalizedDisplayName(lang));
 								mediaLibraryFolder.addProperty("icon", "image");
 								mediaLibraryFolders.add(mediaLibraryFolder);
 							}
 
 							if (videoFolder != null) {
 								JsonObject jMediasSelections = new JsonObject();
-								jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyAdded")));
-								jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyPlayed")));
-								jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("InProgress")));
-								jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("MostPlayed")));
+								jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyAdded"), lang));
+								jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("RecentlyPlayed"), lang));
+								jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("InProgress"), lang));
+								jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, Messages.getString("MostPlayed"), lang));
 								result.add("mediasSelections", jMediasSelections);
 								addFolderToFoldersListOnLeft = false;
 							}
@@ -533,21 +533,22 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							// The HlsHelper is a folder
 							JsonObject jFolder = new JsonObject();
 							jFolder.addProperty("id", resource.getResourceId());
-							jFolder.addProperty("name", resource.getUnlocalizedDisplayName());
+							jFolder.addProperty("name", resource.getLocalizedDisplayName(lang));
 							jFolders.add(jFolder);
 						}
 					}
 				} else {
 					// The HlsHelper is a media file
 					hasFile = true;
-					jMedias.add(getMediaJsonObject(resource));
+					jMedias.add(getMediaJsonObject(resource, lang));
 				}
 			}
 
 			if (rootResource instanceof MediaLibraryFolder folder) {
 				if (folder.isTVSeries()) {
-					JsonObject metadata = getMetadataAsJsonObject(rootResource, true, renderer, lang);
+					JsonObject metadata = getMetadataAsJsonObject(rootResource, renderer, lang);
 					if (metadata != null) {
+						metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 						result.add("metadata", metadata);
 					}
 				}
@@ -563,7 +564,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					for (StoreResource resource : resources) {
 						if (resource instanceof MediaLibraryFolder) {
 							hasFile = true;
-							jMedias.add(getMediaJsonObject(resource));
+							jMedias.add(getMediaJsonObject(resource, lang));
 						}
 					}
 				}
@@ -581,7 +582,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			result.addProperty("name", id.equals("0") || resource == null ? CONFIGURATION.getServerDisplayName() : resource.getUnlocalizedDisplayName());
+			result.addProperty("name", id.equals("0") || resource == null ? CONFIGURATION.getServerDisplayName() : resource.getLocalizedDisplayName(lang));
 			result.addProperty("hasFile", hasFile);
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			result.add("breadcrumbs", jBreadcrumbs);
@@ -594,35 +595,35 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getMediaJsonObject(StoreResource resource) {
+	private JsonObject getMediaJsonObject(StoreResource resource, String lang) {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
-			jMedia.addProperty("name", resource.getUnlocalizedDisplayName());
+			jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
 		} else if (resource instanceof StoreItem item) {
 			if (item.getFormat() != null && item.getFormat().isVideo()) {
 				jMedia.addProperty("goal", "show");
 			} else {
 				jMedia.addProperty("goal", "play");
 			}
-			jMedia.addProperty("name", item.resumeName());
+			jMedia.addProperty("name", item.getLocalizedResumeName(lang));
 		}
 		jMedia.addProperty("id", resource.getResourceId());
 		return jMedia;
 	}
 
-	private JsonArray getBreadcrumbs(StoreResource resource) {
+	private JsonArray getBreadcrumbs(StoreResource resource, String lang) {
 		JsonArray jBreadcrumbs = new JsonArray();
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
-		jBreadcrumb.addProperty("name", resource.getUnlocalizedDisplayName());
+		jBreadcrumb.addProperty("name", resource.getLocalizedDisplayName(lang));
 		jBreadcrumbs.add(jBreadcrumb);
 		StoreResource thisResourceFromResources = resource;
 		while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
 			thisResourceFromResources = thisResourceFromResources.getParent();
 			jBreadcrumb = new JsonObject();
 			jBreadcrumb.addProperty("id", thisResourceFromResources.getResourceId());
-			jBreadcrumb.addProperty("name", thisResourceFromResources.getUnlocalizedDisplayName());
+			jBreadcrumb.addProperty("name", thisResourceFromResources.getLocalizedDisplayName(lang));
 			jBreadcrumbs.add(jBreadcrumb);
 		}
 		JsonArray jBreadcrumbsInverted = new JsonArray();
@@ -635,7 +636,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	private JsonArray getMediaLibraryFolderChilds(
 			StoreResource videoFolder,
 			Renderer renderer,
-			String folderName
+			String folderName,
+			String lang
 	) throws IOException {
 		List<StoreResource> videoFolderChildren = renderer.getMediaStore().getResources(videoFolder.getId(), true, 0, 0, folderName);
 		UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
@@ -652,7 +654,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (libraryVideo.getDisplayName().equals(Messages.getString("Transcode_FolderName"))) {
 				continue;
 			}
-			jLibraryVideos.add(getMediaJsonObject(libraryVideo));
+			jLibraryVideos.add(getMediaJsonObject(libraryVideo, lang));
 		}
 		return jLibraryVideos;
 	}
@@ -699,8 +701,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String mime = renderer.getMimeType(item);
 			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
 			if (isVideo) {
-				JsonObject metadata = getMetadataAsJsonObject(item, false, renderer, lang);
+				JsonObject metadata = getMetadataAsJsonObject(item, renderer, lang);
 				if (metadata != null) {
+					metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 					media.add("metadata", metadata);
 				}
 				media.addProperty("isVideoWithChapters", item.getMediaInfo() != null && item.getMediaInfo().hasChapters());
@@ -716,14 +719,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				media.addProperty("isNativeAudio", mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME));
 			}
 
-			media.addProperty("name", item.resumeName());
+			media.addProperty("name", item.getLocalizedResumeName(lang));
 			media.addProperty("id", id);
 			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
 			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
 			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
-			media.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
 
-			media.add("surroundMedias", getSurroundingByType(item));
+			media.add("surroundMedias", getSurroundingByType(item, lang));
 
 			if (isImage) {
 				// do this like this to simplify the code
@@ -739,7 +741,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			medias.add(media);
 			result.add("medias", medias);
 			result.add("folders", jFolders);
-			result.add("breadcrumbs", getBreadcrumbs(item));
+			result.add("breadcrumbs", getBreadcrumbs(item, lang));
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			return result;
 		} finally {
@@ -753,28 +755,35 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			LOGGER.debug("Make edit data " + id);
 			StoreResource resource = renderer.getMediaStore().getResource(id);
 			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			if (item == null) {
+			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+			if (tvSeries == null && item == null) {
 				LOGGER.debug("Bad web edit id: " + id);
 				throw new IOException("Bad Id");
 			}
 			JsonObject result = new JsonObject();
-			if (item.getMediaInfo().isVideo() &&
+			if (item != null && item.getMediaInfo().isVideo() &&
 					item.getMediaInfo().hasVideoMetadata()) {
 				MediaVideoMetadata metadata = item.getMediaInfo().getVideoMetadata();
-				String movieOrShowName = metadata.getMovieOrShowName();
-				String year = metadata.getYear();
-				result.addProperty("is_episode", metadata.isTVEpisode());
+				String search = metadata.getMovieOrShowName();
 				if (item instanceof RealFile realFile && realFile.getFile() != null) {
 					String filename = realFile.getFile().getName();
 					String absolutePath = realFile.getFile().getParent();
 					result.addProperty("filename", filename);
 					result.addProperty("folder", absolutePath);
-					if (StringUtils.isBlank(movieOrShowName)) {
-						movieOrShowName = FileUtil.basicPrettify(filename);
+					if (StringUtils.isBlank(search)) {
+						search = FileUtil.basicPrettify(filename);
 					}
 				}
-				result.addProperty("search", movieOrShowName);
-				result.addProperty("year", year);
+				result.addProperty("search", search);
+				result.addProperty("year", metadata.getYear());
+				result.addProperty("media_type", (metadata.isTvEpisode() ? "tv_episode" : "movie"));
+				result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
+				result.addProperty("season", getLong(metadata.getTvSeason()));
+			} else if (tvSeries != null && tvSeries.getTvSeriesMetadata() != null) {
+				TvSeriesMetadata metadata = tvSeries.getTvSeriesMetadata();
+				result.addProperty("search", metadata.getTitle());
+				result.addProperty("year", metadata.getStartYear());
+				result.addProperty("media_type", "tv");
 			}
 			return result;
 		} finally {
@@ -782,23 +791,28 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, boolean isEpisode, String search, String year, String lang) throws IOException, InterruptedException {
+	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, String year, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make metadata results " + id);
 			StoreResource resource = renderer.getMediaStore().getResource(id);
 			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			if (item == null) {
+			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+			if (item == null && tvSeries == null) {
 				LOGGER.debug("Bad web edit id: " + id);
 				throw new IOException("Bad Id");
 			}
 			JsonArray result = new JsonArray();
-			if (isEpisode) {
+			if ("tv".equals(mediaType) || "tv_episode".equals(mediaType)) {
 				Long currentId;
-				if (item.getMediaInfo() != null &&
+				if (item != null &&
+					item.getMediaInfo() != null &&
 					item.getMediaInfo().hasVideoMetadata() &&
-					item.getMediaInfo().getVideoMetadata().isTVEpisode()) {
+					item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
 					currentId = item.getMediaInfo().getVideoMetadata().getTmdbTvId();
+				} else if (tvSeries != null &&
+					tvSeries.getTvSeriesMetadata() != null) {
+					currentId = tvSeries.getTvSeriesMetadata().getTmdbId();
 				} else {
 					currentId = null;
 				}
@@ -815,11 +829,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					tvShowObject.addProperty("selected", tvShow.getId().equals(currentId));
 					result.add(tvShowObject);
 				}
-			} else {
+			} else if ("movie".equals(mediaType) && item != null) {
 				Long currentId;
 				if (item.getMediaInfo() != null &&
 					item.getMediaInfo().hasVideoMetadata() &&
-					!item.getMediaInfo().getVideoMetadata().isTVEpisode()) {
+					!item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
 					currentId = item.getMediaInfo().getVideoMetadata().getTmdbId();
 				} else {
 					currentId = null;
@@ -844,31 +858,33 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, boolean isEpisode) throws IOException, InterruptedException {
+	private boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, String mediaType) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Setd metadata " + id);
 			StoreResource resource = renderer.getMediaStore().getResource(id);
 			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			if (item == null || tmdbId == null) {
+			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+			if ((tvSeries == null && item == null) || tmdbId == null) {
 				LOGGER.debug("Bad metadata id: " + id);
 				throw new IOException("Bad Id");
 			}
-			if (item.getMediaInfo() != null && item.getMediaInfo().getFileId() != null) {
-				if (isEpisode) {
+			if (item != null && item.getMediaInfo() != null && item.getMediaInfo().getFileId() != null) {
+				if (mediaType.equals("tv_episode")) {
 					return TMDB.updateTvShowForEpisode(item.getMediaInfo(), tmdbId);
-				} else {
-					return TMDB.setMovieMetadata(item.getMediaInfo(), tmdbId);
+				} else if (mediaType.equals("movie")) {
+					return TMDB.updateMovieMetadata(item.getMediaInfo(), tmdbId);
 				}
-			} else {
-				return false;
+			} else if (mediaType.equals("tv") && tvSeries != null && tvSeries.getTvSeriesMetadata() != null && tvSeries.getTvSeriesMetadata().getTvSeriesId() != null) {
+				return TMDB.updateTvShowMetadata(tvSeries.getTvSeriesMetadata().getTvSeriesId(), tmdbId);
 			}
+			return false;
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
 	}
 
-	private static JsonObject getSurroundingByType(StoreItem item) {
+	private static JsonObject getSurroundingByType(StoreItem item, String lang) {
 		JsonObject result = new JsonObject();
 		List<StoreResource> children = item.getParent().getChildren();
 		boolean looping = CONFIGURATION.getWebPlayerAutoLoop(item.getFormat());
@@ -894,7 +910,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			if (next != null && next instanceof StoreItem storeItem) {
 				JsonObject jMedia = new JsonObject();
 				jMedia.addProperty("id", storeItem.getResourceId());
-				jMedia.addProperty("name", storeItem.resumeName());
+				jMedia.addProperty("name", storeItem.getLocalizedResumeName(lang));
 				result.add(step > 0 ? "next" : "prev", jMedia);
 			}
 		}
@@ -1263,20 +1279,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 * names and when applicable, associated IDs, or null when there is no
 	 * metadata
 	 */
-	private static JsonObject getMetadataAsJsonObject(StoreResource resource, boolean isTVSeries, Renderer renderer, String lang) {
+	private static JsonObject getMetadataAsJsonObject(StoreResource resource, Renderer renderer, String lang) {
 		JsonObject result = null;
-		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			if (connection != null) {
-				if (isTVSeries) {
-					String simplifiedTitle = resource.getDisplayName() != null ? FileUtil.getSimplifiedShowName(resource.getDisplayName()) : resource.getName();
-					result = MediaTableTVSeries.getTvSeriesMetadataAsJsonObject(connection, simplifiedTitle, lang);
-				} else {
-					result = MediaTableVideoMetadata.getVideoMetadataAsJsonObject(connection, resource.getFileName(), lang);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.error("Error while getting metadata for web interface");
-			LOGGER.debug("", e);
+		if (resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries) {
+			TvSeriesMetadata tvSeriesMetadata = mediaLibraryTvSeries.getTvSeriesMetadata();
+			result = tvSeriesMetadata.asJsonObject(lang);
+		} else if (resource != null && resource.getMediaInfo() != null && resource.getMediaInfo().hasVideoMetadata()) {
+			result = resource.getMediaInfo().getVideoMetadata().asJsonObject(lang);
 		}
 		if (result == null) {
 			return null;
@@ -1298,7 +1307,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			UMSUtils.filterResourcesByName(mediaLibraryChildren, Messages.getString("Video"), true, true);
 			StoreResource videoFolder = mediaLibraryChildren.get(0);
 
-			boolean isRelatedToTV = isTVSeries || resource.isEpisodeWithinSeasonFolder() || resource.isEpisodeWithinTVSeriesFolder();
+			boolean isRelatedToTV = resource instanceof MediaLibraryTvSeries || resource instanceof MediaLibraryTvEpisode;
 			String folderName = isRelatedToTV ? Messages.getString("TvShows") : Messages.getString("Movies");
 			List<StoreResource> videoFolderChildren = renderer.getMediaStore().getResources(videoFolder.getId(), true, 0, 0, folderName);
 			UMSUtils.filterResourcesByName(videoFolderChildren, folderName, true, true);
@@ -1388,6 +1397,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 				object.add(memberName, dlnaChild);
 			}
+		}
+	}
+
+	private static Long getLong(String value) {
+		try {
+			return Long.valueOf(value);
+		} catch (NumberFormatException e) {
+			return null;
 		}
 	}
 

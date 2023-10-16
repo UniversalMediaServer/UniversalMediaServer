@@ -35,7 +35,6 @@ import net.pms.media.MediaInfo;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
-import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,7 +148,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
-	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + MediaTableThumbnails.TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
 	 * Used by child tables
@@ -989,19 +988,9 @@ public class MediaTableFiles extends MediaTable {
 			/*
 			 * Cleanup of TV_SERIES table
 			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
+			 * Removes entries that are not referenced by any rows in the VIDEO_METADATA table.
 			 */
-			try (
-				PreparedStatement ps = connection.prepareStatement(
-					DELETE_FROM + MediaTableTVSeries.TABLE_NAME +
-					WHERE + NOT + EXISTS + "(" +
-						SELECT + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + FROM + MediaTableVideoMetadata.TABLE_NAME +
-						WHERE + MediaTableVideoMetadata.TABLE_COL_MOVIEORSHOWNAMESIMPLE + EQUAL + MediaTableTVSeries.TABLE_COL_SIMPLIFIEDTITLE +
-						LIMIT_1 +
-					");"
-			)) {
-				ps.execute();
-			}
+			MediaTableTVSeries.cleanup(connection);
 
 			/*
 			 * Cleanup of THUMBNAILS table
@@ -1063,9 +1052,8 @@ public class MediaTableFiles extends MediaTable {
 	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
 		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_THUMBNAIL_BY_TITLE)) {
-			ps.setString(1, simplifiedTitle);
+			ps.setString(1, title);
 			if (trace) {
 				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", ps);
 			}
@@ -1073,7 +1061,7 @@ public class MediaTableFiles extends MediaTable {
 				ResultSet rs = ps.executeQuery();
 			) {
 				if (rs.next()) {
-					return (DLNAThumbnail) rs.getObject(MediaTableThumbnails.COL_THUMBNAIL);
+					return ThumbnailStore.getThumbnail(rs.getLong(TABLE_COL_THUMBID));
 				}
 			}
 		} catch (SQLException e) {

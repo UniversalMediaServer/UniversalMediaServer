@@ -63,12 +63,12 @@ public class LocalizedStoreContainer extends StoreContainer {
 	}
 
 	/**
-	 * Returns the unlocalized display name.
+	 * Returns the localized display name.
 	 *
-	 * @return The unlocalized display name.
+	 * @return The localized display name.
 	 */
 	@Override
-	public String getUnlocalizedDisplayName() {
+	public String getLocalizedDisplayName(String lang) {
 		if (i18nName != null) {
 			return "i18n@" + getSystemName();
 		}

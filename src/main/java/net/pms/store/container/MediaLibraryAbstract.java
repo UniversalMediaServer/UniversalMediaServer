@@ -57,6 +57,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String OR = " OR ";
 	protected static final String ORDER_BY = " ORDER BY ";
 	protected static final String SELECT = "SELECT ";
+	protected static final String SELECT_ALL = SELECT + "*";
 	protected static final String SELECT_DISTINCT = SELECT + "DISTINCT ";
 	protected static final String WHERE = " WHERE ";
 	protected static final String LIMIT = " LIMIT ";
@@ -89,12 +90,15 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 
 	protected static final String FROM_FILES = FROM + MediaTableFiles.TABLE_NAME;
 	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
+	protected static final String FROM_FILES_VIDEOMETA_TV_SERIES = FROM_FILES_VIDEOMETA + MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_TV_SERIES;
 	protected static final String FROM_FILES_STATUS = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS;
 	protected static final String FROM_FILES_STATUS_VIDEOMETA = FROM_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;
+	protected static final String FROM_FILES_STATUS_VIDEO_TV_SERIES = FROM_FILES_STATUS_VIDEOMETA + MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_TV_SERIES;
 
 	protected static final String SELECT_DISTINCT_TVSEASON = SELECT_DISTINCT + MediaTableVideoMetadata.TABLE_COL_TVSEASON + FROM_FILES_STATUS_VIDEOMETA;
-	protected static final String SELECT_FILES_STATUS_WHERE = SELECT + "*" + FROM_FILES_STATUS + WHERE;
-	protected static final String SELECT_FILES_STATUS_VIDEO_WHERE = SELECT + "*" + FROM_FILES_STATUS_VIDEOMETA + WHERE;
+	protected static final String SELECT_FILES_STATUS_WHERE = SELECT_ALL + FROM_FILES_STATUS + WHERE;
+	protected static final String SELECT_FILES_STATUS_VIDEO_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEOMETA + WHERE;
+	protected static final String SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE;
 
 	protected static final int FILES = 0;
 	protected static final int TEXTS = 1;

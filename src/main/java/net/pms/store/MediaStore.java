@@ -538,7 +538,12 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren, int start, int count,
-			String searchStr) {
+		String searchStr) {
+		return getResources(objectId, returnChildren, start, count, searchStr, null);
+	}
+
+	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren, int start, int count,
+			String searchStr, String lang) {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -568,7 +573,7 @@ public class MediaStore extends StoreContainer {
 
 		if (resource == null) {
 			// nothing in the cache do a traditional search
-			resource = search(ids);
+			resource = search(ids, lang);
 			// resource = search(objectId, count, searchStr);
 		}
 
@@ -586,11 +591,11 @@ public class MediaStore extends StoreContainer {
 			if (!returnChildren) {
 				resources.add(resource);
 				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.refreshChildrenIfNeeded(searchStr);
+					storeContainer.refreshChildrenIfNeeded(searchStr, lang);
 				}
 			} else {
 				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.discover(count, true, searchStr);
+					storeContainer.discover(count, true, searchStr, lang);
 
 					if (count == 0) {
 						count = storeContainer.getChildren().size();
@@ -640,7 +645,7 @@ public class MediaStore extends StoreContainer {
 		return resources;
 	}
 
-	private StoreResource search(String[] searchIds) {
+	private StoreResource search(String[] searchIds, String lang) {
 		StoreResource resource;
 		for (String searchId : searchIds) {
 			if (searchId.equals("0")) {
@@ -655,7 +660,7 @@ public class MediaStore extends StoreContainer {
 			}
 
 			if (resource instanceof StoreContainer storeContainer) {
-				storeContainer.discover(0, false, null);
+				storeContainer.discover(0, false, null, lang);
 			}
 		}
 

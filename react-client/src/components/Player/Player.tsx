@@ -451,7 +451,7 @@ export const Player = () => {
           <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
             <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
           </Tooltip>
-          {((data.medias[0]) as PlayMedia).isEditable && (
+          {((data.medias[0]) as PlayMedia).mediaType === 'video' && ((data.medias[0]) as VideoMedia).metadata?.isEditable && (
             <VideoMetadataEditButton uuid={uuid} id={data.medias[0].id} callback={() => location.reload()} />
           )}
           {((data.medias[0]) as PlayMedia).isDownload && (
@@ -460,6 +460,10 @@ export const Player = () => {
             </Tooltip>
           )}
         </Button.Group>
+      )
+    } else if (data.goal === 'browse' && data.metadata?.isEditable) {
+      return (
+        <VideoMetadataEditButton uuid={uuid} id={sse.reqId} callback={() => location.reload()} />
       )
     }
   }
@@ -693,7 +697,6 @@ interface PlayMedia extends BaseMedia {
   isDynamicPls: boolean,
   mediaType: string,
   surroundMedias: SurroundMedias,
-  isEditable: boolean,
 }
 
 interface MediaRating {
@@ -746,6 +749,7 @@ interface VideoMetadata {
   tvSeason?: string,
   totalSeasons?: number,
   votes?: string,
+  isEditable: boolean,
 }
 
 interface VideoMetadataImages {

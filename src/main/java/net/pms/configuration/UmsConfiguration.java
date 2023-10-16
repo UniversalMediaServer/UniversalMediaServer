@@ -1653,6 +1653,16 @@ public class UmsConfiguration extends BaseConfiguration {
 		return configuration.getString(KEY_LANGUAGE);
 	}
 
+	public String getTranslationLanguage(String lang) {
+		if (lang == null) {
+			lang = getLanguageRawString();
+		}
+		if (lang != null) {
+			lang = lang.toLowerCase();
+		}
+		return lang;
+	}
+
 	/**
 	 * Gets the {@link java.util.Locale} of the preferred language for the UMS
 	 * user interface. The default is based on the default (OS) locale.

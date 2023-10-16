@@ -17,8 +17,15 @@
 package net.pms.media.video.metadata;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.database.MediaTableVideoMetadataLocalized;
 import net.pms.store.ThumbnailSource;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +35,7 @@ import org.slf4j.LoggerFactory;
 public class TvSeriesMetadata {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TvSeriesMetadata.class);
 	private static final Gson GSON = new Gson();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	/**
 	 * Metadata gathered from either the filename or our API.
@@ -65,7 +73,6 @@ public class TvSeriesMetadata {
 	private String released;
 	private ApiSeasonArray seasons;
 	private String seriesType;
-	private String simplifiedTitle;
 	private ApiLanguageArray spokenLanguages;
 	private String startYear;
 	private String status;
@@ -78,6 +85,7 @@ public class TvSeriesMetadata {
 	private Long thumbnailId;
 	private ThumbnailSource thumbnailSource = ThumbnailSource.UNKNOWN;
 	private Long tvSeriesId;
+	private Map<String, VideoMetadataLocalized> translations;
 
 	public Long getTvSeriesId() {
 		return tvSeriesId;
@@ -334,6 +342,14 @@ public class TvSeriesMetadata {
 		}
 	}
 
+	public String getOverview() {
+		return overview;
+	}
+
+	public void setOverview(String value) {
+		this.overview = value;
+	}
+
 	public String getPoster() {
 		return poster;
 	}
@@ -382,14 +398,6 @@ public class TvSeriesMetadata {
 			LOGGER.error("Error in parsing production countries: {}", e.getMessage());
 			this.productionCountries = null;
 		}
-	}
-
-	public String getOverview() {
-		return overview;
-	}
-
-	public void setOverview(String value) {
-		this.overview = value;
 	}
 
 	public String getRated() {
@@ -456,14 +464,6 @@ public class TvSeriesMetadata {
 
 	public void setSeriesType(String value) {
 		this.seriesType = value;
-	}
-
-	public String getSimplifiedTitle() {
-		return simplifiedTitle;
-	}
-
-	public void setSimplifiedTitle(String value) {
-		this.simplifiedTitle = value;
 	}
 
 	public ApiLanguageArray getSpokenLanguages() {
@@ -557,6 +557,126 @@ public class TvSeriesMetadata {
 
 	public void setVotes(String value) {
 		this.votes = value;
+	}
+
+	public void setTranslations(Map<String, VideoMetadataLocalized> value) {
+		this.translations = value;
+	}
+
+	public void ensureHavingTranslation(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		if (lang != null && !"en-us".equals(lang) && !hasTranslation(lang) && tvSeriesId != null && tvSeriesId > -1) {
+			VideoMetadataLocalized loc = MediaTableVideoMetadataLocalized.getVideoMetadataLocalized(tvSeriesId, true, lang, imdbID, "tv", tmdbId, null, null);
+			if (loc != null) {
+				addTranslation(lang, loc);
+			}
+		}
+	}
+
+	private void addTranslation(String lang, VideoMetadataLocalized value) {
+		if (lang == null || value == null) {
+			return;
+		}
+		if (this.translations == null)  {
+			this.translations = new HashMap<>();
+		}
+		this.translations.put(lang.toLowerCase(), value);
+	}
+
+	private boolean hasTranslation(String lang) {
+		return this.translations != null && this.translations.containsKey(lang.toLowerCase());
+	}
+
+	private VideoMetadataLocalized getTranslation(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		if (hasTranslation(lang)) {
+			return this.translations.get(lang);
+		}
+		return null;
+	}
+
+	public String getHomepage(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getHomepage())) {
+			return translation.getHomepage();
+		}
+		return homepage;
+	}
+
+	public String getOverview(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getOverview())) {
+			return translation.getOverview();
+		}
+		return overview;
+	}
+
+	public String getPoster(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getPoster())) {
+			return translation.getPoster();
+		}
+		return poster;
+	}
+
+	public String getTagline(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getTagline())) {
+			return translation.getTagline();
+		}
+		return tagline;
+	}
+
+	public String getTitle(String lang) {
+		VideoMetadataLocalized translation = getTranslation(lang);
+		if (translation != null && StringUtils.isNotBlank(translation.getTitle())) {
+			return translation.getTitle();
+		}
+		return title;
+	}
+
+	public JsonObject asJsonObject(String lang) {
+		lang = CONFIGURATION.getTranslationLanguage(lang);
+		ensureHavingTranslation(lang);
+		JsonObject result = new JsonObject();
+		result.add("actors", GSON.toJsonTree(actors));
+		result.addProperty("awards", awards);
+		result.add("countries", GSON.toJsonTree(countries));
+		result.add("directors", GSON.toJsonTree(directors));
+		result.addProperty("endYear", endYear);
+		result.add("externalIDs", GSON.toJsonTree(externalIDs));
+		result.addProperty("firstAirDate", firstAirDate);
+		result.add("genres", GSON.toJsonTree(genres));
+		result.addProperty("homepage", getHomepage(lang));
+		result.add("images", GSON.toJsonTree(images));
+		result.addProperty("imdbID", imdbID);
+		result.addProperty("inProduction", inProduction);
+		result.add("languages", GSON.toJsonTree(languages));
+		result.addProperty("lastAirDate", lastAirDate);
+		result.addProperty("mediaType", "tv");
+		result.addProperty("numberOfEpisodes", numberOfEpisodes);
+		result.addProperty("numberOfSeasons", numberOfSeasons);
+		result.add("originCountry", GSON.toJsonTree(originCountry));
+		result.addProperty("originalLanguage", originalLanguage);
+		result.addProperty("originalTitle", originalTitle);
+		result.addProperty("overview", getOverview(lang));
+		result.addProperty("poster", getPoster(lang));
+		result.addProperty("production", production);
+		result.addProperty("rated", rated);
+		result.addProperty("rating", rating);
+		result.add("ratings", GSON.toJsonTree(ratings));
+		result.addProperty("released", released);
+		result.add("seasons", GSON.toJsonTree(seasons));
+		result.addProperty("seriesType", seriesType);
+		result.add("spokenLanguages", GSON.toJsonTree(spokenLanguages));
+		result.addProperty("startYear", startYear);
+		result.addProperty("status", status);
+		result.addProperty("tagline", getTagline(lang));
+		result.addProperty("tmdbID", tmdbId);
+		result.addProperty("title", getTitle(lang));
+		result.addProperty("totalSeasons", totalSeasons);
+		result.addProperty("votes", votes);
+		return result;
 	}
 
 }

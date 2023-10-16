@@ -92,9 +92,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 
 	private long lastModified;
 
-	private boolean isEpisodeWithinSeasonFolder = false;
-	private boolean isEpisodeWithinTVSeriesFolder = false;
-
 	private boolean noName;
 	private int nametruncate;
 	private StoreResource first;
@@ -110,6 +107,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * The last time refresh was called.
 	 */
 	private long lastRefreshTime;
+	protected boolean isSortableByDisplayName = false;
 
 	protected HashMap<String, Object> attachments = null;
 
@@ -399,23 +397,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Returns the unlocalized display name for the renderer.
-	 *
-	 * @return The unlocalized display name.
-	 */
-	public String getUnlocalizedDisplayName() {
-		return getDisplayName();
-	}
-
-	public void truncateDisplayName(String end) {
-		nametruncate = getName().lastIndexOf(end);
-	}
-
-	public boolean isInsideTranscodeFolder() {
-		return parent instanceof FileTranscodeVirtualFolder;
-	}
-
-	/**
 	 * Returns the display name for the renderer with or without additional
 	 * information suffix.
 	 *
@@ -471,6 +452,23 @@ public abstract class StoreResource implements Cloneable, Runnable {
 
 	public String getDisplayNameSuffix() {
 		return null;
+	}
+
+	/**
+	 * Returns the localized display name for the renderer.
+	 *
+	 * @return The localized display name.
+	 */
+	public String getLocalizedDisplayName(String lang) {
+		return getDisplayName();
+	}
+
+	public void truncateDisplayName(String end) {
+		nametruncate = getName().lastIndexOf(end);
+	}
+
+	public boolean isInsideTranscodeFolder() {
+		return parent instanceof FileTranscodeVirtualFolder;
 	}
 
 	/**
@@ -687,42 +685,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 */
 	protected void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
-	}
-
-	/**
-	 * @return Whether this is a TV episode being accessed within a season
-	 * folder in the Media Library.
-	 */
-	public boolean isEpisodeWithinSeasonFolder() {
-		return isEpisodeWithinSeasonFolder;
-	}
-
-	/**
-	 * Sets whether this is a TV episode being accessed within a season folder
-	 * in the Media Library.
-	 *
-	 * @param isEpisodeWithinSeasonFolder
-	 */
-	protected void setIsEpisodeWithinSeasonFolder(boolean isEpisodeWithinSeasonFolder) {
-		this.isEpisodeWithinSeasonFolder = isEpisodeWithinSeasonFolder;
-	}
-
-	/**
-	 * @return Whether this is a TV episode being accessed directly inside a TV
-	 * series folder in the Media Library
-	 */
-	public boolean isEpisodeWithinTVSeriesFolder() {
-		return isEpisodeWithinTVSeriesFolder;
-	}
-
-	/**
-	 * Sets whether this is a TV episode being accessed directly inside a TV
-	 * series folder in the Media Library
-	 *
-	 * @param isEpisodeWithinTVSeriesFolder
-	 */
-	protected void setIsEpisodeWithinTVSeriesFolder(boolean isEpisodeWithinTVSeriesFolder) {
-		this.isEpisodeWithinTVSeriesFolder = isEpisodeWithinTVSeriesFolder;
 	}
 
 	/**

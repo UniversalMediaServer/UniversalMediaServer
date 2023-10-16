@@ -17,7 +17,9 @@
 package net.pms.store;
 
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -52,6 +54,8 @@ public class StoreContainer extends StoreResource {
 
 	protected String name;
 	protected String thumbnailIcon;
+	protected boolean isSortedByDisplayName = false;
+
 	private boolean allChildrenAreContainers = true;
 	private boolean discovered = false;
 
@@ -463,9 +467,22 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void refreshChildrenIfNeeded(String search) {
+	protected void sortChildrenIfNeeded(String lang) {
+		if (isSortedByDisplayName) {
+			Collections.sort(children, (StoreResource child1, StoreResource child2) -> {
+				if (!child1.isSortableByDisplayName || !child2.isSortableByDisplayName) {
+					return 0;
+				}
+				String str1 = Normalizer.normalize(child1.getLocalizedDisplayName(lang), Normalizer.Form.NFKD);
+				String str2 = Normalizer.normalize(child2.getLocalizedDisplayName(lang), Normalizer.Form.NFKD);
+				return str1.compareToIgnoreCase(str2);
+			});
+		}
+	}
+
+	protected void refreshChildrenIfNeeded(String search, String lang) {
 		if (isDiscovered() && isRefreshNeeded()) {
-			refreshChildren(search);
+			refreshChildren(search, lang);
 			notifyRefresh();
 		}
 	}
@@ -699,7 +716,7 @@ public class StoreContainer extends StoreResource {
 		discoverChildren();
 	}
 
-	protected final void discover(int count, boolean forced, String searchStr) {
+	protected final void discover(int count, boolean forced, String searchStr, String lang) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (renderer.getUmsConfiguration().getFolderLimit() && depthLimit()) {
@@ -711,6 +728,7 @@ public class StoreContainer extends StoreResource {
 			}
 
 			discoverChildren(searchStr);
+			sortChildrenIfNeeded(lang);
 			boolean ready;
 
 			if (this instanceof VirtualFolder virtualFolder) {
@@ -741,15 +759,19 @@ public class StoreContainer extends StoreResource {
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded ->
 				// doRefreshChildren, which is what happens below
 				// (refreshChildren is not overridden in VirtualFile)
-				if (refreshChildren(searchStr)) {
+				if (refreshChildren(searchStr, lang)) {
 					notifyRefresh();
+				} else {
+					sortChildrenIfNeeded(lang);
 				}
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren
 				// pair.
 				if (isRefreshNeeded()) {
-					doRefreshChildren(searchStr);
+					doRefreshChildren(searchStr, lang);
 					notifyRefresh();
+				} else {
+					sortChildrenIfNeeded(lang);
 				}
 			}
 		}
@@ -758,8 +780,9 @@ public class StoreContainer extends StoreResource {
 	public void doRefreshChildren() {
 	}
 
-	public void doRefreshChildren(String search) {
+	public void doRefreshChildren(String search, String lang) {
 		doRefreshChildren();
+		sortChildrenIfNeeded(lang);
 	}
 
 	private boolean depthLimit() {
@@ -798,9 +821,9 @@ public class StoreContainer extends StoreResource {
 		return false;
 	}
 
-	public boolean refreshChildren(String search) {
+	public boolean refreshChildren(String search, String lang) {
 		if (isRefreshNeeded()) {
-			doRefreshChildren(search);
+			doRefreshChildren(search, lang);
 			return true;
 		}
 

@@ -197,7 +197,7 @@ public class StoreResourceHelper {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			result = new MusicTrack();
-		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTVEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
+		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();
 		} else {
@@ -327,18 +327,18 @@ public class StoreResourceHelper {
 
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata() && result instanceof Movie movie) {
 			MediaVideoMetadata videoMetadata = mediaInfo.getVideoMetadata();
-			if (videoMetadata.isTVEpisode()) {
-				if (StringUtils.isNotBlank(videoMetadata.getTVSeason())) {
-					movie.setEpisodeSeason(UnsignedInteger.valueOf(videoMetadata.getTVSeason()));
+			if (videoMetadata.isTvEpisode()) {
+				if (StringUtils.isNotBlank(videoMetadata.getTvSeason())) {
+					movie.setEpisodeSeason(UnsignedInteger.valueOf(videoMetadata.getTvSeason()));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeNumber())) {
-					movie.setEpisodeNumber(UnsignedInteger.valueOf(videoMetadata.getTVEpisodeNumber()));
+				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {
+					movie.setEpisodeNumber(UnsignedInteger.valueOf(videoMetadata.getTvEpisodeNumber()));
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getMovieOrShowName())) {
-					movie.setSeriesTitle(videoMetadata.getMovieOrShowName());
+				if (StringUtils.isNotBlank(videoMetadata.getTvSeriesTitle())) {
+					movie.setSeriesTitle(videoMetadata.getTvSeriesTitle());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getTVEpisodeName())) {
-					movie.setProgramTitle(videoMetadata.getTVEpisodeName());
+				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeName())) {
+					movie.setProgramTitle(videoMetadata.getTvEpisodeName());
 				}
 			}
 			if (mediaStatus != null) {

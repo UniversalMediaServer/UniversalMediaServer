@@ -164,7 +164,7 @@ public class MediaTableSubtracks extends MediaTable {
 		);
 	}
 
-	protected static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
+	public static void insertOrUpdateSubtitleTracks(Connection connection, long fileId, MediaInfo media) throws SQLException {
 		if (connection == null || fileId < 0 || media == null) {
 			return;
 		}
