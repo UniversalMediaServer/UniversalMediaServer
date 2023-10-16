@@ -214,7 +214,6 @@ public class PMS {
 	 * The returned <code>List</code> itself is thread safe, but the objects it's
 	 * holding is not. Any looping/iterating of this <code>List</code> MUST be
 	 * enclosed in: S
-	 * 
 	 * <pre>
 	 * <code>
 	 * synchronized (getFoundRenderers()) {
@@ -222,7 +221,6 @@ public class PMS {
 	 * }
 	 * </code>
 	 * </pre>
-	 * 
 	 * @return {@link #foundRenderers}
 	 */
 	public List<Renderer> getFoundRenderers() {
@@ -272,13 +270,9 @@ public class PMS {
 
 	private PMS() {
 	}
-
-	/**
-	 * Used to get the database. Needed in the case of the Xbox 360, that requires a
-	 * database. for its queries.
-	 * 
-	 * @return (MediaDatabase) a reference to the mediaDatabase.
-	 */
+	/*Used to get the database. Needed in the case of the Xbox 360, that requires a
+	 database. for its queries.
+	 @return (MediaDatabase) a reference to the mediaDatabase.*/
 	public MediaDatabase getMediaDatabase() {
 		return MediaDatabase.get();
 	}
@@ -402,21 +396,17 @@ public class PMS {
 	private boolean init() throws Exception {
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = umsConfiguration.getLogSystemInformation();
-		if (logSystemInfo == LogSystemInformationMode.ALWAYS
-				|| logSystemInfo == LogSystemInformationMode.TRACE_ONLY && LOGGER.isTraceEnabled()) {
+		if (logSystemInfo == LogSystemInformationMode.ALWAYS || logSystemInfo == LogSystemInformationMode.TRACE_ONLY && LOGGER.isTraceEnabled()) {
 			new SystemInformation().start();
 		}
-
 		// Show the language selection dialog before displayBanner();
-		if (!isHeadless() && (umsConfiguration.getLanguageRawString() == null
-				|| !Languages.isValid(umsConfiguration.getLanguageRawString()))) {
+		if (!isHeadless() && (umsConfiguration.getLanguageRawString() == null || !Languages.isValid(umsConfiguration.getLanguageRawString()))) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
 			if (languageDialog.isAborted()) {
 				return false;
 			}
 		}
-
 		// Initialize splash screen
 		WindowPropertiesConfiguration windowConfiguration = null;
 		Splash splash = null;
@@ -425,10 +415,8 @@ public class PMS {
 					Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat"));
 			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
 		}
-
 		// Call this as early as possible
 		displayBanner();
-
 		// Start network scanner
 		NetworkConfiguration.start();
 		// Initialize databases
@@ -436,14 +424,12 @@ public class PMS {
 		UserDatabase.init();
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
-
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have different
 		 * resource IDs than last time UMS ran. It also populates our in-memory value
 		 * with the database value if the database is enabled.
 		 */
 		DLNAResource.bumpSystemUpdateId();
-
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("");
@@ -464,7 +450,6 @@ public class PMS {
 			}
 			LOGGER.trace("");
 		}
-
 		// Wizard
 		if (umsConfiguration.isRunWizard() && !isHeadless()) {
 			// Hide splash screen
@@ -480,7 +465,6 @@ public class PMS {
 				splash.setVisible(true);
 			}
 		}
-
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
 
@@ -811,39 +795,31 @@ public class PMS {
 			}
 		}
 	}
-
 	/**
 	 * Creates a new random {@link #uuid}. These are used to uniquely identify the
 	 * server to renderers (i.e. renderers treat multiple servers with the same UUID
 	 * as the same server).
-	 * 
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
 	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
 	public String usn() {
 		return "uuid:" + udn();
 	}
-
 	public synchronized String udn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = umsConfiguration.getUuid();
-
 			if (uuid == null) {
 				uuid = UUID.randomUUID().toString();
 				LOGGER.info("Generated new random UUID: {}", uuid);
-
 				// save the newly-generated UUID
 				umsConfiguration.setUuid(uuid);
 				saveConfiguration();
 			}
-
 			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
 		}
-
 		return uuid;
 	}
-
 	/**
 	 * Returns the user friendly name of the UMS server.
 	 * 
@@ -863,10 +839,8 @@ public class PMS {
 
 		return serverName;
 	}
-
 	/**
 	 * Returns the PMS instance.
-	 *
 	 * @return {@link net.pms.PMS}
 	 */
 	@Nonnull
@@ -1214,7 +1188,6 @@ public class PMS {
 	public static void quit() {
 		System.exit(0);
 	}
-
 	/**
 	 * Restart handling
 	 */
@@ -1232,7 +1205,6 @@ public class PMS {
 		} catch (IOException e) {
 			LOGGER.error("Error killing old process: " + e);
 		}
-
 		try {
 			dumpPid();
 		} catch (FileNotFoundException e) {
@@ -1244,7 +1216,6 @@ public class PMS {
 			LOGGER.error("Error dumping PID " + e);
 		}
 	}
-
 	/*
 	 * This method is only called for Windows OS'es, so specialized Windows charset
 	 * handling is allowed
@@ -1276,14 +1247,12 @@ public class PMS {
 		if (line == null) {
 			return false;
 		}
-
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replace("\"", "").split(",");
 		// if the line is too short we don't kill the process
 		if (tmp.length < 9) {
 			return false;
 		}
-
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server")
@@ -1407,7 +1376,6 @@ public class PMS {
 	/**
 	 * Gets the current {@link Locale} to be used in any {@link Locale} sensitive
 	 * operations. If <code>null</code> the default {@link Locale} is returned.
-	 * 
 	 * @return current {@link Locale} or default {@link Locale}
 	 */
 	public static Locale getLocale() {
@@ -1424,7 +1392,6 @@ public class PMS {
 
 	/**
 	 * Sets UMS' {@link Locale}.
-	 * 
 	 * @param aLocale the {@link Locale} to set
 	 */
 	public static void setLocale(Locale aLocale) {
@@ -1440,7 +1407,6 @@ public class PMS {
 	/**
 	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
 	 * constructor. <code>null</code> values are treated as empty strings.
-	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
 	 *                 subtag up to 8 characters in length. See the
 	 *                 <code>Locale</code> class description about valid language
@@ -1466,11 +1432,9 @@ public class PMS {
 			LOCALE_LOCK.writeLock().unlock();
 		}
 	}
-
 	/**
 	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
 	 * constructor. <code>null</code> values are treated as empty strings.
-	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
 	 *                 subtag up to 8 characters in length. See the
 	 *                 <code>Locale</code> class description about valid language
@@ -1486,7 +1450,6 @@ public class PMS {
 	/**
 	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
 	 * constructor. <code>null</code> values are treated as empty strings.
-	 *
 	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
 	 *                 subtag up to 8 characters in length. See the
 	 *                 <code>Locale</code> class description about valid language
@@ -1495,11 +1458,9 @@ public class PMS {
 	public static void setLocale(String language) {
 		setLocale(language, "", "");
 	}
-
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the
 	 * documentation directory.
-	 *
 	 * @param page The help page.
 	 */
 	public static void setHelpPage(String page) {
@@ -1509,7 +1470,6 @@ public class PMS {
 	/**
 	 * Returns the relative URL of a context sensitive help page in the
 	 * documentation directory.
-	 *
 	 * @return The help page.
 	 */
 	public static String getHelpPage() {
@@ -1556,7 +1516,6 @@ public class PMS {
 
 	/**
 	 * Returns current trace mode state
-	 *
 	 * @return 0 = Not started in trace mode<br>
 	 *         1 = Started in trace mode<br>
 	 *         2 = Forced to trace mode
@@ -1567,7 +1526,6 @@ public class PMS {
 
 	/**
 	 * Returns if the mediaDatabase logging is forced by command line arguments.
-	 *
 	 * @return {@code true} if mediaDatabase logging is forced, {@code false}
 	 *         otherwise.
 	 */
@@ -1635,7 +1593,6 @@ public class PMS {
 			String currentDirectory = System.getProperty("user.dir");
 			// Construct the file path to the pom.xml
 			String pomFilePath = currentDirectory + File.separator + "pom.xml";
-
 			File pomFile = new File(pomFilePath);
 			// Parse the pom.xml file
 			MavenXpp3Reader reader = new MavenXpp3Reader();
