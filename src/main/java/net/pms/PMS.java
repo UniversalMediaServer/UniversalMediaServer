@@ -85,6 +85,9 @@ import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +116,7 @@ public class PMS {
 	// (innot): The logger used for all logging.
 	private static final Logger LOGGER = LoggerFactory.getLogger(PMS.class);
 
-	// TODO(tcox):  This shouldn't be static
+	// TODO(tcox): This shouldn't be static
 	private static UmsConfiguration umsConfiguration;
 
 	/**
@@ -128,25 +131,25 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	/**
-	 * A lock to prevent heavy IO tasks from causing browsing to be less
-	 * responsive.
+	 * A lock to prevent heavy IO tasks from causing browsing to be less responsive.
 	 *
 	 * When a task has a high priority (needs to run in realtime), it should
-	 * implement this lock for the duration of their operation. When a task
-	 * has a lower priority, it should use this lock to wait for any
-	 * realtime task to finish, and then immediately unlock, to prevent
-	 * blocking the next realtime task from starting.
+	 * implement this lock for the duration of their operation. When a task has a
+	 * lower priority, it should use this lock to wait for any realtime task to
+	 * finish, and then immediately unlock, to prevent blocking the next realtime
+	 * task from starting.
 	 */
 	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
-	 * Returns the root folder for a given renderer. There could be the case
-	 * where a given media renderer needs a different root structure.
+	 * Returns the root folder for a given renderer. There could be the case where a
+	 * given media renderer needs a different root structure.
 	 *
-	 * @param renderer {@link Renderer}
-	 * is the renderer for which to get the RootFolder structure. If <code>null</code>,
-	 * then the default renderer is used.
-	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
+	 * @param renderer {@link Renderer} is the renderer for which to get the
+	 *                 RootFolder structure. If <code>null</code>, then the default
+	 *                 renderer is used.
+	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given
+	 *         renderer
 	 */
 	public RootFolder getRootFolder(Renderer renderer) {
 		// something to do here for multiple directories views for each renderer
@@ -169,21 +172,25 @@ public class PMS {
 	/**
 	 * An array of {@link Renderer}s that have been found by UMS.
 	 * <p>
-	 * Important! If iteration is done on this list it's not thread safe unless
-	 * the iteration loop is enclosed by a {@code synchronized} block on the <b>
+	 * Important! If iteration is done on this list it's not thread safe unless the
+	 * iteration loop is enclosed by a {@code synchronized} block on the <b>
 	 * {@link List} itself</b>.
 	 */
 	private final List<Renderer> foundRenderers = Collections.synchronizedList(new ArrayList<>());
 
 	/**
-	 * The returned <code>List</code> itself is thread safe, but the objects
-	 * it's holding is not. Any looping/iterating of this <code>List</code>
-	 * MUST be enclosed in:
-	 * S<pre><code>
+	 * The returned <code>List</code> itself is thread safe, but the objects it's
+	 * holding is not. Any looping/iterating of this <code>List</code> MUST be
+	 * enclosed in: S
+	 * 
+	 * <pre>
+	 * <code>
 	 * synchronized (getFoundRenderers()) {
 	 *      ..code..
 	 * }
-	 * </code></pre>
+	 * </code>
+	 * </pre>
+	 * 
 	 * @return {@link #foundRenderers}
 	 */
 	public List<Renderer> getFoundRenderers() {
@@ -191,9 +198,9 @@ public class PMS {
 	}
 
 	/**
-	 * Adds a {@link Renderer} to the list of media renderers found.
-	 * The list is being used, for example, to give the user a graphical representation of the found
-	 * media renderers.
+	 * Adds a {@link Renderer} to the list of media renderers found. The list is
+	 * being used, for example, to give the user a graphical representation of the
+	 * found media renderers.
 	 *
 	 * @param renderer {@link Renderer}
 	 * @since 1.82.0
@@ -210,7 +217,8 @@ public class PMS {
 	}
 
 	/**
-	 * UPnP mediaServer that serves the XML files, media files and broadcast messages needed by UPnP Service.
+	 * UPnP mediaServer that serves the XML files, media files and broadcast
+	 * messages needed by UPnP Service.
 	 */
 	private MediaServer mediaServer;
 
@@ -220,8 +228,8 @@ public class PMS {
 	private WebGuiServer webGuiServer;
 
 	/**
-	 * HTTP server that serves a browser/player of media files.
-	 * Should replace the WebInterfaceServer at end.
+	 * HTTP server that serves a browser/player of media files. Should replace the
+	 * WebInterfaceServer at end.
 	 */
 	private WebPlayerServer webPlayerServer;
 
@@ -234,8 +242,9 @@ public class PMS {
 	}
 
 	/**
-	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
-	 * for its queries.
+	 * Used to get the database. Needed in the case of the Xbox 360, that requires a
+	 * database. for its queries.
+	 * 
 	 * @return (MediaDatabase) a reference to the mediaDatabase.
 	 */
 	public MediaDatabase getMediaDatabase() {
@@ -254,11 +263,8 @@ public class PMS {
 		LOGGER.info("");
 
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
-		LOGGER.info(
-			"Build: {} ({})",
-			commitId.substring(0, 9),
-			PropertiesUtil.getProjectProperties().get("git.commit.time")
-		);
+		LOGGER.info("Build: {} ({})", commitId.substring(0, 9),
+				PropertiesUtil.getProjectProperties().get("git.commit.time"));
 
 		if (PlatformUtils.isMac() && !PlatformUtils.getOSVersion().isGreaterThanOrEqualTo("10.6.0")) {
 			LOGGER.warn("-----------------------------------------------------------------");
@@ -278,9 +284,9 @@ public class PMS {
 		LOGGER.info("Temporary directory: {}", umsConfiguration.getTempFolder());
 
 		/**
-		 * Verify the java.io.tmpdir is writable; JNA requires it.
-		 * Note: the configured tempFolder has already been checked, but it
-		 * may differ from the java.io.tmpdir so double check to be sure.
+		 * Verify the java.io.tmpdir is writable; JNA requires it. Note: the configured
+		 * tempFolder has already been checked, but it may differ from the
+		 * java.io.tmpdir so double check to be sure.
 		 */
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
@@ -320,14 +326,16 @@ public class PMS {
 		LOGGER.info("");
 		LOGGER.info("Profile directory: {}", profileDirectoryPath);
 		try {
-			// Don't use the {} syntax here as the check needs to be performed on every log level
+			// Don't use the {} syntax here as the check needs to be performed on every log
+			// level
 			LOGGER.info("Profile directory permissions: " + FileUtil.getFilePermissions(profileDirectoryPath));
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Profile directory not found: {}", e.getMessage());
 		}
 		LOGGER.info("Profile configuration file: {}", profilePath);
 		try {
-			// Don't use the {} syntax here as the check needs to be performed on every log level
+			// Don't use the {} syntax here as the check needs to be performed on every log
+			// level
 			LOGGER.info("Profile configuration file permissions: " + FileUtil.getFilePermissions(profilePath));
 		} catch (FileNotFoundException e) {
 			LOGGER.warn("Profile configuration file not found: {}", e.getMessage());
@@ -336,8 +344,8 @@ public class PMS {
 		LOGGER.info("");
 
 		/**
-		 * Ensure the data directory is created. On Windows this is
-		 * usually done by the installer
+		 * Ensure the data directory is created. On Windows this is usually done by the
+		 * installer
 		 */
 		File dDir = new File(umsConfiguration.getDataDir());
 		if (!dDir.exists() && !dDir.mkdirs()) {
@@ -356,26 +364,20 @@ public class PMS {
 	 * Initialization procedure.
 	 *
 	 * @return <code>true</code> if the UMS server has been initialized correctly.
-         <code>false</code> if initialization was aborted.
+	 *         <code>false</code> if initialization was aborted.
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = umsConfiguration.getLogSystemInformation();
-		if (
-			logSystemInfo == LogSystemInformationMode.ALWAYS ||
-			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
-			LOGGER.isTraceEnabled()
-		) {
+		if (logSystemInfo == LogSystemInformationMode.ALWAYS
+				|| logSystemInfo == LogSystemInformationMode.TRACE_ONLY && LOGGER.isTraceEnabled()) {
 			new SystemInformation().start();
 		}
 
 		// Show the language selection dialog before displayBanner();
-		if (
-			!isHeadless() &&
-			(umsConfiguration.getLanguageRawString() == null ||
-			!Languages.isValid(umsConfiguration.getLanguageRawString()))
-		) {
+		if (!isHeadless() && (umsConfiguration.getLanguageRawString() == null
+				|| !Languages.isValid(umsConfiguration.getLanguageRawString()))) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
 			if (languageDialog.isAborted()) {
@@ -388,8 +390,7 @@ public class PMS {
 		Splash splash = null;
 		if (!isHeadless()) {
 			windowConfiguration = new WindowPropertiesConfiguration(
-				Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat")
-			);
+					Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat"));
 			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
 		}
 
@@ -405,9 +406,9 @@ public class PMS {
 		RendererFilter.reset();
 
 		/**
-		 * Bump the SystemUpdateID state variable because now we will have
-		 * different resource IDs than last time UMS ran. It also populates our
-		 * in-memory value with the database value if the database is enabled.
+		 * Bump the SystemUpdateID state variable because now we will have different
+		 * resource IDs than last time UMS ran. It also populates our in-memory value
+		 * with the database value if the database is enabled.
 		 */
 		DLNAResource.bumpSystemUpdateId();
 
@@ -415,14 +416,16 @@ public class PMS {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("");
 			LOGGER.trace("Registered ImageIO reader classes:");
-			Iterator<ImageReaderSpi> readerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageReaderSpi.class, true);
+			Iterator<ImageReaderSpi> readerIterator = IIORegistry.getDefaultInstance()
+					.getServiceProviders(ImageReaderSpi.class, true);
 			while (readerIterator.hasNext()) {
 				ImageReaderSpi reader = readerIterator.next();
 				LOGGER.trace("Reader class: {}", reader.getPluginClassName());
 			}
 			LOGGER.trace("");
 			LOGGER.trace("Registered ImageIO writer classes:");
-			Iterator<ImageWriterSpi> writerIterator = IIORegistry.getDefaultInstance().getServiceProviders(ImageWriterSpi.class, true);
+			Iterator<ImageWriterSpi> writerIterator = IIORegistry.getDefaultInstance()
+					.getServiceProviders(ImageWriterSpi.class, true);
 			while (writerIterator.hasNext()) {
 				ImageWriterSpi writer = writerIterator.next();
 				LOGGER.trace("Writer class: {}", writer.getPluginClassName());
@@ -455,12 +458,15 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
-		// Show info that video automatic setting was improved and was not set in the wizard.
+		// Show info that video automatic setting was improved and was not set in the
+		// wizard.
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
 			if (!umsConfiguration.isAutomaticMaximumBitrate()) {
 				// Ask if user wants to use automatic maximum bitrate
-				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
+				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(
+						Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"),
+						true);
 				umsConfiguration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
@@ -471,8 +477,8 @@ public class PMS {
 		// Actions that happen only the first time UMS runs
 		if (!umsConfiguration.hasRunOnce()) {
 			/*
-			 * Enable youtube-dl once, to ensure that if it is
-			 * disabled, that was done by the user.
+			 * Enable youtube-dl once, to ensure that if it is disabled, that was done by
+			 * the user.
 			 */
 			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
 				umsConfiguration.setEngineEnabled(YoutubeDl.ID, true);
@@ -533,31 +539,19 @@ public class PMS {
 		if (!umsConfiguration.isDisableSubtitles()) {
 			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-			//TODO: Rewrite fontconfig generation
-			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getMPlayerPath(), "dummy");
+			// TODO: Rewrite fontconfig generation
+			ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getMPlayerPath(),
+					"dummy");
 
 			/**
-			 * Note: Different versions of fontconfig and bitness require
-			 * different caches, which is why here we ask FFmpeg (64-bit
-			 * if possible) to create a cache.
-			 * This should result in all of the necessary caches being built.
+			 * Note: Different versions of fontconfig and bitness require different caches,
+			 * which is why here we ask FFmpeg (64-bit if possible) to create a cache. This
+			 * should result in all of the necessary caches being built.
 			 */
 			if ((!PlatformUtils.isWindows() || PlatformUtils.is64Bit()) && umsConfiguration.getFFmpegPath() != null) {
-				ThreadedProcessWrapper.runProcessNullOutput(5,
-					TimeUnit.MINUTES,
-					2000,
-					umsConfiguration.getFFmpegPath(),
-					"-y",
-					"-f",
-					"lavfi",
-					"-i",
-					"nullsrc=s=720x480:d=1:r=1",
-					"-vf",
-					"ass=DummyInput.ass",
-					"-target",
-					"ntsc-dvd",
-					"-"
-				);
+				ThreadedProcessWrapper.runProcessNullOutput(5, TimeUnit.MINUTES, 2000, umsConfiguration.getFFmpegPath(),
+						"-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target",
+						"ntsc-dvd", "-");
 			}
 		}
 
@@ -577,7 +571,8 @@ public class PMS {
 				if (vsFilterDLL2.exists()) {
 					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
 				} else {
-					LOGGER.info("VSFilter / DirectVobSub was not found. This can cause problems when trying to play subtitled videos with AviSynth.");
+					LOGGER.info(
+							"VSFilter / DirectVobSub was not found. This can cause problems when trying to play subtitled videos with AviSynth.");
 				}
 			}
 		}
@@ -589,8 +584,7 @@ public class PMS {
 
 		// Disable jaudiotagger logging
 		LogManager.getLogManager().readConfiguration(
-			new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII))
-		);
+				new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes(StandardCharsets.US_ASCII)));
 
 		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true, StandardCharsets.UTF_8.name()));
@@ -625,7 +619,8 @@ public class PMS {
 		// initialize the cache
 		mediaLibrary = new MediaLibrary();
 
-		// XXX: this must be called *after* mediaLibrary is initialized, if enabled (above)
+		// XXX: this must be called *after* mediaLibrary is initialized, if enabled
+		// (above)
 		getRootFolder(null);
 
 		// Ensure up-to-date API metadata versions
@@ -659,7 +654,8 @@ public class PMS {
 
 		umsConfiguration.setAutoSave();
 
-		// Initiate a library scan in case files were added to folders while UMS was closed.
+		// Initiate a library scan in case files were added to folders while UMS was
+		// closed.
 		if (umsConfiguration.getUseCache() && umsConfiguration.isScanSharedFoldersOnStartup()) {
 			LibraryScanner.scanLibrary();
 		}
@@ -679,8 +675,8 @@ public class PMS {
 	}
 
 	/**
-	 * Restarts the server. The trigger is either a button on the main UMS
-	 * window or via an action item.
+	 * Restarts the server. The trigger is either a button on the main UMS window or
+	 * via an action item.
 	 */
 	// XXX: don't try to optimize this by reusing the same HttpMediaServer instance.
 	// see the comment above HttpMediaServer.stop()
@@ -705,8 +701,8 @@ public class PMS {
 	}
 
 	/**
-	 * Reset renderers.
-	 * The trigger is configuration change.
+	 * Reset renderers. The trigger is configuration change.
+	 * 
 	 * @param delete True if removal of known renderers is needed
 	 */
 	public void resetRenderers(boolean delete) {
@@ -717,8 +713,7 @@ public class PMS {
 	}
 
 	/**
-	 * Reset the media library.
-	 * The trigger is configuration change.
+	 * Reset the media library. The trigger is configuration change.
 	 */
 	public void resetMediaLibrary() {
 		if (mediaLibrary != null) {
@@ -728,8 +723,7 @@ public class PMS {
 	}
 
 	/**
-	 * Reset all renderers Root Folder.
-	 * The trigger is configuration change.
+	 * Reset all renderers Root Folder. The trigger is configuration change.
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
@@ -737,8 +731,7 @@ public class PMS {
 	}
 
 	/**
-	 * Reset the web graphical user interface server.
-	 * The trigger is init.
+	 * Reset the web graphical user interface server. The trigger is init.
 	 */
 	public void resetWebGuiServer() {
 		if (webGuiServer != null) {
@@ -749,7 +742,8 @@ public class PMS {
 			webGuiServer = WebGuiServer.createServer(umsConfiguration.getWebGuiServerPort());
 		} catch (BindException b) {
 			try {
-				LOGGER.info("Unable to bind web interface on port: " + umsConfiguration.getWebGuiServerPort() + ", because: " + b.getMessage());
+				LOGGER.info("Unable to bind web interface on port: " + umsConfiguration.getWebGuiServerPort()
+						+ ", because: " + b.getMessage());
 				LOGGER.info("Falling back to random port.");
 				webGuiServer = WebGuiServer.createServer(0);
 			} catch (IOException ex) {
@@ -766,8 +760,7 @@ public class PMS {
 	}
 
 	/**
-	 * Reset the web player server.
-	 * The trigger is init and configuration change.
+	 * Reset the web player server. The trigger is init and configuration change.
 	 */
 	public void resetWebPlayerServer() {
 		if (webPlayerServer != null) {
@@ -778,7 +771,8 @@ public class PMS {
 				webPlayerServer = WebPlayerServer.createServer(umsConfiguration.getWebPlayerServerPort());
 				GuiManager.updateServerStatus();
 			} catch (BindException b) {
-				LOGGER.error("FATAL ERROR: Unable to bind web player on port: " + umsConfiguration.getWebPlayerServerPort() + ", because: " + b.getMessage());
+				LOGGER.error("FATAL ERROR: Unable to bind web player on port: "
+						+ umsConfiguration.getWebPlayerServerPort() + ", because: " + b.getMessage());
 				LOGGER.info("Maybe another process is running or the hostname is wrong.");
 			} catch (IOException ex) {
 				LOGGER.error("FATAL ERROR: Unable to read server port value from configuration");
@@ -787,8 +781,10 @@ public class PMS {
 	}
 
 	/**
-	 * Creates a new random {@link #uuid}. These are used to uniquely identify the server to renderers (i.e.
-	 * renderers treat multiple servers with the same UUID as the same server).
+	 * Creates a new random {@link #uuid}. These are used to uniquely identify the
+	 * server to renderers (i.e. renderers treat multiple servers with the same UUID
+	 * as the same server).
+	 * 
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
 	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
@@ -818,6 +814,7 @@ public class PMS {
 
 	/**
 	 * Returns the user friendly name of the UMS server.
+	 * 
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -842,10 +839,12 @@ public class PMS {
 	 */
 	@Nonnull
 	public static PMS get() {
-		// XXX when we run as an application, the instance is initialized via the createInstance call in main().
+		// XXX when we run as an application, the instance is initialized via the
+		// createInstance call in main().
 		// However, plugin tests may need access to a UMS instance without going
 		// to the trouble of launching the UMS application, so we provide a fallback
-		// initialization here. Either way, createInstance() should only be called once (see below)
+		// initialization here. Either way, createInstance() should only be called once
+		// (see below)
 		if (instance == null) {
 			createInstance();
 		}
@@ -880,7 +879,7 @@ public class PMS {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
-
+		checkCompatibilityWithJavaVersion();
 		// This must be called before JNA is used
 		configureJNA();
 
@@ -899,27 +898,27 @@ public class PMS {
 			Pattern pattern = Pattern.compile(PROFILE);
 			for (String arg : args) {
 				switch (arg.trim().toLowerCase(Locale.ROOT)) {
-					case HEADLESS_ARG, CONSOLE_ARG -> forceHeadless();
-					case NATIVELOOK_ARG -> System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
-					case SCROLLBARS -> System.setProperty(SCROLLBARS, Boolean.toString(true));
-					case NOCONSOLE_ARG -> {
-						denyHeadless = true;
+				case HEADLESS_ARG, CONSOLE_ARG -> forceHeadless();
+				case NATIVELOOK_ARG -> System.setProperty(NATIVELOOK_ARG, Boolean.toString(true));
+				case SCROLLBARS -> System.setProperty(SCROLLBARS, Boolean.toString(true));
+				case NOCONSOLE_ARG -> {
+					denyHeadless = true;
+				}
+				case PROFILES -> {
+					displayProfileChooser = true;
+				}
+				case TRACE -> {
+					traceMode = 2;
+				}
+				case DBLOG, DBTRACE -> {
+					logDB = true;
+				}
+				default -> {
+					Matcher matcher = pattern.matcher(arg);
+					if (matcher.find()) {
+						profilePath = new File(matcher.group(1));
 					}
-					case PROFILES -> {
-						displayProfileChooser = true;
-					}
-					case TRACE -> {
-						traceMode = 2;
-					}
-					case DBLOG, DBTRACE -> {
-						logDB = true;
-					}
-					default -> {
-						Matcher matcher = pattern.matcher(arg);
-						if (matcher.find()) {
-							profilePath = new File(matcher.group(1));
-						}
-					}
+				}
 				}
 			}
 		}
@@ -929,11 +928,8 @@ public class PMS {
 		}
 
 		if (isHeadless() && denyHeadless) {
-			System.err.println(
-				"Either a graphics environment isn't available or headless " +
-				"mode is forced, but \"noconsole\" is specified. " + PMS.NAME +
-				" can't start, exiting."
-			);
+			System.err.println("Either a graphics environment isn't available or headless "
+					+ "mode is forced, but \"noconsole\" is specified. " + PMS.NAME + " can't start, exiting.");
 			System.exit(1);
 		} else if (!isHeadless()) {
 			LooksFrame.initializeLookAndFeel();
@@ -943,7 +939,8 @@ public class PMS {
 			if (!FileUtil.isValidFileName(profilePath.getName())) {
 				LOGGER.warn("Invalid file name in profile argument - using default profile");
 			} else if (!profilePath.exists()) {
-				LOGGER.warn("Specified profile ({}) doesn't exist - using default profile", profilePath.getAbsolutePath());
+				LOGGER.warn("Specified profile ({}) doesn't exist - using default profile",
+						profilePath.getAbsolutePath());
 			} else {
 				LOGGER.debug("Using specified profile: {}", profilePath.getAbsolutePath());
 				System.setProperty("ums.profile.path", profilePath.getAbsolutePath());
@@ -956,7 +953,8 @@ public class PMS {
 			umsConfiguration = new UmsConfiguration();
 			assert umsConfiguration != null;
 
-			// Log whether the service is installed as it may help with debugging and support
+			// Log whether the service is installed as it may help with debugging and
+			// support
 			if (Platform.isWindows()) {
 				boolean isUmsServiceInstalled = WindowsUtils.isUmsServiceInstalled();
 				if (isUmsServiceInstalled) {
@@ -964,13 +962,15 @@ public class PMS {
 				}
 			}
 
-			/* Rename previous log file to .prev
-			 * Log file location is unknown at this point, it's finally decided during loadFile() below
-			 * but the file is also truncated at the same time, so we'll have to try a qualified guess
-			 * for the file location.
+			/*
+			 * Rename previous log file to .prev Log file location is unknown at this point,
+			 * it's finally decided during loadFile() below but the file is also truncated
+			 * at the same time, so we'll have to try a qualified guess for the file
+			 * location.
 			 */
 
-			// Set root level from configuration here so that logging is available during renameOldLogFile();
+			// Set root level from configuration here so that logging is available during
+			// renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(umsConfiguration.getRootLogLevel()));
 
 			// Load the (optional) LogBack config file.
@@ -1021,11 +1021,7 @@ public class PMS {
 			// Create the PMS instance returned by get()
 			createInstance(); // Calls new() then init()
 		} catch (ConfigurationException t) {
-			String errorMessage = String.format(
-				"Configuration error: %s: %s",
-				t.getClass().getName(),
-				t.getMessage()
-			);
+			String errorMessage = String.format("Configuration error: %s: %s", t.getClass().getName(), t.getMessage());
 
 			LOGGER.error(errorMessage);
 
@@ -1050,8 +1046,8 @@ public class PMS {
 	}
 
 	/**
-	 * Save the configuration changes immediately to the configuration
-	 * file and not wait for the automatic saving.
+	 * Save the configuration changes immediately to the configuration file and not
+	 * wait for the automatic saving.
 	 */
 	public void saveConfiguration() {
 		try {
@@ -1062,9 +1058,9 @@ public class PMS {
 	}
 
 	/**
-	 * Retrieves the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
-	 * that contains all configured settings. The object provides getters for all
-	 * configurable settings.
+	 * Retrieves the {@link net.pms.configuration.UmsConfiguration UmsConfiguration}
+	 * object that contains all configured settings. The object provides getters for
+	 * all configurable settings.
 	 *
 	 * @return The configuration object
 	 */
@@ -1073,14 +1069,17 @@ public class PMS {
 	}
 
 	/**
-	 * Retrieves the composite {@link net.pms.configuration.RendererDeviceConfiguration DeviceConfiguration} object
-	 * that applies to this device, which acts as its {@link net.pms.configuration.UmsConfiguration UmsConfiguration}.
+	 * Retrieves the composite
+	 * {@link net.pms.configuration.RendererDeviceConfiguration DeviceConfiguration}
+	 * object that applies to this device, which acts as its
+	 * {@link net.pms.configuration.UmsConfiguration UmsConfiguration}.
 	 *
-	 * This function should be used to resolve the relevant UmsConfiguration wherever the renderer
-	 * is known or can be determined.
+	 * This function should be used to resolve the relevant UmsConfiguration
+	 * wherever the renderer is known or can be determined.
 	 *
-	 * @param  renderer The renderer.
-	 * @return          The UmsConfiguration from object, if any, or the global UmsConfiguration.
+	 * @param renderer The renderer.
+	 * @return The UmsConfiguration from object, if any, or the global
+	 *         UmsConfiguration.
 	 */
 	public static UmsConfiguration getConfiguration(Renderer renderer) {
 		return renderer != null ? renderer.getUmsConfiguration() : umsConfiguration;
@@ -1096,9 +1095,9 @@ public class PMS {
 	}
 
 	/**
-	 * Sets the {@link net.pms.configuration.UmsConfiguration UmsConfiguration} object
-	 * that contains all configured settings for UMS. The object provides getters for all
-	 * configurable UMS settings.
+	 * Sets the {@link net.pms.configuration.UmsConfiguration UmsConfiguration}
+	 * object that contains all configured settings for UMS. The object provides
+	 * getters for all configurable UMS settings.
 	 *
 	 * @param conf The configuration object.
 	 */
@@ -1123,7 +1122,7 @@ public class PMS {
 			if (PlatformUtils.isWindows()) {
 				WindowsNamedPipe.setLoop(false);
 			}
-			//Stop network scanner
+			// Stop network scanner
 			NetworkConfiguration.stop();
 
 			LOGGER.debug("Shutting down the media server");
@@ -1144,8 +1143,8 @@ public class PMS {
 
 		LOGGER.info("Stopping {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
 		/**
-		 * Stopping logging gracefully (flushing logs)
-		 * No logging is available after this point
+		 * Stopping logging gracefully (flushing logs) No logging is available after
+		 * this point
 		 */
 		ILoggerFactory iLoggerContext = LoggerFactory.getILoggerFactory();
 		if (iLoggerContext instanceof LoggerContext loggerContext) {
@@ -1193,10 +1192,9 @@ public class PMS {
 		try {
 			killProc();
 		} catch (SecurityException e) {
-			LOGGER.error(
-				"Failed to check for already running instance: " + e.getMessage() +
-				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file" : "")
-			);
+			LOGGER.error("Failed to check for already running instance: " + e.getMessage()
+					+ (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file"
+							: ""));
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
 		} catch (IOException e) {
@@ -1206,17 +1204,18 @@ public class PMS {
 		try {
 			dumpPid();
 		} catch (FileNotFoundException e) {
-			LOGGER.error(
-				"Failed to write PID file: " + e.getMessage() +
-				(PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : "")
-			);
+			LOGGER.error("Failed to write PID file: " + e.getMessage()
+					+ (PlatformUtils.isWindows()
+							? "\nUMS might need to run as an administrator to enforce single instance"
+							: ""));
 		} catch (IOException e) {
 			LOGGER.error("Error dumping PID " + e);
 		}
 	}
 
 	/*
-	 * This method is only called for Windows OS'es, so specialized Windows charset handling is allowed
+	 * This method is only called for Windows OS'es, so specialized Windows charset
+	 * handling is allowed
 	 */
 	private static boolean verifyPidName(String pid) throws IOException, IllegalAccessException {
 		if (!Platform.isWindows()) {
@@ -1230,7 +1229,8 @@ public class PMS {
 		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
-			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(), charset);
+			LOGGER.warn("Couldn't find a supported charset for {}, using default ({})", WindowsUtils.getOEMCP(),
+					charset);
 		}
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream(), charset))) {
 			try {
@@ -1254,8 +1254,8 @@ public class PMS {
 
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
-		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
-						tmp[tmp.length - 2].contains("universal media server");
+		boolean ums = tmp[tmp.length - 1].contains("universal media server")
+				|| tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
@@ -1271,7 +1271,8 @@ public class PMS {
 			throw new SecurityException("Cannot read " + pidFile);
 		}
 
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {
+		try (BufferedReader in = new BufferedReader(
+				new InputStreamReader(new FileInputStream(pidFile), StandardCharsets.US_ASCII))) {
 			pid = in.readLine();
 		}
 
@@ -1340,6 +1341,7 @@ public class PMS {
 
 	/**
 	 * Checks if UMS is running in headless (console) mode.
+	 * 
 	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
@@ -1355,8 +1357,8 @@ public class PMS {
 	}
 
 	/**
-	 * Forces UMS to run in headless (console) mode whether a graphics
-	 * environment is available or not.
+	 * Forces UMS to run in headless (console) mode whether a graphics environment
+	 * is available or not.
 	 */
 	public static void forceHeadless() {
 		HEADLESS_LOCK.writeLock().lock();
@@ -1371,9 +1373,9 @@ public class PMS {
 	private static final ReadWriteLock LOCALE_LOCK = new ReentrantReadWriteLock();
 
 	/**
-	 * Gets the current {@link Locale} to be used in any {@link Locale}
-	 * sensitive operations. If <code>null</code> the default {@link Locale}
-	 * is returned.
+	 * Gets the current {@link Locale} to be used in any {@link Locale} sensitive
+	 * operations. If <code>null</code> the default {@link Locale} is returned.
+	 * 
 	 * @return current {@link Locale} or default {@link Locale}
 	 */
 	public static Locale getLocale() {
@@ -1390,6 +1392,7 @@ public class PMS {
 
 	/**
 	 * Sets UMS' {@link Locale}.
+	 * 
 	 * @param aLocale the {@link Locale} to set
 	 */
 	public static void setLocale(Locale aLocale) {
@@ -1403,19 +1406,19 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
-	 * {@link Locale} class constructor. <code>null</code> values are
-	 * treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
+	 * constructor. <code>null</code> values are treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the
-	 * <code>Locale</code> class description about valid language values.
-	 * @param country An ISO 3166 alpha-2 country code or a UN M.49
-	 * numeric-3 area code. See the <code>Locale</code> class description
-	 * about valid country values.
-	 * @param variant Any arbitrary value used to indicate a variation of a
-	 * <code>Locale</code>. See the <code>Locale</code> class description
-	 * for the details.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
+	 *                 subtag up to 8 characters in length. See the
+	 *                 <code>Locale</code> class description about valid language
+	 *                 values.
+	 * @param country  An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area
+	 *                 code. See the <code>Locale</code> class description about
+	 *                 valid country values.
+	 * @param variant  Any arbitrary value used to indicate a variation of a
+	 *                 <code>Locale</code>. See the <code>Locale</code> class
+	 *                 description for the details.
 	 */
 	public static void setLocale(String language, String country, String variant) {
 		if (country == null) {
@@ -1433,29 +1436,29 @@ public class PMS {
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the
-	 * {@link Locale} class constructor. <code>null</code> values are
-	 * treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
+	 * constructor. <code>null</code> values are treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the
-	 * <code>Locale</code> class description about valid language values.
-	 * @param country An ISO 3166 alpha-2 country code or a UN M.49
-	 * numeric-3 area code. See the <code>Locale</code> class description
-	 * about valid country values.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
+	 *                 subtag up to 8 characters in length. See the
+	 *                 <code>Locale</code> class description about valid language
+	 *                 values.
+	 * @param country  An ISO 3166 alpha-2 country code or a UN M.49 numeric-3 area
+	 *                 code. See the <code>Locale</code> class description about
+	 *                 valid country values.
 	 */
 	public static void setLocale(String language, String country) {
 		setLocale(language, country, "");
 	}
 
 	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor. <code>null</code> values are
-	 * treated as empty strings.
+	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale} class
+	 * constructor. <code>null</code> values are treated as empty strings.
 	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the
-	 * <code>Locale</code> class description about valid language values.
+	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a language
+	 *                 subtag up to 8 characters in length. See the
+	 *                 <code>Locale</code> class description about valid language
+	 *                 values.
 	 */
 	public static void setLocale(String language) {
 		setLocale(language, "", "");
@@ -1509,8 +1512,9 @@ public class PMS {
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),
-				umsConfiguration.getDynamicPlsSavePath(),
-				(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+					umsConfiguration.getDynamicPlsSavePath(),
+					(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0)
+							| UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
@@ -1521,10 +1525,9 @@ public class PMS {
 	/**
 	 * Returns current trace mode state
 	 *
-	 * @return
-	 *			0 = Not started in trace mode<br>
-	 *			1 = Started in trace mode<br>
-	 *			2 = Forced to trace mode
+	 * @return 0 = Not started in trace mode<br>
+	 *         1 = Started in trace mode<br>
+	 *         2 = Forced to trace mode
 	 */
 	public static int getTraceMode() {
 		return traceMode;
@@ -1569,18 +1572,15 @@ public class PMS {
 	}
 
 	/**
-	 * Configures JNA according to the environment. This must be called before
-	 * JNA is first initialized to have any effect.
+	 * Configures JNA according to the environment. This must be called before JNA
+	 * is first initialized to have any effect.
 	 */
 	public static void configureJNA() {
 		// Set JNA "jnidispatch" resolution rules
 		try {
-			if (
-				System.getProperty("os.name") != null &&
-				System.getProperty("os.name").startsWith("Windows") &&
-				StringUtils.isNotBlank(System.getProperty("os.version")) &&
-				Double.parseDouble(System.getProperty("os.version")) < 5.2
-			) {
+			if (System.getProperty("os.name") != null && System.getProperty("os.name").startsWith("Windows")
+					&& StringUtils.isNotBlank(System.getProperty("os.version"))
+					&& Double.parseDouble(System.getProperty("os.version")) < 5.2) {
 				String developmentPath = "src\\main\\external-resources\\lib\\winxp";
 				if (new File(developmentPath).exists()) {
 					System.setProperty("jna.boot.library.path", developmentPath);
@@ -1592,11 +1592,35 @@ public class PMS {
 			}
 		} catch (NullPointerException | NumberFormatException e) {
 			System.setProperty("jna.nosys", "true");
-			System.err.println(
-				"Could not determine Windows version from " +
-				System.getProperty("os.version") +
-				". Not applying Windows XP hack"
-			);
+			System.err.println("Could not determine Windows version from " + System.getProperty("os.version")
+					+ ". Not applying Windows XP hack");
+		}
+	}
+
+	public static void checkCompatibilityWithJavaVersion() {
+		/* Check Java Version Issue #3007 */
+		try {
+			String currentDirectory = System.getProperty("user.dir");
+			// Construct the file path to the pom.xml
+			String pomFilePath = currentDirectory + File.separator + "pom.xml";
+
+			File pomFile = new File(pomFilePath);
+			// Parse the pom.xml file
+			MavenXpp3Reader reader = new MavenXpp3Reader();
+			Model model = reader.read(new FileReader(pomFile));
+			String sourceJavaVersion = model.getProperties().getProperty("project.jre-version");
+			// Check the system-installed Java version
+			String systemJavaVersion = System.getProperty("java.version");
+			// Compare the specified Java versions with the system-installed Java version
+			if (sourceJavaVersion != null && systemJavaVersion != null && sourceJavaVersion.equals(systemJavaVersion)) {
+				LOGGER.info("Java versions in pom.xml match the system-installed Java version.");
+			} else {
+				LOGGER.info("Java versions in pom.xml do not match the system-installed Java version.");
+				LOGGER.info("pom.xml Source Java Version: " + sourceJavaVersion);
+				LOGGER.info("System-Installed Java Version: " + systemJavaVersion);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to check Java version : ", e);
 		}
 	}
 }
