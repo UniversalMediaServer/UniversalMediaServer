@@ -1464,7 +1464,7 @@ public class PMS {
 	private DynamicPlaylist dynamicPls;
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"), umsConfiguration.getDynamicPlsSavePath(), (umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),umsConfiguration.getDynamicPlsSavePath(),(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
