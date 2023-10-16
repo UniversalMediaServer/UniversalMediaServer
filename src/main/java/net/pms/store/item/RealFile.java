@@ -62,7 +62,7 @@ public class RealFile extends StoreItem {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	private final Object displayNameBaseLock = new Object();
-	private String lang = CONFIGURATION.getTranslationLanguage(null);
+	private String lang;
 	private volatile String baseNamePrettified;
 
 	private final File file;
@@ -80,6 +80,7 @@ public class RealFile extends StoreItem {
 		this.file = file;
 		this.name = name;
 		setLastModified(file.lastModified());
+		lang = CONFIGURATION.getTranslationLanguage(null);
 	}
 
 	@Override
