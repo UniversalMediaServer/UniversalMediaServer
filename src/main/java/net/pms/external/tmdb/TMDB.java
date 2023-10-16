@@ -371,7 +371,7 @@ public class TMDB {
 			if (tvSeriesId == null) {
 				// Creates a minimal TV series row with just the title, that
 				// might be enhanced later by the API
-				tvSeriesId = MediaTableTVSeries.set(connection, videoMetadata.getTitle());
+				tvSeriesId = MediaTableTVSeries.set(connection, titleFromFilename);
 			}
 			videoMetadata.setTvSeriesId(tvSeriesId);
 		}
