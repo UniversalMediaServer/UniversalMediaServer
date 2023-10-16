@@ -1176,9 +1176,7 @@ public class PMS {
 		try {
 			killProc();
 		} catch (SecurityException e) {
-			LOGGER.error("Failed to check for already running instance: " + e.getMessage()
-					+ (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file"
-							: ""));
+			LOGGER.error("Failed to check for already running instance: " + e.getMessage()+ (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to access the PID file": ""));
 		} catch (FileNotFoundException e) {
 			LOGGER.debug("PID file not found, cannot check for running process");
 		} catch (IOException e) {
@@ -1204,7 +1202,6 @@ public class PMS {
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		String line;
-
 		Charset charset = WindowsUtils.getOEMCharset();
 		if (charset == null) {
 			charset = Charset.defaultCharset();
@@ -1438,7 +1435,6 @@ public class PMS {
 	public static void setHelpPage(String page) {
 		helpPage = page;
 	}
-
 	/**
 	 * Returns the relative URL of a context sensitive help page in the
 	 * documentation directory.
@@ -1447,35 +1443,28 @@ public class PMS {
 	public static String getHelpPage() {
 		return helpPage;
 	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
-
 	public static GlobalIdRepo getGlobalRepo() {
 		return get().globalRepo;
 	}
-
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
 	public CodeDb codeDb() {
 		return codes;
 	}
-
 	public void setMasterCode(CodeEnter ce) {
 		masterCode = ce;
 	}
-
 	public boolean masterCodeValid() {
 		return (masterCode != null && masterCode.validCode(null));
 	}
-
 	private DynamicPlaylist dynamicPls;
-
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"),umsConfiguration.getDynamicPlsSavePath(),(umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0)| UMSUtils.IOList.PERMANENT);
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist") , umsConfiguration.getDynamicPlsSavePath() , (umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
