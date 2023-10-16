@@ -42,8 +42,7 @@ public class SearchRequestHandlerTest {
 		sr.setSearchCriteria(s);
 		sr.setRequestedCount(0);
 		sr.setStartingIndex(0);
-		SearchRequestHandler h = new SearchRequestHandler();
-		String result = h.convertToFilesSql(sr, h.getRequestType(s));
+		String result = SearchRequestHandler.convertToFilesSql(sr, SearchRequestHandler.getRequestType(s));
 		LOG.info(result);  // \\s+
 		assertTrue(result.matches(
 				"select\\s+FILENAME\\s*,\\s*MODIFIED\\s*,\\s*F\\.ID\\s+as\\s+FID\\s*,\\s*F\\.ID\\s+as\\s+oid\\s+from\\s+FILES\\s+as\\s+F\\s+where\\s*\\(\\s*F\\.FORMAT_TYPE\\s*=\\s*4\\s*\\)\\s*ORDER\\s+BY\\s+oid\\s+LIMIT\\s+999\\s+OFFSET\\s+0\\s*"));
@@ -55,8 +54,7 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testLinnAppComposerSearch() {
 		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Composer\"] contains \"tchaikovsky\"";
-		SearchRequestHandler h = new SearchRequestHandler();
-		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.COMPOSER\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
@@ -68,8 +66,7 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testLinnAppConductorSearch() {
 		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"Conductor\"] contains \"bernstein\"";
-		SearchRequestHandler h = new SearchRequestHandler();
-		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.CONDUCTOR\\s*\\)\\s+LIKE\\s+'%bernstein%'"));
@@ -78,8 +75,7 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testAlbumArtistSearch() {
 		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist[@role=\"AlbumArtist\"] contains \"tchaikovsky\"";
-		SearchRequestHandler h = new SearchRequestHandler();
-		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ALBUMARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
@@ -88,8 +84,7 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testArtistSearch() {
 		String searchCriteria = "upnp:class derivedfrom \"object.container.person.musicArtist\" and upnp:artist contains \"tchaikovsky\"";
-		SearchRequestHandler h = new SearchRequestHandler();
-		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
@@ -101,8 +96,7 @@ public class SearchRequestHandlerTest {
 	@Test
 	public void testLinnAppSpecialCharSearch() {
 		String searchCriteria = "upnp:class derivedfrom \"object.item.audioItem\" and dc:title contains \"love don't\"";
-		SearchRequestHandler h = new SearchRequestHandler();
-		String countSQL = h.convertToCountSql(searchCriteria, h.getRequestType(searchCriteria));
+		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
 				"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIOTRACKS\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.SONGNAME\\s*\\)\\s+LIKE\\s+'%love don''t%'"));

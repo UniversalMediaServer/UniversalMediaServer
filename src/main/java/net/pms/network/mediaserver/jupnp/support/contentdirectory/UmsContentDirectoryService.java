@@ -29,6 +29,8 @@ import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
@@ -36,6 +38,7 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.container.VirtualFolderDbId;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
@@ -55,6 +58,7 @@ import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.jupnp.support.model.BrowseFlag;
 import org.jupnp.support.model.BrowseResult;
+import org.jupnp.support.model.SearchResult;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -296,7 +300,7 @@ public class UmsContentDirectoryService {
 				stateVariable = "A_ARG_TYPE_UpdateID",
 				getterName = "getContainerUpdateID")
 	})
-	public BrowseResult search(
+	public SearchResult search(
 			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
 			@UpnpInputArgument(name = "SearchCriteria") String searchCriteria,
 			@UpnpInputArgument(name = "Filter") String filter,
@@ -477,7 +481,7 @@ public class UmsContentDirectoryService {
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
-	private BrowseResult search(
+	private SearchResult search(
 			String containerId,
 			String searchCriteria,
 			String filter,
@@ -488,7 +492,13 @@ public class UmsContentDirectoryService {
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
-		if (renderer != null && !renderer.isAllowed()) {
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 			}
@@ -496,16 +506,32 @@ public class UmsContentDirectoryService {
 		}
 
 		try {
-			SearchRequestHandler handler = new SearchRequestHandler();
-			return handler.createSearchResponse(
-					containerId,
-					searchCriteria,
-					filter,
-					startingIndex,
-					requestedCount,
-					orderBy,
-					renderer
-			);
+			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
+
+			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
+
+			VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
+			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
+			for (StoreResource resource : SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
+				folder.addChild(resource);
+			}
+
+			folder.discoverChildren();
+			List<StoreResource> resultResources = new ArrayList<>();
+			for (StoreResource resource : folder.getChildren()) {
+				resource.resolve();
+				resource.setFakeParentId("0");
+				resultResources.add(resource);
+			}
+
+			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+			String result;
+			if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+				result = getJUPnPDidlResults(resultResources);
+			} else {
+				result = DidlHelper.getDidlResults(resultResources);
+			}
+			return new SearchResult(result, resultResources.size(), totalMatches, containerUpdateID);
 		} catch (Exception e) {
 			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
 			return searchToBrowse(
@@ -520,7 +546,7 @@ public class UmsContentDirectoryService {
 		}
 	}
 
-	private BrowseResult searchToBrowse(
+	private SearchResult searchToBrowse(
 			String containerId,
 			String searchCriteria,
 			String filter,
@@ -648,7 +674,7 @@ public class UmsContentDirectoryService {
 		} else {
 			result = DidlHelper.getDidlResults(resultResources);
 		}
-		return new BrowseResult(result, count, totalMatches, containerUpdateID);
+		return new SearchResult(result, count, totalMatches, containerUpdateID);
 	}
 
 	private static String getEnclosingValue(String content, String leftTag, String rightTag) {
