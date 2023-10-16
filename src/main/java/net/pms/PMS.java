@@ -1185,7 +1185,7 @@ public class PMS {
 		try {
 			dumpPid();
 		} catch (FileNotFoundException e) {
-			LOGGER.error("Failed to write PID file: " + e.getMessage() + (PlatformUtils.isWindows()? "\nUMS might need to run as an administrator to enforce single instance": ""));
+			LOGGER.error("Failed to write PID file: " + e.getMessage() + (PlatformUtils.isWindows() ? "\nUMS might need to run as an administrator to enforce single instance" : ""));
 		} catch (IOException e) {
 			LOGGER.error("Error dumping PID " + e);
 		}
@@ -1464,7 +1464,7 @@ public class PMS {
 	private DynamicPlaylist dynamicPls;
 	public Playlist getDynamicPls() {
 		if (dynamicPls == null) {
-			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist") , umsConfiguration.getDynamicPlsSavePath() , (umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
+			dynamicPls = new DynamicPlaylist(Messages.getString("DynamicPlaylist"), umsConfiguration.getDynamicPlsSavePath(), (umsConfiguration.isDynamicPlsAutoSave() ? UMSUtils.IOList.AUTOSAVE : 0) | UMSUtils.IOList.PERMANENT);
 		}
 		return dynamicPls;
 	}
