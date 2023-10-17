@@ -568,7 +568,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
 					if (isExpectedTVSeries) {
-						addChild(new MediaLibraryTvSeries(renderer, virtualFolderName, sqls2, expectedOutputs2, null, isExpectedMovieFolder));
+						try {
+							Long tvSeriesId = Long.valueOf(virtualFolderName);
+							addChild(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
+						} catch (NumberFormatException e) {
+							//we need a long, other values are null (wrong db value check)
+						}
 					} else if (i18nName != null) {
 						addChild(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName, isExpectedMovieFolder));
 					} else {
