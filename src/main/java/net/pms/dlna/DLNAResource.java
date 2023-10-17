@@ -731,7 +731,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (isNew) {
 					addChildInternal(child, isAddGlobally);
 				}
-
+				else {
+					LOGGER.trace("Details on media being imported :" + child);
+				}
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
