@@ -495,6 +495,7 @@ public class TMDB {
 			LOGGER.trace("TMDB data: " + tvEpisodeDetails);
 			return;
 		}
+		mediaInfo.setVideoMetadata(videoMetadata);
 		LOGGER.trace("TMDB data matches filename data for " + file.getName());
 		Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
 		setTvEpisodeMetadata(connection, fileId, mediaInfo, tvEpisodeDetails);

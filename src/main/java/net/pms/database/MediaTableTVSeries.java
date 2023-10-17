@@ -280,6 +280,7 @@ public final class MediaTableTVSeries extends MediaTable {
 				case 10 -> {
 					executeUpdate(connection, DROP_INDEX + IF_EXISTS + TABLE_NAME + TABLE_NAME + CONSTRAINT_SEPARATOR + "SIMPLIFIEDTITLE" + IDX_MARKER);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + "SIMPLIFIEDTITLE");
+					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + NULL + WHERE + COL_TMDBID + EQUAL_0);
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -597,8 +598,8 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setLanguages(resultSet.getString(COL_LANGUAGES));
 		metadata.setLastAirDate(resultSet.getString(COL_LASTAIRDATE));
 		metadata.setNetworks(resultSet.getString(COL_NETWORKS));
-		metadata.setNumberOfEpisodes(resultSet.getDouble(COL_NUMBEROFEPISODES));
-		metadata.setNumberOfSeasons(resultSet.getDouble(COL_NUMBEROFSEASONS));
+		metadata.setNumberOfEpisodes(toDouble(resultSet, COL_NUMBEROFEPISODES));
+		metadata.setNumberOfSeasons(toDouble(resultSet, COL_NUMBEROFSEASONS));
 		metadata.setOriginalLanguage(resultSet.getString(COL_ORIGINALLANGUAGE));
 		metadata.setOriginalTitle(resultSet.getString(COL_ORIGINALTITLE));
 		metadata.setOriginCountry(resultSet.getString(COL_ORIGINCOUNTRY));
@@ -618,8 +619,8 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setStatus(resultSet.getString(COL_STATUS));
 		metadata.setTagline(resultSet.getString(COL_TAGLINE));
 		metadata.setTitle(resultSet.getString(COL_TITLE));
-		metadata.setTmdbId(resultSet.getLong(COL_TMDBID));
-		metadata.setTotalSeasons(resultSet.getDouble(COL_TOTALSEASONS));
+		metadata.setTmdbId(toLong(resultSet, COL_TMDBID));
+		metadata.setTotalSeasons(toDouble(resultSet, COL_TOTALSEASONS));
 		metadata.setThumbnailId(toLong(resultSet, COL_THUMBID));
 		metadata.setThumbnailSource(resultSet.getString(COL_THUMB_SRC));
 		metadata.setVotes(resultSet.getString(COL_VOTES));
