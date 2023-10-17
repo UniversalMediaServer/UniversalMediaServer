@@ -338,14 +338,14 @@ public class TMDB {
 		videoMetadata.setTagline(movieDetails.getTagline());
 		videoMetadata.setVotes(movieDetails.getVoteCount().toString());
 		//clear old localized values
-		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, fileId, false);
-		//ensure we have the default translation
 		videoMetadata.setTranslations(null);
-		videoMetadata.ensureHavingTranslation(null);
 		mediaInfo.setVideoMetadata(videoMetadata);
-
+		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, fileId, false);
 		LOGGER.trace("setting movie metadata for " + title);
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
+
+		//ensure we have the default translation
+		videoMetadata.ensureHavingTranslation(null);
 
 		//now check the thumbnail localized
 		if (!StringUtils.isBlank(videoMetadata.getPoster(null))) {
@@ -547,14 +547,14 @@ public class TMDB {
 		videoMetadata.setOverview(tvEpisodeDetails.getOverview());
 		videoMetadata.setVotes(tvEpisodeDetails.getVoteAverage().toString());
 		//clear old localized values
-		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, fileId, false);
-		//ensure we have the default translation
 		videoMetadata.setTranslations(null);
-		videoMetadata.ensureHavingTranslation(null);
 		mediaInfo.setVideoMetadata(videoMetadata);
-
+		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, fileId, false);
 		LOGGER.trace("setting tv episode metadata for " + videoMetadata.getTvSeriesTitle() + " " + tvSeasonFromTMDB + "-" + tvEpisodeNumberFromTMDB);
 		MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, mediaInfo, true);
+
+		//ensure we have the default translation
+		videoMetadata.ensureHavingTranslation(null);
 
 		//now check the thumbnail localized
 		if (!StringUtils.isBlank(videoMetadata.getPoster(null))) {
@@ -668,12 +668,12 @@ public class TMDB {
 		tvSeriesMetadata.setTotalSeasons(tvDetails.getNumberOfSeasons().doubleValue());
 		tvSeriesMetadata.setVotes(tvDetails.getVoteCount().toString());
 		//clear old localized values
-		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, tvSeriesId, true);
-		//ensure we have the default translation
 		tvSeriesMetadata.setTranslations(null);
-		tvSeriesMetadata.ensureHavingTranslation(null);
-
+		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, tvSeriesId, true);
 		MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+
+		//ensure we have the default translation
+		tvSeriesMetadata.ensureHavingTranslation(null);
 
 		//now check the thumbnail localized
 		if (!StringUtils.isBlank(tvSeriesMetadata.getPoster(null))) {
