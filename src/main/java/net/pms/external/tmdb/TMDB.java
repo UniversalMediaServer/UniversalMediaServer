@@ -616,7 +616,8 @@ public class TMDB {
 			tvSeriesMetadata.setCredits("[" + GSON.toJson(tvDetails.getCredits()) + "]");
 		}
 		if (Boolean.FALSE.equals(tvDetails.getInProduction())) {
-			tvSeriesMetadata.setEndYear(tvDetails.getLastAirDate());
+			Integer endYear = getYear(tvDetails.getLastAirDate());
+			tvSeriesMetadata.setEndYear(endYear != null ? endYear.toString() : null);
 		}
 		if (tvDetails.getExternalIds() != null) {
 			tvSeriesMetadata.setExternalIDs("[" + GSON.toJson(tvDetails.getExternalIds()) + "]");
@@ -658,7 +659,8 @@ public class TMDB {
 		if (tvDetails.getSpokenLanguages() != null) {
 			tvSeriesMetadata.setSpokenLanguages(GSON.toJson(tvDetails.getSpokenLanguages()));
 		}
-		tvSeriesMetadata.setStartYear(tvDetails.getFirstAirDate());
+		Integer startYear = getYear(tvDetails.getFirstAirDate());
+		tvSeriesMetadata.setStartYear(startYear != null ? startYear.toString() : null);
 		tvSeriesMetadata.setStatus(tvDetails.getStatus());
 		tvSeriesMetadata.setTagline(tvDetails.getTagline());
 		tvSeriesMetadata.setTmdbId(tvDetails.getId());
