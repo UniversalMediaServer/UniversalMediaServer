@@ -280,11 +280,12 @@ public class MediaInfoStore {
 					try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 						if (connection != null) {
 							if (videoMetadata.isTvEpisode() && videoMetadata.getTvSeriesId() == null) {
-								Long tvSeriesId = MediaTableTVSeries.getIdBySimilarTitle(connection, videoMetadata.getSeriesMetadata().getTitle());
+								String tvSeriesTitle = videoMetadata.getSeriesMetadata().getTitle();
+								Long tvSeriesId = MediaTableTVSeries.getIdBySimilarTitle(connection, tvSeriesTitle);
 								if (tvSeriesId == null) {
 									// Creates a minimal TV series row with just the title, that
 									// might be enhanced later by the API
-									tvSeriesId = MediaTableTVSeries.set(connection, videoMetadata.getTitle());
+									tvSeriesId = MediaTableTVSeries.set(connection, tvSeriesTitle);
 								}
 								TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
 								videoMetadata.setSeriesMetadata(tvSeriesMetadata);

@@ -209,6 +209,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 					if (tableExists(connection, MediaTableFailedLookups.TABLE_NAME)) {
 						executeUpdate(connection, DELETE_FROM + MediaTableFailedLookups.TABLE_NAME);
 					}
+					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + NULL + WHERE + COL_TMDBID + EQUAL_0);
+					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_TMDBTVID + EQUAL + NULL + WHERE + COL_TMDBTVID + EQUAL_0);
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -442,7 +444,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setTvSeriesId(toLong(rs, COL_TVSERIESID));
 						metadata.setActors(MediaTableVideoMetadataActors.getActorsForFile(connection, fileId));
 						metadata.setAwards(MediaTableVideoMetadataAwards.getValueForFile(connection, fileId));
-						metadata.setBudget(rs.getLong(COL_BUDGET));
+						metadata.setBudget(toLong(rs, COL_BUDGET));
 						metadata.setCredits(rs.getString(COL_CREDITS));
 						metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForFile(connection, fileId));
 						metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForFile(connection, fileId));
@@ -461,15 +463,15 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setRating(MediaTableVideoMetadataIMDbRating.getValueForFile(connection, fileId));
 						metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForFile(connection, fileId));
 						metadata.setReleased(MediaTableVideoMetadataReleased.getValueForFile(connection, fileId));
-						metadata.setRevenue(rs.getLong(COL_REVENUE));
+						metadata.setRevenue(toLong(rs, COL_REVENUE));
 						if (metadata.isTvEpisode() && metadata.getTvSeriesId() != null) {
 							metadata.setSeriesMetadata(MediaTableTVSeries.getTvSeriesMetadata(connection, metadata.getTvSeriesId()));
 						}
 						metadata.setTvSeason(rs.getString(COL_TVSEASON));
 						metadata.setTvEpisodeNumber(rs.getString(COL_TVEPISODENUMBER));
 						metadata.setTagline(rs.getString(COL_TAGLINE));
-						metadata.setTmdbId(rs.getLong(COL_TMDBID));
-						metadata.setTmdbTvId(rs.getLong(COL_TMDBTVID));
+						metadata.setTmdbId(toLong(rs, COL_TMDBID));
+						metadata.setTmdbTvId(toLong(rs, COL_TMDBTVID));
 						metadata.setVotes(rs.getString(COL_VOTES));
 						metadata.setTranslations(MediaTableVideoMetadataLocalized.getAllVideoMetadataLocalized(connection, fileId, false));
 						//ensure we have the default translation

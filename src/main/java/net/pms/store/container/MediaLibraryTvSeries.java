@@ -33,16 +33,11 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	private final Long tvSeriesId;
 	private TvSeriesMetadata tvSeriesMetadata;
 
-	public MediaLibraryTvSeries(Renderer renderer, String tvSeriesId, String[] sql, int[] expectedOutput, String formatString, boolean isMoviesFolder) {
-		super(renderer, null, sql, expectedOutput, formatString, isMoviesFolder);
-		this.name = tvSeriesId;
-		this.tvSeriesId = Long.valueOf(tvSeriesId);
+	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String[] sql, int[] expectedOutput) {
+		super(renderer, null, sql, expectedOutput);
+		this.name = "tv_series_" + tvSeriesId;
+		this.tvSeriesId = tvSeriesId;	
 		this.isSortableByDisplayName = true;
-	}
-
-	@Override
-	public String getSystemName() {
-		return "tv_series_" + this.name;
 	}
 
 	/**
