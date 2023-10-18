@@ -76,8 +76,9 @@ public class MediaTableFiles extends MediaTable {
 	 * - 32: Added an index for the Media Library Movies folder that includes duration
 	 * - 34: Added HDRFORMAT column
 	 * - 35: Added HDRFORMATCOMPATIBILITY column
+	 * - 36: Added FORMATPROFILE column
 	 */
-	private static final int TABLE_VERSION = 36;
+	private static final int TABLE_VERSION = 37;
 
 	/**
 	 * COLUMNS NAMES
@@ -100,6 +101,7 @@ public class MediaTableFiles extends MediaTable {
 	private static final String COL_ASPECTRATIOVIDEOTRACK = "ASPECTRATIOVIDEOTRACK";
 	private static final String COL_REFRAMES = "REFRAMES";
 	private static final String COL_AVCLEVEL = "AVCLEVEL";
+	private static final String COL_FORMATPROFILE = "FORMATPROFILE";
 	private static final String COL_IMAGEINFO = "IMAGEINFO";
 	private static final String COL_CONTAINER = "CONTAINER";
 	private static final String COL_MUXINGMODE = "MUXINGMODE";
@@ -424,6 +426,10 @@ public class MediaTableFiles extends MediaTable {
 						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FORMAT_TYPE_WIDTH_HEIGHT" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_WIDTH + CONSTRAINT_SEPARATOR + COL_HEIGHT + IDX_MARKER);
 						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FORMAT_TYPE_MODIFIED" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER);
 					}
+					case 36 -> {
+						LOGGER.trace("Adding FORMATPROFILE column");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS FORMATPROFILE VARCHAR");
+					}
 					default -> {
 						// Do the dumb way
 						force = true;
@@ -489,6 +495,7 @@ public class MediaTableFiles extends MediaTable {
 				COL_ASPECTRATIOVIDEOTRACK   + VARCHAR_SIZE_MAX                                + COMMA +
 				COL_REFRAMES                + TINYINT                                         + COMMA +
 				COL_AVCLEVEL                + VARCHAR_3                                       + COMMA +
+				COL_FORMATPROFILE           + VARCHAR_16                                      + COMMA +
 				COL_IMAGEINFO               + OTHER                                           + COMMA +
 				COL_CONTAINER               + VARCHAR_32                                      + COMMA +
 				COL_MUXINGMODE              + VARCHAR_32                                      + COMMA +
@@ -625,6 +632,7 @@ public class MediaTableFiles extends MediaTable {
 					media.setAspectRatioVideoTrack(rs.getString(COL_ASPECTRATIOVIDEOTRACK));
 					media.setReferenceFrameCount(rs.getByte(COL_REFRAMES));
 					media.setAvcLevel(rs.getString(COL_AVCLEVEL));
+					media.setH264Profile(rs.getString(COL_FORMATPROFILE));
 					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
 					try {
 						media.setThumb((DLNAThumbnail) rs.getObject(MediaTableThumbnails.COL_THUMBNAIL));
@@ -742,6 +750,7 @@ public class MediaTableFiles extends MediaTable {
 						result.updateString(COL_ASPECTRATIOVIDEOTRACK, StringUtils.left(media.getAspectRatioVideoTrack(), SIZE_MAX));
 						result.updateByte(COL_REFRAMES, media.getReferenceFrameCount());
 						result.updateString(COL_AVCLEVEL, StringUtils.left(media.getAvcLevel(), SIZE_AVCLEVEL));
+						result.updateString(COL_FORMATPROFILE, StringUtils.left(media.getH264Profile(), SIZE_FRAMERATEMODE));
 						updateSerialized(result, media.getImageInfo(), COL_IMAGEINFO);
 						if (media.getImageInfo() != null) {
 							result.updateObject(COL_IMAGEINFO, media.getImageInfo());
