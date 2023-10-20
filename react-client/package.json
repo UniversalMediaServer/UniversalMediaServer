@@ -68,7 +68,7 @@
     "@types/react": "18.2.28",
     "@types/react-color": "3.0.9",
     "@types/react-dom": "18.2.13",
-    "@types/videojs-hls-quality-selector": "1.1.1",
+    "@types/videojs-hls-quality-selector": "1.1.2",
     "@typescript-eslint/eslint-plugin": "6.7.5",
     "@typescript-eslint/parser": "6.7.5",
     "eslint": "8.51.0",
