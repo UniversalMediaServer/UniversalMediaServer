@@ -661,9 +661,9 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>net.ums</groupId>
+			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
-			<version>0.1</version>
+			<version>0.2</version>
 		</dependency>
 	</dependencies>
 	<build>
