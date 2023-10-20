@@ -193,11 +193,13 @@ public class MediaInfoStore {
 				List<String> filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, oldTvSeriesId);
 				for (String filename : filenames) {
 					//remove FailedLookups entry on db if exists
-					MediaTableFailedLookups.remove(connection, filename, true);
+					MediaTableFailedLookups.remove(connection, filename, false);
 					MediaInfo mediaInfo = getMediaInfo(filename);
 					if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
 						mediaInfo.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
-						if (!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
+						if ((tvSeriesMetadata.getTmdbId() != null &&
+								!tvSeriesMetadata.getTmdbId().equals(mediaInfo.getVideoMetadata().getTmdbTvId())) ||
+								!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
 							//changed, remove old values to lookup for new metadata
 							mediaInfo.getVideoMetadata().setTvSeriesId(tvSeriesId);
 							mediaInfo.getVideoMetadata().setYear(tvSeriesMetadata.getStartYear());
@@ -208,6 +210,8 @@ public class MediaInfoStore {
 							} catch (SQLException ex) {
 							}
 							File file = new File(filename);
+							mediaInfo.setLastExternalLookup(0);
+							MediaTableFailedLookups.remove(connection, file.getAbsolutePath(), true);
 							TMDB.backgroundLookupAndAddMetadata(file, mediaInfo);
 						}
 					}
@@ -254,6 +258,9 @@ public class MediaInfoStore {
 				if (StringUtils.isNotBlank(titleFromFilename) && StringUtils.isNotBlank(tvSeasonFromFilename)) {
 					TvSeriesMetadata tvSeriesMetadata = new TvSeriesMetadata();
 					tvSeriesMetadata.setTitle(titleFromFilename);
+					if (yearFromFilename != null) {
+						tvSeriesMetadata.setStartYear(yearFromFilename);
+					}
 					videoMetadata.setTvSeason(tvSeasonFromFilename);
 					if (StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
 						videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromFilename);
@@ -265,12 +272,10 @@ public class MediaInfoStore {
 					videoMetadata.setIsTvEpisode(true);
 				} else {
 					videoMetadata.setTitle(titleFromFilename);
+					if (yearFromFilename != null) {
+						videoMetadata.setYear(yearFromFilename);
+					}
 				}
-
-				if (yearFromFilename != null) {
-					videoMetadata.setYear(yearFromFilename);
-				}
-
 				if (extraInformationFromFilename != null) {
 					videoMetadata.setExtraInformation(extraInformationFromFilename);
 				}

@@ -774,10 +774,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				}
 				result.addProperty("search", search);
-				result.addProperty("year", metadata.getYear());
-				result.addProperty("media_type", (metadata.isTvEpisode() ? "tv_episode" : "movie"));
-				result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
-				result.addProperty("season", getLong(metadata.getTvSeason()));
+				if (metadata.isTvEpisode()) {
+					result.addProperty("media_type", "tv_episode");
+					result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
+					result.addProperty("season", getLong(metadata.getTvSeason()));
+					if (metadata.getSeriesMetadata() != null) {
+						result.addProperty("year", metadata.getSeriesMetadata().getStartYear());
+					}
+				} else {
+					result.addProperty("media_type", "movie");
+					result.addProperty("year", metadata.getYear());
+				}
 			} else if (tvSeries != null && tvSeries.getTvSeriesMetadata() != null) {
 				TvSeriesMetadata metadata = tvSeries.getTvSeriesMetadata();
 				result.addProperty("search", metadata.getTitle());
