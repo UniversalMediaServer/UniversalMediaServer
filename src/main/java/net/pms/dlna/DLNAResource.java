@@ -730,9 +730,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (isNew) {
 					addChildInternal(child, isAddGlobally);
 				} else {
-					LOGGER.trace("Details on media being imported :" + child); 
+					LOGGER.trace("Details on media being imported :" + child);
 				}
-				
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
@@ -742,7 +741,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		} catch (Throwable t) {
 			LOGGER.debug("Error adding child {}: {}", child.getName(), t);
-
 			child.parent = null;
 			children.remove(child);
 		}
