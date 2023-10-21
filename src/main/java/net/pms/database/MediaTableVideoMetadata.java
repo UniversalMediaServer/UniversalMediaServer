@@ -614,7 +614,6 @@ public class MediaTableVideoMetadata extends MediaTable {
 		return null;
 	}
 
-
 	/**
 	 * Checks whether the latest data from our API has been written to the
 	 * database for this video.
