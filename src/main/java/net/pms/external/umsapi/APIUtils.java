@@ -425,14 +425,16 @@ public class APIUtils {
 
 				if (isTVEpisode) {
 					Long tvSeriesId = setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
-					videoMetadata.setTvSeriesId(tvSeriesId);
-					TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
-					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+					if (tvSeriesId != null) {
+						videoMetadata.setTvSeriesId(tvSeriesId);
+						TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+						videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+						videoMetadata.setTmdbTvId(tvSeriesMetadata.getTmdbId());
+					}
 					if (isNotBlank(titleFromAPI)) {
 						LOGGER.trace("Setting episode name from api: " + titleFromAPI);
 						videoMetadata.setTitle(titleFromAPI);
 					}
-					videoMetadata.setTmdbTvId(tvSeriesMetadata.getTmdbId());
 					videoMetadata.setTvSeason(tvSeasonFromAPI);
 					videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromAPI);
 					videoMetadata.setIsTvEpisode(true);
