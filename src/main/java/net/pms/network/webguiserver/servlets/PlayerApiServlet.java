@@ -268,7 +268,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						String id = action.get("id").getAsString();
 						String mediaType = action.get("media_type").getAsString();
 						String search = action.get("search").getAsString();
-						String year = action.has("year") && !action.get("year").isJsonNull() ? action.get("year").getAsString() : null;
+						Integer year = action.has("year") && !action.get("year").isJsonNull() ? action.get("year").getAsInt() : null;
 						String lang = action.has("lang") && !action.get("lang").isJsonNull() ? action.get("lang").getAsString() : null;
 						JsonArray editResults = getMetadataResults(renderer, id, mediaType, search, year, lang);
 						if (editResults != null) {
@@ -777,7 +777,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				if (metadata.isTvEpisode()) {
 					result.addProperty("media_type", "tv_episode");
 					result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
-					result.addProperty("season", getLong(metadata.getTvSeason()));
+					result.addProperty("season", metadata.getTvSeason());
 					if (metadata.getSeriesMetadata() != null) {
 						result.addProperty("year", metadata.getSeriesMetadata().getStartYear());
 					}
@@ -797,7 +797,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, String year, String lang) throws IOException, InterruptedException {
+	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, Integer year, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make metadata results " + id);
@@ -1277,6 +1277,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		StoreResource directorsFolder = null;
 		StoreResource genresFolder = null;
 		StoreResource ratedFolder = null;
+		StoreResource ratingFolder = null;
 		if (CONFIGURATION.isShowMediaLibraryFolder()) {
 			// prepare to get IDs of certain metadata resources, to make them clickable
 			List<StoreResource> rootFolderChildren = renderer.getMediaStore().getResources("0", true, 0, 0, Messages.getString("MediaLibrary"));
@@ -1319,6 +1320,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					case "Rated" -> {
 						ratedFolder = filterByInformationChild;
 					}
+					case "Rating" -> {
+						ratingFolder = filterByInformationChild;
+					}
 					default -> {
 						//nothing to do
 					}
@@ -1330,6 +1334,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, renderer);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, renderer);
 		addStringDlnaId(result, "rated", ratedFolder, renderer);
+		addStringDlnaId(result, "rating", ratingFolder, renderer);
 		result.addProperty("imageBaseURL", TMDB.getTmdbImageBaseURL());
 
 		return result;

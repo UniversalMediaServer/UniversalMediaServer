@@ -250,7 +250,7 @@ public class DidlHelper extends DlnaHelper {
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
 			MediaVideoMetadata videoMetadata = mediaInfo.getVideoMetadata();
 			if (videoMetadata.isTvEpisode()) {
-				if (StringUtils.isNotBlank(videoMetadata.getTvSeason())) {
+				if (videoMetadata.getTvSeason() != null) {
 					addXMLTagAndAttribute(sb, "upnp:episodeSeason", videoMetadata.getTvSeason());
 				}
 				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {
@@ -538,7 +538,7 @@ public class DidlHelper extends DlnaHelper {
 			uclass = "object.item.imageItem.photo";
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			uclass = "object.item.audioItem.musicTrack";
-		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
+		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			uclass = "object.item.videoItem.movie";
 		} else {

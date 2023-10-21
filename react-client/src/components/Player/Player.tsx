@@ -18,8 +18,9 @@ import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
+import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, Tag } from 'tabler-icons-react';
+import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, Tag } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import NavbarContext from '../../contexts/navbar-context';
@@ -248,6 +249,27 @@ export const Player = () => {
     }
   }
 
+  const getMetadataCountryList = (title: string, mediaList?: BaseMedia[]) => {
+    if (mediaList && mediaList.length > 0) {
+      return (<Group gap='xs' mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Text fw={700}>{i18n.get[title]}: </Text>
+        {mediaList.map((media: BaseMedia) => {
+          return (
+            <ReactCountryFlag
+              key={media.id}
+              countryCode={media.name}
+              style={{
+                fontSize: '1.5em',
+                cursor: 'pointer', 
+              }}
+              onClick={() => { media.id && sse.askBrowseId(media.id) }}
+            />
+          );
+        })}
+      </Group>);
+    }
+  }
+
   const getMetadataBaseMedia = (title: string, media?: BaseMedia) => {
     if (media) {
       return getMetadataBaseMediaList(title, [media]);
@@ -263,6 +285,15 @@ export const Player = () => {
     }
   }
 
+  const getMetadataOriginalTitle = (title?: string, language?: string) => {
+    if (title) {
+      return (
+        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+          <LanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')':'')}</Text>
+        </Group>);
+    }
+  }
+
   const getMetadataTagLine = (mediaString?: string) => {
     if (mediaString) {
       return (
@@ -272,7 +303,7 @@ export const Player = () => {
     }
   }
 
-  const getMetadataRatingList = (ratingsList?: MediaRating[]) => {
+  const getMetadataRatingList = (ratingsList?: MediaRating[], rating?:string) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
         <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
@@ -284,6 +315,8 @@ export const Player = () => {
           })}
         </List>
       </>);
+    } else {
+      return getMetadataString(i18n.get['Rating'], rating);
     }
   }
 
@@ -482,9 +515,10 @@ export const Player = () => {
                   {images.logo}
                   {getPlayControls()}
                   {getMetadataTagLine(metadata.tagline)}
+                  {getMetadataOriginalTitle(metadata.originalTitle, metadata.originalLanguage)}
                   {getMetadataBaseMediaList('Actors', metadata.actors)}
                   {getMetadataString('Awards', metadata.awards)}
-                  {getMetadataBaseMediaList('Country', metadata.countries)}
+                  {getMetadataCountryList('Country', metadata.countries)}
                   {getMetadataBaseMediaList('Director', metadata.directors)}
                   {getMetadataBaseMediaList('Genres', metadata.genres)}
                   {getMetadataString('Plot', metadata.overview)}

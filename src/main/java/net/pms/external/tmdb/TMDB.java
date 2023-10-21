@@ -63,11 +63,11 @@ public class TMDB {
 		return false;
 	}
 
-	public static JsonArray getTvShowsFromEpisode(String title, String year, String lang, Long currentId) throws IOException {
+	public static JsonArray getTvShowsFromEpisode(String title, Integer year, String lang, Long currentId) throws IOException {
 		return new JsonArray();
 	}
 
-	public static JsonArray getMovies(String title, String year, String lang, Long currentId) throws IOException {
+	public static JsonArray getMovies(String title, Integer year, String lang, Long currentId) throws IOException {
 		return new JsonArray();
 	}
 
@@ -88,7 +88,7 @@ public class TMDB {
 			final String mediaType,
 			final String imdbId,
 			final Long tmdbId,
-			final String season,
+			final Integer season,
 			final String episode
 	) {
 		//fallback to UMS API

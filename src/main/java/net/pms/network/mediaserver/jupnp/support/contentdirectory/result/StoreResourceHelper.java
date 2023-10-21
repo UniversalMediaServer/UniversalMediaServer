@@ -197,7 +197,7 @@ public class StoreResourceHelper {
 			result = new Photo();
 		} else if (mediaType == MediaType.AUDIO || mediaType == MediaType.UNKNOWN && format != null && format.isAudio()) {
 			result = new MusicTrack();
-		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || StringUtils.isNotBlank(mediaInfo.getVideoMetadata().getYear()))) {
+		} else if (mediaInfo != null && mediaInfo.hasVideoMetadata() && (mediaInfo.getVideoMetadata().isTvEpisode() || mediaInfo.getVideoMetadata().getYear() != null)) {
 			// videoItem.movie is used for TV episodes and movies
 			result = new Movie();
 		} else {
@@ -328,7 +328,7 @@ public class StoreResourceHelper {
 		if (mediaInfo != null && mediaInfo.hasVideoMetadata() && result instanceof Movie movie) {
 			MediaVideoMetadata videoMetadata = mediaInfo.getVideoMetadata();
 			if (videoMetadata.isTvEpisode()) {
-				if (StringUtils.isNotBlank(videoMetadata.getTvSeason())) {
+				if (videoMetadata.getTvSeason() != null) {
 					movie.setEpisodeSeason(UnsignedInteger.valueOf(videoMetadata.getTvSeason()));
 				}
 				if (StringUtils.isNotBlank(videoMetadata.getTvEpisodeNumber())) {

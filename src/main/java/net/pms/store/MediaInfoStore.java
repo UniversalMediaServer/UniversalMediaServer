@@ -38,6 +38,7 @@ import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
+import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
 import org.apache.commons.lang3.StringUtils;
@@ -202,7 +203,6 @@ public class MediaInfoStore {
 								!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
 							//changed, remove old values to lookup for new metadata
 							mediaInfo.getVideoMetadata().setTvSeriesId(tvSeriesId);
-							mediaInfo.getVideoMetadata().setYear(tvSeriesMetadata.getStartYear());
 							mediaInfo.getVideoMetadata().setTmdbId(null);
 							mediaInfo.getVideoMetadata().setIMDbID(null);
 							try {
@@ -246,38 +246,27 @@ public class MediaInfoStore {
 		try {
 			if (mediaInfo.isVideo() && !mediaInfo.hasVideoMetadata()) {
 				MediaVideoMetadata videoMetadata = new MediaVideoMetadata();
-				String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
-				String titleFromFilename = metadataFromFilename[0];
-				String yearFromFilename = metadataFromFilename[1];
-				String extraInformationFromFilename = metadataFromFilename[2];
-				String tvSeasonFromFilename = metadataFromFilename[3];
-				String tvEpisodeNumberFromFilename = metadataFromFilename[4];
-				String tvEpisodeNameFromFilename = metadataFromFilename[5];
+				FileNameMetadata metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), absolutePath);
+				String titleFromFilename = metadataFromFilename.getMovieOrShowName();
 
 				// Apply the metadata from the filename.
-				if (StringUtils.isNotBlank(titleFromFilename) && StringUtils.isNotBlank(tvSeasonFromFilename)) {
+				if (StringUtils.isNotBlank(titleFromFilename) && metadataFromFilename.isTvEpisode()) {
 					TvSeriesMetadata tvSeriesMetadata = new TvSeriesMetadata();
 					tvSeriesMetadata.setTitle(titleFromFilename);
-					if (yearFromFilename != null) {
-						tvSeriesMetadata.setStartYear(yearFromFilename);
-					}
-					videoMetadata.setTvSeason(tvSeasonFromFilename);
-					if (StringUtils.isNotBlank(tvEpisodeNumberFromFilename)) {
-						videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromFilename);
-					}
-					if (StringUtils.isNotBlank(tvEpisodeNameFromFilename)) {
-						videoMetadata.setTitle(tvEpisodeNameFromFilename);
+					tvSeriesMetadata.setStartYear(metadataFromFilename.getYear());
+					videoMetadata.setTvSeason(metadataFromFilename.getTvSeasonNumber());
+					videoMetadata.setTvEpisodeNumber(metadataFromFilename.getTvEpisodeNumber());
+					if (StringUtils.isNotBlank(metadataFromFilename.getTvEpisodeName())) {
+						videoMetadata.setTitle(metadataFromFilename.getTvEpisodeName());
 					}
 					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 					videoMetadata.setIsTvEpisode(true);
 				} else {
 					videoMetadata.setTitle(titleFromFilename);
-					if (yearFromFilename != null) {
-						videoMetadata.setYear(yearFromFilename);
-					}
+					videoMetadata.setYear(metadataFromFilename.getYear());
 				}
-				if (extraInformationFromFilename != null) {
-					videoMetadata.setExtraInformation(extraInformationFromFilename);
+				if (metadataFromFilename.getExtraInformation() != null) {
+					videoMetadata.setExtraInformation(metadataFromFilename.getExtraInformation());
 				}
 				mediaInfo.setVideoMetadata(videoMetadata);
 
