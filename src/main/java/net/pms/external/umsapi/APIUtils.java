@@ -425,9 +425,9 @@ public class APIUtils {
 
 				if (isTVEpisode) {
 					Long tvSeriesId = setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
-					videoMetadata.setTvSeriesId(tvSeriesId);
-					TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
-					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+						videoMetadata.setTvSeriesId(tvSeriesId);
+						TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+						videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 					if (isNotBlank(titleFromAPI)) {
 						LOGGER.trace("Setting episode name from api: " + titleFromAPI);
 						videoMetadata.setTitle(titleFromAPI);

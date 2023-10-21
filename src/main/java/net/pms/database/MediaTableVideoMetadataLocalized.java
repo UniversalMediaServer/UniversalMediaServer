@@ -280,7 +280,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			if (fromTvSeries) {
 				baseData = MediaTableTVSeries.getTvSeriesMetadataUnLocalized(connection, id);
 			} else {
-				baseData = MediaTableVideoMetadata.getVideoMetadataLocalized(connection, id);
+				baseData = MediaTableVideoMetadata.getVideoMetadataUnLocalized(connection, id);
 			}
 			if (baseData != null) {
 				if (result.getHomepage() != null && result.getHomepage().equals(baseData.getHomepage())) {

@@ -589,7 +589,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 		return null;
 	}
 
-	public static VideoMetadataLocalized getVideoMetadataLocalized(final Connection connection, final long fileId) {
+	public static VideoMetadataLocalized getVideoMetadataUnLocalized(final Connection connection, final long fileId) {
 		if (connection == null || fileId < 0) {
 			return null;
 		}

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [13.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.7.0...13.8.0) (2023-10-21)
 
 ### General
 - System tray icon indicates when an update is available (thanks, Ty Lovejoy!)
@@ -14,6 +14,7 @@
 - Fixed order of results in Media Library when sorted by date (thanks for reporting, stnnzp!)
 - Fixed migration of IP Filter settings from v12 (thanks, dytlzl!)
 - Fixed UPnP search responses
+- Fixed Live Subtitles folder showing in front page of web player (#3669) (thanks, Priyanka Ghosh Dastidar!)
 
 ### Renderers
 - Fixed video support on some Samsung TVs (thanks, Fredo1650!)
@@ -23,24 +24,23 @@
 - update actions/checkout action to v4
 - update dependency @testing-library/jest-dom to v6.1.4
 - update dependency @testing-library/user-event to v14.5.1
-- update dependency @types/jest to v29.5.5
-- update dependency @types/lodash to v4.14.199
-- update dependency @types/node to v18.18.5
+- update dependency @types/jest to v29.5.6
+- update dependency @types/lodash to v4.14.200
+- update dependency @types/node to v18.18.6
 - update dependency @types/react to v18.2.22
-- update dependency @types/react-color to v3.0.7
-- update dependency @types/video.js to v7.3.53
-- update dependency @types/videojs-hls-quality-selector to v1.1.1
+- update dependency @types/react-color to v3.0.9
+- update dependency @types/videojs-hls-quality-selector to v1.1.2
 - update dependency axios to v1.5.1
 - update dependency com.fasterxml.jackson.core:jackson-databind to v2.15.3
 - update dependency com.github.eirslett:frontend-maven-plugin to v1.14.0
 - update dependency com.github.oshi:oshi-core to v6.4.6
 - update dependency com.puppycrawl.tools:checkstyle to v10.12.4
+- update dependency com.sun.xml.bind:jaxb-impl to v4.0.4
 - update dependency commons-io:commons-io to v2.14.0
 - update dependency eslint to v8.51.0
 - update dependency org.apache.maven.plugins:maven-enforcer-plugin to v3.4.1
 - update dependency org.slf4j:slf4j-api to v2.0.9
 - update dependency react-router-dom to v6.16.0 
-- update dependency video.js to v8.6.0
 - update mantine monorepo packages to v6.0.21
 - update react monorepo
 - Update tsMuxeR to 2023-09-20-01-52-31
