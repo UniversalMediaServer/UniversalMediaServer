@@ -473,8 +473,14 @@ public class StoreContainer extends StoreResource {
 				if (!child1.isSortableByDisplayName || !child2.isSortableByDisplayName) {
 					return 0;
 				}
-				String str1 = Normalizer.normalize(child1.getLocalizedDisplayName(lang), Normalizer.Form.NFKD);
-				String str2 = Normalizer.normalize(child2.getLocalizedDisplayName(lang), Normalizer.Form.NFKD);
+				String str1 = child1.getLocalizedDisplayName(lang);
+				String str2 = child2.getLocalizedDisplayName(lang);
+				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
+					str1 = str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
+					str2 = str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
+				}
+				str1 = Normalizer.normalize(str1, Normalizer.Form.NFKD);
+				str2 = Normalizer.normalize(str2, Normalizer.Form.NFKD);
 				return str1.compareToIgnoreCase(str2);
 			});
 		}

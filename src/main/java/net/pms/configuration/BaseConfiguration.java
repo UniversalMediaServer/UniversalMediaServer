@@ -64,7 +64,7 @@ public abstract class BaseConfiguration {
 		return configurationReader.getBoolean(key, def);
 	}
 
-	public String getString(String key, String def) {
+	public final String getString(String key, String def) {
 		return configurationReader.getNonBlankConfigurationString(key, def);
 	}
 
