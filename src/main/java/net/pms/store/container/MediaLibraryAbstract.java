@@ -20,7 +20,6 @@ import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableVideoMetadata;
-import net.pms.database.MediaTableVideoMetadataReleased;
 import net.pms.database.MediaTableVideotracks;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
@@ -69,7 +68,6 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String IS_NOT_NULL = IS + NOT + NULL;
 	protected static final String IS_NOT_TRUE = IS + NOT + TRUE;
 
-	protected static final String RELEASEDATE_FORMATED = "FORMATDATETIME(" + MediaTableVideoMetadataReleased.TABLE_COL_RELEASEDATE + ", 'yyyy')";
 	protected static final String FORMATDATETIME_MODIFIED = "FORMATDATETIME(" + MediaTableFiles.TABLE_COL_MODIFIED + ", 'yyyy MM d')";
 	protected static final String COALESCE_ARTIST = "COALESCE(" + MediaTableAudioMetadata.TABLE_COL_ALBUMARTIST + ", " + MediaTableAudioMetadata.TABLE_COL_ARTIST + ")";
 	protected static final String FORMAT_TYPE_AUDIO = MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + Format.AUDIO;
@@ -80,13 +78,13 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	private static final String NOT_FULLYPLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE;
 	private static final String WAS_PLAYED_CONDITION = MediaTableFilesStatus.TABLE_COL_DATELASTPLAY + IS_NOT_NULL;
 	protected static final String TVEPISODE_CONDITION = MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE;
-	protected static final String MOVIE_CONDITION = NOT + TVEPISODE_CONDITION + AND + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + NOT_EQUAL + EMPTY_STRING + AND + MediaTableFiles.TABLE_COL_DURATION + GREATER_THAN + FORTY_MINUTES_IN_SECONDS;
+	protected static final String MOVIE_CONDITION = NOT + TVEPISODE_CONDITION + AND + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NOT_NULL + AND + MediaTableFiles.TABLE_COL_DURATION + GREATER_THAN + FORTY_MINUTES_IN_SECONDS;
 	protected static final String IS_NOT_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + NOT_IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
 	protected static final String IS_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
 	protected static final String IS_VIDEOHD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")";
 	protected static final String IS_VIDEOSD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")";
 
-	protected static final String UNSORTED_CONDITION = NOT + TVEPISODE_CONDITION + AND + "(" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NULL + OR + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + EQUAL + EMPTY_STRING + ")";
+	protected static final String UNSORTED_CONDITION = NOT + TVEPISODE_CONDITION + AND + "(" + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NULL + ")";
 
 	protected static final String FROM_FILES = FROM + MediaTableFiles.TABLE_NAME;
 	protected static final String FROM_FILES_VIDEOMETA = FROM_FILES + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA;

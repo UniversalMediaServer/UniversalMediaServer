@@ -154,30 +154,29 @@ public class FileUtilTest {
 				todo = o.get("todo").getAsBoolean();
 			}
 
-			String[] extracted_metadata = FileUtil.getFileNameMetadata(original, absolutePath);
-			assert extracted_metadata.length == 6;
-			String movieOrShowName = extracted_metadata[0];
+			FileNameMetadata extracted_metadata = FileUtil.getFileNameMetadata(original, absolutePath);
+			String movieOrShowName = extracted_metadata.getMovieOrShowName();
 			int year = -1;
 			try {
-				if (extracted_metadata[1] != null) {
-					year = Integer.parseInt(extracted_metadata[1]);
+				if (extracted_metadata.getYear() != null) {
+					year = extracted_metadata.getYear();
 				}
 			} catch (NumberFormatException ex) {
 				throw (new AssertionError(ex));
 			}
-			String extraInformation = extracted_metadata[2];
+			String extraInformation = extracted_metadata.getExtraInformation();
 			int tvSeason = -1;
 			try {
-				if (extracted_metadata[3] != null) {
-					tvSeason = Integer.parseInt(extracted_metadata[3]);
+				if (extracted_metadata.getTvSeasonNumber() != null) {
+					tvSeason = extracted_metadata.getTvSeasonNumber();
 				}
 			} catch (NumberFormatException ex) {
 				throw (new AssertionError(ex));
 			}
 			// tvEpisodeNumber might be a single episode, but might also be
 			// a hyphen-separated range, so cannot always parse as int
-			String tvEpisodeNumber = extracted_metadata[4];
-			String tvEpisodeName = extracted_metadata[5];
+			String tvEpisodeNumber = extracted_metadata.getTvEpisodeNumber();
+			String tvEpisodeName = extracted_metadata.getTvEpisodeName();
 
 			JsonElement elem;
 
