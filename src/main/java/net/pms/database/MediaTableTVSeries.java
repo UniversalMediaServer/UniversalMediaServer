@@ -22,6 +22,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.umsapi.APIUtils;
@@ -47,8 +49,13 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Version notes:
 	 * - 10: added thumbnail source
 	 * - 11: removed SIMPLIFIEDTITLE
+	 * - 12: ensure STARTYEAR and ENDYEAR are year, then convert to INTEGER
+	 *		ensure FIRSTAIRDATE and LASTAIRDATE are date, then convert to DATE
+	 *		set back 1 to 1 values to table (POSTER, RATED, RATING, RELEASEDATE)
+	 *		use CLOB for very large string
+	 *		remove unused metadata tables PRODUCTION and 1 to 1 values tables
 	 */
-	private static final int TABLE_VERSION = 11;
+	private static final int TABLE_VERSION = 12;
 
 	/**
 	 * COLUMNS
@@ -81,8 +88,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String COL_ORIGINCOUNTRY = "ORIGINCOUNTRY";
 	private static final String COL_ORIGINALLANGUAGE = "ORIGINALLANGUAGE";
 	private static final String COL_ORIGINALTITLE = "ORIGINALTITLE";
+	private static final String COL_POSTER = "POSTER";
 	private static final String COL_PRODUCTIONCOMPANIES = "PRODUCTIONCOMPANIES";
 	private static final String COL_PRODUCTIONCOUNTRIES = "PRODUCTIONCOUNTRIES";
+	public static final String COL_RATED = "RATED";
+	private static final String COL_RATING = "RATING";
 	private static final String COL_SEASONS = "SEASONS";
 	private static final String COL_SERIESTYPE = "SERIESTYPE";
 	private static final String COL_SPOKENLANGUAGES = "SPOKENLANGUAGES";
@@ -92,9 +102,13 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * COLUMNS with table name
 	 */
+	public static final String TABLE_COL_FIRSTAIRDATE = TABLE_NAME + "." + COL_FIRSTAIRDATE;
 	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	public static final String TABLE_COL_IMAGES = TABLE_NAME + "." + COL_IMAGES;
 	public static final String TABLE_COL_IMDBID = TABLE_NAME + "." + COL_IMDBID;
+	private static final String TABLE_COL_POSTER = TABLE_NAME + "." + COL_POSTER;
+	public static final String TABLE_COL_RATED = TABLE_NAME + "." + COL_RATED;
+	public static final String TABLE_COL_RATING = TABLE_NAME + "." + COL_RATING;
 	public static final String TABLE_COL_STARTYEAR = TABLE_NAME + "." + COL_STARTYEAR;
 	public static final String TABLE_COL_TITLE = TABLE_NAME + "." + COL_TITLE;
 	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
@@ -103,10 +117,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * SQL Jointures
 	 */
-	private static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = LEFT_JOIN + MediaTableThumbnails.TABLE_NAME + ON + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID + " ";
 	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = LEFT_JOIN + MediaTableVideoMetadataGenres.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadataGenres.TABLE_COL_TVSERIESID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_IMDB_RATING = LEFT_JOIN + MediaTableVideoMetadataIMDbRating.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadataIMDbRating.TABLE_COL_TVSERIESID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_RATED = LEFT_JOIN + MediaTableVideoMetadataRated.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadataRated.TABLE_COL_TVSERIESID + " ";
 
 	/**
 	 * SQL References
@@ -130,7 +141,6 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String SQL_UPDATE_THUMBID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_IMDBID_TMDBID_NULL = UPDATE + TABLE_NAME + SET + COL_IMDBID + EQUAL + NULL + ", " + COL_TMDBID + EQUAL + NULL + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
-	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + ", " + TABLE_COL_ID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + WHERE + TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_PARTIALLY_PLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_NOT_FULLYPLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
 
@@ -138,6 +148,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * Used by child tables
 	 */
 	public static final String CHILD_ID = "TVSERIESID";
+	public static final String FIRSTAIRDATE_FORMATED = "FORMATDATETIME(" + TABLE_COL_FIRSTAIRDATE + ", 'yyyy')";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -282,6 +293,138 @@ public final class MediaTableTVSeries extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + "SIMPLIFIEDTITLE");
 					executeUpdate(connection, UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + NULL + WHERE + COL_TMDBID + EQUAL_0);
 				}
+				case 11 -> {
+					//add poster data if any then remove table VIDEO_METADATA_POSTERS
+					executeUpdate(connection, ALTER_TABLE + IF_EXISTS + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_POSTER + VARCHAR);
+					if (tableExists(connection, "VIDEO_METADATA_POSTERS")) {
+						executeUpdate(connection, UPDATE + TABLE_NAME + SET + TABLE_COL_POSTER + EQUAL + "(SELECT VIDEO_METADATA_POSTERS." + COL_POSTER + FROM + "VIDEO_METADATA_POSTERS" + WHERE + "VIDEO_METADATA_POSTERS." + CHILD_ID + EQUAL + TABLE_COL_ID + LIMIT_1 + ")");
+						executeUpdate(connection, DROP_TABLE + "VIDEO_METADATA_POSTERS");
+						MediaTableTablesVersions.removeTableVersion(connection, "VIDEO_METADATA_POSTERS");
+					}
+					//remove unused table VIDEO_METADATA_PRODUCTION
+					if (tableExists(connection, "VIDEO_METADATA_PRODUCTION")) {
+						executeUpdate(connection, DROP_TABLE + "VIDEO_METADATA_PRODUCTION");
+						MediaTableTablesVersions.removeTableVersion(connection, "VIDEO_METADATA_PRODUCTION");
+					}
+					//add rated value if any
+					executeUpdate(connection, ALTER_TABLE + IF_EXISTS + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RATED + VARCHAR);
+					if (tableExists(connection, "VIDEO_METADATA_RATED")) {
+						executeUpdate(connection, UPDATE + TABLE_NAME + SET + TABLE_COL_RATED + EQUAL + "(SELECT VIDEO_METADATA_RATED." + COL_RATED + FROM + "VIDEO_METADATA_RATED" + WHERE + "VIDEO_METADATA_RATED." + CHILD_ID + EQUAL + TABLE_COL_ID + LIMIT_1 + ")");
+						executeUpdate(connection, DROP_TABLE + "VIDEO_METADATA_RATED");
+						MediaTableTablesVersions.removeTableVersion(connection, "VIDEO_METADATA_RATED");
+					}
+					//add rating if any then remove table VIDEO_METADATA_IMDB_RATING
+					executeUpdate(connection, ALTER_TABLE + IF_EXISTS + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RATING + DOUBLE_PRECISION);
+					if (tableExists(connection, "VIDEO_METADATA_IMDB_RATING")) {
+						String prepSql = UPDATE + TABLE_NAME + SET + COL_RATING + EQUAL + PARAMETER + WHERE + COL_ID + EQUAL + PARAMETER;
+						try (
+							PreparedStatement ps = connection.prepareStatement(SELECT_ALL + FROM + "VIDEO_METADATA_IMDB_RATING" + WHERE + CHILD_ID + IS_NOT_NULL);
+							ResultSet rs = ps.executeQuery()
+						) {
+							while (rs.next()) {
+								Long fileId = rs.getLong(CHILD_ID);
+								String ratingStr = rs.getString("IMDBRATING");
+								try {
+									Double rating = Double.valueOf(ratingStr);
+									if (rating > 0) {
+										try (PreparedStatement udpdateStatement = connection.prepareStatement(prepSql)) {
+											udpdateStatement.setDouble(1, rating);
+											udpdateStatement.setLong(2, fileId);
+											udpdateStatement.execute();
+										}
+									}
+								} catch (NullPointerException | NumberFormatException e) {
+									//nothing to do
+								}
+							}
+						}
+						//remove the VIDEO_METADATA_IMDB_RATING table
+						executeUpdate(connection, DROP_TABLE + "VIDEO_METADATA_IMDB_RATING");
+						MediaTableTablesVersions.removeTableVersion(connection, "VIDEO_METADATA_IMDB_RATING");
+					}
+					//add release date to first air date if any then remove table VIDEO_METADATA_RELEASED
+					if (tableExists(connection, "VIDEO_METADATA_RELEASED")) {
+						String prepSql = UPDATE + TABLE_NAME + SET + COL_FIRSTAIRDATE + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+						try (
+							PreparedStatement ps = connection.prepareStatement(SELECT + TABLE_COL_ID + COMMA + TABLE_COL_FIRSTAIRDATE + COMMA + "VIDEO_METADATA_RELEASED.RELEASEDATE" + FROM + TABLE_NAME + JOIN + "VIDEO_METADATA_RELEASED" + ON + TABLE_COL_ID + EQUAL + "VIDEO_METADATA_RELEASED.TVSERIESID");
+							ResultSet rs = ps.executeQuery()
+						) {
+							while (rs.next()) {
+								Long tvSeriesId = rs.getLong(COL_ID);
+								String firstAirDate = rs.getString(COL_FIRSTAIRDATE);
+								String releaseDate = rs.getString("RELEASEDATE");
+								if (firstAirDate == null && releaseDate != null) {
+									try (PreparedStatement udpdateStatement = connection.prepareStatement(prepSql)) {
+										udpdateStatement.setString(1, StringUtils.left(StringUtils.trimToEmpty(releaseDate), 10));
+										udpdateStatement.setLong(2, tvSeriesId);
+										udpdateStatement.execute();
+									} catch (IllegalArgumentException e) {
+										//nothing to do.
+									}
+								}
+							}
+						}
+						executeUpdate(connection, DROP_TABLE + "VIDEO_METADATA_RELEASED");
+						MediaTableTablesVersions.removeTableVersion(connection, "VIDEO_METADATA_RELEASED");
+					}
+					//use CLOB for very large string
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_CREDITS + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_EXTERNALIDS + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_IMAGES + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_NETWORKS + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_OVERVIEW + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_PRODUCTIONCOMPANIES + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_PRODUCTIONCOUNTRIES + CLOB);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_SEASONS + CLOB);
+					//ensure STARTYEAR and ENDYEAR are year, then convert STARTYEAR and ENDYEAR to Integer
+					for (String column : new String[] {COL_STARTYEAR, COL_ENDYEAR}) {
+						try (
+							PreparedStatement ps = connection.prepareStatement(SELECT_ALL + FROM + TABLE_NAME + WHERE + column + IS_NOT_NULL,
+								ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+							ResultSet rs = ps.executeQuery()
+						) {
+							while (rs.next()) {
+								String yearStr = rs.getString(column);
+								Integer year = FileUtil.getYearFromYearString(yearStr);
+								if (year != null) {
+									rs.updateString(column, year.toString());
+								} else {
+									rs.updateNull(column);
+								}
+								rs.updateRow();
+							}
+						}
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + column + INTEGER);
+					}
+					//ensure FIRSTAIRDATE and LASTAIRDATE are date, then convert to DATE
+					for (String column : new String[] {COL_FIRSTAIRDATE, COL_LASTAIRDATE}) {
+						try (
+							PreparedStatement ps = connection.prepareStatement(SELECT_ALL + FROM + TABLE_NAME + WHERE + column + IS_NOT_NULL,
+								ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
+							ResultSet rs = ps.executeQuery()
+						) {
+							while (rs.next()) {
+								String dateStr = rs.getString(column);
+								if (dateStr != null && dateStr.length() > 10) {
+									dateStr = dateStr.substring(0, 10);
+								}
+								LocalDate localDate = null;
+								try {
+									localDate = LocalDate.parse(dateStr);
+								} catch (DateTimeParseException e) {
+									//nothing to do
+								}
+								if (localDate != null) {
+									rs.updateString(column, localDate.toString());
+								} else {
+									rs.updateNull(column);
+								}
+								rs.updateRow();
+							}
+						}
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + column + DATE);
+					}
+				}
 				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -301,41 +444,44 @@ public final class MediaTableTVSeries extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
-				COL_ID +                     IDENTITY     + PRIMARY_KEY  + COMMA +
-				COL_MODIFIED +               BIGINT                      + COMMA +
-				COL_IMDBID +                 VARCHAR_1024                + COMMA +
-				COL_TMDBID +                 BIGINT                      + COMMA +
-				COL_THUMBID +                BIGINT                      + COMMA +
-				COL_THUMB_SRC +              VARCHAR_32                  + COMMA +
-				COL_OVERVIEW +               VARCHAR                     + COMMA +
-				COL_TITLE +                  VARCHAR_1024 + NOT_NULL     + COMMA +
-				COL_STARTYEAR +              VARCHAR_1024                + COMMA +
-				COL_ENDYEAR +                VARCHAR_1024                + COMMA +
-				COL_TOTALSEASONS +           DOUBLE_PRECISION            + COMMA +
-				COL_API_VERSION +            VARCHAR_1024                + COMMA +
-				COL_VOTES +                  VARCHAR_1024                + COMMA +
-				COL_CREATEDBY +              VARCHAR                     + COMMA +
-				COL_CREDITS +                VARCHAR                     + COMMA +
-				COL_EXTERNALIDS +            VARCHAR                     + COMMA +
-				COL_FIRSTAIRDATE +           VARCHAR                     + COMMA +
-				COL_HOMEPAGE +               VARCHAR                     + COMMA +
-				COL_IMAGES +                 VARCHAR                     + COMMA +
-				COL_INPRODUCTION +           BOOLEAN                     + COMMA +
-				COL_LANGUAGES +              VARCHAR                     + COMMA +
-				COL_LASTAIRDATE +            VARCHAR                     + COMMA +
-				COL_NETWORKS +               VARCHAR                     + COMMA +
-				COL_NUMBEROFEPISODES +       DOUBLE_PRECISION            + COMMA +
-				COL_NUMBEROFSEASONS +        DOUBLE_PRECISION            + COMMA +
-				COL_ORIGINCOUNTRY +          VARCHAR                     + COMMA +
-				COL_ORIGINALLANGUAGE +       VARCHAR                     + COMMA +
-				COL_ORIGINALTITLE +          VARCHAR                     + COMMA +
-				COL_PRODUCTIONCOMPANIES +    VARCHAR                     + COMMA +
-				COL_PRODUCTIONCOUNTRIES +    VARCHAR                     + COMMA +
-				COL_SEASONS +                VARCHAR                     + COMMA +
-				COL_SERIESTYPE +             VARCHAR                     + COMMA +
-				COL_SPOKENLANGUAGES +        VARCHAR                     + COMMA +
-				COL_STATUS +                 VARCHAR                     + COMMA +
-				COL_TAGLINE +                VARCHAR                             +
+				COL_ID                     + IDENTITY     + PRIMARY_KEY  + COMMA +
+				COL_MODIFIED               + BIGINT                      + COMMA +
+				COL_IMDBID                 + VARCHAR_1024                + COMMA +
+				COL_TMDBID                 + BIGINT                      + COMMA +
+				COL_THUMBID                + BIGINT                      + COMMA +
+				COL_THUMB_SRC              + VARCHAR_32                  + COMMA +
+				COL_TITLE                  + VARCHAR_1024 + NOT_NULL     + COMMA +
+				COL_STARTYEAR              + INTEGER                     + COMMA +
+				COL_ENDYEAR                + INTEGER                     + COMMA +
+				COL_TOTALSEASONS           + DOUBLE_PRECISION            + COMMA +
+				COL_API_VERSION            + VARCHAR_1024                + COMMA +
+				COL_VOTES                  + VARCHAR_1024                + COMMA +
+				COL_CREATEDBY              + VARCHAR                     + COMMA +
+				COL_CREDITS                + CLOB                        + COMMA +
+				COL_EXTERNALIDS            + CLOB                        + COMMA +
+				COL_FIRSTAIRDATE           + DATE                        + COMMA +
+				COL_HOMEPAGE               + VARCHAR                     + COMMA +
+				COL_IMAGES                 + CLOB                        + COMMA +
+				COL_INPRODUCTION           + BOOLEAN                     + COMMA +
+				COL_LANGUAGES              + VARCHAR                     + COMMA +
+				COL_LASTAIRDATE            + DATE                        + COMMA +
+				COL_NETWORKS               + CLOB                        + COMMA +
+				COL_NUMBEROFEPISODES       + DOUBLE_PRECISION            + COMMA +
+				COL_NUMBEROFSEASONS        + DOUBLE_PRECISION            + COMMA +
+				COL_ORIGINCOUNTRY          + VARCHAR                     + COMMA +
+				COL_ORIGINALLANGUAGE       + VARCHAR                     + COMMA +
+				COL_ORIGINALTITLE          + VARCHAR                     + COMMA +
+				COL_OVERVIEW               + CLOB                        + COMMA +
+				COL_POSTER                 + VARCHAR                     + COMMA +
+				COL_PRODUCTIONCOMPANIES    + CLOB                        + COMMA +
+				COL_PRODUCTIONCOUNTRIES    + CLOB                        + COMMA +
+				COL_RATING                 + DOUBLE_PRECISION            + COMMA +
+				COL_RATED                  + VARCHAR                     + COMMA +
+				COL_SEASONS                + CLOB                        + COMMA +
+				COL_SERIESTYPE             + VARCHAR                     + COMMA +
+				COL_SPOKENLANGUAGES        + VARCHAR                     + COMMA +
+				COL_STATUS                 + VARCHAR                     + COMMA +
+				COL_TAGLINE                + VARCHAR                             +
 			")",
 			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_IMDBID + ")",
 			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")",
@@ -418,11 +564,11 @@ public final class MediaTableTVSeries extends MediaTable {
 						if (seriesMetadata.getCredits() != null) {
 							rs.updateString(COL_CREDITS, GSON.toJson(seriesMetadata.getCredits()));
 						}
-						rs.updateString(COL_ENDYEAR, seriesMetadata.getEndYear());
+						updateInteger(rs, COL_ENDYEAR, seriesMetadata.getEndYear());
 						if (seriesMetadata.getExternalIDs() != null) {
 							rs.updateString(COL_EXTERNALIDS, GSON.toJson(seriesMetadata.getExternalIDs()));
 						}
-						rs.updateString(COL_FIRSTAIRDATE, seriesMetadata.getFirstAirDate());
+						updateDate(rs, COL_FIRSTAIRDATE, seriesMetadata.getFirstAirDate());
 						rs.updateString(COL_HOMEPAGE, seriesMetadata.getHomepage());
 						if (seriesMetadata.getImages() != null) {
 							rs.updateString(COL_IMAGES, GSON.toJson(seriesMetadata.getImages()));
@@ -433,28 +579,27 @@ public final class MediaTableTVSeries extends MediaTable {
 						if (seriesMetadata.getLanguages() != null) {
 							rs.updateString(COL_LANGUAGES, GSON.toJson(seriesMetadata.getLanguages()));
 						}
-						rs.updateString(COL_LASTAIRDATE, seriesMetadata.getLastAirDate());
+						updateDate(rs, COL_LASTAIRDATE, seriesMetadata.getLastAirDate());
 						if (seriesMetadata.getNetworks() != null) {
 							rs.updateString(COL_NETWORKS, GSON.toJson(seriesMetadata.getNetworks()));
 						}
-						if (seriesMetadata.getNumberOfEpisodes() != null) {
-							rs.updateDouble(COL_NUMBEROFEPISODES, seriesMetadata.getNumberOfEpisodes());
-						}
-						if (seriesMetadata.getNumberOfSeasons() != null) {
-							rs.updateDouble(COL_NUMBEROFSEASONS, seriesMetadata.getNumberOfSeasons());
-						}
+						updateDouble(rs, COL_NUMBEROFEPISODES, seriesMetadata.getNumberOfEpisodes());
+						updateDouble(rs, COL_NUMBEROFSEASONS, seriesMetadata.getNumberOfSeasons());
 						if (seriesMetadata.getOriginCountry() != null) {
 							rs.updateString(COL_ORIGINCOUNTRY, GSON.toJson(seriesMetadata.getOriginCountry()));
 						}
 						rs.updateString(COL_ORIGINALLANGUAGE, seriesMetadata.getOriginalLanguage());
 						rs.updateString(COL_ORIGINALTITLE, seriesMetadata.getOriginalTitle());
 						rs.updateString(COL_OVERVIEW, seriesMetadata.getOverview());
+						rs.updateString(COL_POSTER, seriesMetadata.getPoster());
 						if (seriesMetadata.getProductionCompanies() != null) {
 							rs.updateString(COL_PRODUCTIONCOMPANIES, GSON.toJson(seriesMetadata.getProductionCompanies()));
 						}
 						if (seriesMetadata.getProductionCountries() != null) {
 							rs.updateString(COL_PRODUCTIONCOUNTRIES, GSON.toJson(seriesMetadata.getProductionCountries()));
 						}
+						rs.updateString(COL_RATED, seriesMetadata.getRated());
+						updateDouble(rs, COL_RATING, seriesMetadata.getRating());
 						if (seriesMetadata.getSeasons() != null) {
 							rs.updateString(COL_SEASONS, GSON.toJson(seriesMetadata.getSeasons()));
 						}
@@ -462,18 +607,14 @@ public final class MediaTableTVSeries extends MediaTable {
 						if (seriesMetadata.getSpokenLanguages() != null) {
 							rs.updateString(COL_SPOKENLANGUAGES, GSON.toJson(seriesMetadata.getSpokenLanguages()));
 						}
-						rs.updateString(COL_STARTYEAR, seriesMetadata.getStartYear());
+						updateInteger(rs, COL_STARTYEAR, seriesMetadata.getStartYear());
 						rs.updateString(COL_STATUS, seriesMetadata.getStatus());
 						rs.updateString(COL_TAGLINE, seriesMetadata.getTagline());
-						if (seriesMetadata.getTmdbId() != null) {
-							rs.updateLong(COL_TMDBID, seriesMetadata.getTmdbId());
-						}
+						updateLong(rs, COL_TMDBID, seriesMetadata.getTmdbId());
 						if (seriesMetadata.getTotalSeasons() != null) {
 							rs.updateDouble(COL_TOTALSEASONS, seriesMetadata.getTotalSeasons());
 						}
-						if (seriesMetadata.getThumbnailId() != null) {
-							rs.updateLong(COL_THUMBID, seriesMetadata.getThumbnailId());
-						}
+						updateLong(rs, COL_THUMBID, seriesMetadata.getThumbnailId());
 						if (seriesMetadata.getThumbnailSource() != null) {
 							updateString(rs, COL_THUMB_SRC, seriesMetadata.getThumbnailSource().toString(), 32);
 						}
@@ -489,12 +630,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			MediaTableVideoMetadataCountries.set(connection, null, seriesMetadata.getCountries(), tvSeriesId);
 			MediaTableVideoMetadataDirectors.set(connection, null, seriesMetadata.getDirectors(), tvSeriesId);
 			MediaTableVideoMetadataGenres.set(connection, null, seriesMetadata.getGenres(), tvSeriesId);
-			MediaTableVideoMetadataPosters.set(connection, null, seriesMetadata.getPoster(), tvSeriesId);
-			MediaTableVideoMetadataProduction.set(connection, null, seriesMetadata.getProduction(), tvSeriesId);
-			MediaTableVideoMetadataRated.set(connection, null, seriesMetadata.getRated(), tvSeriesId);
-			MediaTableVideoMetadataIMDbRating.set(connection, null, seriesMetadata.getRating(), tvSeriesId);
 			MediaTableVideoMetadataRatings.set(connection, null, seriesMetadata.getRatings(), tvSeriesId);
-			MediaTableVideoMetadataReleased.set(connection, null, seriesMetadata.getReleased(), tvSeriesId);
 			connection.commit();
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting API data to TV series entry", title, TABLE_NAME, e.getMessage());
@@ -587,16 +723,16 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setCreatedBy(resultSet.getString(COL_CREATEDBY));
 		metadata.setCredits(resultSet.getString(COL_CREDITS));
 		metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSerie(connection, tvSeriesId));
-		metadata.setEndYear(resultSet.getString(COL_ENDYEAR));
+		metadata.setEndYear(toInteger(resultSet, COL_ENDYEAR));
 		metadata.setExternalIDs(resultSet.getString(COL_EXTERNALIDS));
-		metadata.setFirstAirDate(resultSet.getString(COL_FIRSTAIRDATE));
+		metadata.setFirstAirDate(getLocalDate(resultSet, COL_FIRSTAIRDATE));
 		metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSerie(connection, tvSeriesId));
 		metadata.setHomepage(resultSet.getString(COL_HOMEPAGE));
 		metadata.setImages(resultSet.getString(COL_IMAGES));
 		metadata.setIMDbID(resultSet.getString(COL_IMDBID));
 		metadata.setInProduction(resultSet.getBoolean(COL_INPRODUCTION));
 		metadata.setLanguages(resultSet.getString(COL_LANGUAGES));
-		metadata.setLastAirDate(resultSet.getString(COL_LASTAIRDATE));
+		metadata.setLastAirDate(getLocalDate(resultSet, COL_LASTAIRDATE));
 		metadata.setNetworks(resultSet.getString(COL_NETWORKS));
 		metadata.setNumberOfEpisodes(toDouble(resultSet, COL_NUMBEROFEPISODES));
 		metadata.setNumberOfSeasons(toDouble(resultSet, COL_NUMBEROFSEASONS));
@@ -604,18 +740,16 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setOriginalTitle(resultSet.getString(COL_ORIGINALTITLE));
 		metadata.setOriginCountry(resultSet.getString(COL_ORIGINCOUNTRY));
 		metadata.setOverview(resultSet.getString(COL_OVERVIEW));
-		metadata.setPoster(MediaTableVideoMetadataPosters.getValueForTvSerie(connection, tvSeriesId));
-		metadata.setProduction(MediaTableVideoMetadataProduction.getValueForTvSerie(connection, tvSeriesId));
+		metadata.setPoster(resultSet.getString(COL_POSTER));
 		metadata.setProductionCompanies(resultSet.getString(COL_PRODUCTIONCOMPANIES));
 		metadata.setProductionCountries(resultSet.getString(COL_PRODUCTIONCOUNTRIES));
-		metadata.setRated(MediaTableVideoMetadataRated.getValueForTvSerie(connection, tvSeriesId));
-		metadata.setRating(MediaTableVideoMetadataIMDbRating.getValueForTvSerie(connection, tvSeriesId));
+		metadata.setRated(resultSet.getString(COL_RATED));
+		metadata.setRating(toDouble(resultSet, COL_RATING));
 		metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSerie(connection, tvSeriesId));
-		metadata.setReleased(MediaTableVideoMetadataReleased.getValueForTvSerie(connection, tvSeriesId));
 		metadata.setSeasons(resultSet.getString(COL_SEASONS));
 		metadata.setSeriesType(resultSet.getString(COL_SERIESTYPE));
 		metadata.setSpokenLanguages(resultSet.getString(COL_SPOKENLANGUAGES));
-		metadata.setStartYear(resultSet.getString(COL_STARTYEAR));
+		metadata.setStartYear(toInteger(resultSet, COL_STARTYEAR));
 		metadata.setStatus(resultSet.getString(COL_STATUS));
 		metadata.setTagline(resultSet.getString(COL_TAGLINE));
 		metadata.setTitle(resultSet.getString(COL_TITLE));
@@ -806,55 +940,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		return null;
 	}
 
-	/**
-	 * @param connection the db connection
-	 * @param title
-	 * @return a thumbnail based on title.
-	 */
-	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
-		Long thumbnailId = null;
-		Long tvSeriesId = null;
-
-		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_THUMBNAIL_BY_TITLE)) {
-			statement.setString(1, title);
-			try (ResultSet resultSet = statement.executeQuery()) {
-				if (resultSet.next()) {
-					thumbnailId = resultSet.getLong(COL_THUMBID);
-					tvSeriesId = resultSet.getLong(COL_ID);
-					return ThumbnailStore.getThumbnail(thumbnailId);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.debug("Cached thumbnail for TV series {} seems to be from a previous version, regenerating", title);
-			LOGGER.trace("", e);
-
-			// Regenerate the thumbnail from a stored poster if it exists
-			Object[] posterInfo = MediaTableVideoMetadataPosters.getByTVSeriesName(connection, title);
-			if (posterInfo == null) {
-				// this should never happen, since the only way to have a TV series thumbnail is from an API poster
-				LOGGER.debug("No poster URI was found locally for {}, removing API information for TV series", title);
-				if (thumbnailId != null) {
-					MediaTableThumbnails.removeById(connection, thumbnailId);
-					unsetApiIdsForId(connection, tvSeriesId);
-				}
-				return null;
-			}
-
-			String posterURL = (String) posterInfo[0];
-			Long tvSeriesDatabaseId = (Long) posterInfo[1];
-			if (posterURL != null) {
-				DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterURL);
-				if (thumbnail != null) {
-					ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesDatabaseId, ThumbnailSource.TMDB);
-					return thumbnail;
-				}
-			}
-		}
-
-		return null;
-	}
-
-	public static VideoMetadataLocalized getTvSeriesMetadataLocalized(final Connection connection, final Long tvSeriesId) {
+	public static VideoMetadataLocalized getTvSeriesMetadataUnLocalized(final Connection connection, final Long tvSeriesId) {
 		if (connection == null || tvSeriesId == null || tvSeriesId < 0) {
 			return null;
 		}

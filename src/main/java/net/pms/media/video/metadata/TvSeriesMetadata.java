@@ -19,6 +19,8 @@ package net.pms.media.video.metadata;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -46,16 +48,16 @@ public class TvSeriesMetadata {
 	private ApiPersonCreditedArray createdBy;
 	private ApiCredits credits;
 	private ApiStringArray directors;
-	private String endYear;
+	private Integer endYear;
 	private ApiExternalIDs externalIDs;
-	private String firstAirDate;
+	private LocalDate firstAirDate;
 	private ApiStringArray genres;
 	private String homepage;
 	private ApiImages images;
 	private String imdbID;
 	private Boolean inProduction;
 	private ApiStringArray languages;
-	private String lastAirDate;
+	private LocalDate lastAirDate;
 	private ApiNetworkArray networks;
 	private Double numberOfEpisodes;
 	private Double numberOfSeasons;
@@ -64,17 +66,16 @@ public class TvSeriesMetadata {
 	private ApiStringArray originCountry;
 	private String overview;
 	private String poster;
-	private String production;
 	private ApiProductionCompanyArray productionCompanies;
 	private ApiCountryArray productionCountries;
 	private String rated;
-	private String rating;
+	private Double rating;
 	private ApiRatingSourceArray ratings;
-	private String released;
+	private LocalDate released;
 	private ApiSeasonArray seasons;
 	private String seriesType;
 	private ApiLanguageArray spokenLanguages;
-	private String startYear;
+	private Integer startYear;
 	private String status;
 	private String tagline;
 	private String title;
@@ -169,11 +170,11 @@ public class TvSeriesMetadata {
 		this.directors = value;
 	}
 
-	public String getEndYear() {
+	public Integer getEndYear() {
 		return endYear;
 	}
 
-	public void setEndYear(String value) {
+	public void setEndYear(Integer value) {
 		this.endYear = value;
 	}
 
@@ -194,12 +195,22 @@ public class TvSeriesMetadata {
 		}
 	}
 
-	public String getFirstAirDate() {
+	public LocalDate getFirstAirDate() {
 		return firstAirDate;
 	}
 
-	public void setFirstAirDate(String value) {
+	public void setFirstAirDate(LocalDate value) {
 		this.firstAirDate = value;
+	}
+
+	public void setFirstAirDate(String value) {
+		LocalDate localDate = null;
+		try {
+			localDate = LocalDate.parse(value);
+		} catch (DateTimeParseException e) {
+			//nothing to do
+		}
+		this.firstAirDate = localDate;
 	}
 
 	public ApiStringArray getGenres() {
@@ -268,12 +279,22 @@ public class TvSeriesMetadata {
 		}
 	}
 
-	public String getLastAirDate() {
+	public LocalDate getLastAirDate() {
 		return lastAirDate;
 	}
 
-	public void setLastAirDate(String value) {
+	public void setLastAirDate(LocalDate value) {
 		this.lastAirDate = value;
+	}
+
+	public void setLastAirDate(String value) {
+		LocalDate localDate = null;
+		try {
+			localDate = LocalDate.parse(value);
+		} catch (DateTimeParseException e) {
+			//nothing to do
+		}
+		this.lastAirDate = localDate;
 	}
 
 	public ApiNetworkArray getNetworks() {
@@ -358,14 +379,6 @@ public class TvSeriesMetadata {
 		this.poster = value;
 	}
 
-	public String getProduction() {
-		return production;
-	}
-
-	public void setProduction(String value) {
-		this.production = value;
-	}
-
 	public ApiProductionCompanyArray getProductionCompanies() {
 		return productionCompanies;
 	}
@@ -408,11 +421,11 @@ public class TvSeriesMetadata {
 		this.rated = value;
 	}
 
-	public String getRating() {
+	public Double getRating() {
 		return rating;
 	}
 
-	public void setRating(String value) {
+	public void setRating(Double value) {
 		this.rating = value;
 	}
 
@@ -431,14 +444,6 @@ public class TvSeriesMetadata {
 			LOGGER.error("Error in parsing ratings: {}", e.getMessage());
 			this.ratings = null;
 		}
-	}
-
-	public String getReleased() {
-		return released;
-	}
-
-	public void setReleased(String value) {
-		this.released = value;
 	}
 
 	public ApiSeasonArray getSeasons() {
@@ -483,11 +488,11 @@ public class TvSeriesMetadata {
 		}
 	}
 
-	public String getStartYear() {
+	public Integer getStartYear() {
 		return startYear;
 	}
 
-	public void setStartYear(String value) {
+	public void setStartYear(Integer value) {
 		this.startYear = value;
 	}
 
@@ -645,27 +650,34 @@ public class TvSeriesMetadata {
 		result.add("directors", GSON.toJsonTree(directors));
 		result.addProperty("endYear", endYear);
 		result.add("externalIDs", GSON.toJsonTree(externalIDs));
-		result.addProperty("firstAirDate", firstAirDate);
+		if (firstAirDate != null) {
+			result.addProperty("firstAirDate", firstAirDate.toString());
+		}
 		result.add("genres", GSON.toJsonTree(genres));
 		result.addProperty("homepage", getHomepage(lang));
 		result.add("images", GSON.toJsonTree(images));
 		result.addProperty("imdbID", imdbID);
 		result.addProperty("inProduction", inProduction);
 		result.add("languages", GSON.toJsonTree(languages));
-		result.addProperty("lastAirDate", lastAirDate);
+		if (lastAirDate != null) {
+			result.addProperty("lastAirDate", lastAirDate.toString());
+		}
 		result.addProperty("mediaType", "tv");
 		result.addProperty("numberOfEpisodes", numberOfEpisodes);
 		result.addProperty("numberOfSeasons", numberOfSeasons);
 		result.add("originCountry", GSON.toJsonTree(originCountry));
-		result.addProperty("originalLanguage", originalLanguage);
-		result.addProperty("originalTitle", originalTitle);
+		if (originalTitle != null && !originalTitle.equals(getTitle(lang))) {
+			result.addProperty("originalLanguage", originalLanguage);
+			result.addProperty("originalTitle", originalTitle);
+		}
 		result.addProperty("overview", getOverview(lang));
 		result.addProperty("poster", getPoster(lang));
-		result.addProperty("production", production);
 		result.addProperty("rated", rated);
 		result.addProperty("rating", rating);
 		result.add("ratings", GSON.toJsonTree(ratings));
-		result.addProperty("released", released);
+		if (released != null) {
+			result.addProperty("released", released.toString());
+		}
 		result.add("seasons", GSON.toJsonTree(seasons));
 		result.addProperty("seriesType", seriesType);
 		result.add("spokenLanguages", GSON.toJsonTree(spokenLanguages));

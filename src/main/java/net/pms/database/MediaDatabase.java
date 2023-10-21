@@ -103,13 +103,8 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataAwards.checkTable(connection);
 				MediaTableVideoMetadataCountries.checkTable(connection);
 				MediaTableVideoMetadataDirectors.checkTable(connection);
-				MediaTableVideoMetadataIMDbRating.checkTable(connection);
 				MediaTableVideoMetadataGenres.checkTable(connection);
-				MediaTableVideoMetadataPosters.checkTable(connection);
-				MediaTableVideoMetadataProduction.checkTable(connection);
-				MediaTableVideoMetadataRated.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
-				MediaTableVideoMetadataReleased.checkTable(connection);
 				MediaTableVideoMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
@@ -159,13 +154,8 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataLocalized.TABLE_NAME);
 
 		// Audio Metadata

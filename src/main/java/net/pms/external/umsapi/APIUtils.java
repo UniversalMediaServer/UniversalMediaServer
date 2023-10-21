@@ -313,16 +313,16 @@ public class APIUtils {
 
 				MediaVideoMetadata videoMetadata = media.hasVideoMetadata() ? media.getVideoMetadata() : new MediaVideoMetadata();
 
-				String year                        = videoMetadata.getYear();
+				Integer year                       = videoMetadata.getYear();
 				String titleFromFilename           = videoMetadata.getMovieOrShowName();
 				String titleSimplifiedFromFilename = FileUtil.getSimplifiedShowName(titleFromFilename);
-				String tvSeasonFromFilename        = videoMetadata.getTvSeason();
+				Integer tvSeasonFromFilename       = videoMetadata.getTvSeason();
 				String tvEpisodeNumberFromFilename = videoMetadata.getTvEpisodeNumber();
-				String tvSeriesStartYear           = videoMetadata.getTvSeriesStartYear();
+				Integer tvSeriesStartYear          = videoMetadata.getTvSeriesStartYear();
 
 				// unset tvSeriesStartYear if it is NOT in the title because it must have come from the API earlier and will mess up the matching logic
 				// todo: use better matching logic
-				if (isNotBlank(tvSeriesStartYear)) {
+				if (tvSeriesStartYear != null) {
 					int yearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + tvSeriesStartYear + "\\)"), titleFromFilename);
 					if (yearIndex == -1) {
 						tvSeriesStartYear = null;
@@ -366,7 +366,7 @@ public class APIUtils {
 				// At this point, this is the episode title if it is an episode
 				String titleFromAPI = getStringOrNull(metadataFromAPI, "title");
 
-				String tvSeasonFromAPI = getStringOrNull(metadataFromAPI, "season");
+				Integer tvSeasonFromAPI = FileUtil.getIntegerFromString(getStringOrNull(metadataFromAPI, "season"));
 				String tvEpisodeNumberFromAPI = getStringOrNull(metadataFromAPI, "episode");
 				if (tvEpisodeNumberFromAPI != null && tvEpisodeNumberFromAPI.length() == 1) {
 					tvEpisodeNumberFromAPI = "0" + tvEpisodeNumberFromAPI;
@@ -388,8 +388,8 @@ public class APIUtils {
 					(
 						isTVEpisode &&
 						(
-							isBlank(tvSeasonFromFilename) ||
-							isBlank(tvSeasonFromAPI) ||
+							tvSeasonFromFilename == null ||
+							tvSeasonFromAPI == null ||
 							!tvSeasonFromFilename.equals(tvSeasonFromAPI) ||
 							isBlank(tvEpisodeNumberFromFilename) ||
 							isBlank(tvEpisodeNumberFromAPI) ||
@@ -400,9 +400,9 @@ public class APIUtils {
 					(
 						!isTVEpisode &&
 						(
-							isNotBlank(year) &&
+							year != null &&
 							isNotBlank(yearFromAPI) &&
-							!year.equals(yearFromAPI)
+							!year.toString().equals(yearFromAPI)
 						)
 					)
 				) {
@@ -441,7 +441,8 @@ public class APIUtils {
 					videoMetadata.setTitle(title);
 				}
 
-				videoMetadata.setYear(yearFromAPI);
+				year = FileUtil.getYearFromYearString(yearFromAPI);
+				videoMetadata.setYear(year);
 
 				if (metadataFromAPI.has("tmdbID")) {
 					videoMetadata.setTmdbId(metadataFromAPI.get("tmdbID").getAsLong());
@@ -496,7 +497,6 @@ public class APIUtils {
 				}
 				videoMetadata.setOriginalTitle(getStringOrNull(metadataFromAPI, "originalTitle"));
 				videoMetadata.setOverview(getStringOrNull(metadataFromAPI, "plot"));
-				videoMetadata.setProduction(getStringOrNull(metadataFromAPI, "production"));
 				if (metadataFromAPI.has("productionCompanies")) {
 					videoMetadata.setProductionCompanies(metadataFromAPI.get("productionCompanies").toString());
 				}
@@ -507,7 +507,7 @@ public class APIUtils {
 				if (metadataFromAPI.has("rating")  && metadataFromAPI.get("rating").isJsonPrimitive()) {
 					Double rating = metadataFromAPI.get("rating").getAsDouble();
 					if (rating != 0) {
-						videoMetadata.setRating(Double.toString(rating));
+						videoMetadata.setRating(rating);
 					}
 				}
 				if (metadataFromAPI.get("ratings") != null) {
@@ -582,7 +582,7 @@ public class APIUtils {
 	 * @param tmdbTvIDFromAPI
 	 * @return the tvSeriesId of the series.
 	 */
-	private static Long setTVSeriesInfo(final Connection connection, String titleFromFilename, String startYear, String titleSimplifiedFromFilename, File file, MediaInfo media, String seriesIMDbIDFromAPI, Long tmdbTvIDFromAPI) {
+	private static Long setTVSeriesInfo(final Connection connection, String titleFromFilename, Integer startYear, String titleSimplifiedFromFilename, File file, MediaInfo media, String seriesIMDbIDFromAPI, Long tmdbTvIDFromAPI) {
 		/*
 		 * Get the TV series metadata from our database, or from our API if it's not
 		 * in our database yet, and persist it to our database.
@@ -629,7 +629,7 @@ public class APIUtils {
 				}
 
 				String title = getStringOrNull(seriesMetadataFromAPI, "title");
-				if (isNotBlank(startYear)) {
+				if (startYear != null) {
 					title += " (" + startYear + ")";
 				}
 				String titleSimplified = FileUtil.getSimplifiedShowName(title);
@@ -660,7 +660,7 @@ public class APIUtils {
 				}
 
 				// Restore the startYear appended to the title if it is in the filename
-				if (isNotBlank(startYear)) {
+				if (startYear != null) {
 					String titleFromAPI = getStringOrNull(seriesMetadataFromAPI, "title") + " (" + startYear + ")";
 					seriesMetadataFromAPI.remove("title");
 					seriesMetadataFromAPI.addProperty("title", titleFromAPI);
@@ -683,7 +683,9 @@ public class APIUtils {
 					tvSeriesMetadata.setCredits(seriesMetadataFromAPI.get("credits").toString());
 				}
 				tvSeriesMetadata.setDirectors(getApiStringArrayFromJsonElement(seriesMetadataFromAPI.get("directors")));
-				tvSeriesMetadata.setEndYear(getStringOrNull(seriesMetadataFromAPI, "endYear"));
+				String endYearStr = getStringOrNull(seriesMetadataFromAPI, "endYear");
+				Integer endYear = FileUtil.getYearFromYearString(endYearStr);
+				tvSeriesMetadata.setEndYear(endYear);
 				if (seriesMetadataFromAPI.has("externalIDs")) {
 					tvSeriesMetadata.setExternalIDs(seriesMetadataFromAPI.get("externalIDs").toString());
 				}
@@ -714,7 +716,6 @@ public class APIUtils {
 
 				tvSeriesMetadata.setOverview(getStringOrNull(seriesMetadataFromAPI, "plot"));
 				tvSeriesMetadata.setPoster(posterFromApi);
-				tvSeriesMetadata.setProduction(getStringOrNull(seriesMetadataFromAPI, "production"));
 				if (seriesMetadataFromAPI.has("productionCompanies")) {
 					tvSeriesMetadata.setProductionCompanies(seriesMetadataFromAPI.get("productionCompanies").toString());
 				}
@@ -725,11 +726,13 @@ public class APIUtils {
 				if (seriesMetadataFromAPI.has("rating")  && seriesMetadataFromAPI.get("rating").isJsonPrimitive()) {
 					Double rating = seriesMetadataFromAPI.get("rating").getAsDouble();
 					if (rating != 0) {
-						tvSeriesMetadata.setRating(Double.toString(rating));
+						tvSeriesMetadata.setRating(rating);
 					}
 				}
 				tvSeriesMetadata.setRatings(getApiRatingSourceArrayFromJsonElement(seriesMetadataFromAPI.get("ratings")));
-				tvSeriesMetadata.setReleased(getStringOrNull(seriesMetadataFromAPI, "released"));
+				if (tvSeriesMetadata.getFirstAirDate() == null) {
+					tvSeriesMetadata.setFirstAirDate(getStringOrNull(seriesMetadataFromAPI, "released"));
+				}
 				if (seriesMetadataFromAPI.has("seasons")) {
 					tvSeriesMetadata.setSeasons(seriesMetadataFromAPI.get("seasons").toString());
 				}
@@ -737,7 +740,9 @@ public class APIUtils {
 				if (seriesMetadataFromAPI.has("spokenLanguages")) {
 					tvSeriesMetadata.setSpokenLanguages(seriesMetadataFromAPI.get("spokenLanguages").toString());
 				}
-				tvSeriesMetadata.setStartYear(getStringOrNull(seriesMetadataFromAPI, "startYear"));
+				String startYearStr = getStringOrNull(seriesMetadataFromAPI, "startYear");
+				startYear = FileUtil.getYearFromYearString(startYearStr);
+				tvSeriesMetadata.setStartYear(startYear);
 				tvSeriesMetadata.setStatus(getStringOrNull(seriesMetadataFromAPI, "status"));
 				tvSeriesMetadata.setTagline(getStringOrNull(seriesMetadataFromAPI, "tagline"));
 				if (seriesMetadataFromAPI.has("tmdbID")) {
@@ -786,7 +791,7 @@ public class APIUtils {
 	 * @return The parameter {@link String}.
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static JsonObject getAPIMetadata(File file, String movieOrTVSeriesTitle, String year, String season, String episode) throws IOException {
+	public static JsonObject getAPIMetadata(File file, String movieOrTVSeriesTitle, Integer year, Integer season, String episode) throws IOException {
 		Path path;
 		String apiResult;
 
@@ -811,8 +816,8 @@ public class APIUtils {
 
 		// Remove the year from the title before lookup if it exists
 		String yearRegex = "(?:19|20)\\d{2}";
-		if (isNotBlank(year)) {
-			yearRegex = year;
+		if (year != null) {
+			yearRegex = year.toString();
 		}
 		int yearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + yearRegex + "\\)"), movieOrTVSeriesTitle);
 		if (yearIndex > -1) {
@@ -847,13 +852,13 @@ public class APIUtils {
 	 * @return The API result or null
 	 * @throws IOException If an I/O error occurs during the operation.
 	 */
-	public static JsonObject getTVSeriesInfo(String formattedName, String imdbID, String startYear) throws IOException {
+	public static JsonObject getTVSeriesInfo(String formattedName, String imdbID, Integer startYear) throws IOException {
 		String apiResult;
 
 		// Remove the startYear from the title if it exists
 		String startYearRegex = "(?:19|20)\\d{2}";
-		if (isNotBlank(startYear)) {
-			startYearRegex = startYear;
+		if (startYear != null) {
+			startYearRegex = startYear.toString();
 		}
 		int startYearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + startYearRegex + "\\)"), formattedName);
 		if (startYearIndex > -1) {
@@ -894,8 +899,8 @@ public class APIUtils {
 	private static String getInfoFromAllExtractedData(
 		String title,
 		boolean isSeries,
-		String year,
-		String season,
+		Integer year,
+		Integer season,
 		String episode,
 		String imdbID,
 		String osdbHash,
@@ -908,11 +913,11 @@ public class APIUtils {
 			title = URLEncoder.encode(title, StandardCharsets.UTF_8.toString());
 			getParameters.add("title=" + title);
 		}
-		if (isNotBlank(year)) {
-			getParameters.add("year=" + year);
+		if (year != null) {
+			getParameters.add("year=" + year.toString());
 		}
-		if (isNotBlank(season)) {
-			getParameters.add("season=" + season);
+		if (season != null) {
+			getParameters.add("season=" + season.toString());
 		}
 		if (isNotBlank(episode)) {
 			getParameters.add("episode=" + episode);
@@ -1098,7 +1103,7 @@ public class APIUtils {
 		final String mediaType,
 		final String imdbId,
 		final Long tmdbId,
-		final String season,
+		final Integer season,
 		final String episode
 	) {
 		VideoMetadataLocalized metadata = null;
@@ -1118,9 +1123,9 @@ public class APIUtils {
 				if (tmdbId != null && tmdbId > 0) {
 					getParameters.add("tmdbId=" + tmdbId);
 				}
-				if (isNotBlank(season) && isNotBlank(episode)) {
-					getParameters.add("season=" + URLEncoder.encode(season, StandardCharsets.UTF_8.toString()));
-					getParameters.add("episode=" + URLEncoder.encode(season, StandardCharsets.UTF_8.toString()));
+				if (season != null && isNotBlank(episode)) {
+					getParameters.add("season=" + URLEncoder.encode(season.toString(), StandardCharsets.UTF_8.toString()));
+					getParameters.add("episode=" + URLEncoder.encode(episode, StandardCharsets.UTF_8.toString()));
 				}
 				String getParametersJoined = StringUtils.join(getParameters, "&");
 				URL url = new URL(domain, "/api/media/localize?" + getParametersJoined);

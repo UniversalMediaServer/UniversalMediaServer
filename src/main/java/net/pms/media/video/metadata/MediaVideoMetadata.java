@@ -19,6 +19,8 @@ package net.pms.media.video.metadata;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -41,10 +43,10 @@ public class MediaVideoMetadata {
 	 */
 	private Long fileId;
 	private String imdbID;
-	private String year;
+	private Integer year;
 	private String title;
 	private Long tvSeriesId;
-	private String tvSeason;
+	private Integer tvSeason;
 	private String tvEpisodeNumber;
 	private String extraInformation;
 	private boolean isTvEpisode;
@@ -65,13 +67,12 @@ public class MediaVideoMetadata {
 	private String originalTitle;
 	private String overview;
 	private String poster;
-	private String production;
 	private ApiProductionCompanyArray productionCompanies;
 	private ApiCountryArray productionCountries;
 	private String rated;
-	private String rating;
+	private Double rating;
 	private ApiRatingSourceArray ratings;
-	private String released;
+	private LocalDate released;
 	private Long revenue;
 	private TvSeriesMetadata seriesMetadata;
 	private String tagline;
@@ -97,11 +98,11 @@ public class MediaVideoMetadata {
 		this.imdbID = value;
 	}
 
-	public String getYear() {
+	public Integer getYear() {
 		return year;
 	}
 
-	public void setYear(String value) {
+	public void setYear(Integer value) {
 		this.year = value;
 	}
 
@@ -121,11 +122,11 @@ public class MediaVideoMetadata {
 		this.tvSeriesId = value;
 	}
 
-	public String getTvSeason() {
+	public Integer getTvSeason() {
 		return tvSeason;
 	}
 
-	public void setTvSeason(String value) {
+	public void setTvSeason(Integer value) {
 		this.tvSeason = value;
 	}
 
@@ -138,6 +139,25 @@ public class MediaVideoMetadata {
 			return tvEpisodeNumber.substring(1);
 		}
 		return tvEpisodeNumber;
+	}
+
+	public Integer getFirstTvEpisodeNumber() {
+		if (tvEpisodeNumber != null) {
+			String firstEpisode = tvEpisodeNumber;
+			if (firstEpisode.contains("-")) {
+				firstEpisode = firstEpisode.substring(0, firstEpisode.indexOf("-"));
+			}
+			Integer result = null;
+			if (firstEpisode != null) {
+				try {
+					result = Integer.valueOf(firstEpisode);
+				} catch (NumberFormatException e) {
+					//nothing to do
+				}
+			}
+			return result;
+		}
+		return null;
 	}
 
 	public void setTvEpisodeNumber(String value) {
@@ -166,7 +186,7 @@ public class MediaVideoMetadata {
 		this.isTvEpisode = value;
 	}
 
-	public String getTvSeriesStartYear() {
+	public Integer getTvSeriesStartYear() {
 		if (isTvEpisode && seriesMetadata != null) {
 			return seriesMetadata.getStartYear();
 		}
@@ -374,14 +394,6 @@ public class MediaVideoMetadata {
 		this.poster = value;
 	}
 
-	public String getProduction() {
-		return production;
-	}
-
-	public void setProduction(String value) {
-		this.production = value;
-	}
-
 	public ApiProductionCompanyArray getProductionCompanies() {
 		return productionCompanies;
 	}
@@ -424,11 +436,11 @@ public class MediaVideoMetadata {
 		this.rated = value;
 	}
 
-	public String getRating() {
+	public Double getRating() {
 		return rating;
 	}
 
-	public void setRating(String value) {
+	public void setRating(Double value) {
 		this.rating = value;
 	}
 
@@ -449,12 +461,24 @@ public class MediaVideoMetadata {
 		}
 	}
 
-	public String getReleased() {
+	public LocalDate getReleased() {
 		return released;
 	}
 
-	public void setReleased(String value) {
+	public void setReleased(LocalDate value) {
 		this.released = value;
+	}
+
+	public void setReleased(String value) {
+		LocalDate localDate = null;
+		if (value != null) {
+			try {
+				localDate = LocalDate.parse(value.length() > 10 ? value.substring(0, 10) : value);
+			} catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
+				LOGGER.trace("String \"{}\" cannot converts to LocalDate", value);
+			}
+		}
+		this.released = localDate;
 	}
 
 	public Long getRevenue() {
@@ -525,6 +549,13 @@ public class MediaVideoMetadata {
 			return seriesMetadata.getTitle(lang);
 		}
 		return getTitle(lang);
+	}
+
+	public Integer getMovieOrShowYear() {
+		if (isTvEpisode && seriesMetadata != null) {
+			return seriesMetadata.getStartYear();
+		}
+		return year;
 	}
 
 	public void setTranslations(Map<String, VideoMetadataLocalized> value) {
@@ -622,13 +653,18 @@ public class MediaVideoMetadata {
 		result.addProperty("homepage", getHomepage(lang));
 		result.add("images", GSON.toJsonTree(images));
 		result.addProperty("mediaType", isTvEpisode ? "tv_episode" : "movie");
+		if (!isTvEpisode && originalTitle != null && !originalTitle.equals(getMovieOrShowName(lang))) {
+			result.addProperty("originalLanguage", originalLanguage);
+			result.addProperty("originalTitle", originalTitle);
+		}
 		result.addProperty("overview", getOverview(lang));
 		result.addProperty("poster", getPoster(lang));
-		result.addProperty("production", production);
 		result.addProperty("rated", rated);
 		result.addProperty("rating", rating);
 		result.add("ratings", GSON.toJsonTree(ratings));
-		result.addProperty("released", released);
+		if (released != null) {
+			result.addProperty("released", released.toString());
+		}
 		result.addProperty("tagline", getTagline(lang));
 		result.addProperty("tmdbID", tmdbId);
 		result.addProperty("tmdbTvID", tmdbTvId);

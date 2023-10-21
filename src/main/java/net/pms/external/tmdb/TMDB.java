@@ -85,6 +85,7 @@ import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
+import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
 import net.pms.util.SimpleThreadFactory;
@@ -238,7 +239,7 @@ public class TMDB {
 	private static void lookupAndAddMovieMetadata(Connection connection, final File file, final MediaInfo mediaInfo) throws SQLException {
 		MediaVideoMetadata videoMetadata = mediaInfo.hasVideoMetadata() ? mediaInfo.getVideoMetadata() : new MediaVideoMetadata();
 
-		String year = videoMetadata.getYear();
+		Integer year = videoMetadata.getYear();
 		String titleFromFilename = videoMetadata.getTitle();
 		MovieDetailsSchema movieDetails;
 
@@ -248,7 +249,7 @@ public class TMDB {
 				titleFromFilename = FileUtil.getFileNameWithoutExtension(file.getName());
 			}
 			// Remove the year from the title before lookup if it exists
-			String yearRegex = StringUtils.isNotBlank(year) ? year : "(?:19|20)\\d{2}";
+			String yearRegex = year != null ? year.toString() : "(?:19|20)\\d{2}";
 			int yearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + yearRegex + "\\)"), titleFromFilename);
 			if (yearIndex > -1) {
 				titleFromFilename = titleFromFilename.substring(0, yearIndex);
@@ -283,11 +284,10 @@ public class TMDB {
 
 		// Now that we are happy with the TMDB data, let's make some clearer variables
 		String title = StringUtils.isNotBlank(movieDetails.getTitle()) ? movieDetails.getTitle() : titleFromFilename;
-		String yearFromTMDB = StringUtils.isNotBlank(movieDetails.getReleaseDate()) ? movieDetails.getReleaseDate().substring(0, 4) : "";
 
 		videoMetadata.setFileId(fileId);
 		videoMetadata.setTitle(title);
-		videoMetadata.setYear(yearFromTMDB);
+		videoMetadata.setYear(FileUtil.getYearFromYearString(movieDetails.getReleaseDate()));
 
 		videoMetadata.setIMDbID(movieDetails.getImdbId());
 		videoMetadata.setTmdbId(movieDetails.getId());
@@ -330,9 +330,7 @@ public class TMDB {
 		if (movieDetails.getReleaseDates() != null) {
 			videoMetadata.setRated(getUsCertification(movieDetails.getReleaseDates()));
 		}
-		//videoMetadata.setRated(getStringOrNull(movieDetails, "rated"));
-		//Release Dates -> US
-		videoMetadata.setRating(movieDetails.getVoteAverage().toString());
+		videoMetadata.setRating(movieDetails.getVoteAverage());
 		videoMetadata.setReleased(movieDetails.getReleaseDate());
 		videoMetadata.setRevenue(movieDetails.getRevenue());
 		videoMetadata.setTagline(movieDetails.getTagline());
@@ -365,8 +363,8 @@ public class TMDB {
 	private static void lookupAndAddTvEpisodeMetadata(Connection connection, final File file, final MediaInfo mediaInfo) throws SQLException {
 		MediaVideoMetadata videoMetadata = mediaInfo.hasVideoMetadata() ? mediaInfo.getVideoMetadata() : new MediaVideoMetadata();
 		if (videoMetadata.getTvSeriesId() == null) {
-			String[] metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
-			String titleFromFilename = metadataFromFilename[0];
+			FileNameMetadata metadataFromFilename = FileUtil.getFileNameMetadata(file.getName(), file.getAbsolutePath());
+			String titleFromFilename = metadataFromFilename.getMovieOrShowName();
 			Long tvSeriesId = MediaTableTVSeries.getIdBySimilarTitle(connection, titleFromFilename);
 			if (tvSeriesId == null) {
 				// Creates a minimal TV series row with just the title, that
@@ -384,11 +382,11 @@ public class TMDB {
 		Long tvShowId = videoMetadata.getSeriesMetadata().getTmdbId();
 		if (tvShowId == null) {
 			String showNameFromFilename = videoMetadata.getMovieOrShowName();
-			String tvSeriesStartYear = videoMetadata.getYear();
+			Integer tvSeriesStartYear = videoMetadata.getTvSeriesStartYear();
 
 			// unset tvSeriesStartYear if it is NOT in the title because it must have come from TMDB earlier and will mess up the matching logic
 			// todo: use better matching logic
-			if (StringUtils.isNotBlank(tvSeriesStartYear)) {
+			if (tvSeriesStartYear != null) {
 				int yearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + tvSeriesStartYear + "\\)"), showNameFromFilename);
 				if (yearIndex == -1) {
 					tvSeriesStartYear = null;
@@ -399,7 +397,7 @@ public class TMDB {
 				showNameFromFilename = FileUtil.getFileNameWithoutExtension(file.getName());
 			}
 			// Remove the year from the title before lookup if it exists
-			String yearRegex = StringUtils.isNotBlank(tvSeriesStartYear) ? tvSeriesStartYear : "(?:19|20)\\d{2}";
+			String yearRegex = tvSeriesStartYear != null ? tvSeriesStartYear.toString() : "(?:19|20)\\d{2}";
 			int yearIndex = FileUtil.indexOf(Pattern.compile("\\s\\(" + yearRegex + "\\)"), showNameFromFilename);
 			if (yearIndex > -1) {
 				showNameFromFilename = showNameFromFilename.substring(0, yearIndex);
@@ -445,11 +443,10 @@ public class TMDB {
 			videoMetadata.setTmdbTvId(tvShowId);
 		}
 		//now look for the episode
-		Long tvSeasonFromFilename = getLong(videoMetadata.getTvSeason());
-		Long tvEpisodeNumberFromFilename = getLong(videoMetadata.getTvEpisodeNumber());
-		if (tvSeasonFromFilename == null) {
+		Integer tvEpisodeNumberFromFilename = videoMetadata.getFirstTvEpisodeNumber();
+		if (videoMetadata.getTvSeason() == null) {
 			LOGGER.trace("Failed lookup for " + file.getName());
-			MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "seasonNumber missing", true);
+			MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "season number missing", true);
 			return;
 		} else if (tvEpisodeNumberFromFilename == null) {
 			LOGGER.trace("Failed lookup for " + file.getName());
@@ -458,7 +455,7 @@ public class TMDB {
 		}
 		TvEpisodeDetailsSchema tvEpisodeDetails;
 		try {
-			tvEpisodeDetails = getTvEpisodeInfo(tvShowId, tvSeasonFromFilename, tvEpisodeNumberFromFilename);
+			tvEpisodeDetails = getTvEpisodeInfo(tvShowId, videoMetadata.getTvSeason(), tvEpisodeNumberFromFilename);
 		} catch (IOException ex) {
 			// this likely means a transient error so don't store the failure, to allow retries
 			LOGGER.debug("Likely transient error", ex);
@@ -472,8 +469,8 @@ public class TMDB {
 			LOGGER.trace("Found an TMDB match for " + file.getName());
 		}
 		// At this point, this is the episode title if it is an episode
-		Long tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber();
-		Long tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber();
+		Integer tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber() != null ? tvEpisodeDetails.getSeasonNumber().intValue() : null;
+		Integer tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber() != null ? tvEpisodeDetails.getEpisodeNumber().intValue() : null;
 
 		/**
 		 * Only continue if the TMDB returned a result that agrees with our
@@ -486,7 +483,7 @@ public class TMDB {
 		 * - the season and episode number must exist and match, and must have a
 		 * series TMDB ID.
 		 */
-		if (!tvSeasonFromFilename.equals(tvSeasonFromTMDB) ||
+		if (!videoMetadata.getTvSeason().equals(tvSeasonFromTMDB) ||
 				!tvEpisodeNumberFromFilename.equals(tvEpisodeNumberFromTMDB)) {
 			LOGGER.debug("TMDB data was different to our parsed data, not storing it.");
 			MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "Data mismatch", true);
@@ -511,15 +508,15 @@ public class TMDB {
 
 		// At this point, this is the episode title if it is an episode
 		String tvEpisodeTitleFromTMDB = tvEpisodeDetails.getName();
-		Long tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber();
-		Long tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber();
+		Integer tvSeasonFromTMDB = tvEpisodeDetails.getSeasonNumber().intValue();
+		Integer tvEpisodeNumberFromTMDB = tvEpisodeDetails.getEpisodeNumber().intValue();
 
 		// Now that we are happy with the TMDB data, let's make some clearer variables
 		if (StringUtils.isNotBlank(tvEpisodeTitleFromTMDB)) {
 			LOGGER.trace("Setting episode name from TMDB: " + tvEpisodeTitleFromTMDB);
 			videoMetadata.setTitle(tvEpisodeTitleFromTMDB);
 		}
-		videoMetadata.setYear(tvEpisodeDetails.getAirDate() != null ? tvEpisodeDetails.getAirDate().substring(0, 4) : null);
+		videoMetadata.setYear(FileUtil.getYearFromYearString(tvEpisodeDetails.getAirDate()));
 
 		videoMetadata.setTmdbId(tvEpisodeDetails.getId());
 		videoMetadata.setIMDbID(tvEpisodeDetails.getExternalIds() != null ? tvEpisodeDetails.getExternalIds().getImdbId() : null);
@@ -529,7 +526,7 @@ public class TMDB {
 		if (posterFromTMDB != null) {
 			videoMetadata.setPoster(posterFromTMDB);
 		}
-		videoMetadata.setTvSeason(tvSeasonFromTMDB.toString());
+		videoMetadata.setTvSeason(tvSeasonFromTMDB);
 		videoMetadata.setTvEpisodeNumber(tvEpisodeNumberFromTMDB.toString());
 		if (tvEpisodeDetails.getCredits() != null && tvEpisodeDetails.getCredits().getCast() != null) {
 			videoMetadata.setActors(getActors(tvEpisodeDetails.getCredits().getCast()));
@@ -617,7 +614,7 @@ public class TMDB {
 		}
 		if (Boolean.FALSE.equals(tvDetails.getInProduction())) {
 			Integer endYear = getYear(tvDetails.getLastAirDate());
-			tvSeriesMetadata.setEndYear(endYear != null ? endYear.toString() : null);
+			tvSeriesMetadata.setEndYear(endYear);
 		}
 		if (tvDetails.getExternalIds() != null) {
 			tvSeriesMetadata.setExternalIDs("[" + GSON.toJson(tvDetails.getExternalIds()) + "]");
@@ -649,9 +646,8 @@ public class TMDB {
 		if (tvDetails.getProductionCountries() != null) {
 			tvSeriesMetadata.setProductionCountries(GSON.toJson(tvDetails.getProductionCountries()));
 		}
-		tvSeriesMetadata.setReleased(tvDetails.getFirstAirDate());
 		tvSeriesMetadata.setRated(getUsContentRating(tvDetails.getContentRatings()));
-		tvSeriesMetadata.setRating(tvDetails.getVoteAverage().toString());
+		tvSeriesMetadata.setRating(tvDetails.getVoteAverage());
 		if (tvDetails.getSeasons() != null) {
 			tvSeriesMetadata.setSeasons(GSON.toJson(tvDetails.getSeasons()));
 		}
@@ -660,7 +656,7 @@ public class TMDB {
 			tvSeriesMetadata.setSpokenLanguages(GSON.toJson(tvDetails.getSpokenLanguages()));
 		}
 		Integer startYear = getYear(tvDetails.getFirstAirDate());
-		tvSeriesMetadata.setStartYear(startYear != null ? startYear.toString() : null);
+		tvSeriesMetadata.setStartYear(startYear);
 		tvSeriesMetadata.setStatus(tvDetails.getStatus());
 		tvSeriesMetadata.setTagline(tvDetails.getTagline());
 		tvSeriesMetadata.setTmdbId(tvDetails.getId());
@@ -751,15 +747,15 @@ public class TMDB {
 		TvDetailsSchema tvDetails = getTvShowInfo(tvShowId);
 		if (year != null) {
 			//check year
-			Integer firstAirDate = getYear(tvDetails.getFirstAirDate());
-			Integer lastAirDate = getYear(tvDetails.getLastAirDate());
-			if (firstAirDate == null) {
-				firstAirDate = 0;
+			Integer firstAirYear = getYear(tvDetails.getFirstAirDate());
+			Integer lastAirYear = getYear(tvDetails.getLastAirDate());
+			if (firstAirYear == null) {
+				firstAirYear = 0;
 			}
-			if (lastAirDate == null) {
-				lastAirDate = 9999;
+			if (lastAirYear == null) {
+				lastAirYear = 9999;
 			}
-			if (year < firstAirDate || year > lastAirDate) {
+			if (year < firstAirYear || year > lastAirYear) {
 				return null;
 			}
 		}
@@ -779,8 +775,7 @@ public class TMDB {
 		return null;
 	}
 
-	private static TvDetailsSchema getTvShowFromEpisode(String title, String year, String imdbId) throws IOException {
-		Integer yearInt = getInteger(year);
+	private static TvDetailsSchema getTvShowFromEpisode(String title, Integer year, String imdbId) throws IOException {
 		String titleSimplified = FileUtil.getSimplifiedShowName(title);
 		List<Long> tvShowIds = new ArrayList<>();
 		if (imdbId != null) {
@@ -790,7 +785,7 @@ public class TMDB {
 				for (TvEpisodeTypedSchema tvEpisodeTyped : findResult.getTvEpisodeResults()) {
 					Long tvShowId = tvEpisodeTyped.getShowId();
 					if (tvShowId != null && !tvShowIds.contains(tvShowId)) {
-						TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, yearInt);
+						TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, year);
 						if (tvDetails != null) {
 							return tvDetails;
 						} else {
@@ -804,7 +799,7 @@ public class TMDB {
 				for (TvTypedSchema tvTyped : findResult.getTvResults()) {
 					Long tvShowId = tvTyped.getId();
 					if (tvShowId != null && !tvShowIds.contains(tvShowId)) {
-						TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, yearInt);
+						TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, year);
 						if (tvDetails != null) {
 							return tvDetails;
 						} else {
@@ -820,7 +815,7 @@ public class TMDB {
 			for (TvSimpleSchema tvSimple : tvSimpleResultsSchema.getResults()) {
 				Long tvShowId = tvSimple.getId();
 				if (tvShowId != null && !tvShowIds.contains(tvShowId)) {
-					TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, yearInt);
+					TvDetailsSchema tvDetails = getMatchingTvShow(tvShowId, titleSimplified, year);
 					if (tvDetails != null) {
 						return tvDetails;
 					} else {
@@ -833,8 +828,8 @@ public class TMDB {
 	}
 
 	public static boolean updateTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId) {
-		Long episode = getLong(mediaInfo.getVideoMetadata().getTvEpisodeNumber());
-		Long season = getLong(mediaInfo.getVideoMetadata().getTvSeason());
+		Integer episode = mediaInfo.getVideoMetadata().getFirstTvEpisodeNumber();
+		Integer season = mediaInfo.getVideoMetadata().getTvSeason();
 		if (season == null || episode == null) {
 			return false;
 		}
@@ -847,7 +842,7 @@ public class TMDB {
 		return false;
 	}
 
-	private static boolean updateTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId, final long season, final long episode, final TvDetailsSchema tvDetails) {
+	private static boolean updateTvShowForEpisode(final MediaInfo mediaInfo, final long tvShowId, final int season, final int episode, final TvDetailsSchema tvDetails) {
 		Connection connection = null;
 		try {
 			TvEpisodeDetailsSchema tvEpisodeDetails = getTvEpisodeInfo(tvShowId, season, episode);
@@ -894,12 +889,11 @@ public class TMDB {
 		return false;
 	}
 
-	public static JsonArray getTvShowsFromEpisode(String title, String year, String lang, Long currentId) throws IOException {
+	public static JsonArray getTvShowsFromEpisode(String title, Integer year, String lang, Long currentId) throws IOException {
 		JsonArray result = new JsonArray();
-		Integer yearInt = getInteger(year);
 		SearchTvEndpoint searchTvEndpoint = CLIENT.search(title).forTvShow();
-		if (yearInt != null && yearInt > 0) {
-			searchTvEndpoint.setFirstAirDateYear(yearInt);
+		if (year != null && year > 0) {
+			searchTvEndpoint.setFirstAirDateYear(year);
 		}
 		if (lang != null) {
 			searchTvEndpoint.setLanguage(lang);
@@ -920,12 +914,11 @@ public class TMDB {
 		return result;
 	}
 
-	public static JsonArray getMovies(String title, String year, String lang, Long currentId) throws IOException {
+	public static JsonArray getMovies(String title, Integer year, String lang, Long currentId) throws IOException {
 		JsonArray result = new JsonArray();
-		Integer yearInt = getInteger(year);
 		SearchMovieEndpoint searchMovieEndpoint = CLIENT.search(title).forMovie();
-		if (yearInt != null && yearInt != 0) {
-			searchMovieEndpoint.setYear(yearInt);
+		if (year != null && year != 0) {
+			searchMovieEndpoint.setYear(year);
 		}
 		if (lang != null) {
 			searchMovieEndpoint.setLanguage(lang);
@@ -988,7 +981,7 @@ public class TMDB {
 			final String mediaType,
 			final String imdbId,
 			final Long tmdbId,
-			final String season,
+			final Integer season,
 			final String episode
 	) {
 		if (!CONFIGURATION.getExternalNetwork()) {
@@ -1067,12 +1060,11 @@ public class TMDB {
 		return metadata;
 	}
 
-	private static VideoMetadataLocalized getTvSeasonMetadataLocalized(final Long tmdbId, final String season, final String language) {
-		Long seasonNumber = getLong(season);
-		if (seasonNumber == null) {
+	private static VideoMetadataLocalized getTvSeasonMetadataLocalized(final Long tmdbId, final Integer season, final String language) {
+		if (season == null) {
 			return null;
 		}
-		TvSeasonDetailsSchema tvSeasonDetailsSchema = CLIENT.tvSeason(tmdbId, seasonNumber)
+		TvSeasonDetailsSchema tvSeasonDetailsSchema = CLIENT.tvSeason(tmdbId, season)
 				.setLanguage(language)
 				.getDetails();
 		VideoMetadataLocalized metadata = new VideoMetadataLocalized();
@@ -1086,16 +1078,15 @@ public class TMDB {
 		return metadata;
 	}
 
-	private static VideoMetadataLocalized getTvEpisodeMetadataLocalized(final Long tmdbId, final String season, final String episode, final String language) {
-		Long seasonNumber = getLong(season);
-		if (seasonNumber == null) {
+	private static VideoMetadataLocalized getTvEpisodeMetadataLocalized(final Long tmdbId, final Integer season, final String episode, final String language) {
+		if (season == null) {
 			return null;
 		}
 		Long episodeNumber = getLong(episode);
 		if (episodeNumber == null) {
 			return null;
 		}
-		TvEpisodeDetailsSchema tvEpisodeDetailsSchema = CLIENT.tvEpisode(tmdbId, seasonNumber, episodeNumber)
+		TvEpisodeDetailsSchema tvEpisodeDetailsSchema = CLIENT.tvEpisode(tmdbId, season, episodeNumber)
 				.setLanguage(language)
 				.getDetails();
 		VideoMetadataLocalized metadata = new VideoMetadataLocalized();
@@ -1111,8 +1102,8 @@ public class TMDB {
 
 	private static TvEpisodeDetailsSchema getTvEpisodeInfo(
 			long tvShowId,
-			long seasonNumber,
-			long episodeNumber
+			int seasonNumber,
+			int episodeNumber
 	) throws IOException {
 		return CLIENT.tvEpisode(tvShowId, seasonNumber, episodeNumber)
 				.appendToResponse(TvEpisodeAppendToResponse.CREDITS)
@@ -1137,19 +1128,18 @@ public class TMDB {
 
 	private static MovieDetailsSchema getMovieInfo(
 			String title,
-			String year,
+			Integer year,
 			String imdbID
 	) throws IOException {
-		Integer yearInt = getInteger(year);
 		if (imdbID != null) {
 			FindSchema findResult = CLIENT.find(imdbID, FindExternalSource.IMDB_ID).getResults();
 			if (!findResult.getMovieResults().isEmpty()) {
 				for (MovieTypedSchema movieTyped : findResult.getMovieResults()) {
 					Long tmdbId = movieTyped.getId();
 					MovieDetailsSchema movieDetails = getMovieInfo(tmdbId, null);
-					if (yearInt != null && yearInt != 0) {
+					if (year != null && year != 0) {
 						//check for year
-						if (getReleaseYears(movieDetails.getReleaseDates()).contains(yearInt)) {
+						if (getReleaseYears(movieDetails.getReleaseDates()).contains(year)) {
 							return movieDetails;
 						}
 					} else {
@@ -1160,17 +1150,17 @@ public class TMDB {
 			}
 		}
 		SearchMovieEndpoint searchMovieEndpoint = CLIENT.search(title).forMovie();
-		if (yearInt != null && yearInt != 0) {
-			searchMovieEndpoint.setYear(yearInt);
+		if (year != null && year != 0) {
+			searchMovieEndpoint.setYear(year);
 		}
 		MovieShortResultsSchema movieShortResults = searchMovieEndpoint.getResults();
 		if (movieShortResults.getTotalResults() > 0) {
 			for (MovieShortSchema movieShort : movieShortResults.getResults()) {
 				Long tmdbId = movieShort.getId();
 				MovieDetailsSchema movieDetails = getMovieInfo(tmdbId, null);
-				if (yearInt != null && yearInt != 0) {
+				if (year != null && year != 0) {
 					//check for year
-					if (getReleaseYears(movieDetails.getReleaseDates()).contains(yearInt)) {
+					if (getReleaseYears(movieDetails.getReleaseDates()).contains(year)) {
 						return movieDetails;
 					}
 				} else {
@@ -1312,14 +1302,6 @@ public class TMDB {
 			}
 		}
 		return result;
-	}
-
-	private static Integer getInteger(String value) {
-		try {
-			return Integer.valueOf(value);
-		} catch (NumberFormatException e) {
-			return null;
-		}
 	}
 
 	private static Long getLong(String value) {

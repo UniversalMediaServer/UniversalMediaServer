@@ -225,7 +225,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		final String imdbId,
 		final String mediaType,
 		final Long tmdbId,
-		final String season,
+		final Integer season,
 		final String episode
 	) {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
@@ -247,7 +247,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		final String imdbId,
 		final String mediaType,
 		final Long tmdbId,
-		final String season,
+		final Integer season,
 		final String episode
 	) {
 		if (connection == null || id == null || id < 0 || StringUtils.isBlank(language)) {
@@ -278,7 +278,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		if (result != null) {
 			VideoMetadataLocalized baseData;
 			if (fromTvSeries) {
-				baseData = MediaTableTVSeries.getTvSeriesMetadataLocalized(connection, id);
+				baseData = MediaTableTVSeries.getTvSeriesMetadataUnLocalized(connection, id);
 			} else {
 				baseData = MediaTableVideoMetadata.getVideoMetadataLocalized(connection, id);
 			}

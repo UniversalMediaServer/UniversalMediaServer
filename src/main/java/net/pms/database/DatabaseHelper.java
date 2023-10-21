@@ -17,12 +17,14 @@
 package net.pms.database;
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -92,6 +94,14 @@ public abstract class DatabaseHelper {
 	 * Mapped to java.sql.Clob.
 	 */
 	protected static final String CLOB = " CLOB";
+
+	/**
+	 * The date data type.
+	 * The proleptic Gregorian calendar is used.
+	 * Mapped to java.sql.Date.
+	 * java.time.LocalDate is also supported and recommended.
+	 */
+	protected static final String DATE = " DATE";
 
 	/**
 	 * A double precision floating point number.
@@ -237,11 +247,12 @@ public abstract class DatabaseHelper {
 	protected static final String IN = " IN ";
 	protected static final String IS = " IS ";
 	protected static final String INDEX = "INDEX ";
+	protected static final String JOIN = " JOIN ";
 	protected static final String LESS_OR_EQUAL_THAN = " <= ";
 	protected static final String NOT = "NOT ";
 	protected static final String NOT_IN = " NOT" + IN;
 	protected static final String NOT_EQUAL = " != ";
-	protected static final String LEFT_JOIN = " LEFT JOIN ";
+	protected static final String LEFT_JOIN = " LEFT" + JOIN;
 	protected static final String LIMIT = " LIMIT ";
 	protected static final String LIMIT_1 = LIMIT + "1";
 	protected static final String LIKE = " LIKE ";
@@ -661,10 +672,26 @@ public abstract class DatabaseHelper {
 		}
 	}
 
+	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Double value) {
+			return value;
+		}
+		return null;
+	}
+
 	protected static Integer toInteger(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
 		if (obj instanceof Integer value) {
 			return value;
+		}
+		return null;
+	}
+
+	protected static LocalDate getLocalDate(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Date value) {
+			return value.toLocalDate();
 		}
 		return null;
 	}
@@ -677,12 +704,20 @@ public abstract class DatabaseHelper {
 		return null;
 	}
 
-	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
-		Object obj = rs.getObject(column);
-		if (obj instanceof Double value) {
-			return value;
+	protected static void updateBytes(ResultSet rs, String columnLabel, byte[] value) throws SQLException {
+		if (value != null) {
+			rs.updateBytes(columnLabel, value);
+		} else {
+			rs.updateNull(columnLabel);
 		}
-		return null;
+	}
+
+	protected static void updateDouble(ResultSet result, String column, Double value) throws SQLException {
+		if (value != null) {
+			result.updateDouble(column, value);
+		} else {
+			result.updateNull(column);
+		}
 	}
 
 	protected static void updateInteger(ResultSet result, String column, Integer value) throws SQLException {
@@ -701,11 +736,11 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	protected static void updateDouble(ResultSet result, String column, Double value) throws SQLException {
+	protected static void updateObject(ResultSet rs, String columnLabel, Object value) throws SQLException {
 		if (value != null) {
-			result.updateDouble(column, value);
+			rs.updateObject(columnLabel, value);
 		} else {
-			result.updateNull(column);
+			rs.updateNull(columnLabel);
 		}
 	}
 
@@ -717,17 +752,9 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	protected static void updateObject(ResultSet rs, String columnLabel, Object value) throws SQLException {
+	protected static void updateDate(ResultSet rs, String columnLabel, LocalDate value) throws SQLException {
 		if (value != null) {
-			rs.updateObject(columnLabel, value);
-		} else {
-			rs.updateNull(columnLabel);
-		}
-	}
-
-	protected static void updateBytes(ResultSet rs, String columnLabel, byte[] value) throws SQLException {
-		if (value != null) {
-			rs.updateBytes(columnLabel, value);
+			rs.updateDate(columnLabel, Date.valueOf(value));
 		} else {
 			rs.updateNull(columnLabel);
 		}

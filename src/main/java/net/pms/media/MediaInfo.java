@@ -797,7 +797,7 @@ public class MediaInfo implements Cloneable {
 				if (StringUtils.isNotBlank(videoMetadata.getIMDbID())) {
 					result.append(", IMDb ID: ").append(videoMetadata.getIMDbID());
 				}
-				if (StringUtils.isNotBlank(videoMetadata.getYear())) {
+				if (videoMetadata.getYear() != null) {
 					result.append(", Year: ").append(videoMetadata.getYear());
 				}
 				if (StringUtils.isNotBlank(videoMetadata.getTitle())) {
