@@ -149,6 +149,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	 */
 	public static final String CHILD_ID = "TVSERIESID";
 	public static final String FIRSTAIRDATE_FORMATED = "FORMATDATETIME(" + TABLE_COL_FIRSTAIRDATE + ", 'yyyy')";
+	public static final String FLOOR_RATING = "FLOOR(" + TABLE_COL_RATING + ")";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.

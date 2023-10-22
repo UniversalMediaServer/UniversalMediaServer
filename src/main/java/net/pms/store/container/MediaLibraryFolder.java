@@ -174,11 +174,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		return queries;
 	}
 
-	private static String getFirstNonTVSeriesQuery(String firstSql, String tableName, String columnName) {
+	private static String getFirstNonTVSeriesQuery(String firstSql, String tableName, String columnName, boolean desc) {
 		int indexAfterFromInFirstQuery = firstSql.indexOf(FROM_FILES) + FROM_FILES.length();
 
 		String selectSection = SELECT_DISTINCT + columnName + FROM_FILES;
-		String orderBySection = ORDER_BY + columnName + ASC;
+		String orderBySection = ORDER_BY + columnName + (desc ? DESC : ASC);
 
 		// These queries join tables
 		StringBuilder query = new StringBuilder(firstSql);
@@ -229,6 +229,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> directorsSqls = new ArrayList<>();
 		List<String> genresSqls = new ArrayList<>();
 		List<String> ratedSqls = new ArrayList<>();
+		List<String> ratingSqls = new ArrayList<>();
 		List<String> releasedSqls = new ArrayList<>();
 
 		StringBuilder seasonsQuery = new StringBuilder();
@@ -314,14 +315,16 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 										directorsSqls = getTVSeriesQueries(MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR);
 										genresSqls = getTVSeriesQueries(MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE);
 										ratedSqls = getTVSeriesQueries(MediaTableTVSeries.TABLE_COL_RATED);
+										ratingSqls = getTVSeriesQueries(MediaTableTVSeries.FLOOR_RATING);
 										releasedSqls = getTVSeriesQueriesByFirstAirDate();
 									} else {
-										actorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR));
-										countriesSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY));
-										directorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR));
-										genresSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE));
-										ratedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.TABLE_COL_RATED));
-										releasedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.RELEASEDATE_FORMATED));
+										actorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR, false));
+										countriesSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY, false));
+										directorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR, false));
+										genresSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE, false));
+										ratedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.TABLE_COL_RATED, false));
+										ratingSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.FLOOR_RATING, true));
+										releasedSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.RELEASEDATE_FORMATED, true));
 									}
 								}
 
@@ -361,6 +364,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 										directorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR, i));
 										genresSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE, i));
 										ratedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.TABLE_COL_RATED, i));
+										ratingSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.FLOOR_RATING, i));
 										releasedSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.RELEASEDATE_FORMATED, i));
 									}
 									i++;
@@ -489,6 +493,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
+					"Rating",
+					ratingSqls.toArray(String[]::new),
+					filteredExpectedOutputsWithPrependedTexts
+				));
+				filterByInformation.addChild(new MediaLibraryFolder(
+					renderer,
 					"Released",
 					releasedSqls.toArray(String[]::new),
 					filteredExpectedOutputsWithPrependedTexts
@@ -563,12 +573,21 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								case "Rated" -> {
 									for (int i = 0; i < sqls2.length; i++) {
 										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadata.TABLE_COL_RATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadata.TABLE_COL_RATED + IS_NULL);
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableTVSeries.TABLE_COL_RATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableTVSeries.TABLE_COL_RATED + IS_NULL);
+									}
+									i18nName = "Unknown";
+								}
+								case "Rating" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadata.FLOOR_RATING + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadata.TABLE_COL_RATING + IS_NULL);
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableTVSeries.FLOOR_RATING + EQUAL + "'${" + i + "}'", WHERE + MediaTableTVSeries.TABLE_COL_RATING + IS_NULL);
 									}
 									i18nName = "Unknown";
 								}
 								case "Released" -> {
 									for (int i = 0; i < sqls2.length; i++) {
 										sqls2[i] = sqls2[i].replace(WHERE + MediaTableVideoMetadata.RELEASEDATE_FORMATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableVideoMetadata.TABLE_COL_RELEASEDATE + IS_NULL);
+										sqls2[i] = sqls2[i].replace(WHERE + MediaTableTVSeries.FIRSTAIRDATE_FORMATED + EQUAL + "'${" + i + "}'", WHERE + MediaTableTVSeries.TABLE_COL_FIRSTAIRDATE + IS_NULL);
 									}
 									i18nName = "Unknown";
 								}
