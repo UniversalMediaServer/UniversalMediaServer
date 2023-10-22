@@ -158,9 +158,9 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		return queries;
 	}
 
-	private static List<String> getTVSeriesQueries(String columnName) {
+	private static List<String> getTVSeriesQueries(String columnName, boolean desc) {
 		List<String> queries = new ArrayList<>();
-		queries.add(SELECT + columnName + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + columnName + ASC);
+		queries.add(SELECT + columnName + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + columnName + (desc ? DESC : ASC));
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + columnName + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC);
 		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
 		return queries;
@@ -314,8 +314,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 										countriesSqls = getTVSeriesQueries(MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY);
 										directorsSqls = getTVSeriesQueries(MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR);
 										genresSqls = getTVSeriesQueries(MediaTableVideoMetadataGenres.TABLE_NAME, MediaTableVideoMetadataGenres.TABLE_COL_GENRE);
-										ratedSqls = getTVSeriesQueries(MediaTableTVSeries.TABLE_COL_RATED);
-										ratingSqls = getTVSeriesQueries(MediaTableTVSeries.FLOOR_RATING);
+										ratedSqls = getTVSeriesQueries(MediaTableTVSeries.TABLE_COL_RATED, false);
+										ratingSqls = getTVSeriesQueries(MediaTableTVSeries.FLOOR_RATING, true);
 										releasedSqls = getTVSeriesQueriesByFirstAirDate();
 									} else {
 										actorsSqls.add(getFirstNonTVSeriesQuery(firstSql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR, false));
@@ -440,9 +440,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					break;
 			}
 
-			int[] filteredExpectedOutputsWithPrependedTexts = filteredExpectedOutputs.clone();
-			filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
-
 			if (!unwatchedSqls.isEmpty() && !watchedSqls.isEmpty()) {
 				LocalizedStoreContainer filterByProgress = new LocalizedStoreContainer(renderer, "FilterByProgress");
 				filterByProgress.addChild(new MediaLibraryFolder(
@@ -460,6 +457,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				addChild(filterByProgress);
 			}
 			if (!genresSqls.isEmpty()) {
+				int[] filteredExpectedOutputsWithPrependedTexts = filteredExpectedOutputs.clone();
+				filteredExpectedOutputsWithPrependedTexts = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTexts, TEXTS);
+				int[] filteredExpectedOutputsWithPrependedTextsNoSort = filteredExpectedOutputs.clone();
+				filteredExpectedOutputsWithPrependedTextsNoSort = ArrayUtils.insert(0, filteredExpectedOutputsWithPrependedTextsNoSort, TEXTS_NOSORT);
+
 				LocalizedStoreContainer filterByInformation = new LocalizedStoreContainer(renderer, "FilterByInformation");
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
@@ -495,13 +497,13 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					renderer,
 					"Rating",
 					ratingSqls.toArray(String[]::new),
-					filteredExpectedOutputsWithPrependedTexts
+					filteredExpectedOutputsWithPrependedTextsNoSort
 				));
 				filterByInformation.addChild(new MediaLibraryFolder(
 					renderer,
 					"Released",
 					releasedSqls.toArray(String[]::new),
-					filteredExpectedOutputsWithPrependedTexts
+					filteredExpectedOutputsWithPrependedTextsNoSort
 				));
 				LOGGER.trace("filteredExpectedOutputsWithPrependedTexts: " + Arrays.toString(filteredExpectedOutputsWithPrependedTexts));
 				LOGGER.trace("genresSqls: " + genresSqls.toString());
