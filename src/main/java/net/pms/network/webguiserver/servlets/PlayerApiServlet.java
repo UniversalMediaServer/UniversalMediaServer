@@ -1277,7 +1277,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		StoreResource directorsFolder = null;
 		StoreResource genresFolder = null;
 		StoreResource ratedFolder = null;
-		StoreResource ratingFolder = null;
 		if (CONFIGURATION.isShowMediaLibraryFolder()) {
 			// prepare to get IDs of certain metadata resources, to make them clickable
 			List<StoreResource> rootFolderChildren = renderer.getMediaStore().getResources("0", true, 0, 0, Messages.getString("MediaLibrary"));
@@ -1320,9 +1319,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					case "Rated" -> {
 						ratedFolder = filterByInformationChild;
 					}
-					case "Rating" -> {
-						ratingFolder = filterByInformationChild;
-					}
 					default -> {
 						//nothing to do
 					}
@@ -1334,7 +1330,6 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		addJsonArrayDlnaIds(result, "directors", directorsFolder, renderer);
 		addJsonArrayDlnaIds(result, "genres", genresFolder, renderer);
 		addStringDlnaId(result, "rated", ratedFolder, renderer);
-		addStringDlnaId(result, "rating", ratingFolder, renderer);
 		result.addProperty("imageBaseURL", TMDB.getTmdbImageBaseURL());
 
 		return result;

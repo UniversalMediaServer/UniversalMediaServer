@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
@@ -303,7 +303,16 @@ export const Player = () => {
     }
   }
 
-  const getMetadataRatingList = (ratingsList?: MediaRating[], rating?:string) => {
+  const getMetadataRating = (rating?:number) => {
+    if (rating) {
+      return (
+        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+          <Text fw={700}>{i18n.get['Rating']}: </Text><Tooltip label={rating}><Rating value={rating/2} fractions={4} readOnly /></Tooltip>
+        </Group>);
+    }
+  }
+
+  const getMetadataRatingList = (ratingsList?: MediaRating[], rating?:number) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
         <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
@@ -316,7 +325,7 @@ export const Player = () => {
         </List>
       </>);
     } else {
-      return getMetadataString(i18n.get['Rating'], rating);
+      return getMetadataRating(rating);
     }
   }
 
@@ -523,7 +532,7 @@ export const Player = () => {
                   {getMetadataBaseMediaList('Genres', metadata.genres)}
                   {getMetadataString('Plot', metadata.overview)}
                   {getMetadataBaseMedia('Rated', metadata.rated)}
-                  {getMetadataRatingList(metadata.ratings)}
+                  {getMetadataRatingList(metadata.ratings, metadata.rating)}
                   {getMetadataString('YearStarted', metadata.startYear)}
                   {getMetadataString('TotalSeasons', metadata.totalSeasons)}
                 </Card>
@@ -768,7 +777,7 @@ interface VideoMetadata {
   productionCompanies?: string,
   productionCountries?: string,
   rated?: BaseMedia,
-  rating?: string,
+  rating?: number,
   ratings?: MediaRating[],
   seasons?: string,
   seriesType?: string,
