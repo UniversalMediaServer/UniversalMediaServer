@@ -148,7 +148,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	private static final int SIZE_IMDBID = 16;
 	private static final int SIZE_TVEPISODENUMBER = 8;
 	public static final String RELEASEDATE_FORMATED = "FORMATDATETIME(" + TABLE_COL_RELEASEDATE + ", 'yyyy')";
-	public static final String FLOOR_RATING = "FLOOR(" + TABLE_COL_RATING + ")";
+	public static final String FLOOR_RATING = "CAST(FLOOR(" + TABLE_COL_RATING + ") AS INT)";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
