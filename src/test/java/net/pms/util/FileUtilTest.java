@@ -589,7 +589,14 @@ public class FileUtilTest {
 		assertTrue(FileUtil.getFilePermissions(new File("")).isFolder(), "CurrentFolderIsFolder");
 		assertTrue(FileUtil.getFilePermissions(new File("")).isReadable(), "CurrentFolderIsReadable");
 		assertTrue(FileUtil.getFilePermissions(new File("")).isBrowsable(), "CurrentFolderIsBrowsable");
-		assertTrue(FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder(), "user.dirFolderIsFolder");
+		//assertTrue(FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder(), "user.dirFolderIsFolder");
+		File currentDirectory = new File(System.getProperty("user.dir"));
+		if (currentDirectory.exists() && currentDirectory.isDirectory()) {
+		    boolean isFolder = FileUtil.getFilePermissions(currentDirectory).isFolder();
+		    assertTrue(isFolder, "user.dirFolderIsFolder");
+		} else {
+		    assertTrue(false, "user.dir does not exist or is not a folder");
+		}
 		try {
 			FileUtil.getFilePermissions("No such file");
 			fail("Expected FileNotFoundException");
