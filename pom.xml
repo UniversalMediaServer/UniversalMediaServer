@@ -683,32 +683,6 @@
 			<version>4.0.4</version>
 			<type>jar</type>
 		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<version>5.6.0</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.mockito/mockito-junit-jupiter -->
-		<dependency>
-		    <groupId>org.mockito</groupId>
-		    <artifactId>mockito-junit-jupiter</artifactId>
-		    <version>5.6.0</version>
-		    <scope>test</scope>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.apache.maven/maven-model -->
-		<dependency>
-		    <groupId>org.apache.maven</groupId>
-		    <artifactId>maven-model</artifactId>
-		    <version>4.0.0-alpha-2</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.codehaus.plexus/plexus -->
-		<dependency>
-		    <groupId>org.codehaus.plexus</groupId>
-		    <artifactId>plexus</artifactId>
-		    <version>15</version>
-		    <type>pom</type>
-		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
