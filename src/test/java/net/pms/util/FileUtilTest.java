@@ -589,12 +589,7 @@ public class FileUtilTest {
 		assertTrue(FileUtil.getFilePermissions(new File("")).isFolder(), "CurrentFolderIsFolder");
 		assertTrue(FileUtil.getFilePermissions(new File("")).isReadable(), "CurrentFolderIsReadable");
 		assertTrue(FileUtil.getFilePermissions(new File("")).isBrowsable(), "CurrentFolderIsBrowsable");
-		try {
-			assertTrue(FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder(), "user.dirFolderIsFolder");
-		}
-		catch(NullPointerException ex){
-			//Exception
-		}
+		assertTrue(FileUtil.getFilePermissions(new File(System.getProperty("user.dir"))).isFolder(), "user.dirFolderIsFolder");
 		try {
 			FileUtil.getFilePermissions("No such file");
 			fail("Expected FileNotFoundException");
