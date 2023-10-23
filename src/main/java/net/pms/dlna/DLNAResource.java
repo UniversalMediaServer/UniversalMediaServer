@@ -735,8 +735,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (resumeRes != null) {
 					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
-				} else {
-					LOGGER.trace("DLNAResource is null :" + resumeRes);
 				}
 			}
 		} catch (Throwable t) {
