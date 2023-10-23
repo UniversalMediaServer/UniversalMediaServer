@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>13.7.0-SNAPSHOT</version>
+	<version>13.8.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>13.7.0</project.version.short>
+		<project.version.short>13.8.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -61,7 +61,7 @@
 		<jgoodies-looks-version>2.7.0</jgoodies-looks-version>
 
 		<sevenzip-version>16.02-2.01</sevenzip-version>
-		<twelvemonkeys-imageio-version>3.9.4</twelvemonkeys-imageio-version>
+		<twelvemonkeys-imageio-version>3.10.0</twelvemonkeys-imageio-version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
@@ -592,7 +592,7 @@
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
@@ -607,7 +607,7 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>4.0.3</version>
+			<version>4.0.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
