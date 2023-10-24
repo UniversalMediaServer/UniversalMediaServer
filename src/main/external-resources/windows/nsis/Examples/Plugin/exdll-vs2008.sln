@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exdll", "exdll.vcproj", "{5E3E2AFD-1D6B-4997-A9B5-8ECBC8F6C31A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "exdll", "exdll-vs2008.vcproj", "{5E3E2AFD-1D6B-4997-A9B5-8ECBC8F6C31A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

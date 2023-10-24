@@ -96,7 +96,7 @@
 ; be initialized to the default section's index.
 ;
 ; As this macro uses $R0 and $R1 you can't use those two as the
-; varible which will keep the selected section.
+; variable which will keep the selected section.
 
 !macro StartRadioButtons var
 
@@ -148,9 +148,9 @@
 ;
 ; Written by Robert Kehl
 ;
-; For details, see http://nsis.sourceforge.net/wiki/SetSectionInInstType%2C_ClearSectionInInstType
+; For details, see https://nsis.sourceforge.io/wiki/SetSectionInInstType%2C_ClearSectionInInstType
 ;
-; Use the defines below for the WANTED_INSTTYPE paramter.
+; Use the defines below for the WANTED_INSTTYPE parameter.
 
 !define INSTTYPE_1 1
 !define INSTTYPE_2 2
@@ -266,6 +266,43 @@
 	StrCmp "" "${JUMPIFNOTSET}" +3 "${JUMPIFNOTSET}"
 	Pop $R0
 	Goto "${JUMPIFSET}"
+!macroend
+
+;--------------------------------
+
+; Removes a section by unselecting and hiding it
+
+!macro RemoveSection SECTION
+
+  Push $R0
+  Push $R1
+    StrCpy $R1 `${SECTION}`
+    SectionGetFlags $R1 $R0
+    IntOp $R0 $R0 & ${SECTION_OFF}
+    SectionSetFlags $R1 $R0
+    SectionSetText $R1 ``
+  Pop $R1
+  Pop $R0
+
+!macroend
+
+; Undoes the RemoveSection action
+
+!macro UnremoveSection SECTION SECTION_TEXT
+
+  Push $R0
+  Push $R1
+  Push $R2
+    StrCpy $R1 `${SECTION}`
+    StrCpy $R2 `${SECTION_TEXT}`
+    SectionGetFlags $R1 $R0
+    IntOp $R0 $R0 | ${SF_SELECTED}
+    SectionSetFlags $R1 $R0
+    SectionSetText $R1 $R2
+  Pop $R2
+  Pop $R1
+  Pop $R0
+
 !macroend
 
 ;--------------------------------

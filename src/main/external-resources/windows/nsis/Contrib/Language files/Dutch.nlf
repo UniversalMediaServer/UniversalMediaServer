@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,7 +6,7 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
@@ -16,7 +16,7 @@ Nullsoft Install System %s
 # ^SetupCaption
 $(^Name)-installatie
 # ^UninstallCaption
-$(^Name)-deïnstallatie
+$(^Name)-deÃ¯nstallatie
 # ^LicenseSubCaption
 : Licentieovereenkomst
 # ^ComponentsSubCaption
@@ -64,7 +64,7 @@ Klik op Volgende om verder te gaan.
 # ^ClickInstall
 Klik op Installeren om de installatie te beginnen.
 # ^ClickUninstall
-Klik op Verwijderen om de deïnstallatie te beginnen.
+Klik op Verwijderen om de deÃ¯nstallatie te beginnen.
 # ^Name
 Naam
 # ^Completed
@@ -88,9 +88,9 @@ Selecteer de onderdelen die u wilt installeren en deselecteer welke u niet wilt 
 # ^ComponentsSubText1
 Selecteer het installatietype:
 # ^ComponentsSubText2_NoInstTypes
-Selecteer de onderdelen die moeten worden geïnstalleerd:
+Selecteer de onderdelen die moeten worden geÃ¯nstalleerd:
 # ^ComponentsSubText2
-Of selecteer de optionele onderdelen die moeten worden geïnstalleerd:
+Of selecteer de optionele onderdelen die moeten worden geÃ¯nstalleerd:
 # ^UnComponentsText
 Selecteer de onderdelen die u wilt verwijderen en deselecteer welke u niet wilt verwijderen. $_CLICK
 # ^UnComponentsSubText1
@@ -126,9 +126,9 @@ Fout bij het schrijven naar bestand: \r\n\r\n$0\r\n\r\nKlik op Opnieuw om het op
 # ^CantWrite
 "Kon niet schrijven: "
 # ^CopyFailed
-Kopiëren mislukt
+KopiÃ«ren mislukt
 # ^CopyTo
-"Kopiëren naar "
+"KopiÃ«ren naar "
 # ^Registering
 "Registreren: "
 # ^Unregistering
@@ -142,7 +142,7 @@ Kopiëren mislukt
 # ^CreateShortcut
 "Snelkoppeling maken: "
 # ^CreatedUninstaller
-"Deïnstallatieprogramma gemaakt: "
+"DeÃ¯nstallatieprogramma gemaakt: "
 # ^Delete
 "Bestand verwijderen: "
 # ^DeleteOnReboot
@@ -178,14 +178,14 @@ Installatieprogramma beschadigd: ongeldige opcode
 # ^Skipped
 "Overgeslagen: "
 # ^CopyDetails
-Details kopiëren naar klembord
+Details kopiÃ«ren naar klembord
 # ^LogInstall
 Gegevens over installatie bewaren
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

@@ -50,24 +50,20 @@ VersionConvert
 ; ${WORDFUNC_VERBOSE} 3   # no script
 
 !ifndef WORDFUNC_INCLUDED
+
+!verbose push 3
+!define /IfNDef _WORDFUNC_VERBOSE 3
+!verbose ${_WORDFUNC_VERBOSE}
+!define WORDFUNC_VERBOSE `!insertmacro WORDFUNC_VERBOSE`
+
 !define WORDFUNC_INCLUDED
 
 !include Util.nsh
 
-!verbose push
-!verbose 3
-!ifndef _WORDFUNC_VERBOSE
-	!define _WORDFUNC_VERBOSE 3
-!endif
-!verbose ${_WORDFUNC_VERBOSE}
-!define WORDFUNC_VERBOSE `!insertmacro WORDFUNC_VERBOSE`
-!verbose pop
 
 !macro WORDFUNC_VERBOSE _VERBOSE
-	!verbose push
-	!verbose 3
-	!undef _WORDFUNC_VERBOSE
-	!define _WORDFUNC_VERBOSE ${_VERBOSE}
+	!verbose push 3
+	!define /ReDef _WORDFUNC_VERBOSE ${_VERBOSE}
 	!verbose pop
 !macroend
 
@@ -1800,4 +1796,5 @@ VersionConvert
 	!verbose pop
 !macroend
 
+!verbose pop
 !endif

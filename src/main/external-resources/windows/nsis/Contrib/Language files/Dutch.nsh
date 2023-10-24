@@ -1,7 +1,7 @@
-;Language: Dutch (1043)
+ï»¿;Language: Dutch (1043)
 ;By Joost Verburg
 
-!insertmacro LANGFILE "Dutch" "Nederlands"
+!insertmacro LANGFILE "Dutch" = "Nederlands" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Welkom bij de $(^NameDA)-installatiewizard"
@@ -9,7 +9,7 @@
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Welkom bij de $(^NameDA)-deïnstallatiewizard"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Welkom bij de $(^NameDA)-deÃ¯nstallatiewizard"
   ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Deze wizard zal $(^NameDA) van uw syteem verwijderen.$\r$\n$\r$\nControleer voordat u begint met verwijderen of $(^NameDA) is afgesloten.$\r$\n$\r$\n$_CLICK"
 !endif
 
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beweeg uw muis over een onderdeel om de beschrijving te zien."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beweeg uw muis over een onderdeel om de beschrijving te zien."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Selecteer een onderdeel om de beschrijving te zien."
   !endif
 !endif
 
@@ -64,7 +64,7 @@
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Bezig met installeren"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Een ogenblik geduld terwijl $(^NameDA) wordt geïnstalleerd."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Een ogenblik geduld terwijl $(^NameDA) wordt geÃ¯nstalleerd."
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Installatie voltooid"
   ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "De installatie is succesvol voltooid."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Installatie afgebroken"
@@ -82,12 +82,12 @@
 
 !ifdef MUI_FINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Voltooien van de $(^NameDA)-installatiewizard"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) is geïnstalleerd op uw systeem.$\r$\n$\r$\nKlik op Voltooien om deze wizard te sluiten."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) is geÃ¯nstalleerd op uw systeem.$\r$\n$\r$\nKlik op Voltooien om deze wizard te sluiten."
   ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Uw systeem moet opnieuw worden opgestart om de installatie van $(^NameDA) te voltooien. Wilt u nu herstarten?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Voltooien van de $(^NameDA)-deïnstallatiewizard"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Voltooien van de $(^NameDA)-deÃ¯nstallatiewizard"
   ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) is van uw systeem verwijderd.$\r$\n$\r$\nKlik op Voltooien om deze wizard te sluiten."
   ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Uw systeem moet opnieuw worden opgestart om het verwijderen van $(^NameDA) te voltooien. Wilt u nu herstarten?"
 !endif
@@ -117,7 +117,7 @@
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Weet u zeker dat u de $(^Name)-deïnstallatie wilt afsluiten?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Weet u zeker dat u de $(^Name)-deÃ¯nstallatie wilt afsluiten?"
 !endif
 
 !ifdef MULTIUSER_INSTALLMODEPAGE

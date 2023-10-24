@@ -1,11 +1,11 @@
-# Header, don't edit
+ο»Ώ# Header, don't edit
 NLF v6
 # Language ID
 1091
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
@@ -57,7 +57,7 @@ Bekor qilish
 # ^BrowseBtn
 &Ko'rish ...
 # ^ShowDetailsBtn
-&Δεςΰλθ...
+&Γ„Γ¥Γ²Γ Γ«Γ¨...
 # ^ClickNext
 Davom etish uchun 'Oldinga'tugmachasini bosing.
 # ^ClickInstall
@@ -181,10 +181,10 @@ Bufer obmenaga ma'lumotlarni kopiya qilish
 # ^LogInstall
 O'rnatish xisobotini chiqorish
 # byte
-αΰις
+Γ΅Γ Γ©Γ²
 # kilo
- Κ
+ Γ
 # mega
- Μ
+ Γ
 # giga
- Γ
+ Γƒ

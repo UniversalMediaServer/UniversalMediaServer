@@ -1155,7 +1155,7 @@
 						Plugin to add scripts for nullsoft scriptable install system (NSIS).
 						The filtered file "target/extra.nsh", contains the definitions for
 						project variables like "${PROJECT_JRE_VERSION}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
@@ -1194,7 +1194,7 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
@@ -1215,7 +1215,7 @@
 								<id>build-ums-windows</id>
 								<configuration>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
-									<scriptFile>${project.build.directory}/pms.nsi</scriptFile>
+									<scriptFile>${project.build.directory}/ums.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>

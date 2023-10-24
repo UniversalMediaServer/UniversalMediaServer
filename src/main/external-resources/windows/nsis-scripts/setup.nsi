@@ -57,7 +57,7 @@ Function LockedListShow
 	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
 
 	${If} ${RunningX64}
-		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\LockedList64.dll`
+		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\x86-unicode\LockedList64.dll`
 		; LockedList old MediaInfo locations
 		LockedList::AddModule "$INSTDIR\MediaInfo64.dll"
 		LockedList::AddModule "$INSTDIR\win32\MediaInfo64.dll"
@@ -71,25 +71,32 @@ Function LockedListShow
 	LockedList::Dialog /autonext /autoclosesilent
 	Pop $R0
 
-	services::IsServiceRunning "${OLD_SERVICE_NAME}"
-	Pop $0
-	${If} $0 == "Yes"
-		services::SendServiceCommand 'stop' "${OLD_SERVICE_NAME}"
-		Pop $1
-		StrCmp $1 'Ok' osuccess 0
-			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+	SimpleSC::ServiceIsRunning "${OLD_SERVICE_NAME}"
+	Pop $0 ; returns an errorcode (<>0) otherwise success (0)
+	Pop $1 ; returns 1 (service is running) - returns 0 (service is not running)
+	${If} $1 == 1
+		SimpleSC::StopService "${OLD_SERVICE_NAME}" 1 30
+		Pop $2 ; returns an errorcode (<>0) otherwise success (0)
+		IntCmp $2 0 osuccess 0
+			Push $0
+			SimpleSC::GetErrorMessage
+			Pop $0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to stop service - Reason: $0' 0 0
 			Abort
 		osuccess:
 	${EndIf}
 
-	services::IsServiceRunning "${SERVICE_NAME}"
-	Pop $0
-	; $0 now contains either 'Yes', 'No' or an error description
-	${If} $0 == "Yes"
-		services::SendServiceCommand 'stop' "${SERVICE_NAME}"
-		Pop $1
-		StrCmp $1 'Ok' success 0
-			MessageBox MB_OK|MB_ICONSTOP 'Failed to send service command: Reason: $1' 0 0
+	SimpleSC::ServiceIsRunning "${SERVICE_NAME}"
+	Pop $0 ; returns an errorcode (<>0) otherwise success (0)
+	Pop $1 ; returns 1 (service is running) - returns 0 (service is not running)
+	${If} $1 == 1
+		SimpleSC::StopService "${SERVICE_NAME}" 1 30
+		Pop $2 ; returns an errorcode (<>0) otherwise success (0)
+		IntCmp $2 0 success 0
+			Push $0
+			SimpleSC::GetErrorMessage
+			Pop $0
+			MessageBox MB_OK|MB_ICONSTOP 'Failed to stop service - Reason: $0' 0 0
 			Abort
 		success:
 	${EndIf}
@@ -184,13 +191,12 @@ FunctionEnd
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
-	services::IsServiceInstalled "${SERVICE_NAME}"
+	SimpleSC::ExistsService "${SERVICE_NAME}"
 	Pop $0
-	; $0 now contains either 'Yes', 'No' or an error description
-	${If} $0 == "Yes"
-		services::SendServiceCommand 'start' "${SERVICE_NAME}"
+	${If} $0 == 0
+		SimpleSC::StartService "${SERVICE_NAME}" "" 30
 		Pop $1
-		StrCmp $1 'Ok' success 0
+		IntCmp $1 0 success 0
 			; If we failed to start the service it might be disabled, so we start the GUI
 			Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 		success:
@@ -328,12 +334,12 @@ Section "Program Files"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
 
 	; remove old service
-	services::IsServiceInstalled "${OLD_SERVICE_NAME}"
+	SimpleSC::ExistsService "${OLD_SERVICE_NAME}"
 	Pop $0
-	${If} $0 == "Yes"
-		services::SendServiceCommand 'delete' "${OLD_SERVICE_NAME}"
+	${If} $0 == 0
+		SimpleSC::RemoveService "${OLD_SERVICE_NAME}"
 		Pop $1
-		StrCmp $1 'Ok' osuccess 0
+		StrCmp $1 0 osuccess 0
 		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\${OLD_SERVICE_NAME}"
 		osuccess:
 	${EndIf}
@@ -390,10 +396,9 @@ Section "Start Menu Shortcuts"
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	services::IsServiceInstalled "${SERVICE_NAME}"
+	SimpleSC::ExistsService "${SERVICE_NAME}"
 	Pop $0
-	; $0 now contains either 'Yes', 'No' or an error description
-	${If} $0 != "Yes"
+	${If} $0 != 0
 		; Only start UMS with Windows when it is a new install
 		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
 			goto end_of_startup_section
@@ -706,12 +711,11 @@ Section "Uninstall"
 	DeleteRegKey HKEY_LOCAL_MACHINE "${REG_KEY_UNINSTALL}"
 	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
 
-	services::IsServiceInstalled "${SERVICE_NAME}"
+	SimpleSC::ExistsService "${SERVICE_NAME}"
 	Pop $0
-	; $0 now contains either 'Yes', 'No' or an error description
-	${If} $0 != "Yes"
-		services::SendServiceCommand 'stop' "${SERVICE_NAME}"
-		services::SendServiceCommand 'delete' "${SERVICE_NAME}"
+	${If} $0 != 0
+		SimpleSC::StopService "${SERVICE_NAME}" 1 30
+		SimpleSC::RemoveService "${SERVICE_NAME}"
 		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\${SERVICE_NAME}"
 	${EndIf}
 

@@ -1,25 +1,20 @@
 /*
 
-NSIS Modern User Interface - Version 1.8
-Copyright 2002-2015 Joost Verburg
+NSIS Modern User Interface - Version 1.81
+Copyright 2002-2023 Joost Verburg
 
 */
 
-!echo "NSIS Modern User Interface version 1.8 - Copyright 2002-2015 Joost Verburg"
+!ifndef MUI_INCLUDED
+!verbose push 3
+!define MUI_INCLUDED
+!define MUI_SYSVERSION "1.81"
+!verbose pop
+!echo "NSIS Modern User Interface version ${MUI_SYSVERSION} - Copyright 2002-2023 Joost Verburg"
 
 ;--------------------------------
-
-!ifndef MUI_INCLUDED
-!define MUI_INCLUDED
-
-!define MUI_SYSVERSION "1.8"
-
-!verbose push
-
-!ifndef MUI_VERBOSE
-  !define MUI_VERBOSE 3
-!endif
-
+!verbose push 3
+!define /IfNDef MUI_VERBOSE 3
 !verbose ${MUI_VERBOSE}
 
 ;--------------------------------
@@ -129,10 +124,17 @@ Var MUI_TEMP2
     !insertmacro MUI_DEFAULT MUI_INSTFILESPAGE_COLORS "/windows"
     !insertmacro MUI_DEFAULT MUI_INSTFILESPAGE_PROGRESSBAR "smooth"
     !insertmacro MUI_DEFAULT MUI_BGCOLOR "FFFFFF"
+    !insertmacro MUI_DEFAULT MUI_TEXTCOLOR "000000"
     !insertmacro MUI_DEFAULT MUI_WELCOMEFINISHPAGE_INI "${NSISDIR}\Contrib\Modern UI\ioSpecial.ini"
     !insertmacro MUI_DEFAULT MUI_UNWELCOMEFINISHPAGE_INI "${NSISDIR}\Contrib\Modern UI\ioSpecial.ini"
     !insertmacro MUI_DEFAULT MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
     !insertmacro MUI_DEFAULT MUI_UNWELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+    !if "${MUI_WELCOMEFINISHPAGE_BITMAP}" == ""
+      !error "Invalid MUI_WELCOMEFINISHPAGE_BITMAP"
+    !endif
+    !if "${MUI_UNWELCOMEFINISHPAGE_BITMAP}" == ""
+      !error "Invalid MUI_UNWELCOMEFINISHPAGE_BITMAP"
+    !endif
 
     !ifdef MUI_HEADERIMAGE
 
@@ -145,12 +147,26 @@ Var MUI_TEMP2
         !endif
       !endif
 
+      !if "${MUI_HEADERIMAGE_BITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_BITMAP"
+      !endif
+      !if "${MUI_HEADERIMAGE_UNBITMAP}" == ""
+        !error "Invalid MUI_HEADERIMAGE_UNBITMAP"
+      !endif
+
       !ifdef MUI_HEADERIMAGE_BITMAP_RTL
         !ifndef MUI_HEADERIMAGE_UNBITMAP_RTL
           !define MUI_HEADERIMAGE_UNBITMAP_RTL "${MUI_HEADERIMAGE_BITMAP_RTL}"
           !ifdef MUI_HEADERIMAGE_BITMAP_RTL_NOSTRETCH
             !insertmacro MUI_SET MUI_HEADERIMAGE_UNBITMAP_RTL_NOSTRETCH
           !endif
+        !endif
+
+        !if "${MUI_HEADERIMAGE_BITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_BITMAP_RTL"
+        !endif
+        !if "${MUI_HEADERIMAGE_UNBITMAP_RTL}" == ""
+          !error "Invalid MUI_HEADERIMAGE_UNBITMAP_RTL"
         !endif
       !endif
 
@@ -402,24 +418,24 @@ Var MUI_TEMP2
 
   !ifndef MUI_HEADER_TRANSPARENT_TEXT
 
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     GetDlgItem $MUI_TEMP1 $HWNDPARENT 1038
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
   !else
 
-    SetCtlColors $MUI_TEMP1 "" "transparent"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "transparent"
 
     GetDlgItem $MUI_TEMP1 $HWNDPARENT 1038
-    SetCtlColors $MUI_TEMP1 "" "transparent"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "transparent"
 
   !endif
 
-  GetDlgItem $MUI_TEMP1 $HWNDPARENT 1034
+  GetDlgItem $MUI_TEMP1 $HWNDPARENT 1034 ; Header background
   SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
 
-  GetDlgItem $MUI_TEMP1 $HWNDPARENT 1039
+  GetDlgItem $MUI_TEMP1 $HWNDPARENT 1039 ; Header image
   SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
 
   GetDlgItem $MUI_TEMP1 $HWNDPARENT 1028
@@ -436,6 +452,7 @@ Var MUI_TEMP2
 
     !insertmacro INSTALLOPTIONS_EXTRACT_AS "${MUI_${UNINSTALLER}WELCOMEFINISHPAGE_INI}" "ioSpecial.ini"
     File "/oname=$PLUGINSDIR\modern-wizard.bmp" "${MUI_${UNINSTALLER}WELCOMEFINISHPAGE_BITMAP}"
+    !pragma verifyloadimage "${MUI_${UNINSTALLER}WELCOMEFINISHPAGE_BITMAP}"
 
     !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 1" "Text" "$PLUGINSDIR\modern-wizard.bmp"
 
@@ -458,6 +475,7 @@ Var MUI_TEMP2
     StrCmp $(^RTL) 0 mui.headerimageinit_nortl
 
         File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL}"
+        !pragma verifyloadimage "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL}"
 
         !ifndef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_RTL_NOSTRETCH
           SetBrandingImage /IMGID=1046 /RESIZETOFIT "$PLUGINSDIR\modern-header.bmp"
@@ -472,6 +490,7 @@ Var MUI_TEMP2
     !endif
 
         File "/oname=$PLUGINSDIR\modern-header.bmp" "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP}"
+        !pragma verifyloadimage "${MUI_HEADERIMAGE_${UNINSTALLER}BITMAP}"
 
         !ifndef MUI_HEADERIMAGE_${UNINSTALLER}BITMAP_NOSTRETCH
           SetBrandingImage /IMGID=1046 /RESIZETOFIT "$PLUGINSDIR\modern-header.bmp"
@@ -693,6 +712,10 @@ Var MUI_TEMP2
 ;PAGES
 
 !macro MUI_PAGE_INIT
+
+  !ifdef MUI_INSERT
+    !warning "MUI_[UN]PAGE_* inserted after MUI_LANGUAGE"
+  !endif
 
   !insertmacro MUI_INTERFACE
 
@@ -1104,6 +1127,10 @@ Var MUI_TEMP2
 
     UninstallText "${MUI_UNCONFIRMPAGE_TEXT_TOP}" "${MUI_UNCONFIRMPAGE_TEXT_LOCATION}"
 
+    !ifdef MUI_UNCONFIRMPAGE_VARIABLE
+      DirVar "${MUI_UNCONFIRMPAGE_VARIABLE}"
+    !endif
+
   PageExEnd
 
   !insertmacro MUI_UNFUNCTION_CONFIRMPAGE un.mui.ConfirmPre_${MUI_UNIQUEID} un.mui.ConfirmShow_${MUI_UNIQUEID} un.mui.ConfirmLeave_${MUI_UNIQUEID}
@@ -1261,16 +1288,16 @@ Var MUI_TEMP2
 
     !insertmacro INSTALLOPTIONS_INITDIALOG "ioSpecial.ini"
     Pop $MUI_HWND
-    SetCtlColors $MUI_HWND "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_HWND "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1201
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     CreateFont $MUI_TEMP2 "$(^Font)" "12" "700"
     SendMessage $MUI_TEMP1 ${WM_SETFONT} $MUI_TEMP2 0
 
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1202
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
 
@@ -1371,9 +1398,10 @@ Var MUI_TEMP2
 
   Function "${SHOW}"
     !ifdef MUI_DIRECTORYPAGE_BGCOLOR
+      !insertmacro MUI_DEFAULT MUI_DIRECTORYPAGE_TEXTCOLOR ""
       FindWindow $MUI_TEMP1 "#32770" "" $HWNDPARENT
       GetDlgItem $MUI_TEMP1 $MUI_TEMP1 1019
-      SetCtlColors $MUI_TEMP1 "" "${MUI_DIRECTORYPAGE_BGCOLOR}"
+      SetCtlColors $MUI_TEMP1 "${MUI_DIRECTORYPAGE_TEXTCOLOR}" "${MUI_DIRECTORYPAGE_BGCOLOR}"
     !endif
     
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
@@ -1421,15 +1449,16 @@ Var MUI_TEMP2
   Pop $MUI_HWND
 
   !ifdef MUI_STARTMENUPAGE_BGCOLOR
+    !insertmacro MUI_DEFAULT MUI_STARTMENUPAGE_TEXTCOLOR ""
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1002
-    SetCtlColors $MUI_TEMP1 "" "${MUI_STARTMENUPAGE_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_STARTMENUPAGE_TEXTCOLOR}" "${MUI_STARTMENUPAGE_BGCOLOR}"
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1004
-    SetCtlColors $MUI_TEMP1 "" "${MUI_STARTMENUPAGE_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_STARTMENUPAGE_TEXTCOLOR}" "${MUI_STARTMENUPAGE_BGCOLOR}"
   !endif
 
   !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
-
   StartMenu::Show
+  !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
 
     Pop $MUI_TEMP1
     StrCmp $MUI_TEMP1 "success" 0 +2
@@ -1570,11 +1599,11 @@ Var MUI_TEMP2
           !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 5" "Bottom" "120"
         !endif
         !ifdef MUI_FINISHPAGE_REBOOTLATER_DEFAULT
-		  !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "State" "0"
+          !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "State" "0"
           !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 5" "State" "1"
         !else
           !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 4" "State" "1"
-		  !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 5" "State" "0"
+          !insertmacro INSTALLOPTIONS_WRITE "ioSpecial.ini" "Field 5" "State" "0"
         !endif
 
         Goto mui.finish_load
@@ -1739,26 +1768,26 @@ Var MUI_TEMP2
 
     !insertmacro INSTALLOPTIONS_INITDIALOG "ioSpecial.ini"
     Pop $MUI_HWND
-    SetCtlColors $MUI_HWND "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_HWND "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1201
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     CreateFont $MUI_TEMP2 "$(^Font)" "12" "700"
     SendMessage $MUI_TEMP1 ${WM_SETFONT} $MUI_TEMP2 0
 
     GetDlgItem $MUI_TEMP1 $MUI_HWND 1202
-    SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+    SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
     !ifndef MUI_FINISHPAGE_NOREBOOTSUPPORT
 
       IfRebootFlag 0 mui.finish_noreboot_show
 
         GetDlgItem $MUI_TEMP1 $MUI_HWND 1203
-        SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+        SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
         GetDlgItem $MUI_TEMP1 $MUI_HWND 1204
-        SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+        SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
 
         Goto mui.finish_show
 
@@ -1768,7 +1797,7 @@ Var MUI_TEMP2
 
     !ifdef MUI_FINISHPAGE_RUN
       GetDlgItem $MUI_TEMP1 $MUI_HWND 1203
-      SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+      SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
     !endif
 
     !ifdef MUI_FINISHPAGE_SHOWREADME
@@ -1777,7 +1806,7 @@ Var MUI_TEMP2
       !else
         GetDlgItem $MUI_TEMP1 $MUI_HWND 1204
       !endif
-      SetCtlColors $MUI_TEMP1 "" "${MUI_BGCOLOR}"
+      SetCtlColors $MUI_TEMP1 "${MUI_TEXTCOLOR}" "${MUI_BGCOLOR}"
     !endif
 
     !ifdef MUI_FINISHPAGE_LINK
@@ -1793,6 +1822,27 @@ Var MUI_TEMP2
 
     !ifndef MUI_FINISHPAGE_NOREBOOTSUPPORT
       mui.finish_show:
+    !endif
+
+    !ifndef MUI_FORCECLASSICCONTROLS
+    ${If} ${IsHighContrastModeActive}
+    !endif
+      ; SetCtlColors does not change the check/radio text color (bug #443)
+      !ifndef MUI_FINISHPAGE_NOREBOOTSUPPORT
+        GetDlgItem $MUI_TEMP1 $MUI_HWND 1203
+        System::Call 'UXTHEME::SetWindowTheme(p$MUI_TEMP1,w" ",w" ")'
+        GetDlgItem $MUI_TEMP1 $MUI_HWND 1204
+        System::Call 'UXTHEME::SetWindowTheme(p$MUI_TEMP1,w" ",w" ")'
+      !else ifdef MUI_FINISHPAGE_RUN | MUI_FINISHPAGE_SHOWREADME
+        GetDlgItem $MUI_TEMP1 $MUI_HWND 1203
+        System::Call 'UXTHEME::SetWindowTheme(p$MUI_TEMP1,w" ",w" ")'
+        !ifdef MUI_FINISHPAGE_RUN & MUI_FINISHPAGE_SHOWREADME
+        GetDlgItem $MUI_TEMP1 $MUI_HWND 1204
+        System::Call 'UXTHEME::SetWindowTheme(p$MUI_TEMP1,w" ",w" ")'
+        !endif
+      !endif
+    !ifndef MUI_FORCECLASSICCONTROLS
+    ${EndIf}
     !endif
 
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
@@ -2048,7 +2098,7 @@ Var MUI_TEMP2
   !verbose push
   !verbose ${MUI_VERBOSE}
 
-  ReserveFile "${NSISDIR}\Plugins\InstallOptions.dll"
+  ReserveFile /plugin InstallOptions.dll
 
   !verbose pop
 
@@ -2059,7 +2109,7 @@ Var MUI_TEMP2
   !verbose push
   !verbose ${MUI_VERBOSE}
 
-  ReserveFile "${NSISDIR}\Plugins\LangDLL.dll"
+  ReserveFile /plugin LangDLL.dll
 
   !verbose pop
 
@@ -2068,40 +2118,35 @@ Var MUI_TEMP2
 ;--------------------------------
 ;LANGUAGES
 
-!macro MUI_LANGUAGE LANGUAGE
+!macro MUI_LANGUAGE NLFID
 
   ;Include a language
 
   !verbose push
   !verbose ${MUI_VERBOSE}
 
+  ; MUI_PAGE_UNINSTALLER_PREFIX is undefined by uninstaller pages so we check MUI_UNINSTALLER as well
+  !ifndef MUI_PAGE_UNINSTALLER_PREFIX && MUI_UNINSTALLER
+    !ifndef MUI_DISABLE_INSERT_LANGUAGE_AFTER_PAGES_WARNING ; Define this to avoid the warning if you only have custom pages
+      !warning "MUI_LANGUAGE should be inserted after the MUI_[UN]PAGE_* macros"
+    !endif
+  !endif
+
   !insertmacro MUI_INSERT
 
-  LoadLanguageFile "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nlf"
+  LoadLanguageFile "${NSISDIR}\Contrib\Language files\${NLFID}.nlf"
 
   ;Include language file
-  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT "${NSISDIR}\Contrib\Language files\${LANGUAGE}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
+  !insertmacro LANGFILE_INCLUDE_WITHDEFAULT \
+    "${NSISDIR}\Contrib\Language files\${NLFID}.nsh" "${NSISDIR}\Contrib\Language files\English.nsh"
 
-  ;Add language to list of languages for selection dialog  
-  !ifndef MUI_LANGDLL_LANGUAGES
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' "
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' "
-  !else
-    !ifdef MUI_LANGDLL_LANGUAGES_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_TEMP "${MUI_LANGDLL_LANGUAGES}"
-    !undef MUI_LANGDLL_LANGUAGES
-
-	!ifdef MUI_LANGDLL_LANGUAGES_CP_TEMP
-      !undef MUI_LANGDLL_LANGUAGES_CP_TEMP
-    !endif
-    !define MUI_LANGDLL_LANGUAGES_CP_TEMP "${MUI_LANGDLL_LANGUAGES_CP}"
-    !undef MUI_LANGDLL_LANGUAGES_CP
-
-    !define MUI_LANGDLL_LANGUAGES "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' ${MUI_LANGDLL_LANGUAGES_TEMP}"
-    !define MUI_LANGDLL_LANGUAGES_CP "'${LANGFILE_${LANGUAGE}_NAME}' '${LANG_${LANGUAGE}}' '${LANG_${LANGUAGE}_CP}' ${MUI_LANGDLL_LANGUAGES_CP_TEMP}"
-  !endif
+  ;Add language to list of languages for selection dialog
+  !define /ifndef MUI_LANGDLL_LANGUAGES ""
+  !define /redef MUI_LANGDLL_LANGUAGES \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" ${MUI_LANGDLL_LANGUAGES}`
+  !define /ifndef MUI_LANGDLL_LANGUAGES_CP ""
+  !define /redef MUI_LANGDLL_LANGUAGES_CP \
+    `"${LANGFILE_${NLFID}_LANGDLL}" "${LANG_${NLFID}}" "${LANG_${NLFID}_CP}" ${MUI_LANGDLL_LANGUAGES_CP}`
   
   !verbose pop
 
@@ -2114,6 +2159,10 @@ Var MUI_TEMP2
 
   !verbose push
   !verbose ${MUI_VERBOSE}
+
+  !ifndef MUI_LANGDLL_LANGUAGES
+    !warning "MUI_LANGDLL_DISPLAY should only be used after inserting the MUI_LANGUAGE macro(s)"
+  !endif
 
   !insertmacro MUI_DEFAULT MUI_LANGDLL_WINDOWTITLE "Installer Language"
   !insertmacro MUI_DEFAULT MUI_LANGDLL_INFO "Please select a language."
@@ -2172,7 +2221,8 @@ Var MUI_TEMP2
 
 !macro MUI_UNGETLANGUAGE
 
-  !verbose pop
+  !verbose push
+  !verbose ${MUI_VERBOSE}
 
   !ifdef MUI_LANGDLL_REGISTRY_ROOT & MUI_LANGDLL_REGISTRY_KEY & MUI_LANGDLL_REGISTRY_VALUENAME
 
@@ -2201,6 +2251,5 @@ Var MUI_TEMP2
 ;--------------------------------
 ;END
 
-!endif
-
 !verbose pop
+!endif

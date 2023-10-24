@@ -1,7 +1,7 @@
-;Language: Welsh (1106)
+ï»¿;Language: Welsh (1106)
 ;By Rhoslyn Prys, Meddal.com
 
-!insertmacro LANGFILE "Welsh" "Welsh"
+!insertmacro LANGFILE "Welsh" = "Cymraeg" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Croeso i Ddewin Gosod $(^NameDA)"
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Gosod eich llygoden dros gydran i weld ei ddisgrifiad."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Gosod eich llygoden dros gydran i weld ei ddisgrifiad."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Dewis cydran i weld ei ddisgrifiad."
   !endif
 !endif
 
@@ -68,7 +68,7 @@
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Cwblhawyd y Gosod"
   ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Mae'r Gosod wedi ei gwblhau'n llwyddiannus."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Ataliwyd y Gosod"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Methwyd â chwblhau'r gosod yn llwyddiannus."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Methwyd Ã¢ chwblhau'r gosod yn llwyddiannus."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
@@ -77,7 +77,7 @@
   ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Cwblhawyd y Dadosod"
   ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Mae'r Dadosod wedi ei gwblhau'n llwyddiannus."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Ataliwyd y Dadosod"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Methwyd â chwblhau'r dadosod yn llwyddiannus."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Methwyd Ã¢ chwblhau'r dadosod yn llwyddiannus."
 !endif
 
 !ifdef MUI_FINISHPAGE
