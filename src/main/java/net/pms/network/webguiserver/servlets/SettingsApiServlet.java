@@ -148,7 +148,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doGet(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -185,7 +185,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 								configuration.setProperty(key, element.getAsBoolean());
 							} else if (element.isNumber()) {
 								LOGGER.trace("Saving key {} and Number value {}", key, element);
-								configuration.setProperty(key, element.getAsNumber());
+								configuration.setProperty(key, element.getAsNumber().longValue());
 							} else if (element.isString()) {
 								LOGGER.trace("Saving key {} and String value {}", key, element);
 								configuration.setProperty(key, element.getAsString());
@@ -237,7 +237,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
 			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);

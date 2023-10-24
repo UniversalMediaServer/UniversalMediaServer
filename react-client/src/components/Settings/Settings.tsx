@@ -131,7 +131,9 @@ export default function Settings() {
         updateNotification({
           id: 'settings-save',
           title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationHasNoChanges']
+          message: i18n.get['ConfigurationHasNoChanges'],
+          loading: false,
+          autoClose: 1000
         })
       } else {
         await axios.post(settingsApiUrl, changedValues)
@@ -143,7 +145,9 @@ export default function Settings() {
               color: 'teal',
               title: i18n.get['Saved'],
               message: i18n.get['ConfigurationSaved'],
-              icon: <Check size='1rem' />
+              icon: <Check size='1rem' />,
+              loading: false,
+              autoClose: 1000
             })
           })
           .catch(function(error) {
@@ -153,7 +157,10 @@ export default function Settings() {
                 color: 'red',
                 title: i18n.get['Error'],
                 message: i18n.get['ConfigurationNotReceived'],
-                icon: <ExclamationMark size='1rem' />
+                icon: <ExclamationMark size='1rem' />,
+                withCloseButton: true,
+                loading: false,
+                autoClose: 1000
               })
             } else {
               throw new Error(error);
@@ -167,6 +174,9 @@ export default function Settings() {
         title: i18n.get['Error'],
         message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
         onClick: () => { openGitHubNewIssue(); },
+        withCloseButton: true,
+        loading: false,
+        autoClose: 2000
       })
     }
 

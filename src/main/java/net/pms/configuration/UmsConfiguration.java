@@ -2415,23 +2415,23 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The maximum video bitrate.
 	 */
 	public String getMaximumBitrate() {
-		String maximumBitrate = getMaximumBitrateDisplay();
-		if ("0".equals(maximumBitrate)) {
-			maximumBitrate = "1000";
+		Integer maximumBitrate = getMaximumBitrateDisplay();
+		if (maximumBitrate == 0) {
+			maximumBitrate = 1000;
 		}
 
-		return maximumBitrate;
+		return maximumBitrate.toString();
 	}
 
 	/**
 	 * The same as getMaximumBitrate() but this value is displayed to the user
-	 * because for our own uses we turn the value "0" into the value "1000" but
+	 * because for our own uses we turn the value 0 into the value 1000 but
 	 * that can be confusing for the user.
 	 *
 	 * @return The maximum video bitrate to display in the GUI.
 	 */
-	public String getMaximumBitrateDisplay() {
-		return getString(KEY_MAX_BITRATE, "90");
+	public int getMaximumBitrateDisplay() {
+		return getInt(KEY_MAX_BITRATE, 90);
 	}
 
 	/**
@@ -2440,7 +2440,13 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @param value The maximum video bitrate.
 	 */
 	public void setMaximumBitrate(String value) {
-		configuration.setProperty(KEY_MAX_BITRATE, value);
+		int maximumBitrate;
+		try {
+			maximumBitrate = Integer.parseInt(value);
+		} catch (NumberFormatException e) {
+			maximumBitrate = 90;
+		}
+		configuration.setProperty(KEY_MAX_BITRATE, maximumBitrate);
 	}
 
 	/**
