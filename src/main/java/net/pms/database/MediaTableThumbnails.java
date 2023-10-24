@@ -17,6 +17,7 @@
 package net.pms.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,6 +25,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNAThumbnailFixer;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +70,7 @@ public final class MediaTableThumbnails extends MediaTable {
 	/**
 	 * SQL Queries
 	 */
-	private static final String SQL_GET_ID = SELECT + TABLE_COL_THUMBNAIL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_MD5 = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_MD5 + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_INSERT_ID_MD5 = INSERT_INTO + TABLE_NAME + " (" + COL_THUMBNAIL + COMMA + COL_MODIFIED + COMMA + COL_MD5 + ") VALUES (" + PARAMETER + COMMA + PARAMETER + COMMA + PARAMETER + ")";
 	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
@@ -225,11 +227,27 @@ public final class MediaTableThumbnails extends MediaTable {
 	}
 
 	public static DLNAThumbnail getThumbnail(final Connection connection, final Long id) {
-		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID)) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
 			statement.setLong(1, id);
 			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
-					return ((DLNAThumbnail) resultSet.getObject(COL_THUMBNAIL));
+					DLNAThumbnail thumbnail = null;
+					try {
+						return ((DLNAThumbnail) resultSet.getObject(COL_THUMBNAIL));
+					} catch (SQLException ex) {
+						try {
+							thumbnail = DLNAThumbnailFixer.fixDLNAThumbnail(resultSet.getBinaryStream(COL_THUMBNAIL));
+							if (thumbnail != null) {
+								//update thumbnail object
+								resultSet.updateObject(COL_THUMBNAIL, thumbnail);
+								resultSet.updateRow();
+							}
+						} catch (IOException ex1) {
+							LOGGER.error("Error in DLNAThumbnail deserialization for id \"{}\": {}", id, ex.getMessage());
+							LOGGER.info("", ex);
+						}
+					}
+					return thumbnail;
 				}
 			}
 		} catch (SQLException e) {
