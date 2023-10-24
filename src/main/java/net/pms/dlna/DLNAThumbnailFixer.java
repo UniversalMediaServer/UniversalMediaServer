@@ -112,7 +112,7 @@ public class DLNAThumbnailFixer {
 		return new ByteArrayInputStream(newBytes);
 	}
 
-	private static String getRefactoredClassname(String  classname) {
+	private static String getRefactoredClassname(String classname) {
 		if (classname == null) {
 			return null;
 		}
@@ -120,44 +120,82 @@ public class DLNAThumbnailFixer {
 			classname = classname.substring(classname.lastIndexOf(".") + 1);
 		}
 		return switch (classname) {
-			case "BMPInfo" -> BMPInfo.class.getName();
-			case "BMPInfo$BMPParseInfo" -> BMPInfo.class.getName() + "$BMPParseInfo";
-			case "BMPInfo$CompressionType" -> BMPInfo.class.getName() + "$CompressionType";
-			case "BufferedImageFilter" -> BufferedImageFilter.class.getName();
-			case "BufferedImageFilter$BufferedImageFilterResult" -> BufferedImageFilter.class.getName() + "$BufferedImageFilterResult";
-			case "BufferedImageFilterChain" -> BufferedImageFilterChain.class.getName();
-			case "CURInfo" -> CURInfo.class.getName();
-			case "ColorSpaceType" -> ColorSpaceType.class.getName();
-			case "DLNAThumbnail" -> DLNAThumbnail.class.getName();
-			case "ExifInfo" -> ExifInfo.class.getName();
-			case "ExifInfo$ExifColorSpace" -> ExifInfo.class.getName() + "$ExifColorSpace";
-			case "ExifInfo$ExifCompression" -> ExifInfo.class.getName() + "$ExifCompression";
-			case "ExifInfo$ExifParseInfo" -> ExifInfo.class.getName() + "$ExifParseInfo";
-			case "ExifInfo$PhotometricInterpretation" -> ExifInfo.class.getName() + "$PhotometricInterpretation";
-			case "ExifOrientation" -> ExifOrientation.class.getName();
-			case "GIFInfo" -> GIFInfo.class.getName();
-			case "GIFInfo$GIFParseInfo" -> GIFInfo.class.getName() + "$GIFParseInfo";
-			case "GenericImageInfo" -> GenericImageInfo.class.getName();
-			case "ICOInfo" -> ICOInfo.class.getName();
-			case "Image" -> Image.class.getName();
-			case "ImageFormat" -> ImageFormat.class.getName();
-			case "ImageInfo" -> ImageInfo.class.getName();
-			case "ImageInfo$ParseInfo" -> ImageInfo.class.getName() + "$ParseInfo";
-			case "JPEGInfo" -> JPEGInfo.class.getName();
-			case "JPEGInfo$CompressionType" -> JPEGInfo.class.getName() + "$CompressionType";
-			case "JPEGInfo$JPEGParseInfo" -> JPEGInfo.class.getName() + "$JPEGParseInfo";
-			case "JPEGSubsamplingNotation" -> JPEGSubsamplingNotation.class.getName();
-			case "PCXInfo" -> PCXInfo.class.getName();
-			case "PNGInfo" -> PNGInfo.class.getName();
-			case "PNGInfo$InterlaceMethod" -> PNGInfo.class.getName() + "$InterlaceMethod";
-			case "PNGInfo$PNGParseInfo" -> PNGInfo.class.getName() + "$PNGParseInfo";
-			case "PSDInfo" -> PSDInfo.class.getName();
-			case "PSDInfo$ColorMode" -> PSDInfo.class.getName() + "$ColorMode";
-			case "PSDInfo$PSDParseInfo" -> PSDInfo.class.getName() + "$PSDParseInfo";
-			case "RAWInfo" -> RAWInfo.class.getName();
-			case "TIFFInfo" -> TIFFInfo.class.getName();
-			case "WebPInfo" -> WebPInfo.class.getName();
-			default -> null;
+			case "BMPInfo" ->
+				BMPInfo.class.getName();
+			case "BMPInfo$BMPParseInfo" ->
+				BMPInfo.class.getName() + "$BMPParseInfo";
+			case "BMPInfo$CompressionType" ->
+				BMPInfo.class.getName() + "$CompressionType";
+			case "BufferedImageFilter" ->
+				BufferedImageFilter.class.getName();
+			case "BufferedImageFilter$BufferedImageFilterResult" ->
+				BufferedImageFilter.class.getName() + "$BufferedImageFilterResult";
+			case "BufferedImageFilterChain" ->
+				BufferedImageFilterChain.class.getName();
+			case "CURInfo" ->
+				CURInfo.class.getName();
+			case "ColorSpaceType" ->
+				ColorSpaceType.class.getName();
+			case "DLNAThumbnail" ->
+				DLNAThumbnail.class.getName();
+			case "ExifInfo" ->
+				ExifInfo.class.getName();
+			case "ExifInfo$ExifColorSpace" ->
+				ExifInfo.class.getName() + "$ExifColorSpace";
+			case "ExifInfo$ExifCompression" ->
+				ExifInfo.class.getName() + "$ExifCompression";
+			case "ExifInfo$ExifParseInfo" ->
+				ExifInfo.class.getName() + "$ExifParseInfo";
+			case "ExifInfo$PhotometricInterpretation" ->
+				ExifInfo.class.getName() + "$PhotometricInterpretation";
+			case "ExifOrientation" ->
+				ExifOrientation.class.getName();
+			case "GIFInfo" ->
+				GIFInfo.class.getName();
+			case "GIFInfo$GIFParseInfo" ->
+				GIFInfo.class.getName() + "$GIFParseInfo";
+			case "GenericImageInfo" ->
+				GenericImageInfo.class.getName();
+			case "ICOInfo" ->
+				ICOInfo.class.getName();
+			case "Image" ->
+				Image.class.getName();
+			case "ImageFormat" ->
+				ImageFormat.class.getName();
+			case "ImageInfo" ->
+				ImageInfo.class.getName();
+			case "ImageInfo$ParseInfo" ->
+				ImageInfo.class.getName() + "$ParseInfo";
+			case "JPEGInfo" ->
+				JPEGInfo.class.getName();
+			case "JPEGInfo$CompressionType" ->
+				JPEGInfo.class.getName() + "$CompressionType";
+			case "JPEGInfo$JPEGParseInfo" ->
+				JPEGInfo.class.getName() + "$JPEGParseInfo";
+			case "JPEGSubsamplingNotation" ->
+				JPEGSubsamplingNotation.class.getName();
+			case "PCXInfo" ->
+				PCXInfo.class.getName();
+			case "PNGInfo" ->
+				PNGInfo.class.getName();
+			case "PNGInfo$InterlaceMethod" ->
+				PNGInfo.class.getName() + "$InterlaceMethod";
+			case "PNGInfo$PNGParseInfo" ->
+				PNGInfo.class.getName() + "$PNGParseInfo";
+			case "PSDInfo" ->
+				PSDInfo.class.getName();
+			case "PSDInfo$ColorMode" ->
+				PSDInfo.class.getName() + "$ColorMode";
+			case "PSDInfo$PSDParseInfo" ->
+				PSDInfo.class.getName() + "$PSDParseInfo";
+			case "RAWInfo" ->
+				RAWInfo.class.getName();
+			case "TIFFInfo" ->
+				TIFFInfo.class.getName();
+			case "WebPInfo" ->
+				WebPInfo.class.getName();
+			default ->
+				null;
 		};
 	}
 
@@ -172,16 +210,16 @@ public class DLNAThumbnailFixer {
 
 	private static byte[] getClassnameBytes(String classname) {
 		byte[] classnameStrBytes = classname.getBytes();
-		byte[] classnameLenBytes = ByteBuffer.allocate(2).putShort((short)classnameStrBytes.length).array();
+		byte[] classnameLenBytes = ByteBuffer.allocate(2).putShort((short) classnameStrBytes.length).array();
 		return ArrayUtils.addAll(classnameLenBytes, classnameStrBytes);
 	}
 
 	private static byte[] replaceAll(byte[] src, byte[] search, byte[] replacement) {
-        if (src == null || search == null || Arrays.compare(search, replacement) == 0) {
+		if (src == null || search == null || Arrays.compare(search, replacement) == 0) {
 			return src;
 		}
-        int index = findBytes(src, search);
-        if (index < 0) {
+		int index = findBytes(src, search);
+		if (index < 0) {
 			return src;
 		}
 		if (replacement == null) {
@@ -195,8 +233,8 @@ public class DLNAThumbnailFixer {
 			System.arraycopy(src, index + search.length, dst, index + replacement.length, src.length - (index + search.length));
 			index = findBytes(dst, search);
 		}
-        return dst;
-    }
+		return dst;
+	}
 
 	private static int findBytes(byte[] src, byte[] find) {
 		if (src == null || find == null || src.length == 0 || find.length == 0 || find.length > src.length) {
