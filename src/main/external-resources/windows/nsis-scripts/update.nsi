@@ -6,7 +6,6 @@
 !include "LogicLib.nsh"
 !include "nsDialogs.nsh"
 !include "x64.nsh"
-!include "GetWindowsVersion.nsh"
 
 !define REG_KEY_UNINSTALL "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\${PROJECT_NAME}"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
@@ -21,8 +20,7 @@ InstallDir "$PROGRAMFILES\${PROJECT_NAME}"
 ; Get install folder from registry for updates
 InstallDirRegKey HKCU "${REG_KEY_SOFTWARE}" ""
 
-SetCompressor /SOLID lzma
-SetCompressorDictSize 32
+SetCompressor /SOLID zlib
 
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN
@@ -32,15 +30,9 @@ SetCompressorDictSize 32
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
-!define MUI_FINISHPAGE_SHOWREADME ""
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME_TEXT "Create Desktop Shortcut"
-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION CreateDesktopShortcut
-
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
 Page Custom LockedListShow LockedListLeave
-Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -48,6 +40,14 @@ Page Custom AdvancedSettings AdvancedSettingsAfterwards ; Custom page
 !insertmacro MUI_LANGUAGE "English"
 
 ShowUninstDetails show
+
+Function .onInit
+	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	${If} $0 != "${PROJECT_BINARY_REVISION}"
+		MessageBox MB_OK|MB_ICONSTOP "Can't update this version, use the full installer" 0 0
+		Abort
+	${EndIf}
+FunctionEnd
 
 Function WelcomeLeave
 	StrCpy $R1 0
@@ -57,7 +57,6 @@ Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
 	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
-
 	${If} ${RunningX64}
 		File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\x86-unicode\LockedList64.dll`
 		; LockedList old MediaInfo locations
@@ -108,89 +107,6 @@ Function LockedListLeave
 	StrCpy $R1 1
 FunctionEnd
 
-Var Dialog
-Var Text
-Var LabelMemoryLimit
-Var DescMemoryLimit
-Var CheckboxCleanInstall
-Var CheckboxCleanInstallState
-Var DescCleanInstall
-Var MaximumMemoryJava
-
-Function AdvancedSettings
-	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them."
-	nsDialogs::Create 1018
-	Pop $Dialog
-
-	${If} $Dialog == error
-		Abort
-	${EndIf}
-
-	; Choose maximum memory limit based on java type installed
-	ClearErrors
-	${If} ${RunningX64}
-		SetRegView 64
-	${EndIf}
-
-	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-	${If} $0 == ""
-		; Get the amount of RAM on the computer
-		System::Alloc 64
-		Pop $1
-		System::Call "*$1(i64)"
-		System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
-		System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
-		System::Free $1
-		System::Int64Op $4 / 1048576
-		Pop $4
-
-		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 16000 
-			StrCpy $MaximumMemoryJava "4096"
-		${ElseIf} $4 > 8000 
-			StrCpy $MaximumMemoryJava "2048"
-		${ElseIf} $4 > 4000 
-			StrCpy $MaximumMemoryJava "1280"
-		${Else}
-			StrCpy $MaximumMemoryJava "768"
-		${EndIf}
-	${Else}
-		StrCpy $MaximumMemoryJava $0
-	${EndIf}
-
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
-	Pop $DescMemoryLimit
-
-	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
-	Pop $LabelMemoryLimit
-
-	${NSD_CreateText} 3% 30% 10% 12u $MaximumMemoryJava
-	Pop $Text
-
-	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font cache."
-	Pop $DescCleanInstall
-
-	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
-	Pop $CheckboxCleanInstall
-
-	nsDialogs::Show
-FunctionEnd
-
-Function AdvancedSettingsAfterwards
-	${NSD_GetText} $Text $0
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$0"
-
-	${NSD_GetState} $CheckboxCleanInstall $CheckboxCleanInstallState
-	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
-		ReadENVStr $R1 ALLUSERSPROFILE
-		RMDir /r $R1\UMS
-		RMDir /r $TEMP\fontconfig
-		RMDir /r $LOCALAPPDATA\fontconfig
-		RMDir /r $INSTDIR
-		DeleteRegValue HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
-	${EndIf}
-FunctionEnd
-
 ;Run program through explorer.exe to de-evaluate user from admin to regular one.
 ;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
 Function RunUMS
@@ -207,10 +123,6 @@ Function RunUMS
 		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 	${EndIf}
 FunctionEnd 
-
-Function CreateDesktopShortcut
-	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
-FunctionEnd
 
 Section "Program Files"
 	SetOutPath "$INSTDIR"
@@ -235,126 +147,11 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
-	RMDir /R /REBOOTOK "$INSTDIR\jre${PROJECT_JRE_VERSION}"
-	${If} ${RunningX64}
-		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86_64\jre${PROJECT_JRE_VERSION}"
-	${Else}
-		File /r "${PROJECT_BUILD_DIR}\bin\windows\x86\jre${PROJECT_JRE_VERSION}"
-	${EndIf}
-
-	SetOutPath "$INSTDIR\bin"
-	File /r /x "x86" /x "x86_64" /x "winxp" "${PROJECT_BUILD_DIR}\bin\windows\*.*"
-	${If} ${RunningX64}
-		File /r /x "jre${PROJECT_JRE_VERSION}" "${PROJECT_BUILD_DIR}\bin\windows\x86_64\*.*"
-	${Else}
-		File /r /x "jre${PROJECT_JRE_VERSION}" "${PROJECT_BUILD_DIR}\bin\windows\x86\*.*"
-	${EndIf}
-
-	${GetWindowsVersion} $R0
-	${If} $R0 == "XP"
-		File /r "${PROJECT_BUILD_DIR}\bin\windows\winxp"
-	${EndIf}
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "${PROJECT_BINARY_REVISION}"
-
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOutPath "$INSTDIR"
 	SetOverwrite off
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
-
-	; Remove old renderer files to prevent conflicts
-	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Android.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\AndroidChromecast.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BlackBerryPlayBook-KalemSoftMP.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Bravia4500.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Bravia5500.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaBX305.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaEX.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaEX620.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaHX.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaW.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\BraviaXBR.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\CambridgeAudioAzur752BD.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\DirecTVHR.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Dlink510.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\DLinkDSM510.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\FreeboxHD.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\FreecomMusicPal.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\iPad-iPhone.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Kuro.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\LG-42LA644V.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\LGST600.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\N900.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\NetgearNeoTV.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\OnkyoTX-NR717.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP83.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\OPPOBDP93.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-DMRBWT740.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-SC-BTT.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-TH-P-U30Z.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\PanasonicTX-L32V10E.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Panasonic-VT60.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Philips.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\PhilipsPFL.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\PS3.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Roku-Roku3.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SamsungAllShare.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SamsungAllShare-CD.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SamsungAllShare-D7000.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SamsungMobile.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HT-E3.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMT-G7400.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UE-ES6575.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SamsungWiseLink.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SharpAquos.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SMP-N100.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SonyBluray.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SonyHomeTheatreSystem.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SonySTR-5800ES.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\SonyXperia.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Streamium.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\TelstraTbox.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\VideoWebTV.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\VizioSmartTV.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\WDTVLive.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\WMP.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\XBOX360.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\XboxOne.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXA1010.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV671.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\YamahaRXV3900.conf"
-
-	; Remove old folders
-	RMDir /R /REBOOTOK "$INSTDIR\jre"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\jre-x86"
-	RMDir /R /REBOOTOK "$INSTDIR\jre8"
-	RMDir /R /REBOOTOK "$INSTDIR\jre14"
-	RMDir /R /REBOOTOK "$INSTDIR\jre14-x64"
-	RMDir /R /REBOOTOK "$INSTDIR\jre14-x86"
-	RMDir /R /REBOOTOK "$INSTDIR\jre15"
-	RMDir /R /REBOOTOK "$INSTDIR\win32"
-
-	; remove old service
-	SimpleSC::ExistsService "${OLD_SERVICE_NAME}"
-	Pop $0
-	${If} $0 == 0
-		SimpleSC::RemoveService "${OLD_SERVICE_NAME}"
-		Pop $1
-		StrCmp $1 0 osuccess 0
-		DeleteRegKey HKLM "SYSTEM\CurrentControlSet\Services\${OLD_SERVICE_NAME}"
-		osuccess:
-	${EndIf}
-
-	; Delete old MediaInfo files
-	Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
-	Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
-
-	; Delete old changelog file
-	Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
 
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
@@ -391,27 +188,6 @@ Section "Program Files"
 	; Add firewall rules
 	ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
 	ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
-SectionEnd
-
-Section "Start Menu Shortcuts"
-	SetShellVarContext all
-	CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
-
-	SimpleSC::ExistsService "${SERVICE_NAME}"
-	Pop $0
-	${If} $0 != 0
-		; Only start UMS with Windows when it is a new install
-		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-			goto end_of_startup_section
-		shortcut_file_not_found:
-			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-		end_of_startup_section:
-	${EndIf}
-
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
 
 Section "Uninstall"

@@ -1208,6 +1208,7 @@
 								<PROJECT_VERSION_SHORT>${project.version.short}</PROJECT_VERSION_SHORT>
 								<PROJECT_BINARIES>${project.binaries}</PROJECT_BINARIES>
 								<PROJECT_JRE_VERSION>${project.jre-version}</PROJECT_JRE_VERSION>
+								<PROJECT_BINARY_REVISION>${binary-revision}</PROJECT_BINARY_REVISION>
 							</defines>
 						</configuration>
 						<executions>
@@ -1223,7 +1224,17 @@
 									<goal>make</goal>
 								</goals>
 							</execution>
-
+							<execution>
+								<id>build-update-windows</id>
+								<configuration>
+									<outputFile>${project.build.directory}/UMS-update-${binary-revision}.exe</outputFile>
+									<scriptFile>${project.build.directory}/update.nsi</scriptFile>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>make</goal>
+								</goals>
+							</execution>
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
