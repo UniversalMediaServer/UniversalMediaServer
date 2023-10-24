@@ -3,20 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>InstallOptions 2</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type="text/css">
-        /*<![CDATA[*/body
+        /*<![CDATA[*/
+        html, body { font-family: Verdana, Arial, Helvetica, sans-serif; color: #000000; background-color: #ffffff; }
+        html { font-size: 0.80em; }
+        body { font-size: 1em; font-size: 1rem; }
+        pre, code { font-family: Courier New, Courier, monospace,serif; font-size: 100%; }
+        body
         {
-            padding: 10px;
+            padding:1.5em 0; margin:0;
             background-color: #F0F0F0;
             font-family: Verdana, Arial, Helvetica, sans-serif;
-            font-size: 13px;
             font-weight: normal;
             text-align: left;
         }
         p, li
         {
-            font-size: 13px;
+            font-size: 100%;
         }
         .center
         {
@@ -25,12 +30,13 @@
         table
         {
             margin: auto;
-            font-size: 13px;
+            font-size: 100%;
             background-color: #FFFFFF;
         }
         .maintable
         {
             border: 2px solid #376EAB;
+            width: 90%;
         }
         .parameter
         {
@@ -39,31 +45,27 @@
         }
         h1
         {
-            font-size: 30px;
+            font-size: 140%;
             color: #333333;
             font-weight: normal;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 1.5em;
         }
         h2
         {
-            font-size: 20px;
+            font-size: 130%;
             color: #7A7272;
             font-weight: normal;
         }
         h3
         {
-            font-size: 17px;
+            font-size: 120%;
             font-weight: bold;
             color: #303030;
         }
-        pre
-        {
-            font-size: 13px;
-        }
         div
         {
-            margin: 20px;
+            margin: 1.1em;
         }
         a:link, a:visited, a:active
         {
@@ -78,8 +80,8 @@
         .subtable
         {
             border: 0px;
-            margin-left: 20px;
-            margin-right: 20px;
+            margin-left: 1.3em;
+            margin-right: 1.3em;
         }
         .lefttable
         {
@@ -105,7 +107,7 @@
                         use the new nsDialogs plug-in instead.</p>
                 </div>
                 <div>
-                    <h2>
+                    <h2 id="intro">
                         Introduction</h2>
                     <div>
                         <p>
@@ -114,12 +116,12 @@
                         <p>
                             The dialogs created by InstallOptions are based on INI files which define the controls
                             on the dialog and their properties. These INI files can be modified from the script
-                            to adjust the dialogs on runtime.</p>
+                            to adjust the dialogs at runtime.</p>
                         <p>
                             The format of INI files is described in a <a href="http://en.wikipedia.org/wiki/Ini_file">
                                 Wikipedia article</a>.</p>
                     </div>
-                    <h2>
+                    <h2 id="ini">
                         INI file structure</h2>
                     <div>
                         <p>
@@ -649,7 +651,7 @@
         </tr>
     </table>
     </div>
-    <h2>
+    <h2 id="nsh">
         Header file</h2>
     <div>
         <p>
@@ -659,10 +661,10 @@
 !include InstallOptions.nsh
 </pre>
     </div>
-    <h2>
+    <h2 id="dialog">
         Creating dialogs</h2>
     <div>
-        <h3>
+        <h3 id="extract">
             Extracting the INI file</h3>
         <div>
             <p>
@@ -685,7 +687,7 @@ Function .onInit
 FunctionEnd
 </pre>
         </div>
-        <h3>
+        <h3 id="display">
             Displaying the dialog</h3>
         <div>
             <p>
@@ -702,7 +704,7 @@ FunctionEnd
 </pre>
         </div>
     </div>
-    <h2>
+    <h2 id="input">
         User input</h2>
     <div>
         <p>
@@ -712,17 +714,17 @@ FunctionEnd
 !insertmacro INSTALLOPTIONS_READ $VAR &quot;ioFile.ini&quot; &quot;Field #&quot; &quot;Name&quot;
 </pre>
     </div>
-    <h2>
+    <h2 id="writing">
         Writing to INI files</h2>
     <div>
         <p>
             The INSTALLOPTIONS_WRITE macro allows you to write values to the INI file to change
-            texts or control settings on runtime:
+            texts or control settings at runtime:
             <pre>
 !insertmacro INSTALLOPTIONS_WRITE &quot;ioFile.ini&quot; &quot;Field #&quot; &quot;Name&quot; &quot;Value&quot;
 </pre>
     </div>
-    <h2>
+    <h2 id="escape">
         Escaped values</h2>
     <div>
         <p>
@@ -780,7 +782,7 @@ FunctionEnd
   !insertmacro INSTALLOPTIONS_UNFUNCTION_WRITE_CONVERT
 </pre>
     </div>
-    <h2>
+    <h2 id="validate">
         Input validation</h2>
     <div>
         <p>
@@ -798,7 +800,7 @@ Function ValidateCustom
 FunctionEnd
 </pre>
     </div>
-    <h2>
+    <h2 id="dialogreturn">
         Return value</h2>
     <div>
         After a dialog is created (using display or show), a return value is available:</p>
@@ -816,7 +818,7 @@ FunctionEnd
             macro. The return value will be added to the stack, so you can use the Pop command
             to get it.</p>
     </div>
-    <h2>
+    <h2 id="reserve">
         Reserve files</h2>
     <div>
         <p>
@@ -828,7 +830,7 @@ FunctionEnd
             the INI files before all sections and functions:</p>
         <pre>
 ReserveFile &quot;test.ini&quot;
-ReserveFile &quot;${NSISDIR}\Plugins\InstallOptions.dll&quot;
+ReserveFile /plugin InstallOptions.dll
 </pre>
     </div>
     <h2>
@@ -868,7 +870,7 @@ Function FunctionName ;FunctionName defined with Page command
 FunctionEnd
 </pre>
     </div>
-    <h2>
+    <h2 id="credits">
         Credits</h2>
     <div>
         <p>
@@ -877,13 +879,13 @@ FunctionEnd
             DLL version 2 by Amir Szekely, ORTIM, Joost Verburg<br />
             New documentation by Joost Verburg</p>
     </div>
-    <h2>
+    <h2 id="license">
         License</h2>
     <div>
         <pre>
 Original version Copyright &copy; 2001 Michael Bishop
 DLL version 1 Copyright &copy; 2001-2002 Nullsoft, Inc., ORTIM
-DLL version 2 Copyright &copy; 2003-2015 Amir Szekely, Joost Verburg, Dave Laundon
+DLL version 2 Copyright &copy; 2003-2023 Amir Szekely, Joost Verburg, Dave Laundon
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

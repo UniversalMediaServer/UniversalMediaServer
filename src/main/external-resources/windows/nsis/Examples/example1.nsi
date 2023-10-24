@@ -4,6 +4,8 @@
 ; optional settings are left to their default settings. The installer simply 
 ; prompts the user asking them where to install, and drops a copy of example1.nsi
 ; there. 
+;
+; example2.nsi expands on this by adding a uninstaller and start menu shortcuts.
 
 ;--------------------------------
 
@@ -13,11 +15,14 @@ Name "Example1"
 ; The file to write
 OutFile "example1.exe"
 
-; The default installation directory
-InstallDir $DESKTOP\Example1
-
 ; Request application privileges for Windows Vista
 RequestExecutionLevel user
+
+; Build Unicode installer
+Unicode True
+
+; The default installation directory
+InstallDir $DESKTOP\Example1
 
 ;--------------------------------
 
@@ -37,4 +42,4 @@ Section "" ;No components page, name is not important
   ; Put file there
   File example1.nsi
   
-SectionEnd ; end the section
+SectionEnd

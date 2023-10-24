@@ -118,7 +118,7 @@ Components page
 
   Function "${SHOW}"
   
-    ;Get control hanldes
+    ;Get control handles
     FindWindow $mui.ComponentsPage "#32770" "" $HWNDPARENT
     GetDlgItem $mui.ComponentsPage.Text             $mui.ComponentsPage 1006
     GetDlgItem $mui.ComponentsPage.InstTypesText    $mui.ComponentsPage 1021

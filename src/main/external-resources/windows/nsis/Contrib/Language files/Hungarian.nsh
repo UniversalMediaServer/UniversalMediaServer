@@ -1,122 +1,122 @@
-;Language: Hungarian (1038)
+Ôªø;Language: Hungarian (1038)
 ;Translation by Jozsef Tamas Herczeg ( - 1.61-ig),
-;               Lajos Molnar (Orfanik) <orfanik@axelero.hu> ( 1.62 - tıl)
+;               Lajos Molnar (Orfanik) <orfanik@axelero.hu> ( 1.62 - t≈ël)
 
-!insertmacro LANGFILE "Hungarian" "Magyar"
+!insertmacro LANGFILE "Hungarian" = "Magyar" =
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "‹dvˆzli a(z) $(^NameDA) TelepÌtı Var·zslÛ"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "A(z) $(^NameDA) telepÌtÈse kˆvetkezik a sz·mÌtÛgÈpre.$\r$\n$\r$\nJavasoljuk, hogy indÌt·s elıtt z·rja be a futÛ alkalmaz·sokat. Õgy a telepÌtı a rendszer ˙jraindÌt·sa nÈlk¸l tudja frissÌteni a sz¸ksÈges rendszerf·jlokat.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "√údv√∂zli a(z) $(^NameDA) Telep√≠t≈ë Var√°zsl√≥"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "A(z) $(^NameDA) telep√≠t√©se k√∂vetkezik a sz√°m√≠t√≥g√©pre.$\r$\n$\r$\nJavasoljuk, hogy ind√≠t√°s el≈ëtt z√°rja be a fut√≥ alkalmaz√°sokat. √çgy a telep√≠t≈ë a rendszer √∫jraind√≠t√°sa n√©lk√ºl tudja friss√≠teni a sz√ºks√©ges rendszerf√°jlokat.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "‹dvˆzli a(z) $(^NameDA) Elt·volÌtÛ Var·zslÛ"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ez a var·zslÛ segÌti a(z) $(^NameDA) elt·volÌt·s·ban.$\r$\n$\r$\nMielıtt elkezdi az elt·vilÌt·st gyızıdjˆn meg arrÛl, hogy a(z) $(^NameDA) nem fut.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "√údv√∂zli a(z) $(^NameDA) Elt√°vol√≠t√≥ Var√°zsl√≥"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ez a var√°zsl√≥ seg√≠ti a(z) $(^NameDA) elt√°vol√≠t√°s√°ban.$\r$\n$\r$\nMiel≈ëtt elkezdi az elt√°vil√≠t√°st gy≈ëz≈ëdj√∂n meg arr√≥l, hogy a(z) $(^NameDA) nem fut.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "LicencszerzıdÈs"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "A(z) $(^NameDA) telepÌtÈse elıtt tekintse ·t a szerzıdÈs feltÈteleit."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ha elfogadja a szerzıdÈs valamennyi feltÈtelÈt, az Elfogadom gombbal folytathatja. El kell fogadnia a(z) $(^NameDA) telepÌtÈsÈhez."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Amennyiben elfogadja a feltÈteleket, jelˆlje be a jelˆlınÈnyzeten. A(z) $(^NameDA) telepÌtÈsÈhez el kell fogadnia a feltÈteleket. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Amennyiben elfogadja a feltÈteleket, v·lassza az elsı opciÛt. A(z) $(^NameDA) telepÌtÈsÈhez el kell fogadnia a feltÈteleket. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licencszerz≈ëd√©s"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "A(z) $(^NameDA) telep√≠t√©se el≈ëtt tekintse √°t a szerz≈ëd√©s felt√©teleit."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ha elfogadja a szerz≈ëd√©s valamennyi felt√©tel√©t, az Elfogadom gombbal folytathatja. El kell fogadnia a(z) $(^NameDA) telep√≠t√©s√©hez."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Amennyiben elfogadja a felt√©teleket, jel√∂lje be a jel√∂l≈ën√©nyzeten. A(z) $(^NameDA) telep√≠t√©s√©hez el kell fogadnia a felt√©teleket. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Amennyiben elfogadja a felt√©teleket, v√°lassza az els≈ë opci√≥t. A(z) $(^NameDA) telep√≠t√©s√©hez el kell fogadnia a felt√©teleket. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "LicencszerzıdÈs"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "A(z) $(^NameDA) elt·volÌt·sa elıtt tekintse ·t a szerzıdÈs feltÈteleit."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ha elfogadja a szerzıdÈs valamennyi feltÈtelÈt, az Elfogadom gombbal folytathatja. El kell fogadnia a(z) $(^NameDA) elt·volÌt·s·hoz."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Amennyiben elfogadja a feltÈteleket, jelˆlje be a jelˆlınÈnyzeten. A(z) $(^NameDA) elt·volÌt·s·hoz el kell fogadnia a feltÈteleket. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Amennyiben elfogadja a feltÈteleket, v·lassza az elsı opciÛt. A(z) $(^NameDA) elt·volÌt·s·hoz el kell fogadnia a feltÈteleket. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licencszerz≈ëd√©s"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "A(z) $(^NameDA) elt√°vol√≠t√°sa el≈ëtt tekintse √°t a szerz≈ëd√©s felt√©teleit."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ha elfogadja a szerz≈ëd√©s valamennyi felt√©tel√©t, az Elfogadom gombbal folytathatja. El kell fogadnia a(z) $(^NameDA) elt√°vol√≠t√°s√°hoz."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Amennyiben elfogadja a felt√©teleket, jel√∂lje be a jel√∂l≈ën√©nyzeten. A(z) $(^NameDA) elt√°vol√≠t√°s√°hoz el kell fogadnia a felt√©teleket. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Amennyiben elfogadja a felt√©teleket, v√°lassza az els≈ë opci√≥t. A(z) $(^NameDA) elt√°vol√≠t√°s√°hoz el kell fogadnia a felt√©teleket. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "A PageDown gombbal olvashatja el a szerzıdÈs folytat·s·t."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "A PageDown gombbal olvashatja el a szerz≈ëd√©s folytat√°s√°t."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "÷sszetevık kiv·laszt·sa"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "V·lassza ki, hogy a(z) $(^NameDA) mely funkciÛit kÌv·nja telepÌteni."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "√ñsszetev≈ëk kiv√°laszt√°sa"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "V√°lassza ki, hogy a(z) $(^NameDA) mely funkci√≥it k√≠v√°nja telep√≠teni."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "÷sszetevık kiv·laszt·sa"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "V·lassza ki, hogy a(z) $(^NameDA) mely funkciÛit kÌv·nja elt·volÌtani."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "√ñsszetev≈ëk kiv√°laszt√°sa"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "V√°lassza ki, hogy a(z) $(^NameDA) mely funkci√≥it k√≠v√°nja elt√°vol√≠tani."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "LeÌr·s"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Le√≠r√°s"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Vigye r· az egeret az ˆsszetevıre, hogy megtekinthesse a leÌr·s·t."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Vigye r√° az egeret az √∂sszetev≈ëre, hogy megtekinthesse a le√≠r√°s√°t."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Vigye r· az egeret az ˆsszetevıre, hogy megtekinthesse a leÌr·s·t."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "TelepÌtÈsi hely kiv·laszt·sa"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "V·lassza ki a(z) $(^NameDA) telepÌtÈsÈnek mapp·j·t."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Telep√≠t√©si hely kiv√°laszt√°sa"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "V√°lassza ki a(z) $(^NameDA) telep√≠t√©s√©nek mapp√°j√°t."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "TelepÌtÈsi hely kiv·laszt·sa"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "V·lassza ki a(z) $(^NameDA) telepÌtÈsÈnek mapp·j·t."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Telep√≠t√©si hely kiv√°laszt√°sa"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "V√°lassza ki a(z) $(^NameDA) telep√≠t√©s√©nek mapp√°j√°t."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "TelepÌtÈsi folyamat"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Kis t¸relmet a(z) $(^NameDA) telepÌtÈsÈig."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "TelepÌtÈs befejezıdˆtt"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "A telepÌtÈs sikeresen befejezıdˆtt."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "A telepÌtÈs megszakadt"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "A telepÌtÈs sikertelen volt."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Telep√≠t√©si folyamat"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Kis t√ºrelmet a(z) $(^NameDA) telep√≠t√©s√©ig."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Telep√≠t√©s befejez≈ëd√∂tt"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "A telep√≠t√©s sikeresen befejez≈ëd√∂tt."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "A telep√≠t√©s megszakadt"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "A telep√≠t√©s sikertelen volt."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Elt·volÌt·si folyamat"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Kis t¸relmet a(z) $(^NameDA) elt·volÌt·s·ig."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Az elt·volÌt·s befejezıdˆtt"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Az elt·volÌt·s sikeresen befejezıdˆtt."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Az elt·volÌt·s megszakadt"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Az elt·volÌt·s sikertelen volt."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Elt√°vol√≠t√°si folyamat"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Kis t√ºrelmet a(z) $(^NameDA) elt√°vol√≠t√°s√°ig."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Az elt√°vol√≠t√°s befejez≈ëd√∂tt"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Az elt√°vol√≠t√°s sikeresen befejez≈ëd√∂tt."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Az elt√°vol√≠t√°s megszakadt"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Az elt√°vol√≠t√°s sikertelen volt."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "A(z) $(^NameDA) telepÌtÈse megtˆrtÈnt."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "A(z) $(^NameDA) telepÌtÈse megtˆrtÈnt.$\r$\n$\r$\nA BefejezÈs gomb megnyom·s·val z·rja be a var·zslÛt."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "A(z) $(^NameDA) telepÌtÈsÈnek befejezÈsÈhez ˙jra kell indÌtani a rendszert. Most akarja ˙jraindÌtani?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "A(z) $(^NameDA) telep√≠t√©se megt√∂rt√©nt."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "A(z) $(^NameDA) telep√≠t√©se megt√∂rt√©nt.$\r$\n$\r$\nA Befejez√©s gomb megnyom√°s√°val z√°rja be a var√°zsl√≥t."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "A(z) $(^NameDA) telep√≠t√©s√©nek befejez√©s√©hez √∫jra kell ind√≠tani a rendszert. Most akarja √∫jraind√≠tani?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "A(z) $(^NameDA) elt·volÌt·s var·zslÛj·nak befejezÈse."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "A(z) $(^NameDA) elt·volÌt·sa sikeresen befejezıdˆtt.$\r$\n$\r$\nA Finish-re kattintva bez·rul ez a var·zslÛ."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "A sz·mÌtÛgÈpet ˙jra kell indÌtani, hogy a(z) $(^NameDA) elt·volÌt·sa teljes legyen. Akarja most ˙jraindÌtani a rendszert?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "A(z) $(^NameDA) elt√°vol√≠t√°s var√°zsl√≥j√°nak befejez√©se."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "A(z) $(^NameDA) elt√°vol√≠t√°sa sikeresen befejez≈ëd√∂tt.$\r$\n$\r$\nA Finish-re kattintva bez√°rul ez a var√°zsl√≥."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "A sz√°m√≠t√≥g√©pet √∫jra kell ind√≠tani, hogy a(z) $(^NameDA) elt√°vol√≠t√°sa teljes legyen. Akarja most √∫jraind√≠tani a rendszert?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Most indÌtom ˙jra"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "KÈsıbb fogom ˙jraindÌtani"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) futtat·sa"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "OlvassEl f·jl megjelenÌtÈse"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&BefejezÈs"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Most ind√≠tom √∫jra"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "K√©s≈ëbb fogom √∫jraind√≠tani"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) futtat√°sa"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "OlvassEl f√°jl megjelen√≠t√©se"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Befejez√©s"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Start men¸ mappa kijelˆlÈse"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Start men¸ mappa kijelˆlÈse a program parancsikonjaihoz."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Jelˆljˆn ki egy mapp·t a Start men¸ben, melybe a program parancsikonjait fogja elhelyezni. BeÌrhatja ˙j mappa nevÈt is."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nincs parancsikon elhelyezÈs"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Start men√º mappa kijel√∂l√©se"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Start men√º mappa kijel√∂l√©se a program parancsikonjaihoz."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Jel√∂lj√∂n ki egy mapp√°t a Start men√ºben, melybe a program parancsikonjait fogja elhelyezni. Be√≠rhatja √∫j mappa nev√©t is."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nincs parancsikon elhelyez√©s"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "A(z) $(^NameDA) Elt·volÌt·sa."
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "A(z) $(^NameDA) elt·volÌt·sa kˆvetkezik a sz·mÌtÛgÈprıl."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "A(z) $(^NameDA) Elt√°vol√≠t√°sa."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "A(z) $(^NameDA) elt√°vol√≠t√°sa k√∂vetkezik a sz√°m√≠t√≥g√©pr≈ël."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Biztos, hogy ki akar lÈpni a(z) $(^Name) TelepÌtıbıl?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Biztos, hogy ki akar l√©pni a(z) $(^Name) Telep√≠t≈ëb≈ël?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Biztos, hogy ki akar lÈpni a(z) $(^Name) Elt·volÌtÛbÛl?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Biztos, hogy ki akar l√©pni a(z) $(^Name) Elt√°vol√≠t√≥b√≥l?"
 !endif

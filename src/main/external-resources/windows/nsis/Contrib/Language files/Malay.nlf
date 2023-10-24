@@ -1,12 +1,12 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Language ID
 1086
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
--
+# Codepage - dash (-) means ASCII code page
+1252
 # RTL - anything else than RTL means LTR
 -
 # Translation muhammadazwa@yahoo.com
@@ -183,8 +183,8 @@ Catat proses kemasukan
 # ^Byte
 Bait
 # ^Kilo
-Kilo
+ Kilo
 # ^Mega
-Mega
+ Mega
 # ^Giga
-Giga
+ Giga

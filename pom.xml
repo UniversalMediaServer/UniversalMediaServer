@@ -127,16 +127,6 @@
 		<junit5.version>5.10.0</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>ossrh</id>
-			<name>Sonatype OSS Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<layout>default</layout>
-		</pluginRepository>
-	</pluginRepositories>
-	<repositories>
-	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -1165,7 +1155,7 @@
 						Plugin to add scripts for nullsoft scriptable install system (NSIS).
 						The filtered file "target/extra.nsh", contains the definitions for
 						project variables like "${PROJECT_JRE_VERSION}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
@@ -1204,38 +1194,56 @@
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
 						definitions for project variables like "${PROJECT_BASEDIR}" that can be used in the
-						"pms.nsi" and "setup.nsi" files.
+						"ums.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
-						<groupId>org.codehaus.mojo</groupId>
+						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0-SNAPSHOT</version>
+						<version>1.0.3</version>
+						<configuration>
+							<makensisExecutable>${makensis-bin}</makensisExecutable>
+							<makensisExecutableLinux>makensis</makensisExecutableLinux>
+							<makensisExecutableMacOS>makensis</makensisExecutableMacOS>
+							<defines>
+								<PROJECT_VERSION_SHORT>${project.version.short}</PROJECT_VERSION_SHORT>
+								<PROJECT_BINARIES>${project.binaries}</PROJECT_BINARIES>
+								<PROJECT_JRE_VERSION>${project.jre-version}</PROJECT_JRE_VERSION>
+								<PROJECT_BINARY_REVISION>${binary-revision}</PROJECT_BINARY_REVISION>
+							</defines>
+						</configuration>
 						<executions>
 							<execution>
 								<id>build-ums-windows</id>
 								<configuration>
-									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
-									<setupScript>${project.build.directory}/pms.nsi</setupScript>
+									<scriptFile>${project.build.directory}/ums.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
-									<goal>generate-project</goal>
-									<goal>compile</goal>
+									<goal>generate-headerfile</goal>
+									<goal>make</goal>
 								</goals>
 							</execution>
-
+							<execution>
+								<id>build-update-windows</id>
+								<configuration>
+									<outputFile>${project.build.directory}/UMS-update-${binary-revision}.exe</outputFile>
+									<scriptFile>${project.build.directory}/update.nsi</scriptFile>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>make</goal>
+								</goals>
+							</execution>
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
-									<setupScript>${project.build.directory}/setup.nsi</setupScript>
+									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
-									<goal>generate-project</goal>
-									<goal>compile</goal>
+									<goal>make</goal>
 								</goals>
 							</execution>
 						</executions>

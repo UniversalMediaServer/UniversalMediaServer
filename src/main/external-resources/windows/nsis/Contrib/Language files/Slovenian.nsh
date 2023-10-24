@@ -1,32 +1,33 @@
-;Language: Slovenian (1060)
+Ôªø;Language: Slovenian (1060)
 ;By Janez Dolinar, edited by Martin Srebotnjak - Lugos.si
 
-!insertmacro LANGFILE "Slovenian" "Slovenski jezik"
+# We use "slovenski", the other alternative is "sloven≈°ƒçina" (Note: "slovenƒçina" is the native name of Slovak)
+!insertmacro LANGFILE "Slovenian" = "Slovenski" =
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Dobrodoöli v Ëarovniku namestitve $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ta Ëarovnik vas vodi skozi namestitev programa $(^NameDA).$\r$\n$\r$\nPred namestitvijo je priporoËeno zapreti vsa ostala okna in programe. S tem omogoËite nemoteno namestitev programa in potrebnih sistemskih datotek brez ponovnega zagona raËunalnika.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Dobrodo≈°li v ƒçarovniku namestitve $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ta ƒçarovnik vas vodi skozi namestitev programa $(^NameDA).$\r$\n$\r$\nPred namestitvijo je priporoƒçeno zapreti vsa ostala okna in programe. S tem omogoƒçite nemoteno namestitev programa in potrebnih sistemskih datotek brez ponovnega zagona raƒçunalnika.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Dobrodoöli v Ëarovniku za odstranitev $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ta Ëarovnik vas bo vodil skozi odstranitev $(^NameDA).$\r$\n$\r$\nPreden priËnete z odstranitvijo, se prepriËajte, da program $(^NameDA) ni zagnan.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Dobrodo≈°li v ƒçarovniku za odstranitev $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ta ƒçarovnik vas bo vodil skozi odstranitev $(^NameDA).$\r$\n$\r$\nPreden priƒçnete z odstranitvijo, se prepriƒçajte, da program $(^NameDA) ni zagnan.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "LicenËna pogodba"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Prosimo, da si ogledate pogoje licenËne pogodbe pred namestitvijo $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "»e se strinjate s pogoji, pritisnite Se strinjam. Da bi lahko namestili $(^NameDA), se morate s pogodbo strinjati."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "»e se strinjate z licenËnimi pogoji pogodbe, spodaj izberite ustrezno okence. Za namestitev $(^NameDA) se morate strinjati s pogoji pogodbe. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "»e se strinjate z licenËnimi pogoji pogodbe, spodaj izberite prvo moûnost. Za namestitev $(^NameDA) se morate strinjati s pogoji pogodbe. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licenƒçna pogodba"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Prosimo, da si ogledate pogoje licenƒçne pogodbe pred namestitvijo $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "ƒåe se strinjate s pogoji, pritisnite Se strinjam. Da bi lahko namestili $(^NameDA), se morate s pogodbo strinjati."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "ƒåe se strinjate z licenƒçnimi pogoji pogodbe, spodaj izberite ustrezno okence. Za namestitev $(^NameDA) se morate strinjati s pogoji pogodbe. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "ƒåe se strinjate z licenƒçnimi pogoji pogodbe, spodaj izberite prvo mo≈ænost. Za namestitev $(^NameDA) se morate strinjati s pogoji pogodbe. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "LicenËna pogodba"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Prosimo, da pred odstranitvijo $(^NameDA) pregledate pogoje licenËne pogodbe."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "»e se strinjate s pogoji licenËne pogodbe, izberite Se strinjam. Za odstranitev $(^NameDA) se morate strinjati s pogoji."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "»e se strinjate s pogoji licenËne pogodbe, kliknite na okence spodaj. Za odstranitev $(^NameDA) se morate strinjati s pogoji. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "»e se strinjate s pogoji licenËne pogodbe, spodaj izberite prvo podano moûnost. Za odstranitev $(^NameDA) se morate strinjati s pogoji. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licenƒçna pogodba"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Prosimo, da pred odstranitvijo $(^NameDA) pregledate pogoje licenƒçne pogodbe."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "ƒåe se strinjate s pogoji licenƒçne pogodbe, izberite Se strinjam. Za odstranitev $(^NameDA) se morate strinjati s pogoji."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "ƒåe se strinjate s pogoji licenƒçne pogodbe, kliknite na okence spodaj. Za odstranitev $(^NameDA) se morate strinjati s pogoji. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "ƒåe se strinjate s pogoji licenƒçne pogodbe, spodaj izberite prvo podano mo≈ænost. Za odstranitev $(^NameDA) se morate strinjati s pogoji. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
@@ -35,95 +36,95 @@
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Izbor komponent"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Izberite, katere komponente izdelka $(^NameDA) ûelite namestiti."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Izberite, katere komponente izdelka $(^NameDA) ≈æelite namestiti."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Izbor komponent"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Izberite komponente $(^NameDA), ki jih ûelite odstraniti."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Izberite komponente $(^NameDA), ki jih ≈æelite odstraniti."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Opis"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Povlecite miöko nad komponento, da vidite njen opis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Povlecite mi≈°ko nad komponento, da vidite njen opis."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Povlecite miöko nad komponento, da vidite njen opis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Izberite komponento za prikaz njenega opisa."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
   ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Izberite pot namestive"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Izberite mapo, v katero ûelite namestiti $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Izberite mapo, v katero ≈æelite namestiti $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
   ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Izbor mape"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Izberite mapo, iz katere ûelite odstraniti $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Izberite mapo, iz katere ≈æelite odstraniti $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "NameöËanje poteka"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Prosimo, poËakajte, $(^NameDA) se nameöËa."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "DokonËana namestitev"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Namestitev je uspeöno zakljuËena."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Name≈°ƒçanje poteka"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Prosimo, poƒçakajte, $(^NameDA) se name≈°ƒça."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Dokonƒçana namestitev"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Namestitev je uspe≈°no zakljuƒçena."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Prekinjena namestitev"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Namestitev ni bila uspeöno zakljuËena."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Namestitev ni bila uspe≈°no zakljuƒçena."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Odstranjevanje poteka"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Prosimo, poËakajte, dokler se program $(^NameDA) odstranjuje."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Odstranitev konËana"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odstranitev je uspeöno konËana."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Prosimo, poƒçakajte, dokler se program $(^NameDA) odstranjuje."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Odstranitev konƒçana"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odstranitev je uspe≈°no konƒçana."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Odstranitev prekinjena"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Odstranitev ni bila konËana uspeöno."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Odstranitev ni bila konƒçana uspe≈°no."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "ZakljuËevanje namestitve $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Program $(^NameDA) je bil nameöËen na vaö raËunalnik.$\r$\n$\r$\nPritisnite DokonËaj za zaprtje Ëarovnika."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Za dokonËanje namestitve $(^NameDA) morate ponovno zagnati raËunalnik. éelite zdaj ponovno zagnati raËunalnik?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Zakljuƒçevanje namestitve $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Program $(^NameDA) je bil name≈°ƒçen na va≈° raƒçunalnik.$\r$\n$\r$\nPritisnite Dokonƒçaj za zaprtje ƒçarovnika."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Za dokonƒçanje namestitve $(^NameDA) morate ponovno zagnati raƒçunalnik. ≈Ωelite zdaj ponovno zagnati raƒçunalnik?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "»arovnik za odstranitev $(^NameDA) se zakljuËuje"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Program $(^NameDA) je odstranjen z vaöega raËunalnika.$\r$\n$\r$\nKliknite DokonËaj, da zaprete Ëarovnika."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Da bi se namestitev $(^NameDA) dokonËala, morate ponovno zagnati raËunalnik. éelite zdaj znova zagnati raËunalnik?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "ƒåarovnik za odstranitev $(^NameDA) se zakljuƒçuje"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Program $(^NameDA) je odstranjen z va≈°ega raƒçunalnika.$\r$\n$\r$\nKliknite Dokonƒçaj, da zaprete ƒçarovnika."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Da bi se namestitev $(^NameDA) dokonƒçala, morate ponovno zagnati raƒçunalnik. ≈Ωelite zdaj znova zagnati raƒçunalnik?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Ponovni zagon"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "RaËunalnik ûelim znova zagnati kasneje"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Zaûeni $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Pokaûi BeriMe"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "Do&konËaj"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Raƒçunalnik ≈æelim znova zagnati kasneje"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&Za≈æeni $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Poka≈æi BeriMe"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "Do&konƒçaj"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
   ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Izberite mapo menija Start"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Izberite mapo menija Start za bliûnjice do $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Izberite mapo menija Start, kjer ûelite ustvariti bliûnjico do programa. »e vpiöete novo ime, boste ustvarili istoimensko mapo."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Ne ustvari bliûnjic"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Izberite mapo menija Start za bli≈ænjice do $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Izberite mapo menija Start, kjer ≈æelite ustvariti bli≈ænjico do programa. ƒåe vpi≈°ete novo ime, boste ustvarili istoimensko mapo."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Ne ustvari bli≈ænjic"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
   ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Odstranitev $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Odstrani $(^NameDA) z vaöega raËunalnika."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Odstrani $(^NameDA) z va≈°ega raƒçunalnika."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Ste prepriËani, da ûelite prekiniti namestitev $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Ste prepriƒçani, da ≈æelite prekiniti namestitev $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ste prepriËani, da ûelite zapustiti odstranitev $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ste prepriƒçani, da ≈æelite zapustiti odstranitev $(^Name)?"
 !endif
 
 !ifdef MULTIUSER_INSTALLMODEPAGE
   ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Izberite uporabnike"
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Izberite uporabnike, za katere ûelite namestiti $(^NameDA)."
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Izberite, ali ûelite namestiti $(^NameDA) le zase ali za vse uporabnike tega raËunalnika. $(^ClickNext)"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Namesti za vse uporabnike tega raËunalnika"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Izberite uporabnike, za katere ≈æelite namestiti $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Izberite, ali ≈æelite namestiti $(^NameDA) le zase ali za vse uporabnike tega raƒçunalnika. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Namesti za vse uporabnike tega raƒçunalnika"
   ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Namesti le zame"
 !endif

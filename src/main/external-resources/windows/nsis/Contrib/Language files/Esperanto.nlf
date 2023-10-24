@@ -1,18 +1,18 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Start editing here
-# Language ID (none exists for Kurdish at the moment)
+# Language ID (none exists for Esperanto at the moment)
 9998
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 -
 # RTL - anything else than RTL means LTR
 -
 # Translation v4.0.3 by Felipe Castro <fefcas@gmail.com>
 # ^Branding
-Instalada Sistemo de Nullsoft %s
+Nullsoft Install System %s
 # ^SetupCaption
 Instalado de $(^Name)
 # ^UninstallCaption
@@ -184,8 +184,8 @@ Registri instalad-procezo
 # ^Byte
 B
 # ^Kilo
-k
+ k
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G
