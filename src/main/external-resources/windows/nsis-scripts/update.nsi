@@ -26,12 +26,10 @@ SetCompressor /SOLID zlib
 !define MUI_FINISHPAGE_RUN
 !define MUI_FINISHPAGE_RUN_FUNCTION RunUMS
 !define MUI_ICON "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\nsis3-uninstall.ico"
-!define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\nsis3-metro.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\ums.bmp"
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
 !insertmacro MUI_PAGE_WELCOME
-!insertmacro MUI_PAGE_DIRECTORY
 Page Custom LockedListShow LockedListLeave
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
