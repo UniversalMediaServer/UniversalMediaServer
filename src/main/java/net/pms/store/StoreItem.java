@@ -181,7 +181,7 @@ public abstract class StoreItem extends StoreResource {
 	 */
 	protected void resolveFormat() {
 		if (format == null) {
-			format = FormatFactory.getAssociatedFormat(getSystemName());
+			format = FormatFactory.getAssociatedFormat(getFileName());
 		}
 
 		if (format != null && format.isUnknown()) {
@@ -631,7 +631,7 @@ public abstract class StoreItem extends StoreResource {
 					if (isLogPlayEvents()) {
 						LOGGER.info("Started playing {} ({}) on your {}", getName(), getEngineName(), rendererName);
 						LOGGER.debug(
-								"The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+								"The full filename of which is: " + getFileName() + " and the address of the renderer is: " + rendererId);
 					}
 					startTime = System.currentTimeMillis();
 				};
@@ -683,7 +683,7 @@ public abstract class StoreItem extends StoreResource {
 
 						if (isLogPlayEvents()) {
 							LOGGER.info("Stopped playing {} on {}", getName(), rendererName);
-							LOGGER.debug("The full filename of which is \"{}\" and the address of the renderer is {}", getSystemName(),
+							LOGGER.debug("The full filename of which is \"{}\" and the address of the renderer is {}", getFileName(),
 									rendererId);
 						}
 						internalStop();

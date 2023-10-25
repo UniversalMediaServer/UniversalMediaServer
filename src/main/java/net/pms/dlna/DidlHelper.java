@@ -403,10 +403,10 @@ public class DidlHelper extends DlnaHelper {
 							if (defaultAudioTrack != null && mediaInfo.getDurationInSeconds() > 0.0 && transcodeFrequency > 0 &&
 								transcodeNumberOfChannels > 0) {
 								int finalSize = (int) (mediaInfo.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
-								LOGGER.trace("Calculated transcoded size for {}: {}", resource.getSystemName(), finalSize);
+								LOGGER.trace("Calculated transcoded size for {}: {}", resource.getFileName(), finalSize);
 								addAttribute(sb, "size", finalSize);
 							} else if (mediaInfo.getSize() > 0) {
-								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", resource.getSystemName(),
+								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", resource.getFileName(),
 									mediaInfo.getSize());
 								addAttribute(sb, "size", mediaInfo.getSize());
 							}

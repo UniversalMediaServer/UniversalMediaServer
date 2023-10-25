@@ -1137,8 +1137,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 		if (item.getFormat().isVideo()) {
 			mimeType = renderer.getVideoMimeType();
-			if (FileUtil.isUrl(item.getSystemName())) {
-				if (FFmpegWebVideo.isYouTubeURL(item.getSystemName())) {
+			if (FileUtil.isUrl(item.getFileName())) {
+				if (FFmpegWebVideo.isYouTubeURL(item.getFileName())) {
 					item.setEngine(EngineFactory.getEngine(StandardEngineId.YOUTUBE_DL, false, false));
 				} else {
 					item.setEngine(EngineFactory.getEngine(StandardEngineId.FFMPEG_WEB_VIDEO, false, false));

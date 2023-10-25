@@ -117,7 +117,7 @@ public class FileNamePrettifier {
 			tmpName = realFile.getFile().getName();
 		}
 		if (isBlank(tmpName)) {
-			tmpName = resource.getSystemName();
+			tmpName = resource.getFileName();
 		}
 		if (isBlank(tmpName)) {
 			tmpName = resource.getName();
