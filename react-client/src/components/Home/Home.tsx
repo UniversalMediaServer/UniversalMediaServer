@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, LoadingOverlay, Tabs } from '@mantine/core';
+import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
@@ -40,6 +40,7 @@ const Home = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
+  const canView = canModify || havePermission(session, Permissions.settings_view);
   const canControlRenderers = havePermission(session, Permissions.devices_control);
   const [loading, setLoading] = useState(false);
 
@@ -179,7 +180,7 @@ const Home = () => {
       });
   };
 
-  return (
+  return canView ? (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       <LoadingOverlay visible={loading} />
       <Tabs keepMounted={false} defaultValue='renderers'>
@@ -226,6 +227,10 @@ const Home = () => {
           />
         </Tabs.Panel>
       </Tabs>
+    </Box>
+  ) : (
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
     </Box>
   );
 };

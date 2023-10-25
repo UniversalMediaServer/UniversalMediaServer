@@ -299,6 +299,8 @@ public class StoreContainer extends StoreResource {
 
 				if (isNew) {
 					addChildInternal(item, isAddGlobally);
+				} else {
+					LOGGER.trace("Details on media being imported :" + item);
 				}
 
 				if (resumeRes != null) {

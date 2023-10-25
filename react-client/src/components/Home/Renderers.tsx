@@ -110,7 +110,8 @@ const Renderers = (
         label={i18n.get['LinkRendererTo']}
         defaultValue={userChanger?.userId.toString()}
         onChange={(value) => {setUserChangerValue(value)}}
-        maxDropdownHeight={60}
+        withScrollArea={false}
+        styles={{ dropdown: { maxHeight: 70, overflowY: 'auto' } }}
         data={getAccountNameList()}
       />
       <Group justify='flex-end' mt='md'>

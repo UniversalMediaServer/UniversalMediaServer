@@ -35,7 +35,7 @@ function UserMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-        {!session.player &&
+        {!session.player && havePermission(session, Permissions.settings_view) &&
           <Menu.Item
             color='green'
             leftSection={<Home size={14} />}
