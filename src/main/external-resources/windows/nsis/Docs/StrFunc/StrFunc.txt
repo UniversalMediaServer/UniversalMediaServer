@@ -1,4 +1,4 @@
-String Functions Header File Readme
+ï»¿String Functions Header File Readme
 -----------------------------------
 
 String Functions Header File contains a set of good string manipulation
@@ -32,7 +32,7 @@ How to use
 
     !include "StrFunc.nsh"
 
-    StrFunc.nsh has to be inside Include directory, so you don't have to
+    StrFunc.nsh is inside the Include directory, so you don't have to
     specify a path.
 
     You have to put this command before any command used in this header file.
@@ -72,13 +72,13 @@ How to use
 
                    - Text   - Needs text or number to be input.
 
-                   - Mixed  - Needs text, number or option to be inputed.
+                   - Mixed  - Needs text, number or option to be input.
                               Each subitem following the "Mixed" word is an
                               option. The first option is ever the default
                               one. Two following spaces "  " means that
                               that subitem is empty.
 
-                   - Option - Needs an option to be inputed. Each subitem
+                   - Option - Needs an option to be input. Each subitem
                               following the "Option" word is an option.
                               The first option is ever the default one. Two
                               following spaces "  " means that that subitem
@@ -93,25 +93,25 @@ How to use
     3.1 How To Use Commands In Install Sections and Functions
     ---------------------------------------------------------
 
-    Every command used in install sections and functions have to be called
-    first before and out of any sections and functions, and without
+    Every command used in install sections and functions have to be declared
+    before (and outside of) any sections and functions, and without
     parameters.
 
     Example:
     --------
 
-    ${StrStr}
+    ${UsingStrFunc} StrStr
     
     3.2 How To Use Commands In Uninstall Sections and Functions
     -----------------------------------------------------------
 
-    Commands with Uninstall Sections and Functions support have "Un" before
-    the words inside curly brackets "{}".
+    Commands for uninstall sections and functions have "Un" before
+    the name.
 
     Example:
     --------
     
-    ${UnStrStr}
+    ${UsingStrFunc} UnStrStr
 
     A complete example with both Install and Uninstall Commands:
     ------------------------------------------------------------
@@ -119,9 +119,9 @@ How to use
 
     !include "StrFunc.nsh"
 
-    ${StrStr} # Supportable for Install Sections and Functions
+    ${UsingStrFunc} StrStr # Supportable for Install Sections and Functions
 
-    ${UnStrStr} # Supportable for Uninstall Sections and Functions
+    ${UsingStrFunc} UnStrStr # Supportable for Uninstall Sections and Functions
 
     Section
 
@@ -171,10 +171,10 @@ How to use
 
     Example:
 
-      ${StrCase} $0 '"Você" is "You" in English.' "U"
+      ${StrCase} $0 '"VocÃª" is "You" in English.' "U"
                     [__(_)__()___()__()__(____)_]
 
-      $0 = '"VOCÊ" IS "YOU" IN ENGLISH.'
+      $0 = '"VOCÃŠ" IS "YOU" IN ENGLISH.'
 
     =========================================================================
     *                                                               ${StrClb}
@@ -328,7 +328,7 @@ How to use
     =========================================================================
     ***                                                            ${StrSort}
     -------------------------------------------------------------------------
-    ResultVar String LeftStr CenterStr RightStr IncludeLeftStr(1|0)
+    ResultVar String CenterStr LeftStr RightStr IncludeLeftStr(1|0)
     IncludeCenterStr(1|0) IncludeRightStr(1|0)
     =========================================================================
     Searches for "CenterStr" in "String", and returns only the value
@@ -344,13 +344,13 @@ How to use
       String
       String where to search "CenterStr".
 
+      CenterStr
+      String to search in "String".
+
       LeftStr
       The first occurrence of "LeftStr" on the left of "CenterStr".
       If it is an empty value, or was not found, will return
       everything on the left of "CenterStr".
-
-      CenterStr
-      String to search in "String".
 
       RightStr
       The first occurrence of "RightStr" on the right of "CenterStr".
@@ -587,8 +587,7 @@ Version History
 1.09 - 10/22/2004
 
 - Fixed stack problems involving: StrCase, StrRep, StrSort, StrTok.
-- Fixed StrClb: When "Action" = "<>", handle was wrongly outputed as
-  text.
+- Fixed StrClb: When "Action" = "<>", handle was wrongly output as text.
 - Fixed StrSort, StrStrAdv documentation examples.
 - Fixed StrIOToNSIS, StrLoc, StrNSISToIO, StrRep, StrStr: sometimes
   didn't find "StrToSearch" at all.
@@ -601,8 +600,7 @@ Version History
 - StrTok: "ResultPart" has to start from 0 and it can break old scripts.
   See documentation for details.
 - Added defines: StrFunc_List, *_List and *_TypeList.
-- Fixed StrStrAdv: Variables $R0-$R3 couldn't be used on scripts before
-  calling.
+- Fixed StrStrAdv: Variables $R0-$R3 couldn't be used in scripts before calling.
 - StrRep: Cut down some variables.
 - Arranged correctly the order of StrSort on the documentation.
 
@@ -611,9 +609,9 @@ Version History
 - Removed ${UnStrFunc} command. Now you can just include uninstall
   functions commands like ${UnStrStr} to be supported by uninstall functions
   and sections.
-- Added case-sensitive comparation option for StrStrAdv.
+- Added case-sensitive comparison option for StrStrAdv.
 - StrCase now uses System.dll which makes case conversions effective with
-all latin letters (i.e. ê).
+all latin letters (i.e. Ãª).
 - Added switch case and original case for StrCase.
 - StrClbSet and StrClbGet removed, added StrClb.
 - Made compact the most usual operations inside the header file. File size
@@ -662,7 +660,7 @@ reduced.
 - Renamed header file to "StrFunc.nsh".
 - Added 1 function, StrLoc.
 - Modified StrStrAdv, removed some lines.
-- Fixed StrTok, 2 simple numbers made it loop everytime.
+- Fixed StrTok, 2 simple numbers made it loop every time.
 - Fixed some small issues on the header file.
 
 0.02 - 01/24/2004

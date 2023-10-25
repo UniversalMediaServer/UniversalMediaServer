@@ -1,11 +1,11 @@
-;Language: Afrikaans (1078)
+ï»¿;Language: Afrikaans (1078)
 ;By Friedel Wolff
 
-!insertmacro LANGFILE "Afrikaans" "Afrikaans"
+!insertmacro LANGFILE "Afrikaans" = "Afrikaans" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Welkom by die $(^NameDA) Installasieslimmerd"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Hierdie slimmerd lei mens deur die installasie van $(^NameDA).$\r$\n$\r$\nDit word aanbeveel dat u alle ander programme afsluit voor die begin van die installasie. Dit maak dit moontlik om die relevante stelsellêers op te dateer sonder om die rekenaar te herlaai.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Hierdie slimmerd lei mens deur die installasie van $(^NameDA).$\r$\n$\r$\nDit word aanbeveel dat u alle ander programme afsluit voor die begin van die installasie. Dit maak dit moontlik om die relevante stelsellÃªers op te dateer sonder om die rekenaar te herlaai.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
@@ -35,7 +35,7 @@
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Kies komponente"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Kies watter komponente van $(^NameDA) geïnstalleer moet word."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Kies watter komponente van $(^NameDA) geÃ¯nstalleer moet word."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beweeg die muis oor 'n komponent om sy beskrywing te sien."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beweeg die muis oor 'n komponent om sy beskrywing te sien."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Kies 'n komponent om sy beskrywing te sien."
   !endif
 !endif
 
@@ -64,7 +64,7 @@
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Installeer tans"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Wag asb. terwyl $(^NameDA) geïnstalleer word."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Wag asb. terwyl $(^NameDA) geÃ¯nstalleer word."
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Installasie voltooid"
   ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Die installasie is suksesvol voltooi."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Installasie gestaak"
@@ -82,7 +82,7 @@
 
 !ifdef MUI_FINISHPAGE
   ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Voltooi van die $(^NameDA) Installasieslimmerd"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) is geïnstalleer op uw rekenaar.$\r$\n$\r$\nKlik op Voltooi om hierdie slimmerd af te sluit."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) is geÃ¯nstalleer op uw rekenaar.$\r$\n$\r$\nKlik op Voltooi om hierdie slimmerd af te sluit."
   ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Die rekenaar moet oorbegin word om die installasie van $(^NameDA) te voltooi. Wil u nou oorbegin?"
 !endif
 
@@ -96,7 +96,7 @@
   ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Begin nou oor"
   ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Ek wil later self oorbegin"
   ${LangFileString} MUI_TEXT_FINISH_RUN "&Laat loop $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Wys Leesmy-lêer"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Wys Leesmy-lÃªer"
   ${LangFileString} MUI_BUTTONTEXT_FINISH "&Voltooi"  
 !endif
 

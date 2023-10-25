@@ -1,191 +1,191 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1038
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1250
 # RTL - anything else than RTL means LTR
 -
 # Translation by Soft-Trans Bt. (V2)
 # Translation by Orfanik Kft.   (V3-V6)
 # ^Branding
-Nullsoft Telepítõrendszer %s
+Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) Telepítõ
+$(^Name) TelepÃ­tÅ‘
 # ^UninstallCaption
-$(^Name) Eltávolító
+$(^Name) EltÃ¡volÃ­tÃ³
 # ^LicenseSubCaption
-: Licencszerzõdés
+: LicencszerzÅ‘dÃ©s
 # ^ComponentsSubCaption
-: Telepítési lehetõségek
+: TelepÃ­tÃ©si lehetÅ‘sÃ©gek
 # ^DirSubCaption
-: Célmappa
+: CÃ©lmappa
 # ^InstallingSubCaption
-: Fájlok telepítése
+: FÃ¡jlok telepÃ­tÃ©se
 # ^CompletedSubCaption
-: Kész
+: KÃ©sz
 # ^UnComponentsSubCaption
-: Eltávolítási lehetõségek
+: EltÃ¡volÃ­tÃ¡si lehetÅ‘sÃ©gek
 # ^UnDirSubCaption
-: Eltávolítás mappája
+: EltÃ¡volÃ­tÃ¡s mappÃ¡ja
 # ^ConfirmSubCaption
-: Megerõsítés
+: MegerÅ‘sÃ­tÃ©s
 # ^UninstallingSubCaption
-: Fájlok eltávolítása
+: FÃ¡jlok eltÃ¡volÃ­tÃ¡sa
 # ^UnCompletedSubCaption
-: Kész
+: KÃ©sz
 # ^BackBtn
 < &Vissza
 # ^NextBtn
-&Tovább >
+&TovÃ¡bb >
 # ^AgreeBtn
 &Elfogadom
 # ^AcceptBtn
-&Elfogadom a Licencszerzõdés feltételeit
+&Elfogadom a LicencszerzÅ‘dÃ©s feltÃ©teleit
 # ^DontAcceptBtn
-&Nem fogadom el a Licencszerzõdés feltételeit
+&Nem fogadom el a LicencszerzÅ‘dÃ©s feltÃ©teleit
 # ^InstallBtn
-&Telepítés
+&TelepÃ­tÃ©s
 # ^UninstallBtn
-&Eltávolítás
+&EltÃ¡volÃ­tÃ¡s
 # ^CancelBtn
-&Mégse
+&MÃ©gse
 # ^CloseBtn
-&Bezárás
+&BezÃ¡rÃ¡s
 # ^BrowseBtn
-&Tallózás...
+&TallÃ³zÃ¡s...
 # ^ShowDetailsBtn
-&Részletek
+&RÃ©szletek
 # ^ClickNext
-Kattintson a Tovább-ra a folytatáshoz.
+Kattintson a TovÃ¡bb-ra a folytatÃ¡shoz.
 # ^ClickInstall
-Kattintson a Telepítésre a telepítéshez.
+Kattintson a TelepÃ­tÃ©sre a telepÃ­tÃ©shez.
 # ^ClickUninstall
-Kattintson az Eltávolításra az eltávolításhoz.
+Kattintson az EltÃ¡volÃ­tÃ¡sra az eltÃ¡volÃ­tÃ¡shoz.
 # ^Name
-Név
+NÃ©v
 # ^Completed
-Kész
+KÃ©sz
 # ^LicenseText
-A(z) $(^NameDA) telepítése elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, az Elfogadom gombbal folytathatja.
+A(z) $(^NameDA) telepÃ­tÃ©se elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, az Elfogadom gombbal folytathatja.
 # ^LicenseTextCB
-A(z) $(^NameDA) telepítése elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, jelölje be a Jelölõnégyzeten. $_CLICK
+A(z) $(^NameDA) telepÃ­tÃ©se elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, jelÃ¶lje be a JelÃ¶lÅ‘nÃ©gyzeten. $_CLICK
 # ^LicenseTextRB
-A(z) $(^NameDA) telepítése elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, válassza az elsõ lehetõséget. $_CLICK
+A(z) $(^NameDA) telepÃ­tÃ©se elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, vÃ¡lassza az elsÅ‘ lehetÅ‘sÃ©get. $_CLICK
 # ^UnLicenseText
-A(z) $(^NameDA) eltávolítása elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, az Elfogadom gombbal folytathatja.
+A(z) $(^NameDA) eltÃ¡volÃ­tÃ¡sa elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, az Elfogadom gombbal folytathatja.
 # ^UnLicenseTextCB
-A(z) $(^NameDA) eltávolítása elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, jelölje be a Jelölõnégyzeten. $_CLICK
+A(z) $(^NameDA) eltÃ¡volÃ­tÃ¡sa elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, jelÃ¶lje be a JelÃ¶lÅ‘nÃ©gyzeten. $_CLICK
 # ^UnLicenseTextRB
-A(z) $(^NameDA) eltávolítása elõtt tekintse át a szerzõdés feltételeit. Ha elfogadja a szerzõdés valamennyi feltételét, válassza az elsõ lehetõséget. $_CLICK
+A(z) $(^NameDA) eltÃ¡volÃ­tÃ¡sa elÅ‘tt tekintse Ã¡t a szerzÅ‘dÃ©s feltÃ©teleit. Ha elfogadja a szerzÅ‘dÃ©s valamennyi feltÃ©telÃ©t, vÃ¡lassza az elsÅ‘ lehetÅ‘sÃ©get. $_CLICK
 # ^Custom
-Egyéni
+EgyÃ©ni
 # ^ComponentsText
-Jelölje be azokat az összetevõket amelyeket telepíteni kíván és törölje a jelölést a nem kívánt összetevõknél. $_CLICK
+JelÃ¶lje be azokat az Ã¶sszetevÅ‘ket amelyeket telepÃ­teni kÃ­vÃ¡n Ã©s tÃ¶rÃ¶lje a jelÃ¶lÃ©st a nem kÃ­vÃ¡nt Ã¶sszetevÅ‘knÃ©l. $_CLICK
 # ^ComponentsSubText1
-Válassza ki a telepítés típusát:
+VÃ¡lassza ki a telepÃ­tÃ©s tÃ­pusÃ¡t:
 # ^ComponentsSubText2_NoInstTypes
-Válassza ki a telepítendõ összetevõket:
+VÃ¡lassza ki a telepÃ­tendÅ‘ Ã¶sszetevÅ‘ket:
 # ^ComponentsSubText2
-vagy, jelölje ki a választható összetevõk közül a telepíteni kívánta(ka)t:
+vagy, jelÃ¶lje ki a vÃ¡laszthatÃ³ Ã¶sszetevÅ‘k kÃ¶zÃ¼l a telepÃ­teni kÃ­vÃ¡nta(ka)t:
 # ^UnComponentsText
-Jelölje be azokat az összetevõket amelyeket el kíván távolítani és törölje a jelölést az eltávolítani nem kívánt összetevõknél. $_CLICK
+JelÃ¶lje be azokat az Ã¶sszetevÅ‘ket amelyeket el kÃ­vÃ¡n tÃ¡volÃ­tani Ã©s tÃ¶rÃ¶lje a jelÃ¶lÃ©st az eltÃ¡volÃ­tani nem kÃ­vÃ¡nt Ã¶sszetevÅ‘knÃ©l. $_CLICK
 # ^UnComponentsSubText1
-Válassza ki az Eltávolítás típusát:
+VÃ¡lassza ki az EltÃ¡volÃ­tÃ¡s tÃ­pusÃ¡t:
 # ^UnComponentsSubText2_NoInstTypes
-Válassza ki az eltávolítandó összetevõket:
+VÃ¡lassza ki az eltÃ¡volÃ­tandÃ³ Ã¶sszetevÅ‘ket:
 # ^UnComponentsSubText2
-vagy, jelölje ki a választható összetevõk közül az eltávolítani kívánta(ka)t:
+vagy, jelÃ¶lje ki a vÃ¡laszthatÃ³ Ã¶sszetevÅ‘k kÃ¶zÃ¼l az eltÃ¡volÃ­tani kÃ­vÃ¡nta(ka)t:
 # ^DirText
-A $(^NameDA) a következõ mappába kerül. Másik mappa választásához kattintson a Tallózás gombra. $_CLICK
+A $(^NameDA) a kÃ¶vetkezÅ‘ mappÃ¡ba kerÃ¼l. MÃ¡sik mappa vÃ¡lasztÃ¡sÃ¡hoz kattintson a TallÃ³zÃ¡s gombra. $_CLICK
 # ^DirSubText
-Telepítés helye
+TelepÃ­tÃ©s helye
 # ^DirBrowseText
-A(z) $(^NameDA) telepítési helyének kiválasztása:
+A(z) $(^NameDA) telepÃ­tÃ©si helyÃ©nek kivÃ¡lasztÃ¡sa:
 # ^UnDirText
-A(z) $(^NameDA) eltávolítása a következõ mappából. Másik mappa választásához kattintson a Tallózás gombra. $_CLICK
+A(z) $(^NameDA) eltÃ¡volÃ­tÃ¡sa a kÃ¶vetkezÅ‘ mappÃ¡bÃ³l. MÃ¡sik mappa vÃ¡lasztÃ¡sÃ¡hoz kattintson a TallÃ³zÃ¡s gombra. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Válassza ki, hogy a $(^NameDA) melyik mappából kerüljön eltávolításra:
+VÃ¡lassza ki, hogy a $(^NameDA) melyik mappÃ¡bÃ³l kerÃ¼ljÃ¶n eltÃ¡volÃ­tÃ¡sra:
 # ^SpaceAvailable
-"Szabad terület: "
+"Szabad terÃ¼let: "
 # ^SpaceRequired
-"Helyigény: "
+"HelyigÃ©ny: "
 # ^UninstallingText
-A(z) $(^NameDA) eltávolítása következik a számítógéprõl. $_CLICK
+A(z) $(^NameDA) eltÃ¡volÃ­tÃ¡sa kÃ¶vetkezik a szÃ¡mÃ­tÃ³gÃ©prÅ‘l. $_CLICK
 # ^UninstallingSubText
-Eltávolítás helye:
+EltÃ¡volÃ­tÃ¡s helye:
 # ^FileError
-Hiba történt a fájl írásra történõ megnyitásakor: \r\n\t"$0"\r\nA Mégse gomb megnyomásával megszakíthatja a telepítést,\r\naz Ismét gombbal megismételheti a fájl írását,\r\na Kihagyás gombbal kihagyhatja ezt a fájlt.
+Hiba tÃ¶rtÃ©nt a fÃ¡jl Ã­rÃ¡sra tÃ¶rtÃ©nÅ‘ megnyitÃ¡sakor: \r\n\t"$0"\r\nA MÃ©gse gomb megnyomÃ¡sÃ¡val megszakÃ­thatja a telepÃ­tÃ©st,\r\naz IsmÃ©t gombbal megismÃ©telheti a fÃ¡jl Ã­rÃ¡sÃ¡t,\r\na KihagyÃ¡s gombbal kihagyhatja ezt a fÃ¡jlt.
 # ^FileError_NoIgnore
-Hiba történt a fájl írásra történõ megnyitásakor:  \r\n\t"$0"\r\nAz Újra gomb megnyomásával megismételheti a mûveletet, vagy \r\na Mégse gombbal megszakíthatja a telepítést.
+Hiba tÃ¶rtÃ©nt a fÃ¡jl Ã­rÃ¡sra tÃ¶rtÃ©nÅ‘ megnyitÃ¡sakor:  \r\n\t"$0"\r\nAz Ãšjra gomb megnyomÃ¡sÃ¡val megismÃ©telheti a mÅ±veletet, vagy \r\na MÃ©gse gombbal megszakÃ­thatja a telepÃ­tÃ©st.
 # ^CantWrite
-"Nem írható: "
+"Nem Ã­rhatÃ³: "
 # ^CopyFailed
-A másolás megszakadt
+A mÃ¡solÃ¡s megszakadt
 # ^CopyTo
-"Másolás ide: "
+"MÃ¡solÃ¡s ide: "
 # ^Registering
-"Bejegyzés: "
+"BejegyzÃ©s: "
 # ^Unregistering
-"Eltávolítás: "
+"EltÃ¡volÃ­tÃ¡s: "
 # ^SymbolNotFound
-"A következõ szimbólum nem található: "
+"A kÃ¶vetkezÅ‘ szimbÃ³lum nem talÃ¡lhatÃ³: "
 # ^CouldNotLoad
-"Nem tölthetõ be: "
+"Nem tÃ¶lthetÅ‘ be: "
 # ^CreateFolder
-"Mappa létrehozás: "
+"Mappa lÃ©trehozÃ¡s: "
 # ^CreateShortcut
-"Parancsikon létrehozása: "
+"Parancsikon lÃ©trehozÃ¡sa: "
 # ^CreatedUninstaller
-"Létrehozott eltávolító: "
+"LÃ©trehozott eltÃ¡volÃ­tÃ³: "
 # ^Delete
-"Törölt fájl: "
+"TÃ¶rÃ¶lt fÃ¡jl: "
 # ^DeleteOnReboot
-"Rendszerindításkor törlendõ: "
+"RendszerindÃ­tÃ¡skor tÃ¶rlendÅ‘: "
 # ^ErrorCreatingShortcut
-"Hiba a parancsikon létrehozásakor: "
+"Hiba a parancsikon lÃ©trehozÃ¡sakor: "
 # ^ErrorCreating
-"Hiba a létrehozáskor: "
+"Hiba a lÃ©trehozÃ¡skor: "
 # ^ErrorDecompressing
-Hiba az adatok kibontásakor! Megsérült a Telepítõ?
+Hiba az adatok kibontÃ¡sakor! MegsÃ©rÃ¼lt a TelepÃ­tÅ‘?
 # ^ErrorRegistering
-Hiba a DLL regisztrálásakor
+Hiba a DLL regisztrÃ¡lÃ¡sakor
 # ^ExecShell
-"Végrehajtás a hozzárendeléseken keresztül: "
+"VÃ©grehajtÃ¡s a hozzÃ¡rendelÃ©seken keresztÃ¼l: "
 # ^Exec
-"Végrehajtás: "
+"VÃ©grehajtÃ¡s: "
 # ^Extract
-"Kibontás: "
+"KibontÃ¡s: "
 # ^ErrorWriting
-"Kibontás: Hiba a fájl írásakor "
+"KibontÃ¡s: Hiba a fÃ¡jl Ã­rÃ¡sakor "
 # ^InvalidOpcode
-Sérült a telepítõ: hibás utasítás
+SÃ©rÃ¼lt a telepÃ­tÅ‘: hibÃ¡s utasÃ­tÃ¡s
 # ^NoOLE
 "Nincs OLE: "
 # ^OutputFolder
 "Kimeneti mappa: "
 # ^RemoveFolder
-"Mappa eltávolítása: "
+"Mappa eltÃ¡volÃ­tÃ¡sa: "
 # ^RenameOnReboot
-"Átnevezés rendszerindításkor: "
+"ÃtnevezÃ©s rendszerindÃ­tÃ¡skor: "
 # ^Rename
-"Átnevezés: "
+"ÃtnevezÃ©s: "
 # ^Skipped
 "Kihagyott: "
 # ^CopyDetails
-Adatok vágólapra másolása
+Adatok vÃ¡gÃ³lapra mÃ¡solÃ¡sa
 # ^LogInstall
-Telepítõ ellenõrzõlista
+TelepÃ­tÅ‘ ellenÅ‘rzÅ‘lista
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

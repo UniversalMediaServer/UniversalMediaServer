@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Box, Burger, Center, Group, Loader, MantineTheme, ScrollArea, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
 
 import { useEffect } from 'react';
 import {
@@ -23,7 +23,7 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { MoonStars, Sun } from 'tabler-icons-react';
+import { MoonStars, Sun, User } from 'tabler-icons-react';
 
 import './services/http-interceptor';
 import About from './components/About/About'
@@ -46,6 +46,7 @@ import { NavbarProvider } from './providers/navbar-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
+import { havePermission, Permissions } from './services/accounts-service';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
 
 function UmsApp() {
@@ -100,6 +101,19 @@ function UmsApp() {
                               mr='xl'
                             />
                           }
+                          {session.account && session.account.user &&
+                            <Button
+                              variant='transparent'
+                              style={() => ({ cursor: 'default', color: colorScheme === 'dark' ? 'white' : 'black' })}
+                              leftSection={
+                                <Avatar radius='sm' size='sm' src={session.account.user.avatar !== '' ? session.account.user.avatar : null}>
+                                  {session.account.user.avatar === '' && <User size={16} />}
+                                </Avatar>
+                              }
+                            >
+                              {session.account.user.displayName}
+                            </Button>
+                          }
                         </Group>
                         <Group justify='right'>
                           <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
@@ -135,7 +149,11 @@ function UmsApp() {
                             <Route path='player/:req/:id' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                             <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
                             <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
-                            <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
+                            { havePermission(session, Permissions.settings_view) ? 
+                              <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
+                            :
+                              <Route index element={<PlayerEventProvider><Player /></PlayerEventProvider>} />
+                            }
                             <Route
                               path='/*'
                               element={<Navigate replace to='/' />}

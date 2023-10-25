@@ -1,51 +1,51 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID (none exists for Kurdish at this time)
 9999
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
--
+# Codepage - dash (-) means ASCII code page
+1254
 # RTL - anything else than RTL means LTR
 -
-# Translation by Rêzan Tovjîn(chagy) (retovjin@hotmail.com.com)
+# Translation by RÃªzan TovjÃ®n(chagy) (retovjin@hotmail.com.com)
 # ^Branding
-Nullsoft Pergala Sazkirinê %s
+Nullsoft Install System %s
 # ^SetupCaption
 $(^Name) Sazkirin
 # ^UninstallCaption
 $(^Name) Rakirin
 # ^LicenseSubCaption
-: Peymana Lîsansê
+: Peymana LÃ®sansÃª
 # ^ComponentsSubCaption
-: Vebijêrkên Sazkirinê
+: VebijÃªrkÃªn SazkirinÃª
 # ^DirSubCaption
-: Peldanka Sazkirinê
+: Peldanka SazkirinÃª
 # ^InstallingSubCaption
-: Tê Sazkirin
+: TÃª Sazkirin
 # ^CompletedSubCaption
 : Qediya
 # ^UnComponentsSubCaption
-: Vebijêrkên Rakirinê
+: VebijÃªrkÃªn RakirinÃª
 # ^UnDirSubCaption
-: Peldanka Rakirinê
+: Peldanka RakirinÃª
 # ^ConfirmSubCaption
-: Erêkirin
+: ErÃªkirin
 # ^UninstallingSubCaption
-: Tê Rakirin
+: TÃª Rakirin
 # ^UnCompletedSubCaption
 : Qediya
 # ^BackBtn
 < &Vegere
 # ^NextBtn
-&Bidomîne >
+&BidomÃ®ne >
 # ^AgreeBtn
-&Ez Dipejirînim
+&Ez DipejirÃ®nim
 # ^AcceptBtn
-Şertên Peymanê &Dipejirînim
+ÅertÃªn PeymanÃª &DipejirÃ®nim
 # ^DontAcceptBtn
-Şertên Peymanê Napejirînim
+ÅertÃªn PeymanÃª NapejirÃ®nim
 # ^InstallBtn
 &Saz Bike
 # ^UninstallBtn
@@ -55,136 +55,136 @@ Betal
 # ^CloseBtn
 &Bigire
 # ^BrowseBtn
-&Çavlêgerîn...
+&Ã‡avlÃªgerÃ®n...
 # ^ShowDetailsBtn
-Hûragahiyan &Nîşan Bide
+HÃ»ragahiyan &NÃ®ÅŸan Bide
 # ^ClickNext
-Ji bo berdewamê 'Bidomîne'yê bitikîne.
+Ji bo berdewamÃª 'BidomÃ®ne'yÃª bitikÃ®ne.
 # ^ClickInstall
-Ji bo destpêka sazkirinê 'Saz Bike'yê bitikîne.
+Ji bo destpÃªka sazkirinÃª 'Saz Bike'yÃª bitikÃ®ne.
 # ^ClickUninstall
-Ji bo destpêka rakirinê 'Rake' bitikîne.
+Ji bo destpÃªka rakirinÃª 'Rake' bitikÃ®ne.
 # ^Name
 nav
 # ^Completed
 Qediya
 # ^LicenseText
-Ji kerema xwe re berî tu bernameya $(^NameDA) saz bikî, çavekî li peymana lîsansê bigerîne. Heke tu hemû şertên peymanê dipejirînî, 'Ez Dipejirînim'ê bitikîne.
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) saz bikÃ®, Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, 'Ez DipejirÃ®nim'Ãª bitikÃ®ne.
 # ^LicenseTextCB
-Ji kerema xwe re berî tu bernameya $(^NameDA) saz bikî, çavekî li peymana lîsansê bigerîne. Heke tu hemû şertan dipejirînî, zeviya erêkirinê ya jêrîn dagire. $_CLICK
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) saz bikÃ®, Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertan dipejirÃ®nÃ®, zeviya erÃªkirinÃª ya jÃªrÃ®n dagire. $_CLICK
 # ^LicenseTextRB
-Ji kerema xwe re berî tu bernameya $(^NameDA) saz bikî çavekî li peymana lîsansê bigerîne. Heke tu hemû şertên peymanê dipejirînî, zeviya vebijêrkê ya jêrîn dagire. $_CLICK
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) saz bikÃ® Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, zeviya vebijÃªrkÃª ya jÃªrÃ®n dagire. $_CLICK
 # ^UnLicenseText
-Ji kerema xwe re berî tu bernameya $(^NameDA) rakî, çavekî li peymana lîsansê bigerîne. Heke tu hemû şertên peymanê dipejirînî, 'Ez Dipejirînim'ê bitikîn.
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) rakÃ®, Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, 'Ez DipejirÃ®nim'Ãª bitikÃ®n.
 # ^UnLicenseTextCB
-Ji kerema xwe re berî tu bernameya $(^NameDA) ji pergala xwe rakî, çavekî li peymana lîsansê bigerîne. Heke tu hemû şertên peymanê dipejirînî, zeviya jêrîn a erêkirinê dagire. $_CLICK
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) ji pergala xwe rakÃ®, Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, zeviya jÃªrÃ®n a erÃªkirinÃª dagire. $_CLICK
 # ^UnLicenseTextRB
-Ji kerema xwe re berî tu bernameya $(^NameDA) ji pergala xwe rakî, çavekî li peymana lîsansê bigerîne. Heke tu hemû şertên peymanê dipejirînî, zeviya vebijêrkê ya jêrîn dagire. $_CLICK
+Ji kerema xwe re berÃ® tu bernameya $(^NameDA) ji pergala xwe rakÃ®, Ã§avekÃ® li peymana lÃ®sansÃª bigerÃ®ne. Heke tu hemÃ» ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, zeviya vebijÃªrkÃª ya jÃªrÃ®n dagire. $_CLICK
 # ^Custom
 Taybet
 # ^ComponentsText
-Beşên tu dixwazî saz bikî hilbijêre û niqirên 'check' beşên tu naxwazî werin sazkirin rake. $_CLICK
+BeÅŸÃªn tu dixwazÃ® saz bikÃ® hilbijÃªre Ã» niqirÃªn 'check' beÅŸÃªn tu naxwazÃ® werin sazkirin rake. $_CLICK
 # ^ComponentsSubText1
-Awayê sazkirinê hilbijêre:
+AwayÃª sazkirinÃª hilbijÃªre:
 # ^ComponentsSubText2_NoInstTypes
-Beşên dê werin sazkirin hilbijêre:
+BeÅŸÃªn dÃª werin sazkirin hilbijÃªre:
 # ^ComponentsSubText2
-an jî, beşên beşên tu dixwazî werin sazkirin hilbijêre:
+an jÃ®, beÅŸÃªn beÅŸÃªn tu dixwazÃ® werin sazkirin hilbijÃªre:
 # ^UnComponentsText
-Beşên tu dixwazî rakî hilbijêre, an jî niqira 'check'a ber beşên tu daxwazî were rakirin, rake. $_CLICK
+BeÅŸÃªn tu dixwazÃ® rakÃ® hilbijÃªre, an jÃ® niqira 'check'a ber beÅŸÃªn tu daxwazÃ® were rakirin, rake. $_CLICK
 # ^UnComponentsSubText1
-Awayê rakirinê hilbijêre:
+AwayÃª rakirinÃª hilbijÃªre:
 # ^UnComponentsSubText2_NoInstTypes
-Beşên dê werin rakirin hilbijêre:
+BeÅŸÃªn dÃª werin rakirin hilbijÃªre:
 # ^UnComponentsSubText2
-an jî beşên tu dixwazî werin rakirin hilbijêre:
+an jÃ® beÅŸÃªn tu dixwazÃ® werin rakirin hilbijÃªre:
 # ^DirText
-$(^NameDA) dê ji aliyê sazkirinê ve li peldanka jêrîn were sazkirin. Ji bo tu li peldankeke din saz bikî 'Çavlêgerîn'ê bitikîne û peldankeke din hilbijêre. $_CLICK
+$(^NameDA) dÃª ji aliyÃª sazkirinÃª ve li peldanka jÃªrÃ®n were sazkirin. Ji bo tu li peldankeke din saz bikÃ® 'Ã‡avlÃªgerÃ®n'Ãª bitikÃ®ne Ã» peldankeke din hilbijÃªre. $_CLICK
 # ^DirSubText
-Peldanka Armanckirî
+Peldanka ArmanckirÃ®
 # ^DirBrowseText
-Peldanka tu dixwazî bernameya $(^NameDA) lê were sazkirin hilbijêre:
+Peldanka tu dixwazÃ® bernameya $(^NameDA) lÃª were sazkirin hilbijÃªre:
 # ^UnDirText
-$(^NameDA) dê ji aliyê sazkirinê ve ji peldanka jêrîn were rakirin. Ji bo tu ji peldankeke cuda rakî 'Çavlêgerîn'ê bitikîne û peldankeke din hilbijêre. $_CLICK
+$(^NameDA) dÃª ji aliyÃª sazkirinÃª ve ji peldanka jÃªrÃ®n were rakirin. Ji bo tu ji peldankeke cuda rakÃ® 'Ã‡avlÃªgerÃ®n'Ãª bitikÃ®ne Ã» peldankeke din hilbijÃªre. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Peldanka tu dixwazî bernameya $(^NameDA) jê were rakirin hilbijêre:
+Peldanka tu dixwazÃ® bernameya $(^NameDA) jÃª were rakirin hilbijÃªre:
 # ^SpaceAvailable
-"Herêma vala ku dikare were bikaranîn: "
+"HerÃªma vala ku dikare were bikaranÃ®n: "
 # ^SpaceRequired
-"Herêma vala ya pêwist: "
+"HerÃªma vala ya pÃªwist: "
 # ^UninstallingText
-Bernameya $(^NameDA) dê ji peldanka jêrîn were rakirin. $_CLICK
+Bernameya $(^NameDA) dÃª ji peldanka jÃªrÃ®n were rakirin. $_CLICK
 # ^UninstallingSubText
-tê rakirin:
+tÃª rakirin:
 # ^FileError
-Dosya ji bo nivîsandinê venebû: \r\n\t"$0"\r\nJi bo destjêberdana sazkirinê abort'ê bitikîne,\r\nji bo ceribandina ji nû ve  retry'ê , an jî\r\nji bo tu dosiyê tune bihesibînî û berdewam bikî ignore'yê bitikîne
+Dosya ji bo nivÃ®sandinÃª venebÃ»: \r\n\t"$0"\r\nJi bo destjÃªberdana sazkirinÃª abort'Ãª bitikÃ®ne,\r\nji bo ceribandina ji nÃ» ve  retry'Ãª , an jÃ®\r\nji bo tu dosiyÃª tune bihesibÃ®nÃ® Ã» berdewam bikÃ® ignore'yÃª bitikÃ®ne
 # ^FileError_NoIgnore
-Dosya ji bo nivîsandinê vebenebû: \r\n\t"$0"\r\nJi bo nivîsandina ji nû ve retry'yê, an jî\r\nJi bo destjêberdana sazkirinê abort'ê hilbijêre
+Dosya ji bo nivÃ®sandinÃª vebenebÃ»: \r\n\t"$0"\r\nJi bo nivÃ®sandina ji nÃ» ve retry'yÃª, an jÃ®\r\nJi bo destjÃªberdana sazkirinÃª abort'Ãª hilbijÃªre
 # ^CantWrite
-"Nehate Nivîsandin: "
+"Nehate NivÃ®sandin: "
 # ^CopyFailed
-Çewtiya Jibergirtinê
+Ã‡ewtiya JibergirtinÃª
 # ^CopyTo
 "Ji Ber Bigire "
 # ^Registering
-"Tê Tomarkirin: "
+"TÃª Tomarkirin: "
 # ^Unregistering
-"Tomarî Tê Jêbirin: "
+"TomarÃ® TÃª JÃªbirin: "
 # ^SymbolNotFound
-"Dawêr Nehate Dîtin: "
+"DawÃªr Nehate DÃ®tin: "
 # ^CouldNotLoad
 "Nehate Barkirin: "
 # ^CreateFolder
-"Peldankê Çêke: "
+"PeldankÃª Ã‡Ãªke: "
 # ^CreateShortcut
-"Kineriyê Çêke: "
+"KineriyÃª Ã‡Ãªke: "
 # ^CreatedUninstaller
-"Sêrbazê Rakirinê Hate Çêkirin: "
+"SÃªrbazÃª RakirinÃª Hate Ã‡Ãªkirin: "
 # ^Delete
-"Dosyayê Jê Bibe: "
+"DosyayÃª JÃª Bibe: "
 # ^DeleteOnReboot
-"Dema ji nû ve dest pê kir dosiyê jê bibe: "
+"Dema ji nÃ» ve dest pÃª kir dosiyÃª jÃª bibe: "
 # ^ErrorCreatingShortcut
-"Dema çêkirina kineriyê çewtî derket: "
+"Dema Ã§Ãªkirina kineriyÃª Ã§ewtÃ® derket: "
 # ^ErrorCreating
-"Çewtiya çêkirinê: "
+"Ã‡ewtiya Ã§ÃªkirinÃª: "
 # ^ErrorDecompressing
-Di dema vekirina daneyan de çewtî derket! Sazkirina Çewt?
+Di dema vekirina daneyan de Ã§ewtÃ® derket! Sazkirina Ã‡ewt?
 # ^ErrorRegistering
-Çewtiya tomariya DLL
+Ã‡ewtiya tomariya DLL
 # ^ExecShell
-"Qalikê Xebatê: "
+"QalikÃª XebatÃª: "
 # ^Exec
-"Bixebitîne: "
+"BixebitÃ®ne: "
 # ^Extract
 "Veke: "
 # ^ErrorWriting
-"Veke: Dema li dosiyê hate nivîsîn çewtiyek derket "
+"Veke: Dema li dosiyÃª hate nivÃ®sÃ®n Ã§ewtiyek derket "
 # ^InvalidOpcode
-Sazkirina Xirabe: koda nerast pêkanînê
+Sazkirina Xirabe: koda nerast pÃªkanÃ®nÃª
 # ^NoOLE
-"OLE nehate dîtin: "
+"OLE nehate dÃ®tin: "
 # ^OutputFolder
-"Peldanka derketinê: "
+"Peldanka derketinÃª: "
 # ^RemoveFolder
-"Peldankê jê bibe: "
+"PeldankÃª jÃª bibe: "
 # ^RenameOnReboot
-"Dema ji nû hate destpêkirin ji nû ve bi nav bike: "
+"Dema ji nÃ» hate destpÃªkirin ji nÃ» ve bi nav bike: "
 # ^Rename
 "Nav Biguhere: "
 # ^Skipped
 "Hate gavkirin: "
 # ^CopyDetails
-Hûragahiyan li Pano'yê binivîse
+HÃ»ragahiyan li Pano'yÃª binivÃ®se
 # ^LogInstall
-Pêkanîna sazkirinê li lênûska rewşê binivîse
+PÃªkanÃ®na sazkirinÃª li lÃªnÃ»ska rewÅŸÃª binivÃ®se
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

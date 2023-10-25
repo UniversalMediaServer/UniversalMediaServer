@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="exdll"
 	ProjectGUID="{5E3E2AFD-1D6B-4997-A9B5-8ECBC8F6C31A}"
 	RootNamespace="exdll"
@@ -80,6 +80,7 @@
 				OutputFile=".\Release/exdll.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames="libc.lib"
 				ProgramDatabaseFile=".\Release/exdll.pdb"
@@ -179,6 +180,7 @@
 				OutputFile=".\Debug/exdll.dll"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
+				GenerateManifest="false"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"

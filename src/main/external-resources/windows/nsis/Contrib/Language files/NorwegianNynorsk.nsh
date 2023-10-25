@@ -1,41 +1,41 @@
-;Language: Norwegian nynorsk (2068)
-;By Vebjoern Sture and Håvard Mork (www.firefox.no)
+ï»¿;Language: Norwegian nynorsk (2068)
+;By Vebjoern Sture and HÃ¥vard Mork (www.firefox.no)
 
-!insertmacro LANGFILE "NorwegianNynorsk" "Norwegian nynorsk"
+!insertmacro LANGFILE "NorwegianNynorsk" "Norwegian (Nynorsk)" "Norsk (nynorsk)" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Velkommen til $(^NameDA) innstallasjonsvegvisar"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Denne vegvisaren vil leie deg gjennom installeringa av $(^NameDA).$\n$\nDet er tilrådd at du avsluttar alle andre program før du held fram. Dette vil la installeringsprogrammet oppdatera systemfiler utan at du må starta datamaskinen på nytt.$\n$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Denne vegvisaren vil leie deg gjennom installeringa av $(^NameDA).$\n$\nDet er tilrÃ¥dd at du avsluttar alle andre program fÃ¸r du held fram. Dette vil la installeringsprogrammet oppdatera systemfiler utan at du mÃ¥ starta datamaskinen pÃ¥ nytt.$\n$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
   ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Velkommen til avinstallering av $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Denne vegvisaren vil leie deg gjennom avinstalleringen av $(^NameDA).$\n$\nFør du fortsetter må du forsikre deg om at $(^NameDA) ikkje er opent.$\n$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Denne vegvisaren vil leie deg gjennom avinstalleringen av $(^NameDA).$\n$\nFÃ¸r du fortsetter mÃ¥ du forsikre deg om at $(^NameDA) ikkje er opent.$\n$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Lisensavtale"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Les gjennom lisensavtalen før du startar installeringa av $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Trykk på «Godta» dersom du godtar betingelsane i avtala. Du må godta avtala for å installere $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Trykk på avkryssingsboksen nedanfor nedanfor dersom du godtar betingelsane i avtala. Du må godta avtala for å installere $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Vel det første alternativet nedanfor dersom du godtek vilkåra i avtala. Du må godta avtala for å installera $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Les gjennom lisensavtalen fÃ¸r du startar installeringa av $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Trykk pÃ¥ Â«GodtaÂ» dersom du godtar betingelsane i avtala. Du mÃ¥ godta avtala for Ã¥ installere $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Trykk pÃ¥ avkryssingsboksen nedanfor nedanfor dersom du godtar betingelsane i avtala. Du mÃ¥ godta avtala for Ã¥ installere $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Vel det fÃ¸rste alternativet nedanfor dersom du godtek vilkÃ¥ra i avtala. Du mÃ¥ godta avtala for Ã¥ installera $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Lisensavtale"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Les gjennom lisensavtalen før du startar avinstalleringa av $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Trykk på «Godta» dersom du godtar betingelsane i avtala. Du må godta avtala for å avinstallera $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Trykk på avkryssingsboksen nedanfor nedanfor dersom du godtar betingelsane i avtala. Du må godta avtala for å avinstallera $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Vel det første alternativet nedanfor dersom du godtar betingelsane i avtala. Du må godta avtala for å avinstallera $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Les gjennom lisensavtalen fÃ¸r du startar avinstalleringa av $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Trykk pÃ¥ Â«GodtaÂ» dersom du godtar betingelsane i avtala. Du mÃ¥ godta avtala for Ã¥ avinstallera $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Trykk pÃ¥ avkryssingsboksen nedanfor nedanfor dersom du godtar betingelsane i avtala. Du mÃ¥ godta avtala for Ã¥ avinstallera $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Vel det fÃ¸rste alternativet nedanfor dersom du godtar betingelsane i avtala. Du mÃ¥ godta avtala for Ã¥ avinstallera $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Trykk Page Down-knappen for å sjå resten av lisensavtala."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Trykk Page Down-knappen for Ã¥ sjÃ¥ resten av lisensavtala."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Vel komponentar"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Vel kva delar av $(^NameDA) du ynskjer å installera."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Vel kva delar av $(^NameDA) du ynskjer Ã¥ installera."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
@@ -46,9 +46,9 @@
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Beskriving"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beveg musa over komponentene for å sjå beskrivinga."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beveg musa over komponentene for Ã¥ sjÃ¥ beskrivinga."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Beveg musa over komponentene for å sjå beskrivinga."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Vel ein komponent for Ã¥ sjÃ¥ beskrivinga."
   !endif
 !endif
 
@@ -59,63 +59,71 @@
 
 !ifdef MUI_UNDIRECTORYPAGE
   ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Vel avinstalleringplassering"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Vel mappa du vil avinstallere $(^NameDA) frå."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Vel mappa du vil avinstallere $(^NameDA) frÃ¥."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Installerer"
   ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Vent mens $(^NameDA) blir installert."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Installeringa er fullført"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Installeringa vart fullført."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Installeringa er fullfÃ¸rt"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Installeringa vart fullfÃ¸rt."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Installeringa vart avbroten"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Installeringa vart ikkje fullført."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Installeringa vart ikkje fullfÃ¸rt."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Avinstallerer"
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Vent medan $(^NameDA) vert avinstallert."
   ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Avinstallering ferdig"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Avinstallering ble utført uten feil."
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Avinstallering ble utfÃ¸rt uten feil."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Avinstallering broten"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Avinstallering ble ikkje utført riktig."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Avinstallering ble ikkje utfÃ¸rt riktig."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Installering fullført"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) er installert og klar til bruk.$\n$\nTrykk på «Fullfør» for å avslutte installeringa."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Du må starta datamaskinen på nytt for å fullføra installeringa av $(^NameDA). Vil du starta på nytt no?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Installering fullfÃ¸rt"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) er installert og klar til bruk.$\n$\nTrykk pÃ¥ Â«FullfÃ¸rÂ» for Ã¥ avslutte installeringa."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Du mÃ¥ starta datamaskinen pÃ¥ nytt for Ã¥ fullfÃ¸ra installeringa av $(^NameDA). Vil du starta pÃ¥ nytt no?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Fullfører avinstalleringa av $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) er no avinstallert frå datamaskina di.$\n$\nTrykk på «Fullfør» for å avslutta denne vegvisaren."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Datamaskinen må starta på nytt for å fullføra avinstalleringa av $(^NameDA). Vil du starta datamaskina på nytt no?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "FullfÃ¸rer avinstalleringa av $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) er no avinstallert frÃ¥ datamaskina di.$\n$\nTrykk pÃ¥ Â«FullfÃ¸rÂ» for Ã¥ avslutta denne vegvisaren."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Datamaskinen mÃ¥ starta pÃ¥ nytt for Ã¥ fullfÃ¸ra avinstalleringa av $(^NameDA). Vil du starta datamaskina pÃ¥ nytt no?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Start på nytt no"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Eg vil starta på nytt seinare"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Køyr $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Start pÃ¥ nytt no"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Eg vil starta pÃ¥ nytt seinare"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&KÃ¸yr $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Syn lesmeg"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Fullfør"  
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&FullfÃ¸r"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Vel mappe på startmenyen"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Vel mappe pÃ¥ startmenyen"
   ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Vel kva mappe snarvegane til $(^NameDA) skal liggja i."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vel mappa du vil oppretta snarvegane til programmet i. Du kan òg skriva inn eit nytt namn for å laga ei ny mappe."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vel mappa du vil oppretta snarvegane til programmet i. Du kan Ã²g skriva inn eit nytt namn for Ã¥ laga ei ny mappe."
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Ikkje opprett snarvegar"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
   ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Avinstaller $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Slett $(^NameDA) frå datamaskinen."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Slett $(^NameDA) frÃ¥ datamaskinen."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Er du viss på at du vil avslutta installeringa av $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Er du viss pÃ¥ at du vil avslutta installeringa av $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Er du viss på at du vil avbryta avinstalleringa av $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Er du viss pÃ¥ at du vil avbryta avinstalleringa av $(^Name)?"
+!endif
+
+!ifdef MULTIUSER_INSTALLMODEPAGE
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Vel brukarar"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Vel kva brukarar du vil installere $(^NameDA) for."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Vel om du vil installere $(^NameDA) berre for deg, eller for alle som nyttar denne maskina. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Installer for alle som nyttar maskina"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Installer berre for me"
 !endif

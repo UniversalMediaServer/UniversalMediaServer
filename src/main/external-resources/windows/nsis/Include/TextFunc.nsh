@@ -54,25 +54,21 @@ TrimNewLines
 ; ${TEXTFUNC_VERBOSE} 3   # no script
 
 !ifndef TEXTFUNC_INCLUDED
+
+!verbose push 3
+!define /IfNDef _TEXTFUNC_VERBOSE 3
+!verbose ${_TEXTFUNC_VERBOSE}
+!define TEXTFUNC_VERBOSE `!insertmacro TEXTFUNC_VERBOSE`
+
 !define TEXTFUNC_INCLUDED
 
 !include FileFunc.nsh
 !include Util.nsh
 
-!verbose push
-!verbose 3
-!ifndef _TEXTFUNC_VERBOSE
-	!define _TEXTFUNC_VERBOSE 3
-!endif
-!verbose ${_TEXTFUNC_VERBOSE}
-!define TEXTFUNC_VERBOSE `!insertmacro TEXTFUNC_VERBOSE`
-!verbose pop
 
 !macro TEXTFUNC_VERBOSE _VERBOSE
-	!verbose push
-	!verbose 3
-	!undef _TEXTFUNC_VERBOSE
-	!define _TEXTFUNC_VERBOSE ${_VERBOSE}
+	!verbose push 3
+	!define /ReDef _TEXTFUNC_VERBOSE ${_VERBOSE}
 	!verbose pop
 !macroend
 
@@ -1047,12 +1043,12 @@ TrimNewLines
 	System::Alloc $6
 	Pop $0
 	FileSeek $3 $5 SET
-	System::Call 'kernel32::ReadFile(i r3, i r0, i $6, t.,)'
+	System::Call 'kernel32::ReadFile(p r3, p r0, i $6, t.,)'
 	FileSeek $3 $4 SET
 	StrCmp${_TEXTFUNC_S} $2 '' +2
 	FileWrite $3 '$1$2$\r$\n'
-	System::Call 'kernel32::WriteFile(i r3, i r0, i $6, t.,)'
-	System::Call 'kernel32::SetEndOfFile(i r3)'
+	System::Call 'kernel32::WriteFile(p r3, p r0, i $6, t.,)'
+	System::Call 'kernel32::SetEndOfFile(p r3)'
 	System::Free $0
 	StrCmp${_TEXTFUNC_S} $2 '' +3
 	StrCpy $0 CHANGED
@@ -1157,10 +1153,10 @@ TrimNewLines
 	System::Alloc $3
 	Pop $4
 	FileSeek $2 0 SET
-	System::Call 'kernel32::ReadFile(i r2, i r4, i $3, t.,)'
-	System::Call 'user32::$1Buff(i r4, i r4, i $3)'
+	System::Call 'kernel32::ReadFile(p r2, p r4, i $3, t.,)'
+	System::Call 'user32::$1Buff(p r4, p r4, i $3)'
 	FileSeek $2 0 SET
-	System::Call 'kernel32::WriteFile(i r2, i r4, i $3, t.,)'
+	System::Call 'kernel32::WriteFile(p r2, p r4, i $3, t.,)'
 	System::Free $4
 	FileClose $2
 	goto TextFunc_FileRecode_end
@@ -1211,4 +1207,5 @@ TrimNewLines
 	!verbose pop
 !macroend
 
+!verbose pop
 !endif

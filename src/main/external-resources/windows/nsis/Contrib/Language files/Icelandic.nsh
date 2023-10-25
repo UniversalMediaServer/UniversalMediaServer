@@ -1,121 +1,121 @@
-;Language: Icelandic (15)
+ï»¿;Language: Icelandic (15)
 ;By Gretar Orri Kristinsson
 
-!insertmacro LANGFILE "Icelandic" "Icelandic"
+!insertmacro LANGFILE "Icelandic" = "Ãslenska" "Islenska"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Velkominn til $(^NameDA) uppsetningarhjálparinnar"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Şessi hjálp mun leiğa şig í gegnum uppsetninguna á $(^NameDA).$\r$\n$\r$\nMælt er meğ şví ağ şú lokir öllum öğrum forritum áğur en uppsetningin hefst. Şetta mun gera uppsetningarforritinu kleyft ağ uppfæra kerfiskrár án şess ağ endurræsa tölvuna.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Velkominn til $(^NameDA) uppsetningarhjÃ¡lparinnar"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ãessi hjÃ¡lp mun leiÃ°a Ã¾ig Ã­ gegnum uppsetninguna Ã¡ $(^NameDA).$\r$\n$\r$\nMÃ¦lt er meÃ° Ã¾vÃ­ aÃ° Ã¾Ãº lokir Ã¶llum Ã¶Ã°rum forritum Ã¡Ã°ur en uppsetningin hefst. Ãetta mun gera uppsetningarforritinu kleyft aÃ° uppfÃ¦ra kerfiskrÃ¡r Ã¡n Ã¾ess aÃ° endurrÃ¦sa tÃ¶lvuna.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Velkomin(n) til $(^NameDA) fjarlægingarhjálparinnar"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Şessi hjálp mun leiğa şig í gegnum fjarlæginguna á $(^NameDA).$\r$\n$\r$\nÁğur en fjarlæging hefst skal ganga úr skugga um ağ $(^NameDA) sé ekki opiğ.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Velkomin(n) til $(^NameDA) fjarlÃ¦gingarhjÃ¡lparinnar"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ãessi hjÃ¡lp mun leiÃ°a Ã¾ig Ã­ gegnum fjarlÃ¦ginguna Ã¡ $(^NameDA).$\r$\n$\r$\nÃÃ°ur en fjarlÃ¦ging hefst skal ganga Ãºr skugga um aÃ° $(^NameDA) sÃ© ekki opiÃ°.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Notandaleyfissamningur"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Vinsamlegast skoğağu Notandaleyfissamninginn vel áğur en uppsetning á $(^NameDA) hefst."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ef şú samşykkir skilmála samningsins, smelltu şá á 'Ég samşykki' til ağ halda áfram. Şú verğur ağ samşykkja samninginn til şess ağ setja upp $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ef şú samşykkir skilmála samningsins, hakağu şá í kassann hér ağ neğan. Şú verğur ağ samşykkja samninginn til şess ağ setja upp $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ef şú samşykkir skilmála samningsins, veldu şá fyrsta valmöguleikann hér ağ neğan. Şú verğur ağ samşykkja samninginn til şess ağ setja upp $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Vinsamlegast skoÃ°aÃ°u Notandaleyfissamninginn vel Ã¡Ã°ur en uppsetning Ã¡ $(^NameDA) hefst."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, smelltu Ã¾Ã¡ Ã¡ 'Ã‰g samÃ¾ykki' til aÃ° halda Ã¡fram. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° setja upp $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, hakaÃ°u Ã¾Ã¡ Ã­ kassann hÃ©r aÃ° neÃ°an. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° setja upp $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, veldu Ã¾Ã¡ fyrsta valmÃ¶guleikann hÃ©r aÃ° neÃ°an. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° setja upp $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Leyfissamningur"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Vinsamlegast skoğağu leyfissamninginn vel áğur en fjarlæging á $(^NameDA) hefst."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ef şú samşykkir skilmála samningsins, smelltu şá á 'Ég samşykki' til ağ halda áfram. Şú verğur ağ samşykkja samninginn til şess ağ fjarlægja $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ef şú samşykkir skilmála samningsins, hakağu şá í kassann hér ağ neğan. Şú verğur ağ samşykkja samninginn til şess ağ fjarlægja $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ef şú samşykkir skilmála samningsins, veldu şá fyrsta valmöguleikann hér ağ neğan. Şú verğur ağ samşykkja samninginn til şess ağ fjarlægja $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Vinsamlegast skoÃ°aÃ°u leyfissamninginn vel Ã¡Ã°ur en fjarlÃ¦ging Ã¡ $(^NameDA) hefst."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, smelltu Ã¾Ã¡ Ã¡ 'Ã‰g samÃ¾ykki' til aÃ° halda Ã¡fram. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° fjarlÃ¦gja $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, hakaÃ°u Ã¾Ã¡ Ã­ kassann hÃ©r aÃ° neÃ°an. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° fjarlÃ¦gja $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ef Ã¾Ãº samÃ¾ykkir skilmÃ¡la samningsins, veldu Ã¾Ã¡ fyrsta valmÃ¶guleikann hÃ©r aÃ° neÃ°an. ÃÃº verÃ°ur aÃ° samÃ¾ykkja samninginn til Ã¾ess aÃ° fjarlÃ¦gja $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Smelltu á 'PageDown' takkann á lyklaborğinu til ağ sjá afganginn af samningnum."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Smelltu Ã¡ 'PageDown' takkann Ã¡ lyklaborÃ°inu til aÃ° sjÃ¡ afganginn af samningnum."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Velja íhluti"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Veldu hvağa $(^NameDA) íhluti şú vilt setja upp."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Velja Ã­hluti"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Veldu hvaÃ°a $(^NameDA) Ã­hluti Ã¾Ãº vilt setja upp."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Velja íhluti"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Velja hvağa $(^NameDA) íhluti şú vilt fjarlægja."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Velja Ã­hluti"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Velja hvaÃ°a $(^NameDA) Ã­hluti Ã¾Ãº vilt fjarlÃ¦gja."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Lısing"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "LÃ½sing"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Færğu músina yfir íhlut til ağ fá lısinguna á honum."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "FÃ¦rÃ°u mÃºsina yfir Ã­hlut til aÃ° fÃ¡ lÃ½singuna Ã¡ honum."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Færğu músina yfir íhlut til ağ fá lısinguna á honum."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Veldu Ã­hlut til Ã¾ess aÃ° fÃ¡ lÃ½singuna Ã¡ honum."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Veldu uppsetningarskáarsafn"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Veldu şağ skráarsafn sem şú vilt setja $(^NameDA) upp í."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Veldu uppsetningarskÃ¡arsafn"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Veldu Ã¾aÃ° skrÃ¡arsafn sem Ã¾Ãº vilt setja $(^NameDA) upp Ã­."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Velja fjarlægingarskáarsafn"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Veldu şağ skráarsafn sem şú vilt fjarlægja $(^NameDA) úr."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Velja fjarlÃ¦gingarskÃ¡arsafn"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Veldu Ã¾aÃ° skrÃ¡arsafn sem Ã¾Ãº vilt fjarlÃ¦gja $(^NameDA) Ãºr."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Set upp"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Vinsamlegast dokağu viğ meğan $(^NameDA) er sett upp."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Uppsetningu lokiğ"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Uppsetning tókst."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Hætt viğ uppsetningu"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Vinsamlegast dokaÃ°u viÃ° meÃ°an $(^NameDA) er sett upp."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Uppsetningu lokiÃ°"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Uppsetning tÃ³kst."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "HÃ¦tt viÃ° uppsetningu"
   ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Uppsetningu lauk ekki sem skildi."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Fjarlægi"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Vinsamlegast dokağu viğ á meğan $(^NameDA) er fjarlægt."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Fjarlægingu lokiğ"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Fjarlæging tókst."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Hætt viğ fjarlægingu"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Fjarlægingu lauk ekki sem skildi."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "FjarlÃ¦gi"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Vinsamlegast dokaÃ°u viÃ° Ã¡ meÃ°an $(^NameDA) er fjarlÃ¦gt."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "FjarlÃ¦gingu lokiÃ°"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "FjarlÃ¦ging tÃ³kst."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "HÃ¦tt viÃ° fjarlÃ¦gingu"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "FjarlÃ¦gingu lauk ekki sem skildi."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Ljúka $(^NameDA) uppsetningarhjálpinni"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) er nú upp sett á tölvunni şinni.$\r$\n$\r$\nSmelltu á 'Ljúka' til ağ loka şessari hjálp."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Til ağ ljúka uppsetningunni á $(^NameDA) verğur ağ endurræsa tölvuna. Viltu endurræsa núna?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "LjÃºka $(^NameDA) uppsetningarhjÃ¡lpinni"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) er nÃº upp sett Ã¡ tÃ¶lvunni Ã¾inni.$\r$\n$\r$\nSmelltu Ã¡ 'LjÃºka' til aÃ° loka Ã¾essari hjÃ¡lp."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Til aÃ° ljÃºka uppsetningunni Ã¡ $(^NameDA) verÃ°ur aÃ° endurrÃ¦sa tÃ¶lvuna. Viltu endurrÃ¦sa nÃºna?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Ljúka $(^NameDA) fjarlægingarhjálpinni"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) hefur nú veriğ fjarlægt úr tölvunni.$\r$\n$\r$\nSmelltu á 'Ljúka' til ağ loka şessari hjálp."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Til ağ ljúka fjarlægingunni á $(^NameDA) verğur ağ endurræsa tölvuna. Viltu endurræsa núna?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "LjÃºka $(^NameDA) fjarlÃ¦gingarhjÃ¡lpinni"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) hefur nÃº veriÃ° fjarlÃ¦gt Ãºr tÃ¶lvunni.$\r$\n$\r$\nSmelltu Ã¡ 'LjÃºka' til aÃ° loka Ã¾essari hjÃ¡lp."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Til aÃ° ljÃºka fjarlÃ¦gingunni Ã¡ $(^NameDA) verÃ°ur aÃ° endurrÃ¦sa tÃ¶lvuna. Viltu endurrÃ¦sa nÃºna?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Endurræsa núna"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Ég vil endurræsa seinna"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "EndurrÃ¦sa nÃºna"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Ã‰g vil endurrÃ¦sa seinna"
   ${LangFileString} MUI_TEXT_FINISH_RUN "&Keyra $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Skoğa LestuMig"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Ljúka"  
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&SkoÃ°a LestuMig"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&LjÃºka"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Velja skráarsafn 'Start' valmyndar"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Veldu skráarsafn $(^NameDA) flıtileiğa fyrir 'Start' valmyndina."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Veldu skráarsafn flıtileiğa forritsins fyrir 'Start' valmyndina. Şú getur einnig búiğ til nıtt skráarsafn meğ şví ağ setja inn nıtt nafn."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Ekki búa til flıtileiğir í 'Start' valmyndinni"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Velja skrÃ¡arsafn 'Start' valmyndar"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Veldu skrÃ¡arsafn $(^NameDA) flÃ½tileiÃ°a fyrir 'Start' valmyndina."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Veldu skrÃ¡arsafn flÃ½tileiÃ°a forritsins fyrir 'Start' valmyndina. ÃÃº getur einnig bÃºiÃ° til nÃ½tt skrÃ¡arsafn meÃ° Ã¾vÃ­ aÃ° setja inn nÃ½tt nafn."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Ekki bÃºa til flÃ½tileiÃ°ir Ã­ 'Start' valmyndinni"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Fjarlægja $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Fjarlægja $(^NameDA) úr tölvunni."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "FjarlÃ¦gja $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "FjarlÃ¦gja $(^NameDA) Ãºr tÃ¶lvunni."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Ertu viss um ağ şú viljir loka $(^Name) uppsetningarhjálpinni?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Ertu viss um aÃ° Ã¾Ãº viljir loka $(^Name) uppsetningarhjÃ¡lpinni?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ertu viss um ağ şú viljir loka $(^Name) fjarlægingarhjálpinni?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ertu viss um aÃ° Ã¾Ãº viljir loka $(^Name) fjarlÃ¦gingarhjÃ¡lpinni?"
 !endif

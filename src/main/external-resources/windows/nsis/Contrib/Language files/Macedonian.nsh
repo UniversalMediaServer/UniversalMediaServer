@@ -1,121 +1,121 @@
-;Language: Macedonian (1071)
+п»ї;Language: Macedonian (1071)
 ;By Sasko Zdravkin [wingman2083@yahoo.com]
 
-!insertmacro LANGFILE "Macedonian" "Macedonian"
+!insertmacro LANGFILE "Macedonian" = "РњР°РєРµРґРѕРЅСЃРєРё" "Makedonski"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Добро дојдовте во инсталацијата на $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Овој програм ќе ве води низ инсталацијата на $(^NameDA).$\r$\n$\r$\nПрепорачано е да ги затворите сите програми пред да инсталирате. Ова ќе дозволи инсталациониот програм да обнови некои системски датотеки без да го рестартира компјутерот.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Р”РѕР±СЂРѕ РґРѕСРґРѕРІС‚Рµ РІРѕ РёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "РћРІРѕС РїСЂРѕРіСЂР°Рј СњРµ РІРµ РІРѕРґРё РЅРёР· РёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA).$\r$\n$\r$\nРџСЂРµРїРѕСЂР°С‡Р°РЅРѕ Рµ РґР° РіРё Р·Р°С‚РІРѕСЂРёС‚Рµ СЃРёС‚Рµ РїСЂРѕРіСЂР°РјРё РїСЂРµРґ РґР° РёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ. РћРІР° СњРµ РґРѕР·РІРѕР»Рё РёРЅСЃС‚Р°Р»Р°С†РёРѕРЅРёРѕС‚ РїСЂРѕРіСЂР°Рј РґР° РѕР±РЅРѕРІРё РЅРµРєРѕРё СЃРёСЃС‚РµРјСЃРєРё РґР°С‚РѕС‚РµРєРё Р±РµР· РґР° РіРѕ СЂРµСЃС‚Р°СЂС‚РёСЂР° РєРѕРјРїССѓС‚РµСЂРѕС‚.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Добро дојдовте во деинсталацијата на $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Овој програм ќе ве води низ деинсталацијата на $(^NameDA).$\r$\n$\r$\nПред да ја почнете деинсталацијата на $(^NameDA) проверете дали е исклучена програмата.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Р”РѕР±СЂРѕ РґРѕСРґРѕРІС‚Рµ РІРѕ РґРµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "РћРІРѕС РїСЂРѕРіСЂР°Рј СњРµ РІРµ РІРѕРґРё РЅРёР· РґРµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA).$\r$\n$\r$\nРџСЂРµРґ РґР° СР° РїРѕС‡РЅРµС‚Рµ РґРµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA) РїСЂРѕРІРµСЂРµС‚Рµ РґР°Р»Рё Рµ РёСЃРєР»СѓС‡РµРЅР° РїСЂРѕРіСЂР°РјР°С‚Р°.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Лиценцен Договор"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ве молиме проверете ги лиценцните услови пред да го инсталирате $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ако ги прифаќате условите од договорот, притиснете 'Да' за да продолжите. Мора да го прифатите договорот за да го инсталирате $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ако ги прифаќате условите од договорот, чекирајте го check box-от подоле. Мора да го прифатите договорот за го инсталирате $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ако ги прифаќате условите од договорот, одберете ја првата опција подоле. Мора да го прифатите договорот за го инсталирате $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Р›РёС†РµРЅС†РµРЅ Р”РѕРіРѕРІРѕСЂ"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Р’Рµ РјРѕР»РёРјРµ РїСЂРѕРІРµСЂРµС‚Рµ РіРё Р»РёС†РµРЅС†РЅРёС‚Рµ СѓСЃР»РѕРІРё РїСЂРµРґ РґР° РіРѕ РёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, РїСЂРёС‚РёСЃРЅРµС‚Рµ 'Р”Р°' Р·Р° РґР° РїСЂРѕРґРѕР»Р¶РёС‚Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РґР° РіРѕ РёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, С‡РµРєРёСЂР°СС‚Рµ РіРѕ check box-РѕС‚ РїРѕРґРѕР»Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РіРѕ РёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, РѕРґР±РµСЂРµС‚Рµ СР° РїСЂРІР°С‚Р° РѕРїС†РёСР° РїРѕРґРѕР»Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РіРѕ РёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Лиценцен Договор"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Ве молиме проверете ги лиценцните услови пред да го деинсталирате $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ако ги прифаќате условите од договорот, притиснете 'Да' за да продолжите. Мора да го прифатите договорот за да го деинсталирате $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ако ги прифаќате условите од договорот, чекирајте го check box-от подоле. Мора да го прифатите договорот за го деинсталирате $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ако ги прифаќате условите од договорот, одберете ја првата опција подоле. Мора да го прифатите договорот за го деинсталирате $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Р›РёС†РµРЅС†РµРЅ Р”РѕРіРѕРІРѕСЂ"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Р’Рµ РјРѕР»РёРјРµ РїСЂРѕРІРµСЂРµС‚Рµ РіРё Р»РёС†РµРЅС†РЅРёС‚Рµ СѓСЃР»РѕРІРё РїСЂРµРґ РґР° РіРѕ РґРµРёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, РїСЂРёС‚РёСЃРЅРµС‚Рµ 'Р”Р°' Р·Р° РґР° РїСЂРѕРґРѕР»Р¶РёС‚Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РґР° РіРѕ РґРµРёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, С‡РµРєРёСЂР°СС‚Рµ РіРѕ check box-РѕС‚ РїРѕРґРѕР»Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РіРѕ РґРµРёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "РђРєРѕ РіРё РїСЂРёС„Р°СњР°С‚Рµ СѓСЃР»РѕРІРёС‚Рµ РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚, РѕРґР±РµСЂРµС‚Рµ СР° РїСЂРІР°С‚Р° РѕРїС†РёСР° РїРѕРґРѕР»Рµ. РњРѕСЂР° РґР° РіРѕ РїСЂРёС„Р°С‚РёС‚Рµ РґРѕРіРѕРІРѕСЂРѕС‚ Р·Р° РіРѕ РґРµРёРЅСЃС‚Р°Р»РёСЂР°С‚Рµ $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Притиснете 'Page Down' за да го видете останатиот дел од договорот."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "РџСЂРёС‚РёСЃРЅРµС‚Рµ 'Page Down' Р·Р° РґР° РіРѕ РІРёРґРµС‚Рµ РѕСЃС‚Р°РЅР°С‚РёРѕС‚ РґРµР» РѕРґ РґРѕРіРѕРІРѕСЂРѕС‚."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Одберете Компоненти"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Одберете кои работи од $(^NameDA) сакате да се инсталираат."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "РћРґР±РµСЂРµС‚Рµ РљРѕРјРїРѕРЅРµРЅС‚Рё"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "РћРґР±РµСЂРµС‚Рµ РєРѕРё СЂР°Р±РѕС‚Рё РѕРґ $(^NameDA) СЃР°РєР°С‚Рµ РґР° СЃРµ РёРЅСЃС‚Р°Р»РёСЂР°Р°С‚."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Одберете Компоненти"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Одберете кои работи од $(^NameDA) сакате да се деинсталираат."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "РћРґР±РµСЂРµС‚Рµ РљРѕРјРїРѕРЅРµРЅС‚Рё"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "РћРґР±РµСЂРµС‚Рµ РєРѕРё СЂР°Р±РѕС‚Рё РѕРґ $(^NameDA) СЃР°РєР°С‚Рµ РґР° СЃРµ РґРµРёРЅСЃС‚Р°Р»РёСЂР°Р°С‚."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Објаснение"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "РћР±СР°СЃРЅРµРЅРёРµ"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Однесете го курсорот до компонентата за да го видете нејзиното објаснение."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "РћРґРЅРµСЃРµС‚Рµ РіРѕ РєСѓСЂСЃРѕСЂРѕС‚ РґРѕ РєРѕРјРїРѕРЅРµРЅС‚Р°С‚Р° Р·Р° РґР° РіРѕ РІРёРґРµС‚Рµ РЅРµСР·РёРЅРѕС‚Рѕ РѕР±СР°СЃРЅРµРЅРёРµ."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Однесете го курсорот до компонентата за да го видете нејзиното објаснение."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "РћРґР±РµСЂРµС‚Рµ СР° РєРѕРјРїРѕРЅРµРЅС‚Р°С‚Р° Р·Р° РґР° РіРѕ РІРёРґРµС‚Рµ РЅРµСР·РёРЅРѕС‚Рѕ РѕР±СР°СЃРЅРµРЅРёРµ."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Одберете ја локацијата за инсталирање"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Одберете го директориумот каде што сакате да се инсталира $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "РћРґР±РµСЂРµС‚Рµ СР° Р»РѕРєР°С†РёСР°С‚Р° Р·Р° РёРЅСЃС‚Р°Р»РёСЂР°СљРµ"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "РћРґР±РµСЂРµС‚Рµ РіРѕ РґРёСЂРµРєС‚РѕСЂРёСѓРјРѕС‚ РєР°РґРµ С€С‚Рѕ СЃР°РєР°С‚Рµ РґР° СЃРµ РёРЅСЃС‚Р°Р»РёСЂР° $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Одберете ја локацијата за деинсталирање"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Одберете го директориумот од кој сакате да се деинсталира $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "РћРґР±РµСЂРµС‚Рµ СР° Р»РѕРєР°С†РёСР°С‚Р° Р·Р° РґРµРёРЅСЃС‚Р°Р»РёСЂР°СљРµ"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "РћРґР±РµСЂРµС‚Рµ РіРѕ РґРёСЂРµРєС‚РѕСЂРёСѓРјРѕС‚ РѕРґ РєРѕС СЃР°РєР°С‚Рµ РґР° СЃРµ РґРµРёРЅСЃС‚Р°Р»РёСЂР° $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Инсталира"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Ве молиме почекајте додека $(^NameDA) се инсталира."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Инсталацијата е завршена"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Инсталирањето беше успешно."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Инсталацијата е откажана"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Инсталирањето не беше успешно завршено."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "РРЅСЃС‚Р°Р»РёСЂР°"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Р’Рµ РјРѕР»РёРјРµ РїРѕС‡РµРєР°СС‚Рµ РґРѕРґРµРєР° $(^NameDA) СЃРµ РёРЅСЃС‚Р°Р»РёСЂР°."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "РРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° Рµ Р·Р°РІСЂС€РµРЅР°"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "РРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ Р±РµС€Рµ СѓСЃРїРµС€РЅРѕ."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "РРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° Рµ РѕС‚РєР°Р¶Р°РЅР°"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "РРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ РЅРµ Р±РµС€Рµ СѓСЃРїРµС€РЅРѕ Р·Р°РІСЂС€РµРЅРѕ."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Деинсталира"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Ве молиме почекајте додека $(^NameDA) се деинсталира."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Деинсталацијата е завршена"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Деинсталирањето беше успешно."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Деинсталацијата е откажана"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Деинсталирањето не беше успешно завршено."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Р”РµРёРЅСЃС‚Р°Р»РёСЂР°"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Р’Рµ РјРѕР»РёРјРµ РїРѕС‡РµРєР°СС‚Рµ РґРѕРґРµРєР° $(^NameDA) СЃРµ РґРµРёРЅСЃС‚Р°Р»РёСЂР°."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Р”РµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° Рµ Р·Р°РІСЂС€РµРЅР°"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Р”РµРёРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ Р±РµС€Рµ СѓСЃРїРµС€РЅРѕ."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Р”РµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° Рµ РѕС‚РєР°Р¶Р°РЅР°"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Р”РµРёРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ РЅРµ Р±РµС€Рµ СѓСЃРїРµС€РЅРѕ Р·Р°РІСЂС€РµРЅРѕ."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Завршува инсталирањето на $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) е инсталиран на вашиот компјутер.$\r$\n$\r$\nПритиснете 'Крај' за да го затворите инсталациониот програм."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Вашиот компјутер мора да се рестартира за да заврши инсталацијата на $(^NameDA). Дали сакате да се рестартира сега?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Р—Р°РІСЂС€СѓРІР° РёРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ РЅР° $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) Рµ РёРЅСЃС‚Р°Р»РёСЂР°РЅ РЅР° РІР°С€РёРѕС‚ РєРѕРјРїССѓС‚РµСЂ.$\r$\n$\r$\nРџСЂРёС‚РёСЃРЅРµС‚Рµ 'РљСЂР°С' Р·Р° РґР° РіРѕ Р·Р°С‚РІРѕСЂРёС‚Рµ РёРЅСЃС‚Р°Р»Р°С†РёРѕРЅРёРѕС‚ РїСЂРѕРіСЂР°Рј."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Р’Р°С€РёРѕС‚ РєРѕРјРїССѓС‚РµСЂ РјРѕСЂР° РґР° СЃРµ СЂРµСЃС‚Р°СЂС‚РёСЂР° Р·Р° РґР° Р·Р°РІСЂС€Рё РёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA). Р”Р°Р»Рё СЃР°РєР°С‚Рµ РґР° СЃРµ СЂРµСЃС‚Р°СЂС‚РёСЂР° СЃРµРіР°?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Завршува деинсталирањето на $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) е деинсталиран од вашиот компјутер.$\r$\n$\r$\nПритиснете 'Крај' за да го затворите деинсталациониот програм."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Вашиот компјутер мора да се рестартира за да заврши деинсталацијата на $(^NameDA). Дали сакате да се рестартира сега?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Р—Р°РІСЂС€СѓРІР° РґРµРёРЅСЃС‚Р°Р»РёСЂР°СљРµС‚Рѕ РЅР° $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) Рµ РґРµРёРЅСЃС‚Р°Р»РёСЂР°РЅ РѕРґ РІР°С€РёРѕС‚ РєРѕРјРїССѓС‚РµСЂ.$\r$\n$\r$\nРџСЂРёС‚РёСЃРЅРµС‚Рµ 'РљСЂР°С' Р·Р° РґР° РіРѕ Р·Р°С‚РІРѕСЂРёС‚Рµ РґРµРёРЅСЃС‚Р°Р»Р°С†РёРѕРЅРёРѕС‚ РїСЂРѕРіСЂР°Рј."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Р’Р°С€РёРѕС‚ РєРѕРјРїССѓС‚РµСЂ РјРѕСЂР° РґР° СЃРµ СЂРµСЃС‚Р°СЂС‚РёСЂР° Р·Р° РґР° Р·Р°РІСЂС€Рё РґРµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^NameDA). Р”Р°Р»Рё СЃР°РєР°С‚Рµ РґР° СЃРµ СЂРµСЃС‚Р°СЂС‚РёСЂР° СЃРµРіР°?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Рестартирај сега"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Ако сакате да го рестартирате подоцна"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "Пок&рени го $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Отвор&и 'Прочитај Ме'"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Крај"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Р РµСЃС‚Р°СЂС‚РёСЂР°С СЃРµРіР°"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "РђРєРѕ СЃР°РєР°С‚Рµ РґР° РіРѕ СЂРµСЃС‚Р°СЂС‚РёСЂР°С‚Рµ РїРѕРґРѕС†РЅР°"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "РџРѕРє&СЂРµРЅРё РіРѕ $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "РћС‚РІРѕСЂ&Рё 'РџСЂРѕС‡РёС‚Р°С РњРµ'"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&РљСЂР°С"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Одберете директориум за Старт Менито"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Одберете директориум во Старт Менито за креирање скратеница на $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Одберете го директориумот во Старт Менито во кој сакате да се креира скратеница за програмата. Исто така можете да внесете друго име за да се креира нов директориум."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Не креирај скратеница"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "РћРґР±РµСЂРµС‚Рµ РґРёСЂРµРєС‚РѕСЂРёСѓРј Р·Р° РЎС‚Р°СЂС‚ РњРµРЅРёС‚Рѕ"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "РћРґР±РµСЂРµС‚Рµ РґРёСЂРµРєС‚РѕСЂРёСѓРј РІРѕ РЎС‚Р°СЂС‚ РњРµРЅРёС‚Рѕ Р·Р° РєСЂРµРёСЂР°СљРµ СЃРєСЂР°С‚РµРЅРёС†Р° РЅР° $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "РћРґР±РµСЂРµС‚Рµ РіРѕ РґРёСЂРµРєС‚РѕСЂРёСѓРјРѕС‚ РІРѕ РЎС‚Р°СЂС‚ РњРµРЅРёС‚Рѕ РІРѕ РєРѕС СЃР°РєР°С‚Рµ РґР° СЃРµ РєСЂРµРёСЂР° СЃРєСЂР°С‚РµРЅРёС†Р° Р·Р° РїСЂРѕРіСЂР°РјР°С‚Р°. РСЃС‚Рѕ С‚Р°РєР° РјРѕР¶РµС‚Рµ РґР° РІРЅРµСЃРµС‚Рµ РґСЂСѓРіРѕ РёРјРµ Р·Р° РґР° СЃРµ РєСЂРµРёСЂР° РЅРѕРІ РґРёСЂРµРєС‚РѕСЂРёСѓРј."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "РќРµ РєСЂРµРёСЂР°С СЃРєСЂР°С‚РµРЅРёС†Р°"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Деинсталирај го $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Одстранете го $(^NameDA) од вашиот компјутер."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Р”РµРёРЅСЃС‚Р°Р»РёСЂР°С РіРѕ $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "РћРґСЃС‚СЂР°РЅРµС‚Рµ РіРѕ $(^NameDA) РѕРґ РІР°С€РёРѕС‚ РєРѕРјРїССѓС‚РµСЂ."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Сигурни ли сте дека сакате да се откажете од инсталацијата на $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "РЎРёРіСѓСЂРЅРё Р»Рё СЃС‚Рµ РґРµРєР° СЃР°РєР°С‚Рµ РґР° СЃРµ РѕС‚РєР°Р¶РµС‚Рµ РѕРґ РёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Сигурни ли сте дека сакате да се откажете од деинсталацијата на $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "РЎРёРіСѓСЂРЅРё Р»Рё СЃС‚Рµ РґРµРєР° СЃР°РєР°С‚Рµ РґР° СЃРµ РѕС‚РєР°Р¶РµС‚Рµ РѕРґ РґРµРёРЅСЃС‚Р°Р»Р°С†РёСР°С‚Р° РЅР° $(^Name)?"
 !endif

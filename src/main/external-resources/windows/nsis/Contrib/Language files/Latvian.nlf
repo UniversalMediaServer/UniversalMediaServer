@@ -1,191 +1,191 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1062
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1257
 # RTL - anything else than RTL means LTR
 -
-# Translation by Valdis Griíis (valmiera-9@inbox.lv)
-# Corrections by Kristaps Meòìelis / x-f (x-f 'AT' inbox.lv)
+# Translation by Valdis GriÄ·is (valmiera-9@inbox.lv)
+# Corrections by Kristaps MeÅ†Ä£elis / x-f (x-f 'AT' inbox.lv)
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
-'$(^Name)' Uzstâdîğana
+'$(^Name)' UzstÄdÄ«Å¡ana
 # ^UninstallCaption
-'$(^Name)' Atinstalçğana
+'$(^Name)' AtinstalÄ“Å¡ana
 # ^LicenseSubCaption
-: Licences lîgums
+: Licences lÄ«gums
 # ^ComponentsSubCaption
-: Uzstâdîğanas opcijas
+: UzstÄdÄ«Å¡anas opcijas
 # ^DirSubCaption
-: Uzstâdîğanas mape
+: UzstÄdÄ«Å¡anas mape
 # ^InstallingSubCaption
-: Notiek uzstâdîğana
+: Notiek uzstÄdÄ«Å¡ana
 # ^CompletedSubCaption
-: Uzstâdîğana pabeigta.
+: UzstÄdÄ«Å¡ana pabeigta.
 # ^UnComponentsSubCaption
-: Atinstalçğanas opcijas
+: AtinstalÄ“Å¡anas opcijas
 # ^UnDirSubCaption
-: Atinstalçğanas mape
+: AtinstalÄ“Å¡anas mape
 # ^ConfirmSubCaption
-: Apstiprinâğana
+: ApstiprinÄÅ¡ana
 # ^UninstallingSubCaption
-: Notiek atinstalçğana
+: Notiek atinstalÄ“Å¡ana
 # ^UnCompletedSubCaption
-: Atinstalçğana pabeigta
+: AtinstalÄ“Å¡ana pabeigta
 # ^BackBtn
-< &Atpakaï
+< &AtpakaÄ¼
 # ^NextBtn
-&Tâlâk >
+&TÄlÄk >
 # ^AgreeBtn
-Es &piekrîtu
+Es &piekrÄ«tu
 # ^AcceptBtn
-Es &piekrîtu licences lîguma noteikumiem
+Es &piekrÄ«tu licences lÄ«guma noteikumiem
 # ^DontAcceptBtn
-Es &nepiekrîtu licences lîguma noteikumiem
+Es &nepiekrÄ«tu licences lÄ«guma noteikumiem
 # ^InstallBtn
-&Uzstâdît
+&UzstÄdÄ«t
 # ^UninstallBtn
-&Atinstalçt
+&AtinstalÄ“t
 # ^CancelBtn
 Atcelt
 # ^CloseBtn
-Ai&zvçrt
+Ai&zvÄ“rt
 # ^BrowseBtn
-Pâ&rlûkot...
+PÄ&rlÅ«kot...
 # ^ShowDetailsBtn
-Parâdît &detaïas
+ParÄdÄ«t &detaÄ¼as
 # ^ClickNext
-Spiediet 'Tâlâk', lai turpinâtu.
+Spiediet 'TÄlÄk', lai turpinÄtu.
 # ^ClickInstall
-Spiediet 'Uzstâdît', lai sâktu uzstâdîğanas procesu.
+Spiediet 'UzstÄdÄ«t', lai sÄktu uzstÄdÄ«Å¡anas procesu.
 # ^ClickUninstall
-Spiediet 'Atinstalçt', lai sâktu atinstalçğanas procesu.
+Spiediet 'AtinstalÄ“t', lai sÄktu atinstalÄ“Å¡anas procesu.
 # ^Name
-Vârds
+VÄrds
 # ^Completed
-Uzstâdîğana pabeigta
+UzstÄdÄ«Å¡ana pabeigta
 # ^LicenseText
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' uzstâdîğanas. Ja piekrîtat licences lîguma noteikumiem, tad spiediet 'Es piekrîtu'.
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' uzstÄdÄ«Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad spiediet 'Es piekrÄ«tu'.
 # ^LicenseTextCB
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' uzstâdîğanas. Ja piekrîtat licences lîguma noteikumiem, tad atzîmçjiet izvçles rûtiòu. $_CLICK
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' uzstÄdÄ«Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad atzÄ«mÄ“jiet izvÄ“les rÅ«tiÅ†u. $_CLICK
 # ^LicenseTextRB
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' uzstâdîğanas. Ja piekrîtat licences lîguma noteikumiem, tad izvçlieties pirmo zemâkesoğo opciju. $_CLICK
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' uzstÄdÄ«Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad izvÄ“lieties pirmo zemÄkesoÅ¡o opciju. $_CLICK
 # ^UnLicenseText
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' atinstalçğanas. Ja piekrîtat licences lîguma noteikumiem, tad spiediet 'Es piekrîtu'.
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' atinstalÄ“Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad spiediet 'Es piekrÄ«tu'.
 # ^UnLicenseTextCB
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' atinstalçğanas. Ja piekrîtat licences lîguma noteikumiem, tad atzîmçjiet izvçles rûtiòu. $_CLICK
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' atinstalÄ“Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad atzÄ«mÄ“jiet izvÄ“les rÅ«tiÅ†u. $_CLICK
 # ^UnLicenseTextRB
-Lûdzu izlasiet licences lîgumu pirms '$(^NameDA)' atinstalçğanas. Ja piekrîtat licences lîguma noteikumiem, tad izvçlieties zemâkesoğo opciju. $_CLICK
+LÅ«dzu izlasiet licences lÄ«gumu pirms '$(^NameDA)' atinstalÄ“Å¡anas. Ja piekrÄ«tat licences lÄ«guma noteikumiem, tad izvÄ“lieties zemÄkesoÅ¡o opciju. $_CLICK
 # ^Custom
-Pielâgots
+PielÄgots
 # ^ComponentsText
-Izvçlieties, kurus komponentus vçlaties uzstâdît un neiezîmçjiet tos, kurus nevçlaties uzstâdît. $_CLICK
+IzvÄ“lieties, kurus komponentus vÄ“laties uzstÄdÄ«t un neiezÄ«mÄ“jiet tos, kurus nevÄ“laties uzstÄdÄ«t. $_CLICK
 # ^ComponentsSubText1
-Izvçlieties uzstâdîğanas veidu:
+IzvÄ“lieties uzstÄdÄ«Å¡anas veidu:
 # ^ComponentsSubText2_NoInstTypes
-Izvçlieties uzstâdâmos komponentus:
+IzvÄ“lieties uzstÄdÄmos komponentus:
 # ^ComponentsSubText2
-Vai arî – izvçlieties tikai nepiecieğamos komponentus, kurus vçlaties uzstâdît:
+Vai arÄ« â€“ izvÄ“lieties tikai nepiecieÅ¡amos komponentus, kurus vÄ“laties uzstÄdÄ«t:
 # ^UnComponentsText
-Izvçlieties, kurus komponentus atinstalçt un neiezîmçjiet tos, kurus nevçlaties atinstalçt. $_CLICK
+IzvÄ“lieties, kurus komponentus atinstalÄ“t un neiezÄ«mÄ“jiet tos, kurus nevÄ“laties atinstalÄ“t. $_CLICK
 # ^UnComponentsSubText1
-Izvçlieties atinstalçğanas veidu:
+IzvÄ“lieties atinstalÄ“Å¡anas veidu:
 # ^UnComponentsSubText2_NoInstTypes
-Izvçlieties atinstalçjamos komponentus:
+IzvÄ“lieties atinstalÄ“jamos komponentus:
 # ^UnComponentsSubText2
-Vai arî – izvçlieties tikai nepiecieğamos komponentus, kurus vçlaties atinstalçt:
+Vai arÄ« â€“ izvÄ“lieties tikai nepiecieÅ¡amos komponentus, kurus vÄ“laties atinstalÄ“t:
 # ^DirText
-'$(^NameDA)' tiks uzstâdîta ğajâ mapç. Lai to uzstâdîtu citâ mapç, nospiediet 'Pârlûkot' un izvçlieties citu mapi. $_CLICK
+'$(^NameDA)' tiks uzstÄdÄ«ta Å¡ajÄ mapÄ“. Lai to uzstÄdÄ«tu citÄ mapÄ“, nospiediet 'PÄrlÅ«kot' un izvÄ“lieties citu mapi. $_CLICK
 # ^DirSubText
-Uzstâdîğanas mape
+UzstÄdÄ«Å¡anas mape
 # ^DirBrowseText
-Izvçlieties mapi, kurâ uzstâdît '$(^NameDA)':
+IzvÄ“lieties mapi, kurÄ uzstÄdÄ«t '$(^NameDA)':
 # ^UnDirText
-'$(^NameDA)' tiks atinstalçta no ğîs mapes. Lai to atinstalçtu no citas mapes, nospiediet 'Pârlûkot' un izvçlieties citu mapi. $_CLICK
+'$(^NameDA)' tiks atinstalÄ“ta no Å¡Ä«s mapes. Lai to atinstalÄ“tu no citas mapes, nospiediet 'PÄrlÅ«kot' un izvÄ“lieties citu mapi. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Izvçlieties mapi, no kuras atinstalçt '$(^NameDA)':
+IzvÄ“lieties mapi, no kuras atinstalÄ“t '$(^NameDA)':
 # ^SpaceAvailable
 "Pieejamais diska apjoms: "
 # ^SpaceRequired
-"Nepiecieğamais diska apjoms: "
+"NepiecieÅ¡amais diska apjoms: "
 # ^UninstallingText
-'$(^NameDA)' tiks atinstalçta no ğîs mapes. $_CLICK
+'$(^NameDA)' tiks atinstalÄ“ta no Å¡Ä«s mapes. $_CLICK
 # ^UninstallingSubText
-Atinstalçğana no:
+AtinstalÄ“Å¡ana no:
 # ^FileError
-Kïûda atverot failu rakstîğanai: \r\n\t"$0"\r\nNospiediet 'Atcelt', lai atceltu uzstâdîğanas procesu,\r\n'Mçìinât vçlreiz', lai atkârtoti mçìinâtu rakstît failâ vai\r\n'Ignorçt', lai izlaistu ğî faila uzstâdîğanu
+KÄ¼Å«da atverot failu rakstÄ«Å¡anai: \r\n\t"$0"\r\nNospiediet 'Atcelt', lai atceltu uzstÄdÄ«Å¡anas procesu,\r\n'MÄ“Ä£inÄt vÄ“lreiz', lai atkÄrtoti mÄ“Ä£inÄtu rakstÄ«t failÄ vai\r\n'IgnorÄ“t', lai izlaistu Å¡Ä« faila uzstÄdÄ«Å¡anu
 # ^FileError_NoIgnore
-Kïûda atverot failu rakstîğanai: \r\n\t"$0"\r\nNospiediet 'Atcelt', lai pârtrauktu uzstâdîğanas procesu
+KÄ¼Å«da atverot failu rakstÄ«Å¡anai: \r\n\t"$0"\r\nNospiediet 'Atcelt', lai pÄrtrauktu uzstÄdÄ«Å¡anas procesu
 # ^CantWrite
-"Nevar ierakstît: "
+"Nevar ierakstÄ«t: "
 # ^CopyFailed
-Kopçğana neizdevâs
+KopÄ“Å¡ana neizdevÄs
 # ^CopyTo
-"Kopç uz "
+"KopÄ“ uz "
 # ^Registering
-"Reìistrç: "
+"ReÄ£istrÄ“: "
 # ^Unregistering
-"Atreìistrç: "
+"AtreÄ£istrÄ“: "
 # ^SymbolNotFound
 "Simbols nav atrasts: "
 # ^CouldNotLoad
-"Nav iespçjams ielâdçt: "
+"Nav iespÄ“jams ielÄdÄ“t: "
 # ^CreateFolder
 "Izveido mapi: "
 # ^CreateShortcut
-"Izveido saîsni: "
+"Izveido saÄ«sni: "
 # ^CreatedUninstaller
-"Izveidots atinstalçtâjs: "
+"Izveidots atinstalÄ“tÄjs: "
 # ^Delete
-"Dzçğ failu: "
+"DzÄ“Å¡ failu: "
 # ^DeleteOnReboot
-"Dzçst pçc pârstartçğanas: "
+"DzÄ“st pÄ“c pÄrstartÄ“Å¡anas: "
 # ^ErrorCreatingShortcut
-"Kïûda veidojot saîsni: "
+"KÄ¼Å«da veidojot saÄ«sni: "
 # ^ErrorCreating
-"Kïûda veidojot: "
+"KÄ¼Å«da veidojot: "
 # ^ErrorDecompressing
-Kïûda atkompresçjot datus! Bojâta instalâcija?
+KÄ¼Å«da atkompresÄ“jot datus! BojÄta instalÄcija?
 # ^ErrorRegistering
-Kïûda reìistrçjot DLL failu
+KÄ¼Å«da reÄ£istrÄ“jot DLL failu
 # ^ExecShell
-"Izpilda èaulâ: "
+"Izpilda ÄaulÄ: "
 # ^Exec
 "Izpilda: "
 # ^Extract
-"Atspieş: "
+"AtspieÅ¾: "
 # ^ErrorWriting
-"Atspieğana: kïûda rakstot failâ "
+"AtspieÅ¡ana: kÄ¼Å«da rakstot failÄ "
 # ^InvalidOpcode
-Instalâcija bojâta: nederîgs CRC kods
+InstalÄcija bojÄta: nederÄ«gs CRC kods
 # ^NoOLE
-"Nav OLE priekğ: "
+"Nav OLE priekÅ¡: "
 # ^OutputFolder
 "Izvades mape: "
 # ^RemoveFolder
-"Dzçğ mapi: "
+"DzÄ“Å¡ mapi: "
 # ^RenameOnReboot
-"Pârsaukt pçc pârstartçğanas: "
+"PÄrsaukt pÄ“c pÄrstartÄ“Å¡anas: "
 # ^Rename
-"Pârsaukt: "
+"PÄrsaukt: "
 # ^Skipped
 "Izlaists: "
 # ^CopyDetails
-Iekopçt detaïas starpliktuvç
+IekopÄ“t detaÄ¼as starpliktuvÄ“
 # ^LogInstall
-Ierakstît şurnâla failâ uzstâdîğanas procesu
+IerakstÄ«t Å¾urnÄla failÄ uzstÄdÄ«Å¡anas procesu
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

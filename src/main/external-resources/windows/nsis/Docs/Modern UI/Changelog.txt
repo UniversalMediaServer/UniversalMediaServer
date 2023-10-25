@@ -1,11 +1,16 @@
 NSIS Modern User Interface
 Version History
 
+1.81
+* Added MUI_TEXTCOLOR (2018-09-09)
+* Added MUI_PAGE_CUSTOMFUNCTION_DESTROYED (2017-04-03)
+* Added support for MUI_UNCONFIRMPAGE_VARIABLE (RFE #511) (2016-12-30)
+
 1.8 - August 9, 2007
 * Uses the new language files
 * Updated documentation
 * Although MUI_DIRECTORYPAGE_BGCOLOR and MUI_STARTMENUPAGE_BGCOLOR are documented as interface
-  setttings that apply to every directory page or Start Menu folder page, they were actually
+  settings that apply to every directory page or Start Menu folder page, they were actually
   implemented as page specific settings. They have been changed to interface settings.
 * MUI_LANGDLL_DISPLAY now also reads a previously saved language from the registry if the
   installation is silent.
@@ -70,7 +75,7 @@ Version History
 * Support for uninstaller abort warning
 * Setting for 3 line text on Welcome and Finish page
   (NOTE: New settings have been introduced in version 1.68)
-* Langauge file backwards compatibility: English for missing strings
+* Language file backwards compatibility: English for missing strings
 * Support for different uninstaller header image
 * Language selection dialog not displayed if installer is silent
 * Cancel button on Finish page when there are options
@@ -82,7 +87,7 @@ Version History
 * Support for multiple pages of the same type
 * New position for interface settings
 * Changed macro and setting names
-* Updated langauge system, new language files and settings
+* Updated language system, new language files and settings
 * Removed MUI_BRANDINGTEXT. You can use the standard BrandingText instruction.
 * Removed MUI_PRODUCT and MUI VERSION. You can use the standard Name instruction.
 
@@ -188,7 +193,7 @@ Version History
 * SetPage function should be set using defines
 * Different NextPage/PrevPage/FinishHeader macros for install/uninstall
   (NOTE: These macros have been removed in version 1.4)
-* Interface settings can be definend (for example, MUI_ICON), no parameters for MUI_INTERFACE anymore
+* Interface settings can be defined (for example, MUI_ICON), no parameters for MUI_INTERFACE anymore
 * New Install Options macros to read/write IO INI file value
 
 1.21 - September 30, 2002

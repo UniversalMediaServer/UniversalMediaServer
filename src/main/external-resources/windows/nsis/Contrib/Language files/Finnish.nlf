@@ -1,4 +1,4 @@
-# Header, don't edit
+Ôªø# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,18 +6,19 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
 # Translation by Eclipser (Jonne Lehtinen) <Eclipser at pilvikaupunki dot net>
 # Corrections by the Mozilla.fi crew
+# Upd 11/08 by WTLib Team
 # ^Branding
-Nullsoftin asennusj‰rjestelm‰ %s
+Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) Asennus
+$(^Name) -ohjelman asennus
 # ^UninstallCaption
-$(^Name) Poisto
+$(^Name) -ohjelman poisto
 # ^LicenseSubCaption
 : Lisenssisopimus
 # ^ComponentsSubCaption
@@ -43,11 +44,11 @@ $(^Name) Poisto
 # ^NextBtn
 &Seuraava >
 # ^AgreeBtn
-&Hyv‰ksyn
+&Hyv√§ksyn
 # ^AcceptBtn
-Hyv‰ksyn lisenssisopimuksen ehdot
+Hyv√§ksyn lisenssisopimuksen ehdot
 # ^DontAcceptBtn
-En hyv‰ksy sopimuksen ehtoja
+En hyv√§ksy sopimuksen ehtoja
 # ^InstallBtn
 &Asenna
 # ^UninstallBtn
@@ -59,7 +60,7 @@ Peruuta
 # ^BrowseBtn
 S&elaa...
 # ^ShowDetailsBtn
-&N‰yt‰ tiedot
+&N√§yt√§ tiedot
 # ^ClickNext
 Valitse Seuraava jatkaaksesi.
 # ^ClickInstall
@@ -71,17 +72,17 @@ Nimi
 # ^Completed
 Valmis
 # ^LicenseText
-Lue lisenssisopimus ennen asentamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, valitse Hyv‰ksyn.
+Lue lisenssisopimus ennen asentamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, valitse Hyv√§ksyn.
 # ^LicenseTextCB
-Lue lisenssisopimus ennen asentamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
+Lue lisenssisopimus ennen asentamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
 # ^LicenseTextRB
-Lue lisenssisopimus ennen asentamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, valitse ensimm‰inen vaihtoehto alapuolelta. $_CLICK
+Lue lisenssisopimus ennen asentamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, valitse ensimm√§inen vaihtoehto alapuolelta. $_CLICK
 # ^UnLicenseText
-Lue lisenssisopimus ennen poistamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, valitse Hyv‰ksyn.
+Lue lisenssisopimus ennen poistamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, valitse Hyv√§ksyn.
 # ^UnLicenseTextCB
-Lue lisenssisopimus ennen poistamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
+Lue lisenssisopimus ennen poistamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, laita rasti ruutuun. $_CLICK
 # ^UnLicenseTextRB
-Lue lisenssisopimus ennen poistamista. Jos hyv‰ksyt sopimuksen kaikki ehdot, valitse ensimm‰inen vaihtoehto alapuolelta. $_CLICK
+Lue lisenssisopimus ennen poistamista. Jos hyv√§ksyt sopimuksen kaikki ehdot, valitse ensimm√§inen vaihtoehto alapuolelta. $_CLICK
 # ^Custom
 Oma
 # ^ComponentsText
@@ -101,13 +102,13 @@ Valitse poistettavat komponentit:
 # ^UnComponentsSubText2
 Tai, valitse valinnaiset komponentit, jotka haluat poistaa
 # ^DirText
-Asennus asentaa ohjelman $(^NameDA) seuraavaan kansioon. Jos haluat asentaa sen johonkin muuhun kansioon, valitse Selaa, ja valitse toinen kansio. $_CLICK
+$(^NameDA) -ohjelma asennetaan seuraavaan kansioon. Jos haluat asentaa sen johonkin muuhun kansioon, valitse Selaa, ja valitse toinen kansio. $_CLICK
 # ^DirSubText
 Kohdekansio
 # ^DirBrowseText
 Valitse kansio, johon haluat asentaa ohjelman $(^NameDA):
 # ^UnDirText
-Asennus poistaa ohjelman $(^NameDA) seuraavasta kansiosta. Jos haluat poistaa sen jostakin muusta kansiosta, valitse Selaa, ja valitse toinen kansio. $_CLICK
+Poistetaan ohjelman $(^NameDA) seuraavasta kansiosta. Jos haluat poistaa sen jostakin muusta kansiosta, valitse Selaa, ja valitse toinen kansio. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
@@ -117,25 +118,25 @@ Valitse kansio, josta haluat poistaa ohjelman $(^NameDA):
 # ^SpaceRequired
 "Tarvittava tila: "
 # ^UninstallingText
-T‰m‰ ohjelma poistaa ohjelman $(^NameDA) tietokoneelta. $_CLICK
+T√§m√§ ohjelma poistaa ohjelman $(^NameDA) tietokoneelta. $_CLICK
 # ^UninstallingSubText
 Poistetaan kansiosta:
 # ^FileError
-Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nLopeta asennus valitsemalla Hylk‰‰,\r\nyrit‰ uudelleen valitsemalla Uudelleen, tai\r\nohita tiedosto valitsemalla Ohita
+Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nLopeta asennus valitsemalla Hylk√§√§,\r\nyrit√§ uudelleen valitsemalla Uudelleen, tai\r\nohita tiedosto valitsemalla Ohita
 # ^FileError_NoIgnore
-Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nYrit‰ uudelleen valitsemalla Uudelleen, tai\r\nlopeta asennus valitsemalla Hylk‰‰
+Tiedostoon ei voitu kirjoittaa: \r\n\t"$0"\r\nYrit√§ uudelleen valitsemalla Uudelleen, tai\r\nlopeta asennus valitsemalla Hylk√§√§
 # ^CantWrite
 "Ei voi kirjoittaa: "
 # ^CopyFailed
-Kopiointi ep‰onnistui
+Kopiointi ep√§onnistui
 # ^CopyTo
 "Kopioidaan kohteeseen "
 # ^Registering
-"Rekisterˆid‰‰n: "
+"Rekister√∂id√§√§n: "
 # ^Unregistering
-"Poistetaan rekisterˆinti: "
+"Poistetaan rekister√∂inti: "
 # ^SymbolNotFound
-"Symbolia ei lˆytynyt: "
+"Symbolia ei l√∂ytynyt: "
 # ^CouldNotLoad
 "Ei voitu ladata: "
 # ^CreateFolder
@@ -147,7 +148,7 @@ Kopiointi ep‰onnistui
 # ^Delete
 "Poista: "
 # ^DeleteOnReboot
-"Poista k‰ynnistyksen yhteydess‰: "
+"Poista k√§ynnistyksen yhteydess√§: "
 # ^ErrorCreatingShortcut
 "Virhe luotaessa pikakuvaketta: "
 # ^ErrorCreating
@@ -155,7 +156,7 @@ Kopiointi ep‰onnistui
 # ^ErrorDecompressing
 Pakettia ei voitu purkaa. Korruptoitunut asennusohjelma?
 # ^ErrorRegistering
-Virhe rekisterˆidess‰ DLL-tiedostoa
+Virhe rekister√∂idess√§ DLL-tiedostoa
 # ^ExecShell
 "ExecShell: "
 # ^Exec
@@ -173,20 +174,20 @@ Asennuspaketti on vioittunut: virheellinen opcode
 # ^RemoveFolder
 "Poista kansio: "
 # ^RenameOnReboot
-"Muuta nimi uudelleenk‰ynnistyksen yhteydess‰: "
+"Muuta nimi uudelleenk√§ynnistyksen yhteydess√§: "
 # ^Rename
 "Muuta nimi: "
 # ^Skipped
 "Ohitettiin: "
 # ^CopyDetails
-Kopioi tiedot leikepˆyd‰lle
+Kopioi tiedot leikep√∂yd√§lle
 # ^LogInstall
 Tallenna asennusloki
 # ^Byte
 t
 # ^Kilo
-k
+ k
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

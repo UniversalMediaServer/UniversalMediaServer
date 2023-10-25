@@ -1,13 +1,16 @@
 Name "UserInfo.dll test"
 OutFile UserInfo.exe
+RequestExecutionLevel Highest
 
 !define REALMSG "$\nOriginal non-restricted account type: $2"
 
 Section
 	ClearErrors
 	UserInfo::GetName
-	IfErrors Win9x
+	IfErrors PluginFail
 	Pop $0
+	StrCmp $0 "" 0 +2 ; GetName can return a empty string on Win9x
+		StrCpy $0 "?"
 	UserInfo::GetAccountType
 	Pop $1
 	# GetOriginalAccountType will check the tokens of the original user of the
@@ -19,7 +22,7 @@ Section
 	# "admin" while GetAccountType will return "user".
 	UserInfo::GetOriginalAccountType
 	Pop $2
-	StrCmp $1 "Admin" 0 +3
+	StrCmp $1 "Admin" 0 +3 ; Note: Win9x always returns "Admin"
 		MessageBox MB_OK 'User "$0" is in the Administrators group${REALMSG}'
 		Goto done
 	StrCmp $1 "Power" 0 +3
@@ -34,10 +37,8 @@ Section
 	MessageBox MB_OK "Unknown error"
 	Goto done
 
-	Win9x:
-		# This one means you don't need to care about admin or
-		# not admin because Windows 9x doesn't either
-		MessageBox MB_OK "Error! This DLL can't run under Windows 9x!"
+	PluginFail:
+		MessageBox MB_OK "Error! Unable to call plug-in!"
 
 	done:
 SectionEnd
