@@ -1156,7 +1156,7 @@ public class OpenSubtitle {
 			}
 		}
 		if (fileName == null) {
-			fileName = resource.getSystemName();
+			fileName = resource.getFileName();
 		}
 
 		Array queryArray = new Array();
@@ -1280,7 +1280,7 @@ public class OpenSubtitle {
 				}
 				fileName = file.getName();
 			} else {
-				fileName = resource.getSystemName();
+				fileName = resource.getFileName();
 			}
 			if (isBlank(fileName)) {
 				return null;

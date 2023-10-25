@@ -724,9 +724,9 @@ public class TsMuxeRVideo extends Engine {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + resource.getSystemName());
+			LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + resource.getFileName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + resource.getSystemName());
+			LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + resource.getFileName());
 		}
 
 		return (

@@ -173,9 +173,24 @@ public class RealFile extends StoreItem {
 		super.resolveFormat();
 	}
 
+	/**
+	 * @return The path to the mediaInfo source.
+	 */
+	@Override
+	public String getFileName() {
+		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
+	}
+
 	@Override
 	public String getSystemName() {
-		return ProcessUtil.getShortFileNameIfWideChars(getFile().getAbsolutePath());
+		String filename = getFileName();
+		if (getMediaAudio() != null && getMediaAudio().getId() != 0) {
+			filename = filename.concat("_a").concat(String.valueOf(getMediaAudio().getId()));
+		}
+		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != 0) {
+			filename = filename.concat("_s").concat(String.valueOf(getMediaSubtitle().getId()));
+		}
+		return filename;
 	}
 
 	@Override
