@@ -482,10 +482,10 @@ public class StoreResourceHelper {
 							if (defaultAudioTrack != null && mediaInfo.getDurationInSeconds() > 0.0 && transcodeFrequency > 0 &&
 								transcodeNumberOfChannels > 0) {
 								int finalSize = (int) (mediaInfo.getDurationInSeconds() * transcodeFrequency * 2 * transcodeNumberOfChannels);
-								LOGGER.trace("Calculated transcoded size for {}: {}", item.getSystemName(), finalSize);
+								LOGGER.trace("Calculated transcoded size for {}: {}", item.getFileName(), finalSize);
 								res.setSize(finalSize);
 							} else if (mediaInfo.getSize() > 0) {
-								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", item.getSystemName(),
+								LOGGER.trace("Could not calculate transcoded size for {}, using file size: {}", item.getFileName(),
 									mediaInfo.getSize());
 								res.setSize(mediaInfo.getSize());
 							}

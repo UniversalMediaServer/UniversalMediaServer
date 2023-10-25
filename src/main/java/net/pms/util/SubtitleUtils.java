@@ -270,7 +270,7 @@ public class SubtitleUtils {
 			return convertedFile;
 		}
 
-		String filename = isEmbeddedSource ? resource.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
+		String filename = isEmbeddedSource ? resource.getFileName() : params.getSid().getExternalFile().getAbsolutePath();
 
 		String basename;
 
