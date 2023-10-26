@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TreeNodeSettings extends DefaultMutableTreeNode {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeNodeSettings.class);
 	private static final long serialVersionUID = -337606760204027449L;
 	private final Engine player;
@@ -120,4 +121,5 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 		return warningPanel;
 	}
+
 }

@@ -26,6 +26,7 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Engine;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
+
 	private static final long serialVersionUID = 8830634234336247114L;
 
 	/**
@@ -36,7 +37,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		backgroundSelectionColor = new Color(57, 114, 147);
 	}
 
-	private Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
+	private final transient Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
 
 	@Override
 	public Component getTreeCellRendererComponent(
@@ -81,4 +82,5 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 
 		return this;
 	}
+
 }

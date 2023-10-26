@@ -901,9 +901,7 @@ public class TranscodingTab {
 		}
 		final SpinnerIntModel assMarginModel = new SpinnerIntModel(assMarginValue, 0, 999, 5);
 		CustomJSpinner assMargin = new CustomJSpinner(assMarginModel, true);
-		assMargin.addChangeListener((ChangeEvent e) -> {
-			configuration.setAssMargin(assMarginModel.getValue().toString());
-		});
+		assMargin.addChangeListener((ChangeEvent e) -> configuration.setAssMargin(assMarginModel.getValue().toString()));
 
 		flowPanel.add(assMargin);
 		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
@@ -912,9 +910,7 @@ public class TranscodingTab {
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesPrioritized"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
-		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> {
-			configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 10), colSpec, orientation));
 
 		JButton subColor = new JButton();
@@ -955,18 +951,14 @@ public class TranscodingTab {
 		JCheckBox deleteDownloadedSubtitles = new JCheckBox(Messages.getString("DeleteDownloadedLiveSubtitlesAfter"), !configuration.isLiveSubtitlesKeep());
 		deleteDownloadedSubtitles.setToolTipText(Messages.getString("DeterminesDownloadedLiveSubtitlesDeleted"));
 		deleteDownloadedSubtitles.setContentAreaFilled(false);
-		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> {
-			configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED));
-		});
+		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED)));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		JCheckBox useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("IfEnabledWontModifySubtitlesStyling"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
-		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> {
-			configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 20, 4), colSpec, orientation));
 
@@ -974,9 +966,7 @@ public class TranscodingTab {
 		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
 		CustomJSpinner liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
 		liveSubtitlesLimit.setToolTipText(Messages.getString("SetsMaximumNumberLiveSubtitles"));
-		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> {
-			configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue());
-		});
+		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue()));
 		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("LimitNumberLiveSubtitlesTo"));
 		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
 		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 20, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
@@ -996,10 +986,8 @@ public class TranscodingTab {
 
 		final JPanel panel = builder.getPanel();
 		GuiUtil.enableContainer(panel, !configuration.isDisableSubtitles());
-		disableSubs.addItemListener((ItemEvent e) -> {
-			// If "Disable Subtitles" is not selected, subtitles are enabled
-			GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED);
-		});
+		// If "Disable Subtitles" is not selected, subtitles are enabled
+		disableSubs.addItemListener((ItemEvent e) -> GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED));
 
 		panel.applyComponentOrientation(orientation);
 		return panel;
