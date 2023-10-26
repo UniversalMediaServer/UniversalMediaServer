@@ -706,7 +706,7 @@ public abstract class StoreItem extends StoreResource {
 	/**
 	 * @return The system time when the resource was last (re)started
 	 */
-	public double getLastStartSystemTime() {
+	public long getLastStartSystemTime() {
 		return lastStartSystemTime;
 	}
 
@@ -743,7 +743,7 @@ public abstract class StoreItem extends StoreResource {
 	 *
 	 * @return The system time when the resource was last (re)started by a user.
 	 */
-	public double getLastStartSystemTimeUser() {
+	public long getLastStartSystemTimeUser() {
 		return lastStartSystemTimeUser;
 	}
 
@@ -846,7 +846,7 @@ public abstract class StoreItem extends StoreResource {
 					fis.skip(low);
 				}
 
-				lastStartSystemTime = System.currentTimeMillis();
+				setLastStartSystemTime(System.currentTimeMillis());
 				return wrap(fis, high, low);
 			}
 
@@ -863,7 +863,7 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 
-			lastStartSystemTime = System.currentTimeMillis();
+			setLastStartSystemTime(System.currentTimeMillis());
 			return fis;
 		}
 
@@ -905,7 +905,7 @@ public abstract class StoreItem extends StoreResource {
 		if (externalProcess == null || externalProcess.isDestroyed() || hlsConfiguration != null) {
 			// First playback attempt => start new transcoding process
 			LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + mediaInfo);
-			lastStartSystemTime = System.currentTimeMillis();
+			setLastStartSystemTime(System.currentTimeMillis());
 
 			if (params.getTimeSeek() > 0) {
 				// This must be a resume - so need to set lastTimeSeek to avoid a restart of the process
@@ -946,7 +946,7 @@ public abstract class StoreItem extends StoreResource {
 
 				new Thread(r, "External Process Stopper").start();
 
-				lastStartSystemTime = System.currentTimeMillis();
+				setLastStartSystemTime(System.currentTimeMillis());
 				ProcessWrapper newExternalProcess = engine.launchTranscode(this, mediaInfo, params);
 
 				try {
