@@ -169,24 +169,37 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		 * this value because if the video is paused, it will no longer be
 		 * accurate.
 		 */
+		long now = System.currentTimeMillis();
+		long startTime = realFile.getStartTime();
+		long startTimeUser = realFile.getLastStartSystemTimeUser();
+		double startPosition = realFile.getLastStartPosition();
+		int minimumPlayTime = CONFIGURATION.getMinimumWatchedPlayTimeSeconds();
 		double elapsed;
-		if (realFile.getLastStartPosition() == 0) {
-			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
+		if (startPosition == 0) {
+			elapsed = (now - startTime) / 1000D;
 		} else {
-			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTimeUser()) / 1000;
-			elapsed += realFile.getLastStartPosition();
+			elapsed = (now - startTimeUser) / 1000D;
+			if (startTimeUser == 0 || elapsed < minimumPlayTime) {
+				LOGGER.trace("the minimum play time is not reached");
+				return;
+			}
+			elapsed += startPosition;
 		}
 
 		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
+		double triggerPlayTime = fileDuration * CONFIGURATION.getResumeBackFactor();
+
 
 		if (LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
 			LOGGER.trace("Fully Played feature logging:");
 			LOGGER.trace("   duration: " + fileDuration);
-			LOGGER.trace("   getLastStartPosition: " + realFile.getLastStartPosition());
-			LOGGER.trace("   getStartTime: " + realFile.getStartTime());
-			LOGGER.trace("   getLastStartSystemTimeUser: " + realFile.getLastStartSystemTimeUser());
+			LOGGER.trace("   getLastStartPosition: " + startPosition);
+			LOGGER.trace("   currentTime: " + now);
+			LOGGER.trace("   getStartTime: " + startTime);
+			LOGGER.trace("   getLastStartSystemTimeUser: " + startTimeUser);
 			LOGGER.trace("   elapsed: " + elapsed);
-			LOGGER.trace("   minimum play time needed: " + (fileDuration * CONFIGURATION.getResumeBackFactor()));
+			LOGGER.trace("   minimum play time: " + minimumPlayTime);
+			LOGGER.trace("   triggered fully played time: " + triggerPlayTime);
 		}
 
 		int userId = renderer.getAccountUserId();
@@ -195,8 +208,8 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		 * duration has elapsed since it started playing.
 		 */
 		if (fileDuration == 0 ||
-				elapsed > CONFIGURATION.getMinimumWatchedPlayTimeSeconds() &&
-				elapsed >= (fileDuration * CONFIGURATION.getResumeBackFactor())) {
+				elapsed > minimumPlayTime &&
+				elapsed >= triggerPlayTime) {
 			LOGGER.trace("final decision: fully played");
 			StoreResource fileParent = realFile.getParent();
 			if (fileParent == null) {

@@ -41,6 +41,7 @@ import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreItem;
 import net.pms.store.SystemFilesHelper;
+import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
@@ -184,11 +185,19 @@ public class RealFile extends StoreItem {
 	@Override
 	public String getSystemName() {
 		String filename = getFileName();
-		if (getMediaAudio() != null && getMediaAudio().getId() != 0) {
-			filename = filename.concat("_a").concat(String.valueOf(getMediaAudio().getId()));
-		}
-		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != 0) {
-			filename = filename.concat("_s").concat(String.valueOf(getMediaSubtitle().getId()));
+		if (isInsideTranscodeFolder() || getParent() instanceof ChapterFileTranscodeVirtualFolder) {
+			if (getEngine() != null) {
+				filename = filename.concat(">e").concat(getEngine().getName());
+			}
+			if (getMediaAudio() != null && getMediaAudio().getId() != 0) {
+				filename = filename.concat(">a").concat(String.valueOf(getMediaAudio().getId()));
+			}
+			if (getMediaSubtitle() != null && getMediaSubtitle().getId() != 0) {
+				filename = filename.concat(">s").concat(String.valueOf(getMediaSubtitle().getId()));
+			}
+			if (getSplitRange() != null) {
+				filename = filename.concat(">c").concat(String.valueOf(getSplitRange().getStartOrZero()));
+			}
 		}
 		return filename;
 	}
