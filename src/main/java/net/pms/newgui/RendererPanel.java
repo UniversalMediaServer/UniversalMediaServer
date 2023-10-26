@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RendererPanel extends JPanel {
+
 	private static final long serialVersionUID = 5130146620433713605L;
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
@@ -290,4 +291,5 @@ public class RendererPanel extends JPanel {
 		}
 		ready = true;
 	}
+
 }

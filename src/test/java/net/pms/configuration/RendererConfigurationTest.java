@@ -41,7 +41,7 @@ public class RendererConfigurationTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the PMS code that is being tested
+		// Silence all log messages from the UMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 

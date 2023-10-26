@@ -140,7 +140,8 @@ public final class GuiUtil {
 	// A simple flat borderless progress bar painter,
 	// required for Windows where setBorderPainted etc are ignored by the default laf
 	public static class SimpleProgressUI extends javax.swing.plaf.basic.BasicProgressBarUI {
-		Color fg, bg;
+		Color fg;
+		Color bg;
 
 		public SimpleProgressUI() {
 			this(null, null);
@@ -184,6 +185,7 @@ public final class GuiUtil {
 
 	// A fixed-size horizontal content-centering panel.
 	public static class FixedPanel extends JPanel {
+
 		private static final long serialVersionUID = 8295684215937548109L;
 
 		public FixedPanel(int w, int h) {
@@ -194,7 +196,7 @@ public final class GuiUtil {
 		}
 
 		@Override
-		public void setSize(int w, int h) {
+		public final void setSize(int w, int h) {
 			Dimension d = new Dimension(w, h);
 			setMaximumSize(d);
 			setPreferredSize(d);
@@ -400,10 +402,12 @@ public final class GuiUtil {
 						active = s;
 					}
 				}
-				g2.setColor(active.color);
-				String label = active.label.replace("{}", "" + total);
-				int labelWidth = (int) g.getFontMetrics().getStringBounds(label, g).getWidth();
-				g2.drawString(label, x - labelWidth - 2, g2.getFontMetrics().getAscent());
+				if (active != null) {
+					g2.setColor(active.color);
+					String label = active.label.replace("{}", "" + total);
+					int labelWidth = (int) g.getFontMetrics().getStringBounds(label, g).getWidth();
+					g2.drawString(label, x - labelWidth - 2, g2.getFontMetrics().getAscent());
+				}
 			}
 		}
 
@@ -455,7 +459,6 @@ public final class GuiUtil {
 	// the laf's default ProgressBarUI as a result of future
 	// invocations of JProgressBar.UpdateUI()
 	public static class CustomUIProgressBar extends JProgressBar {
-		private ProgressBarUI ui;
 
 		public CustomUIProgressBar(int min, int max, ProgressBarUI ui) {
 			super(min, max);
@@ -464,7 +467,7 @@ public final class GuiUtil {
 		}
 
 		@Override
-		public void setUI(javax.swing.plaf.ProgressBarUI ui) {
+		public final void setUI(javax.swing.plaf.ProgressBarUI ui) {
 			// Always prefer our own ui if we have one
 			super.setUI(this.ui != null ? this.ui : ui);
 		}
@@ -645,4 +648,5 @@ public final class GuiUtil {
 			}
 		}
 	}
+
 }

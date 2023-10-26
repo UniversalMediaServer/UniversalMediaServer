@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
  */
 
 public class LanguageSelection {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(LanguageSelection.class);
 
 	private final Component parentComponent;
@@ -429,4 +430,5 @@ public class LanguageSelection {
 	public boolean isAborted() {
 		return aborted;
 	}
+
 }

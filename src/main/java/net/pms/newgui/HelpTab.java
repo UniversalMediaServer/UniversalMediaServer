@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
  * Sets up the panel for the help tab and loads its contents from a file.
  */
 public class HelpTab {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(HelpTab.class);
 
 	private JEditorPane editorPane;
@@ -163,4 +164,5 @@ public class HelpTab {
 		rule = String.format("dd { margin-bottom: %dpx; }", Math.round((double) baseSize * 10 / 6));
 		styleSheet.addRule(rule);
 	}
+
 }

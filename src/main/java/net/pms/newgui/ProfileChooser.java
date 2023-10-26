@@ -57,4 +57,5 @@ public class ProfileChooser {
 			System.setProperty("ums.profile.path", file.getAbsolutePath());
 		} // else the open command was cancelled by the user
 	}
+
 }

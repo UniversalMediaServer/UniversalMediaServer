@@ -447,7 +447,7 @@ public class PMS {
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
 			String serverURL = Build.getUpdateServerURL();
-			autoUpdater = new AutoUpdater(serverURL, getVersion());
+			autoUpdater = new AutoUpdater(serverURL, getVersion(), getBinariesRevision());
 		}
 
 		// Show info that video automatic setting was improved and was not set in the wizard.
@@ -990,7 +990,7 @@ public class PMS {
 				killOld();
 			}
 
-			// Create the PMS instance returned by get()
+			// Create the UMS instance returned by get()
 			createInstance(); // Calls new() then init()
 		} catch (ConfigurationException t) {
 			String errorMessage = String.format(
@@ -1081,6 +1081,15 @@ public class PMS {
 	 */
 	public static String getVersion() {
 		return PropertiesUtil.getProjectProperties().get("project.version");
+	}
+
+	/**
+	 * Returns the project svn binaries revision for UMS.
+	 *
+	 * @return The project binaries revision.
+	 */
+	public static String getBinariesRevision() {
+		return PropertiesUtil.getProjectProperties().get("project.binaries.revision");
 	}
 
 	/**

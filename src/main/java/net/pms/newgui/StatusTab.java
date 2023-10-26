@@ -43,7 +43,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.newgui.components.AnimatedIcon;
@@ -62,151 +61,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StatusTab {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 	private static final Color MEM_COLOR = new Color(119, 119, 119, 128);
 	private static final Color DB_COLOR = new Color(75, 140, 181, 128);
 	private static final Color BUF_COLOR = new Color(255, 128, 0, 128);
 	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
 	private static final int MINIMUM_FILENAME_DISPLAY_SIZE = 200;
-
-	public static class RendererItem implements ActionListener, IRendererGuiListener {
-		private final ImagePanel icon;
-		private final JLabel label;
-		private final GuiUtil.MarqueeLabel playingLabel;
-		private final GuiUtil.FixedPanel playing;
-		private final JLabel time;
-		private JFrame frame;
-		private final GuiUtil.SmoothProgressBar rendererProgressBar;
-		private RendererPanel rendererPanel;
-		private String name = " ";
-		private JPanel panel = null;
-
-		public RendererItem(Renderer renderer) {
-			icon = addRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays());
-			icon.enableRollover();
-			label = new JLabel(renderer.getRendererName());
-			playingLabel = new GuiUtil.MarqueeLabel(" ");
-			playingLabel.setForeground(Color.gray);
-			int h = (int) playingLabel.getSize().getHeight();
-			playing = new GuiUtil.FixedPanel(200, h);
-			playing.add(playingLabel);
-			time = new JLabel(" ");
-			time.setForeground(Color.gray);
-			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
-			rendererProgressBar.setStringPainted(true);
-			rendererProgressBar.setBorderPainted(false);
-			if (renderer.getAddress() != null) {
-				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
-			}
-			rendererProgressBar.setForeground(BUF_COLOR);
-		}
-
-		@Override
-		public void actionPerformed(final ActionEvent e) {
-			PlayerState state = ((BasicPlayer) e.getSource()).getState();
-			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
-				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
-			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
-			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
-			if (!name.equals(n)) {
-				name = n;
-				playingLabel.setText(name);
-			}
-			// Maximize the playing label width if not already done
-			if (playing.getSize().width == 0) {
-				int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
-				if (w < MINIMUM_FILENAME_DISPLAY_SIZE) {
-					w = MINIMUM_FILENAME_DISPLAY_SIZE;
-				}
-				playing.setSize(w, (int) playingLabel.getSize().getHeight());
-				playingLabel.setMaxWidth(w);
-			}
-		}
-
-		@Override
-		public void refreshPlayerState(final PlayerState state) {
-			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
-				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
-			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
-			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
-			if (!name.equals(n)) {
-				name = n;
-				playingLabel.setText(name);
-			}
-		}
-
-		public void addTo(Container parent) {
-			parent.add(getPanel());
-			parent.validate();
-			// Maximize the playing label width
-			int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
-			playing.setSize(w, (int) playingLabel.getSize().getHeight());
-			playingLabel.setMaxWidth(w);
-		}
-
-		@Override
-		public void delete() {
-			SwingUtilities.invokeLater(() -> {
-				try {
-					// Delete the popup if open
-					if (frame != null) {
-						frame.dispose();
-						frame = null;
-					}
-					Container parent = panel.getParent();
-					parent.remove(panel);
-					parent.revalidate();
-					parent.repaint();
-				} catch (Exception e) {
-				}
-			});
-		}
-
-		public JPanel getPanel() {
-			if (panel == null) {
-				PanelBuilder b = new PanelBuilder(new FormLayout(
-					"center:pref",
-					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
-				));
-				b.opaque(true);
-				CellConstraints cc = new CellConstraints();
-				b.add(icon, cc.xy(1, 1));
-				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-				b.add(rendererProgressBar, cc.xy(1, 5));
-				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
-				b.add(time, cc.xy(1, 9));
-				panel = b.getPanel();
-			}
-			return panel;
-		}
-
-		@Override
-		public void updateRenderer(final Renderer renderer) {
-			SwingUtilities.invokeLater(() -> {
-				icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
-				label.setText(renderer.getRendererName());
-				// Update the popup panel if it's been opened
-				if (rendererPanel != null) {
-					rendererPanel.update();
-				}
-			});
-		}
-
-		@Override
-		public void setActive(final boolean active) {
-			icon.setGrey(!active);
-		}
-
-		@Override
-		public void setAllowed(boolean allowed) {
-			// not implemented on Java GUI
-		}
-
-		@Override
-		public void setUserId(int userId) {
-			// not implemented on Java GUI
-		}
-	}
 
 	private JPanel renderers;
 	private JLabel mediaServerBindLabel;
@@ -215,7 +76,6 @@ public class StatusTab {
 	private JLabel currentBitrate;
 	private JLabel peakBitrate;
 
-	private static int bufferSize;
 	private EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
 	private final AnimatedIcon searchingIcon;
@@ -227,9 +87,8 @@ public class StatusTab {
 	 * Shows a simple visual status of the server.
 	 *
 	 * @todo choose better icons for these
-	 * @param configuration
 	 */
-	StatusTab(UmsConfiguration configuration) {
+	StatusTab() {
 		// Build Animations
 		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
 
@@ -238,8 +97,6 @@ public class StatusTab {
 		disconnectedIcon = new AnimatedIcon(connectionStatus, "icon-status-disconnected.png");
 
 		blockedIcon = new AnimatedIcon(connectionStatus, "icon-status-warning.png");
-
-		bufferSize = configuration.getMaxMemoryBufferSize();
 	}
 
 	void setConnectionState(EConnectionState connectionState) {
@@ -426,15 +283,11 @@ public class StatusTab {
 	}
 
 	public void setMediaServerBind(String bind) {
-		SwingUtilities.invokeLater(() -> {
-			mediaServerBindLabel.setText(bind);
-		});
+		SwingUtilities.invokeLater(() -> mediaServerBindLabel.setText(bind));
 	}
 
 	public void setInterfaceServerBind(String bind) {
-		SwingUtilities.invokeLater(() -> {
-			interfaceServerBindLabel.setText(bind);
-		});
+		SwingUtilities.invokeLater(() -> interfaceServerBindLabel.setText(bind));
 	}
 
 	public void setCurrentBitrate(int sizeinMb) {
@@ -511,14 +364,14 @@ public class StatusTab {
 				 * Check for a custom icon file first
 				 *
 				 * The file can be a) the name of a file in the renderers directory b) a path relative
-				 * to the PMS working directory or c) an absolute path. If no file is found,
+				 * to the UMS working directory or c) an absolute path. If no file is found,
 				 * the built-in resource (if any) is used instead.
 				 *
 				 * The File constructor does the right thing for the relative and absolute path cases,
 				 * so we only need to detect the bare filename case.
 				 *
-				 * RendererIcon = foo.png // e.g. $PMS/renderers/foo.png
-				 * RendererIcon = images/foo.png // e.g. $PMS/images/foo.png
+				 * RendererIcon = foo.png // e.g. $UMS/renderers/foo.png
+				 * RendererIcon = images/foo.png // e.g. $UMS/images/foo.png
 				 * RendererIcon = /path/to/foo.png
 				 */
 
@@ -584,6 +437,151 @@ public class StatusTab {
 
 	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
 		SwingUtilities.invokeLater(() -> memBarUI.setValues(0, maxMemory, Math.max(0, usedMemory - dbCacheMemory - bufferMemory), dbCacheMemory, bufferMemory));
+	}
+
+	public static class RendererItem implements ActionListener, IRendererGuiListener {
+
+		private final ImagePanel icon;
+		private final JLabel label;
+		private final GuiUtil.MarqueeLabel playingLabel;
+		private final GuiUtil.FixedPanel playing;
+		private final JLabel time;
+		private final int bufferSize;
+		private final GuiUtil.SmoothProgressBar rendererProgressBar;
+		private JFrame frame;
+		private RendererPanel rendererPanel;
+		private String name = " ";
+		private JPanel panel = null;
+
+		public RendererItem(Renderer renderer) {
+			icon = addRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays());
+			if (icon != null) {
+				icon.enableRollover();
+			}
+			label = new JLabel(renderer.getRendererName());
+			playingLabel = new GuiUtil.MarqueeLabel(" ");
+			playingLabel.setForeground(Color.gray);
+			int h = (int) playingLabel.getSize().getHeight();
+			playing = new GuiUtil.FixedPanel(200, h);
+			playing.add(playingLabel);
+			time = new JLabel(" ");
+			time.setForeground(Color.gray);
+			bufferSize = renderer.getUmsConfiguration().getMaxMemoryBufferSize();
+			rendererProgressBar = new GuiUtil.SmoothProgressBar(0, 100, new GuiUtil.SimpleProgressUI(Color.gray, Color.gray));
+			rendererProgressBar.setStringPainted(true);
+			rendererProgressBar.setBorderPainted(false);
+			if (renderer.getAddress() != null) {
+				rendererProgressBar.setString(renderer.getAddress().getHostAddress());
+			}
+			rendererProgressBar.setForeground(BUF_COLOR);
+		}
+
+		@Override
+		public void actionPerformed(final ActionEvent e) {
+			PlayerState state = ((BasicPlayer) e.getSource()).getState();
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
+			if (!name.equals(n)) {
+				name = n;
+				playingLabel.setText(name);
+			}
+			// Maximize the playing label width if not already done
+			if (playing.getSize().width == 0) {
+				int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
+				if (w < MINIMUM_FILENAME_DISPLAY_SIZE) {
+					w = MINIMUM_FILENAME_DISPLAY_SIZE;
+				}
+				playing.setSize(w, (int) playingLabel.getSize().getHeight());
+				playingLabel.setMaxWidth(w);
+			}
+		}
+
+		@Override
+		public void refreshPlayerState(final PlayerState state) {
+			time.setText((state.isStopped() || StringUtil.isZeroTime(state.getPosition())) ? " " :
+				UMSUtils.playedDurationStr(state.getPosition(), state.getDuration()));
+			rendererProgressBar.setValue((int) (100 * state.getBuffer() / bufferSize));
+			String n = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
+			if (!name.equals(n)) {
+				name = n;
+				playingLabel.setText(name);
+			}
+		}
+
+		public void addTo(Container parent) {
+			parent.add(getPanel());
+			parent.validate();
+			// Maximize the playing label width
+			int w = panel.getWidth() - panel.getInsets().left - panel.getInsets().right;
+			playing.setSize(w, (int) playingLabel.getSize().getHeight());
+			playingLabel.setMaxWidth(w);
+		}
+
+		@Override
+		public void delete() {
+			SwingUtilities.invokeLater(() -> {
+				try {
+					// Delete the popup if open
+					if (frame != null) {
+						frame.dispose();
+						frame = null;
+					}
+					Container parent = panel.getParent();
+					parent.remove(panel);
+					parent.revalidate();
+					parent.repaint();
+				} catch (Exception e) {
+					//nothing to do
+				}
+			});
+		}
+
+		public JPanel getPanel() {
+			if (panel == null) {
+				PanelBuilder b = new PanelBuilder(new FormLayout(
+					"center:pref",
+					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
+				));
+				b.opaque(true);
+				CellConstraints cc = new CellConstraints();
+				b.add(icon, cc.xy(1, 1));
+				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(rendererProgressBar, cc.xy(1, 5));
+				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(time, cc.xy(1, 9));
+				panel = b.getPanel();
+			}
+			return panel;
+		}
+
+		@Override
+		public void updateRenderer(final Renderer renderer) {
+			SwingUtilities.invokeLater(() -> {
+				icon.set(getRendererIcon(renderer.getRendererIcon(), renderer.getRendererIconOverlays()));
+				label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (rendererPanel != null) {
+					rendererPanel.update();
+				}
+			});
+		}
+
+		@Override
+		public void setActive(final boolean active) {
+			icon.setGrey(!active);
+		}
+
+		@Override
+		public void setAllowed(boolean allowed) {
+			// not implemented on Java GUI
+		}
+
+		@Override
+		public void setUserId(int userId) {
+			// not implemented on Java GUI
+		}
 	}
 
 }
