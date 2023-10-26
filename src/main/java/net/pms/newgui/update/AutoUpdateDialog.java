@@ -95,16 +95,11 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		@Override
 		public void actionPerformed(ActionEvent event) {
 			switch (autoUpdater.getState()) {
-				case UPDATE_AVAILABLE:
-				case NO_UPDATE_AVAILABLE:
-				case ERROR:
-					AutoUpdateDialog.this.setVisible(false);
-					break;
-				case DOWNLOAD_IN_PROGRESS:
-					autoUpdater.cancelDownload();
-					break;
-				default:
-					break;
+				case UPDATE_AVAILABLE, NO_UPDATE_AVAILABLE, ERROR -> AutoUpdateDialog.this.setVisible(false);
+				case DOWNLOAD_IN_PROGRESS -> autoUpdater.cancelDownload();
+				default -> {
+					//nothing to do
+				}
 			}
 		}
 	}
@@ -185,40 +180,44 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 	private void updateCancelButton(State state) {
 		switch (state) {
-			case UPDATE_AVAILABLE:
-			case ERROR:
-			case NO_UPDATE_AVAILABLE:
+			case UPDATE_AVAILABLE, ERROR, NO_UPDATE_AVAILABLE -> {
 				cancelButton.setText(Messages.getString("Close"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
-				break;
-			case DOWNLOAD_IN_PROGRESS:
+			}
+			case DOWNLOAD_IN_PROGRESS -> {
 				cancelButton.setText(Messages.getString("Cancel"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
-				break;
-			default:
+			}
+			default -> {
 				cancelButton.setEnabled(false);
 				cancelButton.setVisible(false);
-				break;
+			}
 		}
 	}
 
 	private String getStateText() {
 		switch (autoUpdater.getState()) {
-			case NOTHING_KNOWN:
+			case NOTHING_KNOWN -> {
 				return Messages.getString("CheckForUpdatesNotStarted");
-			case DOWNLOAD_FINISHED:
+			}
+			case DOWNLOAD_FINISHED -> {
 				return Messages.getString("DownloadFinished");
-			case DOWNLOAD_IN_PROGRESS:
+			}
+			case DOWNLOAD_IN_PROGRESS -> {
 				return Messages.getString("DownloadInProgress");
-			case ERROR:
+			}
+			case ERROR -> {
 				return getErrorStateText();
-			case NO_UPDATE_AVAILABLE:
+			}
+			case NO_UPDATE_AVAILABLE -> {
 				return Messages.getString("NoUpdateAvailable");
-			case POLLING_SERVER:
+			}
+			case POLLING_SERVER -> {
 				return Messages.getString("ConnectingToServer");
-			case UPDATE_AVAILABLE:
+			}
+			case UPDATE_AVAILABLE -> {
 				String permissionsReminder = "";
 
 				// See if we have write permission in the program folder. We don't necessarily
@@ -242,9 +241,11 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 					okButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getString("VersionXIsAvailable"), autoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
-			default:
+				return "<html>" + String.format(Messages.getString("VersionXIsAvailable"), AutoUpdater.SERVER_PROPERTIES.getLatestVersion()) + permissionsReminder + "</html>";
+			}
+			default -> {
 				return Messages.getString("UnknownState");
+			}
 		}
 	}
 

@@ -415,9 +415,7 @@ public class GeneralTab {
 
 			builder.addLabel(Messages.getString("EnabledRenderers"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("SelectRenderers"));
-			setRenderers.addActionListener((ActionEvent e) -> {
-				selectRenderers.showDialog();
-			});
+			setRenderers.addActionListener((ActionEvent e) -> selectRenderers.showDialog());
 
 			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 			ypos += 2;
@@ -620,4 +618,5 @@ public class GeneralTab {
 			return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
 		});
 	}
+
 }

@@ -19,7 +19,8 @@ package net.pms.newgui;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.Icon;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
@@ -315,7 +316,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public File[] getFiles(File dir, boolean useFileHiding) {
-		Vector<File> files = new Vector<>();
+		List<File> files = new ArrayList<>();
 
 		// add all files in dir
 		File[] names;
@@ -329,11 +330,11 @@ public class RestrictedFileSystemView extends FileSystemView {
 			}
 			f = names[i];
 			if (!useFileHiding || !isHiddenFile(f)) {
-				files.addElement(f);
+				files.add(f);
 			}
 		}
 
-		return files.toArray(new File[0]);
+		return files.toArray(File[]::new);
 	}
 
 	/**
@@ -411,8 +412,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 		newFolder = createFileObject(containingDir, NEW_FOLDER_STRING);
 		int i = 2;
 		while (newFolder.exists() && (i < 100)) {
-			newFolder = createFileObject(containingDir, MessageFormat.format(NEW_FOLDER_STRING,
-				new Object[]{i}));
+			newFolder = createFileObject(containingDir, MessageFormat.format(NEW_FOLDER_STRING, i));
 			i++;
 		}
 
@@ -426,4 +426,5 @@ public class RestrictedFileSystemView extends FileSystemView {
 
 		return newFolder;
 	}
+
 }

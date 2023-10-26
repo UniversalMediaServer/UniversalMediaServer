@@ -59,6 +59,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LooksFrame extends JFrame implements IGui, Observer {
+
 	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
 	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
@@ -369,7 +370,10 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		UIManager.put("Viewport.font", controlFont);
 
 		setTitle("Test");
-		setIconImage(readImageIcon("icon-32.png").getImage());
+		ImageIcon imageIcon = readImageIcon("icon-32.png");
+		if (imageIcon != null) {
+			setIconImage(imageIcon.getImage());
+		}
 
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -538,7 +542,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 		tabbedPane.setUI(new CustomTabbedPaneUI());
 
-		st = new StatusTab(configuration);
+		st = new StatusTab();
 		tt = new TracesTab(configuration, this);
 		generalSettingsTab = new GeneralTab(configuration, this);
 		navigationSettingsTab = new NavigationShareTab(configuration, this);
@@ -609,16 +613,12 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void appendLog(final String msg) {
-		SwingUtilities.invokeLater(() -> {
-			tt.append(msg);
-		});
+		SwingUtilities.invokeLater(() -> tt.append(msg));
 	}
 
 	@Override
 	public void setConnectionState(final EConnectionState connectionState) {
-		SwingUtilities.invokeLater(() -> {
-			st.setConnectionState(connectionState);
-		});
+		SwingUtilities.invokeLater(() -> st.setConnectionState(connectionState));
 	}
 
 	@Override
@@ -769,6 +769,7 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 
 	@Override
 	public void setConfigurationChanged(String key) {
+		//nothing to do
 	}
 
 	@Override

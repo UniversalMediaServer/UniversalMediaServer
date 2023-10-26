@@ -271,7 +271,11 @@ public class MediaTableAudiotracks extends MediaTable {
 		updateInteger(result, COL_STREAMID, audioTrack.getStreamOrder());
 		result.updateBoolean(COL_DEFAULT_FLAG, audioTrack.isDefault());
 		result.updateBoolean(COL_FORCED_FLAG, audioTrack.isForced());
-		result.updateString(COL_LANG, StringUtils.left(audioTrack.getLang(), SIZE_LANG));
+		if (audioTrack.getLang() == null) {
+			result.updateString(COL_LANG, "");
+		} else {
+			updateString(result, COL_LANG, audioTrack.getLang(), SIZE_LANG);
+		}
 		result.updateString(COL_TITLE, StringUtils.left(audioTrack.getTitle(), SIZE_MAX));
 		result.updateString(COL_CODEC, StringUtils.left(audioTrack.getCodec(), 32));
 		updateLong(result, COL_OPTIONALID, audioTrack.getOptionalId());

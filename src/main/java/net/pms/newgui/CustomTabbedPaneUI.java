@@ -22,7 +22,8 @@ import javax.swing.plaf.*;
 import javax.swing.plaf.basic.*;
 
 public class CustomTabbedPaneUI extends BasicTabbedPaneUI {
-	private int anchoFocoH = 4;
+
+	private static final int ANCHO_FOCO_H = 4;
 
 	public static ComponentUI createUI(JComponent c) {
 		return new CustomTabbedPaneUI();
@@ -39,6 +40,7 @@ public class CustomTabbedPaneUI extends BasicTabbedPaneUI {
 
 	@Override
 	protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex, Rectangle iconRect, Rectangle textRect, boolean isSelected) {
+		//nothing to do
 	}
 
 	@Override
@@ -51,7 +53,8 @@ public class CustomTabbedPaneUI extends BasicTabbedPaneUI {
 		if (tabPlacement == LEFT || tabPlacement == RIGHT) {
 			return super.calculateTabHeight(tabPlacement, tabIndex, fontHeight);
 		} else {
-			return anchoFocoH + super.calculateTabHeight(tabPlacement, tabIndex, fontHeight);
+			return ANCHO_FOCO_H + super.calculateTabHeight(tabPlacement, tabIndex, fontHeight);
 		}
 	}
+
 }

@@ -36,10 +36,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Splash extends JFrame implements MouseListener {
+
 	private static final long serialVersionUID = 2357524127613134620L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
-	private UmsConfiguration configuration;
-	private final Object optionLock = new Object();
+	private final UmsConfiguration configuration;
+	private final transient Object optionLock = new Object();
 	private JLabel imageLabel;
 
 	/**
@@ -100,18 +101,22 @@ public class Splash extends JFrame implements MouseListener {
 
 	@Override
 	public void mousePressed(MouseEvent e) {
+		//nothing to do
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
+		//nothing to do
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
+		//nothing to do
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
+		//nothing to do
 	}
 
 	@Override
@@ -123,4 +128,5 @@ public class Splash extends JFrame implements MouseListener {
 			super.dispose();
 		}
 	}
+
 }

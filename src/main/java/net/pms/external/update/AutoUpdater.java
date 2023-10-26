@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater extends Observable implements ProgressCallback {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
@@ -48,6 +49,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 	private final String serverUrl;
 	private final Object stateLock = new Object();
 	private final Version currentVersion;
+	private final String binariesRevision;
 	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
 	private Throwable errorStateCause;
@@ -55,9 +57,10 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 	private long totalBytes = -1;
 	private boolean downloadCancelled = false;
 
-	public AutoUpdater(String updateServerUrl, String currentVersion) {
+	public AutoUpdater(String updateServerUrl, String currentVersion, String binariesRevision) {
 		this.serverUrl = updateServerUrl; // may be null if updating is disabled
 		this.currentVersion = new Version(currentVersion);
+		this.binariesRevision = binariesRevision;
 	}
 
 	public void pollServer() {
@@ -186,21 +189,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 	}
 
 	public boolean isUpdateAvailable() {
-		return Version.isPmsUpdatable(currentVersion, SERVER_PROPERTIES.getLatestVersion());
-	}
-
-	private static String getTargetFilename() {
-		String filename = "new-version.";
-		String fileExtension = "tgz";
-
-		if (Platform.isWindows()) {
-			fileExtension = "exe";
-		}
-		if (Platform.isMac()) {
-			fileExtension = "dmg";
-		}
-
-		return filename + fileExtension;
+		return isUmsUpdatable(currentVersion, SERVER_PROPERTIES.getLatestVersion());
 	}
 
 	private void downloadUpdate() throws UpdateException {
@@ -277,4 +266,33 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 			return downloadCancelled;
 		}
 	}
+
+	private static String getTargetFilename() {
+		String filename = "new-version.";
+		String fileExtension = "tgz";
+
+		if (Platform.isWindows()) {
+			fileExtension = "exe";
+		}
+		if (Platform.isMac()) {
+			fileExtension = "dmg";
+		}
+
+		return filename + fileExtension;
+	}
+
+	/**
+	 * Compares an initial (current) version and a target version of UMS and
+	 * returns true if the initial version can be updated to the target version.
+	 * See src/main/external-resources/update/README for the criteria.
+	 *
+	 * @param vFrom The initial version
+	 * @param vTo The target version
+	 * @return <code>true</code> if the current version can safely be updated,
+	 *         <code>false</code> otherwise.
+	 */
+	public static boolean isUmsUpdatable(Version vFrom, Version vTo) {
+		return vTo.isGreaterThan(vFrom);
+	}
+
 }

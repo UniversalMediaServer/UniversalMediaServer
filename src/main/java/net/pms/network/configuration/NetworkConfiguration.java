@@ -614,7 +614,7 @@ public class NetworkConfiguration {
 	}
 
 	/**
-	 * Returns the network interface for the servername configured in PMS, or
+	 * Returns the network interface for the servername configured in UMS, or
 	 * <code>null</code> if no servername is configured.
 	 *
 	 * @return The network interface.

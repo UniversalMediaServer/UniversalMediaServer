@@ -96,20 +96,14 @@ public class ViewLevel {
 	 * @return This view level's Integer mapping.
 	 */
 	public Integer toInteger() {
-		switch (viewLevelInt) {
-			case NORMAL_INT:
-				return NORMAL_INTEGER;
-			case ADVANCED_INT:
-				return ADVANCED_INTEGER;
-			case EXPERT_INT:
-				return EXPERT_INTEGER;
-			case DEVELOPER_INT:
-				return DEVELOPER_INTEGER;
-			case UNKNOWN_INT:
-				return UNKNOWN_INTEGER;
-			default:
-				throw new IllegalStateException("ViewLevel " + viewLevelStr + ", " + viewLevelInt + " is unknown.");
-		}
+		return switch (viewLevelInt) {
+			case NORMAL_INT -> NORMAL_INTEGER;
+			case ADVANCED_INT -> ADVANCED_INTEGER;
+			case EXPERT_INT -> EXPERT_INTEGER;
+			case DEVELOPER_INT -> DEVELOPER_INTEGER;
+			case UNKNOWN_INT -> UNKNOWN_INTEGER;
+			default -> throw new IllegalStateException("ViewLevel " + viewLevelStr + ", " + viewLevelInt + " is unknown.");
+		};
 	}
 
 	/**
@@ -142,20 +136,14 @@ public class ViewLevel {
 	 * fails, then this method returns the specified default.
 	 */
 	public static ViewLevel toViewLevel(int val, ViewLevel defaultViewLevel) {
-		switch (val) {
-			case NORMAL_INT:
-				return NORMAL;
-			case ADVANCED_INT:
-				return ADVANCED;
-			case EXPERT_INT:
-				return EXPERT;
-			case DEVELOPER_INT:
-				return DEVELOPER;
-			case UNKNOWN_INT:
-				return UNKNOWN;
-			default:
-				return defaultViewLevel;
-		}
+		return switch (val) {
+			case NORMAL_INT -> NORMAL;
+			case ADVANCED_INT -> ADVANCED;
+			case EXPERT_INT -> EXPERT;
+			case DEVELOPER_INT -> DEVELOPER;
+			case UNKNOWN_INT -> UNKNOWN;
+			default -> defaultViewLevel;
+		};
 	}
 
 	/**
@@ -184,4 +172,5 @@ public class ViewLevel {
 		}
 		return defaultViewLevel;
 	}
+
 }

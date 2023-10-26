@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NavigationShareTab {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(NavigationShareTab.class);
 
 	private JCheckBox hideExtensions;
@@ -313,9 +314,7 @@ public class NavigationShareTab {
 		isShowFolderServerSettings = new JCheckBox(Messages.getString("ShowServerSettingsFolder"), configuration.isShowServerSettingsFolder());
 		isShowFolderServerSettings.setToolTipText(Messages.getString("WarningThisAllowsShutdownComputer"));
 		isShowFolderServerSettings.setContentAreaFilled(false);
-		isShowFolderServerSettings.addItemListener((ItemEvent e) -> {
-			configuration.setShowServerSettingsFolder((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		isShowFolderServerSettings.addItemListener((ItemEvent e) -> configuration.setShowServerSettingsFolder((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Show #--TRANSCODE--# folder
 		isShowFolderTranscode = new JCheckBox(Messages.getString("ShowTranscodeFolder"), configuration.isShowTranscodeFolder());
@@ -575,4 +574,5 @@ public class NavigationShareTab {
 			configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
 		);
 	}
+
 }

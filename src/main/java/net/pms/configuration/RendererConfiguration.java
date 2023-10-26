@@ -819,7 +819,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the icon to use for displaying this renderer in PMS as defined
+	 * Returns the icon to use for displaying this renderer in UMS as defined
 	 * in the renderer configurations.
 	 * Default value is UNKNOWN_ICON.
 	 *
@@ -1039,7 +1039,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the override settings for MEncoder custom options in PMS as
+	 * Returns the override settings for MEncoder custom options in UMS as
 	 * defined in the renderer configuration. The default value is "".
 	 *
 	 * @return The MEncoder custom options.

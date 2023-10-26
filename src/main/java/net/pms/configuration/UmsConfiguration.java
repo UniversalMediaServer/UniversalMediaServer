@@ -71,9 +71,9 @@ import net.pms.util.FullyPlayedAction;
 import net.pms.util.InvalidArgumentException;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
-import net.pms.util.PmsProperties;
 import net.pms.util.ProgramExecutableType;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.PropertiesWrapper;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleColor;
 import net.pms.util.UMSUtils;
@@ -640,7 +640,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		PROFILE_DIRECTORY = profileLocation.getDirectoryPath();
 
 		// Set SKEL_PROFILE_PATH for Linux systems
-		PmsProperties projectProperties = PropertiesUtil.getProjectProperties();
+		PropertiesWrapper projectProperties = PropertiesUtil.getProjectProperties();
 		if (projectProperties != null) {
 			String skelDir = projectProperties.get("project.skelprofile.dir");
 			if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
@@ -679,7 +679,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	protected TempFolder tempFolder;
 
 	/**
-	 * Default constructor that will attempt to load the PMS configuration file
+	 * Default constructor that will attempt to load the UMS configuration file
 	 * from the profile path.
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
@@ -690,9 +690,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Constructor that will initialize the PMS configuration.
+	 * Constructor that will initialize the UMS configuration.
 	 *
-	 * @param loadFile Set to true to attempt to load the PMS configuration
+	 * @param loadFile Set to true to attempt to load the UMS configuration
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
 	 * @throws ConfigurationException
@@ -1469,7 +1469,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * FFMS2 both in {@link PmsConfiguration} and the
+	 * FFMS2 both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
@@ -1484,7 +1484,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * Convert2dTo3d both in {@link PmsConfiguration} and the
+	 * Convert2dTo3d both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
@@ -1499,7 +1499,7 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * Sets a new {@link ProgramExecutableType#CUSTOM} {@link Path} for
-	 * CropResize both in {@link PmsConfiguration} and the
+	 * CropResize both in {@link UmsConfiguration} and the
 	 * {@link ExternalProgramInfo}.
 	 *
 	 * @param customPath the new {@link Path} or {@code null} to clear it.
@@ -2534,7 +2534,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns true if PMS should generate thumbnails for images. Default value
+	 * Returns true if UMS should generate thumbnails for images. Default value
 	 * is true.
 	 *
 	 * @return True if image thumbnails should be generated.
@@ -2544,7 +2544,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Set to true if PMS should generate thumbnails for images.
+	 * Set to true if UMS should generate thumbnails for images.
 	 *
 	 * @param value True if image thumbnails should be generated.
 	 */
@@ -2580,7 +2580,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * get much information about CPUs from AMD and Intel from their Wikipedia
 	 * articles.
 	 * <p>
-	 * PMS will detect and set the correct amount of cores as the default value.
+	 * UMS will detect and set the correct amount of cores as the default value.
 	 *
 	 * @param value The number of CPU cores.
 	 */
@@ -2862,7 +2862,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the maximum size (in MB) that PMS should use for buffering
+	 * Returns the maximum size (in MB) that UMS should use for buffering
 	 * audio.
 	 *
 	 * @return The maximum buffer size.
@@ -2872,7 +2872,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the minimum size (in MB) that PMS should use for the buffer used
+	 * Returns the minimum size (in MB) that UMS should use for the buffer used
 	 * for streaming media.
 	 *
 	 * @return The minimum buffer size.
@@ -4420,11 +4420,11 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
-	 * fails. PMS will recognize the configured renderer instead of "Unknown
-	 * renderer". Default value is "", which means PMS will return the unknown
+	 * fails. UMS will recognize the configured renderer instead of "Unknown
+	 * renderer". Default value is "", which means UMS will return the unknown
 	 * renderer when no match can be made.
 	 *
-	 * @return The name of the renderer PMS should fall back on when header
+	 * @return The name of the renderer UMS should fall back on when header
 	 *         matching fails.
 	 * @see #isRendererForceDefault()
 	 */
@@ -4434,8 +4434,8 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	/**
 	 * Sets the name of the renderer to fall back on when header matching
-	 * fails. PMS will recognize the configured renderer instead of "Unknown
-	 * renderer". Set to "" to make PMS return the unknown renderer when no
+	 * fails. UMS will recognize the configured renderer instead of "Unknown
+	 * renderer". Set to "" to make UMS return the unknown renderer when no
 	 * match can be made.
 	 *
 	 * @param value The name of the renderer to fall back on. This has to be
@@ -4448,9 +4448,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns true when PMS should not try to guess connecting renderers
+	 * Returns true when UMS should not try to guess connecting renderers
 	 * and instead force picking the defined fallback renderer. Default
-	 * value is false, which means PMS will attempt to recognize connecting
+	 * value is false, which means UMS will attempt to recognize connecting
 	 * renderers by their headers.
 	 *
 	 * @return True when the fallback renderer should always be picked.
@@ -4461,9 +4461,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Set to true when PMS should not try to guess connecting renderers
+	 * Set to true when UMS should not try to guess connecting renderers
 	 * and instead force picking the defined fallback renderer. Set to false
-	 * to make PMS attempt to recognize connecting renderers by their headers.
+	 * to make UMS attempt to recognize connecting renderers by their headers.
 	 *
 	 * @param value True when the fallback renderer should always be picked.
 	 * @see #setRendererDefault(String)

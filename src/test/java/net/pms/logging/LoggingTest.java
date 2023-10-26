@@ -107,7 +107,7 @@ public class LoggingTest {
 	@Test
 	public void testDebugLogPropertyDefiner() throws ConfigurationException, InterruptedException {
 
-		// Set up PMS configuration
+		// Set up UMS configuration
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration());
 		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();

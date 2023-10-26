@@ -177,18 +177,22 @@ public class AboutTab {
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
+			//nothing to do
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
+			//nothing to do
 		}
 
 		@Override
 		public void mousePressed(MouseEvent e) {
+			//nothing to do
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
+			//nothing to do
 		}
 	}
 

@@ -36,7 +36,7 @@ public class SubtitleUtilsTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		// Silence all log messages from the PMS code that are being tested
+		// Silence all log messages from the UMS code that are being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
 		context.reset();
 	}

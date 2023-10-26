@@ -212,14 +212,14 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				 * Check for a custom icon file first
 				 *
 				 * The file can be a) the name of a file in the renderers directory b) a path relative
-				 * to the PMS working directory or c) an absolute path. If no file is found,
+				 * to the UMS working directory or c) an absolute path. If no file is found,
 				 * the built-in resource (if any) is used instead.
 				 *
 				 * The File constructor does the right thing for the relative and absolute path cases,
 				 * so we only need to detect the bare filename case.
 				 *
-				 * RendererIcon = foo.png // e.g. $PMS/renderers/foo.png
-				 * RendererIcon = images/foo.png // e.g. $PMS/images/foo.png
+				 * RendererIcon = foo.png // e.g. $UMS/renderers/foo.png
+				 * RendererIcon = images/foo.png // e.g. $UMS/images/foo.png
 				 * RendererIcon = /path/to/foo.png
 				 */
 
