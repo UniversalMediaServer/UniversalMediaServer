@@ -205,10 +205,12 @@ public class TvSeriesMetadata {
 
 	public void setFirstAirDate(String value) {
 		LocalDate localDate = null;
-		try {
-			localDate = LocalDate.parse(value);
-		} catch (DateTimeParseException e) {
-			//nothing to do
+		if (value != null) {
+			try {
+				localDate = LocalDate.parse(value.length() > 10 ? value.substring(0, 10) : value);
+			} catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
+				LOGGER.trace("String \"{}\" cannot converts to LocalDate", value);
+			}
 		}
 		this.firstAirDate = localDate;
 	}
@@ -289,10 +291,12 @@ public class TvSeriesMetadata {
 
 	public void setLastAirDate(String value) {
 		LocalDate localDate = null;
-		try {
-			localDate = LocalDate.parse(value);
-		} catch (DateTimeParseException e) {
-			//nothing to do
+		if (value != null) {
+			try {
+				localDate = LocalDate.parse(value.length() > 10 ? value.substring(0, 10) : value);
+			} catch (DateTimeParseException | IllegalArgumentException | NullPointerException e) {
+				LOGGER.trace("String \"{}\" cannot converts to LocalDate", value);
+			}
 		}
 		this.lastAirDate = localDate;
 	}
