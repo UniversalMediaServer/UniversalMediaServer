@@ -26,6 +26,8 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
 import net.pms.store.container.VirtualFolderDbId;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Get same ids for objects.
@@ -35,6 +37,7 @@ import org.jupnp.model.types.UnsignedIntegerFourBytes;
  */
 public class MediaStoreIds {
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStoreIds.class);
 	private static final Map<Long, UnsignedIntegerFourBytes> UPDATE_IDS = new HashMap<>();
 
 	/**
@@ -84,6 +87,10 @@ public class MediaStoreIds {
 					while (mediaStoreId.getParentId() != 0) {
 						mediaStoreId = MediaTableStoreIds.getMediaStoreId(connection, mediaStoreId.getParentId());
 						mediaStoreIds.add(mediaStoreId);
+						if (mediaStoreIds.size() > 100) {
+							LOGGER.trace("MediaStore path is more than 100 entries, something was wrong");
+							return new ArrayList<>();
+						}
 					}
 					Collections.reverse(mediaStoreIds);
 				}
