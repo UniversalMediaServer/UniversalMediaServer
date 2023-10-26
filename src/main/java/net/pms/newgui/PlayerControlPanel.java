@@ -34,6 +34,7 @@ import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringUtils;
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
+
 	private static final long serialVersionUID = 8972730138916895247L;
 
 	private LogicalPlayer player;
@@ -43,10 +44,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private JSlider volumeSlider;
 	private JTextField uri;
 	private JComboBox uris;
-	private boolean edited, playing;
+	private boolean edited;
+	private boolean playing;
 	private String lasturi;
 	private File pwd;
-	private boolean playControl, volumeControl, expanded;
+	private boolean playControl;
+	private boolean volumeControl;
+	private boolean expanded;
 	int sliding;
 
 	private static ImageIcon addIcon, removeIcon, clearIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
@@ -375,9 +379,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(final ActionEvent e) {
-		SwingUtilities.invokeLater(() -> {
-			refreshPlayerState(((BasicPlayer) e.getSource()).getState());
-		});
+		SwingUtilities.invokeLater(() -> refreshPlayerState(((BasicPlayer) e.getSource()).getState()));
 	}
 
 	private static void loadIcons() {
@@ -449,4 +451,5 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			setBorderPainted(false);
 		}
 	}
+
 }

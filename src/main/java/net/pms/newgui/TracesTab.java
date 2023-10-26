@@ -28,7 +28,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -43,7 +42,7 @@ import java.util.regex.PatternSyntaxException;
 import javax.swing.*;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -56,19 +55,31 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TracesTab {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 	private final UmsConfiguration configuration;
-	private JTextField jSearchBox, jSyslogHost;
-	private JComboBox<String> jTracesFilter, jSyslogFacility;
-	private JCheckBox jCSSearch, jRESearch, jMLSearch, jShowOptions, jBuffered, jUseSyslog;
-	private JSpinner jLineBuffer, jSyslogPort;
+	private JTextField jSearchBox;
+	private JTextField jSyslogHost;
+	private JComboBox<String> jSyslogFacility;
+	private JCheckBox jCSSearch;
+	private JCheckBox jRESearch;
+	private JCheckBox jMLSearch;
+	private JCheckBox jShowOptions;
+	private JCheckBox jUseSyslog;
+	private JSpinner jLineBuffer;
+	private JSpinner jSyslogPort;
 	private Pattern searchPattern = null;
 	private final JLabel jSearchOutput = new JLabel();
 	private TextAreaFIFO jList;
 	private JPanel jOptionsPanel;
 	private JLabel jBufferLabel;
 	private JSeparator jBufferSeparator;
-	private Component jBufferSpace1, jBufferSpace2, jBufferSpace3, jCSSpace, jRESpace, jMLSpace;
+	private Component jBufferSpace1;
+	private Component jBufferSpace2;
+	private Component jBufferSpace3;
+	private Component jCSSpace;
+	private Component jRESpace;
+	private Component jMLSpace;
 	protected JScrollPane jListPane;
 	private final String[] levelStrings = {
 		Messages.getString("Error"),
@@ -104,8 +115,8 @@ public class TracesTab {
 	}
 
 	static class PopupTriggerMouseListener extends MouseAdapter {
-		private JPopupMenu popup;
-		private JComponent component;
+		private final JPopupMenu popup;
+		private final JComponent component;
 
 		public PopupTriggerMouseListener(JPopupMenu popup, JComponent component) {
 			this.popup = popup;
@@ -239,7 +250,7 @@ public class TracesTab {
 				}
 			} catch (PatternSyntaxException pe) {
 				jSearchOutput.setText(String.format(Messages.getString("RegexErrorX"), pe.getLocalizedMessage()));
-			} catch (Exception ex) {
+			} catch (BadLocationException ex) {
 				LOGGER.debug("Exception caught while searching traces list: " + ex);
 				jSearchOutput.setText(Messages.getString("SearchError"));
 			}
@@ -271,16 +282,13 @@ public class TracesTab {
 		JLabel jFilterLabel = new JLabel(Messages.getString("Filter") + ":");
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
 		jFilterLabel.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
-		jTracesFilter = new JComboBox<>(levelStrings);
+		JComboBox<String> jTracesFilter = new JComboBox<>(levelStrings);
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
 		jTracesFilter.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
-		jTracesFilter.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setLoggingFilterLogsTab(logLevels[jTracesFilter.getSelectedIndex()]);
-				LoggingConfig.setTracesFilter();
-			}
+		jTracesFilter.addActionListener((ActionEvent e) -> {
+			configuration.setLoggingFilterLogsTab(logLevels[jTracesFilter.getSelectedIndex()]);
+			LoggingConfig.setTracesFilter();
 		});
 		jSearchPanel.add(jFilterLabel);
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
@@ -338,47 +346,29 @@ public class TracesTab {
 		jSearchPanel.add(jBufferSpace3);
 		jSearchPanel.add(jLineBuffer);
 
-		jLineBuffer.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				jList.setMaxLines((Integer) jLineBuffer.getValue());
-				configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
-			}
+		jLineBuffer.addChangeListener((ChangeEvent e) -> {
+			jList.setMaxLines((Integer) jLineBuffer.getValue());
+			configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
 		});
 
-		jSearchBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				searchTraces();
-			}
+		jSearchBox.addActionListener((ActionEvent e) -> {
+			searchTraces();
 		});
 
-		jSearchButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				searchTraces();
-			}
+		jSearchButton.addActionListener((ActionEvent e) -> {
+			searchTraces();
 		});
 
-		jCSSearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
-			}
+		jCSSearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
 		});
 
-		jRESearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchRegEx(jRESearch.isSelected());
-			}
+		jRESearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchRegEx(jRESearch.isSelected());
 		});
 
-		jMLSearch.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
-			}
+		jMLSearch.addActionListener((ActionEvent e) -> {
+			configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
 		});
 
 		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
@@ -396,11 +386,8 @@ public class TracesTab {
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("Clear"));
-		clearItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jList.setText("");
-			}
+		clearItem.addActionListener((ActionEvent e) -> {
+			jList.setText("");
 		});
 		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
@@ -413,9 +400,13 @@ public class TracesTab {
 				}
 			}
 			@Override
-			public void keyReleased(KeyEvent e) { }
+			public void keyReleased(KeyEvent e) {
+				//nothing to do
+			}
 			@Override
-			public void keyTyped(KeyEvent e) { }
+			public void keyTyped(KeyEvent e) {
+				//nothing to do
+			}
 		});
 
 		jListPane = new JScrollPane(jList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
@@ -437,20 +428,17 @@ public class TracesTab {
 			)
 		));
 
-		jBuffered = new JCheckBox(Messages.getString("BufferedLogging"), configuration.getLoggingBuffered());
+		JCheckBox jBuffered = new JCheckBox(Messages.getString("BufferedLogging"), configuration.getLoggingBuffered());
 		jBuffered.setMnemonic(KeyEvent.VK_U);
 		jBuffered.setToolTipText(Messages.getString("EnableBufferedFileLogging"));
 		jBuffered.setHorizontalTextPosition(SwingConstants.LEADING);
-		jBuffered.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (PMS.getTraceMode() == 2 && jBuffered.isSelected()) {
-					jBuffered.setSelected(false);
-					return;
-				}
-				configuration.setLoggingBuffered(jBuffered.isSelected());
-				LoggingConfig.setBuffered(jBuffered.isSelected());
+		jBuffered.addActionListener((ActionEvent e) -> {
+			if (PMS.getTraceMode() == 2 && jBuffered.isSelected()) {
+				jBuffered.setSelected(false);
+				return;
 			}
+			configuration.setLoggingBuffered(jBuffered.isSelected());
+			LoggingConfig.setBuffered(jBuffered.isSelected());
 		});
 		jOptionsPanel.add(jBuffered);
 
@@ -460,25 +448,22 @@ public class TracesTab {
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
 		jUseSyslog.setToolTipText(Messages.getString("SendLogSyslogServer"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
-		jUseSyslog.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (PMS.getTraceMode() == 2 && jUseSyslog.isSelected()) {
-					jUseSyslog.setSelected(false);
-					return;
-				} else if (jSyslogHost.getText().trim().isEmpty()) {
-					jSearchOutput.setText(Messages.getString("SyslogHostnameCantBeEmpty"));
-					jUseSyslog.setSelected(false);
-					return;
-				}
-				jSearchOutput.setText("");
-				boolean useSyslog = jUseSyslog.isSelected();
-				configuration.setLoggingUseSyslog(useSyslog);
-				LoggingConfig.setSyslog();
-				jSyslogHost.setEnabled(!useSyslog);
-				jSyslogPort.setEnabled(!useSyslog);
-				jSyslogFacility.setEnabled(!useSyslog);
+		jUseSyslog.addActionListener((ActionEvent e) -> {
+			if (PMS.getTraceMode() == 2 && jUseSyslog.isSelected()) {
+				jUseSyslog.setSelected(false);
+				return;
+			} else if (jSyslogHost.getText().trim().isEmpty()) {
+				jSearchOutput.setText(Messages.getString("SyslogHostnameCantBeEmpty"));
+				jUseSyslog.setSelected(false);
+				return;
 			}
+			jSearchOutput.setText("");
+			boolean useSyslog1 = jUseSyslog.isSelected();
+			configuration.setLoggingUseSyslog(useSyslog1);
+			LoggingConfig.setSyslog();
+			jSyslogHost.setEnabled(!useSyslog1);
+			jSyslogPort.setEnabled(!useSyslog1);
+			jSyslogFacility.setEnabled(!useSyslog1);
 		});
 		jOptionsPanel.add(jUseSyslog);
 
@@ -535,12 +520,7 @@ public class TracesTab {
 		jSyslogPort.setToolTipText(Messages.getString("UdpPortSendSyslogMessages"));
 		jSyslogPort.setEnabled(!useSyslog);
 		jSyslogPortLabel.setLabelFor(jSyslogPort);
-		jSyslogPort.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue());
-			}
-		});
+		jSyslogPort.addChangeListener((ChangeEvent e) -> configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue()));
 		jOptionsPanel.add(jSyslogPort);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
@@ -554,12 +534,7 @@ public class TracesTab {
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
 		jSyslogFacilityLabel.setLabelFor(jSyslogFacility);
-		jSyslogFacility.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setLoggingSyslogFacility(syslogFacilities[jSyslogFacility.getSelectedIndex()]);
-			}
-		});
+		jSyslogFacility.addActionListener((ActionEvent e) -> configuration.setLoggingSyslogFacility(syslogFacilities[jSyslogFacility.getSelectedIndex()]));
 		jOptionsPanel.add(jSyslogFacility);
 
 		jOptionsPanel.setFocusTraversalPolicyProvider(true);
@@ -570,13 +545,10 @@ public class TracesTab {
 		jShowOptions.setToolTipText(Messages.getString("ShowLoggingConfigurationOptions"));
 		jShowOptions.setMnemonic(KeyEvent.VK_G);
 		jShowOptions.setEnabled(PMS.getTraceMode() != 2);
-		jShowOptions.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jOptionsPanel.setVisible(jShowOptions.isSelected());
-				if (jShowOptions.isSelected()) {
-					jBuffered.requestFocusInWindow();
-				}
+		jShowOptions.addActionListener((ActionEvent e) -> {
+			jOptionsPanel.setVisible(jShowOptions.isSelected());
+			if (jShowOptions.isSelected()) {
+				jBuffered.requestFocusInWindow();
 			}
 		});
 		builder.add(jShowOptions, cc.xy(3, 4));
@@ -594,15 +566,12 @@ public class TracesTab {
 				b.setMnemonic(KeyEvent.VK_O);
 			}
 			b.setToolTipText(logger.getValue());
-			b.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
-					try {
-						java.awt.Desktop.getDesktop().open(logFile);
-					} catch (IOException | UnsupportedOperationException ioe) {
-						LOGGER.error("Failed to open file \"{}\" in default editor: {}", logFile, ioe);
-					}
+			b.addActionListener((ActionEvent e) -> {
+				File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
+				try {
+					java.awt.Desktop.getDesktop().open(logFile);
+				} catch (IOException | UnsupportedOperationException ioe) {
+					LOGGER.error("Failed to open file \"{}\" in default editor: {}", logFile, ioe);
 				}
 			});
 			pLogFileButtons.add(b);
@@ -619,21 +588,18 @@ public class TracesTab {
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
 		rootLevel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
-		rootLevel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JComboBox<?> cb = (JComboBox<?>) e.getSource();
-				rootLogger.setLevel(logLevels[cb.getSelectedIndex()]);
-				Level newLevel = rootLogger.getLevel();
-				if (newLevel.toInt() > Level.INFO_INT) {
-					rootLogger.setLevel(Level.INFO);
-				}
-				LOGGER.info("Changed debug level to " + newLevel);
-				if (newLevel != rootLogger.getLevel()) {
-					rootLogger.setLevel(newLevel);
-				}
-				configuration.setRootLogLevel(newLevel);
+		rootLevel.addActionListener((ActionEvent e) -> {
+			JComboBox<?> cb = (JComboBox<?>) e.getSource();
+			rootLogger.setLevel(logLevels[cb.getSelectedIndex()]);
+			Level newLevel = rootLogger.getLevel();
+			if (newLevel.toInt() > Level.INFO_INT) {
+				rootLogger.setLevel(Level.INFO);
 			}
+			LOGGER.info("Changed debug level to " + newLevel);
+			if (newLevel != rootLogger.getLevel()) {
+				rootLogger.setLevel(newLevel);
+			}
+			configuration.setRootLogLevel(newLevel);
 		});
 
 		builder.add(rootLevelLabel, cc.xy(5, 4));
@@ -647,18 +613,15 @@ public class TracesTab {
 		JPanel pLogPackButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
 		if (PMS.getTraceMode() == 0) {
-			// PMS was not started in trace mode
+			// UMS was not started in trace mode
 			CustomJButton rebootTrace = new CustomJButton(Messages.getString("CreateTraceLogs"));
 			rebootTrace.setToolTipText(Messages.getString("RestartUniversalMediaServerTrace"));
 			rebootTrace.setMnemonic(KeyEvent.VK_T);
-			rebootTrace.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					int opt = JOptionPane.showConfirmDialog(null, Messages.getString("ForReportingMostIssuesBest"),
+			rebootTrace.addActionListener((ActionEvent e) -> {
+				int opt = JOptionPane.showConfirmDialog(null, Messages.getString("ForReportingMostIssuesBest"),
 						Messages.getString("StartupLogLevelNotTrace"), JOptionPane.YES_NO_OPTION);
-					if (opt == JOptionPane.YES_OPTION) {
-						ProcessUtil.reboot("trace");
-					}
+				if (opt == JOptionPane.YES_OPTION) {
+					ProcessUtil.reboot("trace");
 				}
 			});
 			pLogPackButtons.add(rebootTrace);
@@ -667,14 +630,11 @@ public class TracesTab {
 		CustomJButton packDbg = new CustomJButton(Messages.getString("PackDebugFiles"));
 		packDbg.setMnemonic(KeyEvent.VK_P);
 		packDbg.setToolTipText(Messages.getString("PackLogConfigurationFileCompressed"));
-		packDbg.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {Messages.getString("Close")};
-				JOptionPane.showOptionDialog(looksFrame,
+		packDbg.addActionListener((ActionEvent e) -> {
+			JComponent comp = PMS.get().dbgPack().config();
+			String[] cancelStr = {Messages.getString("Close")};
+			JOptionPane.showOptionDialog(looksFrame,
 					comp, Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
-			}
 		});
 		pLogPackButtons.add(packDbg);
 		builder.add(pLogPackButtons, cc.xy(1, 4));

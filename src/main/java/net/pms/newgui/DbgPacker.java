@@ -37,6 +37,7 @@ import net.pms.newgui.components.CustomJButton;
 import net.pms.util.FileUtil;
 
 public class DbgPacker extends net.pms.util.DbgPacker implements ActionListener {
+
 	private String zippedLogFile;
 	private CustomJButton openZip;
 

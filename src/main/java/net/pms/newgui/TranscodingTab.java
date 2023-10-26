@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TranscodingTab {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
 	private static final String COMMON_COL_SPEC = "left:pref, 3dlu, pref:grow";
 	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 9dlu:grow, pref";
@@ -372,9 +373,7 @@ public class TranscodingTab {
 
 		disableSubs = new JCheckBox(Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
-		disableSubs.addItemListener((ItemEvent e) -> {
-			configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		disableSubs.addItemListener((ItemEvent e) -> configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
 
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.addLabel(Messages.getString("MaximumTranscodeBufferSize"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
@@ -466,18 +465,14 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		videoHWacceleration = new JCheckBox(Messages.getString("EnableGpuAcceleration"), configuration.isGPUAcceleration());
-		videoHWacceleration.addItemListener((ItemEvent e) -> {
-			configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		videoHWacceleration.addItemListener((ItemEvent e) -> configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(videoHWacceleration), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
 
 		JCheckBox mpeg2remux = new JCheckBox(Messages.getString("LosslessDvdVideoPlayback"), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setToolTipText(Messages.getString("WhenEnabledMuxesDvd") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
-		mpeg2remux.addItemListener((ItemEvent e) -> {
-			configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		mpeg2remux.addItemListener((ItemEvent e) -> configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(mpeg2remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		JComponent cmp = builder.addSeparator(Messages.getString("MiscSettings"), FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
@@ -616,34 +611,26 @@ public class TranscodingTab {
 		JComboBox<String> channels = new JComboBox<>(audioChannelsModel);
 		channels.setEditable(false);
 		audioChannelsModel.setSelectedKey(configuration.getAudioChannelCount());
-		channels.addItemListener((ItemEvent e) -> {
-			configuration.setAudioChannelCount(audioChannelsModel.getSelectedKey());
-		});
+		channels.addItemListener((ItemEvent e) -> configuration.setAudioChannelCount(audioChannelsModel.getSelectedKey()));
 		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		JCheckBox forcePCM = new JCheckBox(Messages.getString("UseLpcmForAudio"), configuration.isAudioUsePCM());
 		forcePCM.setToolTipText(Messages.getString("ThisOptionLosslessNotBest"));
 		forcePCM.setContentAreaFilled(false);
-		forcePCM.addItemListener((ItemEvent e) -> {
-			configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		forcePCM.addItemListener((ItemEvent e) -> configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		JCheckBox ac3remux = new JCheckBox(Messages.getString("KeepAc3Tracks"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("ThisOptionLosslessVeryStable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
-		ac3remux.addItemListener((ItemEvent e) -> {
-			configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		ac3remux.addItemListener((ItemEvent e) -> configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		JCheckBox forceDTSinPCM = new JCheckBox(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("ThisOptionLosslessUnstable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
-		forceDTSinPCM.addActionListener((ActionEvent e) -> {
-			configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
-		});
+		forceDTSinPCM.addActionListener((ActionEvent e) -> configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected()));
 		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		JCheckBox encodedAudioPassthrough = new JCheckBox(Messages.getString("EncodedAudioPassthrough"), configuration.isEncodedAudioPassthrough());
@@ -836,9 +823,7 @@ public class TranscodingTab {
 
 		JCheckBox fribidi = new JCheckBox(Messages.getString("FribidiMode"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
-		fribidi.addItemListener((ItemEvent e) -> {
-			configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		fribidi.addItemListener((ItemEvent e) -> configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED));
 
 		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 10, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
@@ -890,9 +875,7 @@ public class TranscodingTab {
 		}
 		final SpinnerIntModel assOutlineModel = new SpinnerIntModel(assOutlineValue, 0, 99, 1);
 		CustomJSpinner assOutline = new CustomJSpinner(assOutlineModel, true);
-		assOutline.addChangeListener((ChangeEvent e) -> {
-			configuration.setAssOutline(assOutlineModel.getValue().toString());
-		});
+		assOutline.addChangeListener((ChangeEvent e) -> configuration.setAssOutline(assOutlineModel.getValue().toString()));
 		flowPanel.add(assOutline);
 
 		flowPanel.add(new JLabel(Messages.getString("FontShadow")));
@@ -905,9 +888,7 @@ public class TranscodingTab {
 		}
 		final SpinnerIntModel assShadowModel = new SpinnerIntModel(assShadowValue, 0, 99, 1);
 		CustomJSpinner assShadow = new CustomJSpinner(assShadowModel, true);
-		assShadow.addChangeListener((ChangeEvent e) -> {
-			configuration.setAssShadow(assShadowModel.getValue().toString());
-		});
+		assShadow.addChangeListener((ChangeEvent e) -> configuration.setAssShadow(assShadowModel.getValue().toString()));
 		flowPanel.add(assShadow);
 
 		flowPanel.add(new JLabel(Messages.getString("MarginPx")));
@@ -920,9 +901,7 @@ public class TranscodingTab {
 		}
 		final SpinnerIntModel assMarginModel = new SpinnerIntModel(assMarginValue, 0, 999, 5);
 		CustomJSpinner assMargin = new CustomJSpinner(assMarginModel, true);
-		assMargin.addChangeListener((ChangeEvent e) -> {
-			configuration.setAssMargin(assMarginModel.getValue().toString());
-		});
+		assMargin.addChangeListener((ChangeEvent e) -> configuration.setAssMargin(assMarginModel.getValue().toString()));
 
 		flowPanel.add(assMargin);
 		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
@@ -931,9 +910,7 @@ public class TranscodingTab {
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesPrioritized"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
-		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> {
-			configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 10), colSpec, orientation));
 
 		JButton subColor = new JButton();
@@ -974,18 +951,14 @@ public class TranscodingTab {
 		JCheckBox deleteDownloadedSubtitles = new JCheckBox(Messages.getString("DeleteDownloadedLiveSubtitlesAfter"), !configuration.isLiveSubtitlesKeep());
 		deleteDownloadedSubtitles.setToolTipText(Messages.getString("DeterminesDownloadedLiveSubtitlesDeleted"));
 		deleteDownloadedSubtitles.setContentAreaFilled(false);
-		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> {
-			configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED));
-		});
+		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED)));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		JCheckBox useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("IfEnabledWontModifySubtitlesStyling"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
-		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> {
-			configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED));
 
 		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 20, 4), colSpec, orientation));
 
@@ -993,9 +966,7 @@ public class TranscodingTab {
 		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
 		CustomJSpinner liveSubtitlesLimit = new CustomJSpinner(liveSubtitlesLimitModel, true);
 		liveSubtitlesLimit.setToolTipText(Messages.getString("SetsMaximumNumberLiveSubtitles"));
-		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> {
-			configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue());
-		});
+		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue()));
 		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("LimitNumberLiveSubtitlesTo"));
 		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
 		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 20, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
@@ -1015,10 +986,8 @@ public class TranscodingTab {
 
 		final JPanel panel = builder.getPanel();
 		GuiUtil.enableContainer(panel, !configuration.isDisableSubtitles());
-		disableSubs.addItemListener((ItemEvent e) -> {
-			// If "Disable Subtitles" is not selected, subtitles are enabled
-			GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED);
-		});
+		// If "Disable Subtitles" is not selected, subtitles are enabled
+		disableSubs.addItemListener((ItemEvent e) -> GuiUtil.enableContainer(panel, e.getStateChange() != ItemEvent.SELECTED));
 
 		panel.applyComponentOrientation(orientation);
 		return panel;

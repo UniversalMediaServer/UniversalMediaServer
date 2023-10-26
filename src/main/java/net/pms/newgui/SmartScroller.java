@@ -44,6 +44,7 @@ import javax.swing.text.*;
  * Source: http://www.camick.com/java/source/SmartScroller.java
  */
 public class SmartScroller implements AdjustmentListener {
+
 	public static final int HORIZONTAL = 0;
 	public static final int VERTICAL = 1;
 
@@ -110,8 +111,7 @@ public class SmartScroller implements AdjustmentListener {
 		//  Turn off automatic scrolling for text components
 		Component view = scrollPane.getViewport().getView();
 
-		if (view instanceof JTextComponent) {
-			JTextComponent textComponent = (JTextComponent) view;
+		if (view instanceof JTextComponent textComponent) {
 			DefaultCaret caret = (DefaultCaret) textComponent.getCaret();
 			caret.setUpdatePolicy(DefaultCaret.NEVER_UPDATE);
 		}
@@ -119,9 +119,7 @@ public class SmartScroller implements AdjustmentListener {
 
 	@Override
 	public void adjustmentValueChanged(final AdjustmentEvent e) {
-		SwingUtilities.invokeLater(() -> {
-			checkScrollBar(e);
-		});
+		SwingUtilities.invokeLater(() -> checkScrollBar(e));
 	}
 
 	/*
@@ -172,4 +170,5 @@ public class SmartScroller implements AdjustmentListener {
 		previousValue = value;
 		previousMaximum = maximum;
 	}
+
 }

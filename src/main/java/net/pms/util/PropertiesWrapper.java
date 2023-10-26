@@ -29,7 +29,8 @@ import java.util.Properties;
  *
  * @author Tim Cox (mail@tcox.org)
  */
-public class PmsProperties {
+public class PropertiesWrapper {
+
 	private final Properties properties = new Properties();
 	private static final Charset ENCODING = StandardCharsets.UTF_8;
 

@@ -21,6 +21,7 @@ import javax.swing.filechooser.FileFilter;
 import net.pms.Messages;
 
 public class FontFileFilter extends FileFilter {
+
 	@Override
 	public boolean accept(File f) {
 		String name = f.getName().toUpperCase();
@@ -34,4 +35,5 @@ public class FontFileFilter extends FileFilter {
 	public String getDescription() {
 		return Messages.getString("TruetypeFonts");
 	}
+
 }

@@ -172,10 +172,14 @@ public class ImagePanel extends JButton {
 		if (img instanceof BufferedImage bufferedImage) {
 			return bufferedImage;
 		}
-		BufferedImage bi = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g = bi.createGraphics();
-		g.drawImage(img, 0, 0, null);
-		g.dispose();
+		BufferedImage bi = null;
+		if (img != null) {
+			bi = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+			Graphics2D g = bi.createGraphics();
+			g.drawImage(img, 0, 0, null);
+			g.dispose();
+		}
 		return bi;
 	}
+
 }

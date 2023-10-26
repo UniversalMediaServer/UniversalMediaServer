@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
  * Wizard to ask users to make the UMS initial setting
  */
 public class Wizard {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Wizard.class);
 
 	/**
@@ -62,12 +63,6 @@ public class Wizard {
 		Object[] yesNoOptions = {
 				Messages.getString("Yes"),
 				Messages.getString("No")
-			};
-
-		Object[] networkTypeOptions = {
-				Messages.getString("WiredGigabit"),
-				Messages.getString("Wired100Megabit"),
-				Messages.getString("Wireless")
 			};
 
 		Object[] defaultOptions = {
@@ -160,8 +155,10 @@ public class Wizard {
 						// will be used.
 					}
 				});
-			} catch (InterruptedException | InvocationTargetException e) {
+			} catch (InvocationTargetException e) {
 				LOGGER.error("Error when saving folders: ", e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
 
@@ -175,4 +172,5 @@ public class Wizard {
 			LOGGER.error("Error when saving changed configuration: ", e);
 		}
 	}
+
 }
