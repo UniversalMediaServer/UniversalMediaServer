@@ -1052,6 +1052,8 @@ public class MediaInfoParser {
 		if (end > -1) {
 			int start = value.lastIndexOf('-') + 1;
 			value = value.substring(start > end ? 0 : start, end);
+		} else if (value.lastIndexOf('-') > -1) { // value could be '189-128'
+			value = value.substring(value.lastIndexOf('-') + 1);
 		}
 
 		value = value.trim();
