@@ -383,4 +383,12 @@ public class SseApiServlet extends GuiHttpServlet {
 	public static void setMediaScanStatus(boolean running) {
 		broadcastSettingsMessage("{\"action\":\"set_media_scan_status\",\"running\":" + (running ? "true" : "false") + "}");
 	}
+
+	public static void setStatusLine(String line) {
+		JsonObject result = new JsonObject();
+		result.addProperty("action", "set_status_line");
+		result.addProperty("value", line);
+		broadcastMessage(result.toString());
+	}
+
 }

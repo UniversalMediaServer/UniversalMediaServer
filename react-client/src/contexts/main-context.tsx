@@ -14,24 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ReactNode, useState } from 'react';
+import { Context, createContext } from 'react';
 
-import NavbarContext from '../contexts/navbar-context';
+export const MainContext: Context<MainInterface> = createContext({
+  navbarValue: undefined,
+  setNavbarValue: (navbarValue: any) => { },
+  navbarOpened: false as boolean,
+  setNavbarOpened: (navbarOpened: any) => { },
+  statusLine: undefined,
+  setStatusLine: (statusLine: any) => { },
+});
 
-interface Props {
-  children?: ReactNode
+export interface MainInterface {
+  navbarValue: any;
+  setNavbarValue: (navbarValue: any) => void;
+  navbarOpened: boolean;
+  setNavbarOpened: (navbarOpened: any) => void;
+  statusLine: any,
+  setStatusLine: (statusLine: any) => void;
 }
 
-export const NavbarProvider = ({ children, ...props }: Props) => {
-  const [value, setValue] = useState(undefined);
-  const [opened, setOpened] = useState<boolean>(false);
-  const { Provider } = NavbarContext;
-  return (
-    <Provider value={{
-      value: value,
-      setValue: setValue,
-      opened: opened,
-      setOpened: setOpened,
-    }}>{children}</Provider>
-  )
-}
+export default MainContext;

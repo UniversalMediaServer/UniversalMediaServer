@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private String statusLine;
 
 	public abstract Object getServer();
 	public abstract int getPort();
@@ -75,10 +76,17 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setStatusLine(String line) {
+		statusLine = line;
+		SseApiServlet.setStatusLine(statusLine);
 	}
 
 	@Override
 	public void setSecondaryStatusLine(String line) {
+		if (line == null && statusLine != null) {
+			SseApiServlet.setStatusLine(statusLine);
+		} else {
+			SseApiServlet.setStatusLine(line);
+		}
 	}
 
 	@Override

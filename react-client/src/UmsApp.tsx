@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, useDirection, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useDirection, useMantineColorScheme } from '@mantine/core';
 
 import { useEffect } from 'react';
 import {
@@ -38,11 +38,11 @@ import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
 import SharedContent from './components/SharedContent/SharedContent';
 import UserMenu from './components/UserMenu/UserMenu';
-import NavbarContext from './contexts/navbar-context';
+import MainContext from './contexts/main-context';
 import SessionContext from './contexts/session-context';
 import { I18nProvider } from './providers/i18n-provider';
 import { AccountsProvider } from './providers/accounts-provider';
-import { NavbarProvider } from './providers/navbar-provider';
+import { MainProvider } from './providers/main-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
@@ -60,30 +60,30 @@ function UmsApp() {
 
   return (
     <I18nProvider>
-      <NavbarProvider>
-        <NavbarContext.Consumer>
-          {navbar => (
+      <MainProvider>
+        <MainContext.Consumer>
+          {main => (
             <SessionProvider><SessionContext.Consumer>
               {session => (
                 <div dir={dir} className='bodyBackgroundImageScreen'>
                   <AppShell
                     padding='md'
-                    navbar=  {navbar.value ?{
+                    navbar=  {main.navbarValue ?{
                       width: { sm: 200, lg: 300 },
                       breakpoint: 'sm',
-                      collapsed: { mobile: !navbar.opened, desktop: false }
+                      collapsed: { mobile: !main.navbarOpened, desktop: false }
                     }: undefined}
                     header={{ height: 50 }}
                     styles={(theme) => ({
                       main: { backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
                     })}
                   >
-                    {navbar.value && <AppShell.Navbar
+                    {main.navbarValue && <AppShell.Navbar
                       p='xs'
                       style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
                       <AppShell.Section grow my="md" component={ScrollArea}>
-                        <Stack gap={0}>{navbar.value}</Stack>
+                        <Stack gap={0}>{main.navbarValue}</Stack>
                       </AppShell.Section>
                     </AppShell.Navbar>}
                     <AppShell.Header
@@ -92,11 +92,11 @@ function UmsApp() {
                     >
                       <Group justify='space-between'>
                         <Group justify='left'>
-                          {navbar.value &&
+                          {main.navbarValue &&
                             <Burger
                               hiddenFrom='sm'
-                              opened={navbar.opened}
-                              onClick={() => navbar.setOpened((o: boolean) => !o)}
+                              opened={main.navbarOpened}
+                              onClick={() => main.setNavbarOpened((o: boolean) => !o)}
                               size='sm'
                               mr='xl'
                             />
@@ -170,13 +170,18 @@ function UmsApp() {
                         </Center>
                       )}
                     </AppShell.Main>
+                    {main.statusLine && (
+                      <AppShell.Footer>
+                        <Text>{main.statusLine}</Text>
+                      </AppShell.Footer>
+                    )}
                   </AppShell>
                 </div>
               )}
             </SessionContext.Consumer></SessionProvider>
           )}
-        </NavbarContext.Consumer>
-      </NavbarProvider>
+        </MainContext.Consumer>
+      </MainProvider>
     </I18nProvider>
   );
 
