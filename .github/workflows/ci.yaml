@@ -9,10 +9,6 @@ jobs:
       (github.event_name == 'pull_request')
     name: macOS Java and web browser tests
     runs-on: macos-13
-    strategy:
-      matrix:
-        # test against two different xcode version on MacOS
-        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -30,14 +26,42 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run Java tests (XCode ${{ matrix.xcode }})
-        run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+      - name: Run Java tests (XCode latest)
+        run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
       - name: Install Playwright Browsers
-        working-directory: ./react-client
-        run: yarn playwright install --with-deps
+        run: |
+          cd react-client
+          yarn playwright install --with-deps
       - name: Run Playwright tests
-        working-directory: ./react-client
-        run: yarn playwright test
+        run: |
+          cd react-client
+          yarn playwright test
+
+  macos-oldxcode:
+    if: |
+      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+      (github.event_name == 'pull_request')
+    name: macOS Java (Old XCode)
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Run Java tests (XCode 9.4.1)
+        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
 
   windows-latest:
     if: |
