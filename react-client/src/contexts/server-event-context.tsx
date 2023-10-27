@@ -29,6 +29,8 @@ export const ServerEventContext: Context<ServerEventInterface> = createContext({
   getRendererAction: () => null,
   hasNewLogLine: false as boolean,
   getNewLogLine: () => null,
+  statusLine: null,
+  secondaryStatusLine: null,
 });
 
 export interface ServerEventInterface {
@@ -44,6 +46,8 @@ export interface ServerEventInterface {
   getRendererAction: () => any;
   hasNewLogLine: boolean;
   getNewLogLine: () => any;
+  statusLine: any;
+  secondaryStatusLine: any;
 }
 
 export default ServerEventContext;
