@@ -915,7 +915,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -1295,7 +1295,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -1442,7 +1442,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -1589,7 +1589,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -1736,7 +1736,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -1891,7 +1891,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -2046,7 +2046,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -2288,7 +2288,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -2532,7 +2532,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -2965,7 +2965,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -3111,7 +3111,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -3257,7 +3257,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
@@ -3526,7 +3526,7 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.0</version>
+						<version>1.14.2</version>
 						<configuration>
 							<installDirectory>react-client</installDirectory>
 							<workingDirectory>react-client</workingDirectory>
