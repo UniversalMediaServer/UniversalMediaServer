@@ -3,10 +3,38 @@ name: CI
 on: [push, pull_request]
 
 jobs:
+  # Detect whether Java server code has changed, so it can be skipped
+  changes:
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      javafiles: ${{ steps.filter.outputs.javafiles }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          javafiles:
+            - 'src/**'
+            - 'pom.xml'
+            - 'UMS.launch'
+            - '*.xml'
+          webfiles:
+            - 'react-client/**'
   macos-browser:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.webfiles == 'true'
+      )
     name: macOS web browser tests
     runs-on: macos-13
     steps:
@@ -44,9 +72,12 @@ jobs:
         run: yarn playwright test
 
   macos:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: macOS Java tests
     runs-on: macos-13
     strategy:
@@ -74,9 +105,12 @@ jobs:
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows-latest:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Windows and lint
     runs-on: windows-latest
     steps:
@@ -100,9 +134,12 @@ jobs:
         run: mvn verify -P linter
 
   linux-focal:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Linux 20.04
     runs-on: ubuntu-20.04
     steps:
@@ -132,9 +169,12 @@ jobs:
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
