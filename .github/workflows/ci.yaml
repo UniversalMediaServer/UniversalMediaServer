@@ -3,11 +3,11 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  macos:
+  macos-browser:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
-    name: macOS Java and web browser tests
+    name: macOS web browser tests
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
@@ -26,23 +26,30 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run Java tests (XCode latest)
-        run: DEVELOPER_DIR=/Applications/Xcode_latest.app/Contents/Developer && mvn verify -P testing-macos
+      - name: pwd
+        run: pwd
+      - name: ls
+        run: ls
+      - name: pwd2
+        working-directory: ./react-client
+        run: pwd
       - name: Install Playwright Browsers
-        run: |
-          cd react-client
-          yarn playwright install --with-deps
+        working-directory: ./react-client
+        run: yarn playwright install --with-deps
       - name: Run Playwright tests
-        run: |
-          cd react-client
-          yarn playwright test
+        working-directory: ./react-client
+        run: yarn playwright test
 
-  macos-oldxcode:
+  macos-java:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
-    name: macOS Java (Old XCode)
+    name: macOS Java tests
     runs-on: macos-13
+    strategy:
+      matrix:
+        # test against two different xcode version on MacOS
+        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -60,8 +67,14 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run Java tests (XCode 9.4.1)
-        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
+      - name: Run Java tests (XCode ${{ matrix.xcode }})
+        run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+      - name: Install Playwright Browsers
+        working-directory: ./react-client
+        run: yarn playwright install --with-deps
+      - name: Run Playwright tests
+        working-directory: ./react-client
+        run: yarn playwright test
 
   windows-latest:
     if: |
