@@ -33,6 +33,9 @@ jobs:
       - name: pwd2
         working-directory: ./react-client
         run: pwd
+      - name: Install dependencies
+        working-directory: ./react-client
+        run: yarn
       - name: Install Playwright Browsers
         working-directory: ./react-client
         run: yarn playwright install --with-deps
@@ -40,7 +43,7 @@ jobs:
         working-directory: ./react-client
         run: yarn playwright test
 
-  macos-java:
+  macos:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
@@ -69,12 +72,6 @@ jobs:
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run Java tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
-      - name: Install Playwright Browsers
-        working-directory: ./react-client
-        run: yarn playwright install --with-deps
-      - name: Run Playwright tests
-        working-directory: ./react-client
-        run: yarn playwright test
 
   windows-latest:
     if: |
