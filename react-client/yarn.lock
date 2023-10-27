@@ -2625,6 +2625,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@playwright/test@npm:^1.39.0":
+  version: 1.39.0
+  resolution: "@playwright/test@npm:1.39.0"
+  dependencies:
+    playwright: 1.39.0
+  bin:
+    playwright: cli.js
+  checksum: e93e58fc1af4239f239b890374f066c9a758e2492d25e2c1a532f3f00782ab8e7706956a07540fd14882c74e75f5de36273621adce9b79afb8e36e6c15f1d539
+  languageName: node
+  linkType: hard
+
 "@pmmmwh/react-refresh-webpack-plugin@npm:^0.5.3":
   version: 0.5.11
   resolution: "@pmmmwh/react-refresh-webpack-plugin@npm:0.5.11"
@@ -7475,12 +7486,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fsevents@npm:2.3.2":
+  version: 2.3.2
+  resolution: "fsevents@npm:2.3.2"
+  dependencies:
+    node-gyp: latest
+  checksum: 97ade64e75091afee5265e6956cb72ba34db7819b4c3e94c431d4be2b19b8bb7a2d4116da417950c3425f17c8fe693d25e20212cac583ac1521ad066b77ae31f
+  conditions: os=darwin
+  languageName: node
+  linkType: hard
+
 "fsevents@npm:^2.3.2, fsevents@npm:~2.3.2":
   version: 2.3.3
   resolution: "fsevents@npm:2.3.3"
   dependencies:
     node-gyp: latest
   checksum: 11e6ea6fea15e42461fc55b4b0e4a0a3c654faa567f1877dbd353f39156f69def97a69936d1746619d656c4b93de2238bf731f6085a03a50cabf287c9d024317
+  conditions: os=darwin
+  languageName: node
+  linkType: hard
+
+"fsevents@patch:fsevents@2.3.2#~builtin<compat/fsevents>":
+  version: 2.3.2
+  resolution: "fsevents@patch:fsevents@npm%3A2.3.2#~builtin<compat/fsevents>::version=2.3.2&hash=df0bf1"
+  dependencies:
+    node-gyp: latest
   conditions: os=darwin
   languageName: node
   linkType: hard
@@ -10940,6 +10970,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"playwright-core@npm:1.39.0":
+  version: 1.39.0
+  resolution: "playwright-core@npm:1.39.0"
+  bin:
+    playwright-core: cli.js
+  checksum: 556e78dee4f9890facf2af8249972e0d6e01a5ae98737b0f6b0166c660a95ffee4cb79350335b1ef96430a0ef01d3669daae9099fa46c8d403d11c623988238b
+  languageName: node
+  linkType: hard
+
+"playwright@npm:1.39.0":
+  version: 1.39.0
+  resolution: "playwright@npm:1.39.0"
+  dependencies:
+    fsevents: 2.3.2
+    playwright-core: 1.39.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  bin:
+    playwright: cli.js
+  checksum: 96d8ca5aa25465c1c5d554d0d6071981d55e22477800ff8f5d47a53ca75193d60ece2df538a01b7165b3277dd5493c67603a5acda713029df7fbd95ce2417bc9
+  languageName: node
+  linkType: hard
+
 "postcss-attribute-case-insensitive@npm:^5.0.2":
   version: 5.0.2
   resolution: "postcss-attribute-case-insensitive@npm:5.0.2"
@@ -14116,6 +14170,7 @@ __metadata:
     "@mantine/prism": 6.0.21
     "@microsoft/fetch-event-source": 2.0.1
     "@mycujoo/videojs-hls-quality-selector": 1.1.5-rc.4
+    "@playwright/test": ^1.39.0
     "@testing-library/jest-dom": 6.1.4
     "@testing-library/react": 14.0.0
     "@testing-library/user-event": 14.5.1

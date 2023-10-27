@@ -7,7 +7,7 @@ jobs:
     if: |
       (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
       (github.event_name == 'pull_request')
-    name: macOS
+    name: macOS Java and web browser tests
     runs-on: macos-13
     strategy:
       matrix:
@@ -30,8 +30,12 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run tests (XCode ${{ matrix.xcode }})
+      - name: Run Java tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+      - name: Install Playwright Browsers
+        run: yarn playwright install --with-deps
+      - name: Run Playwright tests
+        run: yarn playwright test
 
   windows-latest:
     if: |
