@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import axios from 'axios';
-import jwtDecode, { JwtPayload } from 'jwt-decode';
+import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { authApiUrl, playerApiUrl } from '../utils';
 
 const storeJwtInLocalStorage = (jwt: string) => {

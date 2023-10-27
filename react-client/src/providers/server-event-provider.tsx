@@ -19,6 +19,7 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
+import MainContext from '../contexts/main-context';
 import ServerEventContext from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
@@ -40,8 +41,11 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
   const [rendererActions] = useState([] as any[]);
   const [hasNewLogLine, setNewLogLine] = useState(false);
   const [newLogLines] = useState([] as string[]);
+  const [statusLine, setStatusLine] = useState<string|null>(null);
+  const [secondaryStatusLine, setSecondaryStatusLine] = useState<string|null>(null);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
 
   useEffect(() => {
     if (started || session.account === undefined) {
@@ -119,6 +123,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
             }
             setNewLogLine(true);
             break;
+          case 'set_status_line':
+            main.setStatusLine(datas.value);
+            break;
         }
       }
     }
@@ -187,6 +194,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
       getRendererAction: getRendererAction,
       hasNewLogLine: hasNewLogLine,
       getNewLogLine: getNewLogLine,
+      statusLine: statusLine,
+      secondaryStatusLine: secondaryStatusLine,
     }}>
       {children}
     </Provider>

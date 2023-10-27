@@ -18,6 +18,7 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.io.Serializable;
 import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.plaf.ProgressBarUI;
@@ -288,7 +289,7 @@ public final class GuiUtil {
 	}
 
 	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
-	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
+	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI implements Serializable {
 		Color fg;
 		Color bg;
 
@@ -458,18 +459,20 @@ public final class GuiUtil {
 	// This is to prevent replacement of the initial custom ui with
 	// the laf's default ProgressBarUI as a result of future
 	// invocations of JProgressBar.UpdateUI()
-	public static class CustomUIProgressBar extends JProgressBar {
+	public static class CustomUIProgressBar extends JProgressBar implements Serializable {
+
+		private transient ProgressBarUI customUi;
 
 		public CustomUIProgressBar(int min, int max, ProgressBarUI ui) {
 			super(min, max);
-			this.ui = ui;
+			this.customUi = ui;
 			setUI(ui);
 		}
 
 		@Override
-		public final void setUI(javax.swing.plaf.ProgressBarUI ui) {
+		public final void setUI(ProgressBarUI ui) {
 			// Always prefer our own ui if we have one
-			super.setUI(this.ui != null ? this.ui : ui);
+			super.setUI(this.customUi != null ? this.customUi : ui);
 		}
 	}
 

@@ -23,7 +23,7 @@ import { useParams } from 'react-router-dom';
 import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, Tag } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import NavbarContext from '../../contexts/navbar-context';
+import MainContext from '../../contexts/main-context';
 import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
@@ -37,7 +37,7 @@ export const Player = () => {
   const [loading, setLoading] = useState(false);
   const mainScroll = useRef<HTMLDivElement>(null);
   const i18n = useContext(I18nContext);
-  const navbar = useContext(NavbarContext);
+  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
@@ -666,9 +666,9 @@ export const Player = () => {
         return getFoldersButtons();
       }
     }
-    navbar.setValue(getNavFolders());
+    main.setNavbarValue(getNavFolders());
     // eslint-disable-next-line
-  }, [data, i18n.get, navbar.setValue]);
+  }, [data, i18n.get, main.setNavbarValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
