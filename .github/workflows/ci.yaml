@@ -5,6 +5,11 @@ on: [push, pull_request]
 jobs:
   # Detect whether Java server code has changed, so it can be skipped
   changes:
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      )
     runs-on: ubuntu-latest
     # Required permissions
     permissions:
@@ -12,6 +17,7 @@ jobs:
     # Set job outputs to values from filter step
     outputs:
       javafiles: ${{ steps.filter.outputs.javafiles }}
+      webfiles: ${{ steps.filter.outputs.webfiles }}
     steps:
     # For pull requests it's not necessary to checkout the code
     - uses: dorny/paths-filter@v2
