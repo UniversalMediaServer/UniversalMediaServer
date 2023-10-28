@@ -1565,7 +1565,8 @@ public class PMS {
 	 * @return whether UMS is being run by Surefire
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null;
+		LOGGER.info("CI is set to " + System.getenv("CI"));
+		return System.getProperty("surefire.real.class.path") != null || System.getenv("CI") == "true";
 	}
 
 	/**

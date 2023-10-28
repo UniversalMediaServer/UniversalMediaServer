@@ -47,9 +47,6 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.0
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -97,9 +94,6 @@ jobs:
         xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.0
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -129,9 +123,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.0
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -161,9 +152,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.0
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -199,9 +187,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18.14.0
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
