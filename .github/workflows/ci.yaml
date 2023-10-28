@@ -75,7 +75,7 @@ jobs:
         run: yarn playwright install --with-deps
       - name: Run Playwright tests
         working-directory: ./react-client
-        run: yarn playwright test
+        run: DEBUG=pw:webserver yarn playwright test
 
   macos:
     needs: changes

@@ -35,7 +35,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "build-player": "REACT_APP_MODE=player react-scripts build",
-    "test:runserver:macos": "npm run private:compileserver:macos;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;DEBUG=* ./runtestserver.sh",
+    "test:runserver:macos": "echo 1;cd ../;mvn -P macos package -DskipTests -Doffline;echo 2;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;./runtestserver.sh",
     "test:runserver:macos-arm": "npm run private:compileserver:macos-arm;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;./runtestserver.sh",
     "eject": "react-scripts eject",
     "private:compileserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline;cd react-client",
