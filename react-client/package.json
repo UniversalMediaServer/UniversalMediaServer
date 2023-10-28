@@ -35,10 +35,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "build-player": "REACT_APP_MODE=player react-scripts build",
-    "test:runserver:macos": "echo 1;cd ../;mvn -P macos package -DskipTests -Doffline;echo 2;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;./runtestserver.sh",
+    "test:runserver:macos": "npm run private:compileserver:macos;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;./runtestserver.sh",
     "test:runserver:macos-arm": "npm run private:compileserver:macos-arm;npm run private:copy-jar;npm run private:ensure-file-permissions;cd ../;./runtestserver.sh",
     "eject": "react-scripts eject",
-    "private:compileserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline;cd react-client",
+    "private:compileserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client",
     "private:compileserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client",
     "private:copy-jar": "cp ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"

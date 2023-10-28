@@ -2169,7 +2169,7 @@
 								</goals>
 								<configuration>
 									<property environment="env" />
-									<target name="bundle">
+									<target name="bundle" unless="jaronly">
 										<!-- Obtain path to the selected JRE -->
 										<exec executable="/usr/libexec/java_home"
 													failonerror="true"
