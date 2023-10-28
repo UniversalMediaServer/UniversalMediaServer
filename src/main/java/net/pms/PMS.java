@@ -1014,7 +1014,7 @@ public class PMS {
 				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
-			if (umsConfiguration.isRunSingleInstance()) {
+			if (!isRunningTests() && umsConfiguration.isRunSingleInstance()) {
 				killOld();
 			}
 
