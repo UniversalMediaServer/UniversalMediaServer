@@ -1562,7 +1562,7 @@ public class PMS {
 	}
 
 	/**
-	 * @return whether UMS is being run by Surefire
+	 * @return whether UMS is being run by Surefire or a CI environment like GitHub Actions
 	 */
 	public static boolean isRunningTests() {
 		LOGGER.info("CI is set to " + System.getenv("CI"));

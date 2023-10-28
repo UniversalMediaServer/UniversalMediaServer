@@ -40,7 +40,7 @@
     "eject": "react-scripts eject",
     "private:compileserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client",
     "private:compileserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client",
-    "private:copy-jar": "cp ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
+    "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
   },
   "eslintConfig": {
