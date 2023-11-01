@@ -256,6 +256,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 					media.setLastPlaybackTime(rs.getString(COL_DATELASTPLAY));
 					media.setLastPlaybackPosition(rs.getDouble(COL_LASTPLAYBACKPOSITION));
 					media.setBookmark(rs.getInt(COL_BOOKMARK));
+					return media;
 				}
 			}
 		} catch (SQLException e) {
