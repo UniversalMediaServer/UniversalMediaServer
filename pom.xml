@@ -650,6 +650,11 @@
 			<version>4.0.4</version>
 			<type>jar</type>
 		</dependency>
+		<dependency>
+			<groupId>com.universalmediaserver</groupId>
+			<artifactId>tmdbapi</artifactId>
+			<version>0.2</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
