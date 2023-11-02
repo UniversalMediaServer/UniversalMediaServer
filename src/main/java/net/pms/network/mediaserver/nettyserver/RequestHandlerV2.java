@@ -94,6 +94,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		String uri = getUri(nettyRequest.getUri());
 		request = new RequestV2(method, uri);
 
+		if (uri.startsWith("api/")) {
+			writeResponse(ctx, event, request, ia);
+			return;
+		}
+
 		if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 			// Request to retrieve a media stream.
 			// Renderer should has been registred.
