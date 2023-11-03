@@ -5670,7 +5670,9 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_ASS_SHADOW, 1);
 		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
 		jObj.addProperty(KEY_TMDB_API_KEY, "");
+		jObj.addProperty(KEY_UPNP_DEBUG, false);
 		jObj.addProperty(KEY_UPNP_ENABLED, true);
+		jObj.addProperty(KEY_UPNP_JUPNP_DIDL, false);
 		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
 		jObj.addProperty(KEY_USE_IMDB_INFO, true);
 		jObj.addProperty(KEY_USE_TMDB_INFO, true);
