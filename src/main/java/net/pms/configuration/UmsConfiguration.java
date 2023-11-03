@@ -424,7 +424,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
-	private static final String KEY_UPNP_DEBUG = "upnp_debug";
+	public static final String KEY_UPNP_DEBUG = "upnp_debug";
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	private static final String KEY_UPNP_PORT = "upnp_port";

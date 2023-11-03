@@ -441,9 +441,15 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					} else {
 						inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 						if (contentFeatures != null) {
-							exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
-									DlnaHelper.getDlnaContentFeatures(item, imageProfile, false)
-							);
+							if (CONFIGURATION.isUpnpJupnpDidl()) {
+								exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
+									net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
+								);
+							} else {
+								exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
+									DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
+								);
+							}
 						}
 						if (inputStream != null && (range.getStart() > 0 || range.getEnd() > 0)) {
 							if (range.getStart() > 0) {
@@ -609,7 +615,11 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					range.setEnd(range.getStart() + cLoverride - (cLoverride > 0 ? 1 : 0));
 
 					if (contentFeatures != null) {
-						exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
+						if (CONFIGURATION.isUpnpJupnpDidl()) {
+							exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaContentFeatures(item));
+						} else {
+							exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
+						}
 					}
 
 					if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
@@ -723,9 +733,15 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 				filterChain
 		);
 		if (contentFeatures != null) {
-			exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
-					DlnaHelper.getDlnaContentFeatures(resource, imageProfile, true)
-			);
+			if (CONFIGURATION.isUpnpJupnpDidl()) {
+				exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
+					net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
+				);
+			} else {
+				exchange.getResponseHeaders().set("ContentFeatures.DLNA.ORG",
+					DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
+				);
+			}
 		}
 		if (inputStream != null && (range.getStart() > 0 || range.getEnd() > 0)) {
 			if (range.getStart() > 0) {

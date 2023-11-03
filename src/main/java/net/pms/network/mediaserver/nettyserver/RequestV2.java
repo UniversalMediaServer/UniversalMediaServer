@@ -380,9 +380,15 @@ public class RequestV2 extends HTTPResource {
 							filterChain
 					);
 					if (contentFeatures != null) {
-						output.headers().set("ContentFeatures.DLNA.ORG",
-								DlnaHelper.getDlnaContentFeatures(resource, imageProfile, true)
-						);
+						if (configuration.isUpnpJupnpDidl()) {
+							output.headers().set("ContentFeatures.DLNA.ORG",
+								net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
+							);
+						} else {
+							output.headers().set("ContentFeatures.DLNA.ORG",
+								DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
+							);
+						}
 					}
 					if (inputStream != null && (lowRange > 0 || highRange > 0)) {
 						if (lowRange > 0) {
@@ -477,9 +483,15 @@ public class RequestV2 extends HTTPResource {
 							} else {
 								inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 								if (contentFeatures != null) {
-									output.headers().set("ContentFeatures.DLNA.ORG",
-											DlnaHelper.getDlnaContentFeatures(item, imageProfile, false)
-									);
+									if (configuration.isUpnpJupnpDidl()) {
+										output.headers().set("ContentFeatures.DLNA.ORG",
+											net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
+										);
+									} else {
+										output.headers().set("ContentFeatures.DLNA.ORG",
+											DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
+										);
+									}
 								}
 								if (inputStream != null && (lowRange > 0 || highRange > 0)) {
 									if (lowRange > 0) {
@@ -680,7 +692,11 @@ public class RequestV2 extends HTTPResource {
 							highRange = lowRange + cLoverride - (cLoverride > 0 ? 1 : 0);
 
 							if (contentFeatures != null) {
-								output.headers().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
+								if (configuration.isUpnpJupnpDidl()) {
+									output.headers().set("ContentFeatures.DLNA.ORG", net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaContentFeatures(item));
+								} else {
+									output.headers().set("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
+								}
 							}
 
 							if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {

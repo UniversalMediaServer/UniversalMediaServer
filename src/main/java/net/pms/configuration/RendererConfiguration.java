@@ -78,7 +78,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String KEY_DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String KEY_DLNA_ORGPN_USE = "DLNAOrgPN";
-	private static final String KEY_DLNA_PN_CHANGES = "DLNAProfileChanges";
+	private static final String KEY_DLNA_PROFILE_CHANGES = "DLNAProfileChanges";
 	private static final String KEY_DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String KEY_HALVE_BITRATE = "HalveBitrate";
 	private static final String KEY_H264_L41_LIMITED = "H264Level41Limited";
@@ -196,7 +196,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private Map<String, String> mimes;
 
 	private Map<String, String> charMap;
-	private Map<String, String> dLNAPN;
+	private Map<String, String> dlnaProfiles;
 
 	// TextWrap parameters
 	private int lineWidth;
@@ -380,19 +380,19 @@ public class RendererConfiguration extends BaseConfiguration {
 			}
 		}
 
-		dLNAPN = new HashMap<>();
-		String dLNAPNchanges = getString(KEY_DLNA_PN_CHANGES, "");
+		dlnaProfiles = new HashMap<>();
+		String dlnaProfileChanges = getString(KEY_DLNA_PROFILE_CHANGES, "");
 
-		if (StringUtils.isNotBlank(dLNAPNchanges)) {
-			LOGGER.trace("Config dLNAPNchanges: " + dLNAPNchanges);
-			StringTokenizer st = new StringTokenizer(dLNAPNchanges, "|");
+		if (StringUtils.isNotBlank(dlnaProfileChanges)) {
+			LOGGER.trace("Config dlnaProfileChanges: " + dlnaProfileChanges);
+			StringTokenizer st = new StringTokenizer(dlnaProfileChanges, "|");
 			while (st.hasMoreTokens()) {
 				String dLNAPNChange = st.nextToken().trim();
 				int equals = dLNAPNChange.indexOf('=');
 				if (equals > -1) {
 					String old = dLNAPNChange.substring(0, equals).trim().toUpperCase();
 					String nw = dLNAPNChange.substring(equals + 1).trim().toUpperCase();
-					dLNAPN.put(old, nw);
+					dlnaProfiles.put(old, nw);
 				}
 			}
 		}
@@ -424,12 +424,12 @@ public class RendererConfiguration extends BaseConfiguration {
 		loaded = false;
 	}
 
-	public String getDLNAPN(String old) {
-		if (dLNAPN.containsKey(old)) {
-			return dLNAPN.get(old);
+	public String getDlnaProfileId(String profile) {
+		if (dlnaProfiles.containsKey(profile)) {
+			return dlnaProfiles.get(profile);
 		}
 
-		return old;
+		return profile;
 	}
 
 	public boolean supportsFormat(Format f) {
