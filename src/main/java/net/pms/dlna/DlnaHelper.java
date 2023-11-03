@@ -200,7 +200,7 @@ public class DlnaHelper {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=AVI";
 				} else if (mime.equals(HTTPResource.WMV_TYPEMIME) && defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getWmvOrgPN(mediaInfo, renderer, engine == null);
-				} else if (mime.equals(HTTPResource.MPEG_TYPEMIME)) {
+				} else if (mime.equals(HTTPResource.MPEG_TYPEMIME) || mime.equals(HTTPResource.HLS_TYPEMIME) || mime.equals(HTTPResource.HLS_APPLE_TYPEMIME)) {
 					dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegPsOrgPN(localizationValue);
 
 					// If engine is not null, we are not streaming it
@@ -456,19 +456,21 @@ public class DlnaHelper {
 	private static String getMp4H264OrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_MP4";
 
-		if (!(isStreaming && media.getDefaultAudioTrack().isHEAAC())) {
-			if (media != null && media.getDefaultVideoTrack() != null &&
-				media.getDefaultVideoTrack().getFormatProfile() != null) {
-				if (media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
-					orgPN += "_HP_HD";
-				} else if (media.getDefaultVideoTrack().getFormatProfile().contains("baseline")) {
-					orgPN += "_BL";
+		if (media != null && media.getDefaultVideoTrack() != null &&
+			media.getDefaultVideoTrack().getFormatProfile() != null) {
+			if (media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
+				if (isStreaming && media.getDefaultAudioTrack() != null && media.getDefaultAudioTrack().isHEAAC()) {
+					orgPN += "_HD_HEAACv2_L6";
 				} else {
-					orgPN += "_MP_SD";
+					orgPN += "_HP_HD";
 				}
+			} else if (media.getDefaultVideoTrack().getFormatProfile().contains("baseline")) {
+				orgPN += "_BL";
 			} else {
 				orgPN += "_MP_SD";
 			}
+		} else {
+			orgPN += "_MP_SD";
 		}
 
 		if (media != null && media.getDefaultAudioTrack() != null) {
@@ -495,11 +497,6 @@ public class DlnaHelper {
 				media.getDefaultAudioTrack().isDTSHD()
 			) {
 				orgPN += "_DTSHD";
-			} else if (
-				isStreaming &&
-				media.getDefaultAudioTrack().isHEAAC()
-			) {
-				orgPN += "_HD_HEAACv2_L6";
 			}
 		}
 
