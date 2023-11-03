@@ -75,6 +75,8 @@ import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.StartStopListenerDelegate;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.DbIdResourceLocator;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
@@ -345,7 +347,12 @@ public class RequestV2 extends HTTPResource {
 					// Some clients escape the separators in their request: unescape them.
 					String id = requestData[2].replace("%24", "$");
 					// Get resource
-					resource = renderer.getMediaStore().getResource(id);
+					if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+						resource = DbIdResourceLocator.locateResource(renderer, id);
+					} else {
+						resource = renderer.getMediaStore().getResource(id);
+					}
+
 				}
 
 				if (transferMode != null) {
