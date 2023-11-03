@@ -19,10 +19,14 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
@@ -39,6 +43,7 @@ import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.VirtualFolderDbId;
+import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
@@ -62,6 +67,7 @@ import org.jupnp.support.model.SearchResult;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 @UpnpService(
 		serviceId =
@@ -478,6 +484,9 @@ public class UmsContentDirectoryService {
 		} else {
 			result = DidlHelper.getDidlResults(resultResources);
 		}
+		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			logDidlLiteResult(result);
+		}
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
@@ -530,6 +539,9 @@ public class UmsContentDirectoryService {
 				result = getJUPnPDidlResults(resultResources);
 			} else {
 				result = DidlHelper.getDidlResults(resultResources);
+			}
+			if (renderer.getUmsConfiguration().isUpnpDebug()) {
+				logDidlLiteResult(result);
 			}
 			return new SearchResult(result, resultResources.size(), totalMatches, containerUpdateID);
 		} catch (Exception e) {
@@ -674,7 +686,24 @@ public class UmsContentDirectoryService {
 		} else {
 			result = DidlHelper.getDidlResults(resultResources);
 		}
+		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			logDidlLiteResult(result);
+		}
 		return new SearchResult(result, count, totalMatches, containerUpdateID);
+	}
+
+	private static void logDidlLiteResult(String result) {
+		if (LOGGER.isTraceEnabled()) {
+			String formattedResult;
+			try {
+				formattedResult = "DIDL-Lite result:\n";
+				formattedResult += StringUtil.prettifyXML(result, StandardCharsets.UTF_8, 4);
+			} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+				formattedResult = "DIDL-Lite result isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedResult += "    " + result.replace("\n", "\n    ");
+			}
+			LOGGER.trace(formattedResult);
+		}
 	}
 
 	private static String getEnclosingValue(String content, String leftTag, String rightTag) {
