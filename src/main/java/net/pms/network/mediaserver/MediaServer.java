@@ -46,7 +46,7 @@ public class MediaServer {
 		5, "JUPnP (Java)"
 	);
 
-	public static final int DEFAULT_VERSION = 4;
+	public static final int DEFAULT_VERSION = 1;
 
 	public static UmsUpnpService upnpService;
 	private static boolean isStarted = false;

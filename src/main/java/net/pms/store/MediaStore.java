@@ -425,13 +425,19 @@ public class MediaStore extends StoreContainer {
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
 			return this;
-		} else {
-			// only allow the last one here
-			return getWeakResource(ids[ids.length - 1]);
 		}
+		if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+			try {
+				return DbIdResourceLocator.locateResource(renderer, objectId);
+			} catch (Exception e) {
+				LOGGER.error("", e);
+			}
+		}
+		// only allow the last one here
+		String[] ids = objectId.split("\\.");
+		return getWeakResource(ids[ids.length - 1]);
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -534,7 +540,7 @@ public class MediaStore extends StoreContainer {
 	 * @throws IOException
 	 */
 	public synchronized List<StoreResource> getResources(String objectId, boolean children, int start, int count) throws IOException {
-		return MediaStore.this.getResources(objectId, children, start, count, null);
+		return getResources(objectId, children, start, count, null);
 	}
 
 	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren, int start, int count,

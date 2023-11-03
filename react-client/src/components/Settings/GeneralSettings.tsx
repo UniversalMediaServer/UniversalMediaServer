@@ -154,6 +154,20 @@ export default function GeneralSettings(
                 label={i18n.get['UPnPDlnaService']}
                 {...form.getInputProps('upnp_enable', { type: 'checkbox' })}
               />
+              {advancedSettings &&
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['JUPnPDIDLLite']}
+                  {...form.getInputProps('upnp_jupnp_didl', { type: 'checkbox' })}
+                />
+              }
+              {advancedSettings &&
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['DebugUpnpService']}
+                  {...form.getInputProps('upnp_debug', { type: 'checkbox' })}
+                />
+              }
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get['MDNSChromecastService']}

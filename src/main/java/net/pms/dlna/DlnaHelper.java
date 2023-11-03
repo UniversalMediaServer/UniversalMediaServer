@@ -55,7 +55,7 @@ public class DlnaHelper {
 			";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
-	public static String getDlnaContentFeatures(StoreResource resource, DLNAImageProfile profile, boolean thumbnailRequest) {
+	public static String getDlnaImageContentFeatures(StoreResource resource, DLNAImageProfile profile, boolean thumbnailRequest) {
 		StringBuilder sb = new StringBuilder();
 		if (profile != null) {
 			sb.append("DLNA.ORG_PN=").append(profile);
@@ -302,10 +302,12 @@ public class DlnaHelper {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {
-					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("h265") && defaultAudioTrack != null &&
+					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH265() && defaultAudioTrack != null &&
 						(defaultAudioTrack.isAC3() || defaultAudioTrack.isEAC3() ||
 							defaultAudioTrack.isHEAAC())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
+					} else if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
+						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMp4H264OrgPN(mediaInfo, renderer, true);
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MATROSKA_TYPEMIME)) {
 					if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
@@ -340,7 +342,7 @@ public class DlnaHelper {
 			}
 
 			if (dlnaOrgPnFlags != null) {
-				dlnaOrgPnFlags = "DLNA.ORG_PN=" + renderer.getDLNAPN(dlnaOrgPnFlags.substring(12));
+				dlnaOrgPnFlags = "DLNA.ORG_PN=" + renderer.getDlnaProfileId(dlnaOrgPnFlags.substring(12));
 			}
 		}
 
@@ -445,6 +447,59 @@ public class DlnaHelper {
 				media.getDefaultAudioTrack().isHEAAC()
 			) {
 				orgPN += "_HEAAC_L4";
+			}
+		}
+
+		return orgPN;
+	}
+
+	private static String getMp4H264OrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
+		String orgPN = "AVC_MP4";
+
+		if (!(isStreaming && media.getDefaultAudioTrack().isHEAAC())) {
+			if (media != null && media.getDefaultVideoTrack() != null &&
+				media.getDefaultVideoTrack().getFormatProfile() != null) {
+				if (media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
+					orgPN += "_HP_HD";
+				} else if (media.getDefaultVideoTrack().getFormatProfile().contains("baseline")) {
+					orgPN += "_BL";
+				} else {
+					orgPN += "_MP_SD";
+				}
+			} else {
+				orgPN += "_MP_SD";
+			}
+		}
+
+		if (media != null && media.getDefaultAudioTrack() != null) {
+			if (
+				(
+					isStreaming &&
+					(
+						media.getDefaultAudioTrack().isAC3() ||
+						media.getDefaultAudioTrack().isEAC3()
+					)
+				) || (
+					!isStreaming &&
+					renderer.isTranscodeToAC3()
+				)
+			) {
+				orgPN += "_EAC3";
+			} else if (
+				isStreaming &&
+				media.getDefaultAudioTrack().isDTS()
+			) {
+				orgPN += "_DTS";
+			} else if (
+				isStreaming &&
+				media.getDefaultAudioTrack().isDTSHD()
+			) {
+				orgPN += "_DTSHD";
+			} else if (
+				isStreaming &&
+				media.getDefaultAudioTrack().isHEAAC()
+			) {
+				orgPN += "_HD_HEAACv2_L6";
 			}
 		}
 

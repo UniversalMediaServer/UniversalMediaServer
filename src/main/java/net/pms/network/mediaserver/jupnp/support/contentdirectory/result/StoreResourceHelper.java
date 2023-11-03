@@ -355,7 +355,7 @@ public class StoreResourceHelper {
 		if (mediaType != MediaType.IMAGE) {
 			int indexCount = 1;
 			if (renderer.isDLNALocalizationRequired()) {
-				indexCount = DlnaHelper.getDLNALocalesCount();
+				indexCount = DlnaHelper.getDlnaLocalesCount();
 			}
 
 			for (int c = 0; c < indexCount; c++) {
@@ -364,9 +364,8 @@ public class StoreResourceHelper {
 				protocolInfo.setProtocol(Protocol.HTTP_GET);
 				protocolInfo.setContentFormat(item.getRendererMimeType());
 				if (renderer.isSendDLNAOrgFlags()) {
-					String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
-					String dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
-					protocolInfo.setAdditionalInfo(dlnaOrgFlags);
+					String additionalInfo = DlnaHelper.getDlnaAdditionalInfo(item, c);
+					protocolInfo.setAdditionalInfo(additionalInfo);
 				}
 				res.setProtocolInfo(protocolInfo);
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
