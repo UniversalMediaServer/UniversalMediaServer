@@ -374,8 +374,10 @@ public class PMS {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
-			(umsConfiguration.getLanguageRawString() == null ||
-			!Languages.isValid(umsConfiguration.getLanguageRawString()))
+			(
+				umsConfiguration.getLanguageRawString() == null ||
+				!Languages.isValid(umsConfiguration.getLanguageRawString())
+			)
 		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
