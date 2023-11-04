@@ -1566,6 +1566,8 @@ public class PMS {
 	 */
 	public static boolean isRunningTests() {
 		LOGGER.info("CI is set to " + System.getenv("CI"));
+		LOGGER.info("1 " + (System.getProperty("surefire.real.class.path") != null ? "true" : "false"));
+		LOGGER.info("2 " + (System.getenv("CI") == "true" ? "true" : "false"));
 		return System.getProperty("surefire.real.class.path") != null || System.getenv("CI") == "true";
 	}
 
