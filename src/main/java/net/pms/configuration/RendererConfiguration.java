@@ -605,6 +605,12 @@ public class RendererConfiguration extends BaseConfiguration {
 		if (media.getDefaultVideoTrack() == null) {
 			return true;
 		}
+		if (getFormatConfiguration() == null) {
+			return (
+				(isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
+				(isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
+			);
+		}
 		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
@@ -620,6 +626,12 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isAudioStreamTypeSupportedInTranscodingContainer(MediaAudio audio) {
+		if (getFormatConfiguration() == null) {
+			return (
+				(isTranscodeToAAC() && audio.isAACLC()) ||
+				(isTranscodeToAC3() && audio.isAC3())
+			);
+		}
 		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodec()) != null;
 	}
 
