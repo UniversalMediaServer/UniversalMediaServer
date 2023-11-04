@@ -1761,14 +1761,23 @@ public abstract class StoreItem extends StoreResource {
 				if (!useExternal && subtitles.isExternal()) {
 					continue;
 				}
-				String title = subtitles.getTitle();
-				if (StringUtils.isNotBlank(title)) {
-					title = title.toLowerCase(locale);
-					for (String forcedTag : forcedTagsList) {
-						if (title.contains(forcedTag) && (anyLanguage || Iso639.isCodesMatching(subtitles.getLang(), forcedLanguage))) {
-							candidates.add(subtitles);
-							LOGGER.trace("Adding {} forced subtitles candidate that matched tag \"{}\": {}",
-									subtitles.isExternal() ? "external" : "internal", forcedTag, subtitles);
+				if (anyLanguage || Iso639.isCodesMatching(subtitles.getLang(), forcedLanguage)) {
+					if (subtitles.isForced()) {
+						candidates.add(subtitles);
+						LOGGER.trace("Adding {} forced subtitles candidate that is flagged \"forced\": {}",
+								subtitles.isExternal() ? "external" : "internal", subtitles);
+					} else {
+						//look for forcedTags in title
+						String title = subtitles.getTitle();
+						if (StringUtils.isNotBlank(title)) {
+							title = title.toLowerCase(locale);
+							for (String forcedTag : forcedTagsList) {
+								if (title.contains(forcedTag)) {
+									candidates.add(subtitles);
+									LOGGER.trace("Adding {} forced subtitles candidate that matched tag \"{}\": {}",
+											subtitles.isExternal() ? "external" : "internal", forcedTag, subtitles);
+								}
+							}
 						}
 					}
 				}
