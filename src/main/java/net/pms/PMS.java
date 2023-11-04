@@ -360,8 +360,10 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+			LOGGER.info("1122");
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = umsConfiguration.getLogSystemInformation();
+			LOGGER.info("11133");
 		if (
 			logSystemInfo == LogSystemInformationMode.ALWAYS ||
 			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
@@ -861,13 +863,18 @@ public class PMS {
 	}
 
 	private static synchronized void createInstance() {
+			LOGGER.info("111");
 		assert instance == null; // this should only be called once
+			LOGGER.info("222");
 		instance = new PMS();
+			LOGGER.info("333");
 
 		try {
 			if (instance.init()) {
+			LOGGER.info("444");
 				LOGGER.info("{} is now available for renderers to find", PMS.NAME);
 			} else {
+			LOGGER.info("555");
 				LOGGER.info("{} initialization was aborted", PMS.NAME);
 			}
 		} catch (Exception e) {
@@ -1034,6 +1041,11 @@ public class PMS {
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
+			LOGGER.error("InterruptedException on initialization: " + e.getMessage());
+			LOGGER.debug("" + e);
+		} catch (Exception e) {
+			LOGGER.error("Exception on initialization: " + e.getMessage());
+			LOGGER.debug("" + e);
 		}
 	}
 
@@ -1565,9 +1577,6 @@ public class PMS {
 	 * @return whether UMS is being run by Surefire or a CI environment like GitHub Actions
 	 */
 	public static boolean isRunningTests() {
-		LOGGER.info("CI is set to " + System.getenv("CI"));
-		LOGGER.info("1 " + (System.getProperty("surefire.real.class.path") != null ? "true" : "false"));
-		LOGGER.info("2 " + (System.getenv("CI").equals("true") ? "true" : "false"));
 		return System.getProperty("surefire.real.class.path") != null || System.getenv("CI").equals("true");
 	}
 
