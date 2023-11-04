@@ -272,7 +272,7 @@ public class DlnaHelper {
 							if (resolvedSubtitle == null &&
 									!item.hasExternalSubtitles() &&
 									mediaInfo != null &&
-									mediaInfo.getDvdtrack() == 0 &&
+									mediaInfo.getDvdtrack() == null &&
 									Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
 									renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo)) {
 								isOutputtingMPEGTS = true;
