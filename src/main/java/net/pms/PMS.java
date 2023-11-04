@@ -859,6 +859,7 @@ public class PMS {
 		boolean displayProfileChooser = false;
 		boolean denyHeadless = false;
 		File profilePath = null;
+		checkCompatibilityWithJavaVersion();
 
 		// This must be called before JNA is used
 		configureJNA();
@@ -1562,4 +1563,37 @@ public class PMS {
 			);
 		}
 	}
+
+	private static String getRuntimeJavaMajorVersion() {
+		String version = System.getProperty("java.version");
+		if (version.startsWith("1.")) {
+			version = version.substring(2, 3);
+		} else {
+			int dot = version.indexOf(".");
+			if (dot != -1) {
+				version = version.substring(0, dot);
+			}
+		}
+		return version;
+	}
+
+	public static void checkCompatibilityWithJavaVersion() {
+		try {
+			// Check the project Java version
+			String projectJavaVersion = PropertiesUtil.getProjectProperties().get("project.java.version");
+			// Check the runtime Java version
+			String runtimeJavaVersion = getRuntimeJavaMajorVersion();
+			// Compare the specified Java versions with the runtime Java version
+			if (projectJavaVersion != null && projectJavaVersion.equals(runtimeJavaVersion)) {
+				LOGGER.info("Java version in project.properties match the running Java version {}.", projectJavaVersion);
+			} else {
+				LOGGER.warn("Java version in project.properties do not match the running Java version.");
+				LOGGER.info("Project Java version: {}", projectJavaVersion);
+				LOGGER.info("Runtime Java version: {}", runtimeJavaVersion);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to check Java version : ", e);
+		}
+	}
+
 }
