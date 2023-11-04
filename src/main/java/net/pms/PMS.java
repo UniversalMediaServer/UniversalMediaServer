@@ -374,6 +374,7 @@ public class PMS {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
+			!isRunningTests() &&
 			(
 				umsConfiguration.getLanguageRawString() == null ||
 				!Languages.isValid(umsConfiguration.getLanguageRawString())
@@ -1363,14 +1364,11 @@ public class PMS {
 	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
-		LOGGER.info("isHeadless 1");
 		HEADLESS_LOCK.readLock().lock();
-		LOGGER.info("isHeadless 2");
 		try {
 			if (headless == null) {
 				headless = GuiUtil.isHeadless();
 			}
-			LOGGER.info("isHeadless 3 " + headless);
 			return headless;
 		} finally {
 			HEADLESS_LOCK.readLock().unlock();

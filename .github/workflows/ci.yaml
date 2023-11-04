@@ -62,13 +62,6 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: pwd
-        run: pwd
-      - name: ls
-        run: ls
-      - name: pwd2
-        working-directory: ./react-client
-        run: pwd
       - name: Install dependencies
         working-directory: ./react-client
         run: yarn
