@@ -29,8 +29,13 @@
     "build": "react-scripts build",
     "analyze": "source-map-explorer '../src/main/external-resources/web/react-client/static/js/*.js'",
     "build-player": "REACT_APP_MODE=player react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "test:runserver:macos": "cd ../;./runtestserver.sh",
+    "test:runserver:macos-arm": "cd ../;./runtestserver.sh",
+    "test:prepareserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
+    "test:prepareserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
+    "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
+    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
   },
   "eslintConfig": {
     "extends": [
@@ -50,6 +55,7 @@
   },
   "packageManager": "yarn@4.0.0",
   "devDependencies": {
+    "@playwright/test": "1.39.0",
     "@testing-library/jest-dom": "6.1.4",
     "@testing-library/react": "14.0.0",
     "@testing-library/user-event": "14.5.1",
@@ -60,7 +66,7 @@
     "@types/react-dom": "18.2.14",
     "@typescript-eslint/eslint-plugin": "6.9.1",
     "@typescript-eslint/parser": "6.9.1",
-    "eslint": "8.52.0",
+    "eslint": "8.53.0",
     "eslint-plugin-react": "7.33.2",
     "react-scripts": "5.0.1",
     "source-map-explorer": "2.5.3"
