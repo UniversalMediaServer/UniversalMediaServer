@@ -369,7 +369,6 @@ public class PMS {
 		) {
 			new SystemInformation().start();
 		}
-			LOGGER.info("init 1");
 
 		// Show the language selection dialog before displayBanner();
 		if (
@@ -380,17 +379,12 @@ public class PMS {
 				!Languages.isValid(umsConfiguration.getLanguageRawString())
 			)
 		) {
-			LOGGER.info("init 2");
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
-			LOGGER.info("init 3");
 			languageDialog.show();
-			LOGGER.info("init 4");
 			if (languageDialog.isAborted()) {
-			LOGGER.info("init 5");
 				return false;
 			}
 		}
-			LOGGER.info("init 33");
 
 		// Initialize splash screen
 		WindowPropertiesConfiguration windowConfiguration = null;
@@ -401,11 +395,9 @@ public class PMS {
 			);
 			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
 		}
-			LOGGER.info("333");
 
 		// Call this as early as possible
 		displayBanner();
-			LOGGER.info("444");
 
 		// Start network scanner
 		NetworkConfiguration.start();
@@ -414,7 +406,6 @@ public class PMS {
 		UserDatabase.init();
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
-			LOGGER.info("555");
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have
@@ -422,7 +413,6 @@ public class PMS {
 		 * in-memory value with the database value if the database is enabled.
 		 */
 		DLNAResource.bumpSystemUpdateId();
-			LOGGER.info("666");
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -442,10 +432,10 @@ public class PMS {
 			}
 			LOGGER.trace("");
 		}
-			LOGGER.info("777");
+			LOGGER.info("init 1");
 
 		// Wizard
-		if (umsConfiguration.isRunWizard() && !isHeadless()) {
+		if (umsConfiguration.isRunWizard() && !isHeadless() && !isRunningTests()) {
 			// Hide splash screen
 			if (splash != null) {
 				splash.setVisible(false);
@@ -473,7 +463,7 @@ public class PMS {
 			LOGGER.info("999");
 		// Show info that video automatic setting was improved and was not set in the wizard.
 		// This must be done before the frame is initialized to accept changes.
-		if (!isHeadless() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
+		if (!isHeadless() && !isRunningTests() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
 			if (!umsConfiguration.isAutomaticMaximumBitrate()) {
 				// Ask if user wants to use automatic maximum bitrate
 				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
@@ -531,6 +521,7 @@ public class PMS {
 			}
 		});
 
+			LOGGER.info("init 2");
 		// GUI stuff
 		resetWebGuiServer();
 		// Web player stuff
