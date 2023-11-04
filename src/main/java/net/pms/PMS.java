@@ -373,8 +373,11 @@ public class PMS {
 		// Show the language selection dialog before displayBanner();
 		if (
 			!isHeadless() &&
-			(umsConfiguration.getLanguageRawString() == null ||
-			!Languages.isValid(umsConfiguration.getLanguageRawString()))
+			!isRunningTests() &&
+			(
+				umsConfiguration.getLanguageRawString() == null ||
+				!Languages.isValid(umsConfiguration.getLanguageRawString())
+			)
 		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
@@ -431,7 +434,7 @@ public class PMS {
 		}
 
 		// Wizard
-		if (umsConfiguration.isRunWizard() && !isHeadless()) {
+		if (umsConfiguration.isRunWizard() && !isHeadless() && !isRunningTests()) {
 			// Hide splash screen
 			if (splash != null) {
 				splash.setVisible(false);
@@ -457,7 +460,7 @@ public class PMS {
 
 		// Show info that video automatic setting was improved and was not set in the wizard.
 		// This must be done before the frame is initialized to accept changes.
-		if (!isHeadless() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
+		if (!isHeadless() && !isRunningTests() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
 			if (!umsConfiguration.isAutomaticMaximumBitrate()) {
 				// Ask if user wants to use automatic maximum bitrate
 				boolean useAutomaticMaximumBitrate = GuiUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
@@ -1014,7 +1017,7 @@ public class PMS {
 				LOGGER.debug("Error initializing credentials file: {}", e);
 			}
 
-			if (umsConfiguration.isRunSingleInstance()) {
+			if (!isRunningTests() && umsConfiguration.isRunSingleInstance()) {
 				killOld();
 			}
 
@@ -1562,10 +1565,10 @@ public class PMS {
 	}
 
 	/**
-	 * @return whether UMS is being run by Surefire
+	 * @return whether UMS is being run by Surefire or a CI environment like GitHub Actions
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null;
+		return System.getProperty("surefire.real.class.path") != null || System.getenv("CI").equals("true");
 	}
 
 	/**

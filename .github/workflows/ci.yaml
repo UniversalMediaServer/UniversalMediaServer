@@ -3,11 +3,86 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  macos:
+  # Detect whether Java server code has changed, so it can be skipped
+  changes:
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
-    name: macOS
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      )
+    name: Build list of changed files
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    # Set job outputs to values from filter step
+    outputs:
+      javafiles: ${{ steps.filter.outputs.javafiles }}
+      webfiles: ${{ steps.filter.outputs.webfiles }}
+    steps:
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        filters: |
+          javafiles:
+            - 'src/**'
+            - 'pom.xml'
+            - 'UMS.launch'
+            - '*.xml'
+          webfiles:
+            - 'react-client/**'
+
+  macos-browser:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.webfiles == 'true'
+      )
+    name: macOS web browser tests
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Cache Node dependencies
+        id: cache-node-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            react-client/.yarn
+            react-client/node
+            react-client/node_modules
+          key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Install dependencies
+        working-directory: ./react-client
+        run: yarn
+      - name: Install Playwright Browsers
+        working-directory: ./react-client
+        run: yarn playwright install --with-deps
+      - name: Prepare server for Playwright tests
+        working-directory: ./react-client
+        run: npm run test:prepareserver:macos
+      - name: Run Playwright tests
+        working-directory: ./react-client
+        run: DEBUG=pw:webserver yarn playwright test
+
+  macos:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
+    name: macOS Java tests
     runs-on: macos-13
     strategy:
       matrix:
@@ -30,13 +105,16 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run tests (XCode ${{ matrix.xcode }})
+      - name: Run Java tests (XCode ${{ matrix.xcode }})
         run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
 
   windows-latest:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Windows and lint
     runs-on: windows-latest
     steps:
@@ -60,9 +138,12 @@ jobs:
         run: mvn verify -P linter
 
   linux-focal:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Linux 20.04
     runs-on: ubuntu-20.04
     steps:
@@ -92,9 +173,12 @@ jobs:
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
+    needs: changes
     if: |
-      (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-      (github.event_name == 'pull_request')
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && needs.changes.outputs.javafiles == 'true'
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
