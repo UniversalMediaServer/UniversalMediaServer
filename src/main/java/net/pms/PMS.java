@@ -1568,7 +1568,7 @@ public class PMS {
 	 * @return whether UMS is being run by Surefire or a CI environment like GitHub Actions
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null || System.getenv("CI").equals("true");
+		return System.getProperty("surefire.real.class.path") != null || (System.getenv("CI") != null && System.getenv("CI").equals("true"));
 	}
 
 	/**
