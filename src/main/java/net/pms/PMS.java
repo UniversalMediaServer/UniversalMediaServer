@@ -360,10 +360,8 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
-			LOGGER.info("1122");
 		// Gather and log system information from a separate thread
 		LogSystemInformationMode logSystemInfo = umsConfiguration.getLogSystemInformation();
-			LOGGER.info("11133");
 		if (
 			logSystemInfo == LogSystemInformationMode.ALWAYS ||
 			logSystemInfo == LogSystemInformationMode.TRACE_ONLY &&
@@ -371,6 +369,7 @@ public class PMS {
 		) {
 			new SystemInformation().start();
 		}
+			LOGGER.info("111");
 
 		// Show the language selection dialog before displayBanner();
 		if (
@@ -384,6 +383,7 @@ public class PMS {
 				return false;
 			}
 		}
+			LOGGER.info("222");
 
 		// Initialize splash screen
 		WindowPropertiesConfiguration windowConfiguration = null;
@@ -394,9 +394,11 @@ public class PMS {
 			);
 			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
 		}
+			LOGGER.info("333");
 
 		// Call this as early as possible
 		displayBanner();
+			LOGGER.info("444");
 
 		// Start network scanner
 		NetworkConfiguration.start();
@@ -405,6 +407,7 @@ public class PMS {
 		UserDatabase.init();
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
+			LOGGER.info("555");
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have
@@ -412,6 +415,7 @@ public class PMS {
 		 * in-memory value with the database value if the database is enabled.
 		 */
 		DLNAResource.bumpSystemUpdateId();
+			LOGGER.info("666");
 
 		// Log registered ImageIO plugins
 		if (LOGGER.isTraceEnabled()) {
@@ -431,6 +435,7 @@ public class PMS {
 			}
 			LOGGER.trace("");
 		}
+			LOGGER.info("777");
 
 		// Wizard
 		if (umsConfiguration.isRunWizard() && !isHeadless()) {
@@ -447,6 +452,7 @@ public class PMS {
 				splash.setVisible(true);
 			}
 		}
+			LOGGER.info("888");
 
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
@@ -457,6 +463,7 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
+			LOGGER.info("999");
 		// Show info that video automatic setting was improved and was not set in the wizard.
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
@@ -863,18 +870,13 @@ public class PMS {
 	}
 
 	private static synchronized void createInstance() {
-			LOGGER.info("111");
 		assert instance == null; // this should only be called once
-			LOGGER.info("222");
 		instance = new PMS();
-			LOGGER.info("333");
 
 		try {
 			if (instance.init()) {
-			LOGGER.info("444");
 				LOGGER.info("{} is now available for renderers to find", PMS.NAME);
 			} else {
-			LOGGER.info("555");
 				LOGGER.info("{} initialization was aborted", PMS.NAME);
 			}
 		} catch (Exception e) {
