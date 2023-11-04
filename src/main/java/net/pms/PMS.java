@@ -369,7 +369,7 @@ public class PMS {
 		) {
 			new SystemInformation().start();
 		}
-			LOGGER.info("111");
+			LOGGER.info("init 1");
 
 		// Show the language selection dialog before displayBanner();
 		if (
@@ -379,13 +379,17 @@ public class PMS {
 				!Languages.isValid(umsConfiguration.getLanguageRawString())
 			)
 		) {
+			LOGGER.info("init 2");
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
+			LOGGER.info("init 3");
 			languageDialog.show();
+			LOGGER.info("init 4");
 			if (languageDialog.isAborted()) {
+			LOGGER.info("init 5");
 				return false;
 			}
 		}
-			LOGGER.info("222");
+			LOGGER.info("init 33");
 
 		// Initialize splash screen
 		WindowPropertiesConfiguration windowConfiguration = null;
@@ -1359,11 +1363,14 @@ public class PMS {
 	 * @return true if UMS is running in headless mode
 	 */
 	public static boolean isHeadless() {
+		LOGGER.info("isHeadless 1");
 		HEADLESS_LOCK.readLock().lock();
+		LOGGER.info("isHeadless 2");
 		try {
 			if (headless == null) {
 				headless = GuiUtil.isHeadless();
 			}
+		LOGGER.info("isHeadless 3");
 			return headless;
 		} finally {
 			HEADLESS_LOCK.readLock().unlock();
