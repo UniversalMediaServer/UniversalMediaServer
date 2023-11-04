@@ -432,7 +432,6 @@ public class PMS {
 			}
 			LOGGER.trace("");
 		}
-			LOGGER.info("init 1");
 
 		// Wizard
 		if (umsConfiguration.isRunWizard() && !isHeadless() && !isRunningTests()) {
@@ -449,7 +448,6 @@ public class PMS {
 				splash.setVisible(true);
 			}
 		}
-			LOGGER.info("888");
 
 		globalRepo = new GlobalIdRepo();
 		LOGGER.trace("Initialized globalRepo");
@@ -460,7 +458,6 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 
-			LOGGER.info("999");
 		// Show info that video automatic setting was improved and was not set in the wizard.
 		// This must be done before the frame is initialized to accept changes.
 		if (!isHeadless() && !isRunningTests() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
@@ -521,7 +518,6 @@ public class PMS {
 			}
 		});
 
-			LOGGER.info("init 2");
 		// GUI stuff
 		resetWebGuiServer();
 		// Web player stuff
@@ -1041,11 +1037,6 @@ public class PMS {
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup
-			LOGGER.error("InterruptedException on initialization: " + e.getMessage());
-			LOGGER.debug("" + e);
-		} catch (Exception e) {
-			LOGGER.error("Exception on initialization: " + e.getMessage());
-			LOGGER.debug("" + e);
 		}
 	}
 

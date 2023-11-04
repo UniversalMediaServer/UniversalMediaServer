@@ -43,12 +43,9 @@ public final class GuiUtil {
 	 * @return true if is headless, false if swing is available
 	 */
 	public static boolean isHeadless() {
-		LOGGER.info("GuiUtil.isHeadless() 1");
 		try {
-			LOGGER.info("GuiUtil.isHeadless() 2: " + GraphicsEnvironment.isHeadless());
 			JDialog d = new JDialog();
 			d.dispose();
-			LOGGER.info("GuiUtil.isHeadless() 3");
 			return false;
 		} catch (NoClassDefFoundError | HeadlessException | InternalError e) {
 			return true;

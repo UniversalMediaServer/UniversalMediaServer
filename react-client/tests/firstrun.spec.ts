@@ -1,21 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test } from '@playwright/test';
 
-test('has title', async ({ page }) => {
+test('has username field', async ({ page }) => {
   await page.goto('/');
 
-  console.log(1111, await page.innerHTML('body'));
   await page.getByLabel('Username').fill('admin');
-
-  // Expect a title "to contain" a substring.
-  // await expect(page).
 });
-
-// test('get started link', async ({ page }) => {
-//   await page.goto('https://playwright.dev/');
-
-//   // Click the get started link.
-//   await page.getByRole('link', { name: 'Get started' }).click();
-
-//   // Expects page to have a heading with the name of Installation.
-//   await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
-// });
