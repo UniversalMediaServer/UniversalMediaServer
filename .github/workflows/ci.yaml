@@ -68,6 +68,9 @@ jobs:
       - name: Install Playwright Browsers
         working-directory: ./react-client
         run: yarn playwright install --with-deps
+      - name: Prepare server for Playwright tests
+        working-directory: ./react-client
+        run: npm run test:prepareserver:macos
       - name: Run Playwright tests
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
