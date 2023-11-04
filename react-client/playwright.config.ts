@@ -74,7 +74,7 @@ export default defineConfig({
       command: 'npm run test:runserver:macos',
       url: 'http://localhost:9001',
       reuseExistingServer: !process.env.CI,
-      timeout: 240000,
+      timeout: 480000,
     },
   ],
 });
