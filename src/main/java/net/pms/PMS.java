@@ -1370,7 +1370,7 @@ public class PMS {
 			if (headless == null) {
 				headless = GuiUtil.isHeadless();
 			}
-		LOGGER.info("isHeadless 3");
+			LOGGER.info("isHeadless 3 " + headless);
 			return headless;
 		} finally {
 			HEADLESS_LOCK.readLock().unlock();
