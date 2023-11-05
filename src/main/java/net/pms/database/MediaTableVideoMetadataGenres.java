@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableVideoMetadataGenres extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataGenres.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
 
@@ -53,14 +54,8 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * COLUMNS with table name
 	 */
 	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
+	protected static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String TABLE_COL_GENRE = TABLE_NAME + "." + COL_GENRE;
-
-	/**
-	 * SQL Jointures
-	 */
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = LEFT_JOIN + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
 
 	/**
 	 * SQL Queries

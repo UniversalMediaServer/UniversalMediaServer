@@ -34,7 +34,6 @@ import net.pms.database.MediaTableVideoMetadataActors;
 import net.pms.database.MediaTableVideoMetadataCountries;
 import net.pms.database.MediaTableVideoMetadataDirectors;
 import net.pms.database.MediaTableVideoMetadataGenres;
-import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaStoreIds;
@@ -55,30 +54,27 @@ import org.slf4j.LoggerFactory;
  * variants will be added at the top.
  */
 public class MediaLibraryFolder extends MediaLibraryAbstract {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaLibraryFolder.class);
 
-	private boolean isMovieFolder = false;
 	private String[] sqls;
 	private int[] expectedOutputs;
 	private List<String> populatedVirtualFoldersListFromDb;
 	private List<String> populatedFilesListFromDb;
 
 	public MediaLibraryFolder(Renderer renderer, String i18nName, String sql, int expectedOutput) {
-		this(renderer, i18nName, new String[]{sql}, new int[]{expectedOutput}, null, false);
+		this(renderer, i18nName, new String[]{sql}, new int[]{expectedOutput}, null);
 	}
 
 	public MediaLibraryFolder(Renderer renderer, String i18nName, String[] sql, int[] expectedOutput) {
-		this(renderer, i18nName, sql, expectedOutput, null, false);
+		this(renderer, i18nName, sql, expectedOutput, null);
 	}
 
-	public MediaLibraryFolder(Renderer renderer, String i18nName, String[] sql, int[] expectedOutput, String formatString, boolean isMoviesFolder) {
+	public MediaLibraryFolder(Renderer renderer, String i18nName, String[] sql, int[] expectedOutput, String formatString) {
 		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
 		isSortedByDisplayName = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
-		if (isMoviesFolder) {
-			this.isMovieFolder = true;
-		}
 	}
 
 	@Override
@@ -294,7 +290,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									populatedFilesListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 								}
 
-								if (!firstSql.toLowerCase().startsWith("select")) {
+								if (!firstSql.toUpperCase().startsWith(SELECT)) {
 									if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 										firstSql = SELECT_FILENAME_FILES_WHERE + firstSql;
 									}
@@ -608,10 +604,32 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						} catch (NumberFormatException e) {
 							//we need a long, other values are null (wrong db value check)
 						}
+					} else if (isExpectedMovieFolder) {
+						try {
+							Long fileId = Long.valueOf(virtualFolderName);
+							if (MediaDatabase.isAvailable()) {
+								Connection connection = null;
+								String filename = null;
+								try {
+									connection = MediaDatabase.getConnectionIfAvailable();
+									filename = MediaTableFiles.getFilenameById(connection, fileId);
+								} finally {
+									MediaDatabase.close(connection);
+								}
+								if (filename != null) {
+									File file = new File(filename);
+									if (file.exists() && renderer.hasShareAccess(file)) {
+										addChild(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
+									}
+								}
+							}
+						} catch (NumberFormatException e) {
+							//we need a long, other values are null (wrong db value check)
+						}
 					} else if (i18nName != null) {
-						addChild(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName, isExpectedMovieFolder));
+						addChild(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
 					} else {
-						addChild(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null, isExpectedMovieFolder));
+						addChild(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null));
 					}
 				}
 			}
@@ -623,18 +641,18 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				renderer,
 				"Recommendations",
 				new String[]{
-					WITH + "ratedSubquery AS (" +
+					WITH + "ratedSubquery" + AS + "(" +
 						SELECT + MediaTableTVSeries.TABLE_COL_RATED + FROM + MediaTableTVSeries.TABLE_NAME +
-						WHERE + MediaTableTVSeries.TABLE_COL_TITLE + EQUAL + MediaDatabase.sqlQuote(getName()) +
+						WHERE + MediaTableTVSeries.TABLE_COL_ID + EQUAL + getName() +
 						LIMIT_1 +
 					"), " +
-					"genresSubquery AS (" +
-						SELECT + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + FROM + MediaTableVideoMetadataGenres.TABLE_NAME +
-						MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_TV_SERIES +
-						WHERE + MediaTableTVSeries.TABLE_COL_TITLE + EQUAL + MediaDatabase.sqlQuote(getName()) +
+					"genresSubquery" + AS + "(" +
+						SELECT + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + FROM + MediaTableTVSeries.TABLE_NAME +
+						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
+						WHERE + MediaTableTVSeries.TABLE_COL_ID + EQUAL + getName() +
 					") " +
 					SELECT_DISTINCT +
-						MediaTableTVSeries.TABLE_COL_TITLE + ", " +
+						MediaTableTVSeries.TABLE_COL_ID + ", " +
 						MediaTableTVSeries.TABLE_COL_RATING + ", " +
 						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + ", " +
 						MediaTableTVSeries.TABLE_COL_RATED +
@@ -644,38 +662,33 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						MediaTableTVSeries.TABLE_NAME +
 						MediaTableTVSeries.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
 					WHERE +
-						MediaTableTVSeries.TABLE_COL_TITLE + " != " + MediaDatabase.sqlQuote(getName()) + AND +
-						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
+						MediaTableTVSeries.TABLE_COL_ID + NOT_EQUAL + getName() + AND +
+						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + IN + "(genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
 						MediaTableTVSeries.TABLE_COL_RATED  + EQUAL + "ratedSubquery." + MediaTableTVSeries.COL_RATED +
 					ORDER_BY + MediaTableTVSeries.TABLE_COL_RATING + DESC,
-					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_TITLE + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
 				},
 				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 			);
 			addChild(recommendations);
 		} else if (expectedOutput == FILES_WITH_FILTERS) {
 			if (firstSql != null) {
-				if (firstSql.startsWith(SELECT_FILENAME_MODIFIED)) {
-					firstSql = firstSql.replaceFirst(SELECT_FILENAME_MODIFIED, SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE);
-				}
-
 				MediaLibraryFolder recommendations = new MediaLibraryFolder(
 					renderer,
 					"Recommendations",
 					new String[]{
 						firstSql,
-						WITH + "ratedSubquery AS (" +
+						WITH + "ratedSubquery" + AS + "(" +
 							SELECT + MediaTableVideoMetadata.TABLE_COL_RATED + FROM + MediaTableVideoMetadata.TABLE_NAME +
-							WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + "'${0}'" +
+							WHERE + MediaTableVideoMetadata.TABLE_COL_FILEID + EQUAL + "${0}" +
 							LIMIT_1 +
 						"), " +
-						"genresSubquery AS (" +
+						"genresSubquery" + AS + "(" +
 							SELECT + MediaTableVideoMetadataGenres.TABLE_COL_GENRE + FROM + MediaTableVideoMetadataGenres.TABLE_NAME +
-							MediaTableVideoMetadataGenres.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
-							WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + "'${0}'" +
+							WHERE + MediaTableVideoMetadataGenres.TABLE_COL_FILEID + EQUAL + "${0}" +
 						") " +
 						SELECT_DISTINCT +
-							MediaTableVideoMetadata.TABLE_COL_TITLE + ", " +
+							MediaTableVideoMetadata.TABLE_COL_FILEID + ", " +
 							MediaTableFiles.TABLE_NAME + ".*, " +
 							MediaTableVideoMetadata.TABLE_COL_RATING + ", " +
 							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + ", " +
@@ -687,8 +700,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 							MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA +
 							MediaTableVideoMetadata.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES +
 						WHERE +
-							MediaTableVideoMetadata.TABLE_COL_TITLE + " != '${0}'" + AND +
-							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + " IN (genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
+							MediaTableVideoMetadata.TABLE_COL_FILEID + NOT_EQUAL + "${0}" + AND +
+							MediaTableVideoMetadataGenres.TABLE_COL_GENRE + IN + "(genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
 							MediaTableVideoMetadata.TABLE_COL_RATED  + EQUAL + "ratedSubquery." + MediaTableVideoMetadata.COL_RATED +
 						ORDER_BY + MediaTableVideoMetadata.TABLE_COL_RATING + DESC
 					},
@@ -753,11 +766,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	}
 
 	public boolean isMovieFolder() {
-		return isMovieFolder;
-	}
-
-	public void setIsMovieFolder(boolean value) {
-		isMovieFolder = value;
+		return this instanceof MediaLibraryMovieFolder;
 	}
 
 	/**
@@ -768,22 +777,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 */
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (MediaDatabase.isAvailable()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-
-				if (this.isMovieFolder) {
-					DLNAThumbnail movieCover = MediaTableFiles.getThumbnailByTitle(connection, this.getName());
-					if (movieCover != null) {
-						return new DLNAThumbnailInputStream(movieCover);
-					}
-				}
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		}
-
 		try {
 			return super.getThumbnailInputStream();
 		} catch (IOException e) {
