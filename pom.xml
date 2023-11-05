@@ -3518,6 +3518,7 @@
 								<configuration>
 									<nodeVersion>${node.version}</nodeVersion>
 									<yarnVersion>${yarn.bootstrap}</yarnVersion>
+									<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
