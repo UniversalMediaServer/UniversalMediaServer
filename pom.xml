@@ -126,6 +126,8 @@
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.0</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
+		<node.version>v18.14.0</node.version>
+		<yarn.bootstrap>v1.22.19</yarn.bootstrap>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -885,8 +887,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -1283,8 +1285,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -1430,8 +1432,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -1577,8 +1579,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -1724,8 +1726,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -1879,8 +1881,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -2034,8 +2036,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -2276,8 +2278,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -2520,8 +2522,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -2953,8 +2955,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -3099,8 +3101,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -3245,8 +3247,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
@@ -3514,8 +3516,8 @@
 									<goal>install-node-and-yarn</goal>
 								</goals>
 								<configuration>
-									<nodeVersion>v18.14.0</nodeVersion>
-									<yarnVersion>v1.22.19</yarnVersion>
+									<nodeVersion>${node.version}</nodeVersion>
+									<yarnVersion>${yarn.bootstrap}</yarnVersion>
 								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
