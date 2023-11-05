@@ -36,7 +36,7 @@ public class ORG_FLAGS {
 	private static final String CI_PARAM_DELIM = ";";
 	private static final String CI_PARAM_TOKEN = "DLNA.ORG_FLAGS";
 	private static final String RESERVED_DATA = "000000000000000000000000";
-	private Integer flags;
+	private Integer flags = 0;
 
 	@Override
 	public String toString() {
