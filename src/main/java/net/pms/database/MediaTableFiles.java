@@ -1075,7 +1075,7 @@ public class MediaTableFiles extends MediaTable {
 	//TODO : review this
 	public static List<File> getFiles(final Connection connection, String sql) {
 		List<File> list = new ArrayList<>();
-		String psSql = sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : (SELECT + COL_FILENAME + COMMA + COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
+		String psSql = sql.toUpperCase().startsWith(SELECT) || sql.toUpperCase().startsWith(WITH) ? sql : (SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
 		try {
 			try (
 				PreparedStatement ps = connection.prepareStatement(psSql);
@@ -1093,7 +1093,7 @@ public class MediaTableFiles extends MediaTable {
 		} catch (SQLException se) {
 			LOGGER.trace("Error get files with sql: {}", psSql);
 			LOGGER.error(null, se);
-			return null;
+			return list;
 		}
 		return list;
 	}

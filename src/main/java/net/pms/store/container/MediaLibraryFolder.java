@@ -296,10 +296,10 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 								if (!firstSql.toLowerCase().startsWith("select")) {
 									if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-										firstSql = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + WHERE + firstSql;
+										firstSql = SELECT_FILENAME_FILES_WHERE + firstSql;
 									}
 									if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-										firstSql = SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + FROM + MediaTableFiles.TABLE_NAME + WHERE + firstSql;
+										firstSql = SELECT_FILENAME_MODIFIED_FILES_WHERE + firstSql;
 									}
 								}
 
@@ -331,12 +331,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								// This block adds the second+ queries by modifying what was passed in, allowing this to be somewhat dynamic
 								int i = 0;
 								for (String sql : sqls) {
-									if (!sql.toLowerCase().startsWith("select") && !sql.toLowerCase().startsWith("with")) {
+									if (!sql.toUpperCase().startsWith(SELECT) && !sql.toUpperCase().startsWith(WITH)) {
 										if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-											sql = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM + MediaTableFiles.TABLE_NAME + WHERE + sql;
+											sql = SELECT_FILENAME_FILES_WHERE + sql;
 										}
 										if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-											sql = SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + FROM + MediaTableFiles.TABLE_NAME + WHERE + sql;
+											sql = SELECT_FILENAME_MODIFIED_FILES_WHERE + sql;
 										}
 									}
 									int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
@@ -623,7 +623,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				renderer,
 				"Recommendations",
 				new String[]{
-					"WITH ratedSubquery AS (" +
+					WITH + "ratedSubquery AS (" +
 						SELECT + MediaTableTVSeries.TABLE_COL_RATED + FROM + MediaTableTVSeries.TABLE_NAME +
 						WHERE + MediaTableTVSeries.TABLE_COL_TITLE + EQUAL + MediaDatabase.sqlQuote(getName()) +
 						LIMIT_1 +
@@ -655,8 +655,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			addChild(recommendations);
 		} else if (expectedOutput == FILES_WITH_FILTERS) {
 			if (firstSql != null) {
-				if (firstSql.startsWith(SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED)) {
-					firstSql = firstSql.replaceFirst(SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED, SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE);
+				if (firstSql.startsWith(SELECT_FILENAME_MODIFIED)) {
+					firstSql = firstSql.replaceFirst(SELECT_FILENAME_MODIFIED, SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE);
 				}
 
 				MediaLibraryFolder recommendations = new MediaLibraryFolder(
@@ -664,7 +664,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					"Recommendations",
 					new String[]{
 						firstSql,
-						"WITH ratedSubquery AS (" +
+						WITH + "ratedSubquery AS (" +
 							SELECT + MediaTableVideoMetadata.TABLE_COL_RATED + FROM + MediaTableVideoMetadata.TABLE_NAME +
 							WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + "'${0}'" +
 							LIMIT_1 +
