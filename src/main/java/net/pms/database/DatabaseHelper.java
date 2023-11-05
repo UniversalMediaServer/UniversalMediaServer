@@ -226,6 +226,7 @@ public abstract class DatabaseHelper {
 	protected static final String INSERT_INTO = "INSERT INTO ";
 	protected static final String SELECT = "SELECT ";
 	protected static final String UPDATE = "UPDATE ";
+	protected static final String WITH = "WITH ";
 
 	protected static final String ADD = " ADD ";
 	protected static final String DROP = " DROP ";

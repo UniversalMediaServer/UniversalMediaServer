@@ -59,6 +59,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String SELECT_ALL = SELECT + "*";
 	protected static final String SELECT_DISTINCT = SELECT + "DISTINCT ";
 	protected static final String WHERE = " WHERE ";
+	protected static final String WITH = "WITH ";
 	protected static final String LIMIT = " LIMIT ";
 
 	protected static final String LIMIT_1 = LIMIT + 1;
@@ -97,6 +98,9 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String SELECT_FILES_STATUS_WHERE = SELECT_ALL + FROM_FILES_STATUS + WHERE;
 	protected static final String SELECT_FILES_STATUS_VIDEO_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEOMETA + WHERE;
 	protected static final String SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE = SELECT_ALL + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE;
+	protected static final String SELECT_FILENAME_FILES_WHERE = SELECT + MediaTableFiles.TABLE_COL_FILENAME + FROM_FILES + WHERE;
+	protected static final String SELECT_FILENAME_MODIFIED = SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED;
+	protected static final String SELECT_FILENAME_MODIFIED_FILES_WHERE = SELECT_FILENAME_MODIFIED + FROM_FILES + WHERE;
 
 	protected static final int FILES = 0;
 	protected static final int TEXTS = 1;

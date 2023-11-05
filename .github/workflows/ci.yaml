@@ -20,18 +20,26 @@ jobs:
       javafiles: ${{ steps.filter.outputs.javafiles }}
       webfiles: ${{ steps.filter.outputs.webfiles }}
     steps:
-    # For pull requests it's not necessary to checkout the code
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          javafiles:
-            - 'src/**'
-            - 'pom.xml'
-            - 'UMS.launch'
-            - '*.xml'
-          webfiles:
-            - 'react-client/**'
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 2
+      - name: Get previous commit SHA
+        id: prev_commit
+        run: echo "PREV_COMMIT_SHA=$(git rev-parse HEAD~1)" >> $GITHUB_ENV
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          base: ${{ env.PREV_COMMIT_SHA }}
+          filters: |
+            javafiles:
+              - 'src/**'
+              - 'pom.xml'
+              - 'UMS.launch'
+              - '*.xml'
+            webfiles:
+              - 'react-client/**'
 
   macos-browser:
     needs: changes
