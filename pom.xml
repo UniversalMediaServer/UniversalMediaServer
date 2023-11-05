@@ -126,7 +126,7 @@
 		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.0</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
-		<node.version>v18.14.0</node.version>
+		<node.version>v20.9.0</node.version>
 		<yarn.bootstrap>v1.22.19</yarn.bootstrap>
 	</properties>
 	<dependencies>
