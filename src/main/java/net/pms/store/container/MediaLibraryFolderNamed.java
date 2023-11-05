@@ -23,8 +23,8 @@ import net.pms.renderers.Renderer;
  */
 public class MediaLibraryFolderNamed extends MediaLibraryFolder {
 
-	public MediaLibraryFolderNamed(Renderer renderer, String virtualFolderName, String[] sql, int[] expectedOutput, String formatString, boolean isMoviesFolder) {
-		super(renderer, null, sql, expectedOutput, null, isMoviesFolder);
+	public MediaLibraryFolderNamed(Renderer renderer, String virtualFolderName, String[] sql, int[] expectedOutput, String formatString) {
+		super(renderer, null, sql, expectedOutput, null);
 		this.name = virtualFolderName;
 	}
 

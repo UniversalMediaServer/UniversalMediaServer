@@ -117,7 +117,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	/**
 	 * SQL Jointures
 	 */
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = LEFT_JOIN + MediaTableVideoMetadataGenres.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadataGenres.TABLE_COL_TVSERIESID + " ";
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA_GENRES = LEFT_JOIN + MediaTableVideoMetadataGenres.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadataGenres.TABLE_COL_TVSERIESID;
 
 	/**
 	 * SQL References
