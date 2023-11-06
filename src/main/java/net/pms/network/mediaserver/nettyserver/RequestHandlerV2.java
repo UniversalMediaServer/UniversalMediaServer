@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -92,7 +93,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		HttpMethod method = nettyRequest.getMethod();
 		String uri = getUri(nettyRequest.getUri());
+		String body = nettyRequest.getContent().toString(Charset.forName("UTF-8"));
 		request = new RequestV2(method, uri);
+		request.setTextContent(body);
 
 		if (uri.startsWith("api/")) {
 			writeResponse(ctx, event, request, ia);
