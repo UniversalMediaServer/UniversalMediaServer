@@ -31,6 +31,8 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.item.FeedItem;
@@ -52,6 +54,8 @@ public final class PlaylistFolder extends StoreContainer {
 	private final boolean isweb;
 	private final int defaultContent;
 	private boolean valid = true;
+	private static final String DBID_PLAYLIST = DbIdMediaType.GENERAL_PREFIX + DbIdMediaType.TYPE_PLAYLIST.dbidPrefix;
+	private static final int DBID_SPLIT = DBID_PLAYLIST.lastIndexOf("$") + 1;
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -315,4 +319,30 @@ public final class PlaylistFolder extends StoreContainer {
 		return null;
 	}
 
+	@Override
+	public Long getLongId() {
+		if (getId().startsWith(DBID_PLAYLIST)) {
+			String databaseId = getId().substring(DBID_SPLIT);
+			return Long.valueOf(databaseId);
+		}
+		return super.getLongId();
+	}
+
+	@Override
+	public boolean isRefreshNeeded() {
+		return true;
+	}
+
+	public void doRefreshChildren() {
+		for (StoreResource playlistItem : getChildren()) {
+			try {
+				Long id = MediaStoreIds.getMediaStoreResourceId(playlistItem);
+				if (id != null) {
+					playlistItem.setId(id.toString());
+				}
+			} catch (Exception e) {
+				LOGGER.trace("doRefreshChildren", e);
+			}
+		}
+	}
 }
