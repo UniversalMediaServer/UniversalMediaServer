@@ -291,12 +291,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								}
 
 								if (!firstSql.toUpperCase().startsWith(SELECT)) {
-									if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-										firstSql = SELECT_FILENAME_FILES_WHERE + firstSql;
-									}
-									if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-										firstSql = SELECT_FILENAME_MODIFIED_FILES_WHERE + firstSql;
-									}
+									firstSql = SELECT_FILENAME_MODIFIED_FILES_WHERE + firstSql;
 								}
 
 								// This block adds the first SQL query for non-TV series, and all queries for TV series
@@ -328,12 +323,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								int i = 0;
 								for (String sql : sqls) {
 									if (!sql.toUpperCase().startsWith(SELECT) && !sql.toUpperCase().startsWith(WITH)) {
-										if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-											sql = SELECT_FILENAME_FILES_WHERE + sql;
-										}
-										if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-											sql = SELECT_FILENAME_MODIFIED_FILES_WHERE + sql;
-										}
+										sql = SELECT_FILENAME_MODIFIED_FILES_WHERE + sql;
 									}
 									int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
 
