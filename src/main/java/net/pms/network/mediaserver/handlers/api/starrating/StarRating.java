@@ -24,7 +24,8 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
+import net.pms.network.mediaserver.handlers.api.ApiResponseHandler;
+import net.pms.network.mediaserver.handlers.api.ApiResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -41,9 +42,6 @@ import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v11Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,11 +80,13 @@ public class StarRating implements ApiResponseHandler {
 	private final MediaDatabase db = PMS.get().getMediaDatabase();
 
 	@Override
-	public String handleRequest(String uri, String content, HttpResponse output) {
+	public ApiResponse handleRequest(String uri, String content) {
+		ApiResponse response = new ApiResponse();
 		try (Connection connection = db.getConnection()) {
 			if (connection == null) {
-				output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-				return "database unavailable";
+				response.setStatusCode(503);
+				response.setResponse("database unavailable");
+				return response;
 			}
 
 			String uriLower = uri.toLowerCase();
@@ -104,7 +104,8 @@ public class StarRating implements ApiResponseHandler {
 				case "getrating" -> {
 					Integer rating = MediaTableAudioMetadata.getRatingByMusicbrainzTrackId(connection, content);
 					if (rating != null) {
-						return Integer.toString(rating);
+						response.setResponse(Integer.toString(rating));
+						return response;
 					}
 				}
 				case "setratingbyaudiotrackid" -> {
@@ -121,28 +122,34 @@ public class StarRating implements ApiResponseHandler {
 				case "getratingbyaudiotrackid" -> {
 					Integer rating = MediaTableAudioMetadata.getRatingByAudiotrackId(connection, Integer.valueOf(content));
 					if (rating != null) {
-						return Integer.toString(rating);
+						response.setResponse(Integer.toString(rating));
+						return response;
 					}
 				}
 				default -> {
-					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return "unknown api path : " + uri;
+					response.setStatusCode(404);
+					response.setResponse("unknown api path : " + uri);
+					return response;
 				}
 			}
 
-			output.setStatus(HttpResponseStatus.OK);
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-			return "OK";
+			response.setStatusCode(200);
+			response.setContentType("text/plain; charset=UTF-8");
+			response.setConnection("keep-alive");
+			response.setResponse("OK");
+			return response;
 		} catch (NumberFormatException e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "illegal rating. Set rating between 0 and 5 (inclusive)";
+			response.setStatusCode(503);
+			response.setResponse("illegal rating. Set rating between 0 and 5 (inclusive)");
+			return response;
 		} catch (SQLException e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "database error : " + e.getMessage();
+			response.setStatusCode(503);
+			response.setResponse("database error : " + e.getMessage());
+			return response;
 		} catch (Exception e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "ERROR : " + e.getMessage();
+			response.setStatusCode(503);
+			response.setResponse("ERROR : " + e.getMessage());
+			return response;
 		}
 	}
 

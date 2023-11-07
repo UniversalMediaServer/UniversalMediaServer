@@ -65,7 +65,6 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
-import net.pms.network.mediaserver.handlers.ApiHandler;
 import net.pms.network.mediaserver.handlers.MediaStreamHandler;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
@@ -327,8 +326,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			if (uri.startsWith("api/")) {
-				ApiHandler api = new ApiHandler();
-				response.append(api.handleApiRequest(method, content, output, uri.substring(4), event));
+				response.append(ApiHandler.handleApiRequest(output, uri.substring(4), event));
 			} else if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 				// Request to retrieve a file
 				//here, renderer should has been registred.
