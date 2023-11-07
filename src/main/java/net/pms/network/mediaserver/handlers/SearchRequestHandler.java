@@ -155,22 +155,22 @@ public class SearchRequestHandler {
 	private static String addSqlSelectByType(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				return "select A.RATING, A.GENRE, FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
 			}
 			case TYPE_PERSON -> {
-				return "select DISTINCT A.ARTIST as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select DISTINCT A.CONDUCTOR as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select DISTINCT A.COMPOSER as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.ID as oid from AUDIOTRACKS as A where ";
+				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIOTRACKS as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
@@ -191,22 +191,22 @@ public class SearchRequestHandler {
 	private static String addSqlSelectCountByType(DbIdMediaType requestType) {
 		switch (requestType) {
 			case TYPE_AUDIO -> {
-				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIOTRACKS as A on F.ID = A.FILEID where ";
+				return "select count(DISTINCT F.id) from FILES as F left outer join AUDIO_METADATA as A on F.ID = A.FILEID where ";
 			}
 			case TYPE_PERSON -> {
-				return "select count (DISTINCT A.ARTIST) from AUDIOTRACKS as A where ";
+				return "select count (DISTINCT A.ARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select count (DISTINCT A.CONDUCTOR) from AUDIOTRACKS as A where ";
+				return "select count (DISTINCT A.CONDUCTOR) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select count (DISTINCT A.COMPOSER) from AUDIOTRACKS as A where ";
+				return "select count (DISTINCT A.COMPOSER) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select count (DISTINCT A.ALBUMARTIST) from AUDIOTRACKS as A where ";
+				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select count(DISTINCT A.id) from AUDIOTRACKS as A where ";
+				return "select count(DISTINCT A.AUDIOTRACK_ID) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
