@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
-import net.pms.store.container.VirtualFolderDbId;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class MediaStoreIds {
 	}
 
 	public static synchronized Long getMediaStoreResourceId(StoreResource resource) {
-		if (resource == null || resource instanceof VirtualFolderDbId) {
+		if (resource == null) {
 			return null;
 		}
 		//parse db

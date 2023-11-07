@@ -14,39 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.store;
+package net.pms.store.container;
+
+import net.pms.renderers.Renderer;
+import net.pms.store.DbIdTypeAndIdent;
 
 /**
- * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case
- * fail. Should be renamed on the next release, then dev will have time to
- * import DbIdTypeAndIdent2 on their git, that will allow rename to
- * DbIdTypeAndIdent.
+ * This StoreContainer implements support for RealFileDbId's database backed
+ * IDs.
  */
-public class DbIdTypeAndIdent {
+public class VirtualFolderDbIdNamed extends VirtualFolderDbId {
 
-	/**
-	 * Media type
-	 */
-	public final DbIdMediaType type;
-
-	/**
-	 * resource to identify
-	 */
-	public final String ident;
-
-	public DbIdTypeAndIdent(DbIdMediaType type, String ident) {
-		super();
-		this.type = type;
-		if (ident == null) {
-			this.ident = "";
-		} else {
-			this.ident = ident;
-		}
-	}
-
-	@Override
-	public String toString() {
-		return type.toString() + ident;
+	public VirtualFolderDbIdNamed(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
+		super(renderer, null, typeIdent, thumbnailIcon);
+		this.name = folderName;
 	}
 
 }

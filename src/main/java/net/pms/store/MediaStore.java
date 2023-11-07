@@ -437,7 +437,11 @@ public class MediaStore extends StoreContainer {
 		}
 		// only allow the last one here
 		String[] ids = objectId.split("\\.");
-		return getWeakResource(ids[ids.length - 1]);
+		StoreResource resource = getWeakResource(ids[ids.length - 1]);
+		if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
+			resource = DbIdResourceLocator.locateResource(renderer, virtualFolderDbId);
+		}
+		return resource;
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -558,27 +562,13 @@ public class MediaStore extends StoreContainer {
 			return items != null ? items : resources;
 		}
 
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		StoreResource resource = null;
-		String[] ids = objectId.split("\\.");
-		if (objectId.equals("0")) {
-			resource = this;
-		} else {
-			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-				try {
-					resource = DbIdResourceLocator.locateResource(renderer, objectId);
-				} catch (Exception e) {
-					LOGGER.error("", e);
-				}
-			} else {
-				resource = getWeakResource(ids[ids.length - 1]);
-			}
-		}
+		StoreResource resource = getResource(objectId);
 
 		if (resource == null) {
 			// nothing in the cache do a traditional search
+			// Now strip off the filename
+			objectId = StringUtils.substringBefore(objectId, "/");
+			String[] ids = objectId.split("\\.");
 			resource = search(ids, lang);
 			// resource = search(objectId, count, searchStr);
 		}
@@ -797,19 +787,17 @@ public class MediaStore extends StoreContainer {
 	 */
 	private void addVirtualMyMusicFolder() {
 		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, Messages.getString("MyAlbums"), myAlbums, "");
+		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, "MyAlbums", myAlbums, "");
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (!getChildren().contains(myMusicFolder)) {
-				myMusicFolder.setFakeParentId("0");
-				addChild(myMusicFolder, true, false);
+				addChild(myMusicFolder, true, true);
 				LOGGER.debug("adding My Music folder to the root of MediaStore");
 			}
 		} else {
 			if (mediaLibrary.getAudioFolder() != null &&
 					mediaLibrary.getAudioFolder().getChildren() != null &&
 					!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)) {
-				myMusicFolder.setFakeParentId(mediaLibrary.getAudioFolder().getId());
-				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, false);
+				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, true);
 				LOGGER.debug("adding My Music folder to the 'Audio' folder of MediaLibrary");
 			}
 		}

@@ -16,7 +16,6 @@
  */
 package net.pms.store;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
@@ -56,14 +55,19 @@ public enum DbIdMediaType {
 		this.uclass = uclass;
 	}
 
+	@Override
+	public String toString() {
+		return GENERAL_PREFIX + dbidPrefix;
+	}
+
 	public static DbIdTypeAndIdent getTypeIdentByDbid(String id) {
-		String strType = id.substring(DbIdMediaType.GENERAL_PREFIX.length());
+		String strType = id.substring(GENERAL_PREFIX.length());
 		for (DbIdMediaType type : values()) {
 			if (strType.startsWith(type.dbidPrefix)) {
 				String ident = strType.substring(type.dbidPrefix.length());
 				try {
-					return new DbIdTypeAndIdent(type, URLDecoder.decode(ident, StandardCharsets.UTF_8.toString()));
-				} catch (UnsupportedEncodingException e) {
+					return new DbIdTypeAndIdent(type, URLDecoder.decode(ident, StandardCharsets.UTF_8));
+				} catch (IllegalArgumentException e) {
 					LOGGER.warn("decode error", e);
 					return new DbIdTypeAndIdent(type, ident);
 				}
@@ -71,4 +75,5 @@ public enum DbIdMediaType {
 		}
 		throw new RuntimeException("Unknown DBID type : " + id);
 	}
+
 }
