@@ -19,21 +19,20 @@ package net.pms.network.mediaserver.javahttpserver;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
-import net.pms.store.MediaScanner;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.network.mediaserver.handlers.api.AbstractApiHandler;
+import net.pms.network.mediaserver.handlers.api.ApiResponse;
+import net.pms.network.mediaserver.handlers.api.ApiResponseHandler;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class handles calls to the internal API.
  */
-public class ApiHandler implements HttpHandler {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ApiHandler.class);
+public class ApiHandler extends AbstractApiHandler implements HttpHandler {
 
 	/**
 	 * Handle API calls.
@@ -51,11 +50,6 @@ public class ApiHandler implements HttpHandler {
 			}
 			String serverApiKey = PMS.getConfiguration().getApiKey();
 			String clientApiKey = exchange.getRequestHeaders().getFirst("api-key");
-			String call = "";
-			int pos = exchange.getRequestURI().getPath().indexOf("api/");
-			if (pos != -1) {
-				call = exchange.getRequestURI().getPath().substring(pos + "api/".length());
-			}
 			try {
 				if (serverApiKey.length() < 12) {
 					LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
@@ -64,17 +58,41 @@ public class ApiHandler implements HttpHandler {
 					LOGGER.error("no 'api-key' provided in header.");
 					exchange.sendResponseHeaders(403, 0); //Forbidden
 				} else if (validApiKeyPresent(serverApiKey, clientApiKey)) {
-					switch (call) {
-						case "rescan" -> {
-							rescanMediaStore();
-						}
-						case "rescanFileOrFolder" -> {
-							String filename = IOUtils.toString(exchange.getRequestBody(), StandardCharsets.UTF_8);
-							MediaScanner.scanFileOrFolder(filename);
-						}
-
+					String uri = "";
+					String handler = "";
+					String call = "";
+					int pos = exchange.getRequestURI().getPath().indexOf("api/");
+					if (pos != -1) {
+						uri = exchange.getRequestURI().getPath().substring(pos + "api/".length());
 					}
-					exchange.sendResponseHeaders(204, 0); //No Content
+					pos = uri.indexOf("/");
+					if (pos != -1) {
+						call = uri.substring(pos + 1);
+						handler = uri.substring(0, pos);
+					}
+					if (!StringUtils.isAllBlank(handler)) {
+						ApiResponseHandler responseHandler = getApiResponseHandler(handler);
+						String body = null;
+						if (exchange.getRequestHeaders().containsKey("Content-Length")) {
+							int contentLength = 0;
+							try {
+								contentLength = Integer.parseInt(exchange.getRequestHeaders().getFirst("Content-Length"));
+							} catch (NumberFormatException e) {
+							}
+							if (contentLength > 0) {
+								byte[] data = new byte[contentLength];
+								exchange.getRequestBody().read(data);
+								body = new String(data, StandardCharsets.UTF_8);
+							} else {
+								body = "";
+							}
+						}
+						ApiResponse response = responseHandler.handleRequest(call, body);
+						sendResponse(exchange, response);
+					} else {
+						LOGGER.warn("Invalid API call. Unknown path : " + uri);
+						exchange.sendResponseHeaders(404, 0);
+					}
 				} else {
 					LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
 					exchange.sendResponseHeaders(401, 0); //Unauthorized
@@ -92,41 +110,34 @@ public class ApiHandler implements HttpHandler {
 		}
 	}
 
-	/**
-	 * checks if the given api-key equals to the provided api key.
-	 *
-	 * @param serverApiKey
-	 * 		server API key
-	 * @param givenApiKey
-	 *		given API key from client
-	 * @return
-	 * 		TRUE if keys match.
-	 */
-	private static boolean validApiKeyPresent(String serverApiKey, String givenApiKey) {
-		boolean result = true;
-		try {
-			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes(StandardCharsets.UTF_8));
-			byte[] serverApiKeyHash = DigestUtils.sha256(serverApiKey.getBytes(StandardCharsets.UTF_8));
-			int pos = 0;
-			for (byte b : serverApiKeyHash) {
-				result = result && (b == givenApiKeyHash[pos++]);
+	private static void sendResponse(final HttpExchange exchange, ApiResponse response) throws IOException {
+		try (exchange) {
+			exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+			if (response.getConnection() != null) {
+				exchange.getResponseHeaders().set("Connection", response.getConnection());
 			}
-			LOGGER.debug("validApiKeyPresent : " + result);
-			return result;
-		} catch (RuntimeException e) {
-			LOGGER.error("cannot hash api key", e);
-			return false;
+			if (response.getContentType() != null) {
+				exchange.getResponseHeaders().set("Content-Type", response.getContentType());
+			}
+			if (response.getStatusCode() == null) {
+				response.setStatusCode(200);
+			}
+			if (StringUtils.isAllBlank(response.getResponse())) {
+				exchange.sendResponseHeaders(response.getStatusCode(), 0);
+				return;
+			}
+			// A response message was constructed; convert it to data ready to be sent.
+			byte[] responseData = response.getResponse().getBytes(StandardCharsets.UTF_8);
+			exchange.sendResponseHeaders(response.getStatusCode(), responseData.length);
+			// HEAD requests only require headers to be set, no need to set contents.
+			if (!"HEAD".equalsIgnoreCase(exchange.getRequestMethod())) {
+				// Not a HEAD request, so set the contents of the response.
+				try (OutputStream os = exchange.getResponseBody()) {
+					os.write(responseData);
+					os.flush();
+				}
+			}
 		}
 	}
 
-	/**
-	 * rescan MediaScanner store
-	 */
-	private static void rescanMediaStore() {
-		if (!MediaScanner.isMediaScanRunning()) {
-			MediaScanner.startMediaScan();
-		} else {
-			LOGGER.warn("Media scan already in progress");
-		}
-	}
 }

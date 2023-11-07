@@ -242,73 +242,73 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
-		if (inputStream == null) {
-			// No input stream. Seems we are merely serving up headers.
-			exchange.sendResponseHeaders(204, 0);
+		try (exchange) {
+			exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+			if (inputStream == null) {
+				// No input stream. Seems we are merely serving up headers.
+				exchange.sendResponseHeaders(204, 0);
+				if (LOGGER.isTraceEnabled()) {
+					logMessageSent(exchange, null, null, renderer);
+				}
+				return;
+			}
+			long contentLength = 0;
+			if (cLoverride > -2) {
+				// Content-Length override has been set, send or omit as appropriate
+				if (cLoverride == 0) {
+					//mean no content, HttpExchange use the -1 value for it.
+					contentLength = -1;
+				} else if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
+					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
+					// as the PS3 will display a network error and request the last seconds of the
+					// transcoded video. Better to send no Content-Length at all.
+					contentLength = cLoverride;
+				} else if (cLoverride == -1) {
+					//chunked, HttpExchange use the 0 value for it.
+					contentLength = 0;
+				}
+			} else {
+				contentLength = inputStream.available();
+				LOGGER.trace("Available Content-Length: {}", contentLength);
+			}
+			if (contentLength > 0) {
+				exchange.getResponseHeaders().set("Content-length", Long.toString(contentLength));
+			}
+			// Send the response headers to the client.
+			exchange.sendResponseHeaders(code, contentLength);
 			if (LOGGER.isTraceEnabled()) {
-				logMessageSent(exchange, null, null, renderer);
+				logMessageSent(exchange, null, inputStream, renderer);
 			}
-			return;
-		}
-		long contentLength = 0;
-		if (cLoverride > -2) {
-			// Content-Length override has been set, send or omit as appropriate
-			if (cLoverride == 0) {
-				//mean no content, HttpExchange use the -1 value for it.
-				contentLength = -1;
-			} else if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
-				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
-				// as the PS3 will display a network error and request the last seconds of the
-				// transcoded video. Better to send no Content-Length at all.
-				contentLength = cLoverride;
-			} else if (cLoverride == -1) {
-				//chunked, HttpExchange use the 0 value for it.
-				contentLength = 0;
-			}
-		} else {
-			contentLength = inputStream.available();
-			LOGGER.trace("Available Content-Length: {}", contentLength);
-		}
-		if (contentLength > 0) {
-			exchange.getResponseHeaders().set("Content-length", Long.toString(contentLength));
-		}
-
-		// Send the response headers to the client.
-		exchange.sendResponseHeaders(code, contentLength);
-		if (LOGGER.isTraceEnabled()) {
-			logMessageSent(exchange, null, inputStream, renderer);
-		}
-		// send only if no HEAD method is being used.
-		if (writeStream && !HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
-			// Send the response body to the client in chunks.
-			byte[] buf = new byte[BUFFER_SIZE];
-			int length;
-			try (OutputStream outputStream = exchange.getResponseBody()) {
-				int lengthSent = 0;
-				try {
-					while ((length = inputStream.read(buf)) > 0) {
-						outputStream.write(buf, 0, length);
-						outputStream.flush();
-						lengthSent += length;
+			// send only if no HEAD method is being used.
+			if (writeStream && !HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
+				// Send the response body to the client in chunks.
+				byte[] buf = new byte[BUFFER_SIZE];
+				int length;
+				try (OutputStream outputStream = exchange.getResponseBody()) {
+					int lengthSent = 0;
+					try {
+						while ((length = inputStream.read(buf)) > 0) {
+							outputStream.write(buf, 0, length);
+							outputStream.flush();
+							lengthSent += length;
+						}
+					} catch (IOException ioe) {
+						//client close the connection
 					}
-				} catch (IOException ioe) {
-					//client close the connection
+					try {
+						outputStream.close();
+					} catch (IOException ioe) {
+						//client close the connection and insufficient bytes written to stream
+					}
+					LOGGER.trace("OutputStream({}) - bytes sent: {}/{}", outputStream.getClass().getName(), lengthSent, contentLength);
 				}
-				try {
-					outputStream.close();
-				} catch (IOException ioe) {
-					//client close the connection and insufficient bytes written to stream
-				}
-				LOGGER.trace("OutputStream({}) - bytes sent: {}/{}", outputStream.getClass().getName(), lengthSent, contentLength);
+			}
+			try {
+				inputStream.close();
+			} catch (IOException ioe) {
+				LOGGER.error("Caught exception", ioe);
 			}
 		}
-		try {
-			inputStream.close();
-		} catch (IOException ioe) {
-			LOGGER.error("Caught exception", ioe);
-		}
-		exchange.close();
 	}
 
 	private static void sendMediaResponse(final HttpExchange exchange, final Renderer renderer, StoreResource resource, String filename) throws IOException {

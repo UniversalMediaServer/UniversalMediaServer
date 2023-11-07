@@ -95,8 +95,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		request = new RequestV2(method, uri);
 
 		if (uri.startsWith("api/")) {
-			String body = nettyRequest.getContent().toString(StandardCharsets.UTF_8);
-			request.setTextContent(body);
 			writeResponse(ctx, event, request, ia);
 			return;
 		}

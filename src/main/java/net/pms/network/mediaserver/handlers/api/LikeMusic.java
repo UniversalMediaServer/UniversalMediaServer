@@ -28,14 +28,10 @@ import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +48,15 @@ public class LikeMusic implements ApiResponseHandler {
 	}
 
 	@Override
-	public String handleRequest(String uri, String content, HttpResponse output) {
+	public ApiResponse handleRequest(String uri, String content) {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
 				return null;
 			}
-			output.setStatus(HttpResponseStatus.OK);
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+			ApiResponse response = new ApiResponse();
+			response.setStatusCode(200);
+			response.setContentType("text/plain; charset=UTF-8");
+			response.setConnection("keep-alive");
 
 			String sql;
 			switch (uri) {
@@ -70,7 +67,8 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
-						return "ERROR:" + e.getMessage();
+						response.setResponse("ERROR:" + e.getMessage());
+						return response;
 					}
 				}
 				case "dislikealbum" -> {
@@ -80,32 +78,39 @@ public class LikeMusic implements ApiResponseHandler {
 						ps.executeUpdate();
 					} catch (SQLException e) {
 						LOG.warn("error preparing statement", e);
-						return "ERROR:" + e.getMessage();
+						response.setResponse("ERROR:" + e.getMessage());
+						return response;
 					}
 				}
 				case "isalbumliked" -> {
 					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
-					return Boolean.toString(isCountGreaterZero(sql, connection, content));
+					response.setResponse(Boolean.toString(isCountGreaterZero(sql, connection, content)));
+					return response;
 				}
 				case "issongliked" -> {
 					sql = "SELECT COUNT(*) FROM " + MediaTableAudioMetadata.TABLE_NAME + " WHERE " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK + " = ?";
-					return Boolean.toString(isCountGreaterZero(sql, connection, content));
+					response.setResponse(Boolean.toString(isCountGreaterZero(sql, connection, content)));
+					return response;
 				}
 				case "backupLikedAlbums" -> {
 					backupLikedAlbums();
-					return "OK";
+					response.setResponse("OK");
+					return response;
 				}
 				case "restoreLikedAlbums" -> {
 					restoreLikedAlbums();
-					return "OK";
+					response.setResponse("OK");
+					return response;
 				}
 				default -> {
-					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return "ERROR";
+					response.setStatusCode(404);
+					response.setResponse("ERROR");
+					return response;
 				}
 			}
 
-			return "ERROR";
+			response.setResponse("ERROR");
+			return response;
 		} catch (SQLException e) {
 			throw new RuntimeException("cannot handle request", e);
 		} catch (FileNotFoundException e) {
