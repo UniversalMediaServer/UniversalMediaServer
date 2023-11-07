@@ -169,7 +169,7 @@ public class SearchRequestHandler {
 				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
+				return "select DISTINCT mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
@@ -205,7 +205,7 @@ public class SearchRequestHandler {
 				return "select count (DISTINCT A.ALBUMARTIST) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
-				return "select count(DISTINCT A.id) from AUDIO_METADATA as A where ";
+				return "select count(DISTINCT A.AUDIOTRACK_ID) from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PLAYLIST -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
