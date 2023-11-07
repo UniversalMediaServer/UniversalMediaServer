@@ -161,9 +161,6 @@ public class StoreResourceHelper {
 		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, container);
 		}
-		if (container instanceof VirtualFolderDbId) {
-			title = container.getName();
-		}
 
 		result.setTitle(renderer.getDcTitle(title, container.getDisplayNameSuffix(), container));
 		if (renderer.isSendFolderThumbnails() || container instanceof DVDISOFile) {

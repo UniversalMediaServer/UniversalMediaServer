@@ -519,7 +519,7 @@ public class UmsContentDirectoryService {
 
 			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 
-			VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
+			VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""), "");
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
 			for (StoreResource resource : SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 				folder.addChild(resource);

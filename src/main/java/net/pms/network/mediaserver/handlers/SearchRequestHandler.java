@@ -41,6 +41,7 @@ import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.StoreResource;
 import net.pms.store.container.VirtualFolderDbId;
+import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.SortCriterion;
@@ -126,7 +127,7 @@ public class SearchRequestHandler {
 
 		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Search Result", new DbIdTypeAndIdent(requestType, ""), "");
+		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""), "");
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
@@ -506,10 +507,10 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										filesList.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
+										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											VirtualFolderDbId albumFolder = new VirtualFolderDbId(renderer, filenameField,
+											VirtualFolderDbIdNamed albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
 												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid), "");
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
 												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
@@ -521,15 +522,15 @@ public class SearchRequestHandler {
 									}
 								}
 								case TYPE_PERSON -> filesList
-									.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
-								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
+									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField), ""));
+								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField), ""));
-								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
+								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField), ""));
-								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbId(renderer, filenameField,
+								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField), ""));
 								case TYPE_PLAYLIST -> filesList
-									.add(new VirtualFolderDbId(renderer, filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
+									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID")), ""));
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {

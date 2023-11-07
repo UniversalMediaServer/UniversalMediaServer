@@ -64,8 +64,6 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
-import net.pms.store.DbIdMediaType;
-import net.pms.store.DbIdResourceLocator;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.CodeEnter;
@@ -569,19 +567,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 
-			StoreResource resource = null;
-			if (id.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-				try {
-					resource = DbIdResourceLocator.locateResource(renderer, id); // id.substring(0, id.indexOf('/'))
-				} catch (Exception e) {
-					LOGGER.error("", e);
-				}
-			} else {
-				resource = renderer.getMediaStore().getResource(id);
-			}
-
 			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			result.addProperty("name", id.equals("0") || resource == null ? CONFIGURATION.getServerDisplayName() : resource.getLocalizedDisplayName(lang));
+			result.addProperty("name", id.equals("0") || rootResource == null ? CONFIGURATION.getServerDisplayName() : rootResource.getLocalizedDisplayName(lang));
 			result.addProperty("hasFile", hasFile);
 			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
 			result.add("breadcrumbs", jBreadcrumbs);

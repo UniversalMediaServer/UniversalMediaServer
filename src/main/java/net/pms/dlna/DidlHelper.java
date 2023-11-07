@@ -189,9 +189,6 @@ public class DidlHelper extends DlnaHelper {
 		) {
 			title = FullyPlayed.addFullyPlayedNamePrefix(title, resource);
 		}
-		if (resource instanceof VirtualFolderDbId) {
-			title = resource.getName();
-		}
 
 		if (item != null) {
 			title = item.resumeStr(title);
