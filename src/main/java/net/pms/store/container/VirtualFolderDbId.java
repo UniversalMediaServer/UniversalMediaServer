@@ -23,6 +23,8 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
 
 /**
  * This StoreContainer implements support for RealFileDbId's database backed
@@ -35,6 +37,10 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
 		super(renderer, i18nName, thumbnailIcon);
 		this.typeIdent = typeIdent;
+
+		// default to root folder, as long as there is no other good place ...
+		setParent((StoreContainer) renderer.getMediaStore().getResource("0"));
+		setId(MediaStoreIds.getMediaStoreResourceId(this).toString());
 	}
 
 	@Override
