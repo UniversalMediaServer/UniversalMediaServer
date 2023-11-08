@@ -103,7 +103,8 @@ public class DbIdResourceLocator {
 							String filename = MediaTableFiles.getFilenameById(connection, Long.valueOf(typeAndIdent.ident));
 							if (filename != null) {
 								res = new PlaylistFolder(renderer, new File(filename));
-								res.setId(String.format("$DBID$PLAYLIST$%s", typeAndIdent.ident));
+								res.setParent((StoreContainer) renderer.getMediaStore().getResource("0"));
+								res.setId(MediaStoreIds.getMediaStoreResourceId(res).toString());
 								res.resolve();
 								((PlaylistFolder) res).refreshChildren();
 							}
