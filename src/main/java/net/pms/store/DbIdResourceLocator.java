@@ -146,8 +146,6 @@ public class DbIdResourceLocator {
 								if (resultSet.next()) {
 									res = new VirtualFolderDbIdNamed(renderer, resultSet.getString("ALBUM"),
 											new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident), "");
-									res.setFakeParentId(
-											encodeDbid(new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, Messages.getString("MyAlbums"))));
 									// Find "best track" logic should be
 									// optimized !!
 									String lastUuidTrack = "";
