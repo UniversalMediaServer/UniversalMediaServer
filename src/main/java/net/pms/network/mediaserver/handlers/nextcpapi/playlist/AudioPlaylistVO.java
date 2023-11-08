@@ -14,33 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.starrating;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
-public class RequestVO {
+public class AudioPlaylistVO {
 
-	private final String trackID;
-	private final int stars;
-	private final String globalID;
+	private final Integer audiotrackId;
+	private final String playlistName;
 
-	public RequestVO(String trackID, String globalID, int stars) {
-		this.trackID = trackID;
-		this.stars = stars;
-		this.globalID = globalID;
+	public AudioPlaylistVO(Integer audiotrackId, String playlistName) {
+		this.audiotrackId = audiotrackId;
+		this.playlistName = playlistName;
 	}
 
-	public String getTrackID() {
-		return trackID;
+	public Integer getAudiotrackId() {
+		return audiotrackId;
 	}
 
-	public int getStars() {
-		return stars;
+	public String getPlaylistName() {
+		return playlistName;
 	}
 
-	public String getGlobalID() {
-		return this.globalID;
-	}
-
-	public boolean isStarsValid() {
-		return stars >= 0 && stars <= 5;
-	}
 }

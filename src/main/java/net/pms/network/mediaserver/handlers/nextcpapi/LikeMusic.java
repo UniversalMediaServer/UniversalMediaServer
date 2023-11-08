@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.nextcpapi;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -36,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //FIXME : this should be implemented under upnp, UpdateObject() -> metadata.
-public class LikeMusic implements ApiResponseHandler {
+public class LikeMusic implements NextcpApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
@@ -48,12 +48,12 @@ public class LikeMusic implements ApiResponseHandler {
 	}
 
 	@Override
-	public ApiResponse handleRequest(String uri, String content) {
+	public NextcpApiResponse handleRequest(String uri, String content) {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
 				return null;
 			}
-			ApiResponse response = new ApiResponse();
+			NextcpApiResponse response = new NextcpApiResponse();
 			response.setStatusCode(200);
 			response.setContentType("text/plain; charset=UTF-8");
 			response.setConnection("keep-alive");
@@ -131,13 +131,13 @@ public class LikeMusic implements ApiResponseHandler {
 		return false;
 	}
 
-	public void backupLikedAlbums() throws SQLException {
+	private void backupLikedAlbums() throws SQLException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			Script.process(connection, backupFilename, "", "TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME);
 		}
 	}
 
-	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
+	private void restoreLikedAlbums() throws SQLException, FileNotFoundException {
 		File backupFile = new File(backupFilename);
 		if (backupFile.exists() && backupFile.isFile()) {
 			try (Connection connection = MediaDatabase.getConnectionIfAvailable(); Statement stmt = connection.createStatement()) {

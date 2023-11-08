@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.nextcpapi;
 
 import net.pms.store.MediaScanner;
 import org.slf4j.Logger;
@@ -22,20 +22,20 @@ import org.slf4j.LoggerFactory;
 
 //FIXME : this should not exists.
 //if a bug exists on the scanner, it should be solved.
-public class FolderScanner implements ApiResponseHandler {
+public class FolderScanner implements NextcpApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderScanner.class);
 	public static final String PATH_MATCH = "folderscanner";
 
 	@Override
-	public ApiResponse handleRequest(String uri, String content) {
-		ApiResponse response = new ApiResponse();
+	public NextcpApiResponse handleRequest(String uri, String content) {
+		NextcpApiResponse response = new NextcpApiResponse();
 		response.setStatusCode(204);
 		switch (uri) {
 			case "rescan" -> rescanMediaStore();
 			case "rescanFileOrFolder" -> MediaScanner.scanFileOrFolder(content);
 			default -> {
-				LOGGER.warn("Invalid API call. Unknown path : " + uri);
+				LOGGER.warn("Invalid nextcp API call. Unknown path : " + uri);
 				response.setStatusCode(404);
 			}
 		}

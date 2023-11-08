@@ -86,6 +86,7 @@ public class MediaStore extends StoreContainer {
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
+	private VirtualFolderDbId audioLikesFolder;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -100,7 +101,6 @@ public class MediaStore extends StoreContainer {
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
 		setLongId(0);
-		addVirtualMyMusicFolder();
 	}
 
 	public UnattachedFolder getTemp() {
@@ -156,6 +156,10 @@ public class MediaStore extends StoreContainer {
 			} else {
 				addChild(mediaLibrary);
 			}
+		}
+
+		if (renderer.getUmsConfiguration().useNextcpApi()) {
+			setAudioLikesFolder();
 		}
 
 		if (mon != null) {
@@ -785,21 +789,26 @@ public class MediaStore extends StoreContainer {
 	/**
 	 * TODO: move that under the media library as it should (like tv series)
 	 */
-	private void addVirtualMyMusicFolder() {
-		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, "MyAlbums", myAlbums, "");
+	private void setAudioLikesFolder() {
 		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			if (!getChildren().contains(myMusicFolder)) {
-				addChild(myMusicFolder, true, true);
-				LOGGER.debug("adding My Music folder to the root of MediaStore");
+			if (audioLikesFolder == null) {
+				audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null), "");
 			}
-		} else {
-			if (mediaLibrary.getAudioFolder() != null &&
-					mediaLibrary.getAudioFolder().getChildren() != null &&
-					!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)) {
-				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, true);
-				LOGGER.debug("adding My Music folder to the 'Audio' folder of MediaLibrary");
+			if (backupChildren.contains(audioLikesFolder)) {
+				addChildInternal(audioLikesFolder, false);
+			} else {
+				addChild(audioLikesFolder);
 			}
+			LOGGER.debug("adding My Albums folder to the root of MediaStore");
+		} else if (renderer.getUmsConfiguration().isShowMediaLibraryFolder() &&
+				mediaLibrary.getAudioFolder() != null &&
+				mediaLibrary.getAudioFolder().getChildren() != null &&
+				!mediaLibrary.getAudioFolder().getChildren().contains(audioLikesFolder)) {
+			mediaLibrary.getAudioFolder().addChild(audioLikesFolder);
+			LOGGER.debug("adding My Albums folder to the 'Audio' folder of MediaLibrary");
+		}
+		if (backupChildren.contains(audioLikesFolder)) {
+			backupChildren.remove(audioLikesFolder);
 		}
 	}
 

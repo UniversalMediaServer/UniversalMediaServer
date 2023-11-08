@@ -14,19 +14,19 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.playlist;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.sql.SQLException;
 import net.pms.Messages;
-import net.pms.network.mediaserver.handlers.api.ApiResponseHandler;
-import net.pms.network.mediaserver.handlers.api.ApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 //FIXME : this should be implemented under upnp, CreateObject() | UpdateObject() | DestroyObject()
-public class PlaylistService implements ApiResponseHandler {
+public class PlaylistService implements NextcpApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistService.class.getName());
 	public static final String PATH_MATCH = "playlist";
@@ -34,8 +34,8 @@ public class PlaylistService implements ApiResponseHandler {
 	private final ObjectMapper om = new ObjectMapper();
 
 	@Override
-	public ApiResponse handleRequest(String uri, String content) {
-		ApiResponse response = new ApiResponse();
+	public NextcpApiResponse handleRequest(String uri, String content) {
+		NextcpApiResponse response = new NextcpApiResponse();
 		response.setConnection("keep-alive");
 		response.setStatusCode(200);
 
