@@ -17,23 +17,23 @@
 package net.pms.network.mediaserver.nettyserver;
 
 import java.nio.charset.StandardCharsets;
-import net.pms.network.mediaserver.handlers.api.ApiResponseHandler;
 import java.util.Map.Entry;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.network.mediaserver.handlers.api.AbstractApiHandler;
-import net.pms.network.mediaserver.handlers.api.ApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.AbstractNextcpApiHandler;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 /**
- * This class handles calls to the internal API.
+ * This class handles calls to the Nextcp API.
  */
-public class ApiHandler extends AbstractApiHandler {
+public class NextcpApiHandler extends AbstractNextcpApiHandler {
 
 	/**
 	 * Handle API calls (netty)
@@ -45,9 +45,9 @@ public class ApiHandler extends AbstractApiHandler {
 	 * @return response String
 	 */
 	public static String handleApiRequest(HttpResponse output, String uri, MessageEvent event) {
-		String serverApiKey = PMS.getConfiguration().getApiKey();
+		String serverApiKey = PMS.getConfiguration().getNextcpApiKey();
 		if (serverApiKey.length() < 12) {
-			LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 characters.");
+			LOGGER.warn("Weak nextcp API key configured. UMS.conf nextcp_api_key should have at least 12 characters.");
 			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
 			return Messages.getString("WeakOrNoServerApiKey");
 		}
@@ -59,8 +59,8 @@ public class ApiHandler extends AbstractApiHandler {
 				if (!StringUtils.isAllBlank(apiType)) {
 					uri = uri.substring(pathSepPosition + 1);
 					String body = nettyRequest.getContent().toString(StandardCharsets.UTF_8);
-					ApiResponseHandler responseHandler = getApiResponseHandler(apiType);
-					ApiResponse response = responseHandler.handleRequest(uri, body);
+					NextcpApiResponseHandler responseHandler = getApiResponseHandler(apiType);
+					NextcpApiResponse response = responseHandler.handleRequest(uri, body);
 					if (response.getConnection() != null) {
 						output.headers().set(HttpHeaders.Names.CONNECTION, response.getConnection());
 					}
@@ -76,7 +76,7 @@ public class ApiHandler extends AbstractApiHandler {
 					output.setStatus(HttpResponseStatus.NOT_FOUND);
 				}
 			} else {
-				LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
+				LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf nextcp_api_key value.");
 				output.setStatus(HttpResponseStatus.UNAUTHORIZED);
 			}
 		} catch (Exception e) {

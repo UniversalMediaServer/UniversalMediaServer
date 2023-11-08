@@ -326,7 +326,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			if (uri.startsWith("api/")) {
-				response.append(ApiHandler.handleApiRequest(output, uri.substring(4), event));
+				response.append(NextcpApiHandler.handleApiRequest(output, uri.substring(4), event));
 			} else if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 				// Request to retrieve a file
 				//here, renderer should has been registred.

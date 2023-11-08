@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.playlist;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
 import java.io.File;
 import java.io.IOException;
@@ -293,11 +293,12 @@ public class PlaylistManager {
 		}
 	}
 
-	public boolean isValidPlaylist(String filename) {
+	private boolean isValidPlaylist(String filename) {
 		return (
 			filename.endsWith(".m3u") ||
 			filename.endsWith(".m3u8") ||
 			filename.endsWith(".pls")
 		);
 	}
+
 }

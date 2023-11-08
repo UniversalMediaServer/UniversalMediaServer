@@ -14,10 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.nextcpapi;
 
-public interface ApiResponseHandler {
+public interface NextcpApiResponseHandler {
 
-	public ApiResponse handleRequest(String uri, String content);
+	public NextcpApiResponse handleRequest(String uri, String content);
 
 }

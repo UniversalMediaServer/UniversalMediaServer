@@ -39,7 +39,7 @@ public class RequestHandler implements HttpHandler {
 		if (uri.startsWith("/ums/")) {
 			new MediaServerHandler().handle(exchange);
 		} else if (uri.startsWith("/api/")) {
-			new ApiHandler().handle(exchange);
+			new NextcpApiHandler().handle(exchange);
 		} else if (uri.startsWith("/dev/")) {
 			//This is the contendirectory service that can (should) be handled directly by JUPnP
 			new ContentDirectoryHandler().handle(exchange);

@@ -24,15 +24,15 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
-import net.pms.network.mediaserver.handlers.api.AbstractApiHandler;
-import net.pms.network.mediaserver.handlers.api.ApiResponse;
-import net.pms.network.mediaserver.handlers.api.ApiResponseHandler;
+import net.pms.network.mediaserver.handlers.nextcpapi.AbstractNextcpApiHandler;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
 import org.apache.commons.lang3.StringUtils;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 /**
- * This class handles calls to the internal API.
+ * This class handles calls to the Nextcp API.
  */
-public class ApiHandler extends AbstractApiHandler implements HttpHandler {
+public class NextcpApiHandler extends AbstractNextcpApiHandler implements HttpHandler {
 
 	/**
 	 * Handle API calls.
@@ -48,11 +48,11 @@ public class ApiHandler extends AbstractApiHandler implements HttpHandler {
 				exchange.close();
 				return;
 			}
-			String serverApiKey = PMS.getConfiguration().getApiKey();
+			String serverApiKey = PMS.getConfiguration().getNextcpApiKey();
 			String clientApiKey = exchange.getRequestHeaders().getFirst("api-key");
 			try {
 				if (serverApiKey.length() < 12) {
-					LOGGER.warn("Weak server API key configured. UMS.conf api_key should have at least 12 digests.");
+					LOGGER.warn("Weak nextcp API key configured. UMS.conf nextcp_api_key should have at least 12 digests.");
 					exchange.sendResponseHeaders(503, 0); //Service Unavailable
 				} else if (clientApiKey == null) {
 					LOGGER.error("no 'api-key' provided in header.");
@@ -71,7 +71,7 @@ public class ApiHandler extends AbstractApiHandler implements HttpHandler {
 						handler = uri.substring(0, pos);
 					}
 					if (!StringUtils.isAllBlank(handler)) {
-						ApiResponseHandler responseHandler = getApiResponseHandler(handler);
+						NextcpApiResponseHandler responseHandler = getApiResponseHandler(handler);
 						String body = null;
 						if (exchange.getRequestHeaders().containsKey("Content-Length")) {
 							int contentLength = 0;
@@ -87,14 +87,14 @@ public class ApiHandler extends AbstractApiHandler implements HttpHandler {
 								body = "";
 							}
 						}
-						ApiResponse response = responseHandler.handleRequest(call, body);
+						NextcpApiResponse response = responseHandler.handleRequest(call, body);
 						sendResponse(exchange, response);
 					} else {
 						LOGGER.warn("Invalid API call. Unknown path : " + uri);
 						exchange.sendResponseHeaders(404, 0);
 					}
 				} else {
-					LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf api_key value.");
+					LOGGER.warn("Invalid given API key. Request header key 'api-key' must match UMS.conf nextcp_api_key value.");
 					exchange.sendResponseHeaders(401, 0); //Unauthorized
 				}
 			} catch (RuntimeException e) {
@@ -105,12 +105,12 @@ public class ApiHandler extends AbstractApiHandler implements HttpHandler {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConsoleHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in NextcpApiHandler.handle(): {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}
 
-	private static void sendResponse(final HttpExchange exchange, ApiResponse response) throws IOException {
+	private static void sendResponse(final HttpExchange exchange, NextcpApiResponse response) throws IOException {
 		try (exchange) {
 			exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
 			if (response.getConnection() != null) {
