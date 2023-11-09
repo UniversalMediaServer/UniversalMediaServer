@@ -32,8 +32,8 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private final DbIdTypeAndIdent typeIdent;
 
-	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
-		super(renderer, i18nName, thumbnailIcon);
+	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
+		super(renderer, i18nName, null);
 		this.typeIdent = typeIdent;
 	}
 
