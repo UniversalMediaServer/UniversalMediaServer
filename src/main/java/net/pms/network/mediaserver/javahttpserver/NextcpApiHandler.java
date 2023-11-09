@@ -26,8 +26,8 @@ import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.handlers.nextcpapi.AbstractNextcpApiHandler;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
-import org.apache.commons.lang3.StringUtils;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class handles calls to the Nextcp API.

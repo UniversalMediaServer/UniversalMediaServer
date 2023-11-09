@@ -16,7 +16,6 @@
  */
 package net.pms.parsers;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;

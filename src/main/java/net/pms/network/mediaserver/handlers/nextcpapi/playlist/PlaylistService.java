@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.sql.SQLException;
 import net.pms.Messages;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 //FIXME : this should be implemented under upnp, CreateObject() | UpdateObject() | DestroyObject()
 public class PlaylistService implements NextcpApiResponseHandler {

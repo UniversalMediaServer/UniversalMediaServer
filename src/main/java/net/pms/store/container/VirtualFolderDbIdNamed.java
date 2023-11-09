@@ -25,8 +25,8 @@ import net.pms.store.DbIdTypeAndIdent;
  */
 public class VirtualFolderDbIdNamed extends VirtualFolderDbId {
 
-	public VirtualFolderDbIdNamed(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent, String thumbnailIcon) {
-		super(renderer, null, typeIdent, thumbnailIcon);
+	public VirtualFolderDbIdNamed(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent) {
+		super(renderer, null, typeIdent);
 		this.name = folderName;
 	}
 
