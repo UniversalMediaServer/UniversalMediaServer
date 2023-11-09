@@ -171,7 +171,7 @@ public class PlaylistManager {
 
 	private String getFilenameFromId(Integer audiotrackId) throws SQLException {
 		try (Connection connection = db.getConnection()) {
-			String sql = "select FILENAME from FILES as F join AUDIOTRACKS as A on F.ID = A.FILEID where (audiotrack_id = ?)";
+			String sql = "select FILENAME from FILES as F join AUDIO_METADATA as A on F.ID = A.FILEID where (audiotrack_id = ?)";
 			try (PreparedStatement ps = connection.prepareStatement(sql)) {
 				ps.setInt(1, audiotrackId);
 				try (ResultSet rs = ps.executeQuery()) {
