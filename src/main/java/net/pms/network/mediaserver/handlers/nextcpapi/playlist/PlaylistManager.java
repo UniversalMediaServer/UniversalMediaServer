@@ -166,7 +166,9 @@ public class PlaylistManager {
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
-			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
+			try (Connection c = MediaDatabase.getConnectionIfAvailable()) {
+				MediaStoreIds.incrementUpdateIdForFilename(c, playlistPath.toString());
+			}
 		}
 		return playlistEntries;
 	}
@@ -198,7 +200,9 @@ public class PlaylistManager {
 
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
-			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
+			try (Connection c = MediaDatabase.getConnectionIfAvailable()) {
+				MediaStoreIds.incrementUpdateIdForFilename(c, playlistPath.toString());
+			}
 		} else {
 			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + audiotrackID);
 		}
