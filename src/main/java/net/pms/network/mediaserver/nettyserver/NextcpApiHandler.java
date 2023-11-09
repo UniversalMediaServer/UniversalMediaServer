@@ -22,13 +22,13 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.network.mediaserver.handlers.nextcpapi.AbstractNextcpApiHandler;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 /**
  * This class handles calls to the Nextcp API.

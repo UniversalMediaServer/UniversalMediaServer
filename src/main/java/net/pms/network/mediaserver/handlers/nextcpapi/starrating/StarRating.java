@@ -25,6 +25,7 @@ import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -42,7 +43,6 @@ import org.jaudiotagger.tag.id3.ID3v11Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 
 /**
  * <pre>
