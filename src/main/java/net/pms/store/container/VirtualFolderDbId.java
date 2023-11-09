@@ -23,8 +23,6 @@ import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.StoreContainer;
 
 /**
  * This StoreContainer implements support for RealFileDbId's database backed
