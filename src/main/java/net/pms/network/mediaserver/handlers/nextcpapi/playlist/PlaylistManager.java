@@ -33,6 +33,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.store.MediaScanner;
+import net.pms.store.MediaStoreIds;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -165,13 +166,14 @@ public class PlaylistManager {
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
+			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 		}
 		return playlistEntries;
 	}
 
 	private String getFilenameFromId(Integer audiotrackId) throws SQLException {
 		try (Connection connection = db.getConnection()) {
-			String sql = "select FILENAME from FILES as F join AUDIOTRACKS as A on F.ID = A.FILEID where (audiotrack_id = ?)";
+			String sql = "select FILENAME from FILES as F join AUDIO_METADATA as A on F.ID = A.FILEID where (audiotrack_id = ?)";
 			try (PreparedStatement ps = connection.prepareStatement(sql)) {
 				ps.setInt(1, audiotrackId);
 				try (ResultSet rs = ps.executeQuery()) {
@@ -196,6 +198,7 @@ public class PlaylistManager {
 
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
+			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 		} else {
 			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + audiotrackID);
 		}

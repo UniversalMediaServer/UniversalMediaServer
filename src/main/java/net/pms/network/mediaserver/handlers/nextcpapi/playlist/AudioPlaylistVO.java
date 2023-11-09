@@ -34,4 +34,9 @@ public class AudioPlaylistVO {
 		return playlistName;
 	}
 
+	@Override
+	public String toString() {
+		return "AudioPlaylistVO [audiotrackId=" + audiotrackId + ", playlistName=" + playlistName + "]";
+	}
+
 }
