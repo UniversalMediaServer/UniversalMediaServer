@@ -56,11 +56,6 @@ public class DbIdResourceLocator {
 		return getLibraryResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(virtualFolderDbId.getSystemName()), virtualFolderDbId.getParent());
 	}
 
-	public static StoreResource locateResource(Renderer renderer, String id) {
-		//this is direct acceded resource.
-		return getLibraryResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(id), null);
-	}
-
 	private static String encodeDbid(DbIdTypeAndIdent typeIdent) {
 		try {
 			return String.format("%s%s%s", DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix,
@@ -83,9 +78,7 @@ public class DbIdResourceLocator {
 		StoreResource res = null;
 		Connection connection = null;
 		if (parent == null) {
-			//this call was done from a direct DbIdTypeAndIdent.
-			//default parent to root folder
-			parent = renderer.getMediaStore();
+			return null;
 		}
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
