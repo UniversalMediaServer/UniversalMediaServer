@@ -33,6 +33,8 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.store.MediaScanner;
+import net.pms.store.MediaStore;
+import net.pms.store.MediaStoreIds;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -165,6 +167,7 @@ public class PlaylistManager {
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
+			MediaStoreIds.incrementUpdateIdForFilename(MediaDatabase.getConnectionIfAvailable(), playlistPath.toString());
 		}
 		return playlistEntries;
 	}
@@ -196,6 +199,7 @@ public class PlaylistManager {
 
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
+			MediaStoreIds.incrementUpdateIdForFilename(MediaDatabase.getConnectionIfAvailable(), playlistPath.toString());
 		} else {
 			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + audiotrackID);
 		}
