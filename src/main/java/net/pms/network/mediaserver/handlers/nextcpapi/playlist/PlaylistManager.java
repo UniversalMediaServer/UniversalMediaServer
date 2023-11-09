@@ -33,7 +33,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.store.MediaScanner;
-import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
