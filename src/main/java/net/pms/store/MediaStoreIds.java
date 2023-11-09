@@ -107,6 +107,18 @@ public class MediaStoreIds {
 		}
 	}
 
+	public static void incrementUpdateIdForFilename(String filename) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				incrementUpdateIdForFilename(connection, filename);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
 	/**
 	 * Returns the updates id for all resources.
 	 *
