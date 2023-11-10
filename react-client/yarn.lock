@@ -3473,13 +3473,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-color@npm:3.0.9":
-  version: 3.0.9
-  resolution: "@types/react-color@npm:3.0.9"
+"@types/react-color@npm:3.0.10":
+  version: 3.0.10
+  resolution: "@types/react-color@npm:3.0.10"
   dependencies:
     "@types/react": "*"
     "@types/reactcss": "*"
-  checksum: af4fc80c177f4b1161d99031c458b31d76565e555b125f5aa794909d7e76488d957ac74d8d65837a15d31d7be8ffaa86bc71a00c8202a657ff0c0904526d493b
+  checksum: 1cf7cc4629a9f48715aa12cb1e5280bf3e429af55f5d741a23d8a8081f8f38ad1ebd8aed40af2a0809d58573535dbf21d0f4c1d6584fc18f0d423077a0fedc1b
   languageName: node
   linkType: hard
 
@@ -14185,7 +14185,7 @@ __metadata:
     "@types/lodash": 4.14.201
     "@types/node": 18.18.9
     "@types/react": 18.2.34
-    "@types/react-color": 3.0.9
+    "@types/react-color": 3.0.10
     "@types/react-dom": 18.2.14
     "@types/videojs-hls-quality-selector": 1.1.2
     "@typescript-eslint/eslint-plugin": 6.9.1
