@@ -3613,12 +3613,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/videojs-hls-quality-selector@npm:1.1.2":
-  version: 1.1.2
-  resolution: "@types/videojs-hls-quality-selector@npm:1.1.2"
+"@types/videojs-hls-quality-selector@npm:1.1.3":
+  version: 1.1.3
+  resolution: "@types/videojs-hls-quality-selector@npm:1.1.3"
   dependencies:
     "@types/video.js": "*"
-  checksum: 7c0ee1177b825794b1d347f6dc755f178a5e356e864030ccaa32ab11a104f3d033ceb02a995271172b5c05fe6d87a4d129396b4d01280864085835a2914c836e
+  checksum: 9534c01d4192c33deb086b25261563ff5afb13eec547c31538d9f768e52ad6bfd1175154d4b3935cc381acf7f50e7fea33a056265b23e7927a4374901b9f3b8c
   languageName: node
   linkType: hard
 
@@ -14187,7 +14187,7 @@ __metadata:
     "@types/react": 18.2.34
     "@types/react-color": 3.0.10
     "@types/react-dom": 18.2.14
-    "@types/videojs-hls-quality-selector": 1.1.2
+    "@types/videojs-hls-quality-selector": 1.1.3
     "@typescript-eslint/eslint-plugin": 6.9.1
     "@typescript-eslint/parser": 6.9.1
     axios: 1.6.0
