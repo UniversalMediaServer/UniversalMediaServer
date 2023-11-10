@@ -120,6 +120,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final int EPISODES_WITHIN_SEASON = 15;
 	protected static final int MOVIE_FOLDERS = 16;
 	protected static final int FILES_NOSORT_DEDUPED = 17;
+	protected static final int EMPTY_FILES_WITH_FILTERS = 18;
 
 	MediaLibraryAbstract(Renderer renderer, String i18nName, String thumbnailIcon) {
 		this(renderer, i18nName, thumbnailIcon, null);

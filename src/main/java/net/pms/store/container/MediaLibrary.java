@@ -93,8 +93,15 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"Movies",
 			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			EMPTY_FILES_WITH_FILTERS
+		);
+		MediaLibraryFolder allMoviesFolder = new MediaLibraryFolder(
+			renderer,
+			"AllMovies",
+			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
+		moviesFolder.addChild(allMoviesFolder);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
 			renderer,
 			"3dMovies",

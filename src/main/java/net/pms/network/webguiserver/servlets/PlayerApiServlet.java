@@ -199,12 +199,16 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
 			if (!action.has("uuid")) {
-				WebGuiServletHelper.respondUnauthorized(req, resp);
+				WebGuiServletHelper.respondBadRequest(req, resp);
 				return;
 			}
 			String uuid = action.get("uuid").getAsString();
 			WebGuiRenderer renderer = getRenderer(req, uuid);
-			if (renderer == null || !renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+			if (renderer == null) {
+				WebGuiServletHelper.respondUnauthorized(req, resp);
+				return;
+			}
+			if (!renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 				WebGuiServletHelper.respondForbidden(req, resp);
 				return;
 			}
