@@ -134,6 +134,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						return !UMSUtils.isListsEqual(populatedFilesListFromDb, MediaTableFiles.getStrings(connection, sql));
 					} else if (isTextOutputExpected(expectedOutput)) {
 						return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, MediaTableFiles.getStrings(connection, sql));
+					} else if (expectedOutput == EMPTY_FILES_WITH_FILTERS) {
+						return false;
 					}
 				}
 			} else {
@@ -281,7 +283,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 								populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 							}
-							case FILES_WITH_FILTERS, ISOS_WITH_FILTERS, TEXTS_NOSORT_WITH_FILTERS, TEXTS_WITH_FILTERS, TVSERIES_WITH_FILTERS -> {
+							case FILES_WITH_FILTERS, ISOS_WITH_FILTERS, TEXTS_NOSORT_WITH_FILTERS, TEXTS_WITH_FILTERS, TVSERIES_WITH_FILTERS, EMPTY_FILES_WITH_FILTERS -> {
 								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
@@ -403,11 +405,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		oldVirtualFolders.forEach(virtualFolderResource -> getChildren().remove(virtualFolderResource));
 
 		// Add filters at the top
-		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
+		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS || expectedOutput == EMPTY_FILES_WITH_FILTERS) {
 			// Convert the expectedOutputs to unfiltered versions
 			int[] filteredExpectedOutputs = expectedOutputs.clone();
 			switch (filteredExpectedOutputs[0]) {
-				case FILES_WITH_FILTERS:
+				case FILES_WITH_FILTERS, EMPTY_FILES_WITH_FILTERS:
 					filteredExpectedOutputs[0] = FILES;
 					break;
 				case ISOS_WITH_FILTERS:
