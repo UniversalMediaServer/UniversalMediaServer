@@ -5940,9 +5940,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.4.535":
-  version: 1.4.580
-  resolution: "electron-to-chromium@npm:1.4.580"
-  checksum: b0aa56873c8be54b7b34ce30551fda6872f2571d40080e8f3ceb779b48f3f1ab146b55896add89bf9629dde29dc0603bc1df6251d9052f3c918140669422047a
+  version: 1.4.581
+  resolution: "electron-to-chromium@npm:1.4.581"
+  checksum: b545ece73fab4be8556873bc6e16da2276ae1c1712e75639d44f94f6210c81d2ff1bce8ebbc41df646e808c7c8bb2efa93e6ba35918b5d02a5d9ebfe493b0f57
   languageName: node
   linkType: hard
 
@@ -9353,9 +9353,11 @@ __metadata:
   linkType: hard
 
 "lru-cache@npm:^10.0.1, lru-cache@npm:^9.1.1 || ^10.0.0":
-  version: 10.0.1
-  resolution: "lru-cache@npm:10.0.1"
-  checksum: 982dabfb227b9a2daf56d712ae0e72e01115a28c0a2068cd71277bca04568f3417bbf741c6c7941abc5c620fd8059e34f15607f90ebccbfa0a17533322d27a8e
+  version: 10.0.2
+  resolution: "lru-cache@npm:10.0.2"
+  dependencies:
+    semver: "npm:^7.3.5"
+  checksum: 5c83a7a2a320a445129cb67a1794437db5483942df63536026fba1cb7ba2e1f7456037876cc9d31076132010f92cb943bee358d336dd94105e50ea971e6d737d
   languageName: node
   linkType: hard
 
