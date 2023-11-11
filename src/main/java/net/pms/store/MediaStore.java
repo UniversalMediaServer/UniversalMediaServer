@@ -86,6 +86,7 @@ public class MediaStore extends StoreContainer {
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
+	private VirtualFolderDbId audioLikesFolder;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -100,7 +101,6 @@ public class MediaStore extends StoreContainer {
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
 		setLongId(0);
-		addVirtualMyMusicFolder();
 	}
 
 	public UnattachedFolder getTemp() {
@@ -157,6 +157,8 @@ public class MediaStore extends StoreContainer {
 				addChild(mediaLibrary);
 			}
 		}
+
+		setAudioLikesFolder();
 
 		if (mon != null) {
 			mon.clearChildren();
@@ -430,14 +432,28 @@ public class MediaStore extends StoreContainer {
 		}
 		if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			try {
-				return DbIdResourceLocator.locateResource(renderer, objectId);
+				// this is direct acceded resource.
+				// as we don't know what was it's parent, let find one or fail.
+				DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
+				List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeAndIdent.toString());
+				for (Long value : ids) {
+					StoreResource resource = getResource(value.toString());
+					if (resource != null) {
+						return resource;
+					}
+				}
+				return null;
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
 		}
 		// only allow the last one here
 		String[] ids = objectId.split("\\.");
-		return getWeakResource(ids[ids.length - 1]);
+		StoreResource resource = getWeakResource(ids[ids.length - 1]);
+		if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
+			resource = DbIdResourceLocator.locateResource(renderer, virtualFolderDbId);
+		}
+		return resource;
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -558,27 +574,13 @@ public class MediaStore extends StoreContainer {
 			return items != null ? items : resources;
 		}
 
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		StoreResource resource = null;
-		String[] ids = objectId.split("\\.");
-		if (objectId.equals("0")) {
-			resource = this;
-		} else {
-			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-				try {
-					resource = DbIdResourceLocator.locateResource(renderer, objectId);
-				} catch (Exception e) {
-					LOGGER.error("", e);
-				}
-			} else {
-				resource = getWeakResource(ids[ids.length - 1]);
-			}
-		}
+		StoreResource resource = getResource(objectId);
 
 		if (resource == null) {
 			// nothing in the cache do a traditional search
+			// Now strip off the filename
+			objectId = StringUtils.substringBefore(objectId, "/");
+			String[] ids = objectId.split("\\.");
 			resource = search(ids, lang);
 			// resource = search(objectId, count, searchStr);
 		}
@@ -792,25 +794,34 @@ public class MediaStore extends StoreContainer {
 		return null;
 	}
 
+	public VirtualFolderDbId getAudioLikesFolder() {
+		return audioLikesFolder;
+	}
+
 	/**
 	 * TODO: move that under the media library as it should (like tv series)
 	 */
-	private void addVirtualMyMusicFolder() {
-		DbIdTypeAndIdent myAlbums = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null);
-		VirtualFolderDbId myMusicFolder = new VirtualFolderDbId(renderer, Messages.getString("MyAlbums"), myAlbums, "");
-		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-			if (!getChildren().contains(myMusicFolder)) {
-				myMusicFolder.setFakeParentId("0");
-				addChild(myMusicFolder, true, false);
-				LOGGER.debug("adding My Music folder to the root of MediaStore");
+	private void setAudioLikesFolder() {
+		if (CONFIGURATION.useNextcpApi()) {
+			if (audioLikesFolder == null) {
+				audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
 			}
-		} else {
-			if (mediaLibrary.getAudioFolder() != null &&
+			if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
+				if (backupChildren.contains(audioLikesFolder)) {
+					addChildInternal(audioLikesFolder, false);
+				} else {
+					addChild(audioLikesFolder);
+				}
+				LOGGER.debug("adding My Albums folder to the root of MediaStore");
+			} else if (renderer.getUmsConfiguration().isShowMediaLibraryFolder() &&
+					mediaLibrary.getAudioFolder() != null &&
 					mediaLibrary.getAudioFolder().getChildren() != null &&
-					!mediaLibrary.getAudioFolder().getChildren().contains(myMusicFolder)) {
-				myMusicFolder.setFakeParentId(mediaLibrary.getAudioFolder().getId());
-				mediaLibrary.getAudioFolder().addChild(myMusicFolder, true, false);
-				LOGGER.debug("adding My Music folder to the 'Audio' folder of MediaLibrary");
+					!mediaLibrary.getAudioFolder().getChildren().contains(audioLikesFolder)) {
+				mediaLibrary.getAudioFolder().addChild(audioLikesFolder);
+				LOGGER.debug("adding My Albums folder to the 'Audio' folder of MediaLibrary");
+			}
+			if (backupChildren.contains(audioLikesFolder)) {
+				backupChildren.remove(audioLikesFolder);
 			}
 		}
 	}

@@ -52,6 +52,10 @@ public class LocalizedStoreContainer extends StoreContainer {
 
 	@Override
 	public String getSystemName() {
+		return getLocalizedName();
+	}
+
+	protected String getLocalizedName() {
 		if (i18nName != null) {
 			if (formatStrings != null && formatStrings.length > 0 && formatStrings[0] != null) {
 				return i18nName + "|" + String.join("|", formatStrings);
@@ -70,7 +74,7 @@ public class LocalizedStoreContainer extends StoreContainer {
 	@Override
 	public String getLocalizedDisplayName(String lang) {
 		if (i18nName != null) {
-			return "i18n@" + getSystemName();
+			return "i18n@" + getLocalizedName();
 		}
 		return getDisplayName();
 	}

@@ -134,6 +134,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						return !UMSUtils.isListsEqual(populatedFilesListFromDb, MediaTableFiles.getStrings(connection, sql));
 					} else if (isTextOutputExpected(expectedOutput)) {
 						return !UMSUtils.isListsEqual(populatedVirtualFoldersListFromDb, MediaTableFiles.getStrings(connection, sql));
+					} else if (expectedOutput == EMPTY_FILES_WITH_FILTERS) {
+						return false;
 					}
 				}
 			} else {
@@ -281,7 +283,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 								populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
 							}
-							case FILES_WITH_FILTERS, ISOS_WITH_FILTERS, TEXTS_NOSORT_WITH_FILTERS, TEXTS_WITH_FILTERS, TVSERIES_WITH_FILTERS -> {
+							case FILES_WITH_FILTERS, ISOS_WITH_FILTERS, TEXTS_NOSORT_WITH_FILTERS, TEXTS_WITH_FILTERS, TVSERIES_WITH_FILTERS, EMPTY_FILES_WITH_FILTERS -> {
 								if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
 									virtualFoldersListFromDb = MediaTableFiles.getStrings(connection, firstSql);
 									populatedVirtualFoldersListFromDb = virtualFoldersListFromDb;
@@ -291,12 +293,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								}
 
 								if (!firstSql.toUpperCase().startsWith(SELECT)) {
-									if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-										firstSql = SELECT_FILENAME_FILES_WHERE + firstSql;
-									}
-									if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-										firstSql = SELECT_FILENAME_MODIFIED_FILES_WHERE + firstSql;
-									}
+									firstSql = SELECT_FILENAME_MODIFIED_FILES_WHERE + firstSql;
 								}
 
 								// This block adds the first SQL query for non-TV series, and all queries for TV series
@@ -328,12 +325,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								int i = 0;
 								for (String sql : sqls) {
 									if (!sql.toUpperCase().startsWith(SELECT) && !sql.toUpperCase().startsWith(WITH)) {
-										if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
-											sql = SELECT_FILENAME_FILES_WHERE + sql;
-										}
-										if (expectedOutput == FILES_WITH_FILTERS || expectedOutput == ISOS_WITH_FILTERS) {
-											sql = SELECT_FILENAME_MODIFIED_FILES_WHERE + sql;
-										}
+										sql = SELECT_FILENAME_MODIFIED_FILES_WHERE + sql;
 									}
 									int indexAfterFrom = sql.indexOf(FROM_FILES) + FROM_FILES.length();
 
@@ -413,11 +405,11 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		oldVirtualFolders.forEach(virtualFolderResource -> getChildren().remove(virtualFolderResource));
 
 		// Add filters at the top
-		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS) {
+		if (expectedOutput == TEXTS_NOSORT_WITH_FILTERS || expectedOutput == TEXTS_WITH_FILTERS || expectedOutput == FILES_WITH_FILTERS || expectedOutput == TVSERIES_WITH_FILTERS || expectedOutput == EMPTY_FILES_WITH_FILTERS) {
 			// Convert the expectedOutputs to unfiltered versions
 			int[] filteredExpectedOutputs = expectedOutputs.clone();
 			switch (filteredExpectedOutputs[0]) {
-				case FILES_WITH_FILTERS:
+				case FILES_WITH_FILTERS, EMPTY_FILES_WITH_FILTERS:
 					filteredExpectedOutputs[0] = FILES;
 					break;
 				case ISOS_WITH_FILTERS:

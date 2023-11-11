@@ -30,7 +30,6 @@ import net.pms.image.ImagesUtil.ScaleType;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
-import net.pms.network.mediaserver.handlers.api.starrating.StarRating;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.CoverSupplier;
@@ -48,6 +47,10 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
+import org.jaudiotagger.tag.flac.FlacTag;
+import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
+import org.jaudiotagger.tag.id3.ID3v11Tag;
+import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,7 +130,7 @@ public class JaudiotaggerParser {
 					audioMetadata.setSongname(extractAudioTagKeyValue(t, FieldKey.TITLE));
 					audioMetadata.setMbidRecord(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_RELEASEID));
 					audioMetadata.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
-					audioMetadata.setRating(StarRating.convertTagRatingToStar(t));
+					audioMetadata.setRating(convertTagRatingToStar(t));
 					audioMetadata.setGenre(extractAudioTagKeyValue(t, FieldKey.GENRE));
 
 					String keyyear = extractAudioTagKeyValue(t, FieldKey.YEAR);
@@ -336,10 +339,78 @@ public class JaudiotaggerParser {
 		try {
 			Tag t = af.getTag();
 			if (t != null) {
-				audioMetadata.setRating(StarRating.convertTagRatingToStar(t));
+				audioMetadata.setRating(convertTagRatingToStar(t));
 			}
 		} catch (Exception e) {
 			LOGGER.trace("audio rating tag not parsed: " + e.getMessage());
+		}
+	}
+
+	/**
+	 * Converts TAG values read from file to 0-5 stars
+	 *
+	 * @param tag
+	 */
+	private static Integer convertTagRatingToStar(Tag tag) {
+		try {
+			if (tag == null) {
+				return null;
+			}
+
+			String value = tag.getFirst(FieldKey.RATING);
+			if (!StringUtils.isBlank(value)) {
+				int num = Integer.parseInt(value);
+				if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
+					return convertVorbisToStars(num);
+				} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
+					return convertID3ToStars(num);
+				} else {
+					// Dont't know ... maybe we use vorbis tags by default
+					return convertVorbisToStars(num);
+				}
+			}
+		} catch (NumberFormatException | KeyNotFoundException e) {
+			// Value couldn't be read.
+			LOGGER.trace("conversion error", e);
+		}
+		return null;
+	}
+
+	private static Integer convertID3ToStars(Integer num) {
+		if (num == null) {
+			return null;
+		}
+		if (num == 0) {
+			return 0;
+		} else if (num < 32) {
+			return 1;
+		} else if (num < 96) {
+			return 2;
+		} else if (num < 160) {
+			return 3;
+		} else if (num < 224) {
+			return 4;
+		} else {
+			return 5;
+		}
+	}
+
+	private static Integer convertVorbisToStars(Integer num) {
+		if (num == null) {
+			return null;
+		}
+		if (num == 0) {
+			return 0;
+		} else if (num < 21) {
+			return 1;
+		} else if (num < 41) {
+			return 2;
+		} else if (num < 61) {
+			return 3;
+		} else if (num < 81) {
+			return 4;
+		} else {
+			return 5;
 		}
 	}
 

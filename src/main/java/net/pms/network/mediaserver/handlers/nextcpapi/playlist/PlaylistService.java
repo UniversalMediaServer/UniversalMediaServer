@@ -14,21 +14,19 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.playlist;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.sql.SQLException;
 import net.pms.Messages;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //FIXME : this should be implemented under upnp, CreateObject() | UpdateObject() | DestroyObject()
-public class PlaylistService implements ApiResponseHandler {
+public class PlaylistService implements NextcpApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistService.class.getName());
 	public static final String PATH_MATCH = "playlist";
@@ -36,9 +34,10 @@ public class PlaylistService implements ApiResponseHandler {
 	private final ObjectMapper om = new ObjectMapper();
 
 	@Override
-	public String handleRequest(String uri, String content, HttpResponse output) {
-		output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-		output.setStatus(HttpResponseStatus.OK);
+	public NextcpApiResponse handleRequest(String uri, String content) {
+		NextcpApiResponse response = new NextcpApiResponse();
+		response.setConnection("keep-alive");
+		response.setStatusCode(200);
 
 		String uriLower = uri.toLowerCase();
 		try {
@@ -49,41 +48,48 @@ public class PlaylistService implements ApiResponseHandler {
 				case "getallplaylists" -> {
 					LOGGER.trace("getallplaylists");
 					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
-					return playlists;
+					response.setContentType("application/json; charset=UTF-8");
+					response.setResponse(playlists);
+					return response;
 				}
 				case "getserverplaylists" -> {
 					LOGGER.trace("getserverplaylists");
 					String serverPlaylists = om.writeValueAsString(pm.getServerAccessiblePlaylists());
-					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "application/json; charset=UTF-8");
-					return serverPlaylists;
+					response.setContentType("application/json; charset=UTF-8");
+					response.setResponse(serverPlaylists);
+					return response;
 				}
 				case "addsongtoplaylist" -> {
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
 					pm.addSongToPlaylist(add.getAudiotrackId(), add.getPlaylistName());
-					return Messages.getString("SongAddedToPlaylist");
+					response.setResponse(Messages.getString("SongAddedToPlaylist"));
+					return response;
 				}
 				case "removesongfromplaylist" -> {
 					LOGGER.trace("removesongfromplaylist");
 					AudioPlaylistVO remove = getParamsFromContent(content);
 					pm.removeSongFromPlaylist(remove.getAudiotrackId(), remove.getPlaylistName());
-					return Messages.getString("SongRemovedFromPlaylist");
+					response.setResponse(Messages.getString("SongRemovedFromPlaylist"));
+					return response;
 				}
 				case "createplaylist" -> {
 					LOGGER.trace("createplaylist");
 					pm.createPlaylist(content);
-					return Messages.getString("PlaylistHasBeenCreated");
+					response.setResponse(Messages.getString("PlaylistHasBeenCreated"));
+					return response;
 				}
 				default -> {
 					LOGGER.trace("default");
-					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return Messages.getString("NoServiceAvailableForPath") + " : " + uri;
+					response.setStatusCode(404);
+					response.setResponse(Messages.getString("NoServiceAvailableForPath") + " : " + uri);
+					return response;
 				}
 			}
 		} catch (IOException | RuntimeException | SQLException e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return e.getMessage();
+			response.setStatusCode(503);
+			response.setResponse(e.getMessage());
+			return response;
 		}
 	}
 
@@ -95,4 +101,5 @@ public class PlaylistService implements ApiResponseHandler {
 			throw new RuntimeException("incorrect input parameter supplied to method");
 		}
 	}
+
 }

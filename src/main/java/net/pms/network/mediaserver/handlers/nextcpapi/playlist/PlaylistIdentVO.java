@@ -14,23 +14,26 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.playlist;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
+/**
+ * Represents a server playlist entry.
+ */
+public class PlaylistIdentVO {
 
-public class AudioPlaylistVO {
-	private final Integer audiotrackId;
 	private final String playlistName;
+	private final Integer playlistId;
 
-	public AudioPlaylistVO(Integer audiotrackId, String playlistName) {
-		this.audiotrackId = audiotrackId;
+	public PlaylistIdentVO(String playlistName, Integer playlistId) {
 		this.playlistName = playlistName;
-	}
-
-	public Integer getAudiotrackId() {
-		return audiotrackId;
+		this.playlistId = playlistId;
 	}
 
 	public String getPlaylistName() {
 		return playlistName;
+	}
+
+	public Integer getPlaylistId() {
+		return playlistId;
 	}
 }

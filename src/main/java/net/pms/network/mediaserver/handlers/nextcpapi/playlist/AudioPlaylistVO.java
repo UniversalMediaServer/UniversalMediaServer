@@ -14,39 +14,29 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.store;
+package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
-/**
- * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case
- * fail. Should be renamed on the next release, then dev will have time to
- * import DbIdTypeAndIdent2 on their git, that will allow rename to
- * DbIdTypeAndIdent.
- */
-public class DbIdTypeAndIdent {
+public class AudioPlaylistVO {
 
-	/**
-	 * Media type
-	 */
-	public final DbIdMediaType type;
+	private final Integer audiotrackId;
+	private final String playlistName;
 
-	/**
-	 * resource to identify
-	 */
-	public final String ident;
+	public AudioPlaylistVO(Integer audiotrackId, String playlistName) {
+		this.audiotrackId = audiotrackId;
+		this.playlistName = playlistName;
+	}
 
-	public DbIdTypeAndIdent(DbIdMediaType type, String ident) {
-		super();
-		this.type = type;
-		if (ident == null) {
-			this.ident = "";
-		} else {
-			this.ident = ident;
-		}
+	public Integer getAudiotrackId() {
+		return audiotrackId;
+	}
+
+	public String getPlaylistName() {
+		return playlistName;
 	}
 
 	@Override
 	public String toString() {
-		return type.toString() + ident;
+		return "AudioPlaylistVO [audiotrackId=" + audiotrackId + ", playlistName=" + playlistName + "]";
 	}
 
 }

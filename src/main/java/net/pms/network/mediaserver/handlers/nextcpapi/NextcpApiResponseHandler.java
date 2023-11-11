@@ -14,11 +14,10 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers;
+package net.pms.network.mediaserver.handlers.nextcpapi;
 
-import org.jboss.netty.handler.codec.http.HttpResponse;
+public interface NextcpApiResponseHandler {
 
-public interface ApiResponseHandler {
+	public NextcpApiResponse handleRequest(String uri, String content);
 
-	public String handleRequest(String uri, String content, HttpResponse output);
 }

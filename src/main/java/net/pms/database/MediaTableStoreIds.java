@@ -217,20 +217,20 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 	}
 
-	public static List<Long> getMediaStoreIdsForFilename(Connection connection, String filename) {
+	public static List<Long> getMediaStoreIdsForName(Connection connection, String name) {
 		List<Long> result = new ArrayList<>();
 		if (connection == null) {
 			return result;
 		}
 		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_NAME)) {
-			stmt.setString(1, filename);
+			stmt.setString(1, name);
 			try (ResultSet elements = stmt.executeQuery()) {
 				while (elements.next()) {
 					result.add(elements.getLong(COL_ID));
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for filename \"{}\": {}", filename, e.getMessage());
+			LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\": {}", name, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

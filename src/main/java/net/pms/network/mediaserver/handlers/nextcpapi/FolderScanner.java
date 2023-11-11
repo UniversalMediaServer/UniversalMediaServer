@@ -14,36 +14,32 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api;
+package net.pms.network.mediaserver.handlers.nextcpapi;
 
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
 import net.pms.store.MediaScanner;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 //FIXME : this should not exists.
 //if a bug exists on the scanner, it should be solved.
-public class FolderScanner implements ApiResponseHandler {
+public class FolderScanner implements NextcpApiResponseHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(FolderScanner.class);
 	public static final String PATH_MATCH = "folderscanner";
 
 	@Override
-	public String handleRequest(String uri, String content, HttpResponse output) {
-		output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "0");
-		output.setStatus(HttpResponseStatus.NO_CONTENT);
+	public NextcpApiResponse handleRequest(String uri, String content) {
+		NextcpApiResponse response = new NextcpApiResponse();
+		response.setStatusCode(204);
 		switch (uri) {
 			case "rescan" -> rescanMediaStore();
 			case "rescanFileOrFolder" -> MediaScanner.scanFileOrFolder(content);
 			default -> {
-				LOGGER.warn("Invalid API call. Unknown path : " + uri);
-				output.setStatus(HttpResponseStatus.NOT_FOUND);
+				LOGGER.warn("Invalid nextcp API call. Unknown path : " + uri);
+				response.setStatusCode(404);
 			}
 		}
-		return null;
+		return response;
 	}
 
 	/**

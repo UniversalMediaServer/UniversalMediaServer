@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.starrating;
+package net.pms.network.mediaserver.handlers.nextcpapi.starrating;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +24,8 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
-import net.pms.network.mediaserver.handlers.ApiResponseHandler;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
+import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.jaudiotagger.audio.AudioFile;
@@ -34,16 +35,12 @@ import org.jaudiotagger.audio.exceptions.CannotWriteException;
 import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
 import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.flac.FlacTag;
 import org.jaudiotagger.tag.id3.AbstractID3v2Tag;
 import org.jaudiotagger.tag.id3.ID3v11Tag;
 import org.jaudiotagger.tag.vorbiscomment.VorbisCommentTag;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,18 +72,20 @@ import org.slf4j.LoggerFactory;
  *
  */
 //FIXME : this should be implemented under upnp, UpdateObject() -> metadata.
-public class StarRating implements ApiResponseHandler {
+public class StarRating implements NextcpApiResponseHandler {
 
 	private static final Logger LOG = LoggerFactory.getLogger(StarRating.class.getName());
 	public static final String PATH_MATCH = "rating";
 	private final MediaDatabase db = PMS.get().getMediaDatabase();
 
 	@Override
-	public String handleRequest(String uri, String content, HttpResponse output) {
+	public NextcpApiResponse handleRequest(String uri, String content) {
+		NextcpApiResponse response = new NextcpApiResponse();
 		try (Connection connection = db.getConnection()) {
 			if (connection == null) {
-				output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-				return "database unavailable";
+				response.setStatusCode(503);
+				response.setResponse("database unavailable");
+				return response;
 			}
 
 			String uriLower = uri.toLowerCase();
@@ -104,7 +103,8 @@ public class StarRating implements ApiResponseHandler {
 				case "getrating" -> {
 					Integer rating = MediaTableAudioMetadata.getRatingByMusicbrainzTrackId(connection, content);
 					if (rating != null) {
-						return Integer.toString(rating);
+						response.setResponse(Integer.toString(rating));
+						return response;
 					}
 				}
 				case "setratingbyaudiotrackid" -> {
@@ -121,28 +121,34 @@ public class StarRating implements ApiResponseHandler {
 				case "getratingbyaudiotrackid" -> {
 					Integer rating = MediaTableAudioMetadata.getRatingByAudiotrackId(connection, Integer.valueOf(content));
 					if (rating != null) {
-						return Integer.toString(rating);
+						response.setResponse(Integer.toString(rating));
+						return response;
 					}
 				}
 				default -> {
-					output.setStatus(HttpResponseStatus.NOT_FOUND);
-					return "unknown api path : " + uri;
+					response.setStatusCode(404);
+					response.setResponse("unknown api path : " + uri);
+					return response;
 				}
 			}
 
-			output.setStatus(HttpResponseStatus.OK);
-			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
-			output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-			return "OK";
+			response.setStatusCode(200);
+			response.setContentType("text/plain; charset=UTF-8");
+			response.setConnection("keep-alive");
+			response.setResponse("OK");
+			return response;
 		} catch (NumberFormatException e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "illegal rating. Set rating between 0 and 5 (inclusive)";
+			response.setStatusCode(503);
+			response.setResponse("illegal rating. Set rating between 0 and 5 (inclusive)");
+			return response;
 		} catch (SQLException e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "database error : " + e.getMessage();
+			response.setStatusCode(503);
+			response.setResponse("database error : " + e.getMessage());
+			return response;
 		} catch (Exception e) {
-			output.setStatus(HttpResponseStatus.SERVICE_UNAVAILABLE);
-			return "ERROR : " + e.getMessage();
+			response.setStatusCode(503);
+			response.setResponse("ERROR : " + e.getMessage());
+			return response;
 		}
 	}
 
@@ -165,7 +171,7 @@ public class StarRating implements ApiResponseHandler {
 		return request;
 	}
 
-	public void setRatingInFile(int ratingInStars, String filename) {
+	private void setRatingInFile(int ratingInStars, String filename) {
 		if (StringUtils.isEmpty(filename)) {
 			return;
 		}
@@ -179,12 +185,8 @@ public class StarRating implements ApiResponseHandler {
 		}
 	}
 
-	public void setDatabaseRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
+	private void setDatabaseRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		MediaTableAudioMetadata.updateRatingByMusicbrainzTrackId(connection, ratingInStars, musicBrainzTrackId);
-	}
-
-	public void setDatabaseRatingByAudiotracksId(Connection connection, int ratingInStars, Integer audiotracksId) throws SQLException {
-		MediaTableAudioMetadata.updateRatingByAudiotrackId(connection, ratingInStars, audiotracksId);
 	}
 
 	private List<String> getFilenameListByMusicbrainzTrackId(Connection connection, String trackId) {
@@ -224,7 +226,7 @@ public class StarRating implements ApiResponseHandler {
 	 * @param stars number of stars (0 - 5)
 	 * @return
 	 */
-	public String getRatingValue(Tag tag, int stars) {
+	private String getRatingValue(Tag tag, int stars) {
 		int num;
 		if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
 			num = convertStarsToVorbis(stars);
@@ -244,7 +246,7 @@ public class StarRating implements ApiResponseHandler {
 	 * @param rating
 	 * @return
 	 */
-	public int convertStarsToID3(int rating) {
+	private int convertStarsToID3(int rating) {
 		return switch (rating) {
 			case 0 -> 0;
 			case 1 -> 1;
@@ -261,75 +263,8 @@ public class StarRating implements ApiResponseHandler {
 	 * @param rating
 	 * @return
 	 */
-	public int convertStarsToVorbis(int rating) {
+	private int convertStarsToVorbis(int rating) {
 		return rating * 20;
 	}
 
-	/**
-	 * Converts TAG values read from file to 0-5 stars
-	 *
-	 * @param tag
-	 */
-	public static Integer convertTagRatingToStar(Tag tag) {
-		try {
-			if (tag == null) {
-				return null;
-			}
-
-			String value = tag.getFirst(FieldKey.RATING);
-			if (!StringUtils.isBlank(value)) {
-				int num = Integer.parseInt(value);
-				if (tag instanceof FlacTag || tag instanceof VorbisCommentTag) {
-					return convertVorbisToStars(num);
-				} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
-					return convertID3ToStars(num);
-				} else {
-					// Dont't know ... maybe we use vorbis tags by default
-					return convertVorbisToStars(num);
-				}
-			}
-		} catch (NumberFormatException | KeyNotFoundException e) {
-			// Value couldn't be read.
-			LOG.trace("conversion error", e);
-		}
-		return null;
-	}
-
-	public static Integer convertID3ToStars(Integer num) {
-		if (num == null) {
-			return null;
-		}
-		if (num == 0) {
-			return 0;
-		} else if (num < 32) {
-			return 1;
-		} else if (num < 96) {
-			return 2;
-		} else if (num < 160) {
-			return 3;
-		} else if (num < 224) {
-			return 4;
-		} else {
-			return 5;
-		}
-	}
-
-	public static Integer convertVorbisToStars(Integer num) {
-		if (num == null) {
-			return null;
-		}
-		if (num == 0) {
-			return 0;
-		} else if (num < 21) {
-			return 1;
-		} else if (num < 41) {
-			return 2;
-		} else if (num < 61) {
-			return 3;
-		} else if (num < 81) {
-			return 4;
-		} else {
-			return 5;
-		}
-	}
 }

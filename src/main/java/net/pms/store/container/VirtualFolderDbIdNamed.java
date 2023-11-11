@@ -14,27 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.api.playlist;
+package net.pms.store.container;
+
+import net.pms.renderers.Renderer;
+import net.pms.store.DbIdTypeAndIdent;
 
 /**
- * Represents a server playlist entry.
- * TODO : seems not used
+ * This StoreContainer implements support for RealFileDbId's database backed
+ * IDs.
  */
-public class PlaylistIdentVO {
+public class VirtualFolderDbIdNamed extends VirtualFolderDbId {
 
-	private final String playlistName;
-	private final Integer playlistId;
-
-	public PlaylistIdentVO(String playlistName, Integer playlistId) {
-		this.playlistName = playlistName;
-		this.playlistId = playlistId;
+	public VirtualFolderDbIdNamed(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent) {
+		super(renderer, null, typeIdent);
+		this.name = folderName;
 	}
 
-	public String getPlaylistName() {
-		return playlistName;
-	}
-
-	public Integer getPlaylistId() {
-		return playlistId;
-	}
 }

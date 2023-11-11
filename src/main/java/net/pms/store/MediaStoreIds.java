@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableStoreIds;
-import net.pms.store.container.VirtualFolderDbId;
 import org.jupnp.model.types.UnsignedIntegerFourBytes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public class MediaStoreIds {
 	}
 
 	public static synchronized Long getMediaStoreResourceId(StoreResource resource) {
-		if (resource == null || resource instanceof VirtualFolderDbId) {
+		if (resource == null) {
 			return null;
 		}
 		//parse db
@@ -101,10 +100,36 @@ public class MediaStoreIds {
 		return mediaStoreIds;
 	}
 
+	public static List<Long> getMediaStoreIdsForName(String name) {
+		List<Long> ids = new ArrayList<>();
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, name);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return ids;
+	}
+
 	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
-		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForFilename(connection, filename);
+		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);
 		for (Long id : ids) {
 			incrementUpdateId(connection, id);
+		}
+	}
+
+	public static void incrementUpdateIdForFilename(String filename) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				incrementUpdateIdForFilename(connection, filename);
+			}
+		} finally {
+			MediaDatabase.close(connection);
 		}
 	}
 

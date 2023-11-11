@@ -57,7 +57,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.COMPOSER\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.COMPOSER\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.COMPOSER\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
 	}
 
 	/**
@@ -69,7 +69,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.CONDUCTOR\\s*\\)\\s+LIKE\\s+'%bernstein%'"));
+				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.CONDUCTOR\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.CONDUCTOR\\s*\\)\\s+LIKE\\s+'%bernstein%'"));
 	}
 
 	@Test
@@ -78,7 +78,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ALBUMARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ALBUMARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ALBUMARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
 	}
 
 	@Test
@@ -87,7 +87,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIOTRACKS\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
+				"select\\s+count\\s+\\(\\s*DISTINCT\\s+A.ARTIST\\s*\\)\\s+from\\s+AUDIO_METADATA\\s+as\\s+A\\s+where\\s+1\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.ARTIST\\s*\\)\\s+LIKE\\s+'%tchaikovsky%'"));
 	}
 
 	/**
@@ -99,7 +99,7 @@ public class SearchRequestHandlerTest {
 		String countSQL = SearchRequestHandler.convertToCountSql(searchCriteria, SearchRequestHandler.getRequestType(searchCriteria));
 		LOG.info(countSQL);
 		assertTrue(countSQL.matches(
-				"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIOTRACKS\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.SONGNAME\\s*\\)\\s+LIKE\\s+'%love don''t%'"));
+				"select\\s+count\\s*\\(\\s*DISTINCT\\s+F.id\\s*\\)\\s+from\\s+FILES\\s+as\\s+F\\s+left\\s+outer\\s+join\\s+AUDIO_METADATA\\s+as\\s+A\\s+on\\s+F.ID\\s*=\\s*A.FILEID\\s+where\\s+F.FORMAT_TYPE\\s*=\\s*1\\s+and\\s+LOWER\\s*\\(\\s*A.SONGNAME\\s*\\)\\s+LIKE\\s+'%love don''t%'"));
 	}
 
 	@Test
@@ -120,4 +120,5 @@ public class SearchRequestHandlerTest {
 		LOG.info("===================================================================");
 		LOG.info("\r\n" + response.toString());
 	}
+
 }
