@@ -33,6 +33,7 @@ import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentListener;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.database.MediaTableStoreIds;
 import net.pms.gui.GuiManager;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.ConnectedRenderers;
@@ -133,6 +134,14 @@ public class MediaScanner extends StoreContainer implements SharedContentListene
 
 					// Display and log which folder is being scanned
 					if (storeContainer instanceof RealFolder) {
+						if ("scanner".equals(resource.getName())) {
+							// "scanner" is the root folder where shared resources are located
+							resource.setId("0");
+						}
+						// eager scan physical file system
+						MediaStoreId childId = MediaTableStoreIds.getResourceMediaStoreId(child);
+						child.setId(childId.getId() + "");
+
 						String childName = child.getName();
 						LOGGER.debug("Scanning folder: " + childName);
 						GuiManager.setStatusLine(Messages.getString("ScanningFolder") + " " + childName);
@@ -160,6 +169,16 @@ public class MediaScanner extends StoreContainer implements SharedContentListene
 					}
 				} else if (!running) {
 					break;
+				}
+
+				if (running && child instanceof RealFile && child.getParent() instanceof RealFolder) {
+					// We're building the "physical" CDS tree for real items and objects
+					MediaStoreId childId = MediaTableStoreIds.getResourceMediaStoreId(child);
+					if (childId != null) {
+						child.setId(childId.getId() + "");
+					} else {
+						LOGGER.trace("couldn't determine storeID for child : {} | parent : {} ", child, child.getParent() != null ? child.getParent() : "NULL");
+					}
 				}
 			}
 		} else {
