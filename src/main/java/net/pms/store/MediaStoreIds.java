@@ -114,6 +114,19 @@ public class MediaStoreIds {
 		return ids;
 	}
 
+	public static Long getMediaStoreIdsForFolderName(String realFolderName) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return MediaTableStoreIds.getMediaStoreIdForRealForlderName(realFolderName);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
 	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
 		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);
 		for (Long id : ids) {

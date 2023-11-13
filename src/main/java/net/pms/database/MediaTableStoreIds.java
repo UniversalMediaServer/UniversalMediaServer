@@ -50,6 +50,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String COL_PARENT_ID = "PARENT_ID";
 	private static final String COL_NAME = "NAME";
 	private static final String COL_OBJECT_TYPE = "OBJECT_TYPE";
+	private static final String COL_OBJECT_TYPE_REAL_FOLDER = "RealFolder";
 	private static final String COL_UPDATE_ID = "UPDATE_ID";
 
 	/**
@@ -65,6 +66,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_ID_REAL_FOLDER_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER + AND + COL_OBJECT_TYPE + EQUAL + COL_OBJECT_TYPE_REAL_FOLDER;
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
@@ -139,9 +141,10 @@ public class MediaTableStoreIds extends MediaTable {
 	 * @return the StoreId stored or created
 	 */
 	public static MediaStoreId getResourceMediaStoreId(Connection connection, StoreResource resource) {
-		if (connection == null || resource == null || resource.getParent() == null && resource.getParent().getLongId() != null) {
+		if (connection == null || resource == null || resource.getParent() != null && resource.getParent().getLongId() == null) {
 			return null;
 		}
+
 		long parentId = resource.getParent().getLongId();
 		String name = resource.getSystemName();
 
@@ -166,6 +169,20 @@ public class MediaTableStoreIds extends MediaTable {
 			LOGGER.trace("", e);
 		}
 
+		return null;
+	}
+
+	public static MediaStoreId getResourceMediaStoreId(StoreResource child) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return getResourceMediaStoreId(connection, child);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		LOGGER.error("DATABASE connection unavailable.");
 		return null;
 	}
 
@@ -290,4 +307,31 @@ public class MediaTableStoreIds extends MediaTable {
 		return systemUpdateId;
 	}
 
+	public static Long getMediaStoreIdForRealForlderName(String realFolderName) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_REAL_FOLDER_NAME)) {
+					stmt.setString(1, realFolderName);
+					try (ResultSet elements = stmt.executeQuery()) {
+						if (elements.next()) {
+							Long folderId = elements.getLong(COL_ID);
+							return folderId;
+						} else {
+							LOGGER.trace("no folderID found for name : {}", realFolderName);
+							return null;
+						}
+					}
+				} catch (SQLException e) {
+					LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\": {}", realFolderName, e.getMessage());
+					LOGGER.trace("", e);
+					return null;
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
 }
