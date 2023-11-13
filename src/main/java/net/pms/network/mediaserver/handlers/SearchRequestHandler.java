@@ -16,7 +16,6 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -39,9 +38,6 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
-import net.pms.store.MediaStoreId;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.VirtualFolderDbIdNamed;
