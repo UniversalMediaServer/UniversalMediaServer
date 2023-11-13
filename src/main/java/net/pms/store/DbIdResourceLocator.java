@@ -66,6 +66,18 @@ public class DbIdResourceLocator {
 		}
 	}
 
+	public static StoreResource getLibraryResourceByDBIDRealFile(Renderer renderer, String realFileName) {
+		MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForRealResources(realFileName);
+		File file = new File(realFileName);
+		StoreResource res = renderer.getMediaStore().createResourceFromFile(file);
+		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
+		parentRes.setId(realFileId.getParentId() + "");
+		res.setParent(parentRes);
+		res.setId(realFileId.getId() + "");
+		renderer.getMediaStore().addWeakResource(res);
+		return res;
+	}
+
 	/**
 	 * Navigates into a DbidResource.
 	 *

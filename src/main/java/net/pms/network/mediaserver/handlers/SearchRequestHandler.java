@@ -39,6 +39,9 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreId;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.VirtualFolderDbIdNamed;
@@ -534,11 +537,8 @@ public class SearchRequestHandler {
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										StoreResource item = DbIdResourceLocator.createResourceFromFile(
-											renderer,
-											new File(realFileName),
-											new DbIdTypeAndIdent(type, resultSet.getString("FID")));
-										filesList.add(item);
+										StoreResource res = DbIdResourceLocator.getLibraryResourceByDBIDRealFile(renderer, realFileName);
+										filesList.add(res);
 									}
 								}
 

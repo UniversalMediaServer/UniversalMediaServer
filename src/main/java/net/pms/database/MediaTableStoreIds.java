@@ -66,7 +66,8 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
-	private static final String SQL_GET_ID_REAL_FOLDER_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER + AND + COL_OBJECT_TYPE + EQUAL + COL_OBJECT_TYPE_REAL_FOLDER;
+	private static final String SQL_GET_ID_REAL_PARENT_FOLDER = "select child." + COL_UPDATE_ID + " as " + COL_UPDATE_ID + ", child." + COL_OBJECT_TYPE + " as " + COL_OBJECT_TYPE + ",  child." + COL_NAME + " as " + COL_NAME + ", child." + COL_ID + " as " + COL_ID + ", parent." + COL_ID + " as " + COL_PARENT_ID + " from STORE_IDS child, STORE_IDS parent where child.parent_id = parent.id and child.object_type = 'RealFile' and parent.object_type = 'RealFolder' and child." + COL_NAME + " = ?";
+	private static final String SQL_GET_ID_REAL_FOLDER_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER + AND + COL_OBJECT_TYPE + EQUAL +  "'" + COL_OBJECT_TYPE_REAL_FOLDER + "'";
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
@@ -232,6 +233,34 @@ public class MediaTableStoreIds extends MediaTable {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	/**
+	 * Get's MediaStoreId for RealFile / RealFolder names
+	 * @param name
+	 * @return
+	 */
+	public static MediaStoreId getMediaStoreIdForRealResources(Connection connection, String name) {
+		if (connection != null) {
+			try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_REAL_PARENT_FOLDER)) {
+				stmt.setString(1, name);
+				try (ResultSet elements = stmt.executeQuery()) {
+					if (elements.next()) {
+						MediaStoreId result = new MediaStoreId();
+						result.setId(elements.getLong(COL_ID));
+						result.setParentId(elements.getLong(COL_PARENT_ID));
+						result.setName(elements.getString(COL_NAME));
+						result.setObjectType(elements.getString(COL_OBJECT_TYPE));
+						result.setUpdateId(elements.getLong(COL_UPDATE_ID));
+						return result;
+					}
+				}
+			} catch (SQLException e) {
+				LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", name, e.getMessage());
+				LOGGER.trace("", e);
+			}
+		}
+		return null;
 	}
 
 	public static List<Long> getMediaStoreIdsForName(Connection connection, String name) {
