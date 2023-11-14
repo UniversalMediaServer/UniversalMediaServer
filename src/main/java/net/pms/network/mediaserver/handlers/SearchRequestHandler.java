@@ -38,7 +38,6 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
-import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.VirtualFolderDbIdNamed;
