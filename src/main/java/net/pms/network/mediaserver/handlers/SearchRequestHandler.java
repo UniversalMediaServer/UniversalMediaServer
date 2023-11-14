@@ -514,12 +514,12 @@ public class SearchRequestHandler {
 											if (albumFolder == null) {
 												albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
 													new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+												MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
+													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
+													resultSet.getString("genre"));
+												DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 												renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
 											}
-											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
-												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
-												resultSet.getString("genre"));
-											DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
 										}
