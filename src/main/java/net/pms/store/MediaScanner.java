@@ -133,7 +133,7 @@ public class MediaScanner extends StoreContainer implements SharedContentListene
 				if (running && child instanceof StoreContainer storeContainer && storeContainer.allowScan()) {
 
 					// Display and log which folder is being scanned
-					if (storeContainer instanceof RealFolder) {
+					if (storeContainer instanceof RealFolder || storeContainer instanceof PlaylistFolder) {
 						if ("scanner".equals(resource.getName())) {
 							// "scanner" is the root folder where shared resources are located
 							resource.setId("0");

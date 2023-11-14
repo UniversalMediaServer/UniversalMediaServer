@@ -113,6 +113,19 @@ public class MediaStoreIds {
 		return null;
 	}
 
+	public static MediaStoreId getMediaStoreIdForPlaylistResources(String name) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return MediaTableStoreIds.getMediaStoreIdForPlaylistResources(connection, name);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
 	public static List<Long> getMediaStoreIdsForName(String name) {
 		List<Long> ids = new ArrayList<>();
 		Connection connection = null;

@@ -533,16 +533,24 @@ public class SearchRequestHandler {
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField)));
 								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField)));
-								case TYPE_PLAYLIST -> filesList
-									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID"))));
+								case TYPE_PLAYLIST -> {
+									String realFileName = resultSet.getString("FILENAME");
+									if (realFileName != null) {
+										StoreResource res = DbIdResourceLocator.getLibraryResourceByPlaylist(renderer, realFileName);
+										if (res != null) {
+											filesList.add(res);
+										}
+									}
+								}
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
 										StoreResource res = DbIdResourceLocator.getLibraryResourceByDBIDRealFile(renderer, realFileName);
-										filesList.add(res);
+										if (res != null) {
+											filesList.add(res);
+										}
 									}
 								}
-
 							}
 						}
 					}
