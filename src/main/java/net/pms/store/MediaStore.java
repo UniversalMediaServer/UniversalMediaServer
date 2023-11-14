@@ -571,7 +571,7 @@ public class MediaStore extends StoreContainer {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
+		if (objectId.contains("$Temp")) {
 			List<StoreResource> items = getTemp().asList(objectId);
 			return items != null ? items : resources;
 		}
