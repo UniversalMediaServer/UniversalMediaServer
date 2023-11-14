@@ -510,7 +510,8 @@ public class SearchRequestHandler {
 										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, typeIdent));
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByMusicBrainzId(renderer, mbid);
+											StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer,
+												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
 											if (albumFolder == null) {
 												albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
 													new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
@@ -525,12 +526,18 @@ public class SearchRequestHandler {
 										}
 									}
 								}
-								case TYPE_PERSON -> filesList
-									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField)));
-								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
-									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField)));
-								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
-									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField)));
+								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
+									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
+									StoreResource personFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeIdent);
+									if (personFolder == null) {
+										personFolder = new VirtualFolderDbIdNamed(renderer, filenameField, typeIdent);
+										renderer.getMediaStore().getDbIdFolder().addChild(personFolder);
+										renderer.getMediaStore().addWeakResource(personFolder);
+									}
+									if (personFolder != null) {
+										filesList.add(personFolder);
+									}
+								}
 								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
 									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField)));
 								case TYPE_PLAYLIST -> {
