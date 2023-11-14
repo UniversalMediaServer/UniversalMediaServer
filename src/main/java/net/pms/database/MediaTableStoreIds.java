@@ -252,6 +252,9 @@ public class MediaTableStoreIds extends MediaTable {
 						result.setName(elements.getString(COL_NAME));
 						result.setObjectType(elements.getString(COL_OBJECT_TYPE));
 						result.setUpdateId(elements.getLong(COL_UPDATE_ID));
+						if (elements.next()) {
+							LOGGER.warn("Name {} has more than one RealFolder.");
+						}
 						return result;
 					}
 				}

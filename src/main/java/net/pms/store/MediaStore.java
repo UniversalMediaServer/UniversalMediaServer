@@ -87,6 +87,7 @@ public class MediaStore extends StoreContainer {
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
 	private VirtualFolderDbId audioLikesFolder;
+	private VirtualFolderDbId nonVisibleDbIdFolder;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -159,6 +160,7 @@ public class MediaStore extends StoreContainer {
 		}
 
 		setAudioLikesFolder();
+		setDbidFolder();
 
 		if (mon != null) {
 			mon.clearChildren();
@@ -824,6 +826,19 @@ public class MediaStore extends StoreContainer {
 				backupChildren.remove(audioLikesFolder);
 			}
 		}
+	}
+
+	/**
+	 * Root of DBID elements
+	 * @return
+	 */
+	public VirtualFolderDbId getDbIdFolder() {
+		return nonVisibleDbIdFolder;
+	}
+
+	private void setDbidFolder() {
+		nonVisibleDbIdFolder = new VirtualFolderDbId(renderer, "DBID", new DbIdTypeAndIdent(DbIdMediaType.TYPE_FOLDER, null));
+		mediaLibrary.addChildInternal(nonVisibleDbIdFolder);
 	}
 
 	@Override

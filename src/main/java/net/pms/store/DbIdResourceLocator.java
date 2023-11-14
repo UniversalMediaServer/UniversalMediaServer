@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
@@ -53,7 +54,7 @@ public class DbIdResourceLocator {
 	}
 
 	public static StoreResource locateResource(Renderer renderer, VirtualFolderDbId virtualFolderDbId) {
-		return getLibraryResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(virtualFolderDbId.getSystemName()), virtualFolderDbId.getParent());
+		return getLibraryResourceByDBID(renderer, DbIdMediaType.getTypeIdentByDbid(virtualFolderDbId.getSystemName()), virtualFolderDbId);
 	}
 
 	private static String encodeDbid(DbIdTypeAndIdent typeIdent) {
@@ -76,6 +77,19 @@ public class DbIdResourceLocator {
 		res.setId(realFileId.getId() + "");
 		renderer.getMediaStore().addWeakResource(res);
 		return res;
+	}
+
+	public static StoreResource getLibraryResourceByMusicBrainzId(Renderer renderer, String mbid) {
+		DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
+		List<Long> folderIDs = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
+		StoreResource albumFolder = null;
+		if (folderIDs.size() > 0) {
+			albumFolder = renderer.getMediaStore().getResource(folderIDs.get(0).toString());
+			if (folderIDs.size() > 1) {
+				LOGGER.warn("Resource has more than one parent. Should not happen.");
+			}
+		}
+		return albumFolder;
 	}
 
 	/**
@@ -143,6 +157,9 @@ public class DbIdResourceLocator {
 							}
 						}
 						case TYPE_MUSICBRAINZ_RECORDID -> {
+							if (parent.isDiscovered()) {
+								return parent;
+							}
 							sql = String
 									.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK +
 											", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudioMetadata.TABLE_COL_ALBUM + " FROM " +
@@ -155,10 +172,6 @@ public class DbIdResourceLocator {
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								if (resultSet.next()) {
-									res = new VirtualFolderDbIdNamed(renderer, resultSet.getString("ALBUM"),
-											new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, typeAndIdent.ident));
-									res.setParent(parent);
-									res.setId(MediaStoreIds.getMediaStoreResourceId(res).toString());
 									// Find "best track" logic should be
 									// optimized !!
 									String lastUuidTrack = "";
@@ -170,12 +183,14 @@ public class DbIdResourceLocator {
 													renderer,
 													new File(resultSet.getString("FILENAME")),
 													new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")));
-											((VirtualFolderDbId) res).addChild(item);
+											parent.addChild(item);
 											item.resolve();
 										}
 									} while (resultSet.next());
 								}
 							}
+							parent.setDiscovered(true);
+							return parent;
 						}
 						case TYPE_MYMUSIC_ALBUM -> {
 							sql = "SELECT " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + ", " +
@@ -351,7 +366,7 @@ public class DbIdResourceLocator {
 	 * @param album
 	 * @param albumFolder
 	 */
-	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
+	public static void appendAlbumInformation(MusicBrainzAlbum album, StoreResource albumFolder) {
 		LOGGER.debug("adding music album information");
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();

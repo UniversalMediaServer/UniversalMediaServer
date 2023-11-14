@@ -63,5 +63,4 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	public String getMediaTypeUclass() {
 		return typeIdent.type.uclass;
 	}
-
 }

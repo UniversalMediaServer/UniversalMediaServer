@@ -38,8 +38,9 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
-import net.pms.store.container.VirtualFolderDbId;
+import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -126,7 +127,7 @@ public class SearchRequestHandler {
 
 		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""));
+		UnattachedFolder folder = new UnattachedFolder(renderer, "SearchResult");
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
 			folder.addChild(resource);
@@ -506,11 +507,16 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField)));
+										DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
+										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, typeIdent));
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											VirtualFolderDbIdNamed albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
-												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+											StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByMusicBrainzId(renderer, mbid);
+											if (albumFolder == null) {
+												albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
+													new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+												renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
+											}
 											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
 												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
 												resultSet.getString("genre"));
