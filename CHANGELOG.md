@@ -1,5 +1,21 @@
 # Changelog
 
+## 14.0.0 (Unreleased)
+
+### General
+- Use TMDB directly for faster and more accurate metadata lookups
+- Improved memory use bar on the web interface
+
+### Dependencies
+- Updated h2database to 2.2.224
+- Updated jwt-decode to v4
+- Updated Mantine to v7, which:
+  - Improves performance of the web interface
+  - Improves RTL language support
+  - (todo maybe) Uses your system light/dark mode preference (check this https://mantine.dev/changelog/7-0-0/#system-color-scheme-support)
+- Updated yarn to v4, which improves install performance by 3x
+- Updated web-vitals to 3.5.0
+
 ## [13.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.7.0...13.8.0) (2023-10-21)
 
 ### General
