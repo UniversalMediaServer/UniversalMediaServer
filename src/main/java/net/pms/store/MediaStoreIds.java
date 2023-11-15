@@ -126,6 +126,19 @@ public class MediaStoreIds {
 		return null;
 	}
 
+	public static MediaStoreId getMediaStoreIdForFolderResources(String name) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return MediaTableStoreIds.getMediaStoreIdForFolderResources(connection, name);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
 	public static List<Long> getMediaStoreIdsForName(String name) {
 		List<Long> ids = new ArrayList<>();
 		Connection connection = null;
@@ -140,18 +153,6 @@ public class MediaStoreIds {
 		return ids;
 	}
 
-	public static Long getMediaStoreIdsForFolderName(String realFolderName) {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				return MediaTableStoreIds.getMediaStoreIdForRealForlderName(realFolderName);
-			}
-		} finally {
-			MediaDatabase.close(connection);
-		}
-		return null;
-	}
 
 	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
 		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);

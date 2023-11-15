@@ -99,6 +99,22 @@ public class DbIdResourceLocator {
 		return res;
 	}
 
+	public static StoreResource getLibraryResourceFolder(Renderer renderer, String realFolderName) {
+		MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForFolderResources(realFolderName);
+		if (realFileId == null) {
+			LOGGER.error("{} not found as RealFolder in database.", realFolderName);
+			return null;
+		}
+		File file = new File(realFolderName);
+		StoreResource res = renderer.getMediaStore().createResourceFromFile(file);
+		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
+		parentRes.setId(realFileId.getParentId() + "");
+		res.setParent(parentRes);
+		res.setId(realFileId.getId() + "");
+		renderer.getMediaStore().addWeakResource(res);
+		return res;
+	}
+
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		List<Long> folderIDs = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
 		StoreResource container = null;

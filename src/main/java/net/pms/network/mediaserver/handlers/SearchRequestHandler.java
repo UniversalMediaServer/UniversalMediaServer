@@ -79,6 +79,7 @@ public class SearchRequestHandler {
 			LOGGER.trace("upnp:class is {}", propertyValue);
 			if (propertyValue != null) {
 				propertyValue = propertyValue.toLowerCase();
+				// More specific types must be checked first
 				if (propertyValue.startsWith("object.item.audioitem")) {
 					return DbIdMediaType.TYPE_AUDIO;
 				} else if (propertyValue.startsWith("object.item.videoitem")) {
@@ -91,6 +92,8 @@ public class SearchRequestHandler {
 					return DbIdMediaType.TYPE_ALBUM;
 				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
 					return DbIdMediaType.TYPE_PLAYLIST;
+				} else if (propertyValue.startsWith("object.container")) {
+					return DbIdMediaType.TYPE_FOLDER;
 				}
 			}
 		}
@@ -174,6 +177,9 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST -> {
 				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			}
+			case TYPE_FOLDER -> {
+				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
+			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			}
@@ -212,6 +218,9 @@ public class SearchRequestHandler {
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
+			}
+			case TYPE_FOLDER -> {
+				return "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where ";
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
@@ -319,6 +328,9 @@ public class SearchRequestHandler {
 		if (lastIndex < searchCriteria.length()) {
 			sb.append(searchCriteria, lastIndex, searchCriteria.length());
 		}
+		if (requestType.equals(DbIdMediaType.TYPE_FOLDER)) {
+			sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+		}
 	}
 
 	/**
@@ -404,6 +416,9 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				return " F.FILENAME ";
 			}
+			case TYPE_FOLDER -> {
+				return " child.name ";
+			}
 			default -> {
 				// nothing to do
 			}
@@ -413,7 +428,7 @@ public class SearchRequestHandler {
 
 	private static void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST, TYPE_FOLDER -> {
 				sb.append(" 1=1 ");
 				return;
 			}
@@ -451,6 +466,9 @@ public class SearchRequestHandler {
 			}
 			case TYPE_PLAYLIST -> {
 				return Format.PLAYLIST;
+			}
+			case TYPE_FOLDER -> {
+				// do nothing, where not in the FILES table, but in STORE_IDS
 			}
 			default -> {
 				// nothing to do
@@ -549,6 +567,14 @@ public class SearchRequestHandler {
 										}
 									}
 								}
+								case TYPE_FOLDER -> {
+									if (filenameField != null) {
+										StoreResource res = DbIdResourceLocator.getLibraryResourceFolder(renderer, filenameField);
+										if (res != null) {
+											filesList.add(res);
+										}
+									}
+								}
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
@@ -573,8 +599,11 @@ public class SearchRequestHandler {
 
 	private static String extractDisplayName(ResultSet resultSet, DbIdMediaType type) throws SQLException {
 		switch (type) {
-			case TYPE_VIDEO, TYPE_PLAYLIST, TYPE_IMAGE, TYPE_FOLDER, TYPE_AUDIO -> {
+			case TYPE_VIDEO, TYPE_PLAYLIST, TYPE_IMAGE, TYPE_AUDIO -> {
 				return FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
+			}
+			case TYPE_FOLDER -> {
+				return resultSet.getString("name");
 			}
 			default -> {
 				// artificial field 'filename' of a person or similar type is

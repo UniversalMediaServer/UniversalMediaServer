@@ -50,7 +50,6 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String COL_PARENT_ID = "PARENT_ID";
 	private static final String COL_NAME = "NAME";
 	private static final String COL_OBJECT_TYPE = "OBJECT_TYPE";
-	private static final String COL_OBJECT_TYPE_REAL_FOLDER = "RealFolder";
 	private static final String COL_UPDATE_ID = "UPDATE_ID";
 
 	/**
@@ -68,7 +67,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_REAL_FILE_PARENT_FOLDER = "select child." + COL_UPDATE_ID + " as " + COL_UPDATE_ID + ", child." + COL_OBJECT_TYPE + " as " + COL_OBJECT_TYPE + ",  child." + COL_NAME + " as " + COL_NAME + ", child." + COL_ID + " as " + COL_ID + ", parent." + COL_ID + " as " + COL_PARENT_ID + " from STORE_IDS child, STORE_IDS parent where child.parent_id = parent.id and child.object_type = 'RealFile' and parent.object_type = 'RealFolder' and child." + COL_NAME + " = ?";
 	private static final String SQL_GET_ID_PLAYLIST_FOLDER = "select child." + COL_UPDATE_ID + " as " + COL_UPDATE_ID + ", child." + COL_OBJECT_TYPE + " as " + COL_OBJECT_TYPE + ",  child." + COL_NAME + " as " + COL_NAME + ", child." + COL_ID + " as " + COL_ID + ", parent." + COL_ID + " as " + COL_PARENT_ID + " from STORE_IDS child, STORE_IDS parent where child.parent_id = parent.id and child.object_type = 'PlaylistFolder' and parent.object_type = 'RealFolder' and child." + COL_NAME + " = ?";
-	private static final String SQL_GET_ID_REAL_FOLDER_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER + AND + COL_OBJECT_TYPE + EQUAL +  "'" + COL_OBJECT_TYPE_REAL_FOLDER + "'";
+	private static final String SQL_GET_ID_REAL_FOLDER = "select child." + COL_UPDATE_ID + " as " + COL_UPDATE_ID + ", child." + COL_OBJECT_TYPE + " as " + COL_OBJECT_TYPE + ",  child." + COL_NAME + " as " + COL_NAME + ", child." + COL_ID + " as " + COL_ID + ", parent." + COL_ID + " as " + COL_PARENT_ID + " from STORE_IDS child, STORE_IDS parent where child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder' and child." + COL_NAME + " = ?";
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
@@ -254,6 +253,15 @@ public class MediaTableStoreIds extends MediaTable {
 		return readMediaStoreIdForSql(connection, name, SQL_GET_ID_PLAYLIST_FOLDER);
 	}
 
+	/**
+	 * Get's MediaStoreId for Playlist
+	 * @param name	absolute path to playlist
+	 * @return
+	 */
+	public static MediaStoreId getMediaStoreIdForFolderResources(Connection connection, String name) {
+		return readMediaStoreIdForSql(connection, name, SQL_GET_ID_REAL_FOLDER);
+	}
+
 	public static MediaStoreId readMediaStoreIdForSql(Connection connection, String name, String sql) {
 		if (connection != null) {
 			try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -351,33 +359,5 @@ public class MediaTableStoreIds extends MediaTable {
 			systemUpdateId = UnsignedInteger.ZERO;
 		}
 		return systemUpdateId;
-	}
-
-	public static Long getMediaStoreIdForRealForlderName(String realFolderName) {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_REAL_FOLDER_NAME)) {
-					stmt.setString(1, realFolderName);
-					try (ResultSet elements = stmt.executeQuery()) {
-						if (elements.next()) {
-							Long folderId = elements.getLong(COL_ID);
-							return folderId;
-						} else {
-							LOGGER.trace("no folderID found for name : {}", realFolderName);
-							return null;
-						}
-					}
-				} catch (SQLException e) {
-					LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\": {}", realFolderName, e.getMessage());
-					LOGGER.trace("", e);
-					return null;
-				}
-			}
-		} finally {
-			MediaDatabase.close(connection);
-		}
-		return null;
 	}
 }

@@ -437,14 +437,8 @@ public class MediaStore extends StoreContainer {
 				// this is direct acceded resource.
 				// as we don't know what was it's parent, let find one or fail.
 				DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
-				List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeAndIdent.toString());
-				for (Long value : ids) {
-					StoreResource resource = getResource(value.toString());
-					if (resource != null) {
-						return resource;
-					}
-				}
-				return null;
+				StoreResource dbid = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
+				return dbid;
 			} catch (Exception e) {
 				LOGGER.error("", e);
 			}
