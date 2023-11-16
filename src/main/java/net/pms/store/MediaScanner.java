@@ -56,7 +56,7 @@ public class MediaScanner implements SharedContentListener {
 	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
 	private static final List<FileWatcher.Watch> MEDIA_FILEWATCHERS = new ArrayList<>();
 	private static final List<String> SHARED_FOLDERS = new ArrayList<>();
-	private static final Renderer renderer = MediaScannerDevice.getRenderer();
+	private static final Renderer RENDERER = MediaScannerDevice.getRenderer();
 	private static final MediaScanner INSTANCE = new MediaScanner();
 
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
@@ -93,7 +93,7 @@ public class MediaScanner implements SharedContentListener {
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					scan(renderer.getMediaStore());
+					scan(RENDERER.getMediaStore());
 					// Running might have been set false during scan
 					if (running) {
 						MediaTableFiles.cleanup(connection);
@@ -155,19 +155,19 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	private static void reset() {
-		renderer.getMediaStore().getChildren().clear();
-		renderer.getMediaStore().setDiscovered(false);
+		RENDERER.getMediaStore().getChildren().clear();
+		RENDERER.getMediaStore().setDiscovered(false);
 	}
 
 	private static void setSharedContent() {
-		if (renderer.getMediaStore().isDiscovered()) {
+		if (RENDERER.getMediaStore().isDiscovered()) {
 			return;
 		}
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
-				StoreResource realSystemFileResource = renderer.getMediaStore().createResourceFromFile(folder.getFile());
-				renderer.getMediaStore().addChild(realSystemFileResource);
+				StoreResource realSystemFileResource = RENDERER.getMediaStore().createResourceFromFile(folder.getFile());
+				RENDERER.getMediaStore().addChild(realSystemFileResource);
 			}
 		}
 	}
@@ -182,7 +182,7 @@ public class MediaScanner implements SharedContentListener {
 		} else {
 			Runnable scan = () -> {
 				try {
-					if (renderer != null) {
+					if (RENDERER != null) {
 						LOGGER.info("Media scan started");
 						long start = System.currentTimeMillis();
 						startScan();
@@ -217,7 +217,7 @@ public class MediaScanner implements SharedContentListener {
 	public static void backgroundScanFileOrFolder(String filename) {
 		if (!isMediaScanRunning()) {
 			Runnable scan = () -> {
-				if (renderer != null) {
+				if (RENDERER != null) {
 					scanFileOrFolder(filename);
 				}
 			};
@@ -242,11 +242,11 @@ public class MediaScanner implements SharedContentListener {
 			if (file.isFile()) {
 				file = file.getParentFile();
 			}
-			List<StoreResource> systemFileResources = renderer.getMediaStore().findSystemFileResources(file);
+			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			if (systemFileResources.isEmpty()) {
 				//not yet discovered ?
 				scanFileOrFolder(file.getParentFile().getAbsolutePath());
-				systemFileResources = renderer.getMediaStore().findSystemFileResources(file);
+				systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
@@ -306,7 +306,7 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	/**
-	 * Advise renderer for added file.
+	 * Advise RENDERER for added file.
 	 *
 	 * @param filename the file added
 	 */
@@ -344,10 +344,10 @@ public class MediaScanner implements SharedContentListener {
 			LOGGER.debug("File will not be parsed because it is not in a shared folder");
 			return false;
 		}
-		
+
 		scanFileOrFolder(file.getAbsolutePath());
 
-		StoreResource rf = renderer.getMediaStore().createResourceFromFile(file);
+		StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
 		if (rf != null) {
 			if (rf instanceof StoreItem storeItem) {
 				storeItem.resolveFormat();
