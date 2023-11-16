@@ -58,6 +58,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
 	private static final String TABLE_COL_PARENT_ID = TABLE_NAME + "." + COL_PARENT_ID;
 	private static final String TABLE_COL_NAME = TABLE_NAME + "." + COL_NAME;
+	private static final String TABLE_COL_OBJECT_TYPE = TABLE_NAME + "." + COL_OBJECT_TYPE;
 
 	/**
 	 * SQL Queries
@@ -65,6 +66,9 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_ID_TYPE = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
+	private static final String SQL_GET_ID_NAME_TYPE = SQL_GET_ID_NAME + AND + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
+	private static final String SQL_GET_ID_NAME_TYPE_PARENTTYPE = SQL_GET_ID_NAME_TYPE + AND + TABLE_COL_PARENT_ID + IN + "(" + SQL_GET_ID_TYPE + ")";
 	private static final String SQL_UPDATE_UPDATEID_ID = UPDATE + TABLE_NAME + SET + COL_UPDATE_ID + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 
 	/**
@@ -231,6 +235,47 @@ public class MediaTableStoreIds extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\": {}", name, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static List<Long> getMediaStoreIdsForName(Connection connection, String name, String objectType) {
+		List<Long> result = new ArrayList<>();
+		if (connection == null) {
+			return result;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_NAME_TYPE)) {
+			stmt.setString(1, name);
+			stmt.setString(2, objectType);
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					result.add(elements.getLong(COL_ID));
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\" with type \"{}\": {}", name, objectType, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return result;
+	}
+
+	public static List<Long> getMediaStoreIdsForName(Connection connection, String name, String objectType, String parentType) {
+		List<Long> result = new ArrayList<>();
+		if (connection == null) {
+			return result;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ID_NAME_TYPE_PARENTTYPE)) {
+			stmt.setString(1, name);
+			stmt.setString(2, objectType);
+			stmt.setString(3, parentType);
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					result.add(elements.getLong(COL_ID));
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for name \"{}\" with type \"{}\" and parent type \"{}\": {}", name, objectType, parentType, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return result;

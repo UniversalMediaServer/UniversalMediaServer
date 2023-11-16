@@ -283,7 +283,7 @@ public class PlaylistManager {
 
 		createNewEmptyPlaylistFile(newPlaylist);
 		checkPlaylistDirectoryConfiguration();
-		MediaScanner.scanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
+		MediaScanner.backgroundScanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
 	}
 
 	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {
