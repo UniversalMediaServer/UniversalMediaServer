@@ -486,7 +486,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	public String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = MediaStreamHandler.getServerThumbnailURL(renderer.getUUID(), getResourceId());
+		StringBuilder sb = MediaStreamHandler.getServerThumbnailURL(renderer.getUUID(), encode(getResourceId()));
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
 				sb.append("JPEG_RES").append(profile.getH()).append("x");
