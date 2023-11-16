@@ -181,17 +181,14 @@ public class DbIdResourceLocator {
 								LOGGER.trace(String.format("SQL AUDIO-ALBUM : %s", sql));
 							}
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
-								res = new VirtualFolderDbIdNamed(renderer, typeAndIdent.ident,
-										new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, typeAndIdent.ident));
-								res.setParent(parent);
-								res.setId(MediaStoreIds.getMediaStoreResourceId(res).toString());
 								while (resultSet.next()) {
 									StoreResource item = createResourceFromFile(
-											renderer,
-											new File(resultSet.getString("FILENAME")),
-											new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")));
-									((VirtualFolderDbId) res).addChild(item);
-									item.resolve();
+										renderer,
+										new File(resultSet.getString("FILENAME")),
+										new DbIdTypeAndIdent(DbIdMediaType.TYPE_AUDIO, resultSet.getString("ID")));
+								parent.addChild(item);
+								item.resolve();
+								renderer.getMediaStore().addWeakResource(item);
 								}
 							}
 						}

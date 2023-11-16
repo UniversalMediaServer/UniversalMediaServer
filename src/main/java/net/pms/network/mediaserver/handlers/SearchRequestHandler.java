@@ -521,8 +521,14 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, typeIdent));
+										DbIdTypeAndIdent ti = new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, filenameField);
+										StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, ti);
+										if (albumFolder == null) {
+											albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField, ti);
+											renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
+											renderer.getMediaStore().addWeakResource(albumFolder);
+										}
+										filesList.add(albumFolder);
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
 											StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer,
@@ -535,6 +541,7 @@ public class SearchRequestHandler {
 													resultSet.getString("genre"));
 												DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
 												renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
+												renderer.getMediaStore().addWeakResource(albumFolder);
 											}
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
