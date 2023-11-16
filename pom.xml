@@ -73,8 +73,8 @@
 
 		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<maven-javadoc-plugin-version>3.4.1</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>3.6.2</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>7.0.0</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.6.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.4.1</maven-enforcer-plugin-version>
 
@@ -804,8 +804,8 @@
 				See: https://github.com/ktoso/maven-git-commit-id-plugin
 			-->
 			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
 				<version>${git-commit-id-plugin-version}</version>
 				<executions>
 					<execution>
@@ -2886,10 +2886,10 @@
 										<pluginExecution>
 											<pluginExecutionFilter>
 												<groupId>
-													pl.project13.maven
+													io.github.git-commit-id
 												</groupId>
 												<artifactId>
-													git-commit-id-plugin
+													git-commit-id-maven-plugin
 												</artifactId>
 												<versionRange>
 													[${git-commit-id-plugin-version},)
