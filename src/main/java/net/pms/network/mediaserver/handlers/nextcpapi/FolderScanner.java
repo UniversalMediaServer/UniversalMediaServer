@@ -33,7 +33,7 @@ public class FolderScanner implements NextcpApiResponseHandler {
 		response.setStatusCode(204);
 		switch (uri) {
 			case "rescan" -> rescanMediaStore();
-			case "rescanFileOrFolder" -> MediaScanner.scanFileOrFolder(content);
+			case "rescanFileOrFolder" -> MediaScanner.backgroundScanFileOrFolder(content);
 			default -> {
 				LOGGER.warn("Invalid nextcp API call. Unknown path : " + uri);
 				response.setStatusCode(404);
