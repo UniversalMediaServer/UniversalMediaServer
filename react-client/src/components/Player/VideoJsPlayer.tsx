@@ -116,8 +116,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
       if (vpOptions.media.mime === 'application/x-mpegURL') {
         try {
-        (videoPlayer as any).hlsQualitySelector();
-        } catch { /* continue without hlsQualitySelector */ }
+          (videoPlayer as any).hlsQualitySelector();
+        } catch (error) {
+          videojs.log.warn(error);
+        }
       }
     };
 
