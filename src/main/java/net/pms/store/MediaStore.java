@@ -524,7 +524,7 @@ public class MediaStore extends StoreContainer {
 		weakResources.clear();
 	}
 
-	private synchronized List<StoreResource> findSystemFileResources(File file) {
+	public synchronized List<StoreResource> findSystemFileResources(File file) {
 		List<StoreResource> systemFileResources = new ArrayList<>();
 		for (WeakReference<StoreResource> resource : weakResources.values()) {
 			if (resource.get() instanceof SystemFileResource systemFileResource &&

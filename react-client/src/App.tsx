@@ -26,7 +26,7 @@ function App() {
 
   return (
     <DirectionProvider>
-      <ColorSchemeScript defaultColorScheme='dark' localStorageKey='mantine-color-scheme' />
+      <ColorSchemeScript defaultColorScheme='auto' localStorageKey='mantine-color-scheme' />
       <MantineProvider
         theme={{
           colors: {
@@ -34,7 +34,7 @@ function App() {
             'lightTransparent': ['rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)', 'rgba(255, 255, 255, 0.6)'],
           },
         }}
-        defaultColorScheme='dark'
+        defaultColorScheme='auto'
       >
         <Notifications autoClose={3000} />
         <UmsApp />

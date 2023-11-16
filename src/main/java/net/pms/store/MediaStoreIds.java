@@ -153,6 +153,41 @@ public class MediaStoreIds {
 		return ids;
 	}
 
+	public static List<Long> getMediaStoreIdsForName(String name, String objectType) {
+		List<Long> ids = new ArrayList<>();
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, name, objectType);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return ids;
+	}
+
+	public static List<Long> getMediaStoreIdsForName(String name, Class<StoreResource> storeResourceClass) {
+		return getMediaStoreIdsForName(name, storeResourceClass.getSimpleName());
+	}
+
+	public static List<Long> getMediaStoreIdsForName(String name, String objectType, String parentType) {
+		List<Long> ids = new ArrayList<>();
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, name, objectType, parentType);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return ids;
+	}
+
+	public static List<Long> getMediaStoreIdsForName(String name, Class<StoreResource> storeResourceClass, Class<StoreContainer> parentResourceClass) {
+		return getMediaStoreIdsForName(name, storeResourceClass.getSimpleName(), parentResourceClass.getSimpleName());
+	}
 
 	public static void incrementUpdateIdForFilename(Connection connection, String filename) {
 		List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, filename);
