@@ -79,6 +79,7 @@ public class DbIdResourceLocator {
 		parentRes.setId(realFileId.getParentId() + "");
 		res.setParent(parentRes);
 		res.setId(realFileId.getId() + "");
+		res.resolve();
 		renderer.getMediaStore().addWeakResource(res);
 		return res;
 	}
@@ -311,7 +312,10 @@ public class DbIdResourceLocator {
 								return parent;
 							}
 						}
-						default -> throw new RuntimeException("Unknown Type");
+						case TYPE_FOLDER -> {
+							return renderer.getMediaStore().getResource("0");
+						}
+						default -> throw new RuntimeException("Unknown Type : " + typeAndIdent);
 					}
 				}
 			} else {
