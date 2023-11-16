@@ -39,7 +39,6 @@ import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.StoreResource;
-import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -129,17 +128,15 @@ public class SearchRequestHandler {
 
 		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		UnattachedFolder folder = new UnattachedFolder(renderer, "SearchResult");
+		List<StoreResource> folder = new ArrayList<>();
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
-			folder.addChild(resource);
+			folder.add(resource);
 		}
-
-		folder.discoverChildren();
-		for (StoreResource uf : folder.getChildren()) {
-			numberReturned++;
-			uf.resolve();
-			uf.setFakeParentId("0");
+		for (StoreResource uf : folder) {
+//			numberReturned++;
+//			uf.resolve();
+//			uf.setFakeParentId("0");
 			dlnaItems.append(DidlHelper.getDidlString(uf));
 		}
 
