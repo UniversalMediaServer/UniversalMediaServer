@@ -5,6 +5,14 @@
 ### General
 - Use TMDB directly for faster and more accurate metadata lookups
 - Improved memory use bar on the web interface
+- Added ability for user accounts to have avatars
+- Improved selection of video quality on web player
+- Added ability to edit video metadata via web player
+- Added ability to specify your TMDB API key
+- Removed ability to disable the local cache
+- Improved drag and drop on Shared Content tab on web settings
+- Added ability to group content on Shared Content tab
+- Added ability to select and edit multiple shared contents
 
 ### Dependencies
 - Updated h2database to 2.2.224
