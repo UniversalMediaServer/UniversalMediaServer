@@ -59,6 +59,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}
 							}
+							case "Computer.Shutdown" -> {
+								if(account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {
+									PMS.get().shutdownComputer();
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
 							case "Server.ResetCache" -> {
 								if (account.havePermission(Permissions.SETTINGS_MODIFY)) {
 									MediaDatabase.initForce();

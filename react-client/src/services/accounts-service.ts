@@ -31,6 +31,7 @@ export const Permissions = {
   'server_restart': 1 << 20,
   'application_restart': 1 << 21,
   'application_shutdown': 1 << 21,
+  'computer_shutdown': 1 << 23,
   'web_player_browse': 1 << 25,
   'web_player_download': 1 << 26,
   'all': -1
