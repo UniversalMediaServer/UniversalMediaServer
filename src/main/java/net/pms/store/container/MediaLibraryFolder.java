@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.MediaTableTVSeries;
@@ -581,6 +582,24 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									}
 									i18nName = "Unknown";
 								}
+								case "ByArtist" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(COALESCE_ARTIST + EQUAL + "'${" + i + "}'", COALESCE_ARTIST + EQUAL + "''");
+									}
+									i18nName = "Unknown";
+								}
+								case "ByAlbum" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(MediaTableAudioMetadata.TABLE_COL_ALBUM + EQUAL + "'${" + i + "}'", MediaTableAudioMetadata.TABLE_COL_ALBUM + EQUAL + "''");
+									}
+									i18nName = "Unknown";
+								}
+								case "ByGenre" -> {
+									for (int i = 0; i < sqls2.length; i++) {
+										sqls2[i] = sqls2[i].replace(MediaTableAudioMetadata.TABLE_COL_GENRE + EQUAL + "'${" + i + "}'", MediaTableAudioMetadata.TABLE_COL_GENRE +  EQUAL + "''");
+									}
+									i18nName = "Unknown";
+								}
 								default -> {
 									//nothing to do
 								}
@@ -727,7 +746,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 * @param expectedOutput
 	 * @return whether any text output is expected (can be in addition to file output)
 	 */
-	private boolean isTextOutputExpected(int expectedOutput) {
+	private static boolean isTextOutputExpected(int expectedOutput) {
 		return expectedOutput == TEXTS ||
 			expectedOutput == TEXTS_NOSORT ||
 			expectedOutput == TEXTS_NOSORT_WITH_FILTERS ||
@@ -744,7 +763,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 * @param expectedOutput
 	 * @return whether any text output is expected (can be in addition to file output)
 	 */
-	private boolean isSortableOutputExpected(int expectedOutput) {
+	private static boolean isSortableOutputExpected(int expectedOutput) {
 		return expectedOutput != FILES_NOSORT &&
 			expectedOutput != TEXTS_NOSORT &&
 			expectedOutput != TEXTS_NOSORT_WITH_FILTERS &&

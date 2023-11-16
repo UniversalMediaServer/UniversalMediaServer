@@ -143,7 +143,7 @@ public class MediaTableStoreIds extends MediaTable {
 	 * @return the StoreId stored or created
 	 */
 	public static MediaStoreId getResourceMediaStoreId(Connection connection, StoreResource resource) {
-		if (connection == null || resource == null || resource.getParent() == null && resource.getParent().getLongId() != null) {
+		if (connection == null || resource == null || resource.getParent() == null || resource.getParent().getLongId() == null) {
 			return null;
 		}
 		long parentId = resource.getParent().getLongId();
