@@ -100,43 +100,54 @@ public class MediaStoreIds {
 		return mediaStoreIds;
 	}
 
+	/**
+	 * Should be used by queries for locating physical resources in the file system
+	 */
+	private static MediaStoreId getMediaStoreIdForRealResources(String name, String objectType, String parentType) {
+		if (name == null || objectType == null || parentType == null) {
+			LOGGER.debug("parameter is null;");
+			return null;
+		}
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				List<Long> ids = MediaTableStoreIds.getMediaStoreIdsForName(connection, name, objectType, parentType);
+				if (ids.size() > 0) {
+					if (ids.size() > 1) {
+						LOGGER.warn("physical file resource has more than one physical root. This should not happen.");
+					}
+					MediaStoreId id = MediaTableStoreIds.getMediaStoreId(connection, ids.get(0));
+					return id;
+				} else {
+					LOGGER.debug("resource not found. name : {} , objectType : {} , parentType : {}", name, objectType, parentType);
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
+	/**
+	 * Search for real files lying in real folders. This identifies a file resource from the physical file system.
+	 */
 	public static MediaStoreId getMediaStoreIdForRealResources(String name) {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				return MediaTableStoreIds.getMediaStoreIdForRealResources(connection, name);
-			}
-		} finally {
-			MediaDatabase.close(connection);
-		}
-		return null;
+		return getMediaStoreIdForRealResources(name, "RealFile", "RealFolder");
 	}
 
+	/**
+	 * Search for playlists lying in real folders. This identifies a playlist from the physical file system.
+	 */
 	public static MediaStoreId getMediaStoreIdForPlaylistResources(String name) {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				return MediaTableStoreIds.getMediaStoreIdForPlaylistResources(connection, name);
-			}
-		} finally {
-			MediaDatabase.close(connection);
-		}
-		return null;
+		return getMediaStoreIdForRealResources(name, "PlaylistFolder", "RealFolder");
 	}
 
+	/**
+	 * Search for real folders lying in real folders. This identifies a folder from the physical file system.
+	 */
 	public static MediaStoreId getMediaStoreIdForFolderResources(String name) {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				return MediaTableStoreIds.getMediaStoreIdForFolderResources(connection, name);
-			}
-		} finally {
-			MediaDatabase.close(connection);
-		}
-		return null;
+		return getMediaStoreIdForRealResources(name, "RealFolder", "RealFolder");
 	}
 
 	public static List<Long> getMediaStoreIdsForName(String name) {
