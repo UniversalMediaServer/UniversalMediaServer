@@ -449,11 +449,7 @@ public class MediaStore extends StoreContainer {
 		}
 		// only allow the last one here
 		String[] ids = objectId.split("\\.");
-		StoreResource resource = getWeakResource(ids[ids.length - 1]);
-		if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
-			resource = DbIdResourceLocator.locateResource(renderer, virtualFolderDbId);
-		}
-		return resource;
+		return getWeakResource(ids[ids.length - 1]);
 	}
 
 	private StoreResource getWeakResource(String objectId) {

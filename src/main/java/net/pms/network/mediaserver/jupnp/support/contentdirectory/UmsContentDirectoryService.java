@@ -34,7 +34,6 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
-import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
@@ -42,7 +41,6 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
-import net.pms.store.container.VirtualFolderDbId;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -519,19 +517,8 @@ public class UmsContentDirectoryService {
 
 			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 
-			VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""));
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-			for (StoreResource resource : SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
-				folder.addChild(resource);
-			}
-
-			folder.discoverChildren();
-			List<StoreResource> resultResources = new ArrayList<>();
-			for (StoreResource resource : folder.getChildren()) {
-				resource.resolve();
-				resource.setFakeParentId("0");
-				resultResources.add(resource);
-			}
+			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			String result;
