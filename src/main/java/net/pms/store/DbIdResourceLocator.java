@@ -110,7 +110,7 @@ public class DbIdResourceLocator {
 	}
 
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		List<Long> folderIDs = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
 			if (resource != null) {
