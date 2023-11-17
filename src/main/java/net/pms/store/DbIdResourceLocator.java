@@ -69,53 +69,56 @@ public class DbIdResourceLocator {
 
 	public static StoreResource getLibraryResourceRealFile(Renderer renderer, String realFileName) {
 		if (renderer.hasShareAccess(new File(realFileName))) {
-			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForRealResources(realFileName);
-			if (realFileId == null) {
-				LOGGER.error("{} not found as RealFile in database.", realFileName);
-				return null;
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "RealFile", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
 			}
-			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
-			return res;
+			LOGGER.error("{} not found as RealFile in database.", realFileName);
 		}
 		return null;
 	}
 
 	public static StoreResource getLibraryResourcePlaylist(Renderer renderer, String realFileName) {
 		if (renderer.hasShareAccess(new File(realFileName))) {
-			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForPlaylistResources(realFileName);
-			if (realFileId == null) {
-				LOGGER.error("{} not found as RealFolder in database.", realFileName);
-				return null;
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "PlaylistFolder", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
 			}
-			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
-			return res;
+			LOGGER.error("{} not found as PlaylistFolder in database.", realFileName);
 		}
 		return null;
 	}
 
 	public static StoreResource getLibraryResourceFolder(Renderer renderer, String realFolderName) {
 		if (renderer.hasShareAccess(new File(realFolderName))) {
-			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForFolderResources(realFolderName);
-			if (realFileId == null) {
-				LOGGER.error("{} not found as RealFolder in database.", realFolderName);
-				return null;
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFolderName, "RealFolder", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
 			}
-			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
-			return res;
+			LOGGER.error("{} not found as RealFolder in database.", realFolderName);
 		}
 		return null;
 	}
 
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		List<Long> folderIDs = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
-		StoreResource container = null;
-		if (folderIDs.size() > 0) {
-			container = renderer.getMediaStore().getResource(folderIDs.get(0).toString());
-			if (folderIDs.size() > 1) {
-				LOGGER.warn("Resource has more than one parent. Should not happen.");
+		for (Long id : ids) {
+			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+			if (resource != null) {
+				return resource;
 			}
 		}
-		return container;
+		LOGGER.error("{} not found as VirtualFolderDbId in database.", typeIdent.toString());
+		return null;
 	}
 
 	/**
