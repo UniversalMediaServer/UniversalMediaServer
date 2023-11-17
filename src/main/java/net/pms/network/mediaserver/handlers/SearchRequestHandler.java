@@ -23,6 +23,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
@@ -38,7 +39,10 @@ import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibraryFolder;
+import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -518,13 +522,19 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										DbIdTypeAndIdent ti = new DbIdTypeAndIdent(DbIdMediaType.TYPE_ALBUM, filenameField);
-										StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, ti);
-										if (albumFolder == null) {
-											albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField, ti);
-											renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
+										// Regular albums can be discovered in the media library
+										MediaLibraryFolder album = renderer.getMediaStore().getMediaLibrary().getAlbumFolder();
+										if (!album.isDiscovered()) {
+											album.discoverChildren();
 										}
-										filesList.add(albumFolder);
+										Optional<StoreResource> optional = album.getChildren().stream().filter(
+											sr -> filenameField.equals(sr.getDisplayName())).findFirst();
+										if (optional.isPresent()) {
+											StoreResource sr = optional.get();
+											filesList.add(sr);
+										} else {
+											LOGGER.error("album cannot be located in media library : " + filenameField);
+										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
 											StoreResource albumFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer,
@@ -536,7 +546,7 @@ public class SearchRequestHandler {
 													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
 													resultSet.getString("genre"));
 												DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
-												renderer.getMediaStore().getDbIdFolder().addChild(albumFolder);
+												renderer.getMediaStore().getMbidFolder().addChild(albumFolder);
 											}
 											filesList.add(albumFolder);
 											foundMbidAlbums.add(mbid);
@@ -545,10 +555,16 @@ public class SearchRequestHandler {
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-									StoreResource personFolder = DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeIdent);
+									StoreContainer personFolder = (StoreContainer) DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeIdent);
 									if (personFolder == null) {
 										personFolder = new VirtualFolderDbIdNamed(renderer, filenameField, typeIdent);
-										renderer.getMediaStore().getDbIdFolder().addChild(personFolder);
+										StoreResource allFiles = new VirtualFolderDbId(renderer, "AllFiles",
+											new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
+										StoreResource albums = new VirtualFolderDbId(renderer, "ByAlbum_lowercase",
+											new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
+										personFolder.addChild(allFiles);
+										personFolder.addChild(albums);
+										renderer.getMediaStore().getPersonFolder().addChild(personFolder);
 									}
 									if (personFolder != null) {
 										filesList.add(personFolder);

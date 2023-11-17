@@ -87,7 +87,8 @@ public class MediaStore extends StoreContainer {
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
 	private VirtualFolderDbId audioLikesFolder;
-	private VirtualFolderDbId nonVisibleDbIdFolder;
+	private VirtualFolderDbId mbidFolder;
+	private VirtualFolderDbId personFolder;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -160,7 +161,7 @@ public class MediaStore extends StoreContainer {
 		}
 
 		setAudioLikesFolder();
-		setDbidFolder();
+		setMbidPersonFolder();
 
 		if (mon != null) {
 			mon.clearChildren();
@@ -822,16 +823,25 @@ public class MediaStore extends StoreContainer {
 	}
 
 	/**
-	 * Root of DBID elements
+	 * MusicBrainz album folder
 	 * @return
 	 */
-	public VirtualFolderDbId getDbIdFolder() {
-		return nonVisibleDbIdFolder;
+	public VirtualFolderDbId getMbidFolder() {
+		return mbidFolder;
 	}
 
-	private void setDbidFolder() {
-		nonVisibleDbIdFolder = new VirtualFolderDbId(renderer, "DBID", new DbIdTypeAndIdent(DbIdMediaType.TYPE_FOLDER, null));
-		mediaLibrary.addChildInternal(nonVisibleDbIdFolder);
+	/**
+	 * Person root folder
+	 */
+	public VirtualFolderDbId getPersonFolder() {
+		return personFolder;
+	}
+
+	private void setMbidPersonFolder() {
+		mbidFolder = new VirtualFolderDbId(renderer, "BrowseByMusicBrainzAlbum", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, null));
+		personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
+		mediaLibrary.getAudioFolder().addChildInternal(mbidFolder);
+		mediaLibrary.getAudioFolder().addChildInternal(personFolder);
 	}
 
 	@Override

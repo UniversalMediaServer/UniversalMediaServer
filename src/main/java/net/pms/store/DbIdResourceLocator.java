@@ -37,6 +37,7 @@ import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -186,6 +187,9 @@ public class DbIdResourceLocator {
 							}
 						}
 						case TYPE_MUSICBRAINZ_RECORDID -> {
+							if (StringUtils.isAllBlank(typeAndIdent.ident)) {
+								return renderer.getMediaStore().getMbidFolder();
+							}
 							if (parent.isDiscovered()) {
 								return parent;
 							}
@@ -217,6 +221,8 @@ public class DbIdResourceLocator {
 										}
 									} while (resultSet.next());
 								}
+							} catch (Exception e) {
+								LOGGER.error("Error in SQL : " + sql, e);
 							}
 							parent.setDiscovered(true);
 							return parent;
@@ -267,12 +273,6 @@ public class DbIdResourceLocator {
 							}
 						}
 						case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
-							StoreResource allFiles = new VirtualFolderDbId(renderer, "AllFiles",
-									new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeAndIdent.ident));
-							StoreResource albums = new VirtualFolderDbId(renderer, "ByAlbum_lowercase",
-									new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeAndIdent.ident));
-							parent.addChild(allFiles);
-							parent.addChild(albums);
 							parent.setDiscovered(true);
 							return parent;
 						}
