@@ -67,20 +67,7 @@ public class DbIdResourceLocator {
 		}
 	}
 
-	private static StoreResource reconstructPath(Renderer renderer, String realFileName) {
-//		File file = new File(realFileName);
-//		res = renderer.getMediaStore().createResourceFromFile(file);
-//		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().getResource(realFileId.getParentId() + "");
-//		if (parentRes == null) {
-//			parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
-//			parentRes.setId(realFileId.getParentId() + "");
-//		}
-//		res.setParent(parentRes);
-//		res.resolve();
-		return null;
-	}
-
-	public static StoreResource getLibraryResourceByDBIDRealFile(Renderer renderer, String realFileName) {
+	public static StoreResource getLibraryResourceRealFile(Renderer renderer, String realFileName) {
 		if (renderer.hasShareAccess(new File(realFileName))) {
 			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForRealResources(realFileName);
 			if (realFileId == null) {
@@ -93,7 +80,7 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static StoreResource getLibraryResourceByPlaylist(Renderer renderer, String realFileName) {
+	public static StoreResource getLibraryResourcePlaylist(Renderer renderer, String realFileName) {
 		if (renderer.hasShareAccess(new File(realFileName))) {
 			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForPlaylistResources(realFileName);
 			if (realFileId == null) {

@@ -134,9 +134,6 @@ public class SearchRequestHandler {
 			folder.add(resource);
 		}
 		for (StoreResource uf : folder) {
-//			numberReturned++;
-//			uf.resolve();
-//			uf.setFakeParentId("0");
 			dlnaItems.append(DidlHelper.getDidlString(uf));
 		}
 
@@ -560,7 +557,7 @@ public class SearchRequestHandler {
 								case TYPE_PLAYLIST -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										StoreResource res = DbIdResourceLocator.getLibraryResourceByPlaylist(renderer, realFileName);
+										StoreResource res = DbIdResourceLocator.getLibraryResourcePlaylist(renderer, realFileName);
 										if (res != null) {
 											filesList.add(res);
 										}
@@ -577,7 +574,7 @@ public class SearchRequestHandler {
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										StoreResource res = DbIdResourceLocator.getLibraryResourceByDBIDRealFile(renderer, realFileName);
+										StoreResource res = DbIdResourceLocator.getLibraryResourceRealFile(renderer, realFileName);
 										if (res != null) {
 											filesList.add(res);
 										}
