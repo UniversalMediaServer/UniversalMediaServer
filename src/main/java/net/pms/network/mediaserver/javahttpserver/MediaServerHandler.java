@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -160,7 +161,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 			if (GET.equals(method) || HEAD.equals(method)) {
 				// Some clients escape the separators in their request: unescape them.
-				String id = requestData[2].replace("%24", "$");
+				String id = URLDecoder.decode(requestData[2], StandardCharsets.UTF_8);
 
 				// Get resource
 				StoreResource resource = renderer.getMediaStore().getResource(id);
