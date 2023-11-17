@@ -478,7 +478,7 @@ public class MediaStore extends StoreContainer {
 				if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
 					StoreResource resource = weakResources.get(libraryId.getId()).get();
 					if (resource instanceof StoreContainer container) {
-						container.discoverChildren();
+						container.discover(999, true, null, null);
 					}
 				}
 			}

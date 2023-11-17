@@ -88,11 +88,6 @@ public class DbIdResourceLocator {
 				return null;
 			}
 			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
-			if (res == null) {
-				LOGGER.debug("current renderer has not visited object yet. Reconstruct path.");
-
-				res = reconstructPath(renderer, realFileName);
-			}
 			return res;
 		}
 		return null;
