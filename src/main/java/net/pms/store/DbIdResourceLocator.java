@@ -67,53 +67,61 @@ public class DbIdResourceLocator {
 		}
 	}
 
+	private static StoreResource reconstructPath(Renderer renderer, String realFileName) {
+//		File file = new File(realFileName);
+//		res = renderer.getMediaStore().createResourceFromFile(file);
+//		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().getResource(realFileId.getParentId() + "");
+//		if (parentRes == null) {
+//			parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
+//			parentRes.setId(realFileId.getParentId() + "");
+//		}
+//		res.setParent(parentRes);
+//		res.resolve();
+		return null;
+	}
+
 	public static StoreResource getLibraryResourceByDBIDRealFile(Renderer renderer, String realFileName) {
-		MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForRealResources(realFileName);
-		if (realFileId == null) {
-			LOGGER.error("{} not found as RealFile in database.", realFileName);
-			return null;
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForRealResources(realFileName);
+			if (realFileId == null) {
+				LOGGER.error("{} not found as RealFile in database.", realFileName);
+				return null;
+			}
+			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
+			if (res == null) {
+				LOGGER.debug("current renderer has not visited object yet. Reconstruct path.");
+
+				res = reconstructPath(renderer, realFileName);
+			}
+			return res;
 		}
-		File file = new File(realFileName);
-		StoreResource res = renderer.getMediaStore().createResourceFromFile(file);
-		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
-		parentRes.setId(realFileId.getParentId() + "");
-		res.setParent(parentRes);
-		res.setId(realFileId.getId() + "");
-		res.resolve();
-		renderer.getMediaStore().addWeakResource(res);
-		return res;
+		return null;
 	}
 
 	public static StoreResource getLibraryResourceByPlaylist(Renderer renderer, String realFileName) {
-		MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForPlaylistResources(realFileName);
-		if (realFileId == null) {
-			LOGGER.error("{} not found as RealFile in database.", realFileName);
-			return null;
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForPlaylistResources(realFileName);
+			if (realFileId == null) {
+				LOGGER.error("{} not found as RealFolder in database.", realFileName);
+				return null;
+			}
+			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
+			return res;
 		}
-		File file = new File(realFileName);
-		StoreResource res = renderer.getMediaStore().createResourceFromFile(file);
-		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
-		parentRes.setId(realFileId.getParentId() + "");
-		res.setParent(parentRes);
-		res.setId(realFileId.getId() + "");
-		renderer.getMediaStore().addWeakResource(res);
-		return res;
+		return null;
 	}
 
 	public static StoreResource getLibraryResourceFolder(Renderer renderer, String realFolderName) {
-		MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForFolderResources(realFolderName);
-		if (realFileId == null) {
-			LOGGER.error("{} not found as RealFolder in database.", realFolderName);
-			return null;
+		if (renderer.hasShareAccess(new File(realFolderName))) {
+			MediaStoreId realFileId = MediaStoreIds.getMediaStoreIdForFolderResources(realFolderName);
+			if (realFileId == null) {
+				LOGGER.error("{} not found as RealFolder in database.", realFolderName);
+				return null;
+			}
+			StoreResource res = renderer.getMediaStore().getResource(realFileId.getId() + "");
+			return res;
 		}
-		File file = new File(realFolderName);
-		StoreResource res = renderer.getMediaStore().createResourceFromFile(file);
-		StoreContainer parentRes = (StoreContainer) renderer.getMediaStore().createResourceFromFile(file.getParentFile());
-		parentRes.setId(realFileId.getParentId() + "");
-		res.setParent(parentRes);
-		res.setId(realFileId.getId() + "");
-		renderer.getMediaStore().addWeakResource(res);
-		return res;
+		return null;
 	}
 
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
