@@ -241,14 +241,19 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	public String getServletPath() {
 		if (servletPath == null) {
 			String contextPath = getServletContext().getContext(getRequestURI()).getContextPath();
-			if ("/".equals(contextPath)) {
-				servletPath = exchange.getRequestURI().getPath();
+			if ("/*".equals(contextPath)) {
+				servletPath = "";
 			} else {
-				servletPath = contextPath;
+				servletPath = exchange.getRequestURI().getPath();
+				if (servletPath.startsWith(contextPath)) {
+					servletPath = servletPath.substring(contextPath.length());
+				}
+				if (!servletPath.startsWith("/")) {
+					servletPath = "/" + servletPath;
+				}
 			}
 		}
 		return servletPath;
-
 	}
 
 	@Override

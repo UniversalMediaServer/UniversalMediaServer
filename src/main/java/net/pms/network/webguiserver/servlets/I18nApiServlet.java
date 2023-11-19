@@ -42,7 +42,7 @@ public class I18nApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/" -> {
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);

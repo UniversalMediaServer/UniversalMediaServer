@@ -52,7 +52,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/accounts")) {
 				//get account list that the user can view/modify
 				Account account = AuthService.getAccountLoggedIn(req);
@@ -102,7 +102,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/action")) {
 				//action requested on account (create/modify)
 				Account account = AuthService.getAccountLoggedIn(req);

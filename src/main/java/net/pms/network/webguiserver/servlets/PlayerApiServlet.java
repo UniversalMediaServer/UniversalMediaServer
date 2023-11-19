@@ -93,7 +93,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				Account account = AuthService.getPlayerAccountLoggedIn(req);
 				if (account == null) {
@@ -213,7 +213,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				return;
 			}
 			renderer.setActive(true);
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/browse" -> {
 					if (action.has("id")) {

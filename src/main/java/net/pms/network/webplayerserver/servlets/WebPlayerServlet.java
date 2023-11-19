@@ -42,8 +42,8 @@ public class WebPlayerServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String uri = req.getServletPath() != null ? req.getServletPath().toLowerCase() : "/index.html";
-			if (uri.equals(BASE_PATH) || ROUTES.contains(uri) || uri.startsWith(PLAYER_BASE_PATH)) {
+			String uri = req.getServletPath() != null ? req.getServletPath().toLowerCase() : BASE_PATH;
+			if (uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
 				uri = "/index.html";
 			}
 			if (uri.startsWith("/static/")) {
