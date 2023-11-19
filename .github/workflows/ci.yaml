@@ -95,7 +95,7 @@ jobs:
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
-      }
+      )
     name: macOS Java tests
     runs-on: macos-13
     strategy:
@@ -131,7 +131,7 @@ jobs:
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
-      }
+      )
     name: Windows and lint
     runs-on: windows-latest
     steps:
@@ -163,7 +163,7 @@ jobs:
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
-      }
+      )
     name: Linux 20.04
     runs-on: ubuntu-20.04
     steps:
@@ -201,7 +201,7 @@ jobs:
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
-      }
+      )
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
