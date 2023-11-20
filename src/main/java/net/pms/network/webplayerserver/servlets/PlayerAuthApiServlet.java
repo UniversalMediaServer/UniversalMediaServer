@@ -19,11 +19,11 @@ package net.pms.network.webplayerserver.servlets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
@@ -46,7 +46,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/session" -> {
 					JsonObject jObject = new JsonObject();
@@ -72,7 +72,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/login" -> {
 					String loginDetails = WebGuiServletHelper.getBodyAsString(req);

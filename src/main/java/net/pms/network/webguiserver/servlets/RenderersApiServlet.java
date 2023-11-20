@@ -18,15 +18,15 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
@@ -50,7 +50,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("renderers", RendererItem.getRenderersAsJsonArray());
@@ -103,7 +103,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				WebGuiServletHelper.respondForbidden(req, resp);
 				return;
 			}
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/infos" -> {
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);

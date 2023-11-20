@@ -118,4 +118,5 @@ public abstract class WebGuiServer implements IGui {
 	public static WebGuiServer createServer(int port) throws IOException {
 		return WebGuiServerHttpServer.createServer(port);
 	}
+
 }

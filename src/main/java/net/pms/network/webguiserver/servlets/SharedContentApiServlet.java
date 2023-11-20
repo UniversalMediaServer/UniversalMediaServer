@@ -20,14 +20,14 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.sun.jna.Platform;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
@@ -56,7 +56,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req.getHeader("Authorization"), req.getRemoteAddr(), req.getRemoteAddr().equals(req.getLocalAddr()));
 				if (account == null) {
@@ -97,7 +97,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/" -> {
 					Account account = AuthService.getAccountLoggedIn(req);

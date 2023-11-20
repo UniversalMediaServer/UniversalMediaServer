@@ -19,6 +19,10 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -27,10 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -63,7 +63,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			var path = req.getPathInfo() != null ? req.getPathInfo() : "/";
+			var path = req.getServletPath() != null ? req.getServletPath() : "/";
 			switch (path) {
 				case "/" -> {
 					JsonObject result = new JsonObject();
@@ -119,7 +119,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/packer" -> {
 					if (dbgPacker == null) {
