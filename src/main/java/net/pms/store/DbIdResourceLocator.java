@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.List;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
@@ -64,6 +65,60 @@ public class DbIdResourceLocator {
 			LOGGER.warn("encode error", e);
 			return String.format("%s%s%s", DbIdMediaType.GENERAL_PREFIX, typeIdent.type.dbidPrefix, typeIdent.ident);
 		}
+	}
+
+	public static StoreResource getLibraryResourceRealFile(Renderer renderer, String realFileName) {
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "RealFile", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as RealFile in database.", realFileName);
+		}
+		return null;
+	}
+
+	public static StoreResource getLibraryResourcePlaylist(Renderer renderer, String realFileName) {
+		if (renderer.hasShareAccess(new File(realFileName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFileName, "PlaylistFolder", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as PlaylistFolder in database.", realFileName);
+		}
+		return null;
+	}
+
+	public static StoreResource getLibraryResourceFolder(Renderer renderer, String realFolderName) {
+		if (renderer.hasShareAccess(new File(realFolderName))) {
+			List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(realFolderName, "RealFolder", "RealFolder");
+			for (Long id : ids) {
+				StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+				if (resource != null) {
+					return resource;
+				}
+			}
+			LOGGER.error("{} not found as RealFolder in database.", realFolderName);
+		}
+		return null;
+	}
+
+	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString());
+		for (Long id : ids) {
+			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+			if (resource != null) {
+				return resource;
+			}
+		}
+		LOGGER.error("{} not found as VirtualFolderDbId in database.", typeIdent.toString());
+		return null;
 	}
 
 	/**

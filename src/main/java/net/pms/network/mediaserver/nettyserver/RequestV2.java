@@ -31,6 +31,7 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -341,7 +342,7 @@ public class RequestV2 extends HTTPResource {
 				if (requestData.length > 2) {
 					// Retrieve the StoreResource itself.
 					// Some clients escape the separators in their request: unescape them.
-					String id = requestData[2].replace("%24", "$");
+					String id = URLDecoder.decode(requestData[2], StandardCharsets.UTF_8);
 					// Get resource
 					resource = renderer.getMediaStore().getResource(id);
 				}
