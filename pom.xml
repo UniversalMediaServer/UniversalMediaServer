@@ -71,7 +71,7 @@
 
 		<binary-revision>180</binary-revision>
 
-		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.1.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>7.0.0</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.6.0</maven-assembly-plugin-version>
@@ -104,7 +104,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.15.3</jackson.version>
+		<jackson.version>2.16.0</jackson.version>
 
 		<surefire-version>3.2.2</surefire-version>
 
@@ -3580,7 +3580,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.12.4</version>
+								<version>10.12.5</version>
 							</dependency>
 						</dependencies>
 						<configuration>

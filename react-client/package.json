@@ -18,7 +18,7 @@
     "react-country-flag": "3.1.0",
     "react-dom": "18.2.0",
     "react-movable": "3.0.4",
-    "react-router-dom": "6.18.0",
+    "react-router-dom": "6.19.0",
     "tabler-icons-react": "1.56.0",
     "typescript": "5.2.2",
     "video.js": "8.6.1",
@@ -53,9 +53,9 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@4.0.1",
+  "packageManager": "yarn@4.0.2",
   "devDependencies": {
-    "@playwright/test": "1.39.0",
+    "@playwright/test": "1.40.0",
     "@testing-library/jest-dom": "6.1.4",
     "@testing-library/react": "14.1.0",
     "@testing-library/user-event": "14.5.1",
