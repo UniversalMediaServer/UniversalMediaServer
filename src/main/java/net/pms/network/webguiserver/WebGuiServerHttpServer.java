@@ -18,12 +18,12 @@ package net.pms.network.webguiserver;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.servlet.ServletException;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.AccountApiServlet;

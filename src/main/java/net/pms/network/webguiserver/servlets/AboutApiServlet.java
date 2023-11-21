@@ -18,10 +18,10 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
@@ -49,7 +49,7 @@ public class AboutApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.addProperty("app", PropertiesUtil.getProjectProperties().get("project.name"));

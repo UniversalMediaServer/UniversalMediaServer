@@ -18,11 +18,11 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Locale;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.network.webguiserver.GuiHttpServlet;
@@ -42,7 +42,7 @@ public class I18nApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/" -> {
 					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);

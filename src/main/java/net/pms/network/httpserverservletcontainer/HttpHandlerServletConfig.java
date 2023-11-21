@@ -17,14 +17,14 @@
 package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpContext;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.annotation.WebInitParam;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import org.apache.commons.lang3.StringUtils;
 
 public class HttpHandlerServletConfig implements ServletConfig {

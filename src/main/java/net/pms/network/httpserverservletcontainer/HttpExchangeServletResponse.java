@@ -17,15 +17,15 @@
 package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpExchange;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 public class HttpExchangeServletResponse implements HttpServletResponse, AutoCloseable {
 
@@ -144,7 +144,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 
 	@Override
 	public void addCookie(Cookie cookie) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -154,24 +154,12 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 
 	@Override
 	public String encodeURL(String url) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String encodeRedirectURL(String url) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	@Deprecated
-	public String encodeUrl(String url) {
-		return encodeURL(url);
-	}
-
-	@Override
-	@Deprecated
-	public String encodeRedirectUrl(String url) {
-		return encodeRedirectURL(url);
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -210,15 +198,6 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 	}
 
 	@Override
-	@Deprecated
-	public void setStatus(int sc, String sm) {
-		try {
-			sendError(sc, sm);
-		} catch (IOException ex) {
-		}
-	}
-
-	@Override
 	public int getStatus() {
 		return status;
 	}
@@ -253,7 +232,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (isCommitted()) {
 			throw new IllegalStateException("Response has been committed.");
 		}
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -266,7 +245,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (isCommitted()) {
 			throw new IllegalStateException("Response has been committed.");
 		}
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

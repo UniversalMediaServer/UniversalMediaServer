@@ -17,11 +17,11 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.SQLException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
@@ -43,7 +43,7 @@ public class ActionsApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
