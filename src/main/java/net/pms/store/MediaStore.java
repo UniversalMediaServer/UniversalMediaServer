@@ -55,6 +55,7 @@ import net.pms.store.container.ITunesLibrary;
 import net.pms.store.container.ImagesFeed;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaMonitor;
+import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.Playlist;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RarredFile;
@@ -445,11 +446,7 @@ public class MediaStore extends StoreContainer {
 		}
 		// only allow the last one here
 		String[] ids = objectId.split("\\.");
-		StoreResource resource = getWeakResource(ids[ids.length - 1]);
-		if (resource instanceof VirtualFolderDbId virtualFolderDbId) {
-			resource = DbIdResourceLocator.locateResource(renderer, virtualFolderDbId);
-		}
-		return resource;
+		return getWeakResource(ids[ids.length - 1]);
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -838,7 +835,7 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private void setMbidPersonFolder() {
-		mbidFolder = new VirtualFolderDbId(renderer, "BrowseByMusicBrainzAlbum", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, null));
+		mbidFolder = new MusicBrainzAlbumFolder(renderer, "BrowseByMusicBrainzAlbum", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, null));
 		personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
 		mediaLibrary.getAudioFolder().addChildInternal(mbidFolder);
 		mediaLibrary.getAudioFolder().addChildInternal(personFolder);
