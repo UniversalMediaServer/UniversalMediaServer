@@ -40,7 +40,7 @@ public abstract class AbstractNextcpApiHandler {
 	 * @param givenApiKey given API key from client
 	 * @return TRUE if keys match.
 	 */
-	protected static boolean validApiKeyPresent(String nextcpApiKey, String givenApiKey) {
+	public static boolean validApiKeyPresent(String nextcpApiKey, String givenApiKey) {
 		boolean result = true;
 		try {
 			byte[] givenApiKeyHash = DigestUtils.sha256(givenApiKey.getBytes(StandardCharsets.UTF_8));
@@ -57,7 +57,7 @@ public abstract class AbstractNextcpApiHandler {
 		}
 	}
 
-	protected static NextcpApiResponseHandler getApiResponseHandler(String apiType) {
+	public static NextcpApiResponseHandler getApiResponseHandler(String apiType) {
 		switch (apiType) {
 			case FolderScanner.PATH_MATCH -> {
 				return new FolderScanner();

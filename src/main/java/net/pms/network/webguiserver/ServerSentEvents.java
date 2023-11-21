@@ -40,6 +40,7 @@ public class ServerSentEvents implements IServerSentEvents {
 	public ServerSentEvents(AsyncContext context, Runnable callback) {
 		this.context = context;
 		this.callback = callback;
+		this.context.setTimeout(0);
 		try {
 			addEventStream(this.context.getResponse().getOutputStream());
 		} catch (IOException ex) {
