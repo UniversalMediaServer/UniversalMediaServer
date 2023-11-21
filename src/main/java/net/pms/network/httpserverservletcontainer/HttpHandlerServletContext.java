@@ -28,6 +28,7 @@ import jakarta.servlet.SessionCookieConfig;
 import jakarta.servlet.SessionTrackingMode;
 import jakarta.servlet.descriptor.JspConfigDescriptor;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -38,11 +39,14 @@ import java.util.Map;
 import java.util.Set;
 
 public class HttpHandlerServletContext implements ServletContext {
+
 	private final ClassLoader classLoader;
 	private final HttpContext context;
+	private final String name;
 
-	public HttpHandlerServletContext(HttpContext context, ClassLoader classLoader) {
+	public HttpHandlerServletContext(HttpContext context, String name, ClassLoader classLoader) {
 		this.context = context;
+		this.name = name;
 		this.classLoader = classLoader;
 	}
 
@@ -59,7 +63,7 @@ public class HttpHandlerServletContext implements ServletContext {
 
 	@Override
 	public int getMajorVersion() {
-		return 4;
+		return 6;
 	}
 
 	@Override
@@ -69,7 +73,7 @@ public class HttpHandlerServletContext implements ServletContext {
 
 	@Override
 	public int getEffectiveMajorVersion() {
-		return 4;
+		return 6;
 	}
 
 	@Override
@@ -80,10 +84,10 @@ public class HttpHandlerServletContext implements ServletContext {
 	@Override
 	public String getMimeType(String file) {
 		return file.endsWith(".html") ? "text/html" :
-		file.endsWith(".css") ? "text/css" :
-		file.endsWith(".js") ? "text/javascript" :
-		file.endsWith(".ttf") ? "font/truetype" :
-		URLConnection.guessContentTypeFromName(file);
+				file.endsWith(".css") ? "text/css" :
+				file.endsWith(".js") ? "text/javascript" :
+				file.endsWith(".ttf") ? "font/truetype" :
+				URLConnection.guessContentTypeFromName(file);
 	}
 
 	@Override
@@ -168,7 +172,7 @@ public class HttpHandlerServletContext implements ServletContext {
 
 	@Override
 	public String getServletContextName() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		return name;
 	}
 
 	@Override
@@ -273,7 +277,11 @@ public class HttpHandlerServletContext implements ServletContext {
 
 	@Override
 	public <T extends EventListener> T createListener(Class<T> clazz) throws ServletException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			return clazz.getDeclaredConstructor().newInstance();
+		} catch (IllegalAccessException | IllegalArgumentException | InstantiationException | NoSuchMethodException | SecurityException | InvocationTargetException e) {
+			throw new ServletException(e);
+		}
 	}
 
 	@Override

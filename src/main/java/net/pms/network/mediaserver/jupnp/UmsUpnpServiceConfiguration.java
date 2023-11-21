@@ -27,6 +27,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
+import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServletStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClients;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
@@ -124,6 +125,14 @@ public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration
 		switch (engineVersion) {
 			case 1, 5 -> {
 				return new JdkHttpServerStreamServer(
+						new UmsStreamServerConfiguration(
+								networkAddressFactory.getStreamListenPort(),
+								true
+						)
+				);
+			}
+			case 3 -> {
+				return new JdkHttpServletStreamServer(
 						new UmsStreamServerConfiguration(
 								networkAddressFactory.getStreamListenPort(),
 								true
