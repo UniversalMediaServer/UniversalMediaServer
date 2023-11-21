@@ -42,7 +42,6 @@ import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.PersonFolder;
-import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.SortCriterion;
@@ -532,11 +531,9 @@ public class SearchRequestHandler {
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											VirtualFolderDbId mbFolder = renderer.getMediaStore().getMbidFolder();
 											MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
 												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
 												resultSet.getString("genre"));
-											mbFolder.addChild(album);
 											result.add(album);
 											foundMbidAlbums.add(mbid);
 										}

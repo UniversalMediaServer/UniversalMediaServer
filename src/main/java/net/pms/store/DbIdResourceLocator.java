@@ -19,8 +19,10 @@ package net.pms.store;
 import java.io.File;
 import java.util.List;
 import net.pms.renderers.Renderer;
+import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.PersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
+import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,7 +76,7 @@ public class DbIdResourceLocator {
 				return (PersonFolder) resource;
 			}
 		}
-		LOGGER.error("Person '{}' not found in database.", typeIdent.ident);
+		LOGGER.info("Person '{}' not found in database.", typeIdent.ident);
 		return null;
 	}
 
@@ -87,34 +89,81 @@ public class DbIdResourceLocator {
 					return resource;
 				}
 			}
-			LOGGER.error("{} not found as RealFolder in database.", realFolderName);
+			LOGGER.info("{} not found as RealFolder in database.", realFolderName);
 		}
 		return null;
 	}
 
+	public static MusicBrainzAlbumFolder getLibraryResourceMusicBrainzAlbum(Renderer renderer, DbIdTypeAndIdent musicBrainzType) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(musicBrainzType.toString(), MusicBrainzAlbumFolder.class);
+		for (Long id : ids) {
+			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+			if (resource != null) {
+				return (MusicBrainzAlbumFolder) resource;
+			}
+		}
+		LOGGER.info("{} not found as MusicBrainzID in database.", musicBrainzType);
+		return null;
+	}
+
+	/**
+	 * Locates resources. We need to remember the path for each DBID resource.
+	 * @param renderer
+	 * @param typeIdent
+	 * @return
+	 */
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		switch (typeIdent.type) {
 			case TYPE_MUSICBRAINZ_RECORDID -> {
-				VirtualFolderDbId container = renderer.getMediaStore().getMbidFolder();
-				container.discoverChildren();
-				return container;
+				if (StringUtils.isAllBlank(typeIdent.ident)) {
+					return renderer.getMediaStore().getMbidFolder();
+				}
+				MusicBrainzAlbumFolder album = getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
+				if (album == null) {
+					album = new MusicBrainzAlbumFolder(renderer, typeIdent.ident, typeIdent);
+					renderer.getMediaStore().getMbidFolder().addChild(album);
+				}
+				return album;
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return renderer.getMediaStore().getPersonFolder();
 				}
-				PersonFolder personFolder = getLibraryResourcePersonFolder(renderer, typeIdent);
-				if (personFolder == null) {
-					personFolder = new PersonFolder(renderer, typeIdent.ident, typeIdent);
-					renderer.getMediaStore().getPersonFolder().addChild(personFolder);
+				PersonFolder person = getLibraryResourcePersonFolder(renderer, typeIdent);
+				if (person == null) {
+					person = new PersonFolder(renderer, typeIdent.ident, typeIdent);
+					renderer.getMediaStore().getMbidFolder().addChild(person);
 				}
-				return personFolder;
+				return person;
 			}
-			case TYPE_PERSON_ALBUM, TYPE_PERSON_ALL_FILES -> {
-				LOGGER.error("TYPE_PERSON_ALBUM, TYPE_PERSON_ALL_FILES are not stored in database.");
-				return null;
+			case TYPE_PERSON_ALBUM -> {
+				VirtualFolderDbId folder = getLibraryResourcePersonFolder(renderer, typeIdent);
+				if (folder == null) {
+					folder = new VirtualFolderDbIdNamed(renderer, "all albums by " + typeIdent.ident, typeIdent);
+				}
+				DbIdTypeAndIdent parentTypeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeIdent.ident);
+				VirtualFolderDbId parent = getLibraryResourcePersonFolder(renderer, parentTypeIdent);
+				parent.addChild(folder);
+				return folder;
+			}
+			case TYPE_PERSON_ALL_FILES -> {
+				VirtualFolderDbId folder = getLibraryResourcePersonFolder(renderer, typeIdent);
+				if (folder == null) {
+					folder = new VirtualFolderDbIdNamed(renderer, "all files by " + typeIdent.ident, typeIdent);
+				}
+				DbIdTypeAndIdent parentTypeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, typeIdent.ident);
+				VirtualFolderDbId parent = getLibraryResourcePersonFolder(renderer, parentTypeIdent);
+				parent.addChild(folder);
+				return folder;
+			}
+			case TYPE_PERSON_ALBUM_FILES -> {
+				VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "Album" + typeIdent.ident, typeIdent);
+				VirtualFolderDbId parent = getLibraryResourcePersonFolder(renderer, typeIdent);
+				folder.setParent(parent);
+				return folder;
 			}
 			case TYPE_MYMUSIC_ALBUM -> {
+				LOGGER.trace("Returning 'my music' folder");
 				return renderer.getMediaStore().getAudioLikesFolder();
 			}
 			default -> {

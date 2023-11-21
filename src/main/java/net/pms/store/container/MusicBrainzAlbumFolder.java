@@ -28,6 +28,10 @@ import net.pms.store.DbIdTypeAndIdent;
 
 public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 
+	public MusicBrainzAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		super(renderer, typeIdent);
+	}
+
 	public MusicBrainzAlbumFolder(Renderer renderer, String name, DbIdTypeAndIdent typeIdent) {
 		super(renderer, name, typeIdent);
 	}
