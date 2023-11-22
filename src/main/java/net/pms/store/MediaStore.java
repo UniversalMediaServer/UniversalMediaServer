@@ -480,7 +480,7 @@ public class MediaStore extends StoreContainer {
 				if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
 					StoreResource resource = weakResources.get(libraryId.getId()).get();
 					if (resource instanceof StoreContainer container) {
-						container.discover(0, 999, true, null, null);
+						container.discoverChildren();
 					}
 				}
 			}
@@ -567,7 +567,7 @@ public class MediaStore extends StoreContainer {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp")) {
+		if (objectId.contains("$Temp/")) {
 			List<StoreResource> items = getTemp().asList(objectId);
 			return items != null ? items : resources;
 		}
@@ -601,7 +601,7 @@ public class MediaStore extends StoreContainer {
 				}
 			} else {
 				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.discover(start, count, true, searchStr, lang);
+					storeContainer.discover(count, true, searchStr, lang);
 
 					if (count == 0) {
 						count = storeContainer.getChildren().size();
@@ -666,7 +666,7 @@ public class MediaStore extends StoreContainer {
 			}
 
 			if (resource instanceof StoreContainer storeContainer) {
-				storeContainer.discover(0, 0, false, null, lang);
+				storeContainer.discover(0, false, null, lang);
 			}
 		}
 
