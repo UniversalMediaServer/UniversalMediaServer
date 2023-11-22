@@ -530,18 +530,33 @@ public class SearchRequestHandler {
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
-												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
-												resultSet.getString("genre"));
-											result.add(album);
+											DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
+											StoreResource res = DbIdResourceLocator.getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
+											if (res != null) {
+												result.add(res);
+											} else {
+												//this will create an orphaned child
+												MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
+													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
+													resultSet.getString("genre"));
+												album.setId(album.getSystemName());
+												result.add(album);
+											}
 											foundMbidAlbums.add(mbid);
 										}
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-									MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
-									result.add(personFolder);
+									StoreResource res = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
+									if (res != null) {
+										result.add(res);
+									} else {
+										//this will create an orphaned child
+										MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
+										personFolder.setId(personFolder.getSystemName());
+										result.add(personFolder);
+									}
 								}
 								case TYPE_PLAYLIST -> {
 									String realFileName = resultSet.getString("FILENAME");
