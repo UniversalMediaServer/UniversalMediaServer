@@ -99,7 +99,7 @@ public class MediaStore extends StoreContainer {
 		super(renderer, "root", null);
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
-		dbIdLibrary = new DbIdLibrary(renderer);
+		dbIdLibrary = new DbIdLibrary(renderer, mediaLibrary);
 		setLongId(0);
 	}
 

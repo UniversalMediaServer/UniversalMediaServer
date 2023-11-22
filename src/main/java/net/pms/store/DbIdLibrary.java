@@ -38,9 +38,11 @@ public class DbIdLibrary {
 	private VirtualFolderDbId audioLikesFolder;
 	private VirtualFolderDbId mbidFolder;
 	private VirtualFolderDbId personFolder;
+	private MediaLibrary mediaLibrary;
 
-	public DbIdLibrary(Renderer renderer) {
+	public DbIdLibrary(Renderer renderer, MediaLibrary mediaLibrary) {
 		this.renderer = renderer;
+		this.mediaLibrary = mediaLibrary;
 		reset(new ArrayList<>());
 	}
 
@@ -71,7 +73,6 @@ public class DbIdLibrary {
 
 	private void addChildToMediaLibraryAudioFolder(VirtualFolderDbId dbIdFolder) {
 		if (renderer.getUmsConfiguration().isShowMediaLibraryFolder()) {
-			MediaLibrary mediaLibrary = renderer.getMediaStore().getMediaLibrary();
 			if (mediaLibrary != null &&
 					mediaLibrary.getAudioFolder() != null &&
 					mediaLibrary.getAudioFolder().getChildren() != null &&
