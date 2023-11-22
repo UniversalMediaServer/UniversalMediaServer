@@ -14,29 +14,25 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.httpserverservletcontainer;
+package net.pms.network.mediaserver.servlets;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import net.pms.network.HttpServletHelper;
 
-public class HttpHandlerServlet implements HttpHandler {
-
-	private final HttpServlet servlet;
-
-	public HttpHandlerServlet(HttpServlet servlet) {
-		this.servlet = servlet;
-	}
+/**
+ * @author Surf@ceS
+ */
+public class MediaServerHttpServlet extends HttpServletHelper {
 
 	@Override
-	public void handle(final HttpExchange exchange) throws IOException {
-		HttpExchangeServletRequest req = new HttpExchangeServletRequest(servlet, exchange);
-		try {
-			servlet.service(req, req.getServletResponse());
-		} catch (ServletException e) {
-			throw new IOException(e);
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		if (deny(req)) {
+			return;
 		}
+		super.service(req, resp);
 	}
+
 }

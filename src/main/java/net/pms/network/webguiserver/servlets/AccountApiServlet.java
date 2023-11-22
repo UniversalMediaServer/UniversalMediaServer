@@ -20,13 +20,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Base64;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
@@ -38,7 +38,6 @@ import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,12 +46,13 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "AccountApiServlet", urlPatterns = {"/v1/api/account"}, displayName = "Account Api Servlet")
 public class AccountApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AccountApiServlet.class);
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/accounts")) {
 				//get account list that the user can view/modify
 				Account account = AuthService.getAccountLoggedIn(req);
@@ -86,30 +86,30 @@ public class AccountApiServlet extends GuiHttpServlet {
 					jObject.add("groups", jGroups);
 					jObject.add("enabled", new JsonPrimitive(AuthService.isEnabled()));
 					jObject.add("localhost", new JsonPrimitive(AuthService.isLocalhostAsAdmin()));
-					WebGuiServletHelper.respond(req, resp, jObject.toString(), 200, "application/json");
+					respond(req, resp, jObject.toString(), 200, "application/json");
 				} else {
-					WebGuiServletHelper.respondUnauthorized(req, resp);
+					respondUnauthorized(req, resp);
 				}
 			} else {
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in AccountApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/action")) {
 				//action requested on account (create/modify)
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null) {
-					JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject action = getJsonObjectFromBody(req);
 					if (action == null || !action.has("operation") || !action.get("operation").isJsonPrimitive()) {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 						return;
 					}
 					String operation = action.get("operation").getAsString();
@@ -122,10 +122,10 @@ public class AccountApiServlet extends GuiHttpServlet {
 									if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setEnabled(enabled);
-										WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+										respond(req, resp, "{}", 200, "application/json");
 									} else {
 										LOGGER.trace("User '{}' try to change authentication service", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "localhost" -> {
@@ -133,10 +133,10 @@ public class AccountApiServlet extends GuiHttpServlet {
 									if (action.has("enabled") && account.havePermission(Permissions.SETTINGS_MODIFY)) {
 										boolean enabled = action.get("enabled").getAsBoolean();
 										AuthService.setLocalhostAsAdmin(enabled);
-										WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+										respond(req, resp, "{}", 200, "application/json");
 									} else {
 										LOGGER.trace("User '{}' try to change localhost auto admin", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "changelogin" -> {
@@ -155,13 +155,13 @@ public class AccountApiServlet extends GuiHttpServlet {
 										//user changing his own password or have permissions to
 										if (clUserId == account.getUser().getId() || account.havePermission(Permissions.USERS_MANAGE)) {
 											AccountService.updateLogin(connection, clUserId, clUsername, clPassword);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 										} else {
 											LOGGER.trace("User '{}' try to change password for user id: {}", account.toString(), clUserId);
-											WebGuiServletHelper.respondForbidden(req, resp);
+											respondForbidden(req, resp);
 										}
 									} else {
-										WebGuiServletHelper.respondBadRequest(req, resp);
+										respondBadRequest(req, resp);
 									}
 								}
 								case "createuser" -> {
@@ -188,14 +188,14 @@ public class AccountApiServlet extends GuiHttpServlet {
 												cuGroupId = 0;
 											}
 											AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setUpdateAccounts();
 										} else {
-											WebGuiServletHelper.respondBadRequest(req, resp);
+											respondBadRequest(req, resp);
 										}
 									} else {
 										LOGGER.trace("User '{}' try to create a user", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "modifyuser" -> {
@@ -252,26 +252,26 @@ public class AccountApiServlet extends GuiHttpServlet {
 													} else {
 														//request only a group change, send a 403
 														LOGGER.trace("User '{}' try to modify group of user id: {}", account.toString(), muUserId);
-														WebGuiServletHelper.respondForbidden(req, resp);
+														respondForbidden(req, resp);
 														//don't forget to close the db
 														UserDatabase.close(connection);
 														return;
 													}
 												}
 												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode, muLibraryHidden);
-												WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+												respond(req, resp, "{}", 200, "application/json");
 												SseApiServlet.setRefreshSession(muUserId);
 												SseApiServlet.setUpdateAccounts();
 											} else {
 												//user does not exists
-												WebGuiServletHelper.respondBadRequest(req, resp);
+												respondBadRequest(req, resp);
 											}
 										} else {
 											LOGGER.trace("User '{}' try to modify account of user id {}", account.toString(), muUserId);
-											WebGuiServletHelper.respondForbidden(req, resp);
+											respondForbidden(req, resp);
 										}
 									} else {
-										WebGuiServletHelper.respondBadRequest(req, resp);
+										respondBadRequest(req, resp);
 									}
 								}
 								case "deleteuser" -> {
@@ -280,15 +280,15 @@ public class AccountApiServlet extends GuiHttpServlet {
 										int duUserId = action.get("userid").getAsInt();
 										if (account.havePermission(Permissions.USERS_MANAGE)) {
 											AccountService.deleteUser(connection, duUserId);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setRefreshSession(duUserId);
 											SseApiServlet.setUpdateAccounts();
 										} else {
 											LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
-											WebGuiServletHelper.respondForbidden(req, resp);
+											respondForbidden(req, resp);
 										}
 									} else {
-										WebGuiServletHelper.respondBadRequest(req, resp);
+										respondBadRequest(req, resp);
 									}
 								}
 								case "creategroup" -> {
@@ -297,14 +297,14 @@ public class AccountApiServlet extends GuiHttpServlet {
 										if (action.has("name")) {
 											String cgName = action.get("name").getAsString();
 											AccountService.createGroup(connection, cgName, 0);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setUpdateAccounts();
 										} else {
-											WebGuiServletHelper.respondBadRequest(req, resp);
+											respondBadRequest(req, resp);
 										}
 									} else {
 										LOGGER.trace("User '{}' try to create a group", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "modifygroup" -> {
@@ -315,15 +315,15 @@ public class AccountApiServlet extends GuiHttpServlet {
 											String mgName = action.get("name").getAsString();
 											List<Integer> userIds = AccountService.getUserIdsForGroup(mgGroupId);
 											AccountService.updateGroup(connection, mgGroupId, mgName);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setRefreshSessions(userIds);
 											SseApiServlet.setUpdateAccounts();
 										} else {
-											WebGuiServletHelper.respondBadRequest(req, resp);
+											respondBadRequest(req, resp);
 										}
 									} else {
 										LOGGER.trace("User '{}' try to modify a group", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "deletegroup" -> {
@@ -333,15 +333,15 @@ public class AccountApiServlet extends GuiHttpServlet {
 											int dgGroupId = action.get("groupid").getAsInt();
 											List<Integer> userIds = AccountService.getUserIdsForGroup(dgGroupId);
 											AccountService.deleteGroup(connection, dgGroupId);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setRefreshSessions(userIds);
 											SseApiServlet.setUpdateAccounts();
 										} else {
-											WebGuiServletHelper.respondBadRequest(req, resp);
+											respondBadRequest(req, resp);
 										}
 									} else {
 										LOGGER.trace("User '{}' try to delete a group", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
 								case "updatepermission" -> {
@@ -352,36 +352,37 @@ public class AccountApiServlet extends GuiHttpServlet {
 											int upPermissions = action.get("permissions").getAsInt();
 											List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
 											AccountService.updatePermissions(connection, upGroupId, upPermissions);
-											WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+											respond(req, resp, "{}", 200, "application/json");
 											SseApiServlet.setRefreshSessions(userIds);
 											SseApiServlet.setUpdateAccounts();
 										} else {
-											WebGuiServletHelper.respondBadRequest(req, resp);
+											respondBadRequest(req, resp);
 										}
 									} else {
 										LOGGER.trace("User '{}' try to update permissions", account.toString());
-										WebGuiServletHelper.respondForbidden(req, resp);
+										respondForbidden(req, resp);
 									}
 								}
-								default -> WebGuiServletHelper.respondBadRequest(req, resp, "Operation not configured");
+								default ->
+									respondBadRequest(req, resp, "Operation not configured");
 							}
 							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
-							WebGuiServletHelper.respondInternalServerError(req, resp, "User database not available");
+							respondInternalServerError(req, resp, "User database not available");
 						}
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				} else {
-					WebGuiServletHelper.respondUnauthorized(req, resp);
+					respondUnauthorized(req, resp);
 				}
 			} else {
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in AccountApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 

@@ -19,6 +19,10 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -26,14 +30,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
@@ -59,7 +58,6 @@ import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
@@ -88,24 +86,23 @@ import org.slf4j.LoggerFactory;
 public class PlayerApiServlet extends GuiHttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerApiServlet.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				Account account = AuthService.getPlayerAccountLoggedIn(req);
 				if (account == null) {
-					WebGuiServletHelper.respondUnauthorized(req, resp);
+					respondUnauthorized(req, resp);
 					return;
 				}
 				if (!account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-					WebGuiServletHelper.respondForbidden(req, resp);
+					respondForbidden(req, resp);
 					return;
 				}
 				String uuid = ConnectedRenderers.getRandomUUID();
-				WebGuiServletHelper.respond(req, resp, "{\"uuid\":\"" + uuid + "\"}", 200, "application/json");
+				respond(req, resp, "{\"uuid\":\"" + uuid + "\"}", 200, "application/json");
 			} else if (path.startsWith("/sse/")) {
 				String[] sseData = path.split("/");
 				if (sseData.length == 3) {
@@ -130,7 +127,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 			} else if (path.startsWith("/thumb/")) {
 				String[] thumbData = path.split("/");
 				if (thumbData.length == 4) {
@@ -146,12 +143,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							resp.setStatus(200);
 							resp.setContentLengthLong(thumb.getSize());
 							OutputStream os = resp.getOutputStream();
-							WebGuiServletHelper.copyStreamAsync(thumb, os, async);
+							copyStreamAsync(thumb, os, async);
 							return;
 						}
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 			} else if (path.startsWith("/image/")) {
 				String[] imageData = path.split("/");
 				if (imageData.length == 4) {
@@ -160,7 +157,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 			} else if (path.startsWith("/raw/")) {
 				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
@@ -169,7 +166,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 			} else if (path.startsWith("/download/")) {
 				String[] rawData = path.split("/");
 				if (rawData.length == 4) {
@@ -178,42 +175,42 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						return;
 					}
 				}
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 			} else if (path.startsWith("/media/")) {
 				if (!sendMedia(req, resp, path)) {
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 			} else {
 				LOGGER.trace("PlayerApiServlet request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in PlayerApiServlet: {}", e.getMessage());
 			LOGGER.trace("{}", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			JsonObject action = WebGuiServletHelper.getJsonObjectFromBody(req);
+			JsonObject action = getJsonObjectFromBody(req);
 			if (!action.has("uuid")) {
-				WebGuiServletHelper.respondBadRequest(req, resp);
+				respondBadRequest(req, resp);
 				return;
 			}
 			String uuid = action.get("uuid").getAsString();
 			WebGuiRenderer renderer = getRenderer(req, uuid);
 			if (renderer == null) {
-				WebGuiServletHelper.respondUnauthorized(req, resp);
+				respondUnauthorized(req, resp);
 				return;
 			}
 			if (!renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-				WebGuiServletHelper.respondForbidden(req, resp);
+				respondForbidden(req, resp);
 				return;
 			}
 			renderer.setActive(true);
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/browse" -> {
 					if (action.has("id")) {
@@ -222,15 +219,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
 						JsonObject browse = getBrowsePage(renderer, id, search, lang);
 						if (browse != null) {
-							WebGuiServletHelper.respond(req, resp, browse.toString(), 200, "application/json");
+							respond(req, resp, browse.toString(), 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/logout" -> {
 					ConnectedRenderers.removeWebPlayerRenderer(uuid);
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/play" -> {
 					if (action.has("id")) {
@@ -238,32 +235,32 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
 						JsonObject play = getPlayPage(renderer, id, lang);
 						if (play != null) {
-							WebGuiServletHelper.respond(req, resp, play.toString(), 200, "application/json");
+							respond(req, resp, play.toString(), 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/edit" -> {
 					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 					} else if (!TMDB.isReady()) {
-						WebGuiServletHelper.respondNotFound(req, resp);
+						respondNotFound(req, resp);
 					} else if (action.has("id")) {
 						String id = action.get("id").getAsString();
 						JsonObject edit = getEditData(renderer, id);
 						if (edit != null) {
-							WebGuiServletHelper.respond(req, resp, edit.toString(), 200, "application/json");
+							respond(req, resp, edit.toString(), 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/findMetadata" -> {
 					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 					} else if (!TMDB.isReady()) {
-						WebGuiServletHelper.respondNotFound(req, resp);
+						respondNotFound(req, resp);
 					} else if (action.has("id") && !action.get("id").isJsonNull() &&
 						action.has("media_type") && !action.get("media_type").isJsonNull() &&
 						action.has("search") && !action.get("search").isJsonNull()) {
@@ -274,17 +271,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						String lang = action.has("lang") && !action.get("lang").isJsonNull() ? action.get("lang").getAsString() : null;
 						JsonArray editResults = getMetadataResults(renderer, id, mediaType, search, year, lang);
 						if (editResults != null) {
-							WebGuiServletHelper.respond(req, resp, editResults.toString(), 200, "application/json");
+							respond(req, resp, editResults.toString(), 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/setMetadata" -> {
 					if (!renderer.havePermission(Permissions.WEB_PLAYER_EDIT)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 					} else if (!TMDB.isReady()) {
-						WebGuiServletHelper.respondNotFound(req, resp);
+						respondNotFound(req, resp);
 					} else if (action.has("id") && !action.get("id").isJsonNull() &&
 						action.has("tmdb_id") && !action.get("tmdb_id").isJsonNull() &&
 						action.has("media_type") && !action.get("media_type").isJsonNull()) {
@@ -295,11 +292,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						//Long season = action.has("season") && !action.get("season").isJsonNull() ? action.get("season").getAsLong() : null;
 						boolean changed = setMetadata(renderer, id, tmdbId, mediaType);
 						if (changed) {
-							WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+							respond(req, resp, "{}", 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/show" -> {
 					if (action.has("id")) {
@@ -307,32 +304,32 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						String lang = action.has("lang") ? action.get("lang").getAsString() : null;
 						JsonObject show = getShowPage(renderer, id, lang);
 						if (show != null) {
-							WebGuiServletHelper.respond(req, resp, show.toString(), 200, "application/json");
+							respond(req, resp, show.toString(), 200, "application/json");
 							return;
 						}
 					}
-					WebGuiServletHelper.respondBadRequest(req, resp);
+					respondBadRequest(req, resp);
 				}
 				case "/status" -> {
 					if (action.has("uuid")) {
 						((WebGuiPlayer) renderer.getPlayer()).setDataFromJson(action.toString());
-						WebGuiServletHelper.respond(req, resp, "", 200, "application/json");
+						respond(req, resp, "", 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				default -> {
 					LOGGER.trace("PlayerApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("Exception in PlayerApiServlet: {}", e.getMessage());
 			LOGGER.trace("{}", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		} catch (InterruptedException e) {
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 			Thread.currentThread().interrupt();
 		}
 	}
@@ -363,9 +360,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			LOGGER.info("Founded new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
-			String langs = WebGuiServletHelper.getLangs(req);
+			String langs = getRequestLanguages(req);
 			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
-			renderer.associateIP(WebGuiServletHelper.getInetAddress(req.getRemoteAddr()));
+			renderer.associateIP(getInetAddress(req));
 			renderer.setActive(true);
 			ConnectedRenderers.addWebPlayerRenderer(renderer);
 			LOGGER.debug("Created web gui renderer for " + renderer.getRendererName());
@@ -963,11 +960,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					resp.setContentLength(in.available());
 				}
 				if (LOGGER.isTraceEnabled()) {
-					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+					logHttpServletResponse(req, resp, null, true);
 				}
 				OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
 				LOGGER.debug("start raw dump");
-				WebGuiServletHelper.copyStreamAsync(in, os, async);
+				copyStreamAsync(in, os, async);
 			} else {
 				resp.setStatus(500);
 				resp.setContentLength(0);
@@ -1005,11 +1002,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			resp.setContentLengthLong(media.length());
 			InputStream in = item.getInputStream();
 			if (LOGGER.isTraceEnabled()) {
-				WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+				logHttpServletResponse(req, resp, null, true);
 			}
 			AsyncContext async = req.startAsync();
 			OutputStream os = resp.getOutputStream();
-			WebGuiServletHelper.copyStreamAsync(in, os, async);
+			copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
 			return false;
 		}
@@ -1081,10 +1078,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					resp.setContentLength(in.available());
 				}
 				if (LOGGER.isTraceEnabled()) {
-					WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+					logHttpServletResponse(req, resp, null, true);
 				}
 				OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-				WebGuiServletHelper.copyStreamAsync(in, os, async);
+				copyStreamAsync(in, os, async);
 			} else {
 				resp.setStatus(500);
 				resp.setContentLength(0);
@@ -1154,16 +1151,16 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resp.setHeader("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = HlsHelper.getChaptersWebVtt(item);
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
+					respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
 					String response = HlsHelper.getChaptersHls(item);
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
+					respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
 					if (rawData[5].endsWith(".m3u8")) {
 						String rendition = rawData[5];
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
-						WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getContextPath() + "/media/" + sessionId + "/", rendition);
+						respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						AsyncContext async = req.startAsync();
@@ -1180,10 +1177,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 							resp.setStatus(200);
 							renderer.start(item);
 							if (LOGGER.isTraceEnabled()) {
-								WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+								logHttpServletResponse(req, resp, null, true);
 							}
 							OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-							WebGuiServletHelper.copyStreamAsync(in, os, async);
+							copyStreamAsync(in, os, async);
 						} else {
 							resp.setStatus(500);
 							resp.setContentLength(0);
@@ -1191,8 +1188,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						}
 					}
 				} else {
-					String response = HlsHelper.getHLSm3u8(item, renderer, req.getServletPath() + "/media/" + sessionId + "/");
-					WebGuiServletHelper.respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
+					String response = HlsHelper.getHLSm3u8(item, renderer, req.getContextPath() + "/media/" + sessionId + "/");
+					respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
 				AsyncContext async = req.startAsync();
@@ -1221,14 +1218,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						resp.setStatus(200);
 					}
 					if (LOGGER.isTraceEnabled()) {
-						WebGuiServletHelper.logHttpServletResponse(req, resp, null, in);
+						logHttpServletResponse(req, resp, null, true);
 					}
 					renderer.start(item);
 					if (sid != null) {
 						item.setMediaSubtitle(sid);
 					}
 					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-					WebGuiServletHelper.copyStreamAsync(in, os, async);
+					copyStreamAsync(in, os, async);
 				} else {
 					resp.setStatus(500);
 					resp.setContentLength(0);

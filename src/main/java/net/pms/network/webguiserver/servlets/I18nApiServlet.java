@@ -18,15 +18,14 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Locale;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.Languages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,18 +35,19 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "I18nApiServlet", urlPatterns = {"/v1/api/i18n"}, displayName = "I18n Api Servlet")
 public class I18nApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(I18nApiServlet.class);
 	private static final String LANGUAGE_MEMBER_NAME = "language";
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/" -> {
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					if (post == null || !post.has(LANGUAGE_MEMBER_NAME) || !post.get(LANGUAGE_MEMBER_NAME).isJsonPrimitive()) {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 						return;
 					}
 					Locale locale = Languages.toLocale(post.get(LANGUAGE_MEMBER_NAME).getAsString());
@@ -58,16 +58,16 @@ public class I18nApiServlet extends GuiHttpServlet {
 					i18n.add("i18n", Messages.getStringsAsJsonObject(locale));
 					i18n.add("languages", Languages.getLanguagesAsJsonArray(locale));
 					i18n.add("isRtl", new JsonPrimitive(Languages.getLanguageIsRtl(locale)));
-					WebGuiServletHelper.respond(req, resp, i18n.toString(), 200, "application/json");
+					respond(req, resp, i18n.toString(), 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("I18nApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in I18nApiServlet.doPost(): {}", e.getMessage());

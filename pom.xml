@@ -69,7 +69,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>180</binary-revision>
+		<binary-revision>181</binary-revision>
 
 		<exec-maven-plugin-version>3.1.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -648,7 +648,7 @@
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
-			<version>4.0.4</version>
+			<version>6.0.0</version>
 			<type>jar</type>
 		</dependency>
 		<dependency>

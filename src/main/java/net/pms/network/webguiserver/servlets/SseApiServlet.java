@@ -17,6 +17,10 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -25,10 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
@@ -36,13 +36,13 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.ServerSentEvents;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "SseApiServlet", urlPatterns = {"/v1/api/sse"}, displayName = "Sse Api Servlet")
 public class SseApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
 	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
 	private static final List<ServerSentEvents> SSE_ABOUT_INSTANCES = new ArrayList<>();
@@ -51,17 +51,15 @@ public class SseApiServlet extends GuiHttpServlet {
 	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
 	private static final List<ServerSentEvents> SSE_SHARED_INSTANCES = new ArrayList<>();
 
-	public static final String BASE_PATH = "/v1/api/sse";
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path == null || path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req);
 				if (account != null && account.getUser().getId() > 0) {
 					String sseType = null;
-					URI referer = WebGuiServletHelper.getRequestReferer(req);
+					URI referer = getRequestReferer(req);
 					if (referer != null) {
 						sseType = referer.getPath();
 					}
@@ -74,14 +72,14 @@ public class SseApiServlet extends GuiHttpServlet {
 					ServerSentEvents sse = new ServerSentEvents(async);
 					addServerSentEventsFor(account.getUser().getId(), sse, sseType);
 				} else {
-					WebGuiServletHelper.respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
+					respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
 				}
 			} else {
-				WebGuiServletHelper.respond(req, resp, "{}", 404, "application/json");
+				respond(req, resp, "{}", 404, "application/json");
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in SseApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respond(req, resp, null, 500, "application/json");
+			respond(req, resp, null, 500, "application/json");
 		}
 	}
 
@@ -154,6 +152,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to all Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastMessage(String message) {
@@ -162,6 +161,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to settings page Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastSettingsMessage(String message) {
@@ -179,6 +179,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to settings page Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastSharedMessage(String message) {
@@ -196,6 +197,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to about page Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastAboutMessage(String message) {
@@ -213,6 +215,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to home page Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastHomeMessage(String message) {
@@ -230,6 +233,7 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	/**
 	 * Broadcast a message to logs page Server Sent Events Streams
+	 *
 	 * @param message
 	 */
 	public static void broadcastLogsMessage(String message) {
@@ -266,8 +270,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	}
 
 	/**
-	 * Broadcast a message to all Server Sent Events Streams if account
-	 * have the requested permission.
+	 * Broadcast a message to all Server Sent Events Streams if account have the
+	 * requested permission.
+	 *
 	 * @param message
 	 * @param permission
 	 */
@@ -296,6 +301,7 @@ public class SseApiServlet extends GuiHttpServlet {
 	/**
 	 * Broadcast a message to all Server Sent Events Streams to a specific
 	 * account.
+	 *
 	 * @param message
 	 * @param id
 	 */

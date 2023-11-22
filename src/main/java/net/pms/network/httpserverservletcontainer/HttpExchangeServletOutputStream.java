@@ -16,10 +16,10 @@
  */
 package net.pms.network.httpserverservletcontainer;
 
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 import java.io.IOException;
 import java.io.OutputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
 
 public class HttpExchangeServletOutputStream extends ServletOutputStream {
 	private final OutputStream os;
@@ -35,7 +35,7 @@ public class HttpExchangeServletOutputStream extends ServletOutputStream {
 
 	@Override
 	public void setWriteListener(WriteListener writeListener) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

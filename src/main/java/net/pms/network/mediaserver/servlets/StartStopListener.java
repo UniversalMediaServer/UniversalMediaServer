@@ -14,29 +14,40 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.httpserverservletcontainer;
+package net.pms.network.mediaserver.servlets;
 
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.AsyncEvent;
+import jakarta.servlet.AsyncListener;
 import java.io.IOException;
+import net.pms.service.StartStopListenerDelegate;
 
-public class HttpHandlerServlet implements HttpHandler {
+/**
+ * @author Surf@ceS
+ */
+public class StartStopListener extends StartStopListenerDelegate implements AsyncListener {
 
-	private final HttpServlet servlet;
-
-	public HttpHandlerServlet(HttpServlet servlet) {
-		this.servlet = servlet;
+	public StartStopListener(String rendererId) {
+		super(rendererId);
 	}
 
 	@Override
-	public void handle(final HttpExchange exchange) throws IOException {
-		HttpExchangeServletRequest req = new HttpExchangeServletRequest(servlet, exchange);
-		try {
-			servlet.service(req, req.getServletResponse());
-		} catch (ServletException e) {
-			throw new IOException(e);
-		}
+	public void onComplete(AsyncEvent event) throws IOException {
+		stop();
 	}
+
+	@Override
+	public void onTimeout(AsyncEvent event) throws IOException {
+		stop();
+	}
+
+	@Override
+	public void onError(AsyncEvent event) throws IOException {
+		stop();
+	}
+
+	@Override
+	public void onStartAsync(AsyncEvent event) throws IOException {
+		//nothing to do.
+	}
+
 }

@@ -18,15 +18,15 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
@@ -37,7 +37,6 @@ import net.pms.iam.User;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.RendererItem;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.renderers.RendererFilter;
 import net.pms.renderers.RendererUser;
 import org.slf4j.Logger;
@@ -45,12 +44,13 @@ import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "RenderersApiServlet", urlPatterns = {"/v1/api/renderers"}, displayName = "Renderers Api Servlet")
 public class RenderersApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RenderersApiServlet.class);
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("renderers", RendererItem.getRenderersAsJsonArray());
@@ -65,13 +65,13 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				}
 				jsonResponse.add("users", jUsers);
 				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
-				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else if (path.equals("/devices")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("networkDevices", NetworkDeviceFilter.getNetworkDevicesAsJsonArray());
 				jsonResponse.addProperty("networkDevicesBlockedByDefault", NetworkDeviceFilter.getBlockedByDefault());
 				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
-				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else if (path.startsWith("/icon/")) {
 				RendererItem renderer = null;
 				String[] splitted = path.split("/");
@@ -83,15 +83,15 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					}
 				}
 				if (renderer == null || !getRendererIcon(req, resp, renderer.getIcon())) {
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			} else {
 				LOGGER.trace("RenderersApiServlet request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in RenderersApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
@@ -100,51 +100,51 @@ public class RenderersApiServlet extends GuiHttpServlet {
 		try {
 			Account account = AuthService.getAccountLoggedIn(req);
 			if (account == null) {
-				WebGuiServletHelper.respondForbidden(req, resp);
+				respondForbidden(req, resp);
 				return;
 			}
-			var path = req.getPathInfo();
+			var path = req.getServletPath();
 			switch (path) {
 				case "/infos" -> {
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					JsonObject rendererInfos = getRendererInfos(post);
 					if (rendererInfos == null) {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 						return;
 					}
-					WebGuiServletHelper.respond(req, resp, rendererInfos.toString(), 200, "application/json");
+					respond(req, resp, rendererInfos.toString(), 200, "application/json");
 				}
 				case "/control" -> {
 					if (!account.havePermission(Permissions.DEVICES_CONTROL)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					if (RendererItem.remoteControlRenderer(post)) {
-						WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+						respond(req, resp, "{}", 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				case "/browse" -> {
 					if (!account.havePermission(Permissions.DEVICES_CONTROL)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					JsonObject datas = RendererItem.getRemoteControlBrowse(post);
 					if (datas != null) {
-						WebGuiServletHelper.respond(req, resp, datas.toString(), 200, "application/json");
+						respond(req, resp, datas.toString(), 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				case "/renderers" -> {
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject data = getJsonObjectFromBody(req);
 					if (data != null && data.has("rule")) {
 						String uuid = data.get("rule").getAsString();
 						if (data.has("isAllowed")) {
@@ -160,14 +160,14 @@ public class RenderersApiServlet extends GuiHttpServlet {
 							RendererUser.setRendererUser(uuid, userId);
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/devices" -> {
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject data = getJsonObjectFromBody(req);
 					if (data != null && data.has("rule")) {
 						String rule = data.get("rule").getAsString();
 						Boolean isAllowed = data.get("isAllowed").getAsBoolean();
@@ -176,19 +176,19 @@ public class RenderersApiServlet extends GuiHttpServlet {
 						} else {
 							NetworkDeviceFilter.setAllowed(rule, isAllowed);
 						}
-						WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+						respond(req, resp, "{}", 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				default -> {
 					LOGGER.trace("RenderersApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in RenderersApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
@@ -196,12 +196,12 @@ public class RenderersApiServlet extends GuiHttpServlet {
 		if (icon != null) {
 			try {
 				InputStream is = null;
-				String mime = WebGuiServletHelper.getMimeType(icon);
+				String mime = getMimeType(icon);
 				if (icon.matches(".*\\S+://.*")) {
 					try {
 						URL url = new URL(icon);
 						is = url.openStream();
-						mime = WebGuiServletHelper.getMimeType(url.getPath());
+						mime = getMimeType(url.getPath());
 					} catch (IOException e) {
 						LOGGER.debug("Unable to read icon url \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
 						icon = RendererConfiguration.UNKNOWN_ICON;
@@ -211,40 +211,41 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				/**
 				 * Check for a custom icon file first
 				 *
-				 * The file can be a) the name of a file in the renderers directory b) a path relative
-				 * to the UMS working directory or c) an absolute path. If no file is found,
-				 * the built-in resource (if any) is used instead.
+				 * The file can be a) the name of a file in the renderers
+				 * directory b) a path relative to the UMS working directory or
+				 * c) an absolute path. If no file is found, the built-in
+				 * resource (if any) is used instead.
 				 *
-				 * The File constructor does the right thing for the relative and absolute path cases,
-				 * so we only need to detect the bare filename case.
+				 * The File constructor does the right thing for the relative
+				 * and absolute path cases, so we only need to detect the bare
+				 * filename case.
 				 *
 				 * RendererIcon = foo.png // e.g. $UMS/renderers/foo.png
 				 * RendererIcon = images/foo.png // e.g. $UMS/images/foo.png
 				 * RendererIcon = /path/to/foo.png
 				 */
-
 				if (is == null) {
 					File f = RendererConfigurations.getRenderersIconFile(icon);
 					if (f.isFile() && f.exists()) {
 						is = new FileInputStream(f);
-						mime = WebGuiServletHelper.getMimeType(f.getName());
+						mime = getMimeType(f.getName());
 					}
 				}
 
 				if (is == null) {
 					is = RenderersApiServlet.class.getResourceAsStream("/resources/images/clients/" + icon);
-					mime = WebGuiServletHelper.getMimeType(icon);
+					mime = getMimeType(icon);
 				}
 
 				if (is == null) {
 					is = RenderersApiServlet.class.getResourceAsStream("/renderers/" + icon);
-					mime = WebGuiServletHelper.getMimeType(icon);
+					mime = getMimeType(icon);
 				}
 
 				if (is == null) {
 					LOGGER.debug("Unable to read icon \"{}\", using \"{}\" instead.", icon, RendererConfiguration.UNKNOWN_ICON);
 					is = RenderersApiServlet.class.getResourceAsStream("/resources/images/clients/" + RendererConfiguration.UNKNOWN_ICON);
-					mime = WebGuiServletHelper.getMimeType(RendererConfiguration.UNKNOWN_ICON);
+					mime = getMimeType(RendererConfiguration.UNKNOWN_ICON);
 				}
 
 				if (is != null) {
@@ -254,7 +255,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					}
 					resp.setContentLength(is.available());
 					resp.setStatus(200);
-					WebGuiServletHelper.copyStreamAsync(is, resp.getOutputStream(), async);
+					copyStreamAsync(is, resp.getOutputStream(), async);
 					return true;
 				}
 			} catch (IOException e) {
