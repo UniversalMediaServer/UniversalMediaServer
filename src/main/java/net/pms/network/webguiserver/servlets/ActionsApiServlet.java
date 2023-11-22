@@ -61,8 +61,8 @@ public class ActionsApiServlet extends GuiHttpServlet {
 							}
 							case "Computer.Shutdown" -> {
 								if (account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {
-									PMS.get().shutdownComputer();
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									PMS.get().shutdownComputer();
 								} else {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}
