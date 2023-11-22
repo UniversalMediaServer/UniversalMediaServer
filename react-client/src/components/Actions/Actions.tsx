@@ -36,10 +36,10 @@ const Actions = () => {
   };
 
   const canShutdownComputer = havePermission(session, Permissions.computer_shutdown);
-    const [shutdownComputerOpened, setShutdownComputerOpened] = useState(false);
-    const shutdownComputer = async () => {
-      await sendAction('Computer.Shutdown');
-    };
+  const [shutdownComputerOpened, setShutdownComputerOpened] = useState(false);
+  const shutdownComputer = async () => {
+    await sendAction('Computer.Shutdown');
+  };
 
   const canRestartApplication = havePermission(session, Permissions.application_restart | Permissions.application_shutdown);
   const [restartApplicationOpened, setRestartApplicationOpened] = useState(false);
