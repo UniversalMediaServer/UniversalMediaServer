@@ -36,7 +36,7 @@ public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 		this(renderer, album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, Integer year, String genre) {
+	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
 		super(renderer, folderName, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbReleaseid));
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();
