@@ -724,7 +724,7 @@ public class StoreContainer extends StoreResource {
 		discoverChildren();
 	}
 
-	protected final void discover(int startIndex, int count, boolean forced, String searchStr, String lang) {
+	protected final void discover(int count, boolean forced, String searchStr, String lang) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (renderer.getUmsConfiguration().getFolderLimit() && depthLimit()) {
