@@ -544,9 +544,9 @@ public class SearchRequestHandler {
 														Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
 													MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
 												}
-												MusicBrainzAlbumFolder res = new MusicBrainzAlbumFolder(renderer, album);
-												res.setId(album.getSystemName());
-												result.add(res);
+												MusicBrainzAlbumFolder albumFolder = new MusicBrainzAlbumFolder(renderer, album);
+												albumFolder.setId(albumFolder.getSystemName());
+												result.add(albumFolder);
 											}
 											foundMbidAlbums.add(mbid);
 										}
