@@ -55,7 +55,6 @@ import net.pms.store.container.ITunesLibrary;
 import net.pms.store.container.ImagesFeed;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaMonitor;
-import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.Playlist;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RarredFile;
@@ -88,7 +87,6 @@ public class MediaStore extends StoreContainer {
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
 	private VirtualFolderDbId audioLikesFolder;
-	private VirtualFolderDbId mbidFolder;
 	private VirtualFolderDbId personFolder;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
@@ -820,14 +818,6 @@ public class MediaStore extends StoreContainer {
 	}
 
 	/**
-	 * MusicBrainz album folder
-	 * @return
-	 */
-	public VirtualFolderDbId getMbidFolder() {
-		return mbidFolder;
-	}
-
-	/**
 	 * Person root folder
 	 */
 	public VirtualFolderDbId getPersonFolder() {
@@ -835,9 +825,7 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private void setMbidPersonFolder() {
-		mbidFolder = new MusicBrainzAlbumFolder(renderer, "BrowseByMusicBrainzAlbum", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, null));
 		personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
-		mediaLibrary.getAudioFolder().addChildInternal(mbidFolder);
 		mediaLibrary.getAudioFolder().addChildInternal(personFolder);
 	}
 

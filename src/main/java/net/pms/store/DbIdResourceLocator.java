@@ -18,6 +18,8 @@ package net.pms.store;
 
 import java.io.File;
 import java.util.List;
+import net.pms.database.MediaTableMusicBrainzReleases;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.PersonFolder;
@@ -116,14 +118,13 @@ public class DbIdResourceLocator {
 		switch (typeIdent.type) {
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
-					return renderer.getMediaStore().getMbidFolder();
+					return null;
 				}
-				MusicBrainzAlbumFolder album = getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
+				MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(typeIdent.ident);
 				if (album == null) {
-					album = new MusicBrainzAlbumFolder(renderer, typeIdent.ident, typeIdent);
-					renderer.getMediaStore().getMbidFolder().addChild(album);
+					album = new MusicBrainzAlbum(typeIdent.ident, "unknown", "unknown", "unknown", "unknown");
 				}
-				return album;
+				return new MusicBrainzAlbumFolder(renderer, typeIdent);
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
@@ -132,7 +133,7 @@ public class DbIdResourceLocator {
 				PersonFolder person = getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (person == null) {
 					person = new PersonFolder(renderer, typeIdent.ident, typeIdent);
-					renderer.getMediaStore().getMbidFolder().addChild(person);
+					renderer.getMediaStore().getPersonFolder().addChild(person);
 				}
 				return person;
 			}

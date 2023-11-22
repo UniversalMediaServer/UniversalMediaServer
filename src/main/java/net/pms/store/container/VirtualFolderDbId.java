@@ -117,7 +117,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								try (ResultSet resultSet = statement.executeQuery(sql)) {
 									while (resultSet.next()) {
 										MusicBrainzAlbum mbAlbum = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"), resultSet.getString("ALBUM"),
-											resultSet.getString("ARTIST"), resultSet.getInt("MEDIA_YEAR"), resultSet.getString("GENRE"));
+											resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
 										addChild(new MusicBrainzAlbumFolder(renderer, mbAlbum));
 									}
 								} catch (Exception e) {
@@ -249,7 +249,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private MusicBrainzAlbum generateMusicBrainzAlbum(ResultSet resultSet) throws SQLException {
 		return new MusicBrainzAlbum(resultSet.getString("MBID_RELEASE"), resultSet.getString("ALBUM"),
-				resultSet.getString("ARTIST"), resultSet.getInt("MEDIA_YEAR"), resultSet.getString("GENRE"));
+				resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
 	}
 
 	private static String personAlbumFileSql(DbIdTypeAndIdent typeAndIdent) {
