@@ -538,7 +538,7 @@ public class SearchRequestHandler {
 											} else {
 												//this will create an orphaned child
 												MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
-													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
+													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getString("media_year"),
 													resultSet.getString("genre"));
 												album.setId(album.getSystemName());
 												result.add(album);
