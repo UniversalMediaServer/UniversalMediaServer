@@ -537,9 +537,13 @@ public class SearchRequestHandler {
 												result.add(res);
 											} else {
 												//this will create an orphaned child
-												MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
-													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getString("media_year"),
-													resultSet.getString("genre"));
+												MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(mbid);
+												if (album == null) {
+													album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
+														Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
+													MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+												}
+												MusicBrainzAlbumFolder folder = new MusicBrainzAlbumFolder(renderer, album);
 												album.setId(album.getSystemName());
 												result.add(album);
 											}
