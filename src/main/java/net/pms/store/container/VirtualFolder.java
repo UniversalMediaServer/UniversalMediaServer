@@ -203,6 +203,8 @@ public class VirtualFolder extends StoreContainer {
 	public void discoverChildren() {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
+		} else {
+			return;
 		}
 
 		int sm = renderer.getUmsConfiguration().getSortMethod(getPath());
