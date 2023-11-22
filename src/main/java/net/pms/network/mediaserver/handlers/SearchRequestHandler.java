@@ -32,6 +32,7 @@ import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
