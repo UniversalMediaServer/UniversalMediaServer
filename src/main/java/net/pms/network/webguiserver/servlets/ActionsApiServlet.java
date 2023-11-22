@@ -17,6 +17,7 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
+import com.sun.jna.Platform;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.servlet.annotation.WebServlet;
@@ -30,6 +31,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.platform.PlatformUtils;
 import net.pms.service.LibraryScanner;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
