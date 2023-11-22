@@ -41,6 +41,25 @@ public class ActionsApiServlet extends GuiHttpServlet {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
+				boolean canShutdownComputer = (Platform.isLinux() || Platform.isMac()) ? PlatformUtils.INSTANCE.isAdmin() : true;
+				JsonObject jsonResponse = new JsonObject();
+				jsonResponse.addProperty("canShutdownComputer", canShutdownComputer);
+				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+			} else {
+				LOGGER.trace("ActionsApiServlet request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
+			}
+		} catch (RuntimeException e) {
+			LOGGER.error("RuntimeException in ActionsApiServlet: {}", e.getMessage());
+			WebGuiServletHelper.respondInternalServerError(req, resp);
+		}
+	}
+
+	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
 			var path = req.getPathInfo();
