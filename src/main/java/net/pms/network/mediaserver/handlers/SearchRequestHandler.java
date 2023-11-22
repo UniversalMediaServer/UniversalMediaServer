@@ -128,10 +128,9 @@ public class SearchRequestHandler {
 
 		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		List<StoreResource> folder = new ArrayList<>();
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
-			folder.add(resource);
+			numberReturned++;
 			dlnaItems.append(DidlHelper.getDidlString(resource));
 		}
 
