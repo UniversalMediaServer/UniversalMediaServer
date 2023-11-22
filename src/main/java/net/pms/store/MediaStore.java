@@ -66,7 +66,6 @@ import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.UserVirtualFolder;
 import net.pms.store.container.VideosFeed;
 import net.pms.store.container.VirtualFolder;
-import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.ZippedFile;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
@@ -86,8 +85,7 @@ public class MediaStore extends StoreContainer {
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
-	private VirtualFolderDbId audioLikesFolder;
-	private VirtualFolderDbId personFolder;
+	private final DbIdLibrary dbIdLibrary;
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -101,6 +99,7 @@ public class MediaStore extends StoreContainer {
 		super(renderer, "root", null);
 		tempFolder = new UnattachedFolder(renderer, "Temp");
 		mediaLibrary = new MediaLibrary(renderer);
+		dbIdLibrary = new DbIdLibrary(renderer);
 		setLongId(0);
 	}
 
@@ -124,6 +123,15 @@ public class MediaStore extends StoreContainer {
 	 */
 	public MediaLibrary getMediaLibrary() {
 		return mediaLibrary;
+	}
+
+	/**
+	 * Returns the DbIdLibrary.
+	 *
+	 * @return The current {@link DbIdLibrary}.
+	 */
+	public DbIdLibrary getDbIdLibrary() {
+		return dbIdLibrary;
 	}
 
 	@Override
@@ -159,8 +167,7 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 
-		setAudioLikesFolder();
-		setMbidPersonFolder();
+		dbIdLibrary.reset(backupChildren);
 
 		if (mon != null) {
 			mon.clearChildren();
@@ -364,7 +371,7 @@ public class MediaStore extends StoreContainer {
 	/**
 	 * Clear all resources in children.
 	 */
-	public void clearBackupChildren() {
+	private void clearBackupChildren() {
 		Iterator<StoreResource> backupResources = backupChildren.iterator();
 		while (backupResources.hasNext()) {
 			StoreResource resource = backupResources.next();
@@ -783,50 +790,6 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 		return null;
-	}
-
-	public VirtualFolderDbId getAudioLikesFolder() {
-		return audioLikesFolder;
-	}
-
-	/**
-	 * TODO: move that under the media library as it should (like tv series)
-	 */
-	private void setAudioLikesFolder() {
-		if (CONFIGURATION.useNextcpApi()) {
-			if (audioLikesFolder == null) {
-				audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
-			}
-			if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-				if (backupChildren.contains(audioLikesFolder)) {
-					addChildInternal(audioLikesFolder, false);
-				} else {
-					addChild(audioLikesFolder);
-				}
-				LOGGER.debug("adding My Albums folder to the root of MediaStore");
-			} else if (renderer.getUmsConfiguration().isShowMediaLibraryFolder() &&
-					mediaLibrary.getAudioFolder() != null &&
-					mediaLibrary.getAudioFolder().getChildren() != null &&
-					!mediaLibrary.getAudioFolder().getChildren().contains(audioLikesFolder)) {
-				mediaLibrary.getAudioFolder().addChild(audioLikesFolder);
-				LOGGER.debug("adding My Albums folder to the 'Audio' folder of MediaLibrary");
-			}
-			if (backupChildren.contains(audioLikesFolder)) {
-				backupChildren.remove(audioLikesFolder);
-			}
-		}
-	}
-
-	/**
-	 * Person root folder
-	 */
-	public VirtualFolderDbId getPersonFolder() {
-		return personFolder;
-	}
-
-	private void setMbidPersonFolder() {
-		personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
-		mediaLibrary.getAudioFolder().addChildInternal(personFolder);
 	}
 
 	@Override

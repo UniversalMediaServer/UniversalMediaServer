@@ -18,11 +18,9 @@ package net.pms.store;
 
 import java.io.File;
 import java.util.List;
-import net.pms.database.MediaTableMusicBrainzReleases;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MusicBrainzAlbumFolder;
-import net.pms.store.container.PersonFolder;
+import net.pms.store.container.MusicBrainzPersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
 import net.pms.store.container.VirtualFolderDbIdNamed;
 import org.apache.commons.lang3.StringUtils;
@@ -70,12 +68,12 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static PersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), PersonFolder.class);
+	public static MusicBrainzPersonFolder getLibraryResourcePersonFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzPersonFolder.class);
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
-			if (resource != null) {
-				return (PersonFolder) resource;
+			if (resource instanceof MusicBrainzPersonFolder personFolder) {
+				return personFolder;
 			}
 		}
 		LOGGER.info("Person '{}' not found in database.", typeIdent.ident);
@@ -100,8 +98,8 @@ public class DbIdResourceLocator {
 		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(musicBrainzType.toString(), MusicBrainzAlbumFolder.class);
 		for (Long id : ids) {
 			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
-			if (resource != null) {
-				return (MusicBrainzAlbumFolder) resource;
+			if (resource instanceof  MusicBrainzAlbumFolder musicBrainzAlbumFolder) {
+				return musicBrainzAlbumFolder;
 			}
 		}
 		LOGGER.info("{} not found as MusicBrainzID in database.", musicBrainzType);
@@ -118,22 +116,23 @@ public class DbIdResourceLocator {
 		switch (typeIdent.type) {
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
-					return null;
+					return renderer.getMediaStore().getDbIdLibrary().getMbidFolder();
 				}
-				MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(typeIdent.ident);
+				MusicBrainzAlbumFolder album = getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
 				if (album == null) {
-					album = new MusicBrainzAlbum(typeIdent.ident, "unknown", "unknown", "unknown", "unknown");
+					album = new MusicBrainzAlbumFolder(renderer, typeIdent.ident, typeIdent);
+					renderer.getMediaStore().getDbIdLibrary().getMbidFolder().addChild(album);
 				}
-				return new MusicBrainzAlbumFolder(renderer, typeIdent);
+				return album;
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
-					return renderer.getMediaStore().getPersonFolder();
+					return renderer.getMediaStore().getDbIdLibrary().getPersonFolder();
 				}
-				PersonFolder person = getLibraryResourcePersonFolder(renderer, typeIdent);
+				MusicBrainzPersonFolder person = getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (person == null) {
-					person = new PersonFolder(renderer, typeIdent.ident, typeIdent);
-					renderer.getMediaStore().getPersonFolder().addChild(person);
+					person = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+					renderer.getMediaStore().getDbIdLibrary().getMbidFolder().addChild(person);
 				}
 				return person;
 			}
@@ -165,7 +164,7 @@ public class DbIdResourceLocator {
 			}
 			case TYPE_MYMUSIC_ALBUM -> {
 				LOGGER.trace("Returning 'my music' folder");
-				return renderer.getMediaStore().getAudioLikesFolder();
+				return renderer.getMediaStore().getDbIdLibrary().getAudioLikesFolder();
 			}
 			default -> {
 				LOGGER.error("implement type : " + typeIdent.type);
@@ -173,4 +172,5 @@ public class DbIdResourceLocator {
 			}
 		}
 	}
+
 }

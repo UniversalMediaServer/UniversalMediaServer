@@ -180,6 +180,9 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (name.equalsIgnoreCase("Transfer-Encoding") && value.contains("chunked")) {
 			contentLength = 0;
 		}
+		if (name.equalsIgnoreCase("Content-Type")) {
+			parseContentType();
+		}
 	}
 
 	@Override
@@ -257,7 +260,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		/* TODO update charEnc
 		if (characterEncoding == null) {
 		}
-		*/
+		 */
 		setHeader("Content-Language", locale.getCountry() + "-" + locale.getLanguage());
 	}
 
@@ -277,7 +280,33 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (cType == null) {
 			exchange.getResponseHeaders().remove("Content-Type");
 		} else {
-			setHeader("Content-Type", cType);
+			exchange.getResponseHeaders().set("Content-Type", cType);
+		}
+	}
+
+	private void parseContentType() {
+		String cType = getHeader("Content-Type");
+		if (cType != null) {
+			cType = cType.toLowerCase();
+			if (cType.contains(";")) {
+				String[] cTypeParts = cType.split(";");
+				for (String cTypePart : cTypeParts) {
+					if (cTypePart.trim().startsWith("charset") && cTypePart.contains("=")) {
+						cTypePart = cTypePart.substring(cTypePart.indexOf("=") + 1);
+						characterEncoding = cTypePart.trim();
+					} else {
+						contentType = cTypePart.trim();
+					}
+				}
+			} else if (cType.startsWith("charset") && cType.contains("=")) {
+				cType = cType.substring(cType.indexOf("=") + 1);
+				characterEncoding = cType.trim();
+			} else {
+				contentType = cType.trim();
+			}
+		} else {
+			contentType = null;
+			characterEncoding = null;
 		}
 	}
 

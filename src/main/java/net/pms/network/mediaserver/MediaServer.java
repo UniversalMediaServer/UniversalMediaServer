@@ -42,11 +42,12 @@ public class MediaServer {
 	public static final Map<Integer, String> VERSIONS = Map.of(
 		1, "JUPnP+ (Java)",
 		2, "JUPnP+ (Netty)",
+		3, "JUPnP+ (Servlet)",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
 
-	public static final int DEFAULT_VERSION = 1;
+	public static final int DEFAULT_VERSION = 2;
 
 	public static UmsUpnpService upnpService;
 	private static boolean isStarted = false;
@@ -99,12 +100,12 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 4, 5 -> {
-							upnpService = new UmsUpnpService(false);
+						case 1, 2, 3 -> {
+							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 						}
-						case 1, 2 -> {
-							upnpService = new UmsUpnpService(true);
+						case 4, 5 -> {
+							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 						}
 					}

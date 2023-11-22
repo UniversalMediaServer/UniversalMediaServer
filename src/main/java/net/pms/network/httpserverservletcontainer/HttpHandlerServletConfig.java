@@ -28,12 +28,12 @@ import java.util.HashMap;
 import org.apache.commons.lang3.StringUtils;
 
 public class HttpHandlerServletConfig implements ServletConfig {
+
 	private final HttpHandlerServletContext context;
 	private final String servletName;
 	private final HashMap<String, String> initParameters;
 
 	public HttpHandlerServletConfig(HttpServlet servlet, HttpContext httpContext, ClassLoader classLoader) {
-		context = new HttpHandlerServletContext(httpContext, classLoader);
 		WebServlet webServlet = servlet.getClass().getAnnotation(WebServlet.class);
 		if (StringUtils.isBlank(webServlet.name())) {
 			servletName = servlet.getClass().getSimpleName();
@@ -44,6 +44,7 @@ public class HttpHandlerServletConfig implements ServletConfig {
 		for (WebInitParam initParam : webServlet.initParams()) {
 			initParameters.put(initParam.name(), initParam.value());
 		}
+		context = new HttpHandlerServletContext(httpContext, servletName, classLoader);
 	}
 
 	@Override

@@ -515,7 +515,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public AsyncContext startAsync(ServletRequest sr, ServletResponse sr1) throws IllegalStateException {
+	public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
 		if (!isAsyncSupported()) {
 			throw new IllegalStateException("This request does not support asynchronous operations.");
 		}
@@ -523,7 +523,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 			throw new IllegalStateException("The response has already been closed.");
 		}
 		if (asyncContext == null) {
-			asyncContext = new HttpExchangeAsyncContext((HttpExchangeServletRequest) sr, (HttpExchangeServletResponse) sr1);
+			asyncContext = new HttpExchangeAsyncContext((HttpExchangeServletRequest) servletRequest, (HttpExchangeServletResponse) servletResponse);
 		}
 		return asyncContext;
 	}

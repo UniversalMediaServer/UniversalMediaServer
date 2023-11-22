@@ -28,19 +28,15 @@ import net.pms.store.DbIdTypeAndIdent;
 
 public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 
-	public MusicBrainzAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
-		super(renderer, typeIdent);
-	}
-
-	public MusicBrainzAlbumFolder(Renderer renderer, String name, DbIdTypeAndIdent typeIdent) {
-		super(renderer, name, typeIdent);
+	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent) {
+		super(renderer, folderName, typeIdent);
 	}
 
 	public MusicBrainzAlbumFolder(Renderer renderer, MusicBrainzAlbum album) {
 		this(renderer, album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
+	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, Integer year, String genre) {
 		super(renderer, folderName, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbReleaseid));
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();

@@ -32,7 +32,6 @@ import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
@@ -43,7 +42,7 @@ import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
-import net.pms.store.container.PersonFolder;
+import net.pms.store.container.MusicBrainzPersonFolder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.SortCriterion;
@@ -532,22 +531,33 @@ public class SearchRequestHandler {
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(mbid);
-											if (album == null) {
-												album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
-													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
-												MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+											DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
+											StoreResource res = DbIdResourceLocator.getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
+											if (res != null) {
+												result.add(res);
+											} else {
+												//this will create an orphaned child
+												MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
+													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
+													resultSet.getString("genre"));
+												album.setId(album.getSystemName());
+												result.add(album);
 											}
-											MusicBrainzAlbumFolder folder = new MusicBrainzAlbumFolder(renderer, album);
-											result.add(folder);
 											foundMbidAlbums.add(mbid);
 										}
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-									PersonFolder personFolder = new PersonFolder(renderer, filenameField, typeIdent);
-									result.add(personFolder);
+									StoreResource res = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
+									if (res != null) {
+										result.add(res);
+									} else {
+										//this will create an orphaned child
+										MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
+										personFolder.setId(personFolder.getSystemName());
+										result.add(personFolder);
+									}
 								}
 								case TYPE_PLAYLIST -> {
 									String realFileName = resultSet.getString("FILENAME");
