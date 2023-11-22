@@ -128,7 +128,7 @@ public class MediaStoreIds {
 		return ids;
 	}
 
-	public static List<Long> getMediaStoreIdsForName(String name, Class<StoreResource> storeResourceClass) {
+	public static List<Long> getMediaStoreIdsForName(String name, Class<? extends StoreResource> storeResourceClass) {
 		return getMediaStoreIdsForName(name, storeResourceClass.getSimpleName());
 	}
 
