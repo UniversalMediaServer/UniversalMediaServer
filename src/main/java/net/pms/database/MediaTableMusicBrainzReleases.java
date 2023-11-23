@@ -373,8 +373,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	}
 
 	public static MusicBrainzAlbum getMusicBrainzAlbum(String mbid) {
-		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY);
 		) {
 			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(mbid));
@@ -396,8 +396,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	}
 
 	public static void storeMusicBrainzAlbum(MusicBrainzAlbum album) {
-		Connection connection = MediaDatabase.getConnectionIfAvailable();
 		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
 			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(album.getMbReleaseid()));
