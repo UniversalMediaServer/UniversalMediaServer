@@ -16,7 +16,6 @@
  */
 package net.pms.store;
 
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -41,7 +40,6 @@ public class DbIdLibrary {
 
 	public DbIdLibrary(Renderer renderer) {
 		this.renderer = renderer;
-		reset(new ArrayList<>());
 	}
 
 	public VirtualFolderDbId getAudioLikesFolder() {
@@ -63,10 +61,12 @@ public class DbIdLibrary {
 		return personFolder;
 	}
 
-	public final void reset(List<StoreResource> backupChildren) {
-		setAudioLikesFolder(backupChildren);
-		setMbidFolder();
-		setPersonFolder();
+	protected final void reset(List<StoreResource> backupChildren) {
+		if (CONFIGURATION.useNextcpApi()) {
+			setAudioLikesFolder(backupChildren);
+			setMbidFolder();
+			setPersonFolder();
+		}
 	}
 
 	private void addChildToMediaLibraryAudioFolder(VirtualFolderDbId dbIdFolder) {
@@ -83,23 +83,21 @@ public class DbIdLibrary {
 	}
 
 	private void setAudioLikesFolder(List<StoreResource> backupChildren) {
-		if (CONFIGURATION.useNextcpApi()) {
-			if (audioLikesFolder == null) {
-				audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
-			}
-			if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
-				if (backupChildren.contains(audioLikesFolder)) {
-					renderer.getMediaStore().addChildInternal(audioLikesFolder, false);
-				} else {
-					renderer.getMediaStore().addChild(audioLikesFolder);
-				}
-				LOGGER.debug("adding My Albums folder to the root of MediaStore");
-			} else {
-				addChildToMediaLibraryAudioFolder(audioLikesFolder);
-			}
+		if (audioLikesFolder == null) {
+			audioLikesFolder = new VirtualFolderDbId(renderer, "MyAlbums", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MYMUSIC_ALBUM, null));
+		}
+		if (PMS.getConfiguration().displayAudioLikesInRootFolder()) {
 			if (backupChildren.contains(audioLikesFolder)) {
-				backupChildren.remove(audioLikesFolder);
+				renderer.getMediaStore().addChildInternal(audioLikesFolder, false);
+			} else {
+				renderer.getMediaStore().addChild(audioLikesFolder);
 			}
+			LOGGER.debug("adding My Albums folder to the root of MediaStore");
+		} else {
+			addChildToMediaLibraryAudioFolder(audioLikesFolder);
+		}
+		if (backupChildren.contains(audioLikesFolder)) {
+			backupChildren.remove(audioLikesFolder);
 		}
 	}
 
