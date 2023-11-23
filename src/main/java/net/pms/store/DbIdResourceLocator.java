@@ -96,18 +96,6 @@ public class DbIdResourceLocator {
 		return null;
 	}
 
-	public static MusicBrainzAlbumFolder getLibraryResourceMusicBrainzAlbum(Renderer renderer, DbIdTypeAndIdent musicBrainzType) {
-		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(musicBrainzType.toString(), MusicBrainzAlbumFolder.class);
-		for (Long id : ids) {
-			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
-			if (resource != null) {
-				return (MusicBrainzAlbumFolder) resource;
-			}
-		}
-		LOGGER.info("{} not found as MusicBrainzID in database.", musicBrainzType);
-		return null;
-	}
-
 	/**
 	 * Locates resources. We need to remember the path for each DBID resource.
 	 * @param renderer
