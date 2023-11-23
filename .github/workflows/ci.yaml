@@ -40,6 +40,8 @@ jobs:
               - '*.xml'
             webfiles:
               - 'react-client/**'
+            cifile:
+              - '.github/workflows/ci.yaml'
 
   macos-browser:
     needs: changes
@@ -49,7 +51,8 @@ jobs:
         (github.event_name == 'pull_request')
       ) && (
         needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.webfiles == 'true'
+        needs.changes.outputs.webfiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
       )
     name: macOS web browser tests
     runs-on: macos-13
@@ -89,7 +92,10 @@ jobs:
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
-      ) && needs.changes.outputs.javafiles == 'true'
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
     name: macOS Java tests
     runs-on: macos-13
     strategy:
@@ -122,7 +128,10 @@ jobs:
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
-      ) && needs.changes.outputs.javafiles == 'true'
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
     name: Windows and lint
     runs-on: windows-latest
     steps:
@@ -151,7 +160,10 @@ jobs:
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
-      ) && needs.changes.outputs.javafiles == 'true'
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
     name: Linux 20.04
     runs-on: ubuntu-20.04
     steps:
@@ -176,8 +188,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.06/libmediainfo0v5_23.06-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_23.06-1_amd64.xUbuntu_20.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.10/libmediainfo0v5_23.10-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_23.10-1_amd64.xUbuntu_20.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
@@ -186,7 +198,10 @@ jobs:
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
-      ) && needs.changes.outputs.javafiles == 'true'
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
     name: Linux 22.04
     runs-on: ubuntu-22.04
     steps:
@@ -211,6 +226,6 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.06/libmediainfo0v5_23.06-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_23.06-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.10/libmediainfo0v5_23.10-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_23.10-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
