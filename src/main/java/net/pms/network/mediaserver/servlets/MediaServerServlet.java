@@ -120,7 +120,12 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), requestData[0]);
 					}
-					renderer = null;
+					/**
+					 * here, that mean the originated renderer advised is no more available.
+					 * It may be a caster/proxy control point, so let change to the real renderer.
+					 * fixme : non-renderer should advise a special uuid.
+					 * renderer = null;
+					 */
 				}
 			}
 
