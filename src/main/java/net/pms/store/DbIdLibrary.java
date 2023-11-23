@@ -64,7 +64,6 @@ public class DbIdLibrary {
 	protected final void reset(List<StoreResource> backupChildren) {
 		if (CONFIGURATION.useNextcpApi()) {
 			setAudioLikesFolder(backupChildren);
-			setMbidFolder();
 			setPersonFolder();
 		}
 	}
@@ -101,18 +100,10 @@ public class DbIdLibrary {
 		}
 	}
 
-	private void setMbidFolder() {
-		if (mbidFolder == null) {
-			mbidFolder = new VirtualFolderDbId(renderer, "BrowseByMusicBrainzAlbum", new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, null));
-		}
-		addChildToMediaLibraryAudioFolder(mbidFolder);
-	}
-
 	private void setPersonFolder() {
 		if (personFolder == null) {
 			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
 		}
-		personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
+		renderer.getMediaStore().getMediaLibrary().getAudioFolder().addChild(personFolder);
 	}
-
 }
