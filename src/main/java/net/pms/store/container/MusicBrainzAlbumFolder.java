@@ -23,21 +23,22 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdTypeAndIdent;
 
 public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 
 	public MusicBrainzAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
 		super(renderer, null, typeIdent);
+		// virtual root of MusicBrainz Music Folder
+		setParent(renderer.getMediaStore().getMediaLibrary());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, MusicBrainzAlbum album) {
-		this(renderer, album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
+	public MusicBrainzAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent, MusicBrainzAlbum album) {
+		this(renderer, typeIdent, album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
-		super(renderer, folderName, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbReleaseid));
+	public MusicBrainzAlbumFolder(Renderer renderer, DbIdTypeAndIdent typeIdent, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
+		super(renderer, folderName, typeIdent);
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();
 		fakeAudioMetadata.setAlbum(album);

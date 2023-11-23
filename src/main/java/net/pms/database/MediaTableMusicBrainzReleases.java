@@ -429,9 +429,9 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			return;
 		}
 		updateString(result, "ARTIST", album.getArtist(), 1000);
-		updateString(result, "TITLE", album.getArtist(), 1000);
-		updateString(result, "MEDIA_YEAR", album.getArtist(), 1000);
-		updateString(result, "GENRE", album.getArtist(), 1000);
-		// Artist for future reference
+		updateString(result, "TITLE", album.getAlbum(), 1000);
+		updateString(result, "MEDIA_YEAR", album.getYear(), 1000);
+		updateString(result, "GENRE", album.getGenre(), 1000);
+		// ArtistID for future reference
 	}
 }

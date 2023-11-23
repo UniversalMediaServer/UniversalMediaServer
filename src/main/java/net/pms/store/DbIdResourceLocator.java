@@ -122,9 +122,9 @@ public class DbIdResourceLocator {
 				}
 				MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(typeIdent.ident);
 				if (album == null) {
-					album = new MusicBrainzAlbum(typeIdent.ident, "unknown", "unknown", "unknown", "unknown");
+					return new MusicBrainzAlbumFolder(renderer, typeIdent);
 				}
-				return new MusicBrainzAlbumFolder(renderer, typeIdent);
+				return new MusicBrainzAlbumFolder(renderer, typeIdent, album);
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {

@@ -532,37 +532,23 @@ public class SearchRequestHandler {
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
-											StoreResource res = DbIdResourceLocator.getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
-											if (res != null) {
-												result.add(res);
-											} else {
-												//this will create an orphaned child
-												MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(mbid);
-												if (album == null) {
-													album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
-														Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
-													MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
-												}
-												MusicBrainzAlbumFolder albumFolder = new MusicBrainzAlbumFolder(renderer, album);
-												albumFolder.setId(albumFolder.getSystemName());
-												result.add(albumFolder);
+											MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(mbid);
+											if (album == null) {
+												album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
+													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
+												MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
 											}
+											DbIdTypeAndIdent ti = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
+											MusicBrainzAlbumFolder folder = new MusicBrainzAlbumFolder(renderer, ti, album);
+											result.add(folder);
 											foundMbidAlbums.add(mbid);
 										}
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
 									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-									StoreResource res = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
-									if (res != null) {
-										result.add(res);
-									} else {
-										//this will create an orphaned child
-										MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
-										personFolder.setId(personFolder.getSystemName());
-										result.add(personFolder);
-									}
+									MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
+									result.add(personFolder);
 								}
 								case TYPE_PLAYLIST -> {
 									String realFileName = resultSet.getString("FILENAME");

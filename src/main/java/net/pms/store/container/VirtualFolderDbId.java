@@ -52,6 +52,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, i18nName, null);
 		this.typeIdent = typeIdent;
+		setId(typeIdent.toString());
 	}
 
 	@Override
@@ -117,7 +118,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 									while (resultSet.next()) {
 										MusicBrainzAlbum mbAlbum = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"), resultSet.getString("ALBUM"),
 											resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
-										addChild(new MusicBrainzAlbumFolder(renderer, mbAlbum));
+										addChild(new MusicBrainzAlbumFolder(renderer, typeIdent, mbAlbum));
 									}
 								} catch (Exception e) {
 									LOGGER.error("Error in SQL : " + sql, e);
@@ -168,7 +169,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 									filter.addAlbum(generateMusicBrainzAlbum(resultSet));
 								}
 								for (MusicBrainzAlbum album : filter.getUniqueAlbumSet()) {
-									MusicBrainzAlbumFolder albumFolder = new MusicBrainzAlbumFolder(renderer, album);
+									MusicBrainzAlbumFolder albumFolder = new MusicBrainzAlbumFolder(renderer, typeIdent, album);
 									addChild(albumFolder);
 								}
 							}
@@ -190,7 +191,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									if (resultSet.getString("MBID_RECORD") != null) {
-										addChild(new MusicBrainzAlbumFolder(renderer, generateMusicBrainzAlbum(resultSet)));
+										addChild(new MusicBrainzAlbumFolder(renderer, typeIdent, generateMusicBrainzAlbum(resultSet)));
 									} else {
 										String album = resultSet.getString(MediaTableAudioMetadata.TABLE_COL_ALBUM);
 										addChild(new VirtualFolderDbIdNamed(renderer, album, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM_FILES,
