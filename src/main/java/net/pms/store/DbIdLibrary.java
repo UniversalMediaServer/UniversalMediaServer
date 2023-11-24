@@ -102,7 +102,7 @@ public class DbIdLibrary {
 
 	private void setPersonFolder() {
 		if (personFolder == null) {
-			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
+			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_FOLDER, null));
 		}
 		renderer.getMediaStore().getMediaLibrary().getAudioFolder().addChild(personFolder);
 	}

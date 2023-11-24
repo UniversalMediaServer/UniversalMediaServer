@@ -218,9 +218,9 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							if (isDiscovered()) {
 								return;
 							}
-							StoreResource allFiles = new MusicBrainzPersonFolder(renderer, "AllFiles",
+							StoreResource allFiles = new VirtualFolderDbId(renderer, "AllFiles",
 								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
-							StoreResource albums = new MusicBrainzPersonFolder(renderer, "ByAlbum_lowercase",
+							StoreResource albums = new VirtualFolderDbId(renderer, "ByAlbum_lowercase",
 								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
 							addChild(allFiles);
 							addChild(albums);

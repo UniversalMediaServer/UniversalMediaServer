@@ -25,6 +25,7 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
+import net.pms.store.container.VirtualFolderDbId;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +127,7 @@ public class DbIdResourceLocator {
 	 * @return
 	 */
 	public static StoreResource getLibraryResourceByDbTypeIdent(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		LOGGER.debug("getLibraryResourceByDbTypeIdent : {}", typeIdent.toString());
 		switch (typeIdent.type) {
 			case TYPE_MUSICBRAINZ_RECORDID -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
@@ -145,9 +147,9 @@ public class DbIdResourceLocator {
 				if (personFolder == null) {
 					LOGGER.debug("person not in database. Adding : {}", typeIdent.toString());
 					personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
-					MusicBrainzPersonFolder allFiles = new MusicBrainzPersonFolder(renderer, "All songs by " + typeIdent.ident,
+					VirtualFolderDbId allFiles = new VirtualFolderDbId(renderer, "All songs by " + typeIdent.ident,
 						new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
-					MusicBrainzPersonFolder byAlbum = new MusicBrainzPersonFolder(renderer, "Albums performed by  " + typeIdent.ident,
+					VirtualFolderDbId byAlbum = new VirtualFolderDbId(renderer, "Albums performed by  " + typeIdent.ident,
 						new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
 					personFolder.addChild(allFiles);
 					personFolder.addChild(byAlbum);
