@@ -44,6 +44,70 @@ public class DbIdResourceLocator {
 	}
 
 	/**
+	 * Adds a person folder to the library
+	 *
+	 * @param renderer
+	 * @param typeIdent
+	 * @return
+	 */
+	private static MusicBrainzPersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+
+		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident);
+		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident);
+
+		VirtualFolderDbId allFiles = new VirtualFolderDbId(renderer, "All songs by " + typeIdent.ident, tiAllFilesFolder);
+		VirtualFolderDbId byAlbum = new VirtualFolderDbId(renderer, "Albums performed by  " + typeIdent.ident, tiAlbumFolder);
+
+		renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
+
+		personFolder.addChild(allFiles);
+		personFolder.addChild(byAlbum);
+		return personFolder;
+	}
+
+	/**
+	 * Add a musicBrainz folder to the library.
+	 *
+	 * @param renderer
+	 * @param typeIdent
+	 * @param album
+	 * @return
+	 */
+	public static MusicBrainzAlbumFolder addLibraryResourceMusicBrainzAlbum(Renderer renderer, MusicBrainzAlbum album) {
+		try {
+			DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, album.getMbReleaseid());
+			MusicBrainzAlbumFolder mbFolder = getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
+			if (mbFolder == null) {
+				LOGGER.debug("musicBrainz album not in database : {} ", typeIdent.toString());
+				MusicBrainzAlbum persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+				if (persistentAlbum == null) {
+					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+				}
+				mbFolder = new MusicBrainzAlbumFolder(renderer, album);
+
+				// Lookup person's album folder as parent
+				DbIdTypeAndIdent tiPersonAlbum = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, album.getArtist());
+				StoreContainer personAlbum = (StoreContainer) getLibraryResourceByDbTypeIdent(renderer, tiPersonAlbum);
+				if (personAlbum == null) {
+					DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist());
+					MusicBrainzPersonFolder person = getLibraryResourcePersonFolder(renderer, tiPerson);
+					if (person == null) {
+						person = addLibraryResourcePerson(renderer, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist()));
+					}
+					person.getAlbumFolder().addChild(mbFolder);
+				} else {
+					personAlbum.addChild(mbFolder);
+				}
+			}
+			return mbFolder;
+		} catch (Exception e) {
+			LOGGER.error("cannot add MusicBrainzAlbumFolder.", e);
+			return null;
+		}
+	}
+
+	/**
 	 * discover regular albums from media library
 	 * @param renderer
 	 * @param realFileName
@@ -102,7 +166,31 @@ public class DbIdResourceLocator {
 				return (MusicBrainzPersonFolder) resource;
 			}
 		}
-		LOGGER.debug("Person '{}' not found in database. Adding ...", typeIdent.toString());
+		LOGGER.debug("Person '{}' not found in database.", typeIdent.toString());
+		return null;
+	}
+
+	public static MusicBrainzAlbumFolder getLibraryResourceMusicBrainzFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), MusicBrainzAlbumFolder.class);
+		for (Long id : ids) {
+			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+			if (resource != null) {
+				return (MusicBrainzAlbumFolder) resource;
+			}
+		}
+		LOGGER.debug("MusicBrainz album '{}' not found in database.", typeIdent.toString());
+		return null;
+	}
+
+	public static VirtualFolderDbId getLibraryResourceVirtualFolder(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		List<Long> ids = MediaStoreIds.getMediaStoreIdsForName(typeIdent.toString(), VirtualFolderDbId.class);
+		for (Long id : ids) {
+			StoreResource resource = renderer.getMediaStore().getResource(id.toString());
+			if (resource != null) {
+				return (VirtualFolderDbId) resource;
+			}
+		}
+		LOGGER.debug("VirtualFolderDbId '{}' not found in database.", typeIdent.toString());
 		return null;
 	}
 
@@ -133,11 +221,7 @@ public class DbIdResourceLocator {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
 					return null;
 				}
-				MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(typeIdent.ident);
-				if (album == null) {
-					return new MusicBrainzAlbumFolder(renderer, typeIdent.ident);
-				}
-				return new MusicBrainzAlbumFolder(renderer, album);
+				return getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
@@ -145,20 +229,13 @@ public class DbIdResourceLocator {
 				}
 				MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (personFolder == null) {
-					LOGGER.debug("person not in database. Adding : {}", typeIdent.toString());
-					personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
-					VirtualFolderDbId allFiles = new VirtualFolderDbId(renderer, "All songs by " + typeIdent.ident,
-						new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
-					VirtualFolderDbId byAlbum = new VirtualFolderDbId(renderer, "Albums performed by  " + typeIdent.ident,
-						new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
-					personFolder.addChild(allFiles);
-					personFolder.addChild(byAlbum);
-					renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
+					personFolder = addLibraryResourcePerson(renderer, typeIdent);
 				}
 				return personFolder;
 			}
 			case TYPE_PERSON_ALBUM, TYPE_PERSON_ALL_FILES -> {
-				MusicBrainzPersonFolder folder = getLibraryResourcePersonFolder(renderer, typeIdent);
+				// those two folders are of type `VirtualFolderDbId`
+				VirtualFolderDbId folder = getLibraryResourceVirtualFolder(renderer, typeIdent);
 				if (folder == null) {
 					LOGGER.debug("person album path not in database : {} " + typeIdent.toString());
 				}

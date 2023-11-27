@@ -28,7 +28,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
-import net.pms.database.MediaTableMusicBrainzReleases;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
@@ -522,13 +521,13 @@ public class SearchRequestHandler {
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											MusicBrainzAlbum album = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(mbid);
-											if (album == null) {
-												album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
+											MusicBrainzAlbumFolder folder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(
+												renderer, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+											if (folder == null) {
+												MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
 													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
-												MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+												folder = DbIdResourceLocator.addLibraryResourceMusicBrainzAlbum(renderer, album);
 											}
-											MusicBrainzAlbumFolder folder = new MusicBrainzAlbumFolder(renderer, album);
 											result.add(folder);
 											foundMbidAlbums.add(mbid);
 										}

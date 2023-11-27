@@ -238,6 +238,8 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							if (renderer.hasShareAccess(file)) {
 								StoreResource sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
 								addChild(sr);
+							} else {
+								LOGGER.debug("renderer has no share access to resource {}", file.getAbsolutePath());
 							}
 						}
 					}
