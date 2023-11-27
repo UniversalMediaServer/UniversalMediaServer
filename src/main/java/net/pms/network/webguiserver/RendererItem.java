@@ -31,6 +31,7 @@ import net.pms.gui.IRendererGuiListener;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
@@ -242,8 +243,8 @@ public class RendererItem implements IRendererGuiListener {
 	private void playerSetMediaId(String id) {
 		try {
 			List<StoreResource> resources = renderer.getMediaStore().getResources(id, false, 0, 0);
-			if (!resources.isEmpty()) {
-				renderer.getPlayer().setURI(resources.get(0).getMediaURL("", true), null);
+			if (!resources.isEmpty() && resources.get(0) instanceof StoreItem item) {
+				renderer.getPlayer().setURI(item.getMediaURL("", true), null);
 			}
 		} catch (IOException ex) {
 		}

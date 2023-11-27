@@ -21,6 +21,7 @@ import java.util.List;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.RealFolder;
 import net.pms.store.item.VirtualVideoAction;
@@ -70,8 +71,8 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 				// It's new to us, find or create the resource as required.
 				// Note: here metadata (if any) is actually the resource name
 				StoreResource resource = renderer.getMediaStore().getValidResource(uri, metadata);
-				if (resource != null) {
-					return new PlaylistItem(resource.getMediaURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
+				if (resource instanceof StoreItem storeItem) {
+					return new PlaylistItem(storeItem.getMediaURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
 				}
 			}
 		}
@@ -166,11 +167,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	public void addAll(int index, List<StoreResource> list, int selIndex) {
 		for (int i = 0; i < list.size(); i++) {
 			StoreResource r = list.get(i);
-			if ((r instanceof VirtualVideoAction) || r == null || r.isFolder()) {
-				// skip these
-				continue;
+			if (r instanceof StoreItem item && !(r instanceof VirtualVideoAction) && !item.isFolder()) {
+				playlist.add(index, item.getMediaURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
 			}
-			playlist.add(index, r.getMediaURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
 		}
 	}
 

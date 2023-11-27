@@ -45,7 +45,6 @@ import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
-import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -97,10 +96,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	private StoreResource first;
 	private StoreResource second;
 
-	/**
-	 * The time range for the file containing the start and end time in seconds.
-	 */
-	private TimeRange splitRange = new TimeRange();
 	private String fakeParentId;
 
 	/**
@@ -408,9 +403,9 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		StringBuilder sb = new StringBuilder();
 
 		// Base
-		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
+		if (parent instanceof ChapterFileTranscodeVirtualFolder && this instanceof StoreItem item && item.getSplitRange() != null) {
 			sb.append(">> ");
-			sb.append(StringUtil.convertTimeToString(getSplitRange().getStartOrZero(), StringUtil.DURATION_TIME_FORMAT));
+			sb.append(StringUtil.convertTimeToString(item.getSplitRange().getStartOrZero(), StringUtil.DURATION_TIME_FORMAT));
 		} else {
 			sb.append(getDisplayNameBase());
 		}
@@ -472,15 +467,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Prototype for returning URLs.
-	 *
-	 * @return An empty URL
-	 */
-	public String getFileURL() {
-		return getMediaURL("");
-	}
-
-	/**
 	 * @param profile
 	 * @return Returns an URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
@@ -502,27 +488,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 			LOGGER.debug("Warning: Thumbnail without DLNA image profile requested, resulting URL is: \"{}\"", sb.toString());
 		}
 
-		return sb.toString();
-	}
-
-	/**
-	 * @param prefix
-	 * @return Returns a URL for a given mediaInfo item. Not used for container
-	 * types.
-	 */
-	public String getMediaURL(String prefix) {
-		return getMediaURL(prefix, false);
-	}
-
-	public String getMediaURL(String prefix, boolean useSystemName) {
-		return getMediaURL(prefix, useSystemName, true);
-	}
-
-	public String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
-		StringBuilder sb = MediaStreamHandler.getServerMediaURL(renderer.getUUID(), getResourceId());
-		String uri = useSystemName ? getSystemName() : getName();
-		sb.append(prefix);
-		sb.append(urlEncode ? encode(uri) : uri);
 		return sb.toString();
 	}
 
@@ -708,25 +673,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 */
 	public void setNoName(boolean noName) {
 		this.noName = noName;
-	}
-
-	/**
-	 * Returns the from - to time range for this resource.
-	 *
-	 * @return The time range.
-	 */
-	public TimeRange getSplitRange() {
-		return splitRange;
-	}
-
-	/**
-	 * Sets the from - to time range for this resource.
-	 *
-	 * @param splitRange The time range to set.
-	 * @since 1.50
-	 */
-	public void setSplitRange(TimeRange splitRange) {
-		this.splitRange = splitRange;
 	}
 
 	/**
@@ -943,7 +889,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
 	 */
-	private static String encode(String s) {
+	protected static String encode(String s) {
 		try {
 			if (s == null) {
 				return "";

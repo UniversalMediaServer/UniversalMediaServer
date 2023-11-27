@@ -26,6 +26,7 @@ import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.item.RealFile;
 import net.pms.util.TimeRange;
@@ -86,9 +87,11 @@ public class CueFolder extends StoreContainer {
 								prec = addedResources.get(i + count);
 								count++;
 							}
-							prec.getSplitRange().setEnd(end);
-							prec.getMediaInfo().setDuration(prec.getSplitRange().getDuration());
-							LOGGER.debug("Track #" + i + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
+							if (prec instanceof StoreItem item) {
+								item.getSplitRange().setEnd(end);
+								prec.getMediaInfo().setDuration(item.getSplitRange().getDuration());
+								LOGGER.debug("Track #" + i + " split range: " + item.getSplitRange().getStartOrZero() + " - " + item.getSplitRange().getDuration());
+							}
 						}
 						Position start = track.getIndices().get(0).getPosition();
 						RealFile realFile = new RealFile(renderer, new File(playlistfile.getParentFile(), f.getFile()));
@@ -151,13 +154,15 @@ public class CueFolder extends StoreContainer {
 
 					if (!tracks.isEmpty() && !addedResources.isEmpty()) {
 						StoreResource lastTrack = addedResources.get(addedResources.size() - 1);
-						TimeRange lastTrackSplitRange = lastTrack.getSplitRange();
-						MediaInfo lastTrackMedia = lastTrack.getMediaInfo();
+						if (lastTrack instanceof StoreItem item) {
+							TimeRange lastTrackSplitRange = item.getSplitRange();
+							MediaInfo lastTrackMedia = item.getMediaInfo();
 
-						if (lastTrackSplitRange != null && lastTrackMedia != null) {
-							lastTrackSplitRange.setEnd(lastTrackMedia.getDurationInSeconds());
-							lastTrackMedia.setDuration(lastTrackSplitRange.getDuration());
-							LOGGER.debug("Track #" + childrenCount() + " split range: " + lastTrackSplitRange.getStartOrZero() + " - " + lastTrackSplitRange.getDuration());
+							if (lastTrackSplitRange != null && lastTrackMedia != null) {
+								lastTrackSplitRange.setEnd(lastTrackMedia.getDurationInSeconds());
+								lastTrackMedia.setDuration(lastTrackSplitRange.getDuration());
+								LOGGER.debug("Track #" + childrenCount() + " split range: " + lastTrackSplitRange.getStartOrZero() + " - " + lastTrackSplitRange.getDuration());
+							}
 						}
 					}
 
