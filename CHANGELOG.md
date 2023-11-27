@@ -13,6 +13,12 @@
 - Improved drag and drop on Shared Content tab on web settings
 - Added ability to group content on Shared Content tab
 - Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
+- Added pin codes for users
+
+### Renderers
+- Improved support for Samsung The Frame TVs
+- Improved transcoding support on Samsung OLED TVs
 
 ### Dependencies
 - Updated h2database to 2.2.224
@@ -20,7 +26,8 @@
 - Updated Mantine to v7, which:
   - Improves performance of the web interface
   - Improves RTL language support
-  - (todo maybe) Uses your system light/dark mode preference (check this https://mantine.dev/changelog/7-0-0/#system-color-scheme-support)
+  - Uses your system light/dark mode preference
+- Updated NSIS to v3
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
