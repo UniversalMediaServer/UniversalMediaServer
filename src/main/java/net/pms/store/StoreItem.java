@@ -58,6 +58,7 @@ import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.item.DVDISOTitle;
@@ -432,6 +433,9 @@ public abstract class StoreItem extends StoreResource {
 	 * @return An engine if transcoding or null if streaming
 	 */
 	public Engine resolveEngine() {
+		if (renderer instanceof MediaScannerDevice) {
+			return null;
+		}
 		// Use device-specific conf, if any
 		boolean parserV2 = mediaInfo != null && renderer.isUseMediaInfo();
 		Engine resolvedEngine;
