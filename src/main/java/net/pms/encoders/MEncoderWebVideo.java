@@ -126,11 +126,6 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isAviSynthEngine() {
-		return false;
-	}
-
-	@Override
 	public String getName() {
 		return NAME;
 	}

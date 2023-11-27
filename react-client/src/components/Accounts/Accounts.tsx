@@ -109,7 +109,7 @@ const Accounts = () => {
     }
     return (
       <form onSubmit={userIdentityForm.onSubmit(handleUserIdentitySubmit)}>
-        <Divider my='sm' label={i18n.get['Credentials']} />
+        <Divider my='sm' label={i18n.get['Credentials']} fz='md' c={'var(--mantine-color-text)'} />
         <TextInput
           required
           label={i18n.get['Username']}
@@ -145,7 +145,7 @@ const Accounts = () => {
     }
     return (
       <form onSubmit={userProfileForm.onSubmit(handleUserProfileSubmit)}>
-        <Divider my='sm' label={i18n.get['Profile']} />
+        <Divider my='sm' label={i18n.get['Profile']} fz='md' c={'var(--mantine-color-text)'} />
         <TextInput
           label={i18n.get['DisplayName']}
           name='displayName'
@@ -246,7 +246,7 @@ const Accounts = () => {
     };
     return (
       <form onSubmit={userGroupForm.onSubmit(handleUserGroupSubmit)}>
-        <Divider my='sm' label={i18n.get['Group']} />
+        <Divider my='sm' label={i18n.get['Group']} fz='md' c={'var(--mantine-color-text)'} />
         <Select
           label={i18n.get['Group']}
           name='groupId'
@@ -362,7 +362,7 @@ const Accounts = () => {
     }
     return (
       <form onSubmit={groupDisplayNameForm.onSubmit(handleGroupDisplayNameSubmit)}>
-        <Divider my='sm' label={i18n.get['DisplayName']} />
+        <Divider my='sm' label={i18n.get['DisplayName']} fz='md' c={'var(--mantine-color-text)'} />
         <TextInput
           label={i18n.get['DisplayName']}
           name='displayName'
@@ -392,7 +392,7 @@ const Accounts = () => {
     }
     return (
       <form onSubmit={groupPermissionsForm.onSubmit(handleGroupPermissionsSubmit)}>
-        <Divider my='sm' label={i18n.get['Permissions']} />
+        <Divider my='sm' label={i18n.get['Permissions']} fz='md' c={'var(--mantine-color-text)'} />
         <Stack>
           <Checkbox disabled={group.id < 2} label={i18n.get['AllPermissions']} checked={(permissions & Permissions.all) === Permissions.all} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.all) : removePermission(Permissions.all)} />
           <Checkbox disabled={group.id < 2} label={i18n.get['ManageUsers']} checked={(permissions & Permissions.users_manage) === Permissions.users_manage} onChange={(event: React.ChangeEvent<HTMLInputElement>) => event.currentTarget.checked ? addPermission(Permissions.users_manage) : removePermission(Permissions.users_manage)} />

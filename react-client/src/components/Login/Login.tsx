@@ -114,7 +114,7 @@ const Login = () => {
         </Group>
         {session.noAdminFound && session.authenticate && (
           <>
-            <Divider my='lg' label={i18n.get['Or']} labelPosition='center' />
+            <Divider my='lg' label={i18n.get['Or']} labelPosition='center' fz='md' c={'var(--mantine-color-text)'} />
             <Modal
               centered
               opened={opened}

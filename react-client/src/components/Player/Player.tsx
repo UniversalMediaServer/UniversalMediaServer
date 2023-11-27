@@ -176,21 +176,22 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
-      image = <img src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} alt={media.name} className='thumbnail-image' />;
+      image = <img src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} alt={media.name}
+        style={{ objectFit: 'contain', width: '100%', height: 'calc(100% - 2.4rem)'}} />;
     }
     return (
-      <div
+      <Paper
         className='thumbnail-container'
+        mah={220}
+        styles={{ root:{ backgroundColor:''}}}
         onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse')}
         key={media.id}
       >
         {image}
-        <div className='thumbnail-text-wrapper'>
-          <Text ta='left' size='sm' lineClamp={1} className='thumbnail-text'>
-            {getI18nName(media.name)}
-          </Text>
-        </div>
-      </div>
+        <Text mx='xs' size='sm' lineClamp={1}>
+          {getI18nName(media.name)}
+        </Text>
+      </Paper>
     )
   }
 
@@ -208,7 +209,7 @@ export const Player = () => {
       const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div className='media-grid front-page-grid'>{medias}</div></>);
+      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div style={{height: '240px', overflowY: 'hidden'}} className='media-grid front-page-grid'>{medias}</div></>);
     }
   }
 
@@ -389,7 +390,7 @@ export const Player = () => {
           const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<img className='poster' src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt='Poster' />);
+          poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt='Poster' />);
         }
       }
     }
@@ -405,10 +406,10 @@ export const Player = () => {
       }
     }
     if (!poster && metadata && metadata.poster) {
-      poster = (<img className='poster' src={metadata.poster} />);
+      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={metadata.poster} />);
     }
     if (!poster && media && media.id) {
-      poster = (<img className='poster' src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />);
+      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />);
     }
     return { logo, poster };
   }

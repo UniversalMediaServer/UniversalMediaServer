@@ -38,6 +38,7 @@ import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
@@ -727,9 +728,9 @@ public class JUPnPDeviceHelper {
 	 */
 	public static void play(StoreResource d, Renderer renderer) {
 		StoreResource resource = d.getParent() == null ? renderer.getMediaStore().getTemp().add(d) : d;
-		if (resource != null) {
+		if (resource instanceof StoreItem item) {
 			Device dev = getDevice(renderer.getUUID());
-			setAVTransportURI(dev, resource.getMediaURL(""), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
+			setAVTransportURI(dev, item.getMediaURL(), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
 			play(dev);
 		}
 	}

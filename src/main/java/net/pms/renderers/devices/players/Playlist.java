@@ -20,6 +20,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
 import net.pms.dlna.DidlHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -141,8 +142,8 @@ public class Playlist extends DefaultComboBoxModel {
 			}
 			// Repair the item if possible
 			StoreResource resource = renderer.getMediaStore().getValidResource(item.getUri(), item.getName());
-			if (resource != null) {
-				item.setUri(resource.getMediaURL("", true));
+			if (resource instanceof StoreItem storeItem) {
+				item.setUri(storeItem.getMediaURL("", true));
 				item.setMetadata(DidlHelper.getDidlString(resource));
 				return true;
 			}

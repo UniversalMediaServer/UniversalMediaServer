@@ -109,7 +109,7 @@ export default function VideoMetadataEditButton(props: {
     });
     return editResults && editResults.length > 0 ? (
       <Stack>
-        <Divider size='md' my='xs' label='↧' labelPosition='center' />
+        <Divider size='md' my='xs' label='↧' labelPosition='center' fz='md' c={'var(--mantine-color-text)'} />
         {metadataResultCards}
       </Stack>
     ) : (null);
