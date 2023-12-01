@@ -180,7 +180,7 @@ public abstract class VirtualVideoAction extends StoreItem {
 	}
 
 	@Override
-	public boolean isResumeable() {
+	protected boolean isResumeable() {
 		return false;
 	}
 }
