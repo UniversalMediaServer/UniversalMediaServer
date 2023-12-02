@@ -22,7 +22,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import static net.pms.network.webguiserver.servlets.WebGuiServlet.PLAYER_BASE_PATH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
