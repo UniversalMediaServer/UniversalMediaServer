@@ -128,7 +128,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 				}
 				respondBadRequest(req, resp);
-			} else if (path.startsWith("/thumb/")) {
+			} else if (path.startsWith("/thumbnail/")) {
 				String[] thumbData = path.split("/");
 				if (thumbData.length == 4) {
 					WebGuiRenderer renderer = getRenderer(req, thumbData[2]);

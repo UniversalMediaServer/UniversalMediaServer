@@ -25,7 +25,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -51,7 +50,7 @@ import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
-import net.pms.network.mediaserver.handlers.MediaStreamHandler;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
@@ -91,17 +90,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		Renderer renderer = null;
 		try {
 			String uri = req.getServletPath();
-			if (uri.startsWith("/")) {
-				uri = uri.substring(1);
-			}
-			//here, renderer should has been registred.
-			/**
-			 * part 1 : renderer uuid part 2 : action part 3 : resource id part
-			 * 4 : optional
-			 */
-			String[] requestData = uri.split("/", 4);
-			if (requestData.length < 3) {
-				//bad format, close
+			MediaServerRequest mediaServerRequest = new MediaServerRequest(uri);
+			if (mediaServerRequest.isBadRequest()) {
 				//Bad Request
 				if (LOGGER.isTraceEnabled()) {
 					logHttpServletRequest(req, "");
@@ -111,14 +101,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			}
 
 			//find renderer by uuid
-			renderer = ConnectedRenderers.getUuidRenderer(requestData[0]);
+			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
 
 			if (renderer == null) {
 				//find renderer by uuid and ip for non registred upnp devices
 				renderer = ConnectedRenderers.getRendererBySocketAddress(getInetAddress(req));
-				if (renderer != null && !requestData[0].equals(renderer.getId())) {
+				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), requestData[0]);
+						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
 					}
 					/**
 					 * here, that mean the originated renderer advised is no more available.
@@ -160,24 +150,21 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			String method = req.getMethod().toUpperCase();
 
 			if (GET.equals(method) || HEAD.equals(method)) {
-				// Some clients escape the separators in their request: unescape them.
-				String id = URLDecoder.decode(requestData[2], StandardCharsets.UTF_8);
-
 				// Get resource
-				StoreResource resource = renderer.getMediaStore().getResource(id);
+				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
 				if (resource == null) {
 					//resource not founded
 					respondNotFound(req, resp);
 					return;
 				}
-				switch (requestData[1]) {
-					case MediaStreamHandler.MEDIA -> {
-						sendMediaResponse(req, resp, renderer, resource, requestData[3]);
+				switch (mediaServerRequest.getRequestType()) {
+					case MEDIA -> {
+						sendMediaResponse(req, resp, renderer, resource, mediaServerRequest.getOptionalPath());
 					}
-					case MediaStreamHandler.THUMBNAIL -> {
-						sendThumbnailResponse(req, resp, renderer, resource, requestData[3]);
+					case THUMBNAIL -> {
+						sendThumbnailResponse(req, resp, renderer, resource, mediaServerRequest.getOptionalPath());
 					}
-					case MediaStreamHandler.SUBTITLES -> {
+					case SUBTITLES -> {
 						sendSubtitlesResponse(req, resp, renderer, resource);
 					}
 					default -> {
@@ -321,7 +308,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					//HLS rendition m3u8 file
 					String rendition = filename.replace("hls/", "").replace(".m3u8", "");
 					if (HlsHelper.getByKey(rendition) != null) {
-						String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+						String baseUrl = MediaServerRequest.getMediaURL(renderer.getUUID()).toString();
 						respond(req, resp, HlsHelper.getHLSm3u8ForRendition(item, renderer, baseUrl, rendition), 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						respondNotFound(req, resp);
@@ -363,7 +350,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					resp.setHeader("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 				}
 
-				String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+				String baseUrl = MediaServerRequest.getMediaURL(renderer.getUUID()).toString();
 				sendResponse(req, resp, renderer, 200, HlsHelper.getHLSm3u8(item, renderer, baseUrl), HTTPResource.HLS_TYPEMIME);
 				return;
 			} else if (item.getMediaInfo() != null && item.getMediaInfo().getMediaType() == MediaType.IMAGE && item.isCodeValid(item)) {

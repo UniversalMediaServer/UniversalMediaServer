@@ -38,7 +38,7 @@ public class Permissions {
 	public static final int WEB_PLAYER_DOWNLOAD = 1 << 26;
 	public static final int WEB_PLAYER_EDIT = 1 << 27;
 
-	public static final int ALL = 0xFFFFFFFF;
+	public static final int ALL = 0x7FFFFFFF;
 
 	private int value;
 	public Permissions(int permissions) {

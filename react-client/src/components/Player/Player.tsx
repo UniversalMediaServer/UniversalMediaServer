@@ -176,7 +176,7 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
-      image = <img src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} alt={media.name}
+      image = <img src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} alt={media.name}
         style={{ objectFit: 'contain', width: '100%', height: 'calc(100% - 2.4rem)'}} />;
     }
     return (
@@ -409,7 +409,7 @@ export const Player = () => {
       poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={metadata.poster} />);
     }
     if (!poster && media && media.id) {
-      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />);
+      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />);
     }
     return { logo, poster };
   }
@@ -552,7 +552,7 @@ export const Player = () => {
           <Grid.Col span={12}>
             <Grid columns={20} justify='center'>
               <Grid.Col span={6}>
-                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumb/' + uuid + '/' + media.id} />
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
                 <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>

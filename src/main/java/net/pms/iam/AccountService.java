@@ -310,6 +310,8 @@ public class AccountService {
 		account.setGroup(group);
 		User user = new User();
 		user.setId(Integer.MAX_VALUE);
+		user.setGroupId(Integer.MAX_VALUE);
+		user.setDisplayName(DEFAULT_ADMIN_USERNAME);
 		account.setUser(user);
 		return account;
 	}

@@ -36,7 +36,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     options.liveui = true;
     options.controls = true;
     options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
-    options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/' + vpOptions.media.id;
+    options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id;
     if (vpOptions.media.mediaType === 'audio') {
       options.audioPosterMode = true;
     }
