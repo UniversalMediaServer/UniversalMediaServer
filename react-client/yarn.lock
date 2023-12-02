@@ -3497,7 +3497,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*, @types/react@npm:18.2.38":
+"@types/react@npm:*":
   version: 18.2.38
   resolution: "@types/react@npm:18.2.38"
   dependencies:
@@ -3505,6 +3505,17 @@ __metadata:
     "@types/scheduler": "*"
     csstype: ^3.0.2
   checksum: 71f8c167173d32252be8b2d3c1c76b3570b94d2fbbd139da86d146be453626f5777e12c2781559119637520dbef9f91cffe968f67b5901618f29226d49fad326
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:18.2.40":
+  version: 18.2.40
+  resolution: "@types/react@npm:18.2.40"
+  dependencies:
+    "@types/prop-types": "*"
+    "@types/scheduler": "*"
+    csstype: ^3.0.2
+  checksum: c1d8cf29bc314e2d04203b4afe5673aea4ddec39a685c6aff72b01f5b01ae84fed6e994b5e1dbb9fbe4bc69625fdb65a295fae656a2ca9f6a8c949afb327b644
   languageName: node
   linkType: hard
 
@@ -14137,7 +14148,7 @@ __metadata:
     "@types/jest": 29.5.10
     "@types/lodash": 4.14.202
     "@types/node": 18.18.13
-    "@types/react": 18.2.38
+    "@types/react": 18.2.40
     "@types/react-color": 3.0.10
     "@types/react-dom": 18.2.17
     "@types/videojs-hls-quality-selector": 1.1.3
