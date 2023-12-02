@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import net.pms.network.webguiserver.GuiHttpServlet;
+import static net.pms.network.webguiserver.servlets.WebGuiServlet.PLAYER_BASE_PATH;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ public class WebPlayerServlet extends GuiHttpServlet {
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
 			String uri = req.getServletPath() != null ? req.getServletPath().toLowerCase() : BASE_PATH;
-			if (uri.equals(BASE_PATH) || ROUTES.contains(uri)) {
+			if (uri.equals(BASE_PATH) || ROUTES.contains(uri) || uri.startsWith(PLAYER_BASE_PATH)) {
 				uri = "/index.html";
 			}
 			if (uri.startsWith("/static/")) {
