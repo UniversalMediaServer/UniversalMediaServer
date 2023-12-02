@@ -96,7 +96,7 @@
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.11</logback-version>
+		<logback-version>1.4.13</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -193,7 +193,7 @@
 
 				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
-			<version>2.15.0</version>
+			<version>2.15.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -535,7 +535,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.4.7</version>
+			<version>6.4.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
