@@ -244,13 +244,6 @@
 			<version>3.10.6.Final</version>
 			<scope>compile</scope>
 		</dependency>
-
-		<!-- maven replacement for nsisant-1.2.jar -->
-		<dependency>
-			<groupId>maven</groupId>
-			<artifactId>maven-nsis-plugin</artifactId>
-			<version>2.1</version>
-		</dependency>
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
@@ -1205,7 +1198,7 @@
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0.3</version>
+						<version>1.0.5</version>
 						<configuration>
 							<makensisExecutable>${makensis-bin}</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
@@ -3479,7 +3472,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
+								<id>process-resources-macos</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -3487,7 +3480,10 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
 									</target>
 								</configuration>
 							</execution>
