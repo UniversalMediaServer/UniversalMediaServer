@@ -484,7 +484,7 @@
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
 				commons-io:commons-io is shared with
-					- net.pms:pms
+					- net.pms:ums
 
 				Check the commons-io:commons-io version before upgrading
 			-->
@@ -740,7 +740,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=UTF-8</argLine>
+						<argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
 					</configuration>
 				</plugin>
 
@@ -920,7 +920,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1186,7 +1186,7 @@
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0.3</version>
+						<version>1.0.5</version>
 						<configuration>
 							<makensisExecutable>${project.external-resources}/windows/nsis/makensis.exe</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
@@ -1285,7 +1285,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1305,7 +1305,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-arm64</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1336,7 +1336,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-arm64</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1356,7 +1356,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-arm64</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1420,7 +1420,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1440,7 +1440,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-armel</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1471,7 +1471,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-armel</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1491,7 +1491,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-armel</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1555,7 +1555,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1575,7 +1575,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-armhf</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1606,7 +1606,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-armhf</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1626,7 +1626,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-armhf</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1690,7 +1690,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1710,7 +1710,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-x86</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1741,7 +1741,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-x86</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1769,7 +1769,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-x86</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1833,7 +1833,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1853,7 +1853,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2061,7 +2061,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2100,7 +2100,7 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
 											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
@@ -2115,7 +2115,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2229,7 +2229,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos</id>
+								<id>process-resources-macos-arm</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -2266,7 +2266,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>prepare-package-macos</id>
+								<id>prepare-package-macos-arm</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2293,7 +2293,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos-arm</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2332,7 +2332,7 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
 											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
@@ -2347,7 +2347,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2369,7 +2369,7 @@
 								moving them to the app Bundle.
 							-->
 							<execution>
-								<id>make-assembly-macos</id>
+								<id>make-assembly-macos-arm</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2521,7 +2521,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos-pre1015</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2560,7 +2560,7 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
 											<option value="-Xdock:name=UMS"/>
 										</bundleapp>
@@ -2575,7 +2575,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos-pre1015</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2645,7 +2645,7 @@
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2675,7 +2675,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-win</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2880,7 +2880,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3014,7 +3014,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3148,7 +3148,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3165,7 +3165,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>prepare-package-windows</id>
+								<id>prepare-package-macos</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3185,7 +3185,7 @@
 						<version>3.3.1</version>
 						<executions>
 							<execution>
-								<id>copy-resources</id>
+								<id>copy-resources-macos</id>
 								<phase>validate</phase>
 								<goals>
 									<goal>copy-resources</goal>
@@ -3242,7 +3242,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-testing</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3292,7 +3292,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>copy-jar-with-dependencies-test</id>
+								<id>copy-jar-with-dependencies-testing</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3328,7 +3328,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
+								<id>process-resources-macos</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -3379,15 +3379,6 @@
 						</executions>
 					</plugin>
 					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-						</configuration>
-					</plugin>
-					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-antrun-plugin</artifactId>
 						<version>${maven-antrun-plugin-version}</version>
@@ -3422,7 +3413,7 @@
 						</dependencies>
 						<configuration>
 							<configLocation>CheckStyle.xml</configLocation>
-							<inputEncoding>UTF-8</inputEncoding>
+							<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
 							<consoleOutput>true</consoleOutput>
 							<failsOnError>true</failsOnError>
 							<linkXRef>false</linkXRef>
