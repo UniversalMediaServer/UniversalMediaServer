@@ -19,8 +19,6 @@ package net.pms.store;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import net.pms.database.MediaTableMusicBrainzReleases;
-import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
