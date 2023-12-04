@@ -57,22 +57,13 @@ code {
   background-color: var(--mantine-color-default);
   color: var(--mantine-color-text);
   cursor: pointer;
-  max-height: 220px;
+  height: 220px;
   margin-bottom: 20px;
 }
 
 .front-page-grid {
   height: 240px;
   overflow-y: hidden;
-}
-
-.front-page-grid .thumbnail-container {
-  display: inline-block;
-  height: 100%;
-}
-
-.media-grid .thumbnail-container {
-  background-color: var(--mantine-color-default);
 }
 
 .thumbnail-container:hover {

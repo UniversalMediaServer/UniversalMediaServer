@@ -117,16 +117,8 @@
 		-->
 		<jna-version>5.13.0</jna-version>
 
-		<!--
-			use the Windows makensis.exe for Windows builds unless
-			the system makensis is explicitly selected via the
-			system-makensis profile
-		-->
-		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.1</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
-		<node.version>v18.14.0</node.version>
-		<yarn.bootstrap>v1.22.19</yarn.bootstrap>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -847,21 +839,25 @@
 					<wtpversion>1.5</wtpversion>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.15.0</version>
+				<configuration>
+					<installDirectory>react-client</installDirectory>
+					<workingDirectory>react-client</workingDirectory>
+					<nodeVersion>v18.19.0</nodeVersion>
+					<yarnVersion>v1.22.19</yarnVersion>
+					<environmentVariables>
+						<PUBLIC_URL>/</PUBLIC_URL>
+					</environmentVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
-		<profile>
-			<id>system-makensis</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-
-			<properties>
-				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
-				<makensis-bin>makensis</makensis-bin>
-			</properties>
-		</profile>
 
 		<!--
 			Windows profile: takes care of building the final package for Microsoft Windows
@@ -874,21 +870,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -903,12 +890,6 @@
 								<goals>
 									<goal>yarn</goal>
 								</goals>
-								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
-									<arguments>build</arguments>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
@@ -1207,7 +1188,7 @@
 						<artifactId>nsis-maven-plugin</artifactId>
 						<version>1.0.3</version>
 						<configuration>
-							<makensisExecutable>${makensis-bin}</makensisExecutable>
+							<makensisExecutable>${project.external-resources}/windows/nsis/makensis.exe</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
 							<makensisExecutableMacOS>makensis</makensisExecutableMacOS>
 							<defines>
@@ -1272,21 +1253,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1302,9 +1274,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1419,21 +1388,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1449,9 +1409,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1566,21 +1523,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1596,9 +1544,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1713,21 +1658,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1743,9 +1679,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1868,21 +1801,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1898,9 +1822,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2023,21 +1944,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2053,9 +1965,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2265,21 +2174,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2295,9 +2195,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2509,21 +2406,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2539,9 +2427,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2942,21 +2827,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2972,9 +2848,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -3088,21 +2961,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3118,9 +2982,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -3234,21 +3095,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3264,9 +3116,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -3503,21 +3352,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3533,9 +3373,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
