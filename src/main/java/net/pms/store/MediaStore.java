@@ -482,6 +482,9 @@ public class MediaStore extends StoreContainer {
 					if (resource instanceof StoreContainer container) {
 						container.discoverChildren();
 					}
+					if (resource instanceof VirtualFolder container) {
+						container.analyzeChildren(999);
+					}
 				}
 			}
 			//now that parent folders are discovered, try to get the resource
