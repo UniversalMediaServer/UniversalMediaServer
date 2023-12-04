@@ -37,7 +37,7 @@ import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.network.mediaserver.handlers.MediaStreamHandler;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.CodeEnter;
@@ -472,7 +472,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	public String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = MediaStreamHandler.getServerThumbnailURL(renderer.getUUID(), encode(getResourceId()));
+		StringBuilder sb = MediaServerRequest.getServerThumbnailURL(renderer.getUUID(), encode(getResourceId()));
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
 				sb.append("JPEG_RES").append(profile.getH()).append("x");
@@ -497,7 +497,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * types.
 	 */
 	public String getSubsURL(MediaSubtitle subs) {
-		StringBuilder sb = MediaStreamHandler.getServerSubtitlesURL(renderer.getUUID(), getResourceId());
+		StringBuilder sb = MediaServerRequest.getServerSubtitlesURL(renderer.getUUID(), getResourceId());
 		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
@@ -755,19 +755,19 @@ public abstract class StoreResource implements Cloneable, Runnable {
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(MediaStreamHandler.getBaseURL().toString()) && url.contains(MediaStreamHandler.MEDIA_PATH);
+		return url != null && url.startsWith(MediaServerRequest.getMediaURL().toString());
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if
 	// any or null
 	public static String parseResourceId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaStreamHandler.MEDIA_PATH, "/") : null;
+		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaServerRequest.MEDIA_PATH, "/") : null;
 	}
 
 	// Returns the url's objectId (i.e. index including trailing filename) if
 	// any or null
 	public static String parseObjectId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaStreamHandler.MEDIA_PATH) : null;
+		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaServerRequest.MEDIA_PATH) : null;
 	}
 
 	public boolean isRendererAllowed() {

@@ -56,7 +56,7 @@ import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
-import net.pms.network.mediaserver.handlers.MediaStreamHandler;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.MediaScannerDevice;
@@ -1083,7 +1083,7 @@ public abstract class StoreItem extends StoreResource {
 	}
 
 	private String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
-		StringBuilder sb = MediaStreamHandler.getServerMediaURL(renderer.getUUID(), getResourceId());
+		StringBuilder sb = MediaServerRequest.getServerMediaURL(renderer.getUUID(), getResourceId());
 		String uri = useSystemName ? getSystemName() : getName();
 		sb.append(prefix);
 		sb.append(urlEncode ? encode(uri) : uri);

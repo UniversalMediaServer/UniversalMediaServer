@@ -14,24 +14,14 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.nettyserver;
+package net.pms.network.mediaserver;
 
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-
-public class HttpException extends Exception {
-
-	private final HttpResponseStatus status;
-
-	HttpException(HttpResponseStatus status) {
-		this.status = status;
-	}
-
-	HttpException(HttpResponseStatus status, String message) {
-		super(message);
-		this.status = status;
-	}
-
-	public HttpResponseStatus getStatus() {
-		return this.status;
-	}
+/**
+ * @author Surf@ceS
+ */
+public enum MediaServerRequestType {
+	BAD_REQUEST,
+	MEDIA,
+	THUMBNAIL,
+	SUBTITLES
 }
