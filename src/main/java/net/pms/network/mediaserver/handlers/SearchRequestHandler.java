@@ -34,6 +34,7 @@ import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdLibrary;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
@@ -526,7 +527,7 @@ public class SearchRequestHandler {
 											if (folder == null) {
 												MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
 													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
-												folder = DbIdResourceLocator.addLibraryResourceMusicBrainzAlbum(renderer, album);
+												folder = DbIdLibrary.addLibraryResourceMusicBrainzAlbum(renderer, album);
 											}
 											result.add(folder);
 											foundMbidAlbums.add(mbid);
@@ -537,8 +538,7 @@ public class SearchRequestHandler {
 									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, filenameField);
 									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
-										personFolder = new MusicBrainzPersonFolder(renderer, filenameField, ti);
-										renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
+										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
 									}
 									result.add(personFolder);
 								}

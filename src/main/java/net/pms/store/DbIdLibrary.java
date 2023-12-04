@@ -19,9 +19,14 @@ package net.pms.store;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.database.MediaTableMusicBrainzReleases;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.MusicBrainzAlbumFolder;
+import net.pms.store.container.MusicBrainzPersonFolder;
 import net.pms.store.container.VirtualFolderDbId;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,8 +107,70 @@ public class DbIdLibrary {
 
 	private void setPersonFolder() {
 		if (personFolder == null) {
-			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_FOLDER, null));
+			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
 		}
-		renderer.getMediaStore().getMediaLibrary().getAudioFolder().addChild(personFolder);
+		addChildToMediaLibraryAudioFolder(personFolder);
+	}
+
+	/**
+	 * Adds a person folder to the library
+	 *
+	 * @param renderer
+	 * @param typeIdent Can be composer, conductor or regular person.
+	 * @return
+	 */
+	public static MusicBrainzPersonFolder addLibraryResourcePerson(Renderer renderer, DbIdTypeAndIdent typeIdent) {
+		if (StringUtils.isAllBlank(typeIdent.ident)) {
+			LOGGER.warn("no person name given.");
+			return null;
+		}
+		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+
+		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident);
+		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident);
+
+		VirtualFolderDbId allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
+		VirtualFolderDbId byAlbum = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
+
+		renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
+
+		personFolder.addChild(allFiles);
+		personFolder.addChild(byAlbum);
+		return personFolder;
+	}
+
+	/**
+	 * Add a musicBrainz folder to the library.
+	 *
+	 * @param renderer
+	 * @param typeIdent
+	 * @param album
+	 * @return
+	 */
+	public static MusicBrainzAlbumFolder addLibraryResourceMusicBrainzAlbum(Renderer renderer, MusicBrainzAlbum album) {
+		try {
+			DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, album.getMbReleaseid());
+			MusicBrainzAlbumFolder mbFolder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(renderer, typeIdent);
+			if (mbFolder == null) {
+				LOGGER.debug("musicBrainz album not in database : {} ", typeIdent.toString());
+				MusicBrainzAlbum persistentAlbum = MediaTableMusicBrainzReleases.getMusicBrainzAlbum(album.getMbReleaseid());
+				if (persistentAlbum == null) {
+					MediaTableMusicBrainzReleases.storeMusicBrainzAlbum(album);
+				}
+				mbFolder = new MusicBrainzAlbumFolder(renderer, album);
+
+				// Lookup person's album folder as parent
+				DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, album.getArtist());
+				MusicBrainzPersonFolder person = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, tiPerson);
+				if (person == null) {
+					person = DbIdLibrary.addLibraryResourcePerson(renderer, tiPerson);
+				}
+				person.getAlbumFolder().addChild(mbFolder);
+			}
+			return mbFolder;
+		} catch (Exception e) {
+			LOGGER.error("cannot add MusicBrainzAlbumFolder.", e);
+			return null;
+		}
 	}
 }

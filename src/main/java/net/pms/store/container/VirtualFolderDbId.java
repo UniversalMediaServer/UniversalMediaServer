@@ -27,6 +27,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
+import net.pms.database.MediaTableStoreIds;
 import net.pms.media.audio.metadata.DoubleRecordFilter;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
@@ -56,6 +57,11 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	}
 
 	@Override
+	public boolean isDiscovered() {
+		return false;
+	}
+
+	@Override
 	public String getSystemName() {
 		return this.typeIdent.toString();
 	}
@@ -75,7 +81,6 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	@Override
 	public void discoverChildren() {
 		doRefreshChildren();
-		setDiscovered(true);
 	}
 
 	@Override
@@ -213,17 +218,30 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								}
 							}
 						}
-						case TYPE_PERSON -> {
-							// Add childs for a person: Person can be browsed by all files, or by album
-							if (isDiscovered()) {
-								return;
+						case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+							if (StringUtils.isAllBlank(typeIdent.ident)) {
+								// All Person
+								LOGGER.debug("All person Folder");
+								sql = String.format("SELECT ID, NAME FROM " + MediaTableStoreIds.TABLE_NAME + " WHERE PARENT_ID = %s", getLongId());
+								try (ResultSet resultSet = statement.executeQuery(sql)) {
+									while (resultSet.next()) {
+										String name = resultSet.getString("NAME");
+										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, name.substring(name.lastIndexOf("$") + 1));
+										MusicBrainzPersonFolder person = new MusicBrainzPersonFolder(renderer, tiPerson.ident, tiPerson);
+										addChild(person);
+									}
+								} catch (Exception e) {
+									LOGGER.error("TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST", e);
+								}
+							} else {
+								LOGGER.debug("Person {}", typeIdent.ident);
+								if (this instanceof MusicBrainzPersonFolder person) {
+									addChild(person.getAllFilesFolder());
+									addChild(person.getAlbumFolder());
+								} else {
+									LOGGER.warn("unknown folder type.");
+								}
 							}
-							StoreResource allFiles = new VirtualFolderDbId(renderer, "AllFiles",
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
-							StoreResource albums = new VirtualFolderDbId(renderer, "ByAlbum_lowercase",
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
-							addChild(allFiles);
-							addChild(albums);
 						}
 						case TYPE_FOLDER -> {
 							StoreResource res = DbIdResourceLocator.getLibraryResourceFolder(renderer, typeIdent.toString());
