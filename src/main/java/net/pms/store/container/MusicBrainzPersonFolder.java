@@ -1,15 +1,15 @@
 package net.pms.store.container;
 
 import java.io.IOException;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 
