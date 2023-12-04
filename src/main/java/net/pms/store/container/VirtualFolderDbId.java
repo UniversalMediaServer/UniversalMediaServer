@@ -74,6 +74,10 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 		return typeIdent.type;
 	}
 
+	public DbIdTypeAndIdent getMediaTypeIdent() {
+		return typeIdent;
+	}
+
 	public String getMediaTypeUclass() {
 		return typeIdent.type.uclass;
 	}
@@ -236,8 +240,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							} else {
 								LOGGER.debug("Person {}", typeIdent.ident);
 								if (this instanceof MusicBrainzPersonFolder person) {
-									addChild(person.getAllFilesFolder());
-									addChild(person.getAlbumFolder());
+									person.discoverChildren();
 								} else {
 									LOGGER.warn("unknown folder type.");
 								}
@@ -254,7 +257,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 					if (filesListFromDb != null) {
 						for (File file : filesListFromDb) {
 							if (renderer.hasShareAccess(file)) {
-								StoreResource sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
+								StoreResource sr = renderer.getMediaStore().createResourceFromFile(file);
 								addChild(sr);
 							} else {
 								LOGGER.debug("renderer has no share access to resource {}", file.getAbsolutePath());
