@@ -177,12 +177,11 @@ export const Player = () => {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
       image = <img src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} alt={media.name}
-        style={{ objectFit: 'contain', width: '100%', height: 'calc(100% - 2.4rem)'}} />;
+        style={{ objectFit: 'contain', maxWidth: '100%', height: 'calc(100% - 2.4rem)'}} />;
     }
     return (
       <Paper
         className='thumbnail-container'
-        mah={220}
         styles={{ root:{ backgroundColor:''}}}
         onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse')}
         key={media.id}
