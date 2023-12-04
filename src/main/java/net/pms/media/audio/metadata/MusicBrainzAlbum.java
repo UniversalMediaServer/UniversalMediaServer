@@ -19,14 +19,14 @@ package net.pms.media.audio.metadata;
 import java.util.Objects;
 
 public class MusicBrainzAlbum {
-	private final String mbReleaseid;
+	private final String mbRecordId;
 	private final String album;
 	private final String artist;
-	private final Integer year;
+	private final String year;
 	private String genre;
 
-	public MusicBrainzAlbum(String mbReleaseid, String album, String artist, Integer year, String genre) {
-		this.mbReleaseid = mbReleaseid;
+	public MusicBrainzAlbum(String mbRecordId, String album, String artist, String year, String genre) {
+		this.mbRecordId = mbRecordId;
 		this.album = album;
 		this.artist = artist;
 		this.year = year;
@@ -34,7 +34,7 @@ public class MusicBrainzAlbum {
 	}
 
 	public String getMbReleaseid() {
-		return mbReleaseid;
+		return mbRecordId;
 	}
 
 	public String getAlbum() {
@@ -45,7 +45,7 @@ public class MusicBrainzAlbum {
 		return artist;
 	}
 
-	public int getYear() {
+	public String getYear() {
 		return year;
 	}
 
@@ -59,7 +59,7 @@ public class MusicBrainzAlbum {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(mbReleaseid);
+		return Objects.hash(mbRecordId);
 	}
 
 	@Override
@@ -75,7 +75,13 @@ public class MusicBrainzAlbum {
 			return false;
 		}
 		MusicBrainzAlbum other = (MusicBrainzAlbum) obj;
-		return Objects.equals(mbReleaseid, other.mbReleaseid);
+		return Objects.equals(mbRecordId, other.mbRecordId);
+	}
+
+	@Override
+	public String toString() {
+		return "MusicBrainzAlbum [mbRecordId=" + mbRecordId + ", album=" + album + ", artist=" + artist + ", year=" + year + ", genre=" +
+			genre + "]";
 	}
 
 }

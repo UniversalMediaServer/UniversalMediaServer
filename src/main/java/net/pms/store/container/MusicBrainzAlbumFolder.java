@@ -28,24 +28,36 @@ import net.pms.store.DbIdTypeAndIdent;
 
 public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent) {
-		super(renderer, folderName, typeIdent);
+	public MusicBrainzAlbumFolder(Renderer renderer, String mbid) {
+		super(renderer, null, getTypeIdentForMbid(mbid));
+		// virtual root of MusicBrainz Music Folder
+		setParent(renderer.getMediaStore().getMediaLibrary());
 	}
 
 	public MusicBrainzAlbumFolder(Renderer renderer, MusicBrainzAlbum album) {
-		this(renderer, album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
+		this(renderer, album.getMbReleaseid(), album.getAlbum(), album.getMbReleaseid(), album.getAlbum(), album.getArtist(), album.getYear(), album.getGenre());
 	}
 
-	public MusicBrainzAlbumFolder(Renderer renderer, String folderName, String mbReleaseid, String album, String artist, Integer year, String genre) {
-		super(renderer, folderName, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbReleaseid));
+	public MusicBrainzAlbumFolder(Renderer renderer, String mbid, String folderName, String mbReleaseid, String album, String artist, String year, String genre) {
+		super(renderer, folderName, getTypeIdentForMbid(mbid));
 		MediaInfo fakeMediaInfo = new MediaInfo();
 		MediaAudioMetadata fakeAudioMetadata = new MediaAudioMetadata();
 		fakeAudioMetadata.setAlbum(album);
 		fakeAudioMetadata.setArtist(artist);
-		fakeAudioMetadata.setYear(year);
+		if (extractYear(year) != null) {
+			fakeAudioMetadata.setYear(extractYear(year));
+		}
 		fakeAudioMetadata.setGenre(genre);
 		fakeMediaInfo.setAudioMetadata(fakeAudioMetadata);
 		setMediaInfo(fakeMediaInfo);
+	}
+
+	private static Integer extractYear(String year) {
+		try {
+			return Integer.valueOf(year);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 	@Override
@@ -55,6 +67,10 @@ public class MusicBrainzAlbumFolder extends VirtualFolderDbIdNamed {
 			return DLNAThumbnailInputStream.toThumbnailInputStream(res.getCoverBytes());
 		}
 		return super.getThumbnailInputStream();
+	}
+
+	private static DbIdTypeAndIdent getTypeIdentForMbid(String mbid) {
+		return new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
 	}
 
 }

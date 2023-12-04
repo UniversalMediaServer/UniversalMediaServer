@@ -23,7 +23,6 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,15 +30,16 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.dlna.DidlHelper;
 import net.pms.formats.Format;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdLibrary;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
-import net.pms.store.container.MediaLibraryFolder;
 import net.pms.store.container.MusicBrainzAlbumFolder;
 import net.pms.store.container.MusicBrainzPersonFolder;
 import org.apache.commons.io.FilenameUtils;
@@ -516,47 +516,31 @@ public class SearchRequestHandler {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
 										// Regular albums can be discovered in the media library
-										MediaLibraryFolder album = renderer.getMediaStore().getMediaLibrary().getAlbumFolder();
-										if (!album.isDiscovered()) {
-											album.discoverChildren();
-										}
-										Optional<StoreResource> optional = album.getChildren().stream().filter(
-											sr -> filenameField.equals(sr.getDisplayName())).findFirst();
-										if (optional.isPresent()) {
-											StoreResource sr = optional.get();
+										StoreResource sr = DbIdResourceLocator.getAlbumFromMediaLibrary(renderer, filenameField);
+										if (sr != null) {
 											result.add(sr);
-										} else {
-											LOGGER.error("album cannot be located in media library : " + filenameField);
 										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid);
-											StoreResource res = DbIdResourceLocator.getLibraryResourceMusicBrainzAlbum(renderer, typeIdent);
-											if (res != null) {
-												result.add(res);
-											} else {
-												//this will create an orphaned child
-												MusicBrainzAlbumFolder album = new MusicBrainzAlbumFolder(renderer, filenameField, mbid,
-													resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
-													resultSet.getString("genre"));
-												album.setId(album.getSystemName());
-												result.add(album);
+											MusicBrainzAlbumFolder folder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(
+												renderer, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+											if (folder == null) {
+												MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
+													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
+												folder = DbIdLibrary.addLibraryResourceMusicBrainzAlbum(renderer, album);
 											}
+											result.add(folder);
 											foundMbidAlbums.add(mbid);
 										}
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-									DbIdTypeAndIdent typeIdent = new DbIdTypeAndIdent(type, filenameField);
-									StoreResource res = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
-									if (res != null) {
-										result.add(res);
-									} else {
-										//this will create an orphaned child
-										MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, filenameField, typeIdent);
-										personFolder.setId(personFolder.getSystemName());
-										result.add(personFolder);
+									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, filenameField);
+									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
+									if (personFolder == null) {
+										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
 									}
+									result.add(personFolder);
 								}
 								case TYPE_PLAYLIST -> {
 									String realFileName = resultSet.getString("FILENAME");

@@ -27,6 +27,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableMusicBrainzReleaseLike;
+import net.pms.database.MediaTableStoreIds;
 import net.pms.media.audio.metadata.DoubleRecordFilter;
 import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.renderers.Renderer;
@@ -52,6 +53,12 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	public VirtualFolderDbId(Renderer renderer, String i18nName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, i18nName, null);
 		this.typeIdent = typeIdent;
+		setId(typeIdent.toString());
+	}
+
+	@Override
+	public boolean isDiscovered() {
+		return false;
 	}
 
 	@Override
@@ -74,7 +81,6 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	@Override
 	public void discoverChildren() {
 		doRefreshChildren();
-		setDiscovered(true);
 	}
 
 	@Override
@@ -106,6 +112,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						}
 						case TYPE_MUSICBRAINZ_RECORDID -> {
 							if (StringUtils.isAllBlank(typeIdent.ident)) {
+								LOGGER.debug("collecting all music albums having a musicBrainzId identifier ...");
 								sql = "SELECT DISTINCT ON (MBID_RECORD) MBID_RECORD, " +
 									MediaTableAudioMetadata.TABLE_COL_ALBUM + ", " + MediaTableAudioMetadata.TABLE_COL_GENRE + ", " +
 									MediaTableAudioMetadata.TABLE_COL_ARTIST + ", " + MediaTableAudioMetadata.TABLE_COL_MEDIA_YEAR + " FROM " +
@@ -116,13 +123,14 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								try (ResultSet resultSet = statement.executeQuery(sql)) {
 									while (resultSet.next()) {
 										MusicBrainzAlbum mbAlbum = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"), resultSet.getString("ALBUM"),
-											resultSet.getString("ARTIST"), resultSet.getInt("MEDIA_YEAR"), resultSet.getString("GENRE"));
+											resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
 										addChild(new MusicBrainzAlbumFolder(renderer, mbAlbum));
 									}
 								} catch (Exception e) {
 									LOGGER.error("Error in SQL : " + sql, e);
 								}
 							} else {
+								LOGGER.debug("collecting musicBrainz album {}", typeIdent.toString());
 								sql = String
 									.format("SELECT " + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK +
 											", " + MediaTableFiles.TABLE_COL_ID + ", " + MediaTableAudioMetadata.TABLE_COL_ALBUM + " FROM " +
@@ -186,15 +194,17 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							}
 						}
 						case TYPE_PERSON_ALBUM -> {
+							// Add all albums by a person
 							sql = personAlbumSql(typeIdent);
 							try (ResultSet resultSet = statement.executeQuery(sql)) {
 								while (resultSet.next()) {
 									if (resultSet.getString("MBID_RECORD") != null) {
 										addChild(new MusicBrainzAlbumFolder(renderer, generateMusicBrainzAlbum(resultSet)));
 									} else {
-										String album = resultSet.getString(MediaTableAudioMetadata.TABLE_COL_ALBUM);
-										addChild(new VirtualFolderDbIdNamed(renderer, album, new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM_FILES,
-											typeIdent.ident + DbIdMediaType.SPLIT_CHARS + album)));
+										StoreResource sr = DbIdResourceLocator.getAlbumFromMediaLibrary(renderer, typeIdent.ident);
+										if (sr != null) {
+											addChild(sr);
+										}
 									}
 								}
 							}
@@ -208,16 +218,30 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 								}
 							}
 						}
-						case TYPE_PERSON -> {
-							if (isDiscovered()) {
-								return;
+						case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+							if (StringUtils.isAllBlank(typeIdent.ident)) {
+								// All Person
+								LOGGER.debug("All person Folder");
+								sql = String.format("SELECT ID, NAME FROM " + MediaTableStoreIds.TABLE_NAME + " WHERE PARENT_ID = %s", getLongId());
+								try (ResultSet resultSet = statement.executeQuery(sql)) {
+									while (resultSet.next()) {
+										String name = resultSet.getString("NAME");
+										DbIdTypeAndIdent tiPerson = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, name.substring(name.lastIndexOf("$") + 1));
+										MusicBrainzPersonFolder person = new MusicBrainzPersonFolder(renderer, tiPerson.ident, tiPerson);
+										addChild(person);
+									}
+								} catch (Exception e) {
+									LOGGER.error("TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST", e);
+								}
+							} else {
+								LOGGER.debug("Person {}", typeIdent.ident);
+								if (this instanceof MusicBrainzPersonFolder person) {
+									addChild(person.getAllFilesFolder());
+									addChild(person.getAlbumFolder());
+								} else {
+									LOGGER.warn("unknown folder type.");
+								}
 							}
-							StoreResource allFiles = new MusicBrainzPersonFolder(renderer, "AllFiles",
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident));
-							StoreResource albums = new MusicBrainzPersonFolder(renderer, "ByAlbum_lowercase",
-								new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident));
-							addChild(allFiles);
-							addChild(albums);
 						}
 						case TYPE_FOLDER -> {
 							StoreResource res = DbIdResourceLocator.getLibraryResourceFolder(renderer, typeIdent.toString());
@@ -232,6 +256,8 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 							if (renderer.hasShareAccess(file)) {
 								StoreResource sr = DbIdResourceLocator.getLibraryResourceRealFile(renderer, file.getAbsolutePath());
 								addChild(sr);
+							} else {
+								LOGGER.debug("renderer has no share access to resource {}", file.getAbsolutePath());
 							}
 						}
 					}
@@ -248,7 +274,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 
 	private MusicBrainzAlbum generateMusicBrainzAlbum(ResultSet resultSet) throws SQLException {
 		return new MusicBrainzAlbum(resultSet.getString("MBID_RELEASE"), resultSet.getString("ALBUM"),
-				resultSet.getString("ARTIST"), resultSet.getInt("MEDIA_YEAR"), resultSet.getString("GENRE"));
+				resultSet.getString("ARTIST"), Integer.toString(resultSet.getInt("MEDIA_YEAR")), resultSet.getString("GENRE"));
 	}
 
 	private static String personAlbumFileSql(DbIdTypeAndIdent typeAndIdent) {
