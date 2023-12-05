@@ -63,9 +63,12 @@
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 		<twelvemonkeys-imageio-version>3.10.1</twelvemonkeys-imageio-version>
 
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.encoding>UTF-8</project.encoding>
+		<project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
+		<project.mainclass>${project.groupId}.PMS</project.mainclass>
+		<project.name.short>UMS</project.name.short>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
@@ -740,7 +743,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
+						<argLine>-Dfile.encoding=${project.encoding}</argLine>
 					</configuration>
 				</plugin>
 
@@ -903,7 +906,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -1034,7 +1037,7 @@
 									<target>
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
@@ -1192,17 +1195,21 @@
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
 							<makensisExecutableMacOS>makensis</makensisExecutableMacOS>
 							<defines>
+								<PROJECT_NAME_SHORT>${project.name.short}</PROJECT_NAME_SHORT>
 								<PROJECT_VERSION_SHORT>${project.version.short}</PROJECT_VERSION_SHORT>
 								<PROJECT_BINARIES>${project.binaries}</PROJECT_BINARIES>
 								<PROJECT_JRE_VERSION>${project.jre-version}</PROJECT_JRE_VERSION>
 								<PROJECT_BINARY_REVISION>${binary-revision}</PROJECT_BINARY_REVISION>
+								<PROJECT_JARFILE>${project.artifactId}.jar</PROJECT_JARFILE>
+								<PROJECT_MAIN_CLASS>${project.mainclass}</PROJECT_MAIN_CLASS>
+								<PROJECT_ENCODING>${project.encoding}</PROJECT_ENCODING>
 							</defines>
 						</configuration>
 						<executions>
 							<execution>
 								<id>build-ums-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}.exe</outputFile>
 									<scriptFile>${project.build.directory}/ums.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1214,7 +1221,7 @@
 							<execution>
 								<id>build-update-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS-update-${binary-revision}.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}-update-${binary-revision}.exe</outputFile>
 									<scriptFile>${project.build.directory}/update.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1225,7 +1232,7 @@
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}-setup.exe</outputFile>
 									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1296,7 +1303,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1316,7 +1323,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1364,7 +1371,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1431,7 +1438,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1451,7 +1458,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1499,7 +1506,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1566,7 +1573,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1586,7 +1593,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1634,7 +1641,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1701,7 +1708,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1721,7 +1728,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1777,7 +1784,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1844,7 +1851,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1864,7 +1871,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1920,7 +1927,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2085,14 +2092,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2100,9 +2107,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2126,7 +2133,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2148,7 +2155,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2317,14 +2324,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2332,9 +2339,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2358,7 +2365,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2380,7 +2387,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2545,14 +2552,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2560,9 +2567,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=${project.build.sourceEncoding}"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2586,7 +2593,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2608,7 +2615,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2656,7 +2663,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2683,7 +2690,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2714,7 +2721,7 @@
 								</goals>
 								<configuration>
 									<classpathScope>test</classpathScope>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 								</configuration>
 							</execution>
 						</executions>
@@ -2863,7 +2870,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -2906,7 +2913,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files (x86)/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2946,7 +2953,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files (x86)/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files (x86)/Universal Media Server/${project.name.short}.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -2997,7 +3004,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -3040,7 +3047,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3080,7 +3087,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files/Universal Media Server/${project.name.short}.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3131,7 +3138,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -3212,7 +3219,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>/Applications/Universal Media Server.app/Contents/MacOS/UMS</executable>
+									<executable>/Applications/Universal Media Server.app/Contents/MacOS/${project.name.short}</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3253,7 +3260,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -3273,7 +3280,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -3300,7 +3307,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3413,7 +3420,7 @@
 						</dependencies>
 						<configuration>
 							<configLocation>CheckStyle.xml</configLocation>
-							<inputEncoding>${project.build.sourceEncoding}</inputEncoding>
+							<inputEncoding>${project.encoding}</inputEncoding>
 							<consoleOutput>true</consoleOutput>
 							<failsOnError>true</failsOnError>
 							<linkXRef>false</linkXRef>
