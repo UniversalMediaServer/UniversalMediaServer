@@ -3,7 +3,7 @@
 ## 14.0.0 (Unreleased)
 
 ### General
-- Use TMDB directly for faster and more accurate metadata lookups
+- Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
 - Improved memory use bar on the web interface
 - Added ability for user accounts to have avatars
 - Improved selection of video quality on web player
@@ -15,6 +15,8 @@
 - Added ability to select and edit multiple shared contents
 - Added more control over user permissions in the web settings
 - Added pin codes for users
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Improved TV series matching and lookups
 
 ### Renderers
 - Improved support for Samsung The Frame TVs
