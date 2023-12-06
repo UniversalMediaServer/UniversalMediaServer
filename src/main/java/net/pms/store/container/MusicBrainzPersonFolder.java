@@ -17,32 +17,28 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 	private VirtualFolderDbId allFiles = null;
 	private VirtualFolderDbId albumFiles = null;
 
-	@Override
-	public boolean isDiscovered() {
-		return false;
+	public MusicBrainzPersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
+		super(renderer, personName, typeIdent);
+		if (StringUtils.isAllBlank(typeIdent.ident)) {
+			LOGGER.debug("person name is blanc");
+		} else {
+			initChilds();
+		}
 	}
 
 	@Override
 	public void discoverChildren() {
+		getChildren().clear();
+		initChilds();
+	}
+
+	private void initChilds() {
 		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, getMediaIdent());
 		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, getMediaIdent());
 		allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
 		albumFiles = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
 		addChild(allFiles);
 		addChild(albumFiles);
-	}
-
-	@Override
-	public void discoverChildren(String str) {
-		getChildren().clear();
-		super.discoverChildren();
-	}
-
-	public MusicBrainzPersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
-		super(renderer, personName, typeIdent);
-		if (StringUtils.isAllBlank(typeIdent.ident)) {
-			LOGGER.debug("person name is blanc");
-		}
 	}
 
 	@Override
