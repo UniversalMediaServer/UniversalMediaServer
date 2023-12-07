@@ -71,15 +71,6 @@ public class MediaInfoHelper implements AutoCloseable {
 		}
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
-		}
-	}
-
 	// File
 	/**
 	 * Open a file and collect information about it (technical information and tags).

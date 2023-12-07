@@ -83,7 +83,6 @@ public class StreamOther {
 
 	/**
 	 * Order of the first fully decodable packet met in the file, whatever is the kind of stream (base=0).
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.OTHER, streamNumber, "FirstPacketOrder");
@@ -202,7 +201,6 @@ public class StreamOther {
 
 	/**
 	 * Commercial name used by vendor for theses setings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.OTHER, streamNumber, "Format_Commercial");
@@ -678,6 +676,7 @@ public class StreamOther {
 
 	/**
 	 * Delay fixed in the stream (relative) IN MS;.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.OTHER, streamNumber, "Delay");
@@ -1099,7 +1098,6 @@ public class StreamOther {
 
 	/**
 	 * StreamSize in bytes of hte stream after demux.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.OTHER, streamNumber, "StreamSize_Demuxed");

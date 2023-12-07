@@ -93,7 +93,6 @@ public class StreamAudio {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "FirstPacketOrder");
@@ -204,7 +203,6 @@ public class StreamAudio {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Format_Commercial");
@@ -229,7 +227,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format).
+	 * Profile of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -238,7 +236,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Level of the Format (MIXML only).
+	 * Level of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -606,7 +604,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Play time, in milliseconds.
+	 * Play time of the stream, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -657,7 +655,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Duration of the first frame (if different than other frames), in milliseconds.
+	 * Duration of the first frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -708,7 +706,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Duration of the last frame (if different than other frames), in milliseconds.
+	 * Duration of the last frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -759,7 +757,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Duration of content stored in the file, in milliseconds.
+	 * Duration of content stored in the file, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -810,7 +808,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Duration of the first frame of content stored in the file (if different than other frames), in milliseconds.
+	 * Duration of the first frame of content stored in the file (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -861,7 +859,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Duration of the last frame of content stored in the file (if different than other frames), in milliseconds.
+	 * Duration of the last frame of content stored in the file (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -912,7 +910,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Bit rate mode of this stream, as acronym (VBR, CBR).
+	 * Bit rate mode of this stream (CBR, VBR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getBitRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -928,7 +926,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Bit rate of this stream, in bits per second (e.g. 128026).
+	 * Bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -944,7 +942,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Minimum bit rate of this stream, in bits per second.
+	 * Minimum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMinimum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -960,7 +958,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Nominal bit rate of this stream, in bits per second.
+	 * Nominal bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateNominal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -976,7 +974,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Maximum bit rate of this stream, in bits per second.
+	 * Maximum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -992,7 +990,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1000,7 +998,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 */
 	public static final String getBitRateEncodedString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "BitRate_Encoded/String");
@@ -1023,15 +1021,14 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Number of channels, considering data only from the codec (e.g. 6).
-	 * Shown in Info_Capacities()
+	 * Number of channels (e.g. 6).
 	 */
 	public static final Long getChannelsOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "Channel(s)_Original");
 	}
 
 	/**
-	 * Number of channels, considering data only from the codec, with measurement (e.g. 6 channels).
+	 * Number of channels, with measurement (e.g. 6 channels).
 	 * Shown in inform()
 	 */
 	public static final String getChannelsOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1063,8 +1060,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Position of channels, considering data only from the codec (e.g. Front: L C R, Side: L R, Back: L R, LFE).
-	 * Shown in Info_Capacities()
+	 * Position of channels (e.g. Front: L C R, Side: L R, Back: L R, LFE).
 	 */
 	public static final String getChannelPositionsOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "ChannelPositions_Original");
@@ -1078,7 +1074,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Position of channels in x/y.z format, considering data only from the codec (e.g. 3/2/0.1).
+	 * Position of channels in x/y.z format (e.g. 3/2/0.1).
 	 */
 	public static final String getChannelPositionsOriginalString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "ChannelPositions_Original/String2");
@@ -1110,9 +1106,8 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Layout of channels, considering data only from the codec (e.g. L R C LFE Ls Rs Lb Rb).
+	 * Layout of channels (e.g. L R C LFE Ls Rs Lb Rb).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getChannelLayoutOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "ChannelLayout_Original");
@@ -1154,6 +1149,7 @@ public class StreamAudio {
 
 	/**
 	 * Sample count (based on sampling rate).
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSamplingCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "SamplingCount");
@@ -1161,13 +1157,14 @@ public class StreamAudio {
 
 	/**
 	 * Source Sample count (based on sampling rate), with information derived from header metadata.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceSamplingCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "Source_SamplingCount");
 	}
 
 	/**
-	 * Frames per second, as integer (e.g. 29.970).
+	 * Frames per second, as float (e.g. 29.970).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1197,14 +1194,16 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Frame count (a frame contains a count of samples depends of the format).
+	 * Frame count.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "FrameCount");
 	}
 
 	/**
-	 * Source Frame count (a frame contains a count of samples depends of the format).
+	 * Source frame count.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "Source_FrameCount");
@@ -1277,7 +1276,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getCompressionMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1285,7 +1284,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in inform()
 	 */
 	public static final String getCompressionModeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1295,14 +1294,14 @@ public class StreamAudio {
 	/**
 	 * Stream size divided by uncompressed stream size.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final Double getCompressionRatio(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.AUDIO, streamNumber, "Compression_Ratio");
 	}
 
 	/**
-	 * Delay fixed in the stream (relative), in milliseconds.
+	 * Delay fixed in the stream (relative), in ms.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.AUDIO, streamNumber, "Delay");
@@ -1351,8 +1350,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Delay settings (i.e.
-	 * in case of timecode)
+	 * Delay settings, (e.g. in case of timecode).
 	 */
 	public static final String getDelaySettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Settings");
@@ -1380,64 +1378,63 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in milliseconds.
+	 * Delay, in ms.
 	 */
 	public static final Long getDelayOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "Delay_Original");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String1");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String2");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm.
+	 * Delay, in format HH:MM:SS.mmm.
 	 */
 	public static final String getDelayOriginalString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String3");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Delay, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getDelayOriginalString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String4");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Delay, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getDelayOriginalString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original/String5");
 	}
 
 	/**
-	 * Delay settings, considering data only from the codec (i.e.
-	 * in case of timecode)
+	 * Delay settings (e.g. in case of timecode).
 	 */
 	public static final String getDelayOriginalSettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original_Settings");
 	}
 
 	/**
-	 * Delay drop frame information, considering data only from the codec.
+	 * Delay drop frame information.
 	 */
 	public static final String getDelayOriginalDropFrame(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Delay_Original_DropFrame");
@@ -1451,14 +1448,14 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds (e.g. -80).
+	 * Delay fixed in the stream relative to video, in ms (e.g. -80).
 	 */
 	public static final Double getVideoDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.AUDIO, streamNumber, "Video_Delay");
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 * Shown in inform()
 	 */
 	public static final String getVideoDelayString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1466,14 +1463,14 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 */
 	public static final String getVideoDelayString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Video_Delay/String1");
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 */
 	public static final String getVideoDelayString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Video_Delay/String2");
@@ -1610,7 +1607,6 @@ public class StreamAudio {
 	/**
 	 * The gain to apply to reach 89dB SPL on playback.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getReplayGainGainString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "ReplayGain_Gain/String");
@@ -1626,7 +1622,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Size of this stream, in bytes (e.g. 11010717).
+	 * Size of this stream, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1685,7 +1681,6 @@ public class StreamAudio {
 
 	/**
 	 * Size of this stream after demuxing, in bytes.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.AUDIO, streamNumber, "StreamSize_Demuxed");
@@ -1734,7 +1729,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Size of content stored in the file, in bytes (e.g. 11010717).
+	 * Size of content stored in the file, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1849,7 +1844,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Size of content stored in the file when encoded, in bytes (e.g. 11010717).
+	 * Size of content stored in the file when encoded, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSizeEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1930,7 +1925,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * For interleaved video, between how much time, in milliseconds, this stream is inserted (e.g. 21 ms).
+	 * For interleaved video, between how much time, in ms, this stream is inserted (e.g. 21 ms).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getInterleaveDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1938,7 +1933,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * For interleaved video, between how many video frames this stream is inserted, as duration with measurement and amount of frame(s) in parenthesis (e.g. 21 ms (0.51 video frame)).
+	 * For interleaved video, between how many video frames this stream is inserted, as duration with measurement and amount of frame (s) in parenthesis (e.g. 21 ms (0.51 video frame)).
 	 * Shown in inform()
 	 */
 	public static final String getInterleaveDurationString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1946,7 +1941,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * How much time is buffered before the first video frame, in milliseconds (e.g. 500).
+	 * How much time is buffered before the first video frame, in ms (e.g. 500).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getInterleavePreload(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1954,7 +1949,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * How much time is buffered before the first video frame, in milliseconds with measurement (e.g. 500 ms).
+	 * How much time is buffered before the first video frame, in ms with measurement (e.g. 500 ms).
 	 * Shown in inform()
 	 */
 	public static final String getInterleavePreloadString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2044,6 +2039,7 @@ public class StreamAudio {
 
 	/**
 	 * Name of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryName(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Encoded_Library_Name");
@@ -2051,6 +2047,7 @@ public class StreamAudio {
 
 	/**
 	 * Version of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Encoded_Library_Version");
@@ -2058,6 +2055,7 @@ public class StreamAudio {
 
 	/**
 	 * Release date of the encoding software, in UTC.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.AUDIO, streamNumber, "Encoded_Library_Date");
@@ -2150,8 +2148,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDisabled(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2159,8 +2156,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDisabledString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2168,8 +2164,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDefault(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2177,8 +2172,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDefaultString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2186,8 +2180,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getForced(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2195,8 +2188,7 @@ public class StreamAudio {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getForcedString(MediaInfoHelper mediaInfo, int streamNumber) {
