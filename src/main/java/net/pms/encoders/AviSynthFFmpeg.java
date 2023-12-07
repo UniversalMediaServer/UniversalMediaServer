@@ -33,6 +33,7 @@ import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -138,18 +139,21 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			return false;
 		}
 
-		try {
-			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
+		MediaAudio audio = resource.getMediaAudio();
+		if (audio != null) {
+			try {
+				String audioTrackName = resource.getMediaAudio().toString();
+				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
-			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// This engine implementation only supports playback of the default audio track at this time
-				return false;
+				if (!audioTrackName.equals(defaultAudioTrackName)) {
+					// This engine implementation only supports playback of the default audio track at this time
+					return false;
+				}
+			} catch (NullPointerException e) {
+				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getFileName());
+			} catch (IndexOutOfBoundsException e) {
+				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getFileName());
 			}
-		} catch (NullPointerException e) {
-			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getFileName());
-		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getFileName());
 		}
 
 		return PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||

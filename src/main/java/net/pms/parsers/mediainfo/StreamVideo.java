@@ -93,7 +93,6 @@ public class StreamVideo {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "FirstPacketOrder");
@@ -204,7 +203,6 @@ public class StreamVideo {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Format_Commercial");
@@ -229,7 +227,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format).
+	 * Profile of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -238,7 +236,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Level of the Format (MIXML only).
+	 * Level of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -247,7 +245,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Tier of the Format (MIXML only).
+	 * Tier of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -291,7 +289,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * How views are muxed in the container (when not muxing in the stream) for Multiview Video Coding.
+	 * How views are muxed in the container for Multiview Video Coding.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -372,8 +370,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether BVOP (Bidirectional Interpolated Video Object Plane) settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether BVOP settings are required for decoding MPEG (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettingsBVOP(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -381,8 +378,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether BVOP (Bidirectional Interpolated Video Object Plane) settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether BVOP settings are required for decoding MPEG (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsBVOPString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -390,8 +386,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Quarter-pixel motion settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Quarter-pixel motion settings are required for decoding MPEG (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettingsQPel(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -399,8 +394,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Quarter-pixel motion settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Quarter-pixel motion settings are required for decoding MPEG (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsQPelString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -408,8 +402,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Global Motion Compensation settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Global Motion Compensation settings are required for decoding MPEG (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFormatSettingsGMC(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -417,8 +410,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Global Motion Compensation settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Global Motion Compensation settings are required for decoding MPEG (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsGMCString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -426,8 +418,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Matrix settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Matrix settings are required for decoding MPEG (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettingsMatrix(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -435,8 +426,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Matrix settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether Matrix settings are required for decoding MPEG (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsMatrixString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -452,8 +442,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Context-adaptive binary arithmetic coding support is required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether CABAC support is required for decoding MPEG (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettingsCABAC(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -461,8 +450,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether Context-adaptive binary arithmetic coding settings are required for decoding MPEG.
-	 * Options are Yes/No
+	 * Whether CABAC support is  required for decoding MPEG (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsCABACString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -470,8 +458,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether reference frames settings are required for decoding AVC.
-	 * Options are Yes/No
+	 * Whether reference frames settings are required for decoding AVC (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFormatSettingsRefFrames(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -479,8 +466,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Whether reference frames settings are required for decoding AVC.
-	 * Options are Yes/No
+	 * Whether reference frames settings are required for decoding AVC (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getFormatSettingsRefFramesString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -497,8 +483,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Order of bytes required for decoding.
-	 * Options are Big/Little
+	 * Order of bytes required for decoding (Big, Little).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettingsEndianness(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -514,8 +499,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Frame mode for decoding AVC.
-	 * Options are "Frame doubling" or "Frame tripling"
+	 * Frame mode for decoding (e.g. Frame doubling, Frame tripling).
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -551,7 +535,8 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Internet Media Type (aka MIME Type, Content-Type).
+	 * Internet Media Type a.k.a.
+	 * MIME Type, Content-Type
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getInternetMediaType(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -761,7 +746,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Play time, in milliseconds.
+	 * Play time of the stream, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -812,7 +797,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the first frame (if different than other frames), in milliseconds.
+	 * Duration of the first frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -863,7 +848,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the last frame (if different than other frames), in milliseconds.
+	 * Duration of the last frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -914,7 +899,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in milliseconds.
+	 * Duration of the file, of content stored in the file, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -922,7 +907,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format XXx YYy, with YYy value omitted if zero.
+	 * Duration of the file, of content stored in the file, in format XXx YYy, with YYy value omitted if zero.
 	 * Shown in inform()
 	 */
 	public static final String getSourceDurationString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -930,42 +915,42 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
+	 * Duration of the file, of content stored in the file, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
 	 */
 	public static final String getSourceDurationString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration/String1");
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format XXx YYy, with YYy omitted if value is zero.
+	 * Duration of the file, of content stored in the file, in format XXx YYy, with YYy omitted if value is zero.
 	 */
 	public static final String getSourceDurationString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration/String2");
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format HH:MM:SS.mmm.
+	 * Duration of the file, of content stored in the file, in format HH:MM:SS.mmm.
 	 */
 	public static final String getSourceDurationString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration/String3");
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Duration of the file, of content stored in the file, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getSourceDurationString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration/String4");
 	}
 
 	/**
-	 * Duration of the file, according to media header data, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Duration of the file, of content stored in the file, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getSourceDurationString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration/String5");
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in milliseconds.
+	 * Duration of the first frame, of content stored in the file, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -973,7 +958,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format XXx YYy, with YYy value omitted if zero.
+	 * Duration of the first frame, of content stored in the file, in format XXx YYy, with YYy value omitted if zero.
 	 * Shown in inform()
 	 */
 	public static final String getSourceDurationFirstFrameString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -981,42 +966,42 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
+	 * Duration of the first frame, of content stored in the file, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
 	 */
 	public static final String getSourceDurationFirstFrameString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_FirstFrame/String1");
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format XXx YYy, with YYy omitted if value is zero.
+	 * Duration of the first frame, of content stored in the file, in format XXx YYy, with YYy omitted if value is zero.
 	 */
 	public static final String getSourceDurationFirstFrameString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_FirstFrame/String2");
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format HH:MM:SS.mmm.
+	 * Duration of the first frame, of content stored in the file, in format HH:MM:SS.mmm.
 	 */
 	public static final String getSourceDurationFirstFrameString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_FirstFrame/String3");
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Duration of the first frame, of content stored in the file, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getSourceDurationFirstFrameString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_FirstFrame/String4");
 	}
 
 	/**
-	 * Duration of the first frame, according to media header data, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Duration of the first frame, of content stored in the file, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getSourceDurationFirstFrameString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_FirstFrame/String5");
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in milliseconds.
+	 * Duration of the last frame, of content stored in the file, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1024,7 +1009,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format XXx YYy, with YYy value omitted if zero.
+	 * Duration of the last frame, of content stored in the file, in format XXx YYy, with YYy value omitted if zero.
 	 * Shown in inform()
 	 */
 	public static final String getSourceDurationLastFrameString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1032,42 +1017,42 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
+	 * Duration of the last frame, of content stored in the file, in format HHh MMmn SSs MMMms, with any fields omitted if zero.
 	 */
 	public static final String getSourceDurationLastFrameString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_LastFrame/String1");
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format XXx YYy, with YYy omitted if value is zero.
+	 * Duration of the last frame, of content stored in the file, in format XXx YYy, with YYy omitted if value is zero.
 	 */
 	public static final String getSourceDurationLastFrameString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_LastFrame/String2");
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format HH:MM:SS.mmm.
+	 * Duration of the last frame, of content stored in the file, in format HH:MM:SS.mmm.
 	 */
 	public static final String getSourceDurationLastFrameString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_LastFrame/String3");
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Duration of the last frame, of content stored in the file, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getSourceDurationLastFrameString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_LastFrame/String4");
 	}
 
 	/**
-	 * Duration of the last frame, according to media header data, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Duration of the last frame, of content stored in the file, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getSourceDurationLastFrameString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Source_Duration_LastFrame/String5");
 	}
 
 	/**
-	 * Bit rate mode of this stream, as acronym (VBR, CBR).
+	 * Bit rate mode of this stream (CBR, VBR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getBitRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1083,7 +1068,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Bit rate of this stream, in bits per second (e.g. 128026).
+	 * Bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1099,7 +1084,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Minimum bit rate of this stream, in bits per second.
+	 * Minimum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMinimum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1115,7 +1100,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Nominal bit rate of this stream, in bits per second.
+	 * Nominal bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateNominal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1131,7 +1116,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Maximum bit rate of this stream, in bits per second.
+	 * Maximum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1147,7 +1132,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1155,14 +1140,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 */
 	public static final String getBitRateEncodedString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "BitRate_Encoded/String");
 	}
 
 	/**
-	 * Width of frame (trimmed to "clean aperture" size if present) in pixels, as integer (e.g. 1920).
+	 * Width of frame (trimmed to clean aperture size if present) in pixels, as integer (e.g. 1920).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getWidth(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1170,7 +1155,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of frame (trimmed to "clean aperture" size if present) in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
+	 * Width of frame (trimmed to clean aperture size if present) in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
 	 * Shown in inform()
 	 */
 	public static final String getWidthString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1194,7 +1179,6 @@ public class StreamVideo {
 
 	/**
 	 * Width of frame (not including aperture size if present) in pixels, presented as integer (e.g. 1920).
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getWidthOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Width_Original");
@@ -1209,7 +1193,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of frame (trimmed to "clean aperture" size if present) in pixels, presented as integer (e.g. 1920).
+	 * Width of frame (trimmed to clean aperture size if present) in pixels, presented as integer (e.g. 1920).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getWidthCleanAperture(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1217,7 +1201,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of frame (trimmed to "clean aperture" size if present) in pixels, present in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
+	 * Width of frame (trimmed to clean aperture size if present) in pixels, present in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
 	 * Shown in inform()
 	 */
 	public static final String getWidthCleanApertureString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1257,7 +1241,6 @@ public class StreamVideo {
 
 	/**
 	 * Height of frame (not including aperture size if present) in pixels, presented as integer (e.g. 1080).
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getHeightOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Height_Original");
@@ -1272,7 +1255,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Height of frame (trimmed to "clean aperture" size if present) in pixels, presented as integer (e.g. 1080).
+	 * Height of frame (trimmed to clean aperture size if present) in pixels, presented as integer (e.g. 1080).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getHeightCleanAperture(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1280,7 +1263,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Height of frame (trimmed to "clean aperture" size if present) in pixels, present in SI unit digit spacing style, with measurement (e.g. 1 800 pixels).
+	 * Height of frame (trimmed to clean aperture size if present) in pixels, present in SI unit digit spacing style, with measurement (e.g. 1 800 pixels).
 	 * Shown in inform()
 	 */
 	public static final String getHeightCleanApertureString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1320,7 +1303,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering data from both the container and codec (e.g. 1.422).
+	 * Width of a pixel as compared to the height (e.g. 1.422).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getPixelAspectRatio(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1328,23 +1311,22 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering data from both the container and codec (e.g. 1.422).
+	 * Width of a pixel as compared to the height (e.g. 1.422).
 	 */
 	public static final String getPixelAspectRatioString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "PixelAspectRatio/String");
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering data only from the codec (e.g. 1.422).
+	 * Width of a pixel as compared to the height (e.g. 1.422).
 	 * This field is only shown if the container and codec values are different
-	 * Shown in Info_Capacities()
 	 */
 	public static final Double getPixelAspectRatioOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "PixelAspectRatio_Original");
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering data only from the codec (e.g. 1.422).
+	 * Width of a pixel as compared to the height (e.g. 1.422).
 	 * This field is only shown if the container and codec values are different
 	 */
 	public static final String getPixelAspectRatioOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1352,7 +1334,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering "clean aperture" dimensions (e.g. 1.422).
+	 * Width of a pixel as compared to the height, considering clean aperture dimensions (e.g. 1.422).
 	 * This field is only shown if the values are different
 	 * Shown in Info_Capacities()
 	 */
@@ -1361,7 +1343,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Width of a pixel as compared to the height, considering "clean aperture" dimensions (e.g. 1.422).
+	 * Width of a pixel as compared to the height, considering clean aperture dimensions (e.g. 1.422).
 	 * This field is only shown if the values are different
 	 */
 	public static final String getPixelAspectRatioCleanApertureString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1385,15 +1367,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
-	 * Shown in Info_Capacities()
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 */
 	public static final Double getDisplayAspectRatioOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "DisplayAspectRatio_Original");
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 * Shown in inform()
 	 */
 	public static final String getDisplayAspectRatioOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1401,7 +1382,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering "clean aperture" dimensions (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame, considering clean aperture dimensions (e.g. 4:3).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDisplayAspectRatioCleanAperture(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1409,7 +1390,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering "clean aperture" dimensions (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame, considering clean aperture dimensions (e.g. 4:3).
 	 * Shown in inform()
 	 */
 	public static final String getDisplayAspectRatioCleanApertureString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1442,6 +1423,54 @@ public class StreamVideo {
 	}
 
 	/**
+	 * Width of frame, not considering black bars.
+	 * Shown in Info_Capacities()
+	 */
+	public static final Long getActiveWidth(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Active_Width");
+	}
+
+	/**
+	 * Width of frame, not considering black bars, in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
+	 * Shown in inform()
+	 */
+	public static final String getActiveWidthString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Active_Width/String");
+	}
+
+	/**
+	 * Height of frame, not considering black bars.
+	 * Shown in Info_Capacities()
+	 */
+	public static final Long getActiveHeight(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Active_Height");
+	}
+
+	/**
+	 * Height of frame, not considering black bars, in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 080 pixels).
+	 * Shown in inform()
+	 */
+	public static final String getActiveHeightString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Active_Height/String");
+	}
+
+	/**
+	 * The proportional relationship between the active width and active height of a frame (e.g. 4:3).
+	 * Shown in Info_Capacities()
+	 */
+	public static final Double getActiveDisplayAspectRatio(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "Active_DisplayAspectRatio");
+	}
+
+	/**
+	 * The proportional relationship between the active width and active height of a frame (e.g. 4:3).
+	 * Shown in inform()
+	 */
+	public static final String getActiveDisplayAspectRatioString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Active_DisplayAspectRatio/String");
+	}
+
+	/**
 	 * Rotation of video, derived from track header data, in degrees.
 	 * Shown in Info_Capacities()
 	 */
@@ -1458,7 +1487,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Frame rate mode, considering data from both the container and codec, as acronym (e.g. CFR, VFR).
+	 * Frame rate mode, as acronym (e.g. CFR, VFR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFrameRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1466,7 +1495,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Frame rate mode, considering data from both the container and codec, as word (e.g. Constant, Variable).
+	 * Frame rate mode, as word (e.g. Constant, Variable).
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateModeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1474,15 +1503,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Original frame rate mode, considering data only from the codec, as acronym (e.g. CFR, VFR).
-	 * Shown in Info_Capacities()
+	 * Original frame rate mode, as acronym (e.g. CFR, VFR).
 	 */
 	public static final String getFrameRateModeOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "FrameRate_Mode_Original");
 	}
 
 	/**
-	 * Original frame rate mode, considering data only from the codec, as word (Constant, Variable).
+	 * Original frame rate mode, as word (Constant, Variable).
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateModeOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1490,7 +1518,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Frames per second, as integer (e.g. 29.970).
+	 * Frames per second, as float (e.g. 29.970).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1552,7 +1580,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Maximum frames per second, considering data from both the container and codec.
+	 * Maximum frames per second.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1560,7 +1588,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Maximum frames per second, considering data from both the container and codec, with measurement.
+	 * Maximum frames per second, with measurement.
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateMaximumString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1568,15 +1596,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec.
-	 * Shown in Info_Capacities()
+	 * Frames per second.
 	 */
 	public static final Double getFrameRateOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "FrameRate_Original");
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec, with measurement.
+	 * Frames per second, with measurement.
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1584,14 +1611,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Numerator for determined frames per second, considering data only from the codec (e.g. 29970).
+	 * Numerator for determined frames per second (e.g. 29970).
 	 */
 	public static final Double getFrameRateOriginalNum(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "FrameRate_Original_Num");
 	}
 
 	/**
-	 * Denominator for determined frames per second, considering data only from the codec (e.g. 1000).
+	 * Denominator for determined frames per second (e.g. 1000).
 	 */
 	public static final Double getFrameRateOriginalDen(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "FrameRate_Original_Den");
@@ -1614,22 +1641,25 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Numer of frames (e.g. 78112).
+	 * Numer of frames.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "FrameCount");
 	}
 
 	/**
-	 * Number of frames according to media header (media/stts atom) data (e.g. 78112).
+	 * Number of frames according to media header (media/stts atom) data.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Source_FrameCount");
 	}
 
 	/**
-	 * Either the NTSC or PAL color encoding system, determined by other video characteristics.
+	 * Either the NTSC or PAL color encoding system, as stored in the content.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getStandard(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Standard");
@@ -1709,7 +1739,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Way in which lines of video are displayed, considering data from both the container and codec (e.g. Progressive).
+	 * Way in which lines of video are displayed (e.g. Progressive).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getScanType(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1717,7 +1747,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Way in which lines of video are displayed, considering data from both the container and codec (e.g. Progressive).
+	 * Way in which lines of video are displayed (e.g. Progressive).
 	 * Shown in inform()
 	 */
 	public static final String getScanTypeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1725,15 +1755,14 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Way in which lines of video are encoded, considering data only from the codec (e.g. Progressive).
-	 * Shown in Info_Capacities()
+	 * Way in which lines of video are encoded (e.g. Progressive).
 	 */
 	public static final String getScanTypeOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "ScanType_Original");
 	}
 
 	/**
-	 * Way in which lines of video are encoded, considering data only from the codec (e.g. Progressive).
+	 * Way in which lines of video are encoded (e.g. Progressive).
 	 * Shown in inform()
 	 */
 	public static final String getScanTypeOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1797,22 +1826,21 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Field is set to "Yes" when display and stored orders are inverted.
+	 * Field is set to Yes when display and stored orders are inverted.
 	 */
 	public static final String getScanOrderStoredDisplayedInverted(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "ScanOrder_StoredDisplayedInverted");
 	}
 
 	/**
-	 * Whether the video's ScanType is stored with fields separated or interleaved, considering data only from the codec.
-	 * Shown in Info_Capacities()
+	 * Whether the video's ScanType is stored with fields separated or interleaved.
 	 */
 	public static final String getScanOrderOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "ScanOrder_Original");
 	}
 
 	/**
-	 * Whether the video's ScanType is stored with fields separated or interleaved, considering data only from the codec.
+	 * Whether the video's ScanType is stored with fields separated or interleaved.
 	 * Shown in inform()
 	 */
 	public static final String getScanOrderOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1836,7 +1864,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getCompressionMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1844,7 +1872,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in inform()
 	 */
 	public static final String getCompressionModeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1854,7 +1882,6 @@ public class StreamVideo {
 	/**
 	 * Stream size divided by uncompressed stream size.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final Double getCompressionRatio(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "Compression_Ratio");
@@ -1869,7 +1896,8 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Delay fixed in the stream (relative), in milliseconds.
+	 * Delay fixed in the stream (relative), in ms.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.VIDEO, streamNumber, "Delay");
@@ -1918,8 +1946,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Delay settings (i.e.
-	 * in case of timecode)
+	 * Delay settings (e.g. in case of timecode).
 	 */
 	public static final String getDelaySettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Settings");
@@ -1947,64 +1974,63 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in milliseconds.
+	 * Delay, in ms.
 	 */
 	public static final Long getDelayOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "Delay_Original");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String1");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String2");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm.
+	 * Delay, in format HH:MM:SS.mmm.
 	 */
 	public static final String getDelayOriginalString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String3");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Delay, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getDelayOriginalString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String4");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Delay, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getDelayOriginalString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original/String5");
 	}
 
 	/**
-	 * Delay settings, considering data only from the codec (i.e.
-	 * in case of timecode)
+	 * Delay settings (e.g. in case of timecode).
 	 */
 	public static final String getDelayOriginalSettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original_Settings");
 	}
 
 	/**
-	 * Delay drop frame information, considering data only from the codec.
+	 * Delay drop frame information.
 	 */
 	public static final String getDelayOriginalDropFrame(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Delay_Original_DropFrame");
@@ -2018,7 +2044,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Timestamp fixed in the stream (relative), in milliseconds.
+	 * Timestamp fixed in the stream (relative), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getTimeStampFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2144,7 +2170,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Size of this stream, in bytes (e.g. 11010717).
+	 * Size of this stream, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2203,7 +2229,6 @@ public class StreamVideo {
 
 	/**
 	 * Size of this stream after demuxing, in bytes.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.VIDEO, streamNumber, "StreamSize_Demuxed");
@@ -2252,7 +2277,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Size of content stored in the file, in bytes (e.g. 11010717).
+	 * Size of content stored in the file, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2367,7 +2392,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Size of content stored in the file when encoded, in bytes (e.g. 11010717).
+	 * Size of content stored in the file when encoded, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSizeEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2522,6 +2547,7 @@ public class StreamVideo {
 
 	/**
 	 * Name of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryName(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Encoded_Library_Name");
@@ -2529,6 +2555,7 @@ public class StreamVideo {
 
 	/**
 	 * Version of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Encoded_Library_Version");
@@ -2536,6 +2563,7 @@ public class StreamVideo {
 
 	/**
 	 * Release date of the encoding software, in UTC.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "Encoded_Library_Date");
@@ -2628,8 +2656,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDisabled(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2637,8 +2664,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDisabledString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2646,8 +2672,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDefault(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2655,8 +2680,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDefaultString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2664,8 +2688,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getForced(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2673,8 +2696,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getForcedString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2733,8 +2755,7 @@ public class StreamVideo {
 	}
 
 	/**
-	 * Presence of color description.
-	 * Options are Yes/No
+	 * Presence of color description (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourdescriptionpresent(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2751,7 +2772,6 @@ public class StreamVideo {
 
 	/**
 	 * Presence of colour description (if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourdescriptionpresentOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_description_present_Original");
@@ -2759,7 +2779,6 @@ public class StreamVideo {
 
 	/**
 	 * Presence of colour description (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourdescriptionpresentOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_description_present_Original_Source");
@@ -2785,7 +2804,6 @@ public class StreamVideo {
 	/**
 	 * Colour range for YUV colour space (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourrangeOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_range_Original");
@@ -2793,7 +2811,6 @@ public class StreamVideo {
 
 	/**
 	 * Colour range for YUV colour space (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourrangeOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_range_Original_Source");
@@ -2819,7 +2836,6 @@ public class StreamVideo {
 	/**
 	 * Chromaticity coordinates of the source primaries (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourprimariesOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_primaries_Original");
@@ -2827,7 +2843,6 @@ public class StreamVideo {
 
 	/**
 	 * Chromaticity coordinates of the source primaries (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourprimariesOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "colour_primaries_Original_Source");
@@ -2853,7 +2868,6 @@ public class StreamVideo {
 	/**
 	 * Opto-electronic transfer characteristic of the source picture (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String gettransfercharacteristicsOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "transfer_characteristics_Original");
@@ -2861,7 +2875,6 @@ public class StreamVideo {
 
 	/**
 	 * Opto-electronic transfer characteristic of the source picture (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String gettransfercharacteristicsOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "transfer_characteristics_Original_Source");
@@ -2887,7 +2900,6 @@ public class StreamVideo {
 	/**
 	 * Matrix coefficients used in deriving luma and chroma signals from the green, blue, and red primaries (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getmatrixcoefficientsOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "matrix_coefficients_Original");
@@ -2895,7 +2907,6 @@ public class StreamVideo {
 
 	/**
 	 * Matrix coefficients used in deriving luma and chroma signals from the green, blue, and red primaries (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getmatrixcoefficientsOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "matrix_coefficients_Original_Source");
@@ -2921,7 +2932,6 @@ public class StreamVideo {
 	/**
 	 * Chromaticity coordinates of the source primaries of the mastering display (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMasteringDisplayColorPrimariesOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MasteringDisplay_ColorPrimaries_Original");
@@ -2929,7 +2939,6 @@ public class StreamVideo {
 
 	/**
 	 * Chromaticity coordinates of the source primaries of the mastering display (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMasteringDisplayColorPrimariesOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MasteringDisplay_ColorPrimaries_Original_Source");
@@ -2955,7 +2964,6 @@ public class StreamVideo {
 	/**
 	 * Luminance of the mastering display (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMasteringDisplayLuminanceOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MasteringDisplay_Luminance_Original");
@@ -2963,7 +2971,6 @@ public class StreamVideo {
 
 	/**
 	 * Luminance of the mastering display (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMasteringDisplayLuminanceOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MasteringDisplay_Luminance_Original_Source");
@@ -2989,7 +2996,6 @@ public class StreamVideo {
 	/**
 	 * Maximum content light level (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMaxCLLOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MaxCLL_Original");
@@ -2997,7 +3003,6 @@ public class StreamVideo {
 
 	/**
 	 * Maximum content light level (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMaxCLLOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MaxCLL_Original_Source");
@@ -3023,7 +3028,6 @@ public class StreamVideo {
 	/**
 	 * Maximum frame average light level (if incoherencies).
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMaxFALLOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MaxFALL_Original");
@@ -3031,7 +3035,6 @@ public class StreamVideo {
 
 	/**
 	 * Maximum frame average light level (source if incoherencies).
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getMaxFALLOriginalSource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.VIDEO, streamNumber, "MaxFALL_Original_Source");

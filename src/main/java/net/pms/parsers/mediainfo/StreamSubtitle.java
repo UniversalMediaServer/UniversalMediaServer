@@ -96,7 +96,6 @@ public class StreamSubtitle {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.TEXT, streamNumber, "FirstPacketOrder");
@@ -207,7 +206,6 @@ public class StreamSubtitle {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Format_Commercial");
@@ -225,14 +223,16 @@ public class StreamSubtitle {
 	/**
 	 * Version for the identified format.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Format_Version");
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format).
+	 * Profile of the Format.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatProfile(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Format_Profile");
@@ -241,6 +241,7 @@ public class StreamSubtitle {
 	/**
 	 * Compression method used.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCompression(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Format_Compression");
@@ -249,6 +250,7 @@ public class StreamSubtitle {
 	/**
 	 * Settings used and required by decoder.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatSettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Format_Settings");
@@ -291,6 +293,7 @@ public class StreamSubtitle {
 	/**
 	 * More information about MuxingMode.
 	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getMuxingModeMoreInfo(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "MuxingMode_MoreInfo");
@@ -347,7 +350,6 @@ public class StreamSubtitle {
 
 	/**
 	 * Deprecated.
-	 * Shown in Info_Capacities()
 	 */
 	@Deprecated
 	public static final String getCodec(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -387,7 +389,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Play time of the stream, in milliseconds.
+	 * Play time of the stream, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -438,7 +440,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Play time from first display to last display, in milliseconds.
+	 * Play time from first display to last display, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationStart2End(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -489,7 +491,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Timestamp of first command, in milliseconds.
+	 * Timestamp of first command, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationStartCommand(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -540,7 +542,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Timestamp of first display, in milliseconds.
+	 * Timestamp of first display, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationStart(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -591,7 +593,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Play time, in milliseconds.
+	 * Play time of the stream, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationEnd(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -642,7 +644,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Play time, in milliseconds.
+	 * Play time of the stream, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationEndCommand(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -693,7 +695,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Duration of the first frame (if different than other frames), in milliseconds.
+	 * Duration of the first frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -744,7 +746,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Duration of the last frame (if different than other frames), in milliseconds.
+	 * Duration of the last frame (if different than other frames), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -804,7 +806,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Duration of content stored in the file (if different than duration), in milliseconds.
+	 * Duration of content stored in the file (if different than duration), in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -855,7 +857,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Duration of the first frame of content stored in the file (if different than other frames),in milliseconds.
+	 * Duration of the first frame of content stored in the file (if different than other frames),in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationFirstFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -906,7 +908,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Duration of the last frame of content stored in the file (if different than other frames),in milliseconds.
+	 * Duration of the last frame of content stored in the file (if different than other frames),in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getSourceDurationLastFrame(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -957,7 +959,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Bit rate mode of this stream, as acronym (VBR, CBR).
+	 * Bit rate mode of this stream (CBR, VBR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getBitRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -973,7 +975,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Bit rate of this stream, in bits per second (e.g. 128026).
+	 * Bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -989,7 +991,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Minimum bit rate of this stream, in bits per second.
+	 * Minimum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMinimum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1005,7 +1007,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Nominal bit rate of this stream, in bits per second.
+	 * Nominal bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateNominal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1021,7 +1023,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Maximum bit rate of this stream, in bits per second.
+	 * Maximum bit rate of this stream, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1037,7 +1039,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getBitRateEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1045,7 +1047,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Encoded bit rate (with forced padding), if container padding is present, in bits per second.
+	 * Encoded bit rate (with forced padding), if container padding is present, in bps.
 	 */
 	public static final String getBitRateEncodedString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "BitRate_Encoded/String");
@@ -1100,7 +1102,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDisplayAspectRatioOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1108,7 +1110,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 * Shown in inform()
 	 */
 	public static final String getDisplayAspectRatioOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1116,7 +1118,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frame rate mode, considering data from both the container and codec, as acronym (e.g. CFR, VFR).
+	 * Frame rate mode, as acronym (e.g. CFR, VFR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFrameRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1124,14 +1126,14 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frame rate mode, considering data from both the container and codec, as word (e.g. Constant, Variable).
+	 * Frame rate mode, as word (e.g. Constant, Variable).
 	 */
 	public static final String getFrameRateModeString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "FrameRate_Mode/String");
 	}
 
 	/**
-	 * Frame rate mode, considering data only from the codec, as acronym (e.g. CFR, VFR).
+	 * Frame rate mode, as acronym (e.g. CFR, VFR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getFrameRateModeOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1139,7 +1141,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frame rate mode, considering data only from the codec, as word (e.g. Constant, Variable).
+	 * Frame rate mode, as word (e.g. Constant, Variable).
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateModeOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1147,7 +1149,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frames per second, as integer (e.g. 29.970).
+	 * Frames per second, as float (e.g. 29.970).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1208,7 +1210,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Maximum frames per second, considering data from both the container and codec.
+	 * Maximum frames per second.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1216,7 +1218,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Maximum frames per second, considering data from both the container and codec, with measurement.
+	 * Maximum frames per second, with measurement.
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateMaximumString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1224,7 +1226,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec.
+	 * Frames per second.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getFrameRateOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1232,7 +1234,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec, with measurement.
+	 * Frames per second, with measurement.
 	 * Shown in inform()
 	 */
 	public static final String getFrameRateOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1240,21 +1242,21 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec, numerator.
+	 * Frames per second, numerator.
 	 */
 	public static final Double getFrameRateOriginalNum(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.TEXT, streamNumber, "FrameRate_Original_Num");
 	}
 
 	/**
-	 * Frames per second, considering data only from the codec, denominator.
+	 * Frames per second, denominator.
 	 */
 	public static final Double getFrameRateOriginalDen(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.TEXT, streamNumber, "FrameRate_Original_Den");
 	}
 
 	/**
-	 * Numer of frames (e.g. 78112).
+	 * Numer of frames.
 	 */
 	public static final Long getFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.TEXT, streamNumber, "FrameCount");
@@ -1269,7 +1271,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Number of frames according to media header (media/stts atom) data (e.g. 78112).
+	 * Number of frames according to media header (media/stts atom) data.
 	 */
 	public static final Long getSourceFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.TEXT, streamNumber, "Source_FrameCount");
@@ -1326,7 +1328,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getCompressionMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1334,7 +1336,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in inform()
 	 */
 	public static final String getCompressionModeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1344,14 +1346,14 @@ public class StreamSubtitle {
 	/**
 	 * Stream size divided by uncompressed stream size.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final Double getCompressionRatio(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.TEXT, streamNumber, "Compression_Ratio");
 	}
 
 	/**
-	 * Delay fixed in the stream (relative), in milliseconds.
+	 * Delay fixed in the stream (relative), in ms.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.TEXT, streamNumber, "Delay");
@@ -1400,8 +1402,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Delay settings (i.e.
-	 * in case of timecode)
+	 * Delay settings (e.g. in case of timecode).
 	 */
 	public static final String getDelaySettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Settings");
@@ -1429,64 +1430,63 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in milliseconds.
+	 * Delay, in ms.
 	 */
 	public static final Long getDelayOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.TEXT, streamNumber, "Delay_Original");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String1");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, with measurement.
+	 * Delay, with measurement.
 	 */
 	public static final String getDelayOriginalString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String2");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm.
+	 * Delay, in format HH:MM:SS.mmm.
 	 */
 	public static final String getDelayOriginalString3(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String3");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
+	 * Delay, in format HH:MM:SS:FF, with last colon replaced by semicolon for drop frame if available.
 	 */
 	public static final String getDelayOriginalString4(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String4");
 	}
 
 	/**
-	 * Delay, considering data only from the codec, in format HH:MM:SS.mmm (HH:MM:SS:FF).
+	 * Delay, in format HH:MM:SS.mmm (HH:MM:SS:FF).
 	 */
 	public static final String getDelayOriginalString5(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original/String5");
 	}
 
 	/**
-	 * Delay settings, considering data only from the codec (i.e.
-	 * in case of timecode)
+	 * Delay settings (e.g. in case of timecode).
 	 */
 	public static final String getDelayOriginalSettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original_Settings");
 	}
 
 	/**
-	 * Delay drop frame information, considering data only from the codec.
+	 * Delay drop frame information.
 	 */
 	public static final String getDelayOriginalDropFrame(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Delay_Original_DropFrame");
@@ -1500,14 +1500,14 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds (e.g. -80).
+	 * Delay fixed in the stream relative to video, in ms (e.g. -80).
 	 */
 	public static final Double getVideoDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.TEXT, streamNumber, "Video_Delay");
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 * Shown in inform()
 	 */
 	public static final String getVideoDelayString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1515,14 +1515,14 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 */
 	public static final String getVideoDelayString1(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Video_Delay/String1");
 	}
 
 	/**
-	 * Delay fixed in the stream relative to video, in milliseconds, with measurement (e.g. -80 ms).
+	 * Delay fixed in the stream relative to video, in ms, with measurement (e.g. -80 ms).
 	 */
 	public static final String getVideoDelayString2(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Video_Delay/String2");
@@ -1667,7 +1667,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Size of this stream, in bytes (e.g. 11010717).
+	 * Size of this stream, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1726,7 +1726,6 @@ public class StreamSubtitle {
 
 	/**
 	 * Size of this stream after demuxing, in bytes.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.TEXT, streamNumber, "StreamSize_Demuxed");
@@ -1775,7 +1774,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Size of content stored in the file, in bytes (e.g. 11010717).
+	 * Size of content stored in the file, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1890,7 +1889,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Size of content stored in the file when encoded, in bytes (e.g. 11010717).
+	 * Size of content stored in the file when encoded, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getSourceStreamSizeEncoded(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2029,6 +2028,7 @@ public class StreamSubtitle {
 
 	/**
 	 * Name of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryName(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Encoded_Library_Name");
@@ -2036,6 +2036,7 @@ public class StreamSubtitle {
 
 	/**
 	 * Version of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Encoded_Library_Version");
@@ -2043,6 +2044,7 @@ public class StreamSubtitle {
 
 	/**
 	 * Release date of the encoding software, in UTC.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Encoded_Library_Date");
@@ -2135,8 +2137,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDisabled(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2144,8 +2145,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDisabledString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2153,8 +2153,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDefault(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2162,8 +2161,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDefaultString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2171,8 +2169,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getForced(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2180,8 +2177,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getForcedString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -2206,6 +2202,7 @@ public class StreamSubtitle {
 
 	/**
 	 * Plot outline or a summary of the story.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getSummary(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.TEXT, streamNumber, "Summary");
@@ -2243,7 +2240,7 @@ public class StreamSubtitle {
 	}
 
 	/**
-	 * Minimum duration per event, in milliseconds.
+	 * Minimum duration per event, in ms.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getEventsMinDuration(MediaInfoHelper mediaInfo, int streamNumber) {
