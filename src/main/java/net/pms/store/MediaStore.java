@@ -483,7 +483,7 @@ public class MediaStore extends StoreContainer {
 						container.discoverChildren();
 					}
 					if (resource instanceof VirtualFolder container) {
-						container.analyzeChildren(999);
+						container.analyzeChildren(-1);
 					}
 				}
 			}
