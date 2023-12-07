@@ -16,7 +16,7 @@
  */
 import { Accordion, Checkbox, Divider, Group, MultiSelect, NumberInput, Select, Stack, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { useContext } from 'react';
+import {useContext, useState} from 'react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -29,6 +29,13 @@ export default function GeneralSettings(
   defaultConfiguration: any,
   selectionSettings: any,
 ) {
+  const [showDetailsMessage, setShowDetailsMessage] = useState(false);
+
+  const handleAdvancedSettingsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const isChecked = event.currentTarget.checked;
+    setAdvancedSettings(isChecked);
+    setShowDetailsMessage(!isChecked);
+  }
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
   const canModify = havePermission(session, Permissions.settings_modify);
@@ -62,8 +69,9 @@ export default function GeneralSettings(
           <Checkbox
             label={i18n.get['ShowAdvancedSettings']}
             checked={advancedSettings}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAdvancedSettings(event.currentTarget.checked)}
+            onChange={handleAdvancedSettingsChange}
           />
+          {showDetailsMessage && <p>Open for details</p>}
           <Select
             disabled={!canModify}
             label={i18n.get['Language']}
