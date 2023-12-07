@@ -5,7 +5,6 @@ import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
-import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -15,21 +14,31 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MusicBrainzPersonFolder.class);
 
-	private DbIdTypeAndIdent tiAllFilesFolder;
-	private DbIdTypeAndIdent tiAlbumFolder;
-
-	@Override
-	public boolean isDiscovered() {
-		return false;
-	}
+	private VirtualFolderDbId allFiles = null;
+	private VirtualFolderDbId albumFiles = null;
 
 	public MusicBrainzPersonFolder(Renderer renderer, String personName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, personName, typeIdent);
 		if (StringUtils.isAllBlank(typeIdent.ident)) {
-			LOGGER.debug("preson name is blanc");
+			LOGGER.debug("person name is blanc");
+		} else {
+			initChilds();
 		}
-		tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident);
-		tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident);
+	}
+
+	@Override
+	public void discoverChildren() {
+		getChildren().clear();
+		initChilds();
+	}
+
+	private void initChilds() {
+		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, getMediaIdent());
+		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, getMediaIdent());
+		allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
+		albumFiles = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
+		addChild(allFiles);
+		addChild(albumFiles);
 	}
 
 	@Override
@@ -42,16 +51,11 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 	}
 
 	public VirtualFolderDbId getAllFilesFolder() {
-		if (StringUtils.isAllBlank(tiAllFilesFolder.ident)) {
-			return null;
-		}
-		return (VirtualFolderDbId) DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, tiAllFilesFolder);
+
+		return allFiles;
 	}
 
 	public VirtualFolderDbId getAlbumFolder() {
-		if (StringUtils.isAllBlank(tiAlbumFolder.ident)) {
-			return null;
-		}
-		return (VirtualFolderDbId) DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, tiAlbumFolder);
+		return albumFiles;
 	}
 }
