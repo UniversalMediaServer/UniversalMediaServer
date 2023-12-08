@@ -1187,8 +1187,16 @@ public class MediaInfoParser {
 		MediaAudioMetadata audioMetadata = new MediaAudioMetadata();
 		audioMetadata.setSongname(StreamContainer.getTrack(MI, 0));
 		audioMetadata.setAlbum(StreamContainer.getAlbum(MI, 0));
-		audioMetadata.setAlbumArtist(StreamContainer.getAlbumPerformer(MI, 0));
-		audioMetadata.setArtist(StreamContainer.getPerformer(MI, 0));
+		String albumArtists = MI.get(StreamKind.GENERAL, 0, "ALBUM_ARTISTS");
+		if (StringUtils.isAllBlank(albumArtists)) {
+			albumArtists = StreamContainer.getAlbumPerformer(MI, 0);
+		}
+		audioMetadata.setAlbumArtist(albumArtists);
+		String artists = MI.get(StreamKind.GENERAL, 0, "ARTISTS");
+		if (StringUtils.isAllBlank(artists)) {
+			artists = StreamContainer.getPerformer(MI, 0);
+		}
+		audioMetadata.setArtist(artists);
 		audioMetadata.setGenre(StreamContainer.getGenre(MI, 0));
 		audioMetadata.setComposer(StreamContainer.getComposer(MI, 0));
 		audioMetadata.setConductor(StreamContainer.getConductor(MI, 0));
