@@ -1426,6 +1426,9 @@ public class StreamContainer {
 	}
 
 	/**
+	 * Name of the album (e.g. The Joshua Tree).
+	 * Shown in inform()
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getAlbum(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Album");
@@ -1697,20 +1700,6 @@ public class StreamContainer {
 	 */
 	public static final String getCompilationString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Compilation/String");
-	}
-
-	/**
-	 * Reads ARTIST tag.
-	 */
-	public static final String getArtists(MediaInfoHelper mediaInfo, int streamNumber) {
-		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "ARTISTS");
-	}
-
-	/**
-	 * Reads ALBUMARTIST tag.
-	 */
-	public static final String getAlbumArtists(MediaInfoHelper mediaInfo, int streamNumber) {
-		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "ALBUM_ARTISTS");
 	}
 
 	/**
