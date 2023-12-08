@@ -33,7 +33,7 @@
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
-## Unreleased
+## [13.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.0...13.8.1) (2023-12-08)
 
 ### General
 - Fixed transcoding on renderers with MediaInfo=false
@@ -45,6 +45,7 @@
 - English (UK) (49%) (thanks, Pete Russell!)
 - Estonian (13%) (thanks, Avernys!)
 - French (100%) (thanks, Fredo1650!)
+- Romanian (48%) (thanks, Bogdan Ungureanu!)
 - Spanish (61%) (thanks, Diego León Giraldo Gómez!)
 
 ### Dependencies
@@ -54,7 +55,7 @@
 - lock file maintenance
 - update dependency @testing-library/jest-dom to v6.1.5
 - update dependency @testing-library/react to v14.1.2
-- update dependency @types/jest to v29.5.10
+- update dependency @types/jest to v29.5.11
 - update dependency @types/lodash to v4.14.202
 - update dependency @types/node to v18.18.13
 - update dependency @types/react to v18.2.40
