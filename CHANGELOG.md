@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [13.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.0...13.8.1) (2023-12-08)
 
 ### General
 - Fixed transcoding on renderers with MediaInfo=false
