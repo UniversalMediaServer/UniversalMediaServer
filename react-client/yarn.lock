@@ -3427,12 +3427,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.18.13":
-  version: 18.18.13
-  resolution: "@types/node@npm:18.18.13"
+"@types/node@npm:18.19.3":
+  version: 18.19.3
+  resolution: "@types/node@npm:18.19.3"
   dependencies:
     undici-types: ~5.26.4
-  checksum: e36d7a0ea6ce8fb771fd84dc2412935408448c1fed098205d3103be661852fc40d22a987e6c6c926a20719a15266e3071c8d4fd2548a96ad6c3c74eb474b5e63
+  checksum: 58c4fa45a78fcec75c78182a4b266395905957633654eb0311c5f9c30ac15c179ea2287ab1af034e46c2db7bb0589ef0000ee64c1de8f568a0aad29eaadb100c
   languageName: node
   linkType: hard
 
@@ -14170,7 +14170,7 @@ __metadata:
     "@testing-library/user-event": 14.5.1
     "@types/jest": 29.5.11
     "@types/lodash": 4.14.202
-    "@types/node": 18.18.13
+    "@types/node": 18.19.3
     "@types/react": 18.2.42
     "@types/react-color": 3.0.10
     "@types/react-dom": 18.2.17
