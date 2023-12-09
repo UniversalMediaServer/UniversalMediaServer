@@ -4,6 +4,12 @@
 
 ### General
 - Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
+- File status is saved per-user
+- Added status line on webgui
+- Added flag for movie/tv countries
+- Added original movie/tv series title and country if not same as title
+- Added Rating bar
+- Added option to sort by rating in Media Library
 - Improved memory use bar on the web interface
 - Added ability for user accounts to have avatars
 - Improved selection of video quality on web player
@@ -17,6 +23,9 @@
 - Added pin codes for users
 - Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
 - Improved TV series matching and lookups
+- Improved database cleanup step
+- Fixed thumbnail handling bugs
+- Fixed FirstAirDate and LastAirDate for TV series
 
 ### Renderers
 - Improved support for Samsung The Frame TVs
