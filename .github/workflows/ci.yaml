@@ -87,15 +87,6 @@ jobs:
         run: DEBUG=pw:webserver yarn playwright test
 
   macos:
-    needs: changes
-    if: |
-      (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-        (github.event_name == 'pull_request')
-      ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
-      )
     name: macOS Java tests
     runs-on: macos-13
     strategy:
