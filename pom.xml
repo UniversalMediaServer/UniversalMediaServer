@@ -893,6 +893,9 @@
 								<goals>
 									<goal>yarn</goal>
 								</goals>
+								<configuration>
+									<arguments>build</arguments>
+								</configuration>
 							</execution>
 						</executions>
 					</plugin>
