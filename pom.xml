@@ -72,7 +72,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>181</binary-revision>
+		<binary-revision>182</binary-revision>
 
 		<exec-maven-plugin-version>3.1.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
@@ -817,6 +817,15 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>3.3.1</version>
+				<configuration>
+					<propertiesEncoding>${project.encoding}</propertiesEncoding>
+				</configuration>
+			</plugin>
+
+			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
@@ -1152,7 +1161,6 @@
 					-->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -2924,7 +2932,6 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3058,7 +3065,6 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3192,7 +3198,6 @@
 					<!-- Copy Web resources -->
 					<plugin>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
 						<executions>
 							<execution>
 								<id>copy-resources-macos</id>
@@ -3346,7 +3351,17 @@
 								<configuration>
 									<target unless="offline">
 										<mkdir dir="${project.binaries}" />
-										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.basedir}/libmediainfo.dylib" usetimestamp="true" />
+										<mkdir dir="${project.binaries}/osx" />
+										<mkdir dir="${project.build.directory}/osx" />
+										<get src="${project.binaries-base}/osx/ffmpeg?p=${binary-revision}" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/libmediainfo.dylib?p=${binary-revision}" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+
+										<!-- MediaInfo library needs to be in the standard library path to be found -->
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.build.directory}" />
+										<copy file="${project.binaries}/osx/ffmpeg" todir="${project.build.directory}/osx" />
+
+										<!-- Make all downloaded binaries executable -->
+										<chmod dir="${project.build.directory}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
