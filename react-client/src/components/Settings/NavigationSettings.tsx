@@ -215,6 +215,19 @@ export default function NavigationSettings(
               label={i18n.get['ShowTranscodeFolder']}
               {...form.getInputProps('show_transcode_folder', { type: 'checkbox' })}
             />
+            <Group>
+              <Checkbox
+                disabled={!canModify || !form.values['show_transcode_folder']}
+                label={i18n.get['ChaptersSupportInTranscodeFolder']}
+                {...form.getInputProps('chapter_support', { type: 'checkbox' })}
+              />
+              <NumberInput
+                disabled={!canModify || !form.values['show_transcode_folder'] || !form.values['chapter_support']}
+                placeholder={defaultConfiguration.chapter_interval}
+                hideControls
+                {...form.getInputProps('chapter_interval')}
+              />
+            </Group>
             <Checkbox
               disabled={!canModify}
               label={i18n.get['ShowLiveSubtitlesFolder']}

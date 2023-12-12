@@ -428,6 +428,12 @@ public abstract class StoreItem extends StoreResource {
 		if (renderer instanceof MediaScannerDevice) {
 			return null;
 		}
+
+		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
+			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			return null;
+		}
+
 		// Use device-specific conf, if any
 		boolean parserV2 = mediaInfo != null && renderer.isUseMediaInfo();
 		Engine resolvedEngine;
@@ -462,11 +468,6 @@ public abstract class StoreItem extends StoreResource {
 		String rendererSkipExtensions = renderer.getStreamedExtensions();
 		String configurationForceExtensions = renderer.getUmsConfiguration().getForceTranscodeForExtensions();
 		String configurationSkipExtensions = renderer.getUmsConfiguration().getDisableTranscodeForExtensions();
-
-		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
-			return null;
-		}
 
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);

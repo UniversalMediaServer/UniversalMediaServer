@@ -193,6 +193,29 @@ export default function TranscodingSettings(
     return (<>
       <Title mt='sm' order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
       <Stack gap='xs'>
+        <Tooltip label={allowHtml(i18n.get['WhenEnabledDoNotTrancode'])} {...defaultTooltipSettings}>
+          <Checkbox
+            disabled={!canModify}
+            size='xs'
+            mt='xs'
+            label={i18n.get['DisableAllTranscoding']}
+            {...form.getInputProps('disable_transcoding', { type: 'checkbox' })}
+          />
+        </Tooltip>
+        <TextInput
+          disabled={!canModify || form.values['disable_transcoding']}
+          label={i18n.get['SkipTranscodingFollowingExtensions']}
+          size='xs'
+          style={{ flex: 1 }}
+          {...form.getInputProps('disable_transcode_for_extensions')}
+        />
+        <TextInput
+          disabled={!canModify || form.values['disable_transcoding']}
+          size='xs'
+          label={i18n.get['ForceTranscodingFollowingExtensions']}
+          style={{ flex: 1 }}
+          {...form.getInputProps('force_transcode_for_extensions')}
+        />
         <TextInput
           label={i18n.get['MaximumTranscodeBufferSize']}
           name='maximum_video_buffer_size'
@@ -208,30 +231,6 @@ export default function TranscodingSettings(
           min={1}
           disabled={!canModify}
           {...form.getInputProps('number_of_cpu_cores')}
-        />
-        <Grid>
-          <Grid.Col span={10}>
-            <Checkbox
-              size='xs'
-              disabled={!canModify}
-              label={i18n.get['ChaptersSupportInTranscodeFolder']}
-              {...form.getInputProps('chapter_support', { type: 'checkbox' })}
-            />
-          </Grid.Col>
-          <Grid.Col span={2}>
-            <TextInput
-              size='xs'
-              style={{ flex: 1 }}
-              disabled={!canModify || !form.values['chapter_support']}
-              {...form.getInputProps('chapter_interval')}
-            />
-          </Grid.Col>
-        </Grid>
-        <Checkbox
-          size='xs'
-          disabled={!canModify}
-          label={i18n.get['DisableSubtitles']}
-          {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
         />
         <Tabs defaultValue='TranscodingVideoSettings'>
           <Tabs.List>
@@ -274,20 +273,6 @@ export default function TranscodingSettings(
                   {...form.getInputProps('x264_constant_rate_factor')}
                 />
               </Tooltip>
-              <TextInput
-                disabled={!canModify}
-                label={i18n.get['SkipTranscodingFollowingExtensions']}
-                size='xs'
-                style={{ flex: 1 }}
-                {...form.getInputProps('disable_transcode_for_extensions')}
-              />
-              <TextInput
-                disabled={!canModify}
-                size='xs'
-                label={i18n.get['ForceTranscodingFollowingExtensions']}
-                style={{ flex: 1 }}
-                {...form.getInputProps('force_transcode_for_extensions')}
-              />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingAudioSettings'>
@@ -341,6 +326,13 @@ export default function TranscodingSettings(
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingSubtitlesSettings'>
             <Stack gap='xs'>
+              <Checkbox
+                mt='xs'
+                disabled={!canModify}
+                size='xs'
+                label={i18n.get['DisableSubtitles']}
+                {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+              />
               <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
                 <TextInput
                   disabled={!canModify}

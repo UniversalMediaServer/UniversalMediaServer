@@ -14,21 +14,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.test.formats;
+package net.pms.formats;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.formats.DVRMS;
-import net.pms.formats.Format;
-import net.pms.formats.ISO;
-import net.pms.formats.MKV;
-import net.pms.formats.MPG;
 import net.pms.formats.audio.M4A;
 import net.pms.formats.audio.MP3;
 import net.pms.formats.audio.OGA;
@@ -49,7 +44,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test the recognition of formats using the MediaInfo and renderer
@@ -58,7 +52,6 @@ import org.slf4j.LoggerFactory;
 public class FormatRecognitionTest {
 
 	private static boolean mediaInfoParserIsValid;
-	private static UmsConfiguration configuration;
 
 	@BeforeAll
 	public static void setUpBeforeClass() throws ConfigurationException, InterruptedException {
@@ -66,14 +59,12 @@ public class FormatRecognitionTest {
 		PMS.forceHeadless();
 
 		// Initialize the RendererConfiguration
-		configuration = new UmsConfiguration(false);
+		UmsConfiguration configuration = new UmsConfiguration(false);
 		PMS.setConfiguration(configuration);
 		RendererConfigurations.loadRendererConfigurations();
 		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	/**
@@ -86,7 +77,7 @@ public class FormatRecognitionTest {
 		assumeTrue(mediaInfoParserIsValid);
 		RendererConfiguration conf = RendererConfigurations.getRendererConfigurationByName("Playstation 3");
 		assertNotNull(conf, "Renderer named \"Playstation 3\" not found.");
-		assertFalse(conf.isCompatible(null, null, configuration),
+		assertFalse(conf.isCompatible(null, null),
 				"With nothing provided isCompatible() should return false");
 	}
 
@@ -123,12 +114,12 @@ public class FormatRecognitionTest {
 		resource.setMediaInfo(info);
 		Format format = new MP3();
 		format.match("test.mp3");
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"PS3 is compatible with MP3");
 
 		// Construct five channel MP3 that the PS3 does not support natively
 		audio.setNumberOfChannels(5);
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"PS3 is incompatible with five channel MP3");
 	}
 
@@ -159,12 +150,12 @@ public class FormatRecognitionTest {
 		Format format = new MPG();
 		format.match("test.avi");
 		resource.setMediaInfo(info);
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"PS3 is compatible with MPG");
 
 		// Construct MPG with wmv codec that the PS3 does not support natively
 		video.setCodec("wmv");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"PS3 is incompatible with MPG with wmv codec");
 	}
 
@@ -195,7 +186,7 @@ public class FormatRecognitionTest {
 		Format format = new MPG();
 		format.match("test.mkv");
 		resource.setMediaInfo(info);
-		assertFalse(conf.isCompatible(resource, format, configuration), "PS3 is incompatible with MKV");
+		assertFalse(conf.isCompatible(resource, format), "PS3 is incompatible with MKV");
 	}
 
 	/**
@@ -220,69 +211,69 @@ public class FormatRecognitionTest {
 		Format format = new DVRMS();
 		resource.setMediaInfo(info);
 		assertTrue(format.match("test.dvr"), "Format \"test.dvr\" not matches DVRMS");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"true\" for DVRMS");
 
 		// ISO: false
 		info.setContainer(FormatConfiguration.ISO);
 		format = new ISO();
 		assertTrue(format.match("test.iso"), "Format not matches ISO");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"true\" for ISO");
 
 		// M4A: true
 		info.setContainer(FormatConfiguration.M4A);
 		format = new M4A();
 		assertTrue(format.match("test.m4a"), "Format \"test.m4a\" not matches M4A");
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"false\" for M4A");
 
 		// MKV: false
 		info.setContainer(FormatConfiguration.MKV);
 		format = new MKV();
 		assertTrue(format.match("test.mkv"), "Format \"test.mkv\" not matches MKV");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"true\" for MKV");
 
 		// MP3: true
 		info.setContainer(FormatConfiguration.MP3);
 		format = new MP3();
 		assertTrue(format.match("test.mp3"), "Format \"test.mkv\" does not match MP3");
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"false\" for MP3");
 
 		// MPG: true);
 		info.setContainer(FormatConfiguration.AVI);
 		format = new MPG();
 		assertTrue(format.match("test.mpg"), "Format \"test.mpg\" does not match MPG");
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"false\" for MPG");
 
 		// OGG: false
 		info.setContainer(FormatConfiguration.OGG);
 		format = new OGA();
 		assertFalse(format.match("test.ogg"), "Format \"test.ogg\" does not match OGA");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"true\" for OGG");
 
 		// RAW: false
 		info.setContainer(FormatConfiguration.RAW);
 		format = new RAW();
 		assertTrue(format.match("test.raw"), "Format \"test.raw\" does not match RAW");
-		assertFalse(conf.isCompatible(resource, format, configuration),
+		assertFalse(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"true\"for RAW");
 
 		// WAV: true
 		info.setContainer(FormatConfiguration.WAV);
 		format = new WAV();
 		assertTrue(format.match("test.wav"), "Format \"test.raw\" does not match WAV");
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"false\" for WAV");
 
 		// WEB: type=VIDEO
 		info.setContainer(FormatConfiguration.AVI);
 		format.setType(Format.VIDEO);
-		assertTrue(conf.isCompatible(resource, format, configuration),
+		assertTrue(conf.isCompatible(resource, format),
 				"isCompatible() gives the wrong outcome \"false\" for WEB video");
 	}
 

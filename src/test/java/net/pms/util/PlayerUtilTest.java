@@ -16,10 +16,10 @@
  */
 package net.pms.util;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
 
@@ -63,9 +62,7 @@ public class PlayerUtilTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test

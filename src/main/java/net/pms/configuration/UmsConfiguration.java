@@ -5573,6 +5573,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_CHROMECAST_EXT, false);
 		jObj.addProperty(KEY_DISABLE_SUBTITLES, false);
 		jObj.addProperty(KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS, "");
+		jObj.addProperty(KEY_DISABLE_TRANSCODING, false);
 		jObj.addProperty(KEY_OPEN_ARCHIVES, false);
 		jObj.addProperty(KEY_ENCODED_AUDIO_PASSTHROUGH, false);
 		JsonArray transcodingEngines = UmsConfiguration.getAllEnginesAsJsonArray();

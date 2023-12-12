@@ -14,22 +14,19 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.test;
+package net.pms.util;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.util.concurrent.TimeUnit;
-import net.pms.util.TaskRunner;
+import net.pms.TestHelper;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class TaskRunnerTest {
+
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	class Counter {

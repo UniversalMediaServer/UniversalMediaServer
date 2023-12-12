@@ -14,16 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.test;
+package net.pms.util;
 
-import ch.qos.logback.classic.LoggerContext;
+import net.pms.TestHelper;
 import net.pms.media.MediaLang;
-import net.pms.util.Iso639;
-import net.pms.util.Iso639.Iso639Entry;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test the RendererConfiguration class
@@ -32,9 +29,7 @@ public class Iso639Test {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
     }
 
 	/**
@@ -115,9 +110,9 @@ public class Iso639Test {
 		assertEquals(Iso639.getISOCode("Does anyone speak sweedish?", true), "sv");
 
 		// Test multiple language names
-		Iso639Entry entry1 = Iso639.get("Imperial Aramaic");
-		Iso639Entry entry2 = Iso639.get("Official Aramaic");
-		Iso639Entry entry3 = Iso639.get("arc");
+		Iso639.Iso639Entry entry1 = Iso639.get("Imperial Aramaic");
+		Iso639.Iso639Entry entry2 = Iso639.get("Official Aramaic");
+		Iso639.Iso639Entry entry3 = Iso639.get("arc");
 		assertEquals("Imperial Aramaic (700-300 BCE)", entry1.getFirstName());
 		assertEquals(entry1, entry2);
 		assertEquals(entry1, entry3);
