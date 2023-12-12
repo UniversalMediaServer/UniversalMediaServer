@@ -16,19 +16,17 @@
  */
 package net.pms.encoders;
 
-import ch.qos.logback.classic.LoggerContext;
+import net.pms.TestHelper;
 import net.pms.media.MediaInfo;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class Issue1278 {
+
 	@BeforeEach
     public void setUp() {
-        // Silence all log messages from the UMS code that are being tested
-        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset(); 
+        TestHelper.SetLoggingOff();
 	}
 
 	@Test

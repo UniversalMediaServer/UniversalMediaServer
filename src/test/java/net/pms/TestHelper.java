@@ -14,28 +14,37 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.newgui.components;
+package net.pms;
 
-import net.pms.TestHelper;
-import net.pms.configuration.UmsConfiguration;
-import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import org.slf4j.LoggerFactory;
 
-public class TextAreaFIFOTest {
-	@BeforeEach
-	public void setUp() {
-		TestHelper.SetLoggingOff();
+public class TestHelper {
+
+	public static Logger getRootLogger() {
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		return context.getLogger(Logger.ROOT_LOGGER_NAME);
 	}
 
-	@Test
-	public void testTextAreaFIFO() {
-		TextAreaFIFO textArea = new TextAreaFIFO(950, 100);
-
-		assertEquals(textArea.getMaxLines(), 950, "InitialLines");
-		textArea.setMaxLines(0);
-		assertEquals(textArea.getMaxLines(), UmsConfiguration.getLoggingLogsTabLinebufferMin(), "MinLines");
-		textArea.setMaxLines(1000000);
-		assertEquals(textArea.getMaxLines(), UmsConfiguration.getLoggingLogsTabLinebufferMax(), "MaxLines");
+	private static void SetLogging(Level level) {
+		getRootLogger().setLevel(level);
 	}
+
+	/**
+	 * Silence all log messages from the UMS code that are being tested.
+	 */
+	public static void SetLoggingOff() {
+		SetLogging(Level.OFF);
+	}
+
+	public static void SetLoggingWarn() {
+		SetLogging(Level.WARN);
+	}
+
+	public static void setLoggingTrace() {
+		SetLogging(Level.TRACE);
+	}
+
 }

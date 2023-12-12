@@ -16,11 +16,9 @@
  */
 package net.pms.parsers;
 
-import ch.qos.logback.classic.Level;
 import java.io.IOException;
 import java.util.List;
-import net.pms.logging.LoggingConfig;
-import org.apache.commons.io.FileUtils;
+import net.pms.TestHelper;
 import org.digitalmediaserver.cuelib.CueParser;
 import org.digitalmediaserver.cuelib.CueSheet;
 import org.digitalmediaserver.cuelib.FileData;
@@ -28,24 +26,19 @@ import org.digitalmediaserver.cuelib.TrackData;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CuelibTest {
-	private final Class<?> CLASS = CuelibTest.class;
 
 	@Test
 	public void testReadCueFile() {
-		LoggingConfig.setRootLevel(Level.TRACE);
-		// force unbuffered if in trace mode
-		LoggingConfig.setBuffered(false);
-
-		Logger LOGGER = LoggerFactory.getLogger(CLASS);
+		TestHelper.setLoggingTrace();
+		Logger logger = TestHelper.getRootLogger();
 
 		CueSheet sheet;
 		try {
-			sheet = CueParser.parse(FileUtils.toFile(CLASS.getResource("file-cue.cue")), null);
+			sheet = CueParser.parse(ParserTest.getTestFile("file-cue.cue"), null);
 		} catch (IOException e) {
-			LOGGER.info("Error in parsing cue: " + e.getMessage());
+			logger.info("Error in parsing cue: " + e.getMessage());
 			return;
 		}
 		List<FileData> files = sheet.getFileData();

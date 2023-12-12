@@ -16,8 +16,6 @@
  */
 package net.pms.util;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonIOException;
@@ -31,6 +29,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.media.subtitle.MediaSubtitleTest;
 import static net.pms.util.Constants.*;
@@ -41,17 +40,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
+
 	private final Class<?> CLASS = FileUtilTest.class;
 	private final Class<?> SUBTITLE_CLASS = MediaSubtitleTest.class;
 
 	@BeforeEach
 	public void setUp() throws ConfigurationException, InterruptedException {
-		// Silence all log messages from the code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.WARN);
+		TestHelper.SetLoggingWarn();
 		try {
 			PMS.setConfiguration(new UmsConfiguration(false));
 		} catch (InterruptedException | ConfigurationException ex) {
@@ -89,8 +86,8 @@ public class FileUtilTest {
 	}
 
 	/**
-	 * Note: The method this is testing handles numerous inputs, so this
-	 * test could get very large. It should get much larger than it is now.
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
 	 *
 	 * @throws java.lang.Exception
 	 */
@@ -98,11 +95,11 @@ public class FileUtilTest {
 	public void testGetFileNameWithRewriting() throws Exception {
 		try {
 			JsonElement tree = JsonParser.parseReader(
-				new java.io.FileReader(
-					FileUtils.toFile(
-						CLASS.getResource("prettified_filenames_metadata.json")
+					new java.io.FileReader(
+							FileUtils.toFile(
+									CLASS.getResource("prettified_filenames_metadata.json")
+							)
 					)
-				)
 			);
 
 			JsonArray tests = tree.getAsJsonArray();
@@ -123,21 +120,20 @@ public class FileUtilTest {
 	}
 
 	/**
-	 * Note: The method this is testing handles numerous inputs, so this
-	 * test could get very large. It should get much larger than it is now.
+	 * Note: The method this is testing handles numerous inputs, so this test
+	 * could get very large. It should get much larger than it is now.
 	 *
 	 * @throws java.lang.Exception
 	 */
 	@Test
 	public void testGetFileNameMetadata() throws Exception {
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
+		Logger logger = TestHelper.getRootLogger();
 		JsonElement tree = JsonParser.parseReader(
-			new java.io.FileReader(
-				FileUtils.toFile(
-					CLASS.getResource("prettified_filenames_metadata.json")
+				new java.io.FileReader(
+						FileUtils.toFile(
+								CLASS.getResource("prettified_filenames_metadata.json")
+						)
 				)
-			)
 		);
 
 		JsonArray tests = tree.getAsJsonArray();

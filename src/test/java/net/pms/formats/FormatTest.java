@@ -14,10 +14,9 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.test.formats;
+package net.pms.formats;
 
-import ch.qos.logback.classic.LoggerContext;
-import net.pms.formats.*;
+import net.pms.TestHelper;
 import net.pms.formats.audio.AIFF;
 import net.pms.formats.audio.FLAC;
 import net.pms.formats.audio.MP3;
@@ -31,17 +30,15 @@ import net.pms.formats.image.TIFF;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test basic functionality of {@link Format}.
  */
 public class FormatTest {
+
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
     /**

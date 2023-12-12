@@ -16,9 +16,9 @@
  */
 package net.pms.configuration;
 
-import ch.qos.logback.classic.LoggerContext;
-import java.util.*;
+import java.util.Locale;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test the RendererConfiguration class
@@ -41,9 +40,7 @@ public class RendererConfigurationTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
