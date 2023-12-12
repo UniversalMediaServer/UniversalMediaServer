@@ -147,7 +147,7 @@ public final class UserTableGroups extends UserTable {
 			statement.setInt(2, permissions);
 			statement.executeUpdate();
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(displayName), TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", displayName, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

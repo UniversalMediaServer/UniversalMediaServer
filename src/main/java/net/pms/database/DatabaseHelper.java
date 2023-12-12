@@ -218,6 +218,10 @@ public abstract class DatabaseHelper {
 	protected static final String TRUE = "TRUE";
 	protected static final String EMPTY_STRING = "''";
 	protected static final String PARAMETER = "?";
+	protected static final String STRINGENCODE_PARAMETER = "STRINGENCODE(" + PARAMETER + ")";
+	protected static final String LIKE_STARTING_WITH_PARAMETER = STRINGENCODE_PARAMETER + " || '%'";
+	protected static final String LIKE_ENDING_WITH_PARAMETER = "'%' || " + STRINGENCODE_PARAMETER;
+	protected static final String LIKE_CONTAIN_PARAMETER = "'%' || " + LIKE_STARTING_WITH_PARAMETER;
 
 	/**
 	 * SQL COMMANDS
@@ -511,45 +515,14 @@ public abstract class DatabaseHelper {
 	 * Surrounds the argument with single quotes and escapes any existing single
 	 * quotes.
 	 *
-	 * @see #sqlEscape(String)
+	 * PreparedStatement is a preferable solution as it take care of this
+	 * and avoid sql injection.
 	 *
 	 * @param s the {@link String} to escape and quote.
 	 * @return The escaped and quoted {@code s}.
 	 */
 	public static final String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
-	}
-
-	/**
-	 * Escapes any existing single quotes in the argument but doesn't quote it.
-	 *
-	 * @see #sqlQuote(String)
-	 *
-	 * @param s the {@link String} to escape.
-	 * @return The escaped {@code s}.
-	 */
-	public static String sqlEscape(final String s) {
-		return s == null ? null : s.replace("'", "''");
-	}
-
-	/**
-	 * Escapes the argument with the default H2 escape character for the
-	 * escape character itself and the two wildcard characters <code>%</code>
-	 * and <code>_</code>. This escaping is only valid when using,
-	 * <code>LIKE</code>, not when using <code>=</code>.
-	 *
-	 * TODO: Escaping should be generalized so that any escape character could
-	 *       be used and that the class would set the correct escape character
-	 *       when opening the database.
-	 *
-	 * @param s the {@link String} to be SQL escaped.
-	 * @return The escaped {@link String}.
-	 */
-	public static final String sqlLikeEscape(final String s) {
-		return s == null ? null : s.
-			replace(ESCAPE_CHARACTER, ESCAPE_CHARACTER + ESCAPE_CHARACTER).
-			replace("%", ESCAPE_CHARACTER + "%").
-			replace("_", ESCAPE_CHARACTER + "_");
 	}
 
 	/**
