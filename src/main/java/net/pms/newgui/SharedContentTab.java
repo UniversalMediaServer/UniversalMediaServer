@@ -498,6 +498,7 @@ public class SharedContentTab implements SharedContentListener {
 		}
 	}
 
+	/*Here we can edit the functionality to unplayed  But the limitation is that the GUI doesn't let you go into subfolders.*/
 	private static void addContentsFullyPlayedPopupMenu(JComponent component) {
 		JPopupMenu popupMenu = new JPopupMenu();
 		JMenuItem menuItemMarkPlayed = new JMenuItem(Messages.getString("MarkContentsFullyPlayed"));
