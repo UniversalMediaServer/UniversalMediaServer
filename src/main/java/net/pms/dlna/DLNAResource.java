@@ -5229,6 +5229,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				currentRoot = result;
 			}
 		}
+		/*
+		POSSIBLE SOL:
+		if (shouldMergeFolders) { // this is a new condition based on your config
+			DLNAResource existingFolder = findExistingFolderWithSamePath(folder);
+			if (existingFolder != null) {
+				return existingFolder;
+			}
+		}
+		# Configuration to toggle merging of similar folders
+			merge_similar_folders = true
+
+			sudo code ex: boolean shouldMergeFolders = readConfigOption("merge_similar_folders");
+		 */
 		if (result == null) {
 			result = this;
 		}
