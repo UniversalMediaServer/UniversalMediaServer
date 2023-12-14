@@ -14,19 +14,21 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, ScrollArea, Spoiler, Stack, Text, TextInput, Tooltip } from '@mantine/core';
+import { Badge, Button, Card, Divider, Flex, Group, Image, Modal, NumberInput, ScrollArea, Spoiler, Stack, Text, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { useContext, useState } from 'react';
-import { Edit, ListSearch } from 'tabler-icons-react';
+import { useContext, useEffect, useState } from 'react';
+import { ListSearch } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { playerApiUrl } from '../../utils';
 
-export default function VideoMetadataEditButton(props: {
+export default function VideoMetadataEditModal(props: {
   uuid: string,
   id: string,
+  start: boolean,
+  started: () => void
   callback: () => void
 }) {
   const [isLoading, setLoading] = useState(true);
@@ -164,9 +166,15 @@ export default function VideoMetadataEditButton(props: {
     )
   };
 
+  useEffect(() => {
+    if (props.start) {
+      getEditData();
+      props.started();
+    }
+  }, [props.start]);
+
   return (
-    <>
-      <Modal
+    <Modal
         opened={opened}
         onClose={() => setOpened(false)}
         title={i18n.get['EditMetadata']}
@@ -199,10 +207,6 @@ export default function VideoMetadataEditButton(props: {
         </form>
         {getMetadataResultsForm()}
       </Modal>
-      <Tooltip withinPortal label={i18n.get['Edit']}>
-        <Button variant='default' size='compact-md' onClick={() => getEditData()}><Edit size={14} /></Button>
-      </Tooltip>
-    </>
   );
 }
 

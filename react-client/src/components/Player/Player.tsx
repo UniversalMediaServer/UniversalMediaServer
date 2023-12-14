@@ -14,13 +14,13 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { ArrowBigLeft, ArrowBigRight, Cast, Download, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, Tag } from 'tabler-icons-react';
+import { ArrowBigLeft, ArrowBigRight, Cast, Download, Edit, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, RecordMail, RecordMailOff, Tag } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
@@ -29,7 +29,7 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { playerApiUrl } from '../../utils';
 import { VideoJsPlayer } from './VideoJsPlayer';
-import VideoMetadataEditButton from './VideoMetadataEditButton';
+import VideoMetadataEditModal from './VideoMetadataEditModal';
 
 export const Player = () => {
   const [uuid, setUuid] = useState('');
@@ -42,6 +42,7 @@ export const Player = () => {
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
   const { colorScheme } = useMantineColorScheme();
+  const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
 
   const getUuid = () => {
     if (sessionStorage.getItem('player')) {
@@ -70,13 +71,33 @@ export const Player = () => {
     }
   };
 
-  const getI18nName = (name: string|undefined) => {
+  const getI18nName = (name: string | undefined) => {
     const nameData = name ? name.split('|') : [''];
     if (nameData.length > 1) {
       return i18n.getI18nFormat(nameData);
     } else {
       return i18n.getI18nString(nameData[0]);
     }
+  }
+
+  const setFullyPlayed = (fullyPlayed: boolean) => {
+    setLoading(true);
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: uuid, id: id, fullyPlayed: fullyPlayed })
+      .then(function() {
+        location.reload();
+      })
+      .catch(function() {
+        showNotification({
+          id: 'player-fully-played',
+          color: 'red',
+          title: 'Error',
+          message: 'Your request was not handled by the server.',
+          autoClose: 3000,
+        });
+      })
+      .then(function() {
+        setLoading(false);
+      });
   }
 
   const hasBreadcrumbs = () => {
@@ -96,22 +117,94 @@ export const Player = () => {
             separatorMargin={0}
             styles={{ root: { flexWrap: 'wrap' } }}
           >
-            {data.breadcrumbs.map((breadcrumb: BaseMedia) => (
-              <Button
-                key={breadcrumb.id ? breadcrumb.id : breadcrumb.name}
-                style={breadcrumb.id ? { fontWeight: 400 } : { cursor: 'default' }}
-                onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
-                color='gray'
-                variant='subtle'
-                size='compact-md'
-              >
-                {breadcrumb.name === 'root' ? (<Home />) : (getI18nName(breadcrumb.name))}
-              </Button>)
+            {data.breadcrumbs.map((breadcrumb: BaseMedia) => breadcrumb.id ?
+              (
+                <Button
+                  key={breadcrumb.id ? breadcrumb.id : breadcrumb.name}
+                  style={breadcrumb.id ? { fontWeight: 400 } : { cursor: 'default' }}
+                  onClick={breadcrumb.id ? () => sse.askBrowseId(breadcrumb.id) : undefined}
+                  color='gray'
+                  variant='subtle'
+                  size='compact-md'
+                >
+                  {breadcrumb.name === 'root' ? (<Home />) : (getI18nName(breadcrumb.name))}
+                </Button>
+              ) : (
+                getBreadcrumbsMenu(breadcrumb)
+              )
             )}
           </Breadcrumbs>
         </Group>
       </Paper>
     ) : null;
+  }
+
+  const getLastBreadcrumbButton = (breadcrumb: BaseMedia) => (
+    <Button
+      key={breadcrumb.name}
+      style={{ cursor: 'default' }}
+      color='gray'
+      variant='subtle'
+      size='compact-md'
+    >
+      {getI18nName(breadcrumb.name)}
+    </Button>
+  )
+
+  const getVideoMetadataEditModal = () => {
+    if (isVideoMetadataEditable()) {
+      return <VideoMetadataEditModal uuid={uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => location.reload()} />
+    }
+    return null;
+  }
+
+  const getBreadcrumbsMenu = (breadcrumb: BaseMedia) => {
+    return hasBreadcrumbsMenu() ?
+      (
+        <Menu shadow="md" width={200}>
+          <Menu.Target>
+            {getLastBreadcrumbButton(breadcrumb)}
+          </Menu.Target>
+          <Menu.Dropdown>
+            {breadcrumb.fullyplayed === false &&
+              <Menu.Item
+                color='blue'
+                leftSection=<RecordMail />
+                onClick={() => setFullyPlayed(true)}
+              >
+                {i18n.get['MarkContentsFullyPlayed']}
+              </Menu.Item>
+            }
+            {breadcrumb.fullyplayed === true &&
+              <Menu.Item
+                color='green'
+                leftSection=<RecordMailOff />
+                onClick={() => setFullyPlayed(false)}
+              >
+                {i18n.get['MarkContentsUnplayed']}
+              </Menu.Item>
+            }
+            {isVideoMetadataEditable() &&
+              <Menu.Item
+                leftSection=<Edit />
+                onClick={() => setShowVideoMetadataEdit(true)}
+              >
+                {i18n.get['Edit']}
+              </Menu.Item>
+            }
+          </Menu.Dropdown>
+        </Menu>
+      ) : (
+        getLastBreadcrumbButton(breadcrumb)
+      )
+  }
+
+  const hasBreadcrumbsMenu = () => {
+    return isVideoMetadataEditable();
+  }
+
+  const isVideoMetadataEditable = () => {
+    return (data.goal === 'browse' && data.metadata?.isEditable) || (data.goal === 'show' && ((data.medias[0]) as PlayMedia).mediaType === 'video' && ((data.medias[0]) as VideoMedia).metadata?.isEditable);
   }
 
   const getVideoJsMediaPlayer = (media: VideoMedia | AudioMedia) => {
@@ -177,12 +270,12 @@ export const Player = () => {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
       image = <img src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} alt={media.name}
-        style={{ objectFit: 'contain', maxWidth: '100%', height: 'calc(100% - 2.4rem)'}} />;
+        style={{ objectFit: 'contain', maxWidth: '100%', height: 'calc(100% - 2.4rem)' }} />;
     }
     return (
       <Paper
         className='thumbnail-container'
-        styles={{ root:{ backgroundColor:''}}}
+        styles={{ root: { backgroundColor: '' } }}
         onClick={() => sse.askReqId(media.id, media.goal ? media.goal : 'browse')}
         key={media.id}
       >
@@ -208,7 +301,7 @@ export const Player = () => {
       const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div style={{height: '240px', overflowY: 'hidden'}} className='media-grid front-page-grid'>{medias}</div></>);
+      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div style={{ height: '240px', overflowY: 'hidden' }} className='media-grid front-page-grid'>{medias}</div></>);
     }
   }
 
@@ -260,7 +353,7 @@ export const Player = () => {
               countryCode={media.name}
               style={{
                 fontSize: '1.5em',
-                cursor: 'pointer', 
+                cursor: 'pointer',
               }}
               onClick={() => { media.id && sse.askBrowseId(media.id) }}
             />
@@ -289,7 +382,7 @@ export const Player = () => {
     if (title) {
       return (
         <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
-          <LanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')':'')}</Text>
+          <LanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')' : '')}</Text>
         </Group>);
     }
   }
@@ -303,16 +396,16 @@ export const Player = () => {
     }
   }
 
-  const getMetadataRating = (rating?:number) => {
+  const getMetadataRating = (rating?: number) => {
     if (rating) {
       return (
         <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text fw={700}>{i18n.get['Rating']}: </Text><Tooltip label={rating}><Rating value={rating/2} fractions={4} readOnly /></Tooltip>
+          <Text fw={700}>{i18n.get['Rating']}: </Text><Tooltip label={rating}><Rating value={rating / 2} fractions={4} readOnly /></Tooltip>
         </Group>);
     }
   }
 
-  const getMetadataRatingList = (ratingsList?: MediaRating[], rating?:number) => {
+  const getMetadataRatingList = (ratingsList?: MediaRating[], rating?: number) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
         <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
@@ -389,7 +482,7 @@ export const Player = () => {
           const betterPoster = posters.reduce((previousValue, currentValue) => {
             return (currentValue.vote_average > previousValue.vote_average) ? currentValue : previousValue;
           });
-          poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt='Poster' />);
+          poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.imageBaseURL + 'w500' + betterPoster.file_path} alt='Poster' />);
         }
       }
     }
@@ -405,10 +498,10 @@ export const Player = () => {
       }
     }
     if (!poster && metadata && metadata.poster) {
-      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={metadata.poster} />);
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.poster} />);
     }
     if (!poster && media && media.id) {
-      poster = (<img style={{maxHeight:'100%', maxWidth:'100%'}} src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />);
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />);
     }
     return { logo, poster };
   }
@@ -493,19 +586,12 @@ export const Player = () => {
           <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
             <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
           </Tooltip>
-          {((data.medias[0]) as PlayMedia).mediaType === 'video' && ((data.medias[0]) as VideoMedia).metadata?.isEditable && (
-            <VideoMetadataEditButton uuid={uuid} id={data.medias[0].id} callback={() => location.reload()} />
-          )}
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get['Download']}>
               <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
-      )
-    } else if (data.goal === 'browse' && data.metadata?.isEditable) {
-      return (
-        <VideoMetadataEditButton uuid={uuid} id={sse.reqId} callback={() => location.reload()} />
       )
     }
   }
@@ -673,6 +759,7 @@ export const Player = () => {
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
       <LoadingOverlay visible={loading} />
+      {getVideoMetadataEditModal()}
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars viewportRef={mainScroll}>
         {
@@ -709,6 +796,7 @@ export interface BaseMedia {
   icon?: string,
   id: string,
   name: string,
+  fullyplayed?: boolean,
 }
 
 interface MediasSelections {

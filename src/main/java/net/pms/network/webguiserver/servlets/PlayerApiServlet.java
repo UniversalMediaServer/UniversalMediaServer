@@ -298,6 +298,19 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					}
 					respondBadRequest(req, resp);
 				}
+				case "/setFullyPlayed" -> {
+					if (action.has("id") && !action.get("id").isJsonNull() &&
+						action.has("fullyPlayed") && !action.get("fullyPlayed").isJsonNull()) {
+						String id = action.get("id").getAsString();
+						boolean fullyPlayed = action.get("fullyPlayed").getAsBoolean();
+						boolean changed = setFullyPlayed(renderer, id, fullyPlayed);
+						if (changed) {
+							respond(req, resp, "{}", 200, "application/json");
+							return;
+						}
+					}
+					respondBadRequest(req, resp);
+				}
 				case "/show" -> {
 					if (action.has("id")) {
 						String id = action.get("id").getAsString();
@@ -604,6 +617,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
 		jBreadcrumb.addProperty("name", resource.getLocalizedDisplayName(lang));
+		if (resource.isFullyPlayedAware()) {
+			jBreadcrumb.addProperty("fullyplayed", resource.isFullyPlayed());
+		}
+
 		jBreadcrumbs.add(jBreadcrumb);
 		StoreResource thisResourceFromResources = resource;
 		while (thisResourceFromResources.getParent() != null && thisResourceFromResources.getParent().isFolder()) {
@@ -852,6 +869,15 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		} finally {
 			PMS.REALTIME_LOCK.unlock();
 		}
+	}
+
+	private boolean setFullyPlayed(WebGuiRenderer renderer, String id, boolean fullyPlayed) throws IOException, InterruptedException {
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		if (resource.isFullyPlayedAware()) {
+			resource.setFullyPlayed(fullyPlayed);
+			return true;
+		}
+		return false;
 	}
 
 	private static JsonObject getSurroundingByType(StoreItem item, String lang) {

@@ -810,11 +810,32 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
+	 * @return whether the resource track "fully played".
+	 */
+	public boolean isFullyPlayedAware() {
+		return false;
+	}
+
+	/**
+	 * @return whether the resource is "fully played".
+	 */
+	public boolean isFullyPlayed() {
+		return false;
+	}
+
+	public void setFullyPlayed(boolean fullyPlayed) {
+		//nothing to do
+	}
+
+	/**
 	 * @return whether the media should be marked as "fully played" either with
 	 * text or a "fully played" overlay.
 	 */
 	public boolean isFullyPlayedMark() {
-		return false;
+		return isFullyPlayedAware() && (
+			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MARK ||
+			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+		) && isFullyPlayed();
 	}
 
 	/**
