@@ -20,10 +20,10 @@ export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   connectionStatus: 0,
   reqId: '0',
   reqType: 'browse',
-  askReqId: (id: string, type: string) => { },
-  askBrowseId: (id: string) => { },
-  askPlayId: (id: string) => { },
-  askShowId: (id: string) => { },
+  askReqId: (_id: string, _type: string) => { },
+  askBrowseId: (_id: string) => { },
+  askPlayId: (_id: string) => { },
+  askShowId: (_id: string) => { },
 });
 
 export interface PlayerEventInterface {

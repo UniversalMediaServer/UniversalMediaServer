@@ -20,17 +20,15 @@ export const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
   memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
   updateAccounts: false as boolean,
-  setUpdateAccounts: (updateAccounts: boolean) => { },
+  setUpdateAccounts: (_updateAccounts: boolean) => { },
   reloadable: false as boolean,
   userConfiguration: null,
-  setUserConfiguration: (config: any) => { },
+  setUserConfiguration: (_config: any) => { },
   mediaScan: false as boolean,
   hasRendererAction: false as boolean,
   getRendererAction: () => null,
   hasNewLogLine: false as boolean,
   getNewLogLine: () => null,
-  statusLine: null,
-  secondaryStatusLine: null,
 });
 
 export interface ServerEventInterface {
@@ -46,8 +44,6 @@ export interface ServerEventInterface {
   getRendererAction: () => any;
   hasNewLogLine: boolean;
   getNewLogLine: () => any;
-  statusLine: any;
-  secondaryStatusLine: any;
 }
 
 export default ServerEventContext;

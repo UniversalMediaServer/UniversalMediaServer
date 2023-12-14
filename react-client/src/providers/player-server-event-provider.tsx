@@ -29,7 +29,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const PlayerEventProvider = ({ children, ...props }: Props) => {
+export const PlayerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
@@ -140,6 +140,8 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else {
+        throw new Error(`Expected content-type to be ${EventStreamContentType}`);
       }
     };
 

@@ -24,7 +24,7 @@ export const I18nContext: Context<I18nInterface> = createContext({
   language: 'en-US',
   dir: 'ltr' as Direction,
   languages: [] as LanguageValue[],
-  setLanguage: (language: string) => { }
+  setLanguage: (_language: string) => { }
 });
 
 export interface I18nInterface {

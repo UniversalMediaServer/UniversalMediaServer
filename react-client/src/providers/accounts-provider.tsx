@@ -27,7 +27,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const AccountsProvider = ({ children, ...props }: Props) => {
+export const AccountsProvider = ({ children }: Props) => {
   const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const sse = useContext(ServerEventContext);
   const i18n = useContext(I18nContext);

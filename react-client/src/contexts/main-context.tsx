@@ -18,11 +18,11 @@ import { Context, createContext } from 'react';
 
 export const MainContext: Context<MainInterface> = createContext({
   navbarValue: undefined,
-  setNavbarValue: (navbarValue: any) => { },
+  setNavbarValue: (_navbarValue: any) => { },
   navbarOpened: false as boolean,
-  setNavbarOpened: (navbarOpened: any) => { },
+  setNavbarOpened: (_navbarOpened: any) => { },
   statusLine: undefined,
-  setStatusLine: (statusLine: any) => { },
+  setStatusLine: (_statusLine: any) => { },
 });
 
 export interface MainInterface {

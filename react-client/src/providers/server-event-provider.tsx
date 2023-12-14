@@ -29,7 +29,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const ServerEventProvider = ({ children, ...props }: Props) => {
+export const ServerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<{ max: number, used: number, dbcache: number, buffer: number }>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
@@ -41,8 +41,6 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
   const [rendererActions] = useState([] as any[]);
   const [hasNewLogLine, setNewLogLine] = useState(false);
   const [newLogLines] = useState([] as string[]);
-  const [statusLine, setStatusLine] = useState<string|null>(null);
-  const [secondaryStatusLine, setSecondaryStatusLine] = useState<string|null>(null);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
   const main = useContext(MainContext);
@@ -79,6 +77,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else {
+        throw new Error(`Expected content-type to be ${EventStreamContentType}`);
       }
     };
 
@@ -152,7 +152,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
         onmessage(event: EventSourceMessage) {
           onMessage(event);
         },
-        onerror(event: Response) { onError(); },
+        onerror(_event: Response) { onError(); },
         onclose() { onClose(); },
         openWhenHidden: true,
       });
@@ -194,8 +194,6 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
       getRendererAction: getRendererAction,
       hasNewLogLine: hasNewLogLine,
       getNewLogLine: getNewLogLine,
-      statusLine: statusLine,
-      secondaryStatusLine: secondaryStatusLine,
     }}>
       {children}
     </Provider>
