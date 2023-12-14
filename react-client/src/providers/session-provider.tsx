@@ -26,7 +26,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ children, ...props }: Props) => {
+export const SessionProvider = ({ children }: Props) => {
   const [session, setSession] = useState({ noAdminFound: false, authenticate: true, initialized: false, player: false } as UmsSession)
   const i18n = useContext(I18nContext);
 

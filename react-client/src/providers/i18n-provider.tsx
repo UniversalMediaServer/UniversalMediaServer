@@ -27,7 +27,7 @@ interface Props {
   children?: ReactNode,
 }
 
-export const I18nProvider = ({ children, ...props }: Props) => {
+export const I18nProvider = ({ children }: Props) => {
   const { dir, setDirection } = useDirection();
   const [i18n, setI18n] = useState<{ [key: string]: string }>(
     {

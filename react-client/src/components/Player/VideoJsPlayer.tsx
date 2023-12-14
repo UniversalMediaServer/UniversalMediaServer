@@ -54,7 +54,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         }
       }
     }
-    const onready = (player: Player) => {
+    const onready = (_player: Player) => {
       const volumeStatus = () => {
         setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
         setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false);

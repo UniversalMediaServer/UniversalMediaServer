@@ -80,11 +80,42 @@ export const Player = () => {
     }
   }
 
+  const refreshPage = () => {
+    if (uuid && sse.reqType) {
+      setLoading(true);
+      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId, lang: i18n.language })
+        .then(function(response: any) {
+          setData(response.data);
+          const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
+          setMetadataBackground(
+            response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
+          );
+          window.scrollTo(0, 0);
+          const url = '/player/' + sse.reqType + '/' + sse.reqId;
+          if (url !== history.state) {
+            window.history.pushState(url, '', url);
+          }
+        })
+        .catch(function() {
+          showNotification({
+            id: 'player-data-loading',
+            color: 'red',
+            title: 'Error',
+            message: 'Your browse data was not received from the server.',
+            autoClose: 3000,
+          });
+        })
+        .then(function() {
+          setLoading(false);
+        });
+    }
+  }
+
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
     axios.post(playerApiUrl + 'setFullyPlayed', { uuid, id, fullyPlayed })
       .then(function() {
-        location.reload();
+        refreshPage();
       })
       .catch(function() {
         showNotification({
@@ -153,7 +184,7 @@ export const Player = () => {
 
   const getVideoMetadataEditModal = () => {
     if (isVideoMetadataEditable()) {
-      return <VideoMetadataEditModal uuid={uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => location.reload()} />
+      return <VideoMetadataEditModal uuid={uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
     }
     return null;
   }
@@ -675,34 +706,7 @@ export const Player = () => {
   }, [session]);
 
   useEffect(() => {
-    if (uuid && sse.reqType) {
-      setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId, lang: i18n.language })
-        .then(function(response: any) {
-          setData(response.data);
-          const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
-          setMetadataBackground(
-            response.data.goal === 'show' ? (mediaTemp as any).metadata as VideoMetadata : response.data.metadata,
-          );
-          window.scrollTo(0, 0);
-          const url = '/player/' + sse.reqType + '/' + sse.reqId;
-          if (url !== history.state) {
-            window.history.pushState(url, '', url);
-          }
-        })
-        .catch(function() {
-          showNotification({
-            id: 'player-data-loading',
-            color: 'red',
-            title: 'Error',
-            message: 'Your browse data was not received from the server.',
-            autoClose: 3000,
-          });
-        })
-        .then(function() {
-          setLoading(false);
-        });
-    }
+    refreshPage();
   }, [uuid, sse.reqType, sse.reqId, i18n.language]);
 
   useEffect(() => {
