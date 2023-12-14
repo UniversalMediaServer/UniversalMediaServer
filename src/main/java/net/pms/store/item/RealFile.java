@@ -45,7 +45,6 @@ import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
-import net.pms.util.FullyPlayedAction;
 import net.pms.util.InputFile;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -345,14 +344,22 @@ public class RealFile extends StoreItem {
 	}
 
 	@Override
-	public boolean isFullyPlayedMark() {
+	public boolean isFullyPlayedAware() {
+		return true;
+	}
+
+	@Override
+	public boolean isFullyPlayed() {
 		return getFile() != null &&
-		(
-			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MARK ||
-			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-		) &&
 		getMediaStatus() != null &&
 		getMediaStatus().isFullyPlayed();
+	}
+
+	@Override
+	public void setFullyPlayed(boolean fullyPlayed) {
+		if (getFile() != null) {
+			MediaStatusStore.setFullyPlayed(getFile().getAbsolutePath(), renderer.getAccountUserId(), fullyPlayed, null);
+		}
 	}
 
 	@Override

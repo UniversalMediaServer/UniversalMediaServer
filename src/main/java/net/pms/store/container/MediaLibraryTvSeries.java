@@ -16,13 +16,17 @@
  */
 package net.pms.store.container;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.util.List;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableTVSeries;
+import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStatusStore;
 import net.pms.store.ThumbnailStore;
 
 /**
@@ -97,16 +101,23 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	}
 
 	@Override
-	public boolean isFullyPlayedMark() {
-		return isFullyPlayed(renderer.getAccountUserId());
+	public boolean isFullyPlayedAware() {
+		return true;
 	}
 
-	private boolean isFullyPlayed(int userId) {
+	@Override
+	public boolean isFullyPlayed() {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
-				return MediaTableTVSeries.isFullyPlayed(connection, name, userId);
+				List<String> filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, tvSeriesId);
+				for (String filename : filenames) {
+					if (renderer.hasShareAccess(new File(filename)) && !MediaStatusStore.isFullyPlayed(filename, renderer.getAccountUserId())) {
+						return false;
+					}
+				}
+				return true;
 			}
 		} finally {
 			MediaDatabase.close(connection);
@@ -114,4 +125,21 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 		return false;
 	}
 
+	@Override
+	public void setFullyPlayed(boolean fullyPlayed) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				List<String> filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, tvSeriesId);
+				for (String filename : filenames) {
+					if (renderer.hasShareAccess(new File(filename))) {
+						MediaStatusStore.setFullyPlayed(filename, renderer.getAccountUserId(), fullyPlayed, null);
+					}
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
 }
