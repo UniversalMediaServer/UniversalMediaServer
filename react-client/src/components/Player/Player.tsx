@@ -80,9 +80,9 @@ export const Player = () => {
     }
   }
 
-  const setFullyPlayed = (fullyPlayed: boolean) => {
+  const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: uuid, id: id, fullyPlayed: fullyPlayed })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid, id, fullyPlayed })
       .then(function() {
         location.reload();
       })
@@ -170,7 +170,7 @@ export const Player = () => {
               <Menu.Item
                 color='blue'
                 leftSection=<RecordMail />
-                onClick={() => setFullyPlayed(true)}
+                onClick={() => setFullyPlayed(sse.reqId, true)}
               >
                 {i18n.get['MarkContentsFullyPlayed']}
               </Menu.Item>
@@ -179,7 +179,7 @@ export const Player = () => {
               <Menu.Item
                 color='green'
                 leftSection=<RecordMailOff />
-                onClick={() => setFullyPlayed(false)}
+                onClick={() => setFullyPlayed(sse.reqId, false)}
               >
                 {i18n.get['MarkContentsUnplayed']}
               </Menu.Item>
