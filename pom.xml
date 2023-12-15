@@ -109,7 +109,7 @@
 		-->
 		<jackson.version>2.16.0</jackson.version>
 
-		<surefire-version>3.2.2</surefire-version>
+		<surefire-version>3.2.3</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -118,7 +118,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.13.0</jna-version>
+		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.10.1</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
@@ -468,7 +468,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>74.1</version>
+			<version>74.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -530,7 +530,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.4.8</version>
+			<version>6.4.9</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

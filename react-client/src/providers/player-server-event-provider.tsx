@@ -140,8 +140,15 @@ export const PlayerEventProvider = ({ children }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else if (event.status == 401) {
+        //reload Unauthorized
+        console.log('SSE Unauthorized');
+        throw new Error('SSE Unauthorized');
+      } else if (event.status == 403) {
+        //stop Forbidden
+        console.log('SSE Forbidden');
       } else {
-        throw new Error(`Expected content-type to be ${EventStreamContentType}`);
+        throw new Error('Expected content-type to be \'text/event-stream\'');
       }
     };
 
