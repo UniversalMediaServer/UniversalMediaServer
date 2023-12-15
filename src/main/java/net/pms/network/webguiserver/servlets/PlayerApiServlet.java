@@ -90,96 +90,29 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			String path = req.getServletPath();
 			if (path.equals("/")) {
 				Account account = AuthService.getPlayerAccountLoggedIn(req);
 				if (account == null) {
 					respondUnauthorized(req, resp);
-					return;
-				}
-				if (!account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
+				} else if (!account.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
 					respondForbidden(req, resp);
-					return;
+				} else {
+					String uuid = ConnectedRenderers.getRandomUUID();
+					respond(req, resp, "{\"uuid\":\"" + uuid + "\"}", 200, "application/json");
 				}
-				String uuid = ConnectedRenderers.getRandomUUID();
-				respond(req, resp, "{\"uuid\":\"" + uuid + "\"}", 200, "application/json");
 			} else if (path.startsWith("/sse/")) {
-				String[] sseData = path.split("/");
-				if (sseData.length == 3) {
-					WebGuiRenderer renderer = getRenderer(req, sseData[2]);
-					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-						resp.setHeader("Server", PMS.get().getServerName());
-						resp.setHeader("Connection", "keep-alive");
-						resp.setHeader("Cache-Control", "no-transform");
-						resp.setHeader("Charset", "UTF-8");
-						resp.setContentType("text/event-stream");
-						AsyncContext async = req.startAsync();
-						ServerSentEvents sse = new ServerSentEvents(async, () -> {
-							try {
-								Thread.sleep(2000);
-								renderer.updateServerSentEventsActive();
-							} catch (InterruptedException ex) {
-								Thread.currentThread().interrupt();
-							}
-						});
-						renderer.setActive(true);
-						renderer.addServerSentEvents(sse);
-						return;
-					}
-				}
-				respondBadRequest(req, resp);
+				sendServerSentEvents(req, resp);
 			} else if (path.startsWith("/thumbnail/")) {
-				String[] thumbData = path.split("/");
-				if (thumbData.length == 4) {
-					WebGuiRenderer renderer = getRenderer(req, thumbData[2]);
-					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-						StoreResource resource = renderer.getMediaStore().getResource(thumbData[3]);
-						AsyncContext async = req.startAsync();
-						DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
-						if (thumb != null) {
-							resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-							resp.setHeader("Accept-Ranges", "bytes");
-							resp.setHeader("Connection", "keep-alive");
-							resp.setStatus(200);
-							resp.setContentLengthLong(thumb.getSize());
-							OutputStream os = resp.getOutputStream();
-							copyStreamAsync(thumb, os, async);
-							return;
-						}
-					}
-				}
-				respondBadRequest(req, resp);
+				sendThumbnail(req, resp);
 			} else if (path.startsWith("/image/")) {
-				String[] imageData = path.split("/");
-				if (imageData.length == 4) {
-					WebGuiRenderer renderer = getRenderer(req, imageData[2]);
-					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendImageMedia(req, resp, renderer, imageData[3])) {
-						return;
-					}
-				}
-				respondBadRequest(req, resp);
+				sendImageMedia(req, resp);
 			} else if (path.startsWith("/raw/")) {
-				String[] rawData = path.split("/");
-				if (rawData.length == 4) {
-					WebGuiRenderer renderer = getRenderer(req, rawData[2]);
-					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_BROWSE) && sendRawMedia(req, resp, renderer, rawData[3], false)) {
-						return;
-					}
-				}
-				respondBadRequest(req, resp);
+				sendRawMedia(req, resp, false);
 			} else if (path.startsWith("/download/")) {
-				String[] rawData = path.split("/");
-				if (rawData.length == 4) {
-					WebGuiRenderer renderer = getRenderer(req, rawData[2]);
-					if (renderer != null && renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && sendDownloadMedia(req, resp, renderer, rawData[3])) {
-						return;
-					}
-				}
-				respondBadRequest(req, resp);
+				sendDownloadMedia(req, resp);
 			} else if (path.startsWith("/media/")) {
-				if (!sendMedia(req, resp, path)) {
-					respondBadRequest(req, resp);
-				}
+				sendMedia(req, resp);
 			} else {
 				LOGGER.trace("PlayerApiServlet request not available : {}", path);
 				respondNotFound(req, resp);
@@ -386,7 +319,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
+	private static JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make browse page " + id);
@@ -595,7 +528,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getMediaJsonObject(StoreResource resource, String lang) {
+	private static JsonObject getMediaJsonObject(StoreResource resource, String lang) {
 		JsonObject jMedia = new JsonObject();
 		if (resource.isFolder()) {
 			jMedia.addProperty("goal", "browse");
@@ -612,7 +545,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jMedia;
 	}
 
-	private JsonArray getBreadcrumbs(StoreResource resource, String lang) {
+	private static JsonArray getBreadcrumbs(StoreResource resource, String lang) {
 		JsonArray jBreadcrumbs = new JsonArray();
 		JsonObject jBreadcrumb = new JsonObject();
 		jBreadcrumb.addProperty("id", "");
@@ -637,7 +570,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jBreadcrumbsInverted;
 	}
 
-	private JsonArray getMediaLibraryFolderChilds(
+	private static JsonArray getMediaLibraryFolderChilds(
 			StoreResource videoFolder,
 			Renderer renderer,
 			String folderName,
@@ -663,7 +596,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return jLibraryVideos;
 	}
 
-	private JsonObject getShowPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
+	private static JsonObject getShowPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
 		JsonObject result = getPlayPage(renderer, id, lang);
 		if (result != null) {
 			result.remove("goal");
@@ -672,7 +605,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
+	private static JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make play page " + id);
@@ -753,7 +686,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonObject getEditData(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
+	private static JsonObject getEditData(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make edit data " + id);
@@ -802,7 +735,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, Integer year, String lang) throws IOException, InterruptedException {
+	private static JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, Integer year, String lang) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Make metadata results " + id);
@@ -845,7 +778,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, String mediaType) throws IOException, InterruptedException {
+	private static boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, String mediaType) throws IOException, InterruptedException {
 		PMS.REALTIME_LOCK.lockInterruptibly();
 		try {
 			LOGGER.debug("Setd metadata " + id);
@@ -871,7 +804,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private boolean setFullyPlayed(WebGuiRenderer renderer, String id, boolean fullyPlayed) throws IOException, InterruptedException {
+	private static boolean setFullyPlayed(WebGuiRenderer renderer, String id, boolean fullyPlayed) throws IOException, InterruptedException {
 		StoreResource resource = renderer.getMediaStore().getResource(id);
 		if (resource.isFullyPlayedAware()) {
 			resource.setFullyPlayed(fullyPlayed);
@@ -913,7 +846,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return result;
 	}
 
-	private DLNAThumbnailInputStream getMediaThumbImage(StoreResource resource) {
+	private static DLNAThumbnailInputStream getMediaThumbImage(StoreResource resource) {
 		if (resource == null) {
 			return null;
 		}
@@ -942,7 +875,29 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return in;
 	}
 
-	private boolean sendRawMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id, boolean isDownload) {
+	private static WebGuiRenderer getValidRenderer(HttpServletRequest req, HttpServletResponse resp, String[] data, int count, int permissions) throws IOException {
+		if (data.length < count) {
+			respondBadRequest(req, resp);
+		} else {
+			WebGuiRenderer renderer = getRenderer(req, data[2]);
+			if (renderer == null) {
+				respondUnauthorized(req, resp);
+			} else if (!renderer.havePermission(permissions)) {
+				respondForbidden(req, resp);
+			}
+			return renderer;
+		}
+		return null;
+	}
+
+	private static void sendRawMedia(HttpServletRequest req, HttpServletResponse resp, boolean isDownload) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		if (renderer == null) {
+			return;
+		}
+		String id = pathData[3];
 		List<StoreResource> res;
 		try {
 			res = renderer.getMediaStore().getResources(id, false, 0, 0);
@@ -955,8 +910,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				item = null;
 			}
 			if (item == null) {
-				LOGGER.debug("media unkonwn");
-				return false;
+				LOGGER.debug("media unknown");
+				respondNotFound(req, resp);
+				return;
 			}
 			long len = item.length();
 			item.setEngine(null);
@@ -997,12 +953,18 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				async.complete();
 			}
 		} catch (IOException ex) {
-			return false;
+			respondInternalServerError(req, resp);
 		}
-		return true;
 	}
 
-	private boolean sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id) {
+	private static void sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_DOWNLOAD);
+		if (renderer == null) {
+			return;
+		}
+		String id = pathData[3];
 		List<StoreResource> res;
 		try {
 			res = renderer.getMediaStore().getResources(id, false, 0, 0);
@@ -1015,8 +977,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				item = null;
 			}
 			if (item == null) {
-				LOGGER.debug("media unkonwn");
-				return false;
+				LOGGER.debug("media unknown");
+				respondNotFound(req, resp);
+				return;
 			}
 			File media = new File(item.getFileName());
 			String mime = renderer.getMimeType(item);
@@ -1034,12 +997,18 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			OutputStream os = resp.getOutputStream();
 			copyStreamAsync(in, os, async);
 		} catch (IOException ex) {
-			return false;
+			respondInternalServerError(req, resp);
 		}
-		return true;
 	}
 
-	private boolean sendImageMedia(HttpServletRequest req, HttpServletResponse resp, WebGuiRenderer renderer, String id) {
+	private static void sendImageMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		if (renderer == null) {
+			return;
+		}
+		String id = pathData[3];
 		List<StoreResource> res;
 		try {
 			res = renderer.getMediaStore().getResources(id, false, 0, 0);
@@ -1052,8 +1021,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				item = null;
 			}
 			if (item == null) {
-				LOGGER.debug("media unkonwn");
-				return false;
+				LOGGER.debug("media unknown");
+				respondNotFound(req, resp);
+				return;
 			}
 			String mime;
 			InputStream in;
@@ -1087,7 +1057,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 				range = new ByteRange(0L, len);
 			} else {
-				return false;
+				respondUnsupportedMediaType(req, resp);
+				return;
 			}
 			AsyncContext async = req.startAsync();
 			resp.setContentType(mime);
@@ -1114,30 +1085,30 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				async.complete();
 			}
 		} catch (IOException ex) {
-			return false;
+			respondInternalServerError(req, resp);
 		}
-		return true;
 	}
 
-	private static boolean sendMedia(HttpServletRequest req, HttpServletResponse resp, String path) {
-		String[] rawData = path.split("/");
-		if (rawData.length < 4) {
-			return false;
+	private static void sendMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		if (renderer == null) {
+			return;
 		}
-		String sessionId = rawData[2];
-		String resourceId = rawData[3];
+
+		String sessionId = pathData[2];
+		String resourceId = pathData[3];
 		String uri = req.getRequestURI();
-		WebGuiRenderer renderer = getRenderer(req, sessionId);
-		if (renderer == null || !renderer.havePermission(Permissions.WEB_PLAYER_BROWSE)) {
-			return false;
-		}
+
 		StoreResource resource = renderer.getMediaStore().getResource(resourceId);
 		StoreItem item = resource instanceof StoreItem storeItem ? storeItem : null;
 
 		if (item == null) {
 			// another error
-			LOGGER.debug("media unkonwn");
-			return false;
+			LOGGER.debug("media unknown");
+			respondNotFound(req, resp);
+			return;
 		}
 		MediaSubtitle sid = null;
 		String mimeType = renderer.getMimeType(item);
@@ -1181,9 +1152,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				} else if (uri.endsWith("/chapters.json")) {
 					String response = HlsHelper.getChaptersHls(item);
 					respond(req, resp, response, 200, HTTPResource.JSON_TYPEMIME);
-				} else if (rawData.length > 5 && "hls".equals(rawData[4])) {
-					if (rawData[5].endsWith(".m3u8")) {
-						String rendition = rawData[5];
+				} else if (pathData.length > 5 && "hls".equals(pathData[4])) {
+					if (pathData[5].endsWith(".m3u8")) {
+						String rendition = pathData[5];
 						rendition = rendition.replace(".m3u8", "");
 						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getContextPath() + "/media/" + sessionId + "/", rendition);
 						respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
@@ -1259,9 +1230,56 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 		} catch (IOException ex) {
-			return false;
+			respondInternalServerError(req, resp);
 		}
-		return true;
+	}
+
+	private static void sendServerSentEvents(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 3, Permissions.WEB_PLAYER_BROWSE);
+		if (renderer == null) {
+			return;
+		}
+		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Connection", "keep-alive");
+		resp.setHeader("Cache-Control", "no-transform");
+		resp.setHeader("Charset", "UTF-8");
+		resp.setContentType("text/event-stream");
+		AsyncContext async = req.startAsync();
+		ServerSentEvents sse = new ServerSentEvents(async, () -> {
+			try {
+				Thread.sleep(2000);
+				renderer.updateServerSentEventsActive();
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			}
+		});
+		renderer.setActive(true);
+		renderer.addServerSentEvents(sse);
+	}
+
+	private static void sendThumbnail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		String path = req.getServletPath();
+		String[] pathData = path.split("/");
+		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		if (renderer == null) {
+			return;
+		}
+		StoreResource resource = renderer.getMediaStore().getResource(pathData[3]);
+		DLNAThumbnailInputStream thumb = getMediaThumbImage(resource);
+		if (thumb != null) {
+			AsyncContext async = req.startAsync();
+			resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+			resp.setHeader("Accept-Ranges", "bytes");
+			resp.setHeader("Connection", "keep-alive");
+			resp.setStatus(200);
+			resp.setContentLengthLong(thumb.getSize());
+			OutputStream os = resp.getOutputStream();
+			copyStreamAsync(thumb, os, async);
+		} else {
+			respondNotFound(req, resp);
+		}
 	}
 
 	/**
@@ -1339,17 +1357,17 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 			}
 		}
-		addJsonArrayDlnaIds(result, "actors", actorsFolder, renderer);
-		addJsonArrayDlnaIds(result, "countries", countriesFolder, renderer);
-		addJsonArrayDlnaIds(result, "directors", directorsFolder, renderer);
-		addJsonArrayDlnaIds(result, "genres", genresFolder, renderer);
-		addStringDlnaId(result, "rated", ratedFolder, renderer);
+		addJsonArrayStoreIds(result, "actors", actorsFolder, renderer);
+		addJsonArrayStoreIds(result, "countries", countriesFolder, renderer);
+		addJsonArrayStoreIds(result, "directors", directorsFolder, renderer);
+		addJsonArrayStoreIds(result, "genres", genresFolder, renderer);
+		addStringStoreId(result, "rated", ratedFolder, renderer);
 		result.addProperty("imageBaseURL", TMDB.getTmdbImageBaseURL());
 
 		return result;
 	}
 
-	private static void addJsonArrayDlnaIds(final JsonObject object, final String memberName, final StoreResource folder, final Renderer renderer) {
+	private static void addJsonArrayStoreIds(final JsonObject object, final String memberName, final StoreResource folder, final Renderer renderer) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonArray()) {
@@ -1377,7 +1395,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
-	private static void addStringDlnaId(final JsonObject object, final String memberName, final StoreResource folder, final Renderer renderer) {
+	private static void addStringStoreId(final JsonObject object, final String memberName, final StoreResource folder, final Renderer renderer) {
 		if (object.has(memberName)) {
 			JsonElement element = object.remove(memberName);
 			if (element.isJsonPrimitive()) {
