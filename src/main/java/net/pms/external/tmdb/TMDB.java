@@ -162,7 +162,7 @@ public class TMDB {
 		}
 
 		if (!isReady()) {
-			LOGGER.trace("Not doing background TMDB lookup because api key");
+			LOGGER.trace("Not doing background TMDB lookup because no/bad api key found");
 			//fallback to UMS API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
@@ -206,6 +206,7 @@ public class TMDB {
 				}
 
 				if (MediaTableFailedLookups.hasLookupFailedRecently(connection, file.getAbsolutePath(), true)) {
+					LOGGER.trace("Lookup recently failed for {}", file.getName());
 					return;
 				}
 				GuiManager.setSecondaryStatusLine(Messages.getString("GettingTMDBInfoFor") + " " + file.getName());
@@ -220,6 +221,7 @@ public class TMDB {
 				LOGGER.trace("Error in TMDB parsing:", ex);
 			}
 		};
+		LOGGER.trace("Queuing background TMDB lookup for {}", file.getName());
 		BACKGROUND_EXECUTOR.execute(r);
 	}
 
@@ -257,7 +259,7 @@ public class TMDB {
 			movieDetails = getMovieInfo(titleFromFilename, year, imdbID);
 
 			if (movieDetails == null) {
-				LOGGER.trace("Failed lookup for " + file.getName());
+				LOGGER.trace("Failed TMDB lookup for " + file.getName());
 				MediaTableFailedLookups.set(connection, file.getAbsolutePath(), "", true);
 				return;
 			} else {

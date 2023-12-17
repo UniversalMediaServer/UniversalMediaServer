@@ -552,7 +552,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_BY_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
 				ps.setLong(1, tvSeriesId);
-				LOGGER.trace("Inserting API metadata for " + title);
+				LOGGER.trace("Inserting API metadata for TVSeries " + title);
 				try (ResultSet rs = ps.executeQuery()) {
 					if (rs.next()) {
 						rs.updateString(COL_IMDBID, seriesMetadata.getIMDbID());

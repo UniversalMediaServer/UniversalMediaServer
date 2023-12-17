@@ -266,6 +266,24 @@ public class APIUtils {
 		}
 	}
 
+	private static boolean shouldLookupAndAddMetadata() {
+		if (!CONFIGURATION.getExternalNetwork()) {
+			LOGGER.trace("Not doing background API lookup because external network is disabled");
+			return false;
+		}
+
+		if (!CONFIGURATION.isUseInfoFromIMDb()) {
+			LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
+			return false;
+		}
+
+		if (!MediaDatabase.isAvailable()) {
+			LOGGER.trace("Not doing background API lookup because database is closed");
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Enhances existing seriesMetadata attached to this media by querying our API.
 	 *
@@ -273,23 +291,14 @@ public class APIUtils {
 	 * @param media
 	 */
 	public static void backgroundLookupAndAddMetadata(final File file, final MediaInfo media) {
+		if (!shouldLookupAndAddMetadata()) {
+			return;
+		}
 		Runnable r = () -> {
 			// wait until the realtime lock is released before starting
 			PMS.REALTIME_LOCK.lock();
 			PMS.REALTIME_LOCK.unlock();
-
-			if (!CONFIGURATION.getExternalNetwork()) {
-				LOGGER.trace("Not doing background API lookup because external network is disabled");
-				return;
-			}
-
-			if (!CONFIGURATION.isUseInfoFromIMDb()) {
-				LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
-				return;
-			}
-
-			if (!MediaDatabase.isAvailable()) {
-				LOGGER.trace("Database is closed");
+			if (!shouldLookupAndAddMetadata()) {
 				return;
 			}
 
@@ -304,6 +313,7 @@ public class APIUtils {
 				}
 
 				if (MediaTableFailedLookups.hasLookupFailedRecently(connection, file.getAbsolutePath(), true)) {
+					LOGGER.trace("Lookup recently failed for {}", file.getName());
 					return;
 				}
 
@@ -344,7 +354,7 @@ public class APIUtils {
 
 						// File lookup failed, but before we return, attempt to enhance TV series data
 						if (isTVEpisode) {
-							setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, null, null);
+							setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, videoMetadata, null, null);
 						}
 
 						exitLookupAndAddMetadata(connection);
@@ -414,7 +424,7 @@ public class APIUtils {
 
 					// Before we return, attempt to enhance TV series data
 					if (isTVEpisode) {
-						setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, null, null);
+						setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, videoMetadata, null, null);
 					}
 
 					exitLookupAndAddMetadata(connection);
@@ -424,12 +434,10 @@ public class APIUtils {
 				LOGGER.trace("API data matches filename data for " + file.getName());
 
 				if (isTVEpisode) {
-					Long tvSeriesId = setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, media, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
-					if (tvSeriesId != null) {
+					Long tvSeriesId = setTVSeriesInfo(connection, titleFromFilename, tvSeriesStartYear, titleSimplifiedFromFilename, file, videoMetadata, seriesIMDbIDFromAPI, tmdbTvIDFromAPI);
+					if (tvSeriesId != null && !tvSeriesId.equals(videoMetadata.getTvSeriesId())) {
+						LOGGER.trace("Replacing TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), videoMetadata);
 						videoMetadata.setTvSeriesId(tvSeriesId);
-						TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
-						videoMetadata.setSeriesMetadata(tvSeriesMetadata);
-						videoMetadata.setTmdbTvId(tvSeriesMetadata.getTmdbId());
 					}
 					if (isNotBlank(titleFromAPI)) {
 						LOGGER.trace("Setting episode name from api: " + titleFromAPI);
@@ -522,7 +530,7 @@ public class APIUtils {
 				videoMetadata.setApiVersion(getApiDataVideoVersion());
 				media.setVideoMetadata(videoMetadata);
 
-				LOGGER.trace("setting metadata for " + file.getName());
+				LOGGER.trace("Setting database metadata for " + file.getName());
 				Long fileId = MediaTableFiles.getFileId(connection, file.getAbsolutePath(), file.lastModified());
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, true);
 
@@ -533,6 +541,7 @@ public class APIUtils {
 				LOGGER.trace("Error in API parsing:", ex);
 			}
 		};
+		LOGGER.trace("Queuing background API lookup for {}", file.getName());
 		BACKGROUND_EXECUTOR.execute(r);
 	}
 
@@ -579,12 +588,12 @@ public class APIUtils {
 	 * @param startYear
 	 * @param titleSimplifiedFromFilename
 	 * @param file
-	 * @param media
+	 * @param videoMetadata
 	 * @param seriesIMDbIDFromAPI
 	 * @param tmdbTvIDFromAPI
 	 * @return the tvSeriesId of the series.
 	 */
-	private static Long setTVSeriesInfo(final Connection connection, String titleFromFilename, Integer startYear, String titleSimplifiedFromFilename, File file, MediaInfo media, String seriesIMDbIDFromAPI, Long tmdbTvIDFromAPI) {
+	private static Long setTVSeriesInfo(final Connection connection, String titleFromFilename, Integer startYear, String titleSimplifiedFromFilename, File file, MediaVideoMetadata videoMetadata, String seriesIMDbIDFromAPI, Long tmdbTvIDFromAPI) {
 		/*
 		 * Get the TV series metadata from our database, or from our API if it's not
 		 * in our database yet, and persist it to our database.
@@ -769,10 +778,17 @@ public class APIUtils {
 				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
 			}
 			//update MediaVideoMetadata
-			if (media.hasVideoMetadata()) {
-				media.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
-				media.getVideoMetadata().setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
-				media.getVideoMetadata().setTmdbTvId(tvSeriesMetadata.getTmdbId());
+			if (videoMetadata != null) {
+				LOGGER.trace("Setting Episode TvSeriesMetadata {}", tvSeriesMetadata.getTitle());
+				videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+				if (!tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
+					LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
+					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+				}
+				if (!tvSeriesMetadata.getTmdbId().equals(videoMetadata.getTmdbTvId())) {
+					LOGGER.trace("Replacing Episode TmdbTvId from {} to {}", videoMetadata.getTmdbTvId(), tvSeriesMetadata.getTmdbId());
+					videoMetadata.setTmdbTvId(tvSeriesMetadata.getTmdbId());
+				}
 			}
 			return tvSeriesMetadata.getTvSeriesId();
 		} catch (IOException e) {
