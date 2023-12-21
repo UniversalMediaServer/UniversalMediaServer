@@ -134,7 +134,7 @@ public class TMDB {
 	}
 
 	public static boolean isReady() {
-		if (StringUtils.isBlank(CONFIGURATION.getTmdbApiKey())) {
+		if (!CONFIGURATION.isUseInfoFromTMDB() || StringUtils.isBlank(CONFIGURATION.getTmdbApiKey())) {
 			return false;
 		}
 		if (!CONFIGURATION.getTmdbApiKey().equals(CLIENT.getApiKey())) {

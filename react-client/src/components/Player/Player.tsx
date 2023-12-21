@@ -190,7 +190,7 @@ export const Player = () => {
   }
 
   const getBreadcrumbsMenu = (breadcrumb: BaseMedia) => {
-    return hasBreadcrumbsMenu() ?
+    return hasBreadcrumbsMenu(breadcrumb) ?
       (
         <Menu shadow="md" width={200}>
           <Menu.Target>
@@ -230,8 +230,8 @@ export const Player = () => {
       )
   }
 
-  const hasBreadcrumbsMenu = () => {
-    return isVideoMetadataEditable();
+  const hasBreadcrumbsMenu = (breadcrumb: BaseMedia) => {
+    return breadcrumb.fullyplayed != null || isVideoMetadataEditable();
   }
 
   const isVideoMetadataEditable = () => {
