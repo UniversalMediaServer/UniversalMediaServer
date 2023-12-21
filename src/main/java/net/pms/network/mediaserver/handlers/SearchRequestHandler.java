@@ -538,7 +538,7 @@ public class SearchRequestHandler {
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, getIdentPrefix(type, filenameField));
+									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, filenameField);
 									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
 										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
@@ -582,29 +582,6 @@ public class SearchRequestHandler {
 			MediaDatabase.close(connection);
 		}
 		return result;
-	}
-
-	private static String getIdentPrefix(DbIdMediaType type, String person) {
-		if (type ==  null) {
-			throw new RuntimeException("DbidMediaType is NULL");
-		}
-		switch (type) {
-			case TYPE_PERSON_COMPOSER -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_COMPOSER_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON_CONDUCTOR -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_CONDUCTOR_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON_ALBUMARTIST -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_ALBUMARTIST_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON -> {
-				return person;
-			}
-			default -> {
-				throw new RuntimeException("Unknown DbidMediaType " + type.toString());
-			}
-		}
 	}
 
 	private static String extractDisplayName(ResultSet resultSet, DbIdMediaType type) throws SQLException {

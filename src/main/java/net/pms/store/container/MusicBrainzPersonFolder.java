@@ -33,12 +33,35 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 	}
 
 	private void initChilds() {
-		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, getMediaIdent());
-		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, getMediaIdent());
+		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, getIdent(getMediaType(), getMediaIdent()));
+		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, getIdent(getMediaType(), getMediaIdent()));
 		allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
 		albumFiles = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
 		addChild(allFiles);
 		addChild(albumFiles);
+	}
+
+	private static String getIdent(DbIdMediaType type, String person) {
+		if (type ==  null) {
+			throw new RuntimeException("DbidMediaType is NULL");
+		}
+		switch (type) {
+			case TYPE_PERSON_COMPOSER -> {
+				return String.format("%s%s", DbIdMediaType.PERSON_COMPOSER_PREFIX, person);
+			}
+			case TYPE_PERSON_CONDUCTOR -> {
+				return String.format("%s%s", DbIdMediaType.PERSON_CONDUCTOR_PREFIX, person);
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return String.format("%s%s", DbIdMediaType.PERSON_ALBUMARTIST_PREFIX, person);
+			}
+			case TYPE_PERSON -> {
+				return person;
+			}
+			default -> {
+				throw new RuntimeException("Unknown DbidMediaType " + type.toString());
+			}
+		}
 	}
 
 	@Override
