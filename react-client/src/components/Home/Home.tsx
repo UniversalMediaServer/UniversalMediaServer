@@ -154,6 +154,8 @@ const Home = () => {
         updateNotification({
           id: 'settings-save',
           color: 'teal',
+          autoClose:true,
+          loading: false,
           title: i18n.get['Saved'],
           message: i18n.get['ConfigurationSaved'],
           icon: <Check size='1rem' />
@@ -165,6 +167,8 @@ const Home = () => {
           updateNotification({
             id: 'settings-save',
             color: 'red',
+            autoClose:true,
+            loading: false,
             title: i18n.get['Error'],
             message: i18n.get['ConfigurationNotReceived'],
             icon: <ExclamationMark size='1rem' />
@@ -173,6 +177,8 @@ const Home = () => {
           updateNotification({
             id: 'settings-save',
             color: 'red',
+            autoClose:true,
+            loading: false,
             title: i18n.get['Error'],
             message: i18n.get['ConfigurationNotSaved']
           })
