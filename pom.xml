@@ -863,7 +863,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.12.0</version>
 				<configuration>
 					<source>${project.jre-version}</source>
 					<target>${project.jre-version}</target>
