@@ -55,7 +55,7 @@ import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUpnpServiceConfiguration.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsUpnpServiceConfiguration.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
 	private static final int THREAD_POOL_SIZE = 200;
