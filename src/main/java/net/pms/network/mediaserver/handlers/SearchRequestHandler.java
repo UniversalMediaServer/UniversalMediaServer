@@ -154,19 +154,19 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select DISTINCT A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select DISTINCT A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
 				return "select DISTINCT ON (album) mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+				return "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
 			}
 			case TYPE_FOLDER -> {
 				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
@@ -538,7 +538,7 @@ public class SearchRequestHandler {
 									}
 								}
 								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
-									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, getIdentPrefix(type, filenameField));
+									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, filenameField);
 									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
 									if (personFolder == null) {
 										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
@@ -582,29 +582,6 @@ public class SearchRequestHandler {
 			MediaDatabase.close(connection);
 		}
 		return result;
-	}
-
-	private static String getIdentPrefix(DbIdMediaType type, String person) {
-		if (type ==  null) {
-			throw new RuntimeException("DbidMediaType is NULL");
-		}
-		switch (type) {
-			case TYPE_PERSON_COMPOSER -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_COMPOSER_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON_CONDUCTOR -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_CONDUCTOR_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON_ALBUMARTIST -> {
-				return String.format("%s%s%s", DbIdMediaType.PERSON_ALBUMARTIST_PREFIX, DbIdMediaType.SPLIT_CHARS, person);
-			}
-			case TYPE_PERSON -> {
-				return person;
-			}
-			default -> {
-				throw new RuntimeException("Unknown DbidMediaType " + type.toString());
-			}
-		}
 	}
 
 	private static String extractDisplayName(ResultSet resultSet, DbIdMediaType type) throws SQLException {
