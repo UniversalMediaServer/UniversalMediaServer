@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
@@ -43,6 +43,7 @@ export const Player = () => {
   const { req, id } = useParams();
   const { colorScheme } = useMantineColorScheme();
   const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
+  const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
 
   const getUuid = () => {
     if (sessionStorage.getItem('player')) {
@@ -141,7 +142,7 @@ export const Player = () => {
         mb='xs'
         shadow='xs'
         p='sm'
-        style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
+        style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}
       >
         <Group>
           <Breadcrumbs
@@ -349,7 +350,7 @@ export const Player = () => {
 
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group gap='xs' mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+      return (<Group gap='xs' mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
         <Text fw={700}>{i18n.get[title]}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
@@ -357,11 +358,11 @@ export const Player = () => {
               key={media.id}
               style={(theme: MantineTheme) => ({
                 cursor: 'pointer',
-                color: colorScheme === 'dark' ? 'white' : 'black',
-                backgroundColor: colorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
+                color: computedColorScheme === 'dark' ? 'white' : 'black',
+                backgroundColor: computedColorScheme === 'dark' ? theme.colors.dark[5] : theme.colors.gray[5],
                 '&:hover': {
                   backgroundColor:
-                    colorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
+                    computedColorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
               onClick={() => { media.id && sse.askBrowseId(media.id) }}
@@ -375,7 +376,7 @@ export const Player = () => {
 
   const getMetadataCountryList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
-      return (<Group gap='xs' mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+      return (<Group gap='xs' mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
         <Text fw={700}>{i18n.get[title]}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
@@ -403,7 +404,7 @@ export const Player = () => {
   const getMetadataString = (title: string, mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
@@ -412,7 +413,7 @@ export const Player = () => {
   const getMetadataOriginalTitle = (title?: string, language?: string) => {
     if (title) {
       return (
-        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
           <LanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')' : '')}</Text>
         </Group>);
     }
@@ -421,7 +422,7 @@ export const Player = () => {
   const getMetadataTagLine = (mediaString?: string) => {
     if (mediaString) {
       return (
-        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
           <Tag /><Text fs='italic'>{mediaString}</Text>
         </Group>);
     }
@@ -430,7 +431,7 @@ export const Player = () => {
   const getMetadataRating = (rating?: number) => {
     if (rating) {
       return (
-        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get['Rating']}: </Text><Tooltip label={rating}><Rating value={rating / 2} fractions={4} readOnly /></Tooltip>
         </Group>);
     }
@@ -439,7 +440,7 @@ export const Player = () => {
   const getMetadataRatingList = (ratingsList?: MediaRating[], rating?: number) => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
-        <Group mt='sm' style={() => ({ color: colorScheme === 'dark' ? 'white' : 'black', })}>
+        <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
           <Text fw={700}>{i18n.get['Ratings']}: </Text>
         </Group>
         <List withPadding>
@@ -637,7 +638,7 @@ export const Player = () => {
                 {images.poster}
               </Grid.Col>
               <Grid.Col span={12}>
-                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   {images.logo}
                   {getPlayControls()}
                   {getMetadataTagLine(metadata.tagline)}
@@ -671,7 +672,7 @@ export const Player = () => {
                 <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
-                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
+                <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
                   <Text pb='xs'>{getI18nName(media.name)}</Text>
                   {getPlayControls()}
                 </Card>
