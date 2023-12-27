@@ -3,6 +3,11 @@
 ## 14.0.0 (Unreleased)
 
 ### General
+- Added ability to block/allow renderers in web settings
+- Added ability to block/allow network devices in web settings
+- Added ability to set whether renderers or network devices are blocked or allowed by default
+- Added ability to link people to renderers for independent playback tracking
+- Added ability to restrict share content to certain groups
 - Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
 - File status is saved per-user
 - Added status line on webgui
@@ -13,14 +18,10 @@
 - Improved memory use bar on the web interface
 - Added ability for user accounts to have avatars
 - Improved selection of video quality on web player
-- Added ability to edit video metadata via web player
-- Added ability to specify your TMDB API key
 - Removed ability to disable the local cache
 - Improved drag and drop on Shared Content tab on web settings
-- Added ability to group content on Shared Content tab
 - Added ability to select and edit multiple shared contents
 - Added more control over user permissions in the web settings
-- Added pin codes for users
 - Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
 - Improved TV series matching and lookups
 - Improved database cleanup step
