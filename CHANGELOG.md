@@ -1,6 +1,6 @@
 # Changelog
 
-## 14.0.0 (Unreleased)
+## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v14) (2023-12-08)
 
 ### General
 - Added ability to block/allow renderers in web settings
@@ -27,6 +27,15 @@
 - Improved database cleanup step
 - Fixed thumbnail handling bugs
 - Fixed FirstAirDate and LastAirDate for TV series
+
+### Translation updates via Crowdin
+- Danish (60%) (thanks, GurliGebis!)
+- English (UK) (51%) (thanks, Pete Russell!)
+- French (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (Brazilian) (70%) (thanks, Mauro.A!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Renderers
 - Improved support for Samsung The Frame TVs
