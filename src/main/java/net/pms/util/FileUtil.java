@@ -1128,6 +1128,10 @@ public class FileUtil {
 
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}([1-9]|1[0-2])([1-9]|[12][0-9]|3[01]).*")) {
+			// This matches some sports releases
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}.*")) {
 			// This matches scene and most p2p movies
 
