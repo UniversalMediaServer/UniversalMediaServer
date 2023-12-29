@@ -569,5 +569,14 @@
 		"metadata": {
 			"type": "sport"
 		}
+	},
+	{
+		"note": "Should not match 2",
+		"comment": "Video of a sports event with the full date in it",
+		"filename": "SPORTSLEAGUE_20231027_GROUPNAME @ LOCATION_720p60_BS-GROUPNAME.mkv",
+		"prettified": "SPORTSLEAGUE 20231027 GROUPNAME @ LOCATION 720p60 BS-GROUPNAME",
+		"metadata": {
+			"type": "sport"
+		}
 	}
 ]
