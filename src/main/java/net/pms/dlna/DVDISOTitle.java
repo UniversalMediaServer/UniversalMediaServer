@@ -322,7 +322,7 @@ public class DVDISOTitle extends DLNAResource {
 	// Ditlew
 	@Override
 	public long length(Renderer renderer) {
-		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
+		// WDTV Live at least, needs a realistic size for stop/resume to work properly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbrVideoBitrate = getDefaultRenderer().getCBRVideoBitrate();
 		return (cbrVideoBitrate > 0) ? (long) (((cbrVideoBitrate + 256) * 1024 / (double) 8 * 1.04) * getMedia().getDurationInSeconds()) : length();
 	}

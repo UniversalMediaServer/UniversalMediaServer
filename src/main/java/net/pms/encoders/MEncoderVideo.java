@@ -1036,7 +1036,7 @@ public class MEncoderVideo extends Engine {
 			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, PGS (Blu-ray Disc) and DVD
 			boolean applyAssStyling = params.getSid().getType() != SubtitleType.VOBSUB &&
 				params.getSid().getType() != SubtitleType.PGS &&
-				configuration.isMencoderAss() &&   // GUI: enable subtitles formating
+				configuration.isMencoderAss() &&   // GUI: enable subtitles formatting
 				!foundNoassParam &&                // GUI: codec specific options
 				!isDVD;
 

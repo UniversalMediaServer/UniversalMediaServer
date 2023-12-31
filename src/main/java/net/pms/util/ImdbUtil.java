@@ -144,7 +144,7 @@ public class ImdbUtil {
 					}
 				} catch (IOException e) {
 					LOGGER.error(
-						"An error occured when trying to scan for nfo files belonging to \"{}\": {}",
+						"An error occurred when trying to scan for nfo files belonging to \"{}\": {}",
 						file,
 						e.getMessage()
 					);

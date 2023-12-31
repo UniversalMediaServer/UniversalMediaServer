@@ -71,7 +71,7 @@ public class HttpServerServletContainer {
 					httpContext.setHandler(handler);
 				}
 			} catch (NoSuchMethodException | InstantiationException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-				throw new ServletException("Servlet failed to instanciate.", ex);
+				throw new ServletException("Servlet failed to instantiate.", ex);
 			}
 		} else {
 			throw new ServletException("Servlet does not include any pattern.");

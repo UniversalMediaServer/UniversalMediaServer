@@ -142,7 +142,7 @@ public abstract class ZeroCopyConsumerWithCallback<T> extends AbstractAsyncRespo
 	 *
 	 * @param response original response head.
 	 * @param file file containing response content.
-	 * @param contentType the cotnent type.
+	 * @param contentType the content type.
 	 * @return result of the response processing
 	 */
 	protected abstract T process(

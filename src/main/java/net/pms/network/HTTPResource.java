@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implements any item that can be transfered through the HTTP pipes.
+ * Implements any item that can be transferred through the HTTP pipes.
  * In the PMS case, this item represents media files.
  * @see DLNAResource
  */

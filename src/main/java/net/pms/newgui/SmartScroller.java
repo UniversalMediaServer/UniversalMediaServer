@@ -39,7 +39,7 @@ import javax.swing.text.*;
  * then adjust the viewport to the relative position it was at before the data
  * was added
  *
- * Similiar logic would apply for horizontal scrolling.
+ * Similar logic would apply for horizontal scrolling.
  *
  * Source: http://www.camick.com/java/source/SmartScroller.java
  */

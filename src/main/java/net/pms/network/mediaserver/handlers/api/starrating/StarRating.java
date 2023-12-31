@@ -292,7 +292,7 @@ public class StarRating implements ApiResponseHandler {
 		} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
 			num = convertStarsToID3(stars);
 		} else {
-			// Dont't know ... maybe we use vorbis tags by default
+			// Don't know ... maybe we use vorbis tags by default
 			num = convertStarsToVorbis(stars);
 		}
 
@@ -345,7 +345,7 @@ public class StarRating implements ApiResponseHandler {
 				} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
 					return convertID3ToStars(num);
 				} else {
-					// Dont't know ... maybe we use vorbis tags by default
+					// Don't know ... maybe we use vorbis tags by default
 					return convertVorbisToStars(num);
 				}
 			}

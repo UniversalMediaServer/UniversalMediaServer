@@ -884,7 +884,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			/*
 			 * Transcode if: 1) transcoding is forced by configuration, or 2)
 			 * transcoding is not prevented by configuration and is needed due
-			 * to subtitles or some other renderer incompatbility
+			 * to subtitles or some other renderer incompatibility
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
@@ -2095,7 +2095,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 				} else if (media != null && mime.equals(MPEGTS_TYPEMIME)) {
-					// patters - on Sony BDP m2ts clips aren't listed without this
+					// patterns - on Sony BDP m2ts clips aren't listed without this
 					if ((engine == null && media.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, media, renderer, engine == null);
 					} else if ((engine == null && media.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {
@@ -4529,7 +4529,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Set to true if transcoding should be skipped for this resource.
 	 *
-	 * @param skipTranscode Set to true if trancoding should be skipped, false
+	 * @param skipTranscode Set to true if transcoding should be skipped, false
 	 *            otherwise.
 	 * @since 1.50
 	 */

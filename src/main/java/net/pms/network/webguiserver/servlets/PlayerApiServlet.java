@@ -767,7 +767,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				return false;
 			}
 			DLNAResource dlna = res.get(0);
@@ -821,7 +821,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				return false;
 			}
 			DLNAResource dlna = res.get(0);
@@ -852,7 +852,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			res = renderer.getRootFolder().getDLNAResources(id, false, 0, 0, renderer);
 			if (res.size() != 1) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				return false;
 			}
 			DLNAResource dlna = res.get(0);
@@ -936,7 +936,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		DLNAResource resource = renderer.getRootFolder().getDLNAResource(resourceId, renderer);
 		if (resource == null) {
 			// another error
-			LOGGER.debug("media unkonwn");
+			LOGGER.debug("media unknown");
 			return false;
 		}
 		MediaSubtitle sid = null;

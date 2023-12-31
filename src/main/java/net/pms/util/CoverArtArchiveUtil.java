@@ -360,7 +360,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 		while (!owner && !Thread.currentThread().isInterrupted()) {
 
-			// Find if any other tread is currently searching the same tag
+			// Find if any other thread is currently searching the same tag
 			synchronized (TAG_LATCHES_LOCK) {
 				for (CoverArtArchiveTagLatch latch : TAG_LATCHES) {
 					if (latch.info.equals(tagInfo)) {
@@ -427,7 +427,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 
 		while (!owner && !Thread.currentThread().isInterrupted()) {
 
-			// Find if any other tread is currently searching the same MBID
+			// Find if any other thread is currently searching the same MBID
 			synchronized (COVER_LATCHES_LOCK) {
 				for (CoverArtArchiveCoverLatch latch : COVER_LATCHES) {
 					if (latch.mBID.equals(mBID)) {
@@ -446,7 +446,7 @@ public class CoverArtArchiveUtil extends CoverUtil {
 			// Check for timeout here instead of in the while loop make logging
 			// it easier.
 			if (!owner && System.currentTimeMillis() - startTime > WAIT_TIMEOUT_MS) {
-				LOGGER.debug("A Cover Art Achive search timed out while waiting it's turn");
+				LOGGER.debug("A Cover Art Archive search timed out while waiting it's turn");
 				return null;
 			}
 

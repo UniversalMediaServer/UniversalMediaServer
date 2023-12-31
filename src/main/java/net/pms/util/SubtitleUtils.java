@@ -452,7 +452,7 @@ public class SubtitleUtils {
 				FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension()
 			);
 		} catch (IOException e1) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e1);
+			LOGGER.debug("Subtitles conversion finished with error: " + e1);
 			return null;
 		}
 		cmdList.add(tempSubsFile.getAbsolutePath());
@@ -468,7 +468,7 @@ public class SubtitleUtils {
 			// Avoid creating a pipe for this process and messing up with buffer progress bar
 			pw.stopProcess();
 		} catch (InterruptedException e) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e);
+			LOGGER.debug("Subtitles conversion finished with error: " + e);
 			Thread.currentThread().interrupt();
 			return null;
 		}

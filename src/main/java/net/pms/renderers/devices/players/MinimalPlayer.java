@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.renderers.Renderer;
 
 /**
- * An empty implementation with some basic funtionalities defined.
+ * An empty implementation with some basic functionalities defined.
  */
 public abstract class MinimalPlayer implements BasicPlayer {
 	protected Renderer renderer;

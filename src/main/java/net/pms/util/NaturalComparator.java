@@ -124,7 +124,7 @@ public final class NaturalComparator {
 	 * comparing contained numbers based on their numeric values.</p>
 	 * <p>This is probably the best default comparison to use.</p> <p>If you
 	 * know that the texts to be compared are in a certain language that
-	 * differs from the default locale's langage, then get a collator for
+	 * differs from the default locale's language, then get a collator for
 	 * the desired locale
 	 * ({@link java.text.Collator#getInstance(java.util.Locale)}) and pass
 	 * it to {@link #compareNatural(java.text.Collator, String, String)}</p>
@@ -305,7 +305,7 @@ public final class NaturalComparator {
 			} else {
 				// Compare words
 				if (collator != null) {
-					// To use the collator the whole subwords have to be compared - character-by-character comparision
+					// To use the collator the whole subwords have to be compared - character-by-character comparison
 					// is not possible. So find the two subwords first
 					int aw = sIndex;
 					int bw = tIndex;

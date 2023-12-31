@@ -134,7 +134,7 @@ public class FileUtil {
 	 * @since 1.90.0
 	 */
 	// this is called from a static initialiser, where errors aren't clearly reported,
-	// so do everything possible to return a valid reponse, even if the parameters aren't sane
+	// so do everything possible to return a valid response, even if the parameters aren't sane
 	public static FileLocation getFileLocation(
 		String customPath,
 		String defaultDirectory,
@@ -1677,7 +1677,7 @@ public class FileUtil {
 				return Charset.forName(match.getName());
 			}
 			LOGGER.debug(
-				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virtual Machine",
 				match.getName(),
 				file.getAbsolutePath()
 			);
@@ -1778,7 +1778,7 @@ public class FileUtil {
 				return match.getName().toUpperCase(Locale.ROOT);
 			}
 			LOGGER.debug(
-				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virtual Machine",
 				match.getName(),
 				file.getAbsolutePath()
 			);

@@ -72,7 +72,7 @@ public class PlayerApiServletTest {
 					"100");
 			assertEquals(null, jLibraryVideos);
 		} catch (Exception ex) {
-			LOGGER.error("Exception occured : ", ex.getMessage());
+			LOGGER.error("Exception occurred : ", ex.getMessage());
 		}
 	}
 
@@ -97,7 +97,7 @@ public class PlayerApiServletTest {
 					"100");
 			assertEquals(null, jLibraryVideos);
 		} catch (Exception ex) {
-			LOGGER.error("Exception occured : " + ex);
+			LOGGER.error("Exception occurred : " + ex);
 		}
 	}
 

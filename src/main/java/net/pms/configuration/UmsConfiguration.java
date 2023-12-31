@@ -571,7 +571,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	);
 
 	/**
-	 * The set of keys defining when the renderers has to rebuid their root folder
+	 * The set of keys defining when the renderers has to rebuild their root folder
 	 * due to a configuration change.
 	 */
 	public static final Set<String> NEED_RENDERERS_ROOT_RELOAD_FLAGS = Set.of(
@@ -2316,7 +2316,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * Set to true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
 	 *
-	 * @param value Set ot true if the deinterlace filter should be used.
+	 * @param value Set to true if the deinterlace filter should be used.
 	 */
 	public void setMencoderYadif(boolean value) {
 		configuration.setProperty(KEY_MENCODER_YADIF, value);

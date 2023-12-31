@@ -131,7 +131,7 @@ public class HlsHelper {
 			List<HlsAudioConfiguration> audioGroups = new ArrayList<>();
 			MediaAudio mediaAudioDefault = null;
 			if (!mediaVideo.getAudioTracksList().isEmpty()) {
-				//try to find the prefered language
+				//try to find the preferred language
 				mediaAudioDefault = null;
 				StringTokenizer st = new StringTokenizer(CONFIGURATION.getAudioLanguages(), ",");
 				while (st.hasMoreTokens() && mediaAudioDefault == null) {

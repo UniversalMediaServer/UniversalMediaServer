@@ -82,7 +82,7 @@ public class ConfigurationReader {
 		if (ObjectUtils.notEqual(oldValue, value)) {
 			logMap.put(key, value);
 
-			// Do an independant lookup to determine if the value's source was the device conf,
+			// Do an independent lookup to determine if the value's source was the device conf,
 			// and if so log it as a device override by explicitly identifying the source.
 			String src = (dConf != null && value != null && value.equals(dConf.getProperty(key))) ? dTag : "";
 			if (initialised) {
