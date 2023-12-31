@@ -285,7 +285,7 @@ public class DatabaseEmbedded {
 						} catch (IOException ex) {
 						}
 					} else {
-						LOGGER.info("Database updated succefully");
+						LOGGER.info("Database updated successfully");
 					}
 				}
 			}

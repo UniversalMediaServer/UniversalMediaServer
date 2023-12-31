@@ -38,7 +38,7 @@ public class FileSearch implements SearchObj {
 		for (RealFile res : folders) {
 			String name = res.getName().toLowerCase();
 			if (name.contains(searchString)) {
-				// easy case file contians search string, add it and be gone
+				// easy case file contains search string, add it and be gone
 				searcher.addChild(res.clone());
 				continue;
 			}

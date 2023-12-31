@@ -338,7 +338,7 @@ public abstract class DatabaseHelper {
 	}
 
 	/**
-	 * Drops (deletes) the named table and its constaints. Use with caution, there is no undo.
+	 * Drops (deletes) the named table and its constraints. Use with caution, there is no undo.
 	 *
 	 * @param connection the {@link Connection} to use
 	 * @param tableName the name of the table to delete

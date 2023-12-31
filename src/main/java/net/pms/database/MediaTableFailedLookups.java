@@ -159,7 +159,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 	}
 
 	/**
-	 * @param connection the db conncection
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param isVideo whether this is a video, otherwise it's a TV series
 	 * @return whether a lookup for this file has failed recently

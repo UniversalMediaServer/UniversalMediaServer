@@ -1264,7 +1264,7 @@ public class RequestV2 extends HTTPResource {
 		SamsungBookmark payload = this.getPayload(SamsungBookmark.class);
 		if (payload.getPosSecond() == 0) {
 			// Sometimes when Samsung device is starting to play the video
-			// it sends X_SetBookmark message immediatelly with the position=0.
+			// it sends X_SetBookmark message immediately with the position=0.
 			// No need to update database in such case.
 			LOGGER.debug("Skipping \"set bookmark\". Position=0");
 		} else {

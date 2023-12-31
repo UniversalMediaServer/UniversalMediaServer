@@ -241,7 +241,7 @@ public class PNGInfo extends ImageInfo {
 					((PNGParseInfo) parsedInfo).colorType ==  PngColorType.TRUE_COLOR_WITH_ALPHA
 				) {
 					throw new ParseException(String.format(
-						"PNG parsing failed with illegal combination of %s color type and tRNS transparancy chunk",
+						"PNG parsing failed with illegal combination of %s color type and tRNS transparency chunk",
 						((PNGParseInfo) parsedInfo).colorType
 					));
 				}
