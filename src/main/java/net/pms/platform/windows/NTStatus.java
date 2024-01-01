@@ -6391,11 +6391,11 @@ public enum NTStatus {
 	STATUS_SXS_SECTION_NOT_FOUND(0xC0150001L, "The requested section is not present in the activation context."),
 
 	/**
-	 * Windows was unble to process the application binding information. Refer
+	 * Windows was unable to process the application binding information. Refer
 	 * to the system event log for further information.
 	 */
 	STATUS_SXS_CANT_GEN_ACTCTX(0xC0150002L,
-		"Windows was unble to process the application binding information. Refer to the system event log for further information."),
+		"Windows was unable to process the application binding information. Refer to the system event log for further information."),
 
 	/** The application binding data format is invalid. */
 	STATUS_SXS_INVALID_ACTCTXDATA_FORMAT(0xC0150003L, "The application binding data format is invalid."),

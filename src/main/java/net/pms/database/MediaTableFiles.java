@@ -488,7 +488,7 @@ public class MediaTableFiles extends MediaTable {
 				MediaDatabase.dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				//put back constaints
+				//put back constraints
 				ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
 				ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
 				ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);

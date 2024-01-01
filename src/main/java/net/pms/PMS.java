@@ -350,7 +350,7 @@ public class PMS {
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
 
-		// Start this here to let the converison work
+		// Start this here to let the conversion work
 		tfm.schedule();
 
 	}
@@ -1231,7 +1231,7 @@ public class PMS {
 		}
 
 		// check first and last, update since taskkill changed
-		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
+		// also check 2nd last since we might have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
 						tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;

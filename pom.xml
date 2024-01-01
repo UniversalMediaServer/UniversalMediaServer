@@ -93,7 +93,7 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.9</slf4j-api-version>
+		<slf4j-api-version>2.0.10</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
@@ -107,7 +107,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.16.0</jackson.version>
+		<jackson.version>2.16.1</jackson.version>
 
 		<surefire-version>3.2.3</surefire-version>
 
@@ -530,7 +530,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.4.9</version>
+			<version>6.4.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -818,7 +818,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.12.0</version>
+				<version>3.12.1</version>
 				<configuration>
 					<release>${project.jre-version}</release>
 					<testSource>${project.jre-version}</testSource>
