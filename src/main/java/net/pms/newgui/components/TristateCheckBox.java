@@ -25,7 +25,7 @@ import javax.swing.plaf.ActionMapUIResource;
  * Maintenance tip - There were some tricks to getting this code
  * working:
  *
- * 1. You have to overwite addMouseListener() to do nothing
+ * 1. You have to overwrite addMouseListener() to do nothing
  * 2. You have to add a mouse event on mousePressed by calling
  * super.addMouseListener()
  * 3. You have to replace the UIActionMap for the keyboard event

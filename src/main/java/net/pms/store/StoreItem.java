@@ -557,7 +557,7 @@ public abstract class StoreItem extends StoreResource {
 			/*
 			 * Transcode if: 1) transcoding is forced by configuration, or 2)
 			 * transcoding is not prevented by configuration and is needed due
-			 * to subtitles or some other renderer incompatbility
+			 * to subtitles or some other renderer incompatibility
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {

@@ -84,7 +84,7 @@ public class MapFileConfiguration {
 			try {
 				conf = FileUtils.readFileToString(file, StandardCharsets.US_ASCII);
 			} catch (IOException e) {
-				LOGGER.warn("Unexpected exeption while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+				LOGGER.warn("Unexpected exception while reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
 				LOGGER.debug("", e);
 				return null;
 			}

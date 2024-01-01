@@ -288,7 +288,7 @@ public final class GuiUtil {
 		}
 	}
 
-	// A progressbar ui with labled subregions, a progress-sensitive main label, and tickmarks
+	// A progressbar ui with labeled subregions, a progress-sensitive main label, and tickmarks
 	public static class SegmentedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI implements Serializable {
 		Color fg;
 		Color bg;
@@ -555,7 +555,7 @@ public final class GuiUtil {
 		*/
 		private Dimension layoutSize(Container target, boolean preferred) {
 		synchronized (target.getTreeLock()) {
-			//  Each row must fit with the width allocated to the containter.
+			//  Each row must fit with the width allocated to the container.
 			//  When the container width = 0, the preferred width of the container
 			//  has not yet been calculated so lets ask for the maximum.
 
@@ -611,7 +611,7 @@ public final class GuiUtil {
 
 			//	When using a scroll pane or the DecoratedLookAndFeel we need to
 			//  make sure the preferred size is less than the size of the
-			//  target containter so shrinking the container size works
+			//  target container so shrinking the container size works
 			//  correctly. Removing the horizontal gap is an easy way to do this.
 
 			Container scrollPane = SwingUtilities.getAncestorOfClass(JScrollPane.class, target);

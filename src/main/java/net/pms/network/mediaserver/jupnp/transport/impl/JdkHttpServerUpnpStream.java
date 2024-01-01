@@ -158,7 +158,7 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 			// TODO: We should only send an error if the problem was on our side
 			// You don't have to catch Throwable unless, like we do here in unit tests,
 			// you might run into Errors as well (assertions).
-			LOGGER.trace("Exception occured during UPnP stream processing: {}", t);
+			LOGGER.trace("Exception occurred during UPnP stream processing: {}", t);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Cause: {}", Exceptions.unwrap(t), Exceptions.unwrap(t));
 			}

@@ -568,7 +568,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	);
 
 	/**
-	 * The set of keys defining when the renderers has to rebuid their media store
+	 * The set of keys defining when the renderers has to rebuild their media store
 	 * due to a configuration change.
 	 */
 	public static final Set<String> NEED_RENDERERS_MEDIA_STORE_RELOAD_FLAGS = Set.of(
@@ -2304,7 +2304,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * Set to true if MEncoder should use the deinterlace filter, false
 	 * otherwise.
 	 *
-	 * @param value Set ot true if the deinterlace filter should be used.
+	 * @param value Set to true if the deinterlace filter should be used.
 	 */
 	public void setMencoderYadif(boolean value) {
 		configuration.setProperty(KEY_MENCODER_YADIF, value);
