@@ -17,6 +17,7 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
+import com.sun.jna.Platform;
 import java.io.IOException;
 import java.sql.SQLException;
 import javax.servlet.annotation.WebServlet;
@@ -30,6 +31,7 @@ import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.platform.PlatformUtils;
 import net.pms.service.LibraryScanner;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -39,6 +41,25 @@ import org.slf4j.LoggerFactory;
 public class ActionsApiServlet extends GuiHttpServlet {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
+				boolean canShutdownComputer = (Platform.isLinux() || Platform.isMac()) ? PlatformUtils.INSTANCE.isAdmin() : true;
+				JsonObject jsonResponse = new JsonObject();
+				jsonResponse.addProperty("canShutdownComputer", canShutdownComputer);
+				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+			} else {
+				LOGGER.trace("ActionsApiServlet request not available : {}", path);
+				WebGuiServletHelper.respondNotFound(req, resp);
+			}
+		} catch (RuntimeException e) {
+			LOGGER.error("RuntimeException in ActionsApiServlet: {}", e.getMessage());
+			WebGuiServletHelper.respondInternalServerError(req, resp);
+		}
+	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -55,6 +76,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 								if (account.havePermission(Permissions.SERVER_RESTART)) {
 									PMS.get().resetMediaServer();
 									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+								} else {
+									WebGuiServletHelper.respondForbidden(req, resp);
+								}
+							}
+							case "Computer.Shutdown" -> {
+								if (account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {
+									WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+									PMS.get().shutdownComputer();
 								} else {
 									WebGuiServletHelper.respondForbidden(req, resp);
 								}

@@ -64,7 +64,7 @@ function UserMenu() {
               {i18n.get['SharedContent']}
             </Menu.Item>
           )}
-          {havePermission(session, Permissions.server_restart | Permissions.settings_modify) && (
+          {havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
             <Menu.Item
               icon={<Tool size={14} />}
               onClick={() => { window.location.href = '/actions'; }}

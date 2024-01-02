@@ -708,6 +708,16 @@ public class PMS {
 	}
 
 	/**
+	 * Shutdown the host machine.
+	 */
+	public void shutdownComputer() {
+		TaskRunner.getInstance().submitNamed("shutdown", true, () -> {
+			SseApiServlet.notify("computer-shutdown", "Shutting down computer", "Server status", "red", true);
+			ProcessUtil.shutDownComputer();
+		});
+	}
+
+	/**
 	 * Reset renderers.
 	 * The trigger is configuration change.
 	 * @param delete True if removal of known renderers is needed

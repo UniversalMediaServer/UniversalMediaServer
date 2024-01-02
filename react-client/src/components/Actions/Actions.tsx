@@ -16,7 +16,7 @@
  */
 import { Box, Button, Code, Group, List, Modal, ScrollArea, Stack, Text, Tooltip } from '@mantine/core';
 import { useContext, useState } from 'react';
-import { Power, Refresh, RefreshAlert, Report } from 'tabler-icons-react';
+import { Power, Refresh, RefreshAlert, Report, DevicesPcOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -35,6 +35,12 @@ const Actions = () => {
     await sendAction('Server.Restart');
   };
 
+  const canShutdownComputer = havePermission(session, Permissions.computer_shutdown);
+  const [shutdownComputerOpened, setShutdownComputerOpened] = useState(false);
+  const shutdownComputer = async () => {
+    await sendAction('Computer.Shutdown');
+  };
+
   const canRestartApplication = havePermission(session, Permissions.application_restart | Permissions.application_shutdown);
   const [restartApplicationOpened, setRestartApplicationOpened] = useState(false);
   const restartApplication = async () => {
@@ -46,6 +52,10 @@ const Actions = () => {
   const shutdownApplication = async () => {
     await sendAction('Process.Exit');
   };
+
+  const actionRequiresRoot = () => {
+    return navigator.appVersion.includes('Mac') || navigator.appVersion.includes('Linux');
+  }
 
   return (
     <Box sx={{ maxWidth: 1024 }} mx='auto'>
@@ -108,6 +118,29 @@ const Actions = () => {
           </Group>
         </Modal>
       }
+      {canShutdownComputer &&
+        <Modal
+          centered
+          scrollAreaComponent={ScrollArea.Autosize}
+          opened={shutdownComputerOpened}
+          onClose={() => setShutdownComputerOpened(false)}
+          title={(<Text color='red'>{i18n.get['Warning']}</Text>)}
+        >
+          <Text weight={600}>{i18n.get['ThisShutDownComputer']}</Text>
+          <List>
+            <List.Item><Code>{i18n.get['NetworkConnectionsWillClosed']}</Code></List.Item>
+            <List.Item><Code color='red'>{i18n.get['YouWillNotAbleAccessServerOrComputer']}</Code></List.Item>
+            {actionRequiresRoot() &&
+              <List.Item><Code color='red'>{i18n.get['ShutDownComputerRequiresRoot']}</Code></List.Item>
+            }
+          </List>
+          <Text>{i18n.get['AreYouSureContinue']}</Text>
+          <Group position='right' mt='md'>
+            <Button onClick={() => setShutdownComputerOpened(false)}>{i18n.get['Cancel']}</Button>
+            <Button color='red' onClick={() => { setShutdownComputerOpened(false); shutdownComputer() }}>{i18n.get['Confirm']}</Button>
+          </Group>
+        </Modal>
+      }
       <Stack>
         {canModify && (
           <Button leftIcon={<Report />} onClick={() => { window.location.href = '/logs'; }}>View Logs</Button>
@@ -125,6 +158,11 @@ const Actions = () => {
         {canShutdownApplication && (
           <Tooltip label={i18n.get['ThisClosesApp']} {...defaultTooltipSettings}>
             <Button leftIcon={<Power strokeWidth={3} color={'red'} />} onClick={() => { setShutdownApplicationOpened(true) }}>{i18n.get['ShutdownApplication']}</Button>
+          </Tooltip>
+        )}
+        {canShutdownComputer && (
+          <Tooltip label={i18n.get['ThisShutDownComputer']} {...defaultTooltipSettings}>
+            <Button leftIcon={<DevicesPcOff strokeWidth={2} color={'red'} />} onClick={() => { setShutdownComputerOpened(true) }}>{i18n.get['ShutDownComputer']}</Button>
           </Tooltip>
         )}
       </Stack>
