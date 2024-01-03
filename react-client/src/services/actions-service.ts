@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import axios from 'axios';
+
 import { actionsApiUrl } from '../utils';
 
 const PERMITTED_ACTIONS = [

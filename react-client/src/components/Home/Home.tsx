@@ -19,6 +19,7 @@ import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import { Check, ExclamationMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -27,7 +28,6 @@ import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { Check, ExclamationMark } from 'tabler-icons-react';
 
 const Home = () => {
   const i18n = useContext(I18nContext);
@@ -36,6 +36,7 @@ const Home = () => {
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
   const [networkDevicesBlockedByDefault, setNetworkDevicesBlockedByDefault] = useState(false);
+  const [isLocalhost, setIsLocalhost] = useState(false);
   const [users, setUsers] = useState([] as User[]);
   const [currentTime, setCurrentTime] = useState(0);
   const session = useContext(SessionContext);
@@ -110,6 +111,7 @@ const Home = () => {
     setLoading(true);
     axios.get(renderersApiUrl + 'devices')
       .then(function(response: any) {
+        setIsLocalhost(response.data.isLocalhost);
         setNetworkDeviceFilters(response.data.networkDevices);
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
         setCurrentTime(response.data.currentTime);
@@ -129,18 +131,22 @@ const Home = () => {
   }
 
   const setUserId = async (rule: string, userId: any) => {
-    setSettings('renderers', { rule, userId });
+    setSettings('renderers', { rule, userId }, false);
   }
 
   const setRenderersAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('renderers', { rule, isAllowed });
+    setSettings('renderers', { rule, isAllowed }, false);
   }
 
   const setDevicesAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('devices', { rule, isAllowed });
+    setSettings('devices', { rule, isAllowed }, true);
   };
 
-  const setSettings = async (endpoint:string, data: any) => {
+  const reset = async () => {
+    setSettings('reset', null, true);
+  };
+
+  const setSettings = async (endpoint:string, data: any, fromDevice: boolean) => {
     showNotification({
       id: 'settings-save',
       loading: true,
@@ -160,7 +166,7 @@ const Home = () => {
           message: i18n.get['ConfigurationSaved'],
           icon: <Check size='1rem' />
         });
-        refreshData();
+        fromDevice ? refreshDeviceData() : refreshData();
       })
       .catch(function(error) {
         if (!error.response && error.request) {
@@ -224,12 +230,14 @@ const Home = () => {
         <Tabs.Panel value='network_devices' pt='xs'>
           <NetworkDevices
             blockedByDefault={networkDevicesBlockedByDefault}
+            isLocalhost={isLocalhost}
             canModify={canModify}
             currentTime={currentTime}
             i18n={i18n}
             networkDeviceFilters={networkDeviceFilters}
             refreshDeviceData={refreshDeviceData}
             setAllowed={setDevicesAllowed}
+            reset={reset}
           />
         </Tabs.Panel>
       </Tabs>

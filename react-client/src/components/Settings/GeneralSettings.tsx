@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip, useMantineColorScheme } from '@mantine/core';
+import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
