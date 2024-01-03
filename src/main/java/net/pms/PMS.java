@@ -62,7 +62,6 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.WebGuiServer;
 import net.pms.network.webguiserver.servlets.SseApiServlet;
-import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.WebPlayerServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GuiUtil;
@@ -723,7 +722,6 @@ public class PMS {
 		RendererConfigurations.loadRendererConfigurations();
 		if (delete) {
 			ConnectedRenderers.deleteAllConnectedRenderers();
-			OldPlayerServer.deleteRenderers();
 		}
 	}
 
@@ -744,7 +742,6 @@ public class PMS {
 	 */
 	public void resetRenderersRoot() {
 		ConnectedRenderers.resetAllRenderers();
-		OldPlayerServer.resetRenderers();
 		DLNAResource.bumpSystemUpdateId();
 	}
 
