@@ -53,15 +53,6 @@ function UserMenu() {
             {i18n.getI18nString('Player')}
           </Menu.Item>
         )}
-        {session.player &&
-          <Menu.Item
-            color='orange'
-            icon={<PlayerPlay size={14} />}
-            onClick={() => { window.location.href = '/oldplayer'; }}
-          >
-            {i18n.getI18nString('Player') + ' (old)'}
-          </Menu.Item>
-        }
         {!session.player && <>
           <Menu.Divider />
           <Menu.Label>{i18n.get['Settings']}</Menu.Label>
