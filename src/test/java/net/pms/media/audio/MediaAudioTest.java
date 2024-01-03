@@ -14,23 +14,23 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.dlna;
+package net.pms.media.audio;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-public class DLNAMediaAudioTest {
+public class MediaAudioTest {
 
 	@Test
 	public void testDefaultAudioProperties() {
-		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
+		MediaAudio dlnaMediaAudio = new MediaAudio();
 		assertNotNull(dlnaMediaAudio.getAudioProperties());
 	}
 
 	@Test
 	public void testSetAudioProperties_withNullAudioProperties() {
 		assertThrows(IllegalArgumentException.class, () -> {
-			DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
+			MediaAudio dlnaMediaAudio = new MediaAudio();
 			dlnaMediaAudio.setAudioProperties(null);
 		});
 	}

@@ -17,14 +17,15 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
-import com.github.junrar.volume.FileVolumeManager;
 import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
+import com.github.junrar.volume.FileVolumeManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import net.pms.formats.Format;
+import net.pms.media.MediaInfo;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
-			return DLNAMediaInfo.TRANS_SIZE;
+			return MediaInfo.TRANS_SIZE;
 		}
 
 		return length;
@@ -137,7 +138,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 
 		if (!found) {
 			if (getMedia() == null) {
-				setMedia(new DLNAMediaInfo());
+				setMedia(new MediaInfo());
 			}
 
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();

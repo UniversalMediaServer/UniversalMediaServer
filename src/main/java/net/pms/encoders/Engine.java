@@ -33,13 +33,13 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaLang;
-import net.pms.dlna.DLNAMediaOnDemandSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
+import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -734,7 +734,7 @@ public abstract class Engine {
 
 	public abstract ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		DLNAMediaInfo media,
+		MediaInfo media,
 		OutputParams params
 	) throws IOException;
 
@@ -762,10 +762,10 @@ public abstract class Engine {
 			params.setAid(resource.resolveAudioStream());
 		}
 
-		if (params.getSid() != null && params.getSid().getId() == DLNAMediaLang.DUMMY_ID) {
+		if (params.getSid() != null && params.getSid().getId() == MediaLang.DUMMY_ID) {
 			LOGGER.trace("Don't want subtitles!");
 			params.setSid(null);
-		} else if (params.getSid() instanceof DLNAMediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
+		} else if (params.getSid() instanceof MediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
 			// Download/fetch live subtitles
 			if (params.getSid().getExternalFile() == null) {
 				if (!dLNAMediaOnDemandSubtitle.fetch()) {

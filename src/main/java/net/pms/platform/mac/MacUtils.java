@@ -29,6 +29,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -182,23 +183,29 @@ public class MacUtils extends PlatformUtils {
 
 	@Override
 	public List<Path> getDefaultFolders() {
-		List<Path> result = new ArrayList<>();
-		result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-			NSFoundation.NSSearchPathDirectory.NSMoviesDirectory,
-			NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
-			true
-		));
-		result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-			NSFoundation.NSSearchPathDirectory.NSMusicDirectory,
-			NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
-			true
-		));
-		result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
-			NSFoundation.NSSearchPathDirectory.NSPicturesDirectory,
-			NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
-			true
-		));
-		return result;
+		synchronized (DEFAULT_FOLDERS_LOCK) {
+			if (defaultFolders == null) {
+				// Lazy initialization
+				List<Path> result = new ArrayList<>();
+				result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
+					NSFoundation.NSSearchPathDirectory.NSMoviesDirectory,
+					NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
+					true
+				));
+				result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
+					NSFoundation.NSSearchPathDirectory.NSMusicDirectory,
+					NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
+					true
+				));
+				result.addAll(NSFoundation.nsSearchPathForDirectoriesInDomains(
+					NSFoundation.NSSearchPathDirectory.NSPicturesDirectory,
+					NSFoundation.NSSearchPathDomainMask.NSAllDomainsMask,
+					true
+				));
+				defaultFolders = Collections.unmodifiableList(result);
+			}
+			return defaultFolders;
+		}
 	}
 
 	@Override

@@ -130,7 +130,7 @@ public class UmsContentDirectoryService {
 			defaultValue = "0",
 			eventMaximumRateMilliseconds = 200
 	)
-	private UnsignedIntegerFourBytes systemUpdateID = new UnsignedIntegerFourBytes(0);
+	private final UnsignedIntegerFourBytes systemUpdateID = new UnsignedIntegerFourBytes(0);
 
 	protected final PropertyChangeSupport propertyChangeSupport;
 
@@ -368,7 +368,7 @@ public class UmsContentDirectoryService {
 		long count = filessize - minus;
 
 		long totalMatches;
-		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
+		if (browseDirectChildren && renderer != null && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, files are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send

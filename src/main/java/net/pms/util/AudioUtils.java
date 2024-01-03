@@ -26,11 +26,11 @@ import java.util.Arrays;
 import java.util.Locale;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
@@ -71,10 +71,10 @@ public final class AudioUtils {
 	 * Due to mencoder/ffmpeg bug we need to manually remap audio channels for LPCM
 	 * output. This function generates argument for channels/pan audio filters
 	 *
-	 * @param audioTrack DLNAMediaAudio resource
+	 * @param audioTrack MediaAudio resource
 	 * @return argument for -af option or null if we can't remap to desired numberOfOutputChannels
 	 */
-	public static String getLPCMChannelMappingForMencoder(DLNAMediaAudio audioTrack) {
+	public static String getLPCMChannelMappingForMencoder(MediaAudio audioTrack) {
 		// for reference
 		// Channel Arrangement for Multi Channel Audio Formats
 		// http://avisynth.org/mediawiki/GetChannel
@@ -140,16 +140,16 @@ public final class AudioUtils {
 	 * @param channel the {@link Channel} containing the input. Size will only
 	 *            be parsed if {@code channel} is a {@link FileChannel}
 	 *            instance.
-	 * @param media the {@link DLNAMediaInfo} instance to write the parsing
+	 * @param media the {@link MediaInfo} instance to write the parsing
 	 *            results to.
 	 * @return {@code true} if the {@code channel} input is in RealAudio 1.0 or
 	 *         2.0 format and the parsing succeeds; false otherwise
 	 */
-	public static boolean parseRealAudio(ReadableByteChannel channel, DLNAMediaInfo media) {
+	public static boolean parseRealAudio(ReadableByteChannel channel, MediaInfo media) {
 		final byte[] magicBytes = {0x2E, 0x72, 0x61, (byte) 0xFD};
 		ByteBuffer buffer = ByteBuffer.allocate(8);
 		buffer.order(ByteOrder.BIG_ENDIAN);
-		DLNAMediaAudio audio = new DLNAMediaAudio();
+		MediaAudio audio = new MediaAudio();
 		try {
 			int count = channel.read(buffer);
 			if (count < 4) {
@@ -338,7 +338,7 @@ public final class AudioUtils {
 		return true;
 	}
 
-	private static void parseRealAudioMetaData(ByteBuffer buffer, DLNAMediaAudio audio, short version) {
+	private static void parseRealAudioMetaData(ByteBuffer buffer, MediaAudio audio, short version) {
 		buffer.position(buffer.position() + (version == 4 ? 3 : 4)); // skip unknown
 		byte b = buffer.get();
 		if (b != 0) {

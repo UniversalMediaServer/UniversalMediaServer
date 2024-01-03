@@ -23,6 +23,7 @@ import java.util.*;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.renderers.Renderer;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.OpenSubtitle.SubtitleItem;
@@ -70,7 +71,7 @@ public class SubSelFile extends VirtualFolder {
 
 			for (SubtitleItem subtitleItem : subtitleItems) {
 				LOGGER.debug("Adding live subtitles child \"{}\" for {}", subtitleItem.getSubFileName(), originalResource);
-				DLNAMediaOpenSubtitle subtitle = new DLNAMediaOpenSubtitle(subtitleItem);
+				MediaOpenSubtitle subtitle = new MediaOpenSubtitle(subtitleItem);
 				DLNAResource liveResource = originalResource.clone();
 				if (liveResource.getMedia() != null) {
 					liveResource.getMedia().setSubtitlesTracks(new ArrayList<>());

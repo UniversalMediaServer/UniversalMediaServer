@@ -25,13 +25,22 @@ import java.text.Collator;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
+import net.pms.dlna.ResumeObj;
+import net.pms.dlna.SevenZipEntry;
+import net.pms.dlna.WebStream;
+import net.pms.dlna.ZippedEntry;
+
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -83,7 +92,7 @@ public class UMSUtils {
 				keep = res.getName().toLowerCase().contains(searchString);
 			}
 
-			final DLNAMediaInfo media = res.getMedia();
+			final MediaInfo media = res.getMedia();
 
 			if (keep && isExpectOneResult) {
 				resources.clear();
@@ -94,7 +103,7 @@ public class UMSUtils {
 			if (!keep) {
 				if (media != null && media.getAudioTracksList() != null) {
 					for (int j = 0; j < media.getAudioTracksList().size(); j++) {
-						DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+						MediaAudio audio = media.getAudioTracksList().get(j);
 						if (audio.getAlbum() != null) {
 							keep |= audio.getAlbum().toLowerCase().contains(searchString);
 						}
@@ -366,7 +375,7 @@ public class UMSUtils {
 							sb.append(';');
 						}
 						if (r.getMediaSubtitle() != null) {
-							DLNAMediaSubtitle sub = r.getMediaSubtitle();
+							MediaSubtitle sub = r.getMediaSubtitle();
 							if (
 								sub.getLang() != null &&
 								(
@@ -520,9 +529,9 @@ public class UMSUtils {
 						}
 						res.setEngine(player);
 						if (subData != null) {
-							DLNAMediaSubtitle s = res.getMediaSubtitle();
+							MediaSubtitle s = res.getMediaSubtitle();
 							if (s == null) {
-								s = new DLNAMediaSubtitle();
+								s = new MediaSubtitle();
 								res.setMediaSubtitle(s);
 							}
 							String[] tmp = subData.split(",");

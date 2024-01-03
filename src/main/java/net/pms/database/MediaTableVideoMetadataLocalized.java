@@ -40,7 +40,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final int TABLE_VERSION = 2;
 
 	/**
-	 * COLUMNS
+	 * COLUMNS NAMES
 	 */
 	private static final String COL_LANGUAGE = "LANGUAGE";
 	private static final String COL_ID = "ID";
@@ -53,15 +53,24 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_TAGLINE = "TAGLINE";
 
+	/**
+	 * COLUMNS with table name
+	 */
 	private static final String TABLE_COL_LANGUAGE = TABLE_NAME + "." + COL_LANGUAGE;
 	private static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
 	private static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 
-	private static final String SQL_GET_ALL_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_FILEID + " = ?";
-	private static final String SQL_GET_ALL_TVSERIESID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_TVSERIESID + " = ?";
-	private static final String SQL_GET_ALL_LANGUAGE_FILEID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_LANGUAGE + " = ? AND " + TABLE_COL_FILEID + " = ?";
-	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = "SELECT * FROM " + TABLE_NAME + " WHERE " + TABLE_COL_LANGUAGE + " = ? AND " + TABLE_COL_TVSERIESID + " = ?";
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_LANGUAGE_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
+	/**
+	 * Database column sizes
+	 */
 	private static final int SIZE_LANGUAGE = 5;
 
 	/**
@@ -108,7 +117,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
-					executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
 				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
@@ -121,21 +130,21 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				COL_ID + "         IDENTITY                        PRIMARY KEY , " +
-				COL_LANGUAGE + "   VARCHAR(" + SIZE_LANGUAGE + ")  NOT NULL    , " +
-				COL_FILEID + "     INTEGER                                     , " +
-				COL_TVSERIESID + " INTEGER                                     , " +
-				COL_MODIFIED + "   BIGINT                                      , " +
-				COL_HOMEPAGE + "   VARCHAR                                     , " +
-				COL_OVERVIEW + "   CLOB                                        , " +
-				COL_POSTER + "     VARCHAR                                     , " +
-				COL_TAGLINE + "    VARCHAR                                     , " +
-				COL_TITLE + "      VARCHAR                                     , " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_FILEID + "_FK FOREIGN KEY (" + COL_FILEID + ") REFERENCES " + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + " ON DELETE CASCADE, " +
-				"CONSTRAINT " + TABLE_NAME + "_" + COL_TVSERIESID + "_FK FOREIGN KEY (" + COL_TVSERIESID + ") REFERENCES " + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + " ON DELETE CASCADE " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID            + IDENTITY          + PRIMARY_KEY + COMMA +
+				COL_LANGUAGE      + VARCHAR_5         + NOT_NULL    + COMMA +
+				COL_TVSERIESID    + INTEGER                         + COMMA +
+				COL_FILEID        + INTEGER                         + COMMA +
+				COL_MODIFIED      + BIGINT                          + COMMA +
+				COL_HOMEPAGE      + VARCHAR                         + COMMA +
+				COL_OVERVIEW      + CLOB                            + COMMA +
+				COL_POSTER        + VARCHAR                         + COMMA +
+				COL_TAGLINE       + VARCHAR                         + COMMA +
+				COL_TITLE         + VARCHAR                         + COMMA +
+				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + ON_DELETE_CASCADE + COMMA +
+				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
 			")",
-			"CREATE INDEX " + TABLE_NAME + "_" + COL_LANGUAGE + "_" + COL_FILEID + "_" + COL_TVSERIESID + "_IDX ON " + TABLE_NAME + "(" + COL_LANGUAGE + "," + COL_FILEID + "," + COL_TVSERIESID + ")"
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_LANGUAGE + CONSTRAINT_SEPARATOR + COL_FILEID + CONSTRAINT_SEPARATOR + COL_TVSERIESID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_LANGUAGE + COMMA + COL_FILEID + COMMA + COL_TVSERIESID + ")"
 		);
 	}
 

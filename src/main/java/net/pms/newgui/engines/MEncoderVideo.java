@@ -42,9 +42,9 @@ import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.io.OutputParams;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
 import net.pms.newgui.GuiUtil;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.util.FormLayoutUtil;
@@ -151,8 +151,8 @@ public class MEncoderVideo {
 			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor(codecPanel),
 					codecPanel, Messages.getString("EditCodecSpecificParameters"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 				String newCodecparam = textArea.getText();
-				DLNAMediaInfo fakemedia = new DLNAMediaInfo();
-				DLNAMediaAudio audio = new DLNAMediaAudio();
+				MediaInfo fakemedia = new MediaInfo();
+				MediaAudio audio = new MediaAudio();
 				audio.setCodecA("ac3");
 				fakemedia.setCodecV("mpeg4");
 				fakemedia.setContainer("matroska");

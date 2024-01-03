@@ -28,6 +28,24 @@ public class UserTableTablesVersions extends UserTable {
 	protected static final String TABLE_NAME = "TABLES_VERSIONS";
 
 	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_TABLE_NAME = "TABLE_NAME";
+	private static final String COL_TABLE_VERSION = "TABLE_VERSION";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	private static final String TABLE_COL_TABLE_NAME = TABLE_NAME + "." + COL_TABLE_NAME;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL_BY_TABLE_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TABLE_NAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_VERSION_BY_TABLE_NAME = SELECT + COL_TABLE_VERSION + FROM + TABLE_NAME + WHERE + TABLE_COL_TABLE_NAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_DELETE_BY_TABLE_NAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_TABLE_NAME + EQUAL + PARAMETER;
+
+	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
 	 * @param connection the {@link Connection} to use
@@ -43,9 +61,9 @@ public class UserTableTablesVersions extends UserTable {
 	protected static final void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"TABLE_NAME         VARCHAR(50)     PRIMARY KEY, " +
-				"TABLE_VERSION      INT             NOT NULL" +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_TABLE_NAME        + VARCHAR_50   + PRIMARY_KEY + COMMA +
+				COL_TABLE_VERSION     + INTEGER      + NOT_NULL +
 			")"
 		);
 	}
@@ -62,10 +80,7 @@ public class UserTableTablesVersions extends UserTable {
 	 * @throws SQLException
 	 */
 	protected static final Integer getTableVersion(final Connection connection, final String tableName) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT TABLE_VERSION FROM " + TABLE_NAME + " " +
-				"WHERE TABLE_NAME = ?"
-		)) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_VERSION_BY_TABLE_NAME)) {
 			statement.setString(1, tableName);
 			try (ResultSet result = statement.executeQuery()) {
 				if (result.next()) {
@@ -92,45 +107,32 @@ public class UserTableTablesVersions extends UserTable {
 	 * @throws SQLException
 	 */
 	protected static final void setTableVersion(final Connection connection, final String tableName, final int version) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT TABLE_VERSION FROM " + TABLE_NAME + " WHERE TABLE_NAME = ?"
-		)) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_BY_TABLE_NAME, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 			statement.setString(1, tableName);
 			try (ResultSet result = statement.executeQuery()) {
-				if (result.next()) {
-					int currentVersion = result.getInt("TABLE_VERSION");
-					if (version != currentVersion) {
-						try (PreparedStatement updateStatement = connection.prepareStatement(
-							"UPDATE " + TABLE_NAME + " SET TABLE_VERSION = ? WHERE TABLE_NAME = ?"
-						)) {
-							LOGGER.trace("Updating table version for database table \"{}\" from {} to {}", tableName, currentVersion, version);
-							updateStatement.setInt(1, version);
-							updateStatement.setString(2, tableName);
-							updateStatement.executeUpdate();
-						}
-					} else {
-						LOGGER.trace("Table version for database table \"{}\" is already {}, aborting set", tableName, version);
-					}
+				if (!result.next()) {
+					LOGGER.trace("Setting table version for database table \"{}\" to {}", tableName, version);
+					result.moveToInsertRow();
+					result.updateString(COL_TABLE_NAME, tableName);
+					result.updateInt(COL_TABLE_VERSION, version);
+					result.insertRow();
+				} else if (result.getInt(COL_TABLE_VERSION) == version) {
+					LOGGER.trace("Table version for database table \"{}\" is already {}, aborting set", tableName, version);
 				} else {
-					try (PreparedStatement insertStatement = connection.prepareStatement(
-						"INSERT INTO " + TABLE_NAME + " VALUES(?, ?)"
-					)) {
-						LOGGER.trace("Setting table version for database table \"{}\" to {}", tableName, version);
-						insertStatement.setString(1, tableName);
-						insertStatement.setInt(2, version);
-						insertStatement.executeUpdate();
-					}
+					int currentVersion = result.getInt(COL_TABLE_VERSION);
+					LOGGER.trace("Updating table version for database table \"{}\" from {} to {}", tableName, currentVersion, version);
+					result.updateInt(COL_TABLE_VERSION, version);
+					result.updateRow();
 				}
 			}
 		}
 	}
 
 	protected static final void removeTableVersion(final Connection connection, final String tableName) throws SQLException {
-		try (PreparedStatement statement = connection.prepareStatement(
-			"DELETE FROM " + TABLE_NAME + " WHERE TABLE_NAME = ?"
-		)) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BY_TABLE_NAME)) {
 			statement.setString(1, tableName);
 			statement.executeUpdate();
 		}
 	}
+
 }

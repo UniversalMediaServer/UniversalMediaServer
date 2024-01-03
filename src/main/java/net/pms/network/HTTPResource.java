@@ -29,9 +29,9 @@ import java.net.CookieManager;
 import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
@@ -274,7 +274,7 @@ public abstract class HTTPResource {
 		return "MPEG_PS_PAL";
 	}
 
-	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
+	public static final String getMpegTsMpeg2OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "MPEG_TS_";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HD";
@@ -297,7 +297,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
+	public static final String getMpegTsH264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_TS";
 
 		orgPN += (
@@ -315,7 +315,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
+	public static final String getMkvH264OrgPN(int index, MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || (media.getH264Profile() != null && media.getH264Profile().contains("high"))) {
@@ -368,7 +368,7 @@ public abstract class HTTPResource {
 		return orgPN;
 	}
 
-	public static final String getWmvOrgPN(DLNAMediaInfo media, Renderer renderer, boolean isStreaming) {
+	public static final String getWmvOrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
 		String orgPN = "WMV";
 		if (media != null && media.isHDVideo()) {
 			orgPN += "HIGH";

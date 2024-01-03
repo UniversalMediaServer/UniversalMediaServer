@@ -27,12 +27,12 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.TimeRange;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.MediaInfo;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -118,7 +118,7 @@ public class HlsHelper {
 	public static String getHLSm3u8(DLNAResource dlna, Renderer renderer, String baseUrl) {
 		if (dlna.getMedia() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			DLNAMediaInfo mediaVideo = dlna.getMedia();
+			MediaInfo mediaVideo = dlna.getMedia();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaVideo.getHeight() * 1.05);
 			String id = dlna.getResourceId();
@@ -129,14 +129,14 @@ public class HlsHelper {
 			}
 			//add audio languages
 			List<HlsAudioConfiguration> audioGroups = new ArrayList<>();
-			DLNAMediaAudio mediaAudioDefault = null;
+			MediaAudio mediaAudioDefault = null;
 			if (!mediaVideo.getAudioTracksList().isEmpty()) {
 				//try to find the preferred language
 				mediaAudioDefault = null;
 				StringTokenizer st = new StringTokenizer(CONFIGURATION.getAudioLanguages(), ",");
 				while (st.hasMoreTokens() && mediaAudioDefault == null) {
 					String lang = st.nextToken().trim();
-					for (DLNAMediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+					for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 						if (mediaAudio.matchCode(lang)) {
 							mediaAudioDefault = mediaAudio;
 							break;
@@ -158,7 +158,7 @@ public class HlsHelper {
 			Map<String, Integer> audioNames = new HashMap<>();
 			for (HlsAudioConfiguration audioGroup : audioGroups) {
 				String groupId = audioGroup.label;
-				for (DLNAMediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+				for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 					sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"").append(groupId).append("\",LANGUAGE=\"");
 					sb.append(mediaAudio.getLang()).append("\",NAME=\"");
 					String audioName = mediaAudio.getLangFullName();
@@ -186,7 +186,7 @@ public class HlsHelper {
 				}
 			}
 			boolean subtitleAdded = false;
-			for (DLNAMediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
+			for (MediaSubtitle mediaSubtitle : mediaVideo.getSubtitlesTracks()) {
 				if (mediaSubtitle.isEmbedded() && mediaSubtitle.getType().isText()) {
 					subtitleAdded = true;
 					sb.append("#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"sub1\",CHARACTERISTICS=\"public.accessibility.transcribes-spoken-dialog\",AUTOSELECT=YES");
@@ -343,7 +343,7 @@ public class HlsHelper {
 		return null;
 	}
 
-	public static boolean isMediaCompatible(DLNAMediaInfo mediaVideo) {
+	public static boolean isMediaCompatible(MediaInfo mediaVideo) {
 		if (mediaVideo.isH264() && mediaVideo.getAvcAsInt() <= 52) {
 			//can't check that, we do not store it on database
 			//profile is not saved in database...
@@ -351,7 +351,7 @@ public class HlsHelper {
 			if (!mediaVideo.hasAudio()) {
 				return true;
 			}
-			for (DLNAMediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+			for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
 				if (isMediaAudioCompatible(mediaAudio)) {
 					return true;
 				}
@@ -360,11 +360,11 @@ public class HlsHelper {
 		return false;
 	}
 
-	public static boolean isMediaAudioCompatible(DLNAMediaAudio mediaAudio) {
+	public static boolean isMediaAudioCompatible(MediaAudio mediaAudio) {
 		return getAudioConfiguration(mediaAudio) != null;
 	}
 
-	public static HlsAudioConfiguration getAudioConfiguration(DLNAMediaAudio mediaAudio) {
+	public static HlsAudioConfiguration getAudioConfiguration(MediaAudio mediaAudio) {
 		if (mediaAudio.isAACLC()) {
 			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("AAC-LC");

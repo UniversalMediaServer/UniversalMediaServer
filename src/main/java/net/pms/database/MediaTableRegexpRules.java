@@ -31,9 +31,6 @@ import org.slf4j.LoggerFactory;
 public class MediaTableRegexpRules extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableRegexpRules.class);
 	public static final String TABLE_NAME = "REGEXP_RULES";
-	public static final String TABLE_COL_ID = TABLE_NAME + ".ID";
-	public static final String TABLE_COL_REGEXP_ORDER = TABLE_NAME + ".REGEXP_ORDER";
-	public static final String TABLE_COL_REGEXP_RULE = TABLE_NAME + ".REGEXP_RULE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -41,6 +38,20 @@ public class MediaTableRegexpRules extends MediaTable {
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 2;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_REGEXP_RULE = "REGEXP_RULE";
+	private static final String COL_REGEXP_ORDER = "REGEXP_ORDER";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	public static final String TABLE_COL_REGEXP_ORDER = TABLE_NAME + "." + COL_REGEXP_ORDER;
+	public static final String TABLE_COL_REGEXP_RULE = TABLE_NAME + "." + COL_REGEXP_RULE;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -73,18 +84,17 @@ public class MediaTableRegexpRules extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 
 			switch (version) {
-				case 1:
+				case 1 -> {
 					if (isColumnExist(connection, TABLE_NAME, "RULE")) {
 						LOGGER.trace("Renaming column name RULE to REGEXP_RULE");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `RULE` RENAME TO REGEXP_RULE");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`RULE`" + RENAME_TO + COL_REGEXP_RULE);
 					}
 					if (isColumnExist(connection, TABLE_NAME, "ORDR")) {
 						LOGGER.trace("Renaming column name ORDR to REGEXP_ORDER");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `ORDR` RENAME TO REGEXP_ORDER");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`ORDR`" + RENAME_TO + COL_REGEXP_ORDER);
 					}
-					break;
-				default:
-					throw new IllegalStateException(
+				}
+				default -> throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
@@ -101,18 +111,18 @@ public class MediaTableRegexpRules extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + " ( " +
-				"ID                 VARCHAR(255)       PRIMARY KEY , " +
-				"REGEXP_RULE        VARCHAR(255)                   , " +
-				"REGEXP_ORDER       NUMERIC                          " +
+			CREATE_TABLE + TABLE_NAME + " ( " +
+				COL_ID                + VARCHAR_SIZE_MAX     + PRIMARY_KEY + COMMA +
+				COL_REGEXP_RULE       + VARCHAR_SIZE_MAX                   + COMMA +
+				COL_REGEXP_ORDER      + NUMERIC                            +
 			")",
-			"INSERT INTO " + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",
-			"INSERT INTO " + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 )"
+			INSERT_INTO + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",
+			INSERT_INTO + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 )"
 		);
 		String[] chars = Messages.getString("Alphabet").split(",");
 		for (int i = 0; i < chars.length; i++) {
 			// Create regexp rules for characters with a sort order based on the property value
-			executeUpdate(connection, "INSERT INTO " + TABLE_NAME + " VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
+			executeUpdate(connection, INSERT_INTO + TABLE_NAME + " VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
 		}
 	}
 

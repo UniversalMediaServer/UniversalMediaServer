@@ -25,13 +25,13 @@ import org.slf4j.LoggerFactory;
 // based on MediaInfoDLL - All info about media files, for DLL (JNA version)
 // Copyright (C) 2009-2009 Jerome Martinez, Zen@MediaArea.net
 // net.sourceforge.mediainfo
-public class MediaInfo implements AutoCloseable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfo.class);
+public class MediaInfoHelper implements AutoCloseable {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoHelper.class);
 
 	private Pointer handle;
 
 	// Constructor/Destructor
-	public MediaInfo() {
+	public MediaInfoHelper() {
 		try {
 			LOGGER.info("Loading MediaInfo library");
 			handle = MediaInfoLibrary.INSTANCE.New();
@@ -215,7 +215,7 @@ public class MediaInfo implements AutoCloseable {
 
 	// Options
 	/**
-	 * Configure or get information about MediaInfo.
+	 * Configure or get information about MediaInfoHelper.
 	 *
 	 * @param option The name of option
 	 * @return Depends on the option: by default "" (nothing) means No, other means Yes
@@ -225,7 +225,7 @@ public class MediaInfo implements AutoCloseable {
 	}
 
 	/**
-	 * Configure or get information about MediaInfo.
+	 * Configure or get information about MediaInfoHelper.
 	 *
 	 * @param option The name of option
 	 * @param value The value of option
@@ -244,7 +244,7 @@ public class MediaInfo implements AutoCloseable {
 	}
 
 	/**
-	 * Configure or get information about MediaInfo (Static version).
+	 * Configure or get information about MediaInfoHelper (Static version).
 	 *
 	 * @param option The name of option
 	 * @return Depends on the option: by default "" (nothing) means No, other means Yes
@@ -256,7 +256,7 @@ public class MediaInfo implements AutoCloseable {
 	}
 
 	/**
-	 * Configure or get information about MediaInfo (Static version).
+	 * Configure or get information about MediaInfoHelper (Static version).
 	 *
 	 * @param option The name of option
 	 * @param value The value of option
