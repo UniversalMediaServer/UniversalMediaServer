@@ -14,14 +14,15 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { useDirection } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
 import { ExclamationMark } from 'tabler-icons-react';
+
 import I18nContext, { LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
-import { Direction, useDirection } from '@mantine/core';
 
 interface Props {
   children?: ReactNode,

@@ -52,7 +52,7 @@ import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/au
 function UmsApp() {
 
   const { dir } = useDirection();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { toggleColorScheme } = useMantineColorScheme();
   setAxiosAuthorization();
   useEffect(() => {
     refreshAuthTokenNearExpiry();

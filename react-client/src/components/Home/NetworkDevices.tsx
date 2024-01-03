@@ -14,24 +14,27 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput, Tooltip } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import _ from 'lodash';
-import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh, SettingsOff } from 'tabler-icons-react';
 
 import { NetworkDevice, NetworkDevicesFilter } from './Home';
-import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
+import { defaultTooltipSettings } from '../../utils';
 
 const NetworkDevices = (
-  { blockedByDefault, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed }:
+  { blockedByDefault, isLocalhost, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed, reset }:
     {
       blockedByDefault: boolean,
+      isLocalhost: boolean,
       canModify: boolean,
       currentTime: number,
       i18n: { get: { [key: string]: string } },
       networkDeviceFilters: NetworkDevicesFilter[],
       refreshDeviceData: () => void,
-      setAllowed: (rule: string, isAllowed: boolean) => void
+      setAllowed: (rule: string, isAllowed: boolean) => void,
+      reset: () => void,
     }
 ) => {
   const [showCustomFilter, { open, close }] = useDisclosure(false);
@@ -91,11 +94,16 @@ const NetworkDevices = (
                 <>
                   {blockedByDefault ? (
                     <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
-                  ) : (
+                  ) : isLocalhost ? (
                     <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
+                  ) : (
+                    <Tooltip label={i18n.get['YouHaveToNavigateFromLocalhost']} {...defaultTooltipSettings}>
+                      <Menu.Item leftSection={<DevicesPcOff size={14} />} closeMenuOnClick={false} color='grey'>{i18n.get['BlockByDefault']}</Menu.Item>
+                    </Tooltip>
                   )}
                   <Menu.Item leftSection={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get['Refresh']}</Menu.Item>
                   <Menu.Item leftSection={<CodePlus size={14} />} onClick={() => open()}>{i18n.get['AddCustomFilter']}</Menu.Item>
+                  <Menu.Item leftSection={<SettingsOff size={14} />} onClick={() => reset()} color='orange'>{i18n.get['ResetToDefaultSettings']}</Menu.Item>
                 </>
               </Menu.Dropdown>
             </Menu>
