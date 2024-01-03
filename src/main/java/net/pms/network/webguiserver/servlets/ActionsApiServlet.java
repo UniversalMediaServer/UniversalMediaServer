@@ -17,6 +17,7 @@
 package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonObject;
+import com.sun.jna.Platform;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -28,6 +29,7 @@ import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
+import net.pms.platform.PlatformUtils;
 import net.pms.store.MediaScanner;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -37,6 +39,25 @@ import org.slf4j.LoggerFactory;
 public class ActionsApiServlet extends GuiHttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ActionsApiServlet.class);
+
+	@Override
+	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+		try {
+			var path = req.getPathInfo();
+			if (path.equals("/")) {
+				boolean canShutdownComputer = !(Platform.isLinux() && Platform.isMac()) || PlatformUtils.INSTANCE.isAdmin();
+				JsonObject jsonResponse = new JsonObject();
+				jsonResponse.addProperty("canShutdownComputer", canShutdownComputer);
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
+			} else {
+				LOGGER.trace("ActionsApiServlet request not available : {}", path);
+				respondNotFound(req, resp);
+			}
+		} catch (RuntimeException e) {
+			LOGGER.error("RuntimeException in ActionsApiServlet: {}", e.getMessage());
+			respondInternalServerError(req, resp);
+		}
+	}
 
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -53,6 +74,14 @@ public class ActionsApiServlet extends GuiHttpServlet {
 								if (account.havePermission(Permissions.SERVER_RESTART)) {
 									PMS.get().resetMediaServer();
 									respond(req, resp, "{}", 200, "application/json");
+								} else {
+									respondForbidden(req, resp);
+								}
+							}
+							case "Computer.Shutdown" -> {
+								if (account.havePermission(Permissions.COMPUTER_SHUTDOWN)) {
+									respond(req, resp, "{}", 200, "application/json");
+									PMS.get().shutdownComputer();
 								} else {
 									respondForbidden(req, resp);
 								}

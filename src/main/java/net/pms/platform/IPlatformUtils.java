@@ -173,7 +173,7 @@ public interface IPlatformUtils {
 
 	public abstract List<String> getRestartCommand(boolean hasOptions);
 
-	public abstract String getShutdownCommand();
+	public abstract String[] getShutdownCommand();
 
 	public abstract String getJvmExecutableName();
 
