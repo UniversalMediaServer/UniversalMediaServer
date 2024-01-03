@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import net.pms.formats.Format;
-import net.pms.media.MediaInfo;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +63,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
-			return MediaInfo.TRANS_SIZE;
+			return DLNAMediaInfo.TRANS_SIZE;
 		}
 
 		return length;
@@ -130,7 +129,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 
 		if (!found) {
 			if (getMedia() == null) {
-				setMedia(new MediaInfo());
+				setMedia(new DLNAMediaInfo());
 			}
 
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();

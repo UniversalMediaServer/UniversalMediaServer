@@ -16,7 +16,6 @@
  */
 package net.pms.dlna;
 
-import net.pms.media.MediaType;
 import com.sun.jna.Platform;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -31,12 +30,8 @@ import java.util.Set;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableCoverArtArchive;
 import net.pms.database.MediaTableFiles;
-import net.pms.database.MediaTableFilesStatus;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.media.MediaInfo;
-import net.pms.media.MediaLang;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
@@ -113,7 +108,7 @@ public class RealFile extends VirtualFile {
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
-			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(MediaLang.UND))) {
+			if (this.getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				if (getMedia().isEncrypted()) {
 					valid = false;
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
@@ -162,7 +157,7 @@ public class RealFile extends VirtualFile {
 	@Override
 	public long length() {
 		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
-			return MediaInfo.TRANS_SIZE;
+			return DLNAMediaInfo.TRANS_SIZE;
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getSize();
 		}
@@ -243,8 +238,9 @@ public class RealFile extends VirtualFile {
 					connection = MediaDatabase.getConnectionIfAvailable();
 					if (connection != null) {
 						connection.setAutoCommit(false);
+						DLNAMediaInfo media;
 						try {
-							MediaInfo media = MediaTableFiles.getData(connection, fileName, file.lastModified());
+							media = MediaTableFiles.getData(connection, fileName, file.lastModified());
 
 							setExternalSubtitlesParsed();
 							if (media != null) {
@@ -257,7 +253,6 @@ public class RealFile extends VirtualFile {
 
 								getMedia().postParse(getType(), input);
 								found = true;
-								setMediaStatus(MediaTableFilesStatus.getData(connection, fileName));
 							}
 						} catch (IOException | SQLException e) {
 							LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", getName(), e.getMessage());
@@ -268,7 +263,7 @@ public class RealFile extends VirtualFile {
 
 				if (!found) {
 					if (getMedia() == null) {
-						setMedia(new MediaInfo());
+						setMedia(new DLNAMediaInfo());
 					}
 
 					if (getFormat() != null) {
@@ -413,8 +408,8 @@ public class RealFile extends VirtualFile {
 
 	@Override
 	protected String getDisplayNameBase() {
-		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
-			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
+		if (getParent() instanceof SubSelFile && getMediaSubtitle() instanceof DLNAMediaOnDemandSubtitle) {
+			return ((DLNAMediaOnDemandSubtitle) getMediaSubtitle()).getName();
 		}
 		if (isFolder()) {
 			return super.getDisplayNameBase();

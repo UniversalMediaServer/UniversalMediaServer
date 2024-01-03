@@ -46,6 +46,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 */
 	private static final int TABLE_VERSION = 3;
 
+
 	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
@@ -93,23 +94,23 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
 					try (Statement statement = connection.createStatement()) {
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ARTIST" + VARCHAR_1000
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
 						);
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ALBUM" + VARCHAR_1000
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
 						);
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "TITLE" + VARCHAR_1000
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
 						);
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "MEDIA_YEAR" + VARCHAR_20
+							"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
 						);
 					}
 					break;
 				case 2:
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`YEAR`" + RENAME_TO + "MEDIA_YEAR");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
 					}
 					break;
 				default:

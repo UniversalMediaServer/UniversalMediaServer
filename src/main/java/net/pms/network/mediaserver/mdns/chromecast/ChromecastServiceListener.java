@@ -28,7 +28,6 @@ import javax.jmdns.ServiceListener;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.renderers.devices.ChromecastDevice;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -62,11 +61,7 @@ public class ChromecastServiceListener implements ServiceListener {
 
 		LOGGER.debug("Found chromecast: {}", event.getInfo().getName());
 		ServiceInfo serviceInfo = event.getDNS().getServiceInfo(ChromeCast.SERVICE_TYPE, event.getInfo().getName());
-		InetAddress ia = getAllowedInetAddress(serviceInfo.getInet4Addresses());
-		if (ia == null) {
-			return;
-		}
-		ChromeCast chromeCast = new ChromeCast(ia.getHostAddress(), serviceInfo.getPort());
+		ChromeCast chromeCast = new ChromeCast(serviceInfo.getInet4Addresses()[0].getHostAddress(), serviceInfo.getPort());
 		chromeCast.setName(event.getInfo().getName());
 		chromeCast.setAppsURL(serviceInfo.getURLs().length == 0 ? null : serviceInfo.getURLs()[0]);
 		chromeCast.setApplication(serviceInfo.getApplication());
@@ -114,15 +109,6 @@ public class ChromecastServiceListener implements ServiceListener {
 
 	public static void addService(JmDNS mDNS) throws IOException {
 		mDNS.addServiceListener(ChromeCast.SERVICE_TYPE, new ChromecastServiceListener());
-	}
-
-	private static InetAddress getAllowedInetAddress(InetAddress[] addresses) {
-		for (InetAddress ia : addresses) {
-			if (NetworkDeviceFilter.isAllowed(ia)) {
-				return ia;
-			}
-		}
-		return null;
 	}
 
 }

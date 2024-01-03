@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.service.LibraryScanner;
 import net.pms.dlna.RootFolder;
-import net.pms.network.NetworkDeviceFilter;
+import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -46,7 +46,7 @@ public class ApiHandler implements HttpHandler {
 	public void handle(HttpExchange exchange) throws IOException {
 		try {
 			InetAddress ia = exchange.getRemoteAddress().getAddress();
-			if (!NetworkDeviceFilter.isAllowed(ia)) {
+			if (WebInterfaceServerUtil.deny(ia)) {
 				exchange.close();
 				return;
 			}

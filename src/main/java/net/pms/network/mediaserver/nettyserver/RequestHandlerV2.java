@@ -34,7 +34,6 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
@@ -104,8 +103,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
 		// Filter if required
-		if (isSelf || !NetworkDeviceFilter.isAllowed(ia)) {
+		if (isSelf || filterIp(ia)) {
 			event.getChannel().close();
+			/*if (isSelf && LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
+			}*/
 			return;
 		}
 
@@ -249,13 +251,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
 		}
 
-		if (!renderer.isAllowed()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-			}
-			return;
-		}
-
 		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			byte[] data = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
@@ -390,6 +385,18 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				renderer != null ? renderer.getUUID() : "null"
 				);
 		}
+	}
+
+	/**
+	 * Applies the IP filter to the specified internet address. Returns true
+	 * if the address is not allowed and therefore should be filtered out,
+	 * false otherwise.
+	 *
+	 * @param inetAddress The internet address to verify.
+	 * @return True when not allowed, false otherwise.
+	 */
+	private static boolean filterIp(InetAddress inetAddress) {
+		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
 	private void writeResponse(ChannelHandlerContext ctx, MessageEvent event, RequestV2 request, InetAddress ia) throws HttpException {

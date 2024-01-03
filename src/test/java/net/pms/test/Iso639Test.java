@@ -17,7 +17,7 @@
 package net.pms.test;
 
 import ch.qos.logback.classic.LoggerContext;
-import net.pms.media.MediaLang;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.util.Iso639;
 import net.pms.util.Iso639.Iso639Entry;
 import static org.junit.jupiter.api.Assertions.*;
@@ -45,7 +45,7 @@ public class Iso639Test {
 		assertNull(Iso639.getFirstName(null), "No language found for ISO code null");
 
 		// Reserved keyword DLNAMediaLang.UND should match "Undetermined"
-		assertEquals("Undetermined", Iso639.getFirstName(MediaLang.UND), "ISO code \"" + MediaLang.UND + "\" returns \"Undetermined\"");
+		assertEquals("Undetermined", Iso639.getFirstName(DLNAMediaLang.UND), "ISO code \"" + DLNAMediaLang.UND + "\" returns \"Undetermined\"");
 
 		assertEquals("English", Iso639.getFirstName("en"), "ISO code \"en\" returns \"English\"");
 		assertEquals("English", Iso639.getFirstName("eng"), "ISO code \"eng\" returns \"English\"");

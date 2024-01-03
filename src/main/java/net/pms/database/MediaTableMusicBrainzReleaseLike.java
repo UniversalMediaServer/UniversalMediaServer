@@ -29,6 +29,7 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMusicBrainzReleaseLike.class);
 	public static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASE_LIKE";
+	public static final String TABLE_COL_MBID_RELEASE = TABLE_NAME + ".MBID_RELEASE";
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -36,16 +37,6 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 	 * {@link #upgradeTable()}
 	 */
 	private static final int TABLE_VERSION = 1;
-
-	/**
-	 * COLUMNS NAMES
-	 */
-	private static final String COL_MBID_RELEASE = "MBID_RELEASE";
-
-	/**
-	 * COLUMNS with table name
-	 */
-	public static final String TABLE_COL_MBID_RELEASE = TABLE_NAME + "." + COL_MBID_RELEASE;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -63,7 +54,7 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
-		execute(connection, CREATE_TABLE + TABLE_NAME + "(" + COL_MBID_RELEASE + UUID_TYPE + PRIMARY_KEY + ")");
+		execute(connection, "CREATE TABLE " + TABLE_NAME + "(" + "MBID_RELEASE UUID PRIMARY KEY" + ")");
 	}
 
 }

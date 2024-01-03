@@ -30,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.media.subtitle.MediaSubtitleTest;
 import static net.pms.util.Constants.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -43,7 +42,6 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
-	private final Class<?> SUBTITLE_CLASS = MediaSubtitleTest.class;
 
 	@BeforeAll
 	public static void SetUPClass() throws ConfigurationException, InterruptedException {
@@ -383,81 +381,81 @@ public class FileUtilTest {
 
 	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-cp1251.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_WINDOWS_1251);
 	}
 
 	@Test
 	public void testGetFileCharset_KOI8_R() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-koi8-r.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-koi8-r.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_KOI8_R);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_without_BOM() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-without-bom.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF8_with_BOM() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-with-bom.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_8);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_LE() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-le.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_16LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF16_BE() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-be.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_16BE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_LE() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf32-le.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-le.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_32LE);
 	}
 
 	@Test
 	public void testGetFileCharset_UTF32_BE() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf32-be.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("russian-utf32-be.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_UTF_32BE);
 	}
 
 	@Test
 	public void testGetFileCharset_BIG5() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-gb18030.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_GB18030);
 	}
 
 	@Test
 	public void testGetFileCharset_GB2312() throws Exception {
-		File file = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-big5.srt"));
+		File file = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
 		assertEquals(FileUtil.getFileCharsetName(file), CHARSET_BIG5);
 	}
 
 	@Test
 	public void testIsFileUTF8() throws Exception {
-		File file_utf8 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-without-bom.srt"));
+		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
 		assertTrue(FileUtil.isFileUTF8(file_utf8));
-		File file_utf8_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-with-bom.srt"));
+		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
 		assertTrue(FileUtil.isFileUTF8(file_utf8_2));
-		File file_utf8_3 = FileUtils.toFile(SUBTITLE_CLASS.getResource("english-utf8-with-bom.srt"));
+		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
 		assertTrue(FileUtil.isFileUTF8(file_utf8_3));
-		File file_utf_16 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-le.srt"));
+		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
 		assertFalse(FileUtil.isFileUTF8(file_utf_16));
-		File file_utf_16_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-be.srt"));
+		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
 		assertFalse(FileUtil.isFileUTF8(file_utf_16_2));
-		File file_cp1251 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-cp1251.srt"));
+		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 		assertFalse(FileUtil.isFileUTF8(file_cp1251));
-		File file_ch = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-gb18030.srt"));
+		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
 		assertFalse(FileUtil.isFileUTF8(file_ch));
-		File file_ch_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-big5.srt"));
+		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
 		assertFalse(FileUtil.isFileUTF8(file_ch_2));
 	}
 
@@ -479,21 +477,21 @@ public class FileUtilTest {
 
 	@Test
 	public void testIsFileUTF16() throws Exception {
-		File file_utf8 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-without-bom.srt"));
+		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_utf8));
-		File file_utf8_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-with-bom.srt"));
+		File file_utf8_2 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_utf8_2));
-		File file_utf8_3 = FileUtils.toFile(SUBTITLE_CLASS.getResource("english-utf8-with-bom.srt"));
+		File file_utf8_3 = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_utf8_3));
-		File file_utf_16 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-le.srt"));
+		File file_utf_16 = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
 		assertTrue(FileUtil.isFileUTF16(file_utf_16));
-		File file_utf_16_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-be.srt"));
+		File file_utf_16_2 = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
 		assertTrue(FileUtil.isFileUTF16(file_utf_16_2));
-		File file_cp1251 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-cp1251.srt"));
+		File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_cp1251));
-		File file_ch = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-gb18030.srt"));
+		File file_ch = FileUtils.toFile(CLASS.getResource("chinese-gb18030.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_ch));
-		File file_ch_2 = FileUtils.toFile(SUBTITLE_CLASS.getResource("chinese-big5.srt"));
+		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
 		assertFalse(FileUtil.isFileUTF16(file_ch_2));
 	}
 
@@ -533,22 +531,22 @@ public class FileUtilTest {
 
 	@Test
 	public void testConvertFileFromUtf16ToUtf8_inputFileIsUTF16LE() throws Exception {
-		File file_utf8le = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-le.srt"));
+		File file_utf8le = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
 		File outputFile = new File(file_utf8le.getParentFile(), "output-utf8-from-utf16-le.srt");
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8le, outputFile);
-		File file_utf8 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-without-bom.srt"));
+		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
 		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
 
 	@Test
 	public void testConvertFileFromUtf16ToUtf8_inputFileIsUTF16BE() throws Exception {
-		File file_utf8be = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf16-be.srt"));
+		File file_utf8be = FileUtils.toFile(CLASS.getResource("russian-utf16-be.srt"));
 		File outputFile = new File(file_utf8be.getParentFile(), "output-utf8-from-utf16-be.srt");
 		outputFile.delete();
 		FileUtil.convertFileFromUtf16ToUtf8(file_utf8be, outputFile);
-		File file_utf8 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-utf8-with-bom.srt"));
+		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-with-bom.srt"));
 		assertTrue(FileUtils.contentEquals(outputFile, file_utf8));
 		outputFile.delete();
 	}
@@ -556,7 +554,7 @@ public class FileUtilTest {
 	@Test
 	public void testConvertFileFromUtf16ToUtf8_notUtf16InputFile() throws Exception {
 		assertThrows(IllegalArgumentException.class, () -> {
-			File file_cp1251 = FileUtils.toFile(SUBTITLE_CLASS.getResource("russian-cp1251.srt"));
+			File file_cp1251 = FileUtils.toFile(CLASS.getResource("russian-cp1251.srt"));
 			FileUtil.convertFileFromUtf16ToUtf8(file_cp1251, new File("output.srt"));
 		});
 	}
@@ -598,7 +596,7 @@ public class FileUtilTest {
 		}
 		assertNull(FileUtil.getFilePermissionsNoThrow("No such file"), "NoSuchFileIsNull");
 
-		file = FileUtils.toFile(SUBTITLE_CLASS.getResource("english-utf8-with-bom.srt"));
+		file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
 		assertTrue(FileUtil.getFilePermissions(file).isReadable(), "FileIsReadable");
 		assertTrue(FileUtil.getFilePermissions(file).isWritable(), "FileIsWritable");
 		assertFalse(FileUtil.getFilePermissions(file).isFolder(), "FileIsNotFolder");

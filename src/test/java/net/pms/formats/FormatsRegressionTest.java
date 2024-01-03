@@ -17,11 +17,9 @@
 package net.pms.formats;
 
 import java.util.List;
-import net.pms.dlna.InputFile;
 import net.pms.formats.audio.*;
 import net.pms.formats.image.*;
 import net.pms.formats.subtitle.*;
-import net.pms.media.MediaInfo;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
@@ -85,8 +83,8 @@ public class FormatsRegressionTest {
 	@Test
 	public void test10() throws Throwable {
 		MPG mPG0 = new MPG();
-		MediaInfo dLNAMediaInfo1 = null;
-		InputFile inputFile2 = null;
+		net.pms.dlna.DLNAMediaInfo dLNAMediaInfo1 = null;
+		net.pms.dlna.InputFile inputFile2 = null;
 		// The following exception was thrown during execution in test
 		// generation
 		try {

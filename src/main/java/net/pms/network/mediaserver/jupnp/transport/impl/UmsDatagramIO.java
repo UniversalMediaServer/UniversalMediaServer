@@ -19,7 +19,7 @@ package net.pms.network.mediaserver.jupnp.transport.impl;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.SocketException;
-import net.pms.network.NetworkDeviceFilter;
+import net.pms.PMS;
 import org.jupnp.model.UnsupportedDataException;
 import org.jupnp.transport.impl.DatagramIOConfigurationImpl;
 import org.jupnp.transport.impl.DatagramIOImpl;
@@ -46,7 +46,7 @@ public class UmsDatagramIO extends DatagramIOImpl {
 				socket.receive(datagram);
 
 				//check inetAddress allowed
-				if (!NetworkDeviceFilter.isAllowed(datagram.getAddress())) {
+				if (!PMS.getConfiguration().getIpFiltering().allowed(datagram.getAddress())) {
 					LOGGER.trace("Ip Filtering denying address: {}", datagram.getAddress().getHostAddress());
 					continue;
 				}

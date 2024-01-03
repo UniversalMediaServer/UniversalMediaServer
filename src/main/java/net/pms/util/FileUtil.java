@@ -47,15 +47,15 @@ import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.FormatFactory;
-import net.pms.media.MediaInfo;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
-import static net.pms.util.Constants.*;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
-import org.apache.commons.io.FilenameUtils;
+import static net.pms.util.Constants.*;
 import static org.apache.commons.lang3.StringUtils.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.text.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -715,7 +715,7 @@ public class FileUtil {
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, MediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
+	public static String getFileNamePrettified(String f, DLNAMediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
 		String formattedName;
 
 		String title;

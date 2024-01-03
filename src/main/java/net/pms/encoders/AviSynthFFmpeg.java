@@ -16,7 +16,6 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -26,15 +25,18 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.annotation.Nonnull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
-import net.pms.media.MediaInfo;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.util.ExecutableErrorType;
@@ -44,8 +46,6 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.ProgramExecutableType;
 import net.pms.util.Version;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
@@ -156,10 +156,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			return false;
 		}
 
-		MediaSubtitle subtitle = resource.getMediaSubtitle();
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
-		// uninitialized MediaSubtitle objects have a null language.
+		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
 			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
@@ -324,7 +324,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public AviSynthScriptGenerationResult getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber, MediaInfo media) throws IOException {
+	public AviSynthScriptGenerationResult getAVSScript(String filename, OutputParams params, String frameRateRatio, String frameRateNumber, DLNAMediaInfo media) throws IOException {
 		Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration customConfiguration = renderer.getUmsConfiguration();
 		double timeSeek = params.getTimeSeek();
@@ -459,7 +459,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			String subLine = null;
-			MediaSubtitle subTrack = params.getSid();
+			DLNAMediaSubtitle subTrack = params.getSid();
 			if (
 				subTrack != null &&
 				subTrack.isExternal() &&

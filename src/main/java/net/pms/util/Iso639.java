@@ -16,6 +16,8 @@
  */
 package net.pms.util;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,9 +29,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.media.MediaLang;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import net.pms.dlna.DLNAMediaLang;
 
 
 /**
@@ -894,7 +894,7 @@ public final class Iso639 {
 		registerLanguage("Ukrainian", "uk", "ukr");
 		registerLanguage("Umbundu", null, "umb");
 		registerLanguage("Uncoded languages", null, "mis");
-		registerLanguage("Undetermined", null, MediaLang.UND);
+		registerLanguage("Undetermined", null, DLNAMediaLang.UND);
 		registerLanguage("Upper Sorbian", null, "hsb");
 		registerLanguage("Urdu", "ur", "urd");
 		registerLanguage("Uzbek", "uz", "uzb");

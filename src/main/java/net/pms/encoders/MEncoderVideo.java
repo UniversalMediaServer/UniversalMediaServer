@@ -31,14 +31,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DVDISOTitle;
-import net.pms.dlna.InputFile;
+import net.pms.dlna.*;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
-import net.pms.media.MediaInfo;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
@@ -298,7 +294,7 @@ public class MEncoderVideo extends Engine {
 	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
-	private String addMaximumBitrateConstraints(String encodeSettings, MediaInfo media, String quality, Renderer renderer, String audioType) {
+	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, Renderer renderer, String audioType) {
 		// Use device-specific UMS conf
 		UmsConfiguration dConfiguration = PMS.getConfiguration(renderer);
 		int[] defaultMaxBitrates = getVideoBitrateConfig(dConfiguration.getMaximumBitrate());
@@ -424,7 +420,7 @@ public class MEncoderVideo extends Engine {
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		MediaInfo media,
+		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		// Use device-specific UMS conf
@@ -1306,7 +1302,7 @@ public class MEncoderVideo extends Engine {
 				) {
 					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
-					MediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+					DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 					if (media.is3d()) {
 						if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
 							cmdList.add(convertedSubs.getConvertedFile().getAbsolutePath().replace(",", "\\,"));
@@ -2115,7 +2111,7 @@ public class MEncoderVideo extends Engine {
 
 	public static String[] getSpecificCodecOptions(
 		String codecParam,
-		MediaInfo media,
+		DLNAMediaInfo media,
 		OutputParams params,
 		String filename,
 		String externalSubtitlesFileName,

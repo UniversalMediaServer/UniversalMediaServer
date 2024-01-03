@@ -26,6 +26,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
@@ -35,12 +38,7 @@ import net.pms.database.MediaTableMusicBrainzReleaseLike;
 import net.pms.dlna.api.DoubleRecordFilter;
 import net.pms.dlna.api.MusicBrainzAlbum;
 import net.pms.dlna.virtual.VirtualFolderDbId;
-import net.pms.media.audio.MediaAudio;
-import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
-import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class resolves DLNA objects identified by databaseID's.
@@ -349,14 +347,14 @@ public class DbIdResourceLocator {
 	 */
 	public static void appendAlbumInformation(MusicBrainzAlbum album, VirtualFolderDbId albumFolder) {
 		LOGGER.debug("adding music album information");
-		MediaAudio audioInf = new MediaAudio();
+		DLNAMediaAudio audioInf = new DLNAMediaAudio();
 		audioInf.setAlbum(album.getAlbum());
 		audioInf.setArtist(album.getArtist());
 		audioInf.setYear(album.getYear());
 		audioInf.setGenre(album.getGenre());
-		List<MediaAudio> audios = new ArrayList<>();
+		List<DLNAMediaAudio> audios = new ArrayList<>();
 		audios.add(audioInf);
-		MediaInfo mi = new MediaInfo();
+		DLNAMediaInfo mi = new DLNAMediaInfo();
 		mi.setAudioTracks(audios);
 		albumFolder.setMedia(mi);
 	}

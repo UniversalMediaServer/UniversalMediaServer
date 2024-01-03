@@ -39,6 +39,7 @@ import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
+import net.pms.network.webinterfaceserver.OldPlayerServer;
 import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
 import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
 import net.pms.util.FileUtil;
@@ -97,6 +98,7 @@ public class WebPlayerServerHttpServer extends WebPlayerServer {
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
+			OldPlayerServer.plug(server);
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		}

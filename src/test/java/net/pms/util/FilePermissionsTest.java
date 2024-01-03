@@ -74,7 +74,7 @@ public class FilePermissionsTest {
 		assertTrue(permissions.isReadable(), "CurrentFolderIsReadable");
 		assertTrue(permissions.isBrowsable(), "CurrentFolderIsBrowsable");
 
-		permissions = new FilePermissions(FileUtils.toFile(CLASS.getResource("prettified_filenames_metadata.json")));
+		permissions = new FilePermissions(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")));
 		assertTrue(permissions.isReadable(), "FileIsReadable");
 		assertTrue(permissions.isWritable(), "FileIsWritable");
 		assertFalse(permissions.isFolder(), "FileIsNotFolder");
@@ -84,7 +84,7 @@ public class FilePermissionsTest {
 		assertTrue(permissions.isFolder(), "ParentIsFolder");
 		assertTrue(permissions.isBrowsable(), "ParentIsBrowsable");
 
-		permissions = new FilePermissions(Paths.get(CLASS.getResource("prettified_filenames_metadata.json").toURI()));
+		permissions = new FilePermissions(Paths.get(CLASS.getResource("english-utf8-with-bom.srt").toURI()));
 		assertTrue(permissions.isReadable(), "FileIsReadable");
 		assertTrue(permissions.isWritable(), "FileIsWritable");
 		assertFalse(permissions.isFolder(), "FileIsNotFolder");

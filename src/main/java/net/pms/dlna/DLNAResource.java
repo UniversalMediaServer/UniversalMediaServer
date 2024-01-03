@@ -16,9 +16,17 @@
  */
 package net.pms.dlna;
 
-import net.pms.media.MediaType;
-import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
+import static net.pms.util.StringUtil.addAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttribute;
+import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
+import static net.pms.util.StringUtil.closeTag;
+import static net.pms.util.StringUtil.convertTimeToString;
+import static net.pms.util.StringUtil.encodeXML;
+import static net.pms.util.StringUtil.endTag;
+import static net.pms.util.StringUtil.openTag;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.awt.RenderingHints;
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,6 +54,12 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -83,12 +97,6 @@ import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
-import net.pms.media.audio.MediaAudio;
-import net.pms.media.MediaInfo;
-import net.pms.media.MediaLang;
-import net.pms.media.subtitle.MediaOpenSubtitle;
-import net.pms.media.MediaStatus;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.metadata.MediaVideoMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -104,22 +112,7 @@ import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.SimpleThreadFactory;
 import net.pms.util.StringUtil;
-import static net.pms.util.StringUtil.DURATION_TIME_FORMAT;
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttributeWithRole;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.convertTimeToString;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
 import net.pms.util.SubtitleUtils;
-import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Represents any item that can be browsed via the UPNP ContentDirectory
@@ -163,10 +156,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * The format of this resource.
 	 */
 	private Format format;
-	private MediaInfo media;
-	private MediaStatus mediaStatus;
-	private MediaAudio mediaAudio;
-	private MediaSubtitle mediaSubtitle;
+	private DLNAMediaInfo media;
+	private DLNAMediaAudio mediaAudio;
+	private DLNAMediaSubtitle mediaSubtitle;
 	private long lastModified;
 
 	private boolean isEpisodeWithinSeasonFolder = false;
@@ -604,7 +596,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// plugin)
 					if (child.format.transcodable() || child.media != null) {
 						if (child.media == null) {
-							child.media = new MediaInfo();
+							child.media = new DLNAMediaInfo();
 						}
 
 						// Try to determine a engine to use for transcoding.
@@ -762,7 +754,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Engine resolvedEngine;
 
 		if (media == null) {
-			media = new MediaInfo();
+			media = new DLNAMediaInfo();
 		}
 
 		if (format == null) {
@@ -781,7 +773,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Resolve subtitles stream
 		if (media.isVideo() && !configurationSpecificToRenderer.isDisableSubtitles() && hasSubtitles(false)) {
-			MediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
+			DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 			if (mediaSubtitle == null) {
 				mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 			}
@@ -829,7 +821,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
-					for (MediaAudio audioTrack : media.getAudioTracksList()) {
+					for (DLNAMediaAudio audioTrack : media.getAudioTracksList()) {
 						if (audioTrack != null && (FormatConfiguration.AC3.equals(audioTrack.getAudioCodec()) ||
 							FormatConfiguration.DTS.equals(audioTrack.getAudioCodec()))) {
 							isIncompatible = true;
@@ -1605,7 +1597,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (mediaAudio != null) {
 					String audioLanguage = mediaAudio.getLang();
-					if (audioLanguage == null || MediaLang.UND.equals(audioLanguage.toLowerCase(Locale.ROOT))) {
+					if (audioLanguage == null || DLNAMediaLang.UND.equals(audioLanguage.toLowerCase(Locale.ROOT))) {
 						audioLanguage = "";
 					} else {
 						audioLanguage = Iso639.getFirstName(audioLanguage);
@@ -1633,7 +1625,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else {
 					subsInfoLevel = configuration.getSubtitlesInfoLevel();
 				}
-				if (mediaSubtitle != null && mediaSubtitle.getId() != MediaLang.DUMMY_ID && subsInfoLevel != SubtitlesInfoLevel.NONE) {
+				if (mediaSubtitle != null && mediaSubtitle.getId() != DLNAMediaLang.DUMMY_ID && subsInfoLevel != SubtitlesInfoLevel.NONE) {
 					if (nameSuffixBuilder.length() > 0) {
 						nameSuffixBuilder.append(" ");
 					}
@@ -1826,7 +1818,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return Returns a URL for a given subtitles item. Not used for container
 	 *         types.
 	 */
-	protected String getSubsURL(MediaSubtitle subs) {
+	protected String getSubsURL(DLNAMediaSubtitle subs) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(MediaServer.getURL());
 		sb.append("/get/");
@@ -2043,7 +2035,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							 */
 							if (renderer.isAccurateDLNAOrgPN()) {
 								if (mediaSubtitle == null) {
-									MediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
+									DLNAMediaAudio audio = mediaAudio != null ? mediaAudio : resolveAudioStream();
 									mediaSubtitle = resolveSubtitlesStream(renderer, audio == null ? null : audio.getLang(), false);
 								}
 
@@ -2256,7 +2248,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		addAttribute(sb, "parentID", resourceId);
 		addAttribute(sb, "restricted", "1");
 		endTag(sb);
-		final MediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
+		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 
 		/*
 		 * Use the track title for audio files, otherwise use the filename.
@@ -2352,14 +2344,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addXMLTagAndAttribute(sb, "upnp:programTitle", encodeXML(videoMetadata.getTVEpisodeName()));
 				}
 			}
-			if (mediaStatus != null) {
-				addXMLTagAndAttribute(sb, "upnp:playbackCount", mediaStatus.getPlaybackCount());
-				if (isNotBlank(mediaStatus.getLastPlaybackTime())) {
-					addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(mediaStatus.getLastPlaybackTime()));
-				}
-				if (isNotBlank(mediaStatus.getLastPlaybackPositionForUPnP())) {
-					addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(mediaStatus.getLastPlaybackPositionForUPnP()));
-				}
+
+			addXMLTagAndAttribute(sb, "upnp:playbackCount", media.getPlaybackCount());
+			if (isNotBlank(media.getLastPlaybackTime())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackTime", encodeXML(media.getLastPlaybackTime()));
+			}
+			if (isNotBlank(media.getLastPlaybackPositionForUPnP())) {
+				addXMLTagAndAttribute(sb, "upnp:lastPlaybackPosition", encodeXML(media.getLastPlaybackPositionForUPnP()));
 			}
 		}
 
@@ -2504,7 +2495,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						addAttribute(sb, "size", length());
 					}
 				} else {
-					addAttribute(sb, "size", MediaInfo.TRANS_SIZE);
+					addAttribute(sb, "size", DLNAMediaInfo.TRANS_SIZE);
 					addAttribute(sb, "duration", "09:59:59");
 					addAttribute(sb, "bitrate", "1000000");
 				}
@@ -3092,7 +3083,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				new Thread(r, "StopPlaying Event").start();
 			}
-			if (mediaSubtitle instanceof MediaOpenSubtitle dLNAMediaOpenSubtitle) {
+			if (mediaSubtitle instanceof DLNAMediaOpenSubtitle dLNAMediaOpenSubtitle) {
 				dLNAMediaOpenSubtitle.deleteLiveSubtitlesFile();
 			}
 		};
@@ -3619,7 +3610,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The resulting {@link BufferedImageFilterChain} or {@code null}.
 	 */
 	public BufferedImageFilterChain addSubtitlesFlagFilter(BufferedImageFilterChain filterChain) {
-		String subsLanguageCode = mediaSubtitle != null && mediaSubtitle.getId() != MediaLang.DUMMY_ID ? mediaSubtitle.getLang() : null;
+		String subsLanguageCode = mediaSubtitle != null && mediaSubtitle.getId() != DLNAMediaLang.DUMMY_ID ? mediaSubtitle.getLang() : null;
 
 		if (isNotBlank(subsLanguageCode)) {
 			if (filterChain == null) {
@@ -3737,91 +3728,71 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the {@link MediaInfo} object for this resource, containing
+	 * Returns the {@link DLNAMediaInfo} object for this resource, containing
 	 * the specifics of this resource, e.g. the duration.
 	 *
 	 * @return The object containing detailed information.
 	 */
-	public MediaInfo getMedia() {
+	public DLNAMediaInfo getMedia() {
 		return media;
 	}
 
 	/**
-	 * Sets the the {@link MediaInfo} object that contains all specifics for
+	 * Sets the the {@link DLNAMediaInfo} object that contains all specifics for
 	 * this resource.
 	 *
 	 * @param media The object containing detailed information.
 	 * @since 1.50
 	 */
-	public void setMedia(MediaInfo media) {
+	public void setMedia(DLNAMediaInfo media) {
 		this.media = media;
 	}
 
 	/**
-	 * Returns the {@link MediaStatus} object for this resource, containing
-	 * the status of this resource, e.g. the playback count.
-	 *
-	 * @return The object containing status information.
-	 */
-	public MediaStatus getMediaStatus() {
-		return mediaStatus;
-	}
-
-	/**
-	 * Sets the the {@link MediaStatus} object that contains all status for
-	 * this resource.
-	 *
-	 * @param mediaStatus The object containing status information.
-	 */
-	public void setMediaStatus(MediaStatus mediaStatus) {
-		this.mediaStatus = mediaStatus;
-	}
-
-	/**
-	 * Returns the {@link MediaAudio} object for this resource that contains
+	 * Returns the {@link DLNAMediaAudio} object for this resource that contains
 	 * the audio specifics. A resource can have many audio tracks, this method
 	 * returns the one that should be played.
 	 *
 	 * @return The audio object containing detailed information.
 	 * @since 1.50
 	 */
-	public MediaAudio getMediaAudio() {
+	public DLNAMediaAudio getMediaAudio() {
 		return mediaAudio;
 	}
 
 	/**
-	 * Sets the {@link MediaAudio} object for this resource that contains
+	 * Sets the {@link DLNAMediaAudio} object for this resource that contains
 	 * the audio specifics. A resource can have many audio tracks, this method
 	 * determines the one that should be played.
 	 *
 	 * @param mediaAudio The audio object containing detailed information.
 	 * @since 1.50
 	 */
-	protected void setMediaAudio(MediaAudio mediaAudio) {
+	protected void setMediaAudio(DLNAMediaAudio mediaAudio) {
 		this.mediaAudio = mediaAudio;
 	}
 
 	/**
-	 * Returns the {@link MediaSubtitle} object for this resource that
+	 * Returns the {@link DLNAMediaSubtitle} object for this resource that
 	 * contains the specifics for the subtitles. A resource can have many
 	 * subtitles, this method returns the one that should be displayed.
 	 *
 	 * @return The subtitle object containing detailed information.
 	 * @since 1.50
 	 */
-	public MediaSubtitle getMediaSubtitle() {
+	public DLNAMediaSubtitle getMediaSubtitle() {
 		return mediaSubtitle;
 	}
 
 	/**
-	 * Sets the {@link MediaSubtitle} object for this resource that contains
+	 * Sets the {@link DLNAMediaSubtitle} object for this resource that contains
 	 * the specifics for the subtitles. A resource can have many subtitles, this
 	 * method determines the one that should be used.
 	 *
 	 * @param mediaSubtitle The subtitle object containing detailed information.
 	 * @since 1.50
 	 */
-	public void setMediaSubtitle(MediaSubtitle mediaSubtitle) {
+	public void setMediaSubtitle(DLNAMediaSubtitle mediaSubtitle) {
 		this.mediaSubtitle = mediaSubtitle;
 	}
 
@@ -3993,9 +3964,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return false;
 		}
 
-		List<MediaSubtitle> subtitlesList = media.getSubtitlesTracks();
+		List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 		if (subtitlesList != null) {
-			for (MediaSubtitle subtitles : subtitlesList) {
+			for (DLNAMediaSubtitle subtitles : subtitlesList) {
 				if (subtitles.isEmbedded()) {
 					return true;
 				}
@@ -4079,10 +4050,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
-			List<MediaSubtitle> subtitlesList = media.getSubtitlesTracks();
+			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 			if (subtitlesList != null) {
 				hasSubtitles = !subtitlesList.isEmpty();
-				for (MediaSubtitle subtitles : subtitlesList) {
+				for (DLNAMediaSubtitle subtitles : subtitlesList) {
 					if (subtitles.isExternal()) {
 						hasExternalSubtitles = true;
 						break;
@@ -4097,7 +4068,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Sets external subtitles parsed status to true and sets
 	 * {@link #hasSubtitles} and {@link #hasExternalSubtitles} according to the
-	 * existing {@link MediaSubtitle} instances.
+	 * existing {@link DLNAMediaSubtitle} instances.
 	 * <p>
 	 * <b>WARNING:</b> This should only be called when the subtitles tracks has
 	 * been populated by an alternative source like the database. Setting this
@@ -4114,9 +4085,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return;
 			}
 
-			List<MediaSubtitle> subtitlesList = media.getSubtitlesTracks();
+			List<DLNAMediaSubtitle> subtitlesList = media.getSubtitlesTracks();
 			hasSubtitles = !subtitlesList.isEmpty();
-			for (MediaSubtitle subtitles : subtitlesList) {
+			for (DLNAMediaSubtitle subtitles : subtitlesList) {
 				if (subtitles.isExternal()) {
 					hasExternalSubtitles = true;
 					break;
@@ -4128,26 +4099,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * This method figures out which audio track should be used based on
-	 * {@link MediaInfo} metadata and configuration settings.
+	 * {@link DLNAMediaInfo} metadata and configuration settings.
 	 *
 	 * @param renderer the {@link Renderer} from which to get the
 	 *            configuration or {@code null} to use the default
 	 *            configuration.
-	 * @return The resolved {@link MediaAudio} or {@code null}.
+	 * @return The resolved {@link DLNAMediaAudio} or {@code null}.
 	 */
-	public MediaAudio resolveAudioStream() {
+	public DLNAMediaAudio resolveAudioStream() {
 		if (media == null || media.getAudioTrackCount() == 0) {
 			LOGGER.trace("Found no audio track");
 			return null;
 		}
 
 		// check for preferred audio
-		MediaAudio dtsTrack = null;
+		DLNAMediaAudio dtsTrack = null;
 		StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 		while (st.hasMoreTokens()) {
 			String lang = st.nextToken().trim();
 			LOGGER.trace("Looking for an audio track with language \"{}\" for \"{}\"", lang, getName());
-			for (MediaAudio audio : media.getAudioTracksList()) {
+			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 				if (audio.matchCode(lang)) {
 					LOGGER.trace("Matched audio track: {}", audio);
 					return audio;
@@ -4165,14 +4136,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			LOGGER.trace("Preferring DTS audio track since no language match was found: {}", dtsTrack);
 			return dtsTrack;
 		}
-		MediaAudio result = media.getFirstAudioTrack();
+		DLNAMediaAudio result = media.getFirstAudioTrack();
 		LOGGER.trace("Using the first available audio track: {}", result);
 		return result;
 	}
 
 	/**
 	 * This method figures out which subtitles track should be used based on
-	 * {@link MediaInfo} metadata, chosen audio language and configuration
+	 * {@link DLNAMediaInfo} metadata, chosen audio language and configuration
 	 * settings.
 	 *
 	 * @param renderer the {@link Renderer} from which to get the
@@ -4183,9 +4154,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param forceRefresh if {@code true} forces a new scan for external
 	 *            subtitles instead of relying on cached information (if it
 	 *            exists).
-	 * @return The resolved {@link MediaSubtitle} or {@code null}.
+	 * @return The resolved {@link DLNAMediaSubtitle} or {@code null}.
 	 */
-	public MediaSubtitle resolveSubtitlesStream(Renderer renderer, String audioLanguage, boolean forceRefresh) {
+	public DLNAMediaSubtitle resolveSubtitlesStream(Renderer renderer, String audioLanguage, boolean forceRefresh) {
 		if (media == null) {
 			return null;
 		}
@@ -4205,7 +4176,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		 * Check for external and internal subtitles matching the user's
 		 * language preferences
 		 */
-		MediaSubtitle matchedSub;
+		DLNAMediaSubtitle matchedSub;
 		boolean useExternal = deviceSpecificConfiguration.isAutoloadExternalSubtitles();
 		boolean forceExternal = deviceSpecificConfiguration.isForceExternalSubtitles();
 		String audioSubLanguages = deviceSpecificConfiguration.getAudioSubLanguages();
@@ -4224,8 +4195,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Not enough information to do a full audio/subtitles combination
 			// search, only use the preferred subtitles
 			LOGGER.trace("Searching for subtitles without considering audio language for \"{}\"", getName());
-			ArrayList<MediaSubtitle> candidates = new ArrayList<>();
-			for (MediaSubtitle subtitles : media.getSubtitlesTracks()) {
+			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
+			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (subtitles.isExternal()) {
 					if (useExternal) {
 						candidates.add(subtitles);
@@ -4254,14 +4225,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					LOGGER.trace("Searching for a match for audio language \"{}\" with audio \"{}\" and subtitles \"{}\" for \"{}\"",
 						audioLanguage, audio, sub, getName());
 
-					if ("*".equals(audio) || MediaLang.UND.equals(audio) || Iso639.isCodesMatching(audio, audioLanguage)) {
-						boolean anyLanguage = "*".equals(sub) || MediaLang.UND.equals(sub);
+					if ("*".equals(audio) || DLNAMediaLang.UND.equals(audio) || Iso639.isCodesMatching(audio, audioLanguage)) {
+						boolean anyLanguage = "*".equals(sub) || DLNAMediaLang.UND.equals(sub);
 						if ("off".equals(sub)) {
 							LOGGER.trace("Not looking for non-forced subtitles since they are \"off\" for audio language \"{}\"", audio);
 							break;
 						} else {
-							ArrayList<MediaSubtitle> candidates = new ArrayList<>();
-							for (MediaSubtitle subtitles : media.getSubtitlesTracks()) {
+							ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
+							for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 								if (anyLanguage || subtitles.matchCode(sub)) {
 									if (subtitles.isEmbedded()) {
 										candidates.add(subtitles);
@@ -4302,10 +4273,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					forcedTagsList.add(forcedTag.trim().toLowerCase(locale));
 				}
 			}
-			ArrayList<MediaSubtitle> candidates = new ArrayList<>();
+			ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
 			String forcedLanguage = deviceSpecificConfiguration.getForcedSubtitleLanguage();
-			boolean anyLanguage = isBlank(forcedLanguage) || "*".equals(forcedLanguage) || MediaLang.UND.equals(forcedLanguage);
-			for (MediaSubtitle subtitles : media.getSubtitlesTracks()) {
+			boolean anyLanguage = isBlank(forcedLanguage) || "*".equals(forcedLanguage) || DLNAMediaLang.UND.equals(forcedLanguage);
+			for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 				if (!useExternal && subtitles.isExternal()) {
 					continue;
 				}
@@ -4335,11 +4306,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	private MediaSubtitle getHighestPriorityExternalSubtitles(Renderer renderer) {
-		MediaSubtitle matchedSub = null;
+	private DLNAMediaSubtitle getHighestPriorityExternalSubtitles(Renderer renderer) {
+		DLNAMediaSubtitle matchedSub = null;
 
-		ArrayList<MediaSubtitle> candidates = new ArrayList<>();
-		for (MediaSubtitle subtitles : media.getSubtitlesTracks()) {
+		ArrayList<DLNAMediaSubtitle> candidates = new ArrayList<>();
+		for (DLNAMediaSubtitle subtitles : media.getSubtitlesTracks()) {
 			if (subtitles.isExternal()) {
 				candidates.add(subtitles);
 			}
@@ -4957,7 +4928,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public static class Rendering {
 		Renderer renderer;
 		Engine engine;
-		MediaSubtitle mediaSubtitle;
+		DLNAMediaSubtitle mediaSubtitle;
 		String mimeType;
 
 		Rendering(DLNAResource d) {

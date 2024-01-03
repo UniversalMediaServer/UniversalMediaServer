@@ -63,13 +63,13 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaLang;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.dlna.VideoClassification;
 import net.pms.dlna.protocolinfo.MimeType;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.media.MediaInfo;
-import net.pms.media.MediaLang;
 import net.pms.renderers.Renderer;
 import net.pms.util.XMLRPCUtil.Array;
 import net.pms.util.XMLRPCUtil.Member;
@@ -450,7 +450,7 @@ public class OpenSubtitle {
 	private static ArrayList<SubtitleItem> parseSubtitles(
 		Array dataArray,
 		FileNamePrettifier prettifier,
-		MediaInfo media
+		DLNAMediaInfo media
 	) throws OpenSubtitlesException {
 		ArrayList<SubtitleItem> result = new ArrayList<>();
 		if (dataArray == null) {
@@ -1621,7 +1621,7 @@ public class OpenSubtitle {
 		for (String language : languagesArray) {
 			if (isNotBlank(language)) {
 				String iso6392 = Iso639.getISO639_2Code(language);
-				if (isNotBlank(iso6392) && !MediaLang.UND.equals(iso6392)) {
+				if (isNotBlank(iso6392) && !DLNAMediaLang.UND.equals(iso6392)) {
 					languagesList.add(iso6392);
 				}
 			}
@@ -3291,7 +3291,7 @@ public class OpenSubtitle {
 		 *            {@code SubDownloadLink}.
 		 * @param openSubtitlesScore the {@code Score} {@code double}.
 		 * @param prettifier the {@link FileNamePrettifier} for the video item.
-		 * @param media the {@link MediaInfo} for the video media.
+		 * @param media the {@link DLNAMediaInfo} for the video media.
 		 */
 		public SubtitleItem(
 			String matchedBy,
@@ -3319,7 +3319,7 @@ public class OpenSubtitle {
 			URI subDownloadLink,
 			double openSubtitlesScore,
 			FileNamePrettifier prettifier,
-			MediaInfo media
+			DLNAMediaInfo media
 		) {
 			this.matchedBy = matchedBy;
 			this.idSubtitleFile = idSubtitleFile;
@@ -3873,10 +3873,10 @@ public class OpenSubtitle {
 		 * @param subtitlesStruct the {@link Struct} containing the information
 		 *            about the set of subtitles.
 		 * @param prettifier the {@link FileNamePrettifier} for the video item.
-		 * @param media the {@link MediaInfo} instance for the video.
+		 * @param media the {@link DLNAMediaInfo} instance for the video.
 		 * @return The resulting {@link SubtitleItem} or {@code null}.
 		 */
-		public static SubtitleItem createFromStruct(Struct subtitlesStruct, FileNamePrettifier prettifier, MediaInfo media) {
+		public static SubtitleItem createFromStruct(Struct subtitlesStruct, FileNamePrettifier prettifier, DLNAMediaInfo media) {
 			if (subtitlesStruct == null) {
 				return null;
 			}
@@ -3905,7 +3905,7 @@ public class OpenSubtitle {
 				if (Iso639.codeIsValid(languageCode)) {
 					languageCode = Iso639.getISO639_2Code(languageCode);
 				} else {
-					languageCode = MediaLang.UND;
+					languageCode = DLNAMediaLang.UND;
 				}
 			}
 

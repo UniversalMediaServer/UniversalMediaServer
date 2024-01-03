@@ -18,7 +18,6 @@ package net.pms.dlna;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.pms.media.MediaInfo;
 
 public class FeedItem extends DLNAResource {
 	private final String title;
@@ -27,7 +26,7 @@ public class FeedItem extends DLNAResource {
 
 	private long length;
 
-	public FeedItem(String title, String itemURL, String thumbURL, MediaInfo media, int type) {
+	public FeedItem(String title, String itemURL, String thumbURL, DLNAMediaInfo media, int type) {
 		super(type);
 		this.title = title;
 		this.itemURL = itemURL;

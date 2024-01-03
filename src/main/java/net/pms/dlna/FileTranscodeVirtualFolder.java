@@ -26,9 +26,6 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
-import net.pms.media.audio.MediaAudio;
-import net.pms.media.MediaLang;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +54,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 	 */
 	private static DLNAResource createResourceWithAudioSubtitleEngine(
 		DLNAResource original,
-		MediaAudio audio,
-		MediaSubtitle subtitle,
+		DLNAMediaAudio audio,
+		DLNAMediaSubtitle subtitle,
 		Engine engine) {
 		// FIXME clone is broken. should be e.g. original.newInstance()
 		DLNAResource copy = original.clone();
@@ -195,8 +192,8 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			// create copies of the audio/subtitle track lists as we're making (local)
 			// modifications to them
-			List<MediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
-			List<MediaSubtitle> subtitlesTracks;
+			List<DLNAMediaAudio> audioTracks = new ArrayList<>(originalResource.getMedia().getAudioTracksList());
+			List<DLNAMediaSubtitle> subtitlesTracks;
 			if (getMediaSubtitle() != null) {
 				// Transcode folder of live subtitles folder
 				subtitlesTracks = Collections.singletonList(getMediaSubtitle());
@@ -206,7 +203,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			// If there is a single audio track, set that as audio track
 			// for non-transcoded entries to show the correct language
-			MediaAudio singleAudioTrack = audioTracks.size() == 1 ? audioTracks.get(0) : null;
+			DLNAMediaAudio singleAudioTrack = audioTracks.size() == 1 ? audioTracks.get(0) : null;
 
 			// assemble copies for each combination of audio, subtitle and engine
 			ArrayList<DLNAResource> entries = new ArrayList<>();
@@ -265,15 +262,15 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 				} else {
 					// if there are subtitles, make sure a no-subtitle option is added
 					// for each engine
-					MediaSubtitle noSubtitle = new MediaSubtitle();
-					noSubtitle.setId(MediaLang.DUMMY_ID);
+					DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
+					noSubtitle.setId(DLNAMediaLang.DUMMY_ID);
 					subtitlesTracks.add(noSubtitle);
 				}
 			}
 
-			for (MediaAudio audio : audioTracks) {
+			for (DLNAMediaAudio audio : audioTracks) {
 				// Create combinations of all audio tracks, subtitles and engines.
-				for (MediaSubtitle subtitle : subtitlesTracks) {
+				for (DLNAMediaSubtitle subtitle : subtitlesTracks) {
 					// Create a temporary copy of the child with the audio and
 					// subtitle modified in order to be able to match engines to it.
 					DLNAResource temp = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, null);
@@ -291,7 +288,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 
 			if (renderer != null && renderer.isSubtitlesStreamingSupportedForAllFiletypes()) {
 				// Add a no-transcode entry for each streamable external subtitles
-				for (MediaSubtitle subtitlesTrack : subtitlesTracks) {
+				for (DLNAMediaSubtitle subtitlesTrack : subtitlesTracks) {
 					if (
 						subtitlesTrack != null && subtitlesTrack.isExternal() &&
 						renderer.isExternalSubtitlesFormatSupported(subtitlesTrack, originalResource)

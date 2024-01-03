@@ -52,18 +52,22 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFilesStatus;
 import net.pms.dlna.ByteRange;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
+import net.pms.dlna.DLNAMediaChapter;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaOnDemandSubtitle;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.dlna.DbIdMediaType;
 import net.pms.dlna.DbIdResourceLocator;
-import net.pms.media.MediaType;
+import net.pms.dlna.MediaType;
 import net.pms.dlna.PlaylistFolder;
 import net.pms.dlna.Range;
 import net.pms.dlna.RealFile;
@@ -78,12 +82,7 @@ import net.pms.image.BufferedImageFilterChain;
 import net.pms.image.ImagesUtil;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.media.chapter.MediaChapter;
-import net.pms.media.MediaInfo;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
@@ -138,7 +137,7 @@ public class RequestHandler implements HttpHandler {
 					userAgentString != null &&
 					userAgentString.contains("UMS/");
 			// Filter if required
-			if (isSelf || !NetworkDeviceFilter.isAllowed(ia)) {
+			if (isSelf || filterIp(ia)) {
 				exchange.close();
 				return;
 			}
@@ -150,13 +149,6 @@ public class RequestHandler implements HttpHandler {
 				// If RendererConfiguration.resolve() didn't return the default renderer
 				// it means we know via upnp that it's not really a renderer.
 				exchange.close();
-				return;
-			}
-
-			if (!renderer.isAllowed()) {
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
-				}
 				return;
 			}
 
@@ -292,7 +284,7 @@ public class RequestHandler implements HttpHandler {
 			if (cLoverride == 0) {
 				//mean no content, HttpExchange use the -1 value for it.
 				contentLength = -1;
-			} else if (cLoverride > -1 && cLoverride != MediaInfo.TRANS_SIZE) {
+			} else if (cLoverride > -1 && cLoverride != DLNAMediaInfo.TRANS_SIZE) {
 				// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
 				// as the PS3 will display a network error and request the last seconds of the
 				// transcoded video. Better to send no Content-Length at all.
@@ -401,10 +393,10 @@ public class RequestHandler implements HttpHandler {
 			}
 			// DLNAresource was found.
 			if (fileName.endsWith("/chapters.vtt")) {
-				sendResponse(exchange, renderer, 200, MediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getWebVtt(dlna), HTTPResource.WEBVTT_TYPEMIME);
 				return;
 			} else if (fileName.endsWith("/chapters.json")) {
-				sendResponse(exchange, renderer, 200, MediaChapter.getHls(dlna), HTTPResource.JSON_TYPEMIME);
+				sendResponse(exchange, renderer, 200, DLNAMediaChapter.getHls(dlna), HTTPResource.JSON_TYPEMIME);
 				return;
 			} else if (fileName.startsWith("hls/")) {
 				//HLS
@@ -425,7 +417,7 @@ public class RequestHandler implements HttpHandler {
 						} else if (fileName.endsWith(".vtt")) {
 							exchange.getResponseHeaders().set("Content-Type", HTTPResource.WEBVTT_TYPEMIME);
 						}
-						sendResponse(exchange, renderer, 200, inputStream, MediaInfo.TRANS_SIZE, true);
+						sendResponse(exchange, renderer, 200, inputStream, DLNAMediaInfo.TRANS_SIZE, true);
 					} else {
 						sendResponse(exchange, renderer, 404, null);
 					}
@@ -551,13 +543,13 @@ public class RequestHandler implements HttpHandler {
 				// This is a request for a subtitles file
 				exchange.getResponseHeaders().set("Content-Type", "text/plain");
 				exchange.getResponseHeaders().set("Expires", getFutureDate() + " GMT");
-				MediaSubtitle sub = dlna.getMediaSubtitle();
+				DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 				if (sub != null) {
 					// XXX external file is null if the first subtitle track is embedded
 					if (sub.isExternal()) {
-						if (sub.getExternalFile() == null && sub instanceof MediaOnDemandSubtitle) {
+						if (sub.getExternalFile() == null && sub instanceof DLNAMediaOnDemandSubtitle) {
 							// Try to fetch subtitles
-							((MediaOnDemandSubtitle) sub).fetch();
+							((DLNAMediaOnDemandSubtitle) sub).fetch();
 						}
 						if (sub.getExternalFile() == null) {
 							LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
@@ -606,10 +598,10 @@ public class RequestHandler implements HttpHandler {
 
 				// Ignore ByteRangeRequests while media is transcoded
 				if (!ignoreTranscodeByteRangeRequests ||
-						totalsize != MediaInfo.TRANS_SIZE ||
+						totalsize != DLNAMediaInfo.TRANS_SIZE ||
 						(ignoreTranscodeByteRangeRequests &&
 						range.getStart() == 0 &&
-						totalsize == MediaInfo.TRANS_SIZE)) {
+						totalsize == DLNAMediaInfo.TRANS_SIZE)) {
 					inputStream = dlna.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()), renderer);
 					if (dlna.isResume()) {
 						// Update range to possibly adjusted resume time
@@ -637,7 +629,7 @@ public class RequestHandler implements HttpHandler {
 							String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
 							if (StringUtils.isNotBlank(subtitleHttpHeader) && (dlna.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
 								// Device allows a custom subtitle HTTP header; construct it
-								MediaSubtitle sub = dlna.getMediaSubtitle();
+								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (StringUtils.isNotBlank(subExtension)) {
@@ -702,8 +694,8 @@ public class RequestHandler implements HttpHandler {
 					boolean chunked = renderer.isChunkedTransfer();
 
 					// Determine the total size. Note: when transcoding the length is
-					// not known in advance, so MediaInfo.TRANS_SIZE will be returned instead.
-					if (chunked && totalsize == MediaInfo.TRANS_SIZE) {
+					// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
+					if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 						// In chunked mode we try to avoid arbitrary values.
 						totalsize = -1;
 					}
@@ -763,7 +755,7 @@ public class RequestHandler implements HttpHandler {
 			exchange.getResponseHeaders().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 		}
 		try {
-			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != MediaInfo.ENDFILE_POS));
+			sendResponse(exchange, renderer, status, inputStream, cLoverride, (range.getStart() != DLNAMediaInfo.ENDFILE_POS));
 		} finally {
 			if (startStopListenerDelegate != null) {
 				startStopListenerDelegate.stop();
@@ -1374,6 +1366,18 @@ public class RequestHandler implements HttpHandler {
 			}
 		}
 		return identifiers;
+	}
+
+	/**
+	 * Applies the IP filter to the specified internet address. Returns true if
+	 * the address is not allowed and therefore should be filtered out, false
+	 * otherwise.
+	 *
+	 * @param inetAddress The internet address to verify.
+	 * @return True when not allowed, false otherwise.
+	 */
+	private static boolean filterIp(InetAddress inetAddress) {
+		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress);
 	}
 
 	private static void logMessageSent(HttpExchange exchange, String response, InputStream iStream, Renderer renderer) {

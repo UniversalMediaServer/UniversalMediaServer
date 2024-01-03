@@ -32,6 +32,10 @@ import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.util.exif.ExifFilterUtils;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.util.ExecutableErrorType;
+import net.pms.util.ExecutableInfo;
+import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.image.ExifInfo;
@@ -44,12 +48,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
-import net.pms.media.MediaInfo;
 import net.pms.platform.windows.NTStatus;
 import net.pms.renderers.Renderer;
-import net.pms.util.ExecutableErrorType;
-import net.pms.util.ExecutableInfo;
-import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -89,7 +89,7 @@ public class DCRaw extends ImageEngine {
 	@Override
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		MediaInfo media,
+		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		if (media == null || dlna == null) {
@@ -317,12 +317,12 @@ public class DCRaw extends ImageEngine {
 	/**
 	 * Parses {@code file} and stores the result in {@code media}.
 	 *
-	 * @param media the {@link MediaInfo} instance to store the parse
+	 * @param media the {@link DLNAMediaInfo} instance to store the parse
 	 *            results in.
 	 * @param file the {@link File} to parse.
 	 */
 	@Override
-	public void parse(MediaInfo media, File file) {
+	public void parse(DLNAMediaInfo media, File file) {
 		if (media == null) {
 			throw new NullPointerException("media cannot be null");
 		}

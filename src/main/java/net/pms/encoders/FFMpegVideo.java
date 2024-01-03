@@ -16,7 +16,6 @@
  */
 package net.pms.encoders;
 
-import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -27,8 +26,14 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import com.sun.jna.Platform;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
@@ -43,8 +48,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.io.StreamModifier;
-import net.pms.media.MediaInfo;
-import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.platform.windows.NTStatus;
@@ -60,9 +63,6 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
 import net.pms.util.Version;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /*
  * Pure FFmpeg video player.
@@ -82,7 +82,7 @@ import org.slf4j.LoggerFactory;
  *     public List<String> getAudioBitrateOptions(
  *         String filename,
  *         DLNAResource dlna,
- *         MediaInfo media,
+ *         DLNAMediaInfo media,
  *         OutputParams params
  *     )
  */
@@ -116,7 +116,7 @@ public class FFMpegVideo extends Engine {
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean isConvertedTo3d) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
@@ -183,7 +183,7 @@ public class FFMpegVideo extends Engine {
 
 		if (!isDisableSubtitles(params) && override) {
 			boolean isSubsManualTiming = true;
-			MediaSubtitle convertedSubs = dlna.getMediaSubtitle();
+			DLNAMediaSubtitle convertedSubs = dlna.getMediaSubtitle();
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.getSid() != null && params.getSid().getType().isText()) {
 				boolean isSubsASS = params.getSid().getType() == SubtitleType.ASS;
@@ -328,7 +328,7 @@ public class FFMpegVideo extends Engine {
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, MediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
+	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, boolean canMuxVideoWithFFmpeg) {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = dlna.getFileName();
 		final Renderer renderer = params.getMediaRenderer();
@@ -496,7 +496,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 		boolean low = false;
 
@@ -696,7 +696,7 @@ public class FFMpegVideo extends Engine {
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(DLNAResource dlna, MediaInfo media, OutputParams params) {
+	public List<String> getAudioBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> audioBitrateOptions = new ArrayList<>();
 
 		audioBitrateOptions.add("-q:a");
@@ -796,7 +796,7 @@ public class FFMpegVideo extends Engine {
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
-		MediaInfo media,
+		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 
@@ -1364,7 +1364,7 @@ public class FFMpegVideo extends Engine {
 
 	public synchronized ProcessWrapper launchHlsTranscode(
 		DLNAResource dlna,
-		MediaInfo media,
+		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
@@ -1774,7 +1774,7 @@ public class FFMpegVideo extends Engine {
 	public void setOutputParsing(final DLNAResource dlna, ProcessWrapperImpl pw, boolean force) {
 		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
 			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
-			if (duration == 0 || duration == MediaInfo.TRANS_SIZE) {
+			if (duration == 0 || duration == DLNAMediaInfo.TRANS_SIZE) {
 				OutputTextLogger ffParser = new OutputTextLogger(null) {
 					@Override
 					public boolean filter(String line) {
