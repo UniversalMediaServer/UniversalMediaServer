@@ -45,7 +45,7 @@ public class ActionsApiServlet extends GuiHttpServlet {
 		try {
 			var path = req.getPathInfo();
 			if (path.equals("/")) {
-				boolean canShutdownComputer = !(Platform.isLinux() && Platform.isMac()) || PlatformUtils.INSTANCE.isAdmin();
+				boolean canShutdownComputer = !(Platform.isLinux() || Platform.isMac()) || PlatformUtils.INSTANCE.isAdmin();
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.addProperty("canShutdownComputer", canShutdownComputer);
 				respond(req, resp, jsonResponse.toString(), 200, "application/json");
