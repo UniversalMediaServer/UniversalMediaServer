@@ -29,6 +29,9 @@ import net.pms.encoders.EngineFactory;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.StandardEngineId;
+import net.pms.media.MediaInfo;
+import net.pms.media.chapter.MediaChapter;
+import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.webinterfaceserver.WebInterfaceServerHttpServerInterface;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
@@ -105,13 +108,13 @@ public class MediaHandler implements HttpHandler {
 				LOGGER.debug("coded object with invalid code");
 				throw new IOException("Bad code");
 			}
-			DLNAMediaSubtitle sid = null;
+			MediaSubtitle sid = null;
 			String mimeType = root.getDefaultRenderer().getMimeType(resource);
 			//DLNAResource dlna = res.get(0);
 			WebRender render = (WebRender) defaultRenderer;
-			DLNAMediaInfo media = resource.getMedia();
+			MediaInfo media = resource.getMedia();
 			if (media == null) {
-				media = new DLNAMediaInfo();
+				media = new MediaInfo();
 				resource.setMedia(media);
 			}
 			if (mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) && media.getMimeType() != null) {
@@ -156,10 +159,10 @@ public class MediaHandler implements HttpHandler {
 				Headers headers = httpExchange.getResponseHeaders();
 				headers.add("Server", PMS.get().getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
-					String response = DLNAMediaChapter.getWebVtt(resource);
+					String response = MediaChapter.getWebVtt(resource);
 					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.WEBVTT_TYPEMIME);
 				} else if (uri.endsWith("/chapters.json")) {
-					String response = DLNAMediaChapter.getHls(resource);
+					String response = MediaChapter.getHls(resource);
 					WebInterfaceServerUtil.respond(httpExchange, response, 200, HTTPResource.JSON_TYPEMIME);
 				} else if (uri.contains("/hls/")) {
 					if (uri.endsWith(".m3u8")) {

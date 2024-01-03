@@ -289,8 +289,8 @@ public class PlayHandler implements HttpHandler {
 						WebRender render = (WebRender) rootResource.getDefaultRenderer();
 						mime = render != null ? render.getVideoMimeType() : WebInterfaceServerUtil.transMime();
 					}
-					if (rootResource.getMedia() != null && rootResource.getMedia().getLastPlaybackPosition() != null && rootResource.getMedia().getLastPlaybackPosition() > 0) {
-						mustacheVars.put("resumePosition", rootResource.getMedia().getLastPlaybackPosition().intValue());
+					if (rootResource.getMedia() != null && rootResource.getMediaStatus().getLastPlaybackPosition() != null && rootResource.getMediaStatus().getLastPlaybackPosition() > 0) {
+						mustacheVars.put("resumePosition", rootResource.getMediaStatus().getLastPlaybackPosition().intValue());
 					}
 				}
 			}

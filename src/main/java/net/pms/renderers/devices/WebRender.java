@@ -28,7 +28,6 @@ import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Engine;
 import net.pms.encoders.FFMpegVideo;
@@ -42,6 +41,7 @@ import net.pms.formats.image.JPG;
 import net.pms.formats.image.PNG;
 import net.pms.image.ImageFormat;
 import net.pms.io.OutputParams;
+import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.network.IServerSentEvents;
 import net.pms.network.webinterfaceserver.WebInterfaceServerUtil;
@@ -306,7 +306,7 @@ public class WebRender extends Renderer implements OutputOverride {
 	public boolean getOutputOptions(List<String> cmdList, DLNAResource resource, Engine engine, OutputParams params) {
 		if (engine instanceof FFMpegVideo fFMpegVideo) {
 			if (resource.getFormat().isVideo()) {
-				DLNAMediaInfo media = resource.getMedia();
+				MediaInfo media = resource.getMedia();
 				boolean flash = media != null && "video/flash".equals(media.getMimeType());
 				if (flash) {
 					ffFlashCmds(cmdList, media);
@@ -333,7 +333,7 @@ public class WebRender extends Renderer implements OutputOverride {
 		return false;
 	}
 
-	private static void ffFlashCmds(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffFlashCmds(List<String> cmdList, MediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
@@ -431,7 +431,7 @@ public class WebRender extends Renderer implements OutputOverride {
 	}
 
 	@SuppressWarnings("unused")
-	private static void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+	private static void ffhlsCmd(List<String> cmdList, MediaInfo media) {
 		// Can't streamcopy if filters are present
 		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
