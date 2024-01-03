@@ -33,6 +33,7 @@ public class Permissions {
 	public static final int SERVER_RESTART = 1 << 20;
 	public static final int APPLICATION_RESTART = 1 << 21;
 	public static final int APPLICATION_SHUTDOWN = 1 << 22;
+	public static final int COMPUTER_SHUTDOWN = 1 << 23;
 	//Web player
 	public static final int WEB_PLAYER_BROWSE = 1 << 25;
 	public static final int WEB_PLAYER_DOWNLOAD = 1 << 26;

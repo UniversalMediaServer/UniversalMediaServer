@@ -117,8 +117,8 @@ public class LinuxUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown -h now";
+	public String[] getShutdownCommand() {
+		return new String[] {"shutdown", "-h", "now"};
 	}
 
 	// destroy a process safely (kill -TERM on Unix)

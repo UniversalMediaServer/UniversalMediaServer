@@ -369,7 +369,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
+	public String[] getShutdownCommand() {
 		return null;
 	}
 

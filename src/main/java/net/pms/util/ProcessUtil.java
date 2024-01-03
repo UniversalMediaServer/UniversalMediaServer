@@ -254,14 +254,14 @@ public class ProcessUtil {
 	 * This is initiated via the Server Settings folder.
 	 */
 	public static void shutDownComputer() {
-		String shutdownCommand = PlatformUtils.INSTANCE.getShutdownCommand();
+		String[] shutdownCommand = PlatformUtils.INSTANCE.getShutdownCommand();
 
-		if (shutdownCommand != null) {
+		if (shutdownCommand != null && shutdownCommand.length > 0) {
 			try {
 				Runtime.getRuntime().exec(shutdownCommand);
 				System.exit(0);
 			} catch (IOException e) {
-				LOGGER.error("Error while shutting down computer: {}", e);
+				LOGGER.error("Error while shutting down computer: {}", e.getMessage(), e);
 			}
 		}
 	}

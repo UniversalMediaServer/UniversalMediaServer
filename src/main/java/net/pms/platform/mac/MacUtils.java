@@ -305,8 +305,8 @@ public class MacUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown -h now";
+	public String[] getShutdownCommand() {
+		return new String[] {"shutdown", "-h", "now"};
 	}
 
 	/**

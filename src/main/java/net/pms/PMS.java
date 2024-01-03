@@ -102,6 +102,7 @@ import net.pms.util.CredMgr;
 import net.pms.util.FileUtil;
 import net.pms.util.Languages;
 import net.pms.util.LogSystemInformationMode;
+import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
 import net.pms.util.SystemInformation;
@@ -682,6 +683,16 @@ public class PMS {
 			// change of the used interface
 			MediaServer.start();
 			GuiManager.setReloadable(false);
+		});
+	}
+
+	/**
+	 * Shutdown the host machine.
+	 */
+	public void shutdownComputer() {
+		TaskRunner.getInstance().submitNamed("shutdown", true, () -> {
+			SseApiServlet.notify("computer-shutdown", "Shutting down computer", "Server status", "red", true);
+			ProcessUtil.shutDownComputer();
 		});
 	}
 

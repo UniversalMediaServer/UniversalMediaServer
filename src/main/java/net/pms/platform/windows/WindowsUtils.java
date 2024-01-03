@@ -511,8 +511,8 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown.exe -s -t 0";
+	public String[] getShutdownCommand() {
+		return new String[]{"shutdown.exe", "-s", "-t", "0"};
 	}
 
 	@Override
