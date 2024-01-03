@@ -74,6 +74,15 @@ public abstract class HttpServletHelper extends HttpServlet {
 		}
 	}
 
+	protected static boolean isLocalhost(ServletRequest req) {
+		try {
+			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());
+			return inetAddress.isLoopbackAddress();
+		} catch (UnknownHostException ex) {
+			return false;
+		}
+	}
+
 	protected static boolean deny(ServletRequest req) {
 		try {
 			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());

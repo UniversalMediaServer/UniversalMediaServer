@@ -68,6 +68,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else if (path.equals("/devices")) {
 				JsonObject jsonResponse = new JsonObject();
+				jsonResponse.addProperty("isLocalhost", isLocalhost(req));
 				jsonResponse.add("networkDevices", NetworkDeviceFilter.getNetworkDevicesAsJsonArray());
 				jsonResponse.addProperty("networkDevicesBlockedByDefault", NetworkDeviceFilter.getBlockedByDefault());
 				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
@@ -180,6 +181,19 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					} else {
 						respondBadRequest(req, resp);
 					}
+				}
+				case "/reset" -> {
+					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
+						respondForbidden(req, resp);
+						return;
+					}
+					CONFIGURATION.setNetworkDevicesFilter("");
+					CONFIGURATION.setNetworkDevicesBlockedByDefault(false);
+					NetworkDeviceFilter.reset();
+					CONFIGURATION.setRenderersFilter("");
+					CONFIGURATION.setRenderersBlockedByDefault(false);
+					RendererFilter.reset();
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("RenderersApiServlet request not available : {}", path);
