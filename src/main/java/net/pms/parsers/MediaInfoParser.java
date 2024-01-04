@@ -929,6 +929,10 @@ public class MediaInfoParser {
 			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
 			}
+		} else if (value.equals("x / ma / core") || value.equals("imax / x / ma / core")) {
+			if (audio.getCodecA() != null && audio.getCodecA().equals(FormatConfiguration.DTS)) {
+				format = FormatConfiguration.DTSX;
+			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
 			format = FormatConfiguration.VORBIS;
 		} else if (value.equals("adts")) {
@@ -1042,7 +1046,10 @@ public class MediaInfoParser {
 			) &&
 			(
 				audio.getCodecA() == null ||
-				!audio.getCodecA().equals(FormatConfiguration.DTSHD)
+				(
+					!audio.getCodecA().equals(FormatConfiguration.DTSHD) &&
+					!audio.getCodecA().equals(FormatConfiguration.DTSX)
+				)
 			)
 		) {
 			format = FormatConfiguration.DTS;
