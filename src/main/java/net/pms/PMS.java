@@ -58,7 +58,6 @@ import net.pms.gui.GuiManager;
 import net.pms.io.*;
 import net.pms.logging.CacheLogger;
 import net.pms.logging.LoggingConfig;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.WebGuiServer;
@@ -77,7 +76,6 @@ import net.pms.platform.windows.WindowsNamedPipe;
 import net.pms.platform.windows.WindowsUtils;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
-import net.pms.renderers.RendererFilter;
 import net.pms.service.LibraryScanner;
 import net.pms.service.Services;
 import net.pms.update.AutoUpdater;
@@ -221,7 +219,6 @@ public class PMS {
 
 	/**
 	 * HTTP server that serves a browser/player of media files.
-	 * Should replace the WebInterfaceServer at end.
 	 */
 	private WebPlayerServer webPlayerServer;
 
@@ -404,8 +401,6 @@ public class PMS {
 		// Initialize databases
 		MediaDatabase.init();
 		UserDatabase.init();
-		NetworkDeviceFilter.reset();
-		RendererFilter.reset();
 
 		/**
 		 * Bump the SystemUpdateID state variable because now we will have

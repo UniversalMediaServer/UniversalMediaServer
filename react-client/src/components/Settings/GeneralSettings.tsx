@@ -202,6 +202,12 @@ export default function GeneralSettings(
               label={i18n.get['ForceIpServer']}
               {...form.getInputProps('hostname')}
             />
+            <TextInput
+              disabled={!canModify}
+              mt='xs'
+              label={i18n.get['UseIpFilter']}
+              {...form.getInputProps('ip_filter')}
+            />
             <Group>
               <NumberInput
                 label={i18n.get['MaximumBandwidthMbs']}
@@ -246,6 +252,36 @@ export default function GeneralSettings(
           </Stack>
         </Accordion.Panel>
       </Accordion.Item>
+      {advancedSettings && (
+        <Accordion.Item value='Renderers'>
+          <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
+          <Accordion.Panel>
+            <Stack>
+              <MultiSelect
+                disabled={!canModify}
+                data={getI18nSelectData(selectionSettings.allRendererNames)}
+                label={i18n.get['EnabledRenderers']}
+                {...form.getInputProps('selected_renderers')}
+              />
+              <Select
+                disabled={!canModify}
+                sx={{ flex: 1 }}
+                label={i18n.get['DefaultRendererWhenAutoFails']}
+                data={getI18nSelectData(selectionSettings.enabledRendererNames)}
+                {...form.getInputProps('renderer_default')}
+                searchable
+              />
+              <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
+                <Checkbox
+                  disabled={!canModify}
+                  label={i18n.get['ForceDefaultRenderer']}
+                  {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
+                />
+              </Tooltip>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      )}
     </Accordion>
   );
 }

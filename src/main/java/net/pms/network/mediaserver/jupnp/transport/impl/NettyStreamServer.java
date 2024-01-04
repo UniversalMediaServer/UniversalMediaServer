@@ -23,7 +23,6 @@ import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
 import net.pms.PMS;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
@@ -174,9 +173,9 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		// This is executed in the request receiving thread!
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-			//check inetAddress isAllowed
+			//check inetAddress allowed
 			InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
-			if (!NetworkDeviceFilter.isAllowed(remoteAddress.getAddress())) {
+			if (!PMS.getConfiguration().getIpFiltering().allowed(remoteAddress.getAddress())) {
 				LOGGER.trace("Ip Filtering denying address: {}", remoteAddress.getAddress().getHostAddress());
 				event.getChannel().close();
 				return;

@@ -42,7 +42,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.network.NetworkDeviceFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -75,7 +74,7 @@ public class WebGuiServletHelper {
 	public static boolean deny(ServletRequest req) {
 		try {
 			InetAddress inetAddress = InetAddress.getByName(req.getRemoteAddr());
-			return !NetworkDeviceFilter.isAllowed(inetAddress) || !PMS.isReady();
+			return !CONFIGURATION.getIpFiltering().allowed(inetAddress) || !PMS.isReady();
 		} catch (UnknownHostException ex) {
 			return true;
 		}

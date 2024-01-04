@@ -14,14 +14,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.gui;
+package net.pms.network.webinterfaceserver;
 
-import net.pms.renderers.Renderer;
-import net.pms.renderers.devices.players.PlayerState;
+import java.net.InetAddress;
+import net.pms.PMS;
 
-public interface IRendererGuiListener {
-	public void updateRenderer(final Renderer renderer);
-	public void setActive(final boolean active);
-	public void delete();
-	public void refreshPlayerState(PlayerState state);
+@SuppressWarnings("restriction")
+public class WebInterfaceServerUtil {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebInterfaceServerUtil() {
+	}
+
+	public static boolean deny(InetAddress inetAddress) {
+		return !PMS.getConfiguration().getIpFiltering().allowed(inetAddress) || !PMS.isReady();
+	}
 }

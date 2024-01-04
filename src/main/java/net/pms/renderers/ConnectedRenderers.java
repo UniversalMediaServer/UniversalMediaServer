@@ -103,7 +103,7 @@ public class ConnectedRenderers {
 
 	public static Renderer getRendererByUUID(String uuid) {
 		for (Renderer renderer : getConnectedRenderers()) {
-			if (uuid.equalsIgnoreCase(renderer.getUUID())) {
+			if (uuid.equals(renderer.getUUID())) {
 				return renderer;
 			}
 		}

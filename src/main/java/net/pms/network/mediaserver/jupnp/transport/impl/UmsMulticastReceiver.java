@@ -20,7 +20,7 @@ import java.net.DatagramPacket;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.SocketException;
-import net.pms.network.NetworkDeviceFilter;
+import net.pms.PMS;
 import org.jupnp.model.UnsupportedDataException;
 import org.jupnp.transport.impl.MulticastReceiverConfigurationImpl;
 import org.jupnp.transport.impl.MulticastReceiverImpl;
@@ -47,7 +47,7 @@ public class UmsMulticastReceiver extends MulticastReceiverImpl {
 				socket.receive(datagram);
 
 				//check inetAddress allowed
-				if (!NetworkDeviceFilter.isAllowed(datagram.getAddress())) {
+				if (!PMS.getConfiguration().getIpFiltering().allowed(datagram.getAddress())) {
 					LOGGER.trace("Ip Filtering denying address: {}", datagram.getAddress().getHostAddress());
 					continue;
 				}

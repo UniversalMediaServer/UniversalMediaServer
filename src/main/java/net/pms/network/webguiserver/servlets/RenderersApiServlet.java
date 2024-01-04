@@ -31,11 +31,9 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
-import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.network.webguiserver.RendererItem;
 import net.pms.network.webguiserver.WebGuiServletHelper;
-import net.pms.renderers.RendererFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,10 +48,6 @@ public class RenderersApiServlet extends GuiHttpServlet {
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("renderers", RendererItem.getRenderersAsJsonArray());
-				jsonResponse.addProperty("renderersBlockedByDefault", RendererFilter.getBlockedByDefault());
-				jsonResponse.add("networkDevices", NetworkDeviceFilter.getNetworkDevicesAsJsonArray());
-				jsonResponse.addProperty("networkDevicesBlockedByDefault", NetworkDeviceFilter.getBlockedByDefault());
-				jsonResponse.addProperty("currentTime", System.currentTimeMillis());
 				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else if (path.startsWith("/icon/")) {
 				RendererItem renderer = null;
@@ -118,42 +112,6 @@ public class RenderersApiServlet extends GuiHttpServlet {
 					JsonObject datas = RendererItem.getRemoteControlBrowse(post);
 					if (datas != null) {
 						WebGuiServletHelper.respond(req, resp, datas.toString(), 200, "application/json");
-					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
-					}
-				}
-				case "/renderers" -> {
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
-					if (data != null && data.has("rule")) {
-						String uuid = data.get("rule").getAsString();
-						Boolean isAllowed = data.get("isAllowed").getAsBoolean();
-						if ("DEFAULT".equals(uuid)) {
-							RendererFilter.setBlockedByDefault(!isAllowed);
-						} else {
-							RendererFilter.setAllowed(uuid, isAllowed);
-						}
-					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
-				}
-				case "/devices" -> {
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
-						return;
-					}
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
-					if (data != null && data.has("rule")) {
-						String rule = data.get("rule").getAsString();
-						Boolean isAllowed = data.get("isAllowed").getAsBoolean();
-						if ("DEFAULT".equals(rule)) {
-							NetworkDeviceFilter.setBlockedByDefault(!isAllowed);
-						} else {
-							NetworkDeviceFilter.setAllowed(rule, isAllowed);
-						}
-						WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
 					} else {
 						WebGuiServletHelper.respondBadRequest(req, resp);
 					}
