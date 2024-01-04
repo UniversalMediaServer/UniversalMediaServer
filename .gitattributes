@@ -16,6 +16,29 @@
 *.so binary
 *.dll binary
 *.dylib binary
+*.3g2 binary
+*.avi binary
+*.bmp binary
+*.cue binary
+*.flac binary
+*.flv binary
+*.gif binary
+*.jpg binary
+*.m4v binary
+*.mkv binary
+*.mp3 binary
+*.mp4 binary
+*.mov binary
+*.oga binary
+*.ogg binary
+*.png binary
+*.ra binary
+*.srt binary
+*.tiff binary
+*.ts binary
+*.wav binary
+*.webm binary
+*.wmv binary
 
 # Unix shell scripts must always end in a linefeed
 *.sh eol=lf
