@@ -225,7 +225,6 @@ public class PMS {
 
 	/**
 	 * HTTP server that serves a browser/player of media files.
-	 * Should replace the WebInterfaceServer at end.
 	 */
 	private WebPlayerServer webPlayerServer;
 

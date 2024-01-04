@@ -698,15 +698,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		refreshActiveGui(b);
 	}
 
-	public boolean isAllowed() {
-		return allowed;
-	}
-
-	public void setAllowed(boolean b) {
-		allowed = b;
-		refreshAllowedGui(b);
-	}
-
 	public void setRenew(boolean b) {
 		renew = b;
 	}

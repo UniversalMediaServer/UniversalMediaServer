@@ -52,7 +52,6 @@ public class RendererItem implements IRendererGuiListener {
 
 	private String name;
 	private String address;
-	private String uuid;
 	private String icon;
 	private String iconOverlays;
 	private String playing;
@@ -193,7 +192,6 @@ public class RendererItem implements IRendererGuiListener {
 	private void updateRendererValues() {
 		name = renderer.getRendererName();
 		address = (renderer.getAddress() != null) ? renderer.getAddress().getHostAddress() : "";
-		uuid = (renderer.getUUID() != null) ? renderer.getUUID() : "";
 		icon = renderer.getRendererIcon();
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
@@ -255,7 +253,6 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("id", id);
 		result.addProperty("name", name);
 		result.addProperty("address", address);
-		result.addProperty("uuid", uuid);
 		result.addProperty("icon", icon);
 		result.addProperty("iconOverlays", iconOverlays);
 		result.addProperty("playing", playing);

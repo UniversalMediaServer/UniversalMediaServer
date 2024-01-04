@@ -20,6 +20,10 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Cast, DevicesPc, DevicesPcOff, Dots, Link, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
+import I18nContext from '../../contexts/i18n-context';
+import ServerEventContext from '../../contexts/server-event-context';
+import SessionContext from '../../contexts/session-context';
+import { havePermission, Permissions } from '../../services/accounts-service';
 import { renderersApiUrl } from '../../utils';
 import { Renderer, User } from './Home';
 import MediaChooser, { Media } from './MediaChooser';
@@ -48,6 +52,56 @@ const Renderers = (
   const [controlMedia, setControlMedia] = useState<Media | null>(null);
   const [userChanger, setUserChanger] = useState<Renderer | null>();
   const [userChangerValue, setUserChangerValue] = useState<string | null>(null);
+
+  useEffect(() => {
+    axios.get(renderersApiUrl)
+      .then(function(response: any) {
+        setRenderers(response.data.renderers);
+      })
+      .catch(function() {
+        showNotification({
+          id: 'renderers-data-loading',
+          color: 'red',
+          title: i18n.get['Error'],
+          message: i18n.get['DataNotReceived'],
+          autoClose: 3000,
+        });
+      });
+  }, [i18n]);
+
+  useEffect(() => {
+    if (!sse.hasRendererAction) {
+      return;
+    }
+    const renderersTemp = _.cloneDeep(renderers);
+    while (sse.hasRendererAction) {
+      const rendererAction = sse.getRendererAction() as RendererAction;
+      if (rendererAction === null) {
+        break;
+      }
+      switch (rendererAction.action) {
+        case 'renderer_add': {
+          renderersTemp.push(rendererAction);
+          break;
+        }
+        case 'renderer_delete': {
+          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
+          if (delIndex > -1) {
+            renderersTemp.splice(delIndex, 1);
+          }
+          break;
+        }
+        case 'renderer_update': {
+          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
+          if (index > -1) {
+            renderersTemp[index] = rendererAction;
+          }
+          break;
+        }
+      }
+    }
+    setRenderers(renderersTemp);
+  }, [renderers, sse]);
 
   useEffect(() => {
     if (askInfos < 0) {
@@ -216,6 +270,33 @@ const Renderers = (
     </Grid.Col>
   ));
 
+  const rendererDetail = (
+    <Modal
+      centered
+      scrollAreaComponent={ScrollArea.Autosize}
+      opened={infos != null}
+      onClose={() => setAskInfos(-1)}
+      title={infos?.title}
+    >
+      <Table><tbody>
+        {infos?.details.map((detail: RendererDetail) => (
+          <tr key={detail.key}>
+            <td>{i18n.getI18nString(detail.key)}</td>
+            <td>{detail.value}</td>
+          </tr>
+        ))}
+      </tbody></Table>
+    </Modal>
+  );
+
+  const sendRendererControl = (id: number, action: string, value?: any) => {
+    axios.post(renderersApiUrl + 'control', { 'id': id, 'action': action, 'value': value })
+  }
+
+  const getRenderer = (id: number) => {
+    return renderers.find((renderer) => renderer.id === id);
+  }
+
   const rendererControlled = getRenderer(controlId);
 
   const rendererControls = (rendererControlled !== undefined && (
@@ -309,13 +390,41 @@ const Renderers = (
       {rendererDetail}
       {rendererUserChanger}
       {rendererControls}
-      {renderersHeader}
       <Grid>
         {renderersCards}
       </Grid>
     </>
   );
 };
+
+interface RendererAction extends Renderer {
+  action: string,
+}
+
+interface RendererState {
+  mute: boolean,
+  volume: number,
+  playback: number,
+  name: string,
+  uri: string,
+  metadata: string,
+  position: string,
+  duration: string,
+  buffer: number,
+}
+
+interface Renderer {
+  id: number,
+  name: string,
+  address: string,
+  icon: string,
+  playing: string,
+  time: string,
+  progressPercent: number,
+  isActive: boolean,
+  controls: number,
+  state: RendererState,
+}
 
 interface RendererInfos {
   title: string,
