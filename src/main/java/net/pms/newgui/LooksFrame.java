@@ -684,7 +684,9 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 					autoUpdater.pollServer();
 				}
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater, isStartup);
-				PlatformUtils.INSTANCE.addSystemTray(this, autoUpdater.isUpdateAvailable());
+				if (autoUpdater.isUpdateAvailable()) {
+					PlatformUtils.INSTANCE.addSystemTray(this, true);
+				}
 			} catch (NoClassDefFoundError ncdfe) {
 				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
 			}
