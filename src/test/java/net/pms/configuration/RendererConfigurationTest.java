@@ -142,6 +142,9 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
 
+		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
+		testUPNPDetails("LG TV 2023+", "friendlyName=[LG] webOS TV OLED65C3AUA");
+
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
