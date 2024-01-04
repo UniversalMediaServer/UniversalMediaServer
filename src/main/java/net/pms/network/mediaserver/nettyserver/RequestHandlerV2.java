@@ -32,6 +32,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
@@ -85,11 +86,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				headers.get(HttpHeaders.Names.USER_AGENT).contains("UMS/");
 
 		// Filter if required
-		if (isSelf || filterIp(ia)) {
+		if (isSelf || !NetworkDeviceFilter.isAllowed(ia)) {
 			event.getChannel().close();
-			/*if (isSelf && LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Ignoring self-originating request from {}:{}", ia, remoteAddress.getPort());
-			}*/
 			return;
 		}
 

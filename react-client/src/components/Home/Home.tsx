@@ -22,6 +22,8 @@ import { useContext, useEffect, useState } from 'react';
 import { Check, ExclamationMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import SessionContext from '../../contexts/session-context';
+import ServerEventContext from '../../contexts/server-event-context';
 import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
@@ -196,6 +198,8 @@ const Home = () => {
       <Tabs keepMounted={false} defaultValue='renderers'>
         <Tabs.List>
           <Tabs.Tab value='renderers'>{i18n.get['DetectedMediaRenderers']}</Tabs.Tab>
+          <Tabs.Tab value='blocked_renderers'>{i18n.get['BlockedMediaRenderers']}</Tabs.Tab>
+          <Tabs.Tab value='network_devices'>{i18n.get['NetworkDevices']}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value='renderers' pt='xs'>
           <Renderers
