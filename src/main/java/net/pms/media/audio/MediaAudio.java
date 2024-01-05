@@ -181,13 +181,6 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return whether the audio codec is DTS:X
-	 */
-	public boolean isDTSX() {
-		return FormatConfiguration.DTSX.equalsIgnoreCase(getCodecA());
-	}
-
-	/**
 	 * @return whether the audio codec is EAC-3.
 	 */
 	public boolean isEAC3() {
@@ -394,7 +387,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	 * @return whether the audio codec is AC-3, DTS, DTS-HD or TrueHD.
 	 */
 	public boolean isNonPCMEncodedAudio() {
-		return isAC3() || isAtmos() || isDTS() || isTrueHD() || isDTSHD() || isDTSX();
+		return isAC3() || isAtmos() || isDTS() || isTrueHD() || isDTSHD();
 	}
 
 	/**
@@ -406,7 +399,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
 				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
 				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
-				isWMALossless() || isDTSHD() || isDTSX()
+				isWMALossless() || isDTSHD()
 			);
 	}
 
@@ -446,8 +439,6 @@ public class MediaAudio extends MediaLang implements Cloneable {
 			return "DTS";
 		} else if (isDTSHD()) {
 			return "DTS-HD";
-		} else if (isDTSX()) {
-			return "DTS:X";
 		} else if (isEAC3()) {
 			return "Enhanced AC-3";
 		} else if (isERBSAC()) {
