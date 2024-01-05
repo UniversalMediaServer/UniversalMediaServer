@@ -187,7 +187,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h264-dtshd.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 9513954, Overall Bitrate: 8484186, Duration: 0:00:08.971, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: high, Format Level: 4.1, Stream Order: 0, Duration: 0:00:08.967, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 4], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: DTS:X, Stream Order: 1, Bitrate: 0, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 9513954, Overall Bitrate: 8484186, Duration: 0:00:08.971, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: high, Format Level: 4.1, Stream Order: 0, Duration: 0:00:08.967, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 4], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: DTS-HD, Stream Order: 1, Bitrate: 0, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h264-dtshd_x.mkv").toString()
 		);
 		assertEquals(
@@ -215,7 +215,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_hdr10-aac.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, File Title from Metadata: A Beautiful Planet (2016), Duration: 0:00:01.127, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Stream Order: 0, Duration: 0:00:01.001, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2094 App 4, HDR Format Compatibility: HDR10+ Profile A (hdr10+)], Audio Tracks: 1 [Audio Id: 0, Title: DTS:X, Language Code: eng, Codec: DTS:X, Stream Order: 1, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz, Video Delay: 134], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, File Title from Metadata: A Beautiful Planet (2016), Duration: 0:00:01.127, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Stream Order: 0, Duration: 0:00:01.001, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2094 App 4, HDR Format Compatibility: HDR10+ Profile A (hdr10+)], Audio Tracks: 1 [Audio Id: 0, Title: DTS:X, Language Code: eng, Codec: DTS-HD, Stream Order: 1, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz, Video Delay: 134], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_hdr10+-dtshd_x_imax.mkv").toString()
 		);
 		assertEquals(

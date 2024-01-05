@@ -3356,7 +3356,7 @@
 			</build>
 		</profile>
 		<profile>
-			<id>linter</id>
+			<id>testing-windows</id>
 			<build>
 				<plugins>
 					<plugin>
@@ -3409,6 +3409,13 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>linter</id>
+			<build>
+				<plugins>
 					<!-- Checkstyle report -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -3418,7 +3425,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.12.6</version>
+								<version>10.12.7</version>
 							</dependency>
 						</dependencies>
 						<configuration>
