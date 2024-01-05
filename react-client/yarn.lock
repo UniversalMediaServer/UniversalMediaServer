@@ -3911,24 +3911,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:3.5.3":
-  version: 3.5.3
-  resolution: "@videojs/http-streaming@npm:3.5.3"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": 4.0.0
-    aes-decrypter: 4.0.1
-    global: ^4.4.0
-    m3u8-parser: ^7.1.0
-    mpd-parser: ^1.1.1
-    mux.js: 7.0.0
-    video.js: ^7 || ^8
-  peerDependencies:
-    video.js: ^7 || ^8
-  checksum: 8150ea62a240219fd6596793882f66c4125f885eb667604086b483d7be91a7e42d29e939eb9a6fa172170705a897b3d294aab7c388f243f4ec8d813d71c003de
-  languageName: node
-  linkType: hard
-
 "@videojs/http-streaming@npm:3.9.0":
   version: 3.9.0
   resolution: "@videojs/http-streaming@npm:3.9.0"
@@ -3944,6 +3926,24 @@ __metadata:
   peerDependencies:
     video.js: ^7 || ^8
   checksum: 3d0c5b41e2d5f92ac4fa3614c6d8f11d9a36fe38e7029ffe9f8a297a4ae81731a8e77ca2b8e4464470b56b1df4bc9e835be8db667483b3bad50549ae385f578d
+  languageName: node
+  linkType: hard
+
+"@videojs/http-streaming@npm:3.9.1":
+  version: 3.9.1
+  resolution: "@videojs/http-streaming@npm:3.9.1"
+  dependencies:
+    "@babel/runtime": ^7.12.5
+    "@videojs/vhs-utils": 4.0.0
+    aes-decrypter: 4.0.1
+    global: ^4.4.0
+    m3u8-parser: ^7.1.0
+    mpd-parser: ^1.3.0
+    mux.js: 7.0.2
+    video.js: ^7 || ^8
+  peerDependencies:
+    video.js: ^7 || ^8
+  checksum: a42370ffff6ad85c9e2ee81c35a6f55721fc202b01021d2830777c0551b5e2bbf04e19138de505d35b2bd90f6b2a276dca1650518232e97e7acea5b82302355c
   languageName: node
   linkType: hard
 
@@ -9855,17 +9855,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"m3u8-parser@npm:^6.0.0":
-  version: 6.2.0
-  resolution: "m3u8-parser@npm:6.2.0"
-  dependencies:
-    "@babel/runtime": ^7.12.5
-    "@videojs/vhs-utils": ^3.0.5
-    global: ^4.4.0
-  checksum: 8aa9c726436cbdc3952eaabc34e30317e9f7fd02efc3bc3332b6c93b24ba556ceb0f29b2bdeb1aefe4ef3a5c55070f0f8e14e5f15507ff03750cb10337e926e8
-  languageName: node
-  linkType: hard
-
 "m3u8-parser@npm:^7.1.0":
   version: 7.1.0
   resolution: "m3u8-parser@npm:7.1.0"
@@ -10218,7 +10207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mpd-parser@npm:^1.0.1, mpd-parser@npm:^1.1.1, mpd-parser@npm:^1.2.2, mpd-parser@npm:^1.3.0":
+"mpd-parser@npm:^1.2.2, mpd-parser@npm:^1.3.0":
   version: 1.3.0
   resolution: "mpd-parser@npm:1.3.0"
   dependencies:
@@ -10265,18 +10254,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mux.js@npm:7.0.0":
-  version: 7.0.0
-  resolution: "mux.js@npm:7.0.0"
-  dependencies:
-    "@babel/runtime": ^7.11.2
-    global: ^4.4.0
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: 37a8bb469222d26937b45540601afd43c6556d13df98621e34c378c27e99528af019f664f7b61fbf1a5861ed6f96c207db7f6414d0df126c6f512a1e7ed0bfbb
-  languageName: node
-  linkType: hard
-
 "mux.js@npm:7.0.2, mux.js@npm:^7.0.1":
   version: 7.0.2
   resolution: "mux.js@npm:7.0.2"
@@ -10286,18 +10263,6 @@ __metadata:
   bin:
     muxjs-transmux: bin/transmux.js
   checksum: 1d08d6f57f3b133f69418a1480f2888ec484e8ed53f4b5b7864c3b8eb32d3b673a50d5726a2b6f5e7fe12c5a427667a2e00e3e626e6bc5b565bfe0d10ea475be
-  languageName: node
-  linkType: hard
-
-"mux.js@npm:^6.2.0":
-  version: 6.3.0
-  resolution: "mux.js@npm:6.3.0"
-  dependencies:
-    "@babel/runtime": ^7.11.2
-    global: ^4.4.0
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: dc914bc12ee7d1e8143dc124697db87e41b57c6735a5a0024d5592e9ea424e25f5c19fc6fd7f66333621bb2c5e86120de862049eb62f2c8ac5a17dd5dc54b194
   languageName: node
   linkType: hard
 
@@ -14162,7 +14127,7 @@ __metadata:
     stylis-plugin-rtl: 2.1.1
     tabler-icons-react: 1.56.0
     typescript: 5.2.2
-    video.js: 8.5.2
+    video.js: 8.9.0
     videojs-contrib-quality-levels: 4.0.0
     web-vitals: 3.5.1
   languageName: unknown
@@ -14453,25 +14418,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.5.2":
-  version: 8.5.2
-  resolution: "video.js@npm:8.5.2"
+"video.js@npm:8.9.0":
+  version: 8.9.0
+  resolution: "video.js@npm:8.9.0"
   dependencies:
     "@babel/runtime": ^7.12.5
-    "@videojs/http-streaming": 3.5.3
+    "@videojs/http-streaming": 3.9.1
     "@videojs/vhs-utils": ^4.0.0
     "@videojs/xhr": 2.6.0
     aes-decrypter: ^4.0.1
     global: 4.4.0
     keycode: 2.2.0
-    m3u8-parser: ^6.0.0
-    mpd-parser: ^1.0.1
-    mux.js: ^6.2.0
+    m3u8-parser: ^7.1.0
+    mpd-parser: ^1.2.2
+    mux.js: ^7.0.1
     safe-json-parse: 4.0.0
     videojs-contrib-quality-levels: 4.0.0
     videojs-font: 4.1.0
     videojs-vtt.js: 0.15.5
-  checksum: 2415cd7f08f1cff84c71d0a001455a0f489d9a554180f4cb408f5d83c5f0a32581ac10229b4d2990206ab49ce479f0e049c8627ee081330c55458eeed674bc0a
+  checksum: 1e8a7300e17aa8b2587fab299b0eaa5c5471c399fe154352be770682b7706ddeb87ffda119a2b2be3e0f037da17aa4965420ab932465bf7f5a5618c3359c25a4
   languageName: node
   linkType: hard
 
