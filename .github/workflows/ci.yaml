@@ -253,3 +253,27 @@ jobs:
           wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/23.10/libmediainfo0v5_23.10-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libmediainfo0v5_23.10-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
+
+  lint2:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
+    name: Lint 2
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Run tests
+        run: |
+          mvn verify -P linter -DdisableXmlReport=true -DskipTests
