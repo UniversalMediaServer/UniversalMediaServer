@@ -153,7 +153,7 @@ jobs:
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Run tests
-        run: mvn verify -P testing
+        run: mvn verify -P testing-windows
 
   lint:
     needs: changes
