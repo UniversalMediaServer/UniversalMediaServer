@@ -26,8 +26,7 @@ import java.awt.event.WindowEvent;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.Timer;
 import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.UIDefaults.LazyValue;
@@ -58,7 +57,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LooksFrame extends JFrame implements IGui, Observer {
+public class LooksFrame extends JFrame implements IGui {
 	private static final long serialVersionUID = 8723727186288427690L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(LooksFrame.class);
 	private static final Object LOOK_AND_FEEL_INITIALIZED_LOCK = new Object();
@@ -290,9 +289,8 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 		// Swing Settings
 		initializeLookAndFeel();
 
-		// wait till the look and feel has been initialized before (possibly) displaying the update notification dialog
+		// wait until the look and feel has been initialized before (possibly) displaying the update notification dialog
 		if (autoUpdater != null) {
-			autoUpdater.addObserver(this);
 			autoUpdater.pollServer();
 		}
 
@@ -441,11 +439,22 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 			setVisible(true);
 			setExtendedState(Frame.ICONIFIED);
 		}
-		boolean updateAvailable = false;
-		if (autoUpdater != null) {
-			updateAvailable = autoUpdater.isUpdateAvailable();
+
+		PlatformUtils.INSTANCE.addSystemTray(this, false);
+
+		if (configuration.isAutoUpdate()) {
+			// give the GUI 5 seconds to start before checking for updates
+			Timer t = new Timer();
+			t.schedule(
+				new java.util.TimerTask() {
+					@Override
+					public void run() {
+						checkForUpdates(true);
+					}
+				},
+				5000
+			);
 		}
-		PlatformUtils.INSTANCE.addSystemTray(this, updateAvailable);
 	}
 
 	public static ImageIcon readImageIcon(String filename) {
@@ -662,14 +671,6 @@ public class LooksFrame extends JFrame implements IGui, Observer {
 	@Override
 	public void addEngines() {
 		tr.addEngines();
-	}
-
-	// Fired on AutoUpdater state changes
-	@Override
-	public void update(Observable o, Object arg) {
-		if (configuration.isAutoUpdate()) {
-			checkForUpdates(true);
-		}
 	}
 
 	/**
