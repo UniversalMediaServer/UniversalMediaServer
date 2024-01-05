@@ -1,5 +1,100 @@
 # Changelog
 
+## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
+
+### General
+- Added ability to shut down computer from web settings (thanks, wolfhaus!)
+- Added detection of DTS:X including the IMAX variant
+- Fixed incorrectly detecting some sports events as movies
+- Fixed various documentation typos (thanks, luzpaz!)
+- Fixed detection of DTS-HD
+- Fixed auto updater
+- Removed broken access control that crept in from v14, whoops
+- Improved performance of CI
+
+### Renderers
+- Improved support for LG 2023+ TVs
+
+### Dependencies
+- lock file maintenance
+- update actions/setup-java action to v4
+- update dependency @emotion/react to v11.11.3
+- update dependency @testing-library/jest-dom to v6.2.0
+- update dependency @testing-library/user-event to v14.5.2
+- update dependency @types/node to v18.19.4
+- update dependency @types/react to v18.2.46
+- update dependency @types/react-dom to v18.2.18
+- update dependency @types/react-color to v3.0.11
+- update dependency axios to v1.6.3
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.16.1
+- update dependency com.github.eirslett:frontend-maven-plugin to v1.15.0
+- update dependency com.github.oshi:oshi-core to v6.4.10
+- update dependency com.ibm.icu:icu4j to v74.2 
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.7
+- update dependency eslint to v8.56.0
+- update dependency org.apache.maven.plugins:maven-compiler-plugin to v3.12.1
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.2.3
+- update dependency org.slf4j:slf4j-api to v2.0.10
+- update dependency react-router-dom to v6.21.1
+- update dependency stylis to v4.3.1
+- update dependency web-vitals to v3.5.1
+- update jna monorepo to v5.14.0
+- update logback-version to v1.4.14
+- update mockito monorepo to v5.8.0
+- update typescript-eslint monorepo to v6.17.0 
+
+## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v14) (2023-12-08)
+
+### General
+- Added ability to block/allow renderers in web settings
+- Added ability to block/allow network devices in web settings
+- Added ability to set whether renderers or network devices are blocked or allowed by default
+- Added ability to link people to renderers for independent playback tracking
+- Added ability to restrict share content to certain groups
+- Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
+- File status is saved per-user
+- Added status line on webgui
+- Added flag for movie/tv countries
+- Added original movie/tv series title and country if not same as title
+- Added Rating bar
+- Added option to sort by rating in Media Library
+- Improved memory use bar on the web interface
+- Added ability for user accounts to have avatars
+- Improved selection of video quality on web player
+- Removed ability to disable the local cache
+- Improved drag and drop on Shared Content tab on web settings
+- Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Improved TV series matching and lookups
+- Improved database cleanup step
+- Fixed thumbnail handling bugs
+- Fixed FirstAirDate and LastAirDate for TV series
+
+### Translation updates via Crowdin
+- Danish (60%) (thanks, GurliGebis!)
+- English (UK) (51%) (thanks, Pete Russell!)
+- French (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (Brazilian) (70%) (thanks, Mauro.A!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Renderers
+- Improved support for Samsung The Frame TVs
+- Improved transcoding support on Samsung OLED TVs
+
+### Dependencies
+- Updated h2database to 2.2.224
+- Updated jwt-decode to v4
+- Updated Mantine to v7, which:
+  - Improves performance of the web interface
+  - Improves RTL language support
+  - Uses your system light/dark mode preference
+- Updated NSIS to v3
+- Updated yarn to v4, which improves install performance by 3x
+- Updated web-vitals to 3.5.0
+
 ## [13.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.0...13.8.1) (2023-12-08)
 
 ### General
