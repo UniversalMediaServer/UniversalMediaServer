@@ -52,6 +52,49 @@
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
+## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
+
+### General
+- Added ability to shut down computer from web settings (thanks, wolfhaus!)
+- Added detection of DTS:X including the IMAX variant
+- Fixed incorrectly detecting some sports events as movies
+- Fixed various documentation typos (thanks, luzpaz!)
+- Fixed detection of DTS-HD
+- Fixed auto updater
+- Removed broken access control that crept in from v14, whoops
+- Improved performance of CI
+
+### Renderers
+- Improved support for LG 2023+ TVs
+
+### Dependencies
+- lock file maintenance
+- update actions/setup-java action to v4
+- update dependency @emotion/react to v11.11.3
+- update dependency @testing-library/jest-dom to v6.2.0
+- update dependency @testing-library/user-event to v14.5.2
+- update dependency @types/node to v18.19.4
+- update dependency @types/react to v18.2.46
+- update dependency @types/react-dom to v18.2.18
+- update dependency @types/react-color to v3.0.11
+- update dependency axios to v1.6.3
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.16.1
+- update dependency com.github.eirslett:frontend-maven-plugin to v1.15.0
+- update dependency com.github.oshi:oshi-core to v6.4.10
+- update dependency com.ibm.icu:icu4j to v74.2 
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.7
+- update dependency eslint to v8.56.0
+- update dependency org.apache.maven.plugins:maven-compiler-plugin to v3.12.1
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.2.3
+- update dependency org.slf4j:slf4j-api to v2.0.10
+- update dependency react-router-dom to v6.21.1
+- update dependency stylis to v4.3.1
+- update dependency web-vitals to v3.5.1
+- update jna monorepo to v5.14.0
+- update logback-version to v1.4.14
+- update mockito monorepo to v5.8.0
+- update typescript-eslint monorepo to v6.17.0 
+
 ## [13.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.0...13.8.1) (2023-12-08)
 
 ### General

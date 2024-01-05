@@ -777,13 +777,15 @@ public class MediaInfoParser {
 			// only for audio files:
 			format = FormatConfiguration.MP2;
 			media.setContainer(FormatConfiguration.MP2);
-		} else if (value.equals("ma") || value.equals("ma / core") || value.equals("134")) {
+		} else if (
+			value.equals("ma") ||
+			value.equals("ma / core") ||
+			value.equals("x / ma / core") ||
+			value.equals("imax / x / ma / core") ||
+			value.equals("134")
+		) {
 			if (audio.getCodec() != null && audio.getCodec().equals(FormatConfiguration.DTS)) {
 				format = FormatConfiguration.DTSHD;
-			}
-		} else if (value.equals("x / ma / core") || value.equals("imax / x / ma / core")) {
-			if (audio.getCodec() != null && audio.getCodec().equals(FormatConfiguration.DTS)) {
-				format = FormatConfiguration.DTSX;
 			}
 		} else if (value.equals("vorbis") || value.equals("a_vorbis")) {
 			format = FormatConfiguration.VORBIS;
@@ -886,10 +888,7 @@ public class MediaInfoParser {
 			) &&
 			(
 				audio.getCodec() == null ||
-				(
-					!audio.getCodec().equals(FormatConfiguration.DTSHD) &&
-					!audio.getCodec().equals(FormatConfiguration.DTSX)
-				)
+				!audio.getCodec().equals(FormatConfiguration.DTSHD)
 			)
 		) {
 			format = FormatConfiguration.DTS;

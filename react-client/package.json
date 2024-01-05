@@ -11,7 +11,7 @@
     "@mantine/modals": "7.4.0",
     "@mantine/notifications": "7.4.0",
     "@microsoft/fetch-event-source": "2.0.1",
-    "axios": "1.6.3",
+    "axios": "1.6.4",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
     "react": "18.2.0",
@@ -56,7 +56,7 @@
   "packageManager": "yarn@4.0.2",
   "devDependencies": {
     "@playwright/test": "1.40.1",
-    "@testing-library/jest-dom": "6.1.6",
+    "@testing-library/jest-dom": "6.2.0",
     "@testing-library/react": "14.1.2",
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.11",
