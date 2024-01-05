@@ -133,7 +133,7 @@ jobs:
         needs.changes.outputs.javafiles == 'true' ||
         needs.changes.outputs.cifile == 'true'
       )
-    name: Windows and lint
+    name: Windows
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -152,8 +152,31 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run linter and tests
-        run: mvn verify -P linter
+      - name: Run tests
+        run: mvn verify -P testing
+
+  lint:
+    needs: changes
+    if: |
+      (
+        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
+        (github.event_name == 'pull_request')
+      ) && (
+        needs.changes.outputs.javafiles == 'true' ||
+        needs.changes.outputs.cifile == 'true'
+      )
+    name: Lint
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+          cache: 'maven'
+      - name: Run linter
+        run: mvn verify -P linter -DskipTests
 
   linux-focal:
     needs: changes
