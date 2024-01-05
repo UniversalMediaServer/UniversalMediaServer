@@ -440,6 +440,8 @@ public class LooksFrame extends JFrame implements IGui {
 			setExtendedState(Frame.ICONIFIED);
 		}
 
+		PlatformUtils.INSTANCE.addSystemTray(this, false);
+
 		if (configuration.isAutoUpdate()) {
 			// give the GUI 5 seconds to start before checking for updates
 			Timer t = new Timer();
