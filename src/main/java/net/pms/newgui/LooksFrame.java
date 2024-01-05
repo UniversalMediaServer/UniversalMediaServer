@@ -451,8 +451,8 @@ public class LooksFrame extends JFrame implements IGui {
 					public void run() {
 						checkForUpdates(true);
 					}
-				}, 
-				5000 
+				},
+				5000
 			);
 		}
 	}
