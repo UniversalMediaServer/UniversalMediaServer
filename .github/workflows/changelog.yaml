@@ -4,7 +4,7 @@ on: [push, pull_request]
 jobs:
   changelog:
     if: |
-      github.actor == 'renovate[bot]'
+      github.actor == 'dependabot[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
