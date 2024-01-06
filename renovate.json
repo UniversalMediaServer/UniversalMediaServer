@@ -8,6 +8,7 @@
     "automerge": true,
     "automergeType": "branch"
   },
+  "labels": ["dependencies"],
   "packageRules": [
     {
       "matchSourceUrlPrefixes": ["https://github.com/mantinedev/mantine"],
