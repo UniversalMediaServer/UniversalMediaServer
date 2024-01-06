@@ -23,6 +23,7 @@ jobs:
       - uses: dangoslen/dependabot-changelog-helper@v3
         with:
           activationLabel: 'dependencies'
+          version: ${{ needs.setup.outputs.version }}
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update Changelog"
