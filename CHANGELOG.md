@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `video.js` from 8.5.2 to 8.9.0 ([#4347](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4347))
+
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
 ### General
