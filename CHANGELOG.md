@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
 ### General
