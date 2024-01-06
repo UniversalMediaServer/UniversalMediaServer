@@ -1,9 +1,7 @@
 {
   "extends": ["config:recommended", ":dependencyDashboard"],
   "lockFileMaintenance": {
-    "enabled": true,
-    "automerge": true,
-    "automergeType": "branch"
+    "enabled": true
   },
   "labels": ["dependencies"],
   "packageRules": [
@@ -13,9 +11,7 @@
     },
     {
       "matchUpdateTypes": ["patch"],
-      "matchCurrentVersion": "!/^0/",
-      "automerge": true,
-      "automergeType": "branch"
+      "matchCurrentVersion": "!/^0/"
     }
   ]
 }
