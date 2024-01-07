@@ -254,3 +254,27 @@ jobs:
       - name: Run tests
         run: |
           mvn verify -P linter -DdisableXmlReport=true -DskipTests
+
+  changelog:
+    if: |
+      github.actor == 'dependabot[bot]'
+    needs:
+      - macos-browser
+      - macos
+      - windows-latest
+      - linux-focal
+      - linux-jammy
+      - lint
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: dangoslen/dependabot-changelog-helper@v3
+        with:
+          activationLabel: 'dependencies'
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Update Changelog"
