@@ -260,11 +260,6 @@ jobs:
       github.actor == 'dependabot[bot]'
     needs:
       - macos-browser
-      - macos
-      - windows-latest
-      - linux-focal
-      - linux-jammy
-      - lint
     runs-on: ubuntu-latest
     permissions:
       contents: write
