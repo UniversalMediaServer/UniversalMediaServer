@@ -144,6 +144,11 @@ public class TMDB {
 	}
 
 	private static boolean shouldLookupAndAddMetadata(final File file, final MediaInfo mediaInfo) {
+		if (BACKGROUND_EXECUTOR.isShutdown()) {
+			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
+			return false;
+		}
+
 		if (!CONFIGURATION.getExternalNetwork()) {
 			LOGGER.trace("Not doing background TMDB lookup because external network is disabled");
 			return false;

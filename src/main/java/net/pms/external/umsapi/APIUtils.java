@@ -267,6 +267,11 @@ public class APIUtils {
 	}
 
 	private static boolean shouldLookupAndAddMetadata() {
+		if (BACKGROUND_EXECUTOR.isShutdown()) {
+			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
+			return false;
+		}
+
 		if (!CONFIGURATION.getExternalNetwork()) {
 			LOGGER.trace("Not doing background API lookup because external network is disabled");
 			return false;
