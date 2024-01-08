@@ -776,12 +776,13 @@ public class APIUtils {
 				}
 
 				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+				tvSeriesMetadata.setTvSeriesId(tvSeriesId);
 			}
 			//update MediaVideoMetadata
 			if (videoMetadata != null) {
 				LOGGER.trace("Setting Episode TvSeriesMetadata {}", tvSeriesMetadata.getTitle());
 				videoMetadata.setSeriesMetadata(tvSeriesMetadata);
-				if (!tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
+				if (tvSeriesMetadata.getTvSeriesId() != null && !tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
 					LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
 					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
 				}
