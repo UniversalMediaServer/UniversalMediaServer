@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
+- Bump `@mantine/hooks` from 6.0.21 to 7.4.0 ([#4355](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4355))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
