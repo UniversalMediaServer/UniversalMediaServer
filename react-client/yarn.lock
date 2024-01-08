@@ -2498,17 +2498,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mantine/modals@npm:6.0.21":
-  version: 6.0.21
-  resolution: "@mantine/modals@npm:6.0.21"
-  dependencies:
-    "@mantine/utils": 6.0.21
+"@mantine/modals@npm:7.4.0":
+  version: 7.4.0
+  resolution: "@mantine/modals@npm:7.4.0"
   peerDependencies:
-    "@mantine/core": 6.0.21
-    "@mantine/hooks": 6.0.21
-    react: ">=16.8.0"
-    react-dom: ">=16.8.0"
-  checksum: d4e252e8d24c647f67b41c718beccf1d92c5352aeb9370a917e78de108f770f333fee9afa02d559a34fbc91aa296e69d4c7ee6726a23d1e3535a11977ef33447
+    "@mantine/core": 7.4.0
+    "@mantine/hooks": 7.4.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
+  checksum: d16a3609a39fcd39fce1284da27632054496ee9316676f72c5a3fcb4e68cf14923833a6fd9d2ea75b23ed76b941d07a9737de129013d826fffe27faf42d5405f
   languageName: node
   linkType: hard
 
@@ -14146,7 +14144,7 @@ __metadata:
     "@mantine/dropzone": 6.0.21
     "@mantine/form": 6.0.21
     "@mantine/hooks": 6.0.21
-    "@mantine/modals": 6.0.21
+    "@mantine/modals": 7.4.0
     "@mantine/notifications": 6.0.21
     "@mantine/prism": 6.0.21
     "@microsoft/fetch-event-source": 2.0.1
