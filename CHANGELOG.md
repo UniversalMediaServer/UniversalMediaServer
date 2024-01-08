@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Dependencies
+- Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
+
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v14) (2023-12-08)
 
 ### General
@@ -42,13 +47,17 @@
 - Improved transcoding support on Samsung OLED TVs
 
 ### Dependencies
+- Updated git-commit-id-maven-plugin to 7.0.0
 - Updated h2database to 2.2.224
+- Updated jakarta.servlet-api to 6.0.0
 - Updated jwt-decode to v4
-- Updated Mantine to v7, which:
+- Updated Mantine to v7.4.0, which:
   - Improves performance of the web interface
   - Improves RTL language support
   - Uses your system light/dark mode preference
 - Updated NSIS to v3
+- Updated nsis-maven-plugin to v1.0.5
+- Updated typescript to 5.3.3
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
