@@ -3426,12 +3426,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:18.19.4":
-  version: 18.19.4
-  resolution: "@types/node@npm:18.19.4"
+"@types/node@npm:20.10.7":
+  version: 20.10.7
+  resolution: "@types/node@npm:20.10.7"
   dependencies:
     undici-types: ~5.26.4
-  checksum: 3a32a31b2df85d4bebb5e3c91ec1a0908d587a2a2fd31ab4eeebd609d1c04bbcc9ba97e290e3230f843c9f43f17efb9f5cde56412b4b0f5acbfe5577179b23c8
+  checksum: 86f4f96f5169538f47bbd652ab8e3712cd307701481ff3e9ce0c1ea7d8424a38b5ac4a1d33088cdd9ea1bfe68fd27bbae005a21969aa6d9a36295904da6f09f2
   languageName: node
   linkType: hard
 
@@ -14157,7 +14157,7 @@ __metadata:
     "@testing-library/user-event": 14.5.2
     "@types/jest": 29.5.11
     "@types/lodash": 4.14.202
-    "@types/node": 18.19.4
+    "@types/node": 20.10.7
     "@types/react": 18.2.47
     "@types/react-color": 3.0.11
     "@types/react-dom": 18.2.18
