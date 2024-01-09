@@ -474,6 +474,7 @@ public class MediaStore extends StoreContainer {
 	 * @return
 	 */
 	private StoreResource recreateResource(long id) {
+		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
 			for (MediaStoreId libraryId : libraryIds) {
@@ -489,8 +490,13 @@ public class MediaStore extends StoreContainer {
 			}
 			//now that parent folders are discovered, try to get the resource
 			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+				LOGGER.trace("resource with id '{}' recreacted succefully", id);
 				return weakResources.get(id).get();
+			} else {
+				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
 			}
+		} else {
+			LOGGER.trace("resource with id '{}' was not found in database", id);
 		}
 		return null;
 	}
