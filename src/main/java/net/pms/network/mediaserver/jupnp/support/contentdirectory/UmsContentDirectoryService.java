@@ -270,6 +270,7 @@ public class UmsContentDirectoryService {
 		try {
 			orderByCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a browse action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -318,6 +319,7 @@ public class UmsContentDirectoryService {
 		try {
 			sortCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a search action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -462,6 +464,11 @@ public class UmsContentDirectoryService {
 				if (resource instanceof StoreContainer storeContainer) {
 					parentFolder = storeContainer;
 				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to browse direct children on a store item for objectID '{}' !", objectID);
+					} else {
+						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
+					}
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}
@@ -656,6 +663,11 @@ public class UmsContentDirectoryService {
 				if (resource instanceof StoreContainer storeContainer) {
 					parentFolder = storeContainer;
 				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to search on a store item for containerId '{}' !", containerId);
+					} else {
+						LOGGER.debug("Trying to search on a null object for containerId '{}' !", containerId);
+					}
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}
