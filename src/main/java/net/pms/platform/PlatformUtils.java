@@ -208,9 +208,7 @@ public class PlatformUtils implements IPlatformUtils {
 			final TrayIcon trayIcon = new TrayIcon(trayIconImage, PropertiesUtil.getProjectProperties().get("project.name"), popup);
 
 			trayIcon.setImageAutoSize(true);
-			trayIcon.addActionListener((ActionEvent e) -> {
-				browseURI(PMS.get().getGuiServer().getUrl());
-			});
+			trayIcon.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
 			try {
 				if (tray.getTrayIcons().length > 0) {
 					tray.remove(tray.getTrayIcons()[0]);
