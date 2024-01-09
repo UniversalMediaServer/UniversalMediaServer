@@ -1168,18 +1168,6 @@ public class RequestV2 extends HTTPResource {
 
 		response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 		response.append(CRLF);
-		StoreContainer parentFolder;
-
-		if (resources != null && filessize > 0) {
-			parentFolder = resources.get(0).getParent();
-		} else {
-			StoreResource resource = renderer.getMediaStore().getResource(objectID);
-			if (resource instanceof StoreContainer storeContainer) {
-				parentFolder = storeContainer;
-			} else {
-				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
-			}
-		}
 
 		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, resources are parsed and analyzed *before*
@@ -1197,6 +1185,22 @@ public class RequestV2 extends HTTPResource {
 
 			response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
 		} else if (browseDirectChildren) {
+			StoreContainer parentFolder;
+			if (resources != null && filessize > 0) {
+				parentFolder = resources.get(0).getParent();
+			} else {
+				StoreResource resource = renderer.getMediaStore().getResource(objectID);
+				if (resource instanceof StoreContainer storeContainer) {
+					parentFolder = storeContainer;
+				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to browse direct children on a store item for objectID '{}' !", objectID);
+					} else {
+						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
+					}
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
+			}
 			response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenCount() : filessize) - minus).append("</TotalMatches>");
 		} else {
 			// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
