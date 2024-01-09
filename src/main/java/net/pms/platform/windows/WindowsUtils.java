@@ -490,7 +490,7 @@ public class WindowsUtils extends PlatformUtils {
 
 	@Override
 	protected String getTrayIcon() {
-		return "icon-16.png";
+		return "icon-32.png";
 	}
 
 	private void setVLCRegistryInfo() {
