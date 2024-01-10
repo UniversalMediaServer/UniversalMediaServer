@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
+- Bump `@types/node` from 18.19.4 to 20.10.8 ([#4373](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4373))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
