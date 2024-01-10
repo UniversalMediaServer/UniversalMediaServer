@@ -17,6 +17,7 @@
 package net.pms.database;
 
 import java.sql.*;
+import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,6 +75,7 @@ public class UserDatabase extends Database {
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
+				PMS.setSplashText("upgrading user db");
 				UserTableTablesVersions.checkTable(connection);
 				UserTableGroups.checkTable(connection);
 				UserTableUsers.checkTable(connection);

@@ -165,6 +165,8 @@ public class PMS {
 	 */
 	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
+	private static Splash splash = null;
+
 	/**
 	 * Pointer to a running UMS server.
 	 */
@@ -352,7 +354,30 @@ public class PMS {
 
 		// Start this here to let the conversion work
 		tfm.schedule();
+	}
 
+	public static void createSplash(WindowPropertiesConfiguration conf) {
+		if (splash == null) {
+			splash = new Splash(umsConfiguration, conf.getGraphicsConfiguration());
+		}
+	}
+
+	public static void setSplashText(String text) {
+		if (splash != null) {
+			splash.setText(text);
+		}
+	}
+
+	public static void showSplash(boolean value) {
+		if (splash != null) {
+			splash.setVisible(value);
+		}
+	}
+
+	public static void disposeSplash() {
+		if (splash != null) {
+			splash.dispose();
+		}
 	}
 
 	/**
@@ -391,25 +416,30 @@ public class PMS {
 
 		// Initialize splash screen
 		WindowPropertiesConfiguration windowConfiguration = null;
-		Splash splash = null;
 		if (!isHeadless()) {
 			windowConfiguration = new WindowPropertiesConfiguration(
 				Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat")
 			);
-			splash = new Splash(umsConfiguration, windowConfiguration.getGraphicsConfiguration());
+			createSplash(windowConfiguration);
+			setSplashText("loading");
 		}
 
 		// Call this as early as possible
 		displayBanner();
 
 		// Start network scanner
+		setSplashText("starting network");
 		NetworkConfiguration.start();
 		// Initialize databases
+		setSplashText("init media db");
 		MediaDatabase.init();
+		setSplashText("init user db");
 		UserDatabase.init();
+		setSplashText("reset filters");
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
 		RendererUser.reset();
+		setSplashText("init scanner");
 		MediaScanner.init();
 
 		// Log registered ImageIO plugins
@@ -434,19 +464,16 @@ public class PMS {
 		// Wizard
 		if (umsConfiguration.isRunWizard() && !isHeadless() && !isRunningTests()) {
 			// Hide splash screen
-			if (splash != null) {
-				splash.setVisible(false);
-			}
+			showSplash(false);
 
 			// Run wizard
 			Wizard.run(umsConfiguration);
 
 			// Unhide splash screen
-			if (splash != null) {
-				splash.setVisible(true);
-			}
+			showSplash(true);
 		}
 
+		setSplashText("check update");
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
 			String serverURL = Build.getUpdateServerURL();
@@ -468,6 +495,7 @@ public class PMS {
 
 		// Actions that happen only the first time UMS runs
 		if (!umsConfiguration.hasRunOnce()) {
+			setSplashText("init first run");
 			/*
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
@@ -483,6 +511,7 @@ public class PMS {
 
 		GuiManager.setMediaScanStatus(false);
 		if (!isHeadless()) {
+			setSplashText("starting gui");
 			GuiManager.addGui(new LooksFrame(autoUpdater, umsConfiguration, windowConfiguration));
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
@@ -490,9 +519,7 @@ public class PMS {
 		}
 
 		// Close splash screen
-		if (splash != null) {
-			splash.dispose();
-		}
+		disposeSplash();
 
 		umsConfiguration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {
