@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
