@@ -26,6 +26,7 @@ import net.pms.newgui.LooksFrame;
 import net.pms.renderers.Renderer;
 
 public class GuiManager {
+
 	private static final List<String> LOG_BUFFER = Collections.synchronizedList(new ArrayList<>());
 	private static final int LOG_BUFFER_SIZE = 5000;
 	private static final int BYTES_TO_MBYTES = 1024 * 1024;
@@ -175,6 +176,12 @@ public class GuiManager {
 		}
 		if (webGui != null) {
 			webGui.setStatusLine(line);
+		}
+	}
+
+	public static void showSwingFrame() {
+		if (swingFrame instanceof LooksFrame frame) {
+			frame.setVisible(true);
 		}
 	}
 

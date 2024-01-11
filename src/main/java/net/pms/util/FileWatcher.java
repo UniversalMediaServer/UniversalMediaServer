@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -384,7 +385,7 @@ public class FileWatcher {
 	/**
 	 * A map of file watchpoints by watchkey.
 	 */
-	static class WatchMap extends HashMap<WatchKey, ArrayList<Watch>> {
+	static class WatchMap extends ConcurrentHashMap<WatchKey, ArrayList<Watch>> {
 		private static final long serialVersionUID = 66052264663459389L;
 
 		public void put(WatchKey k, Watch w) {

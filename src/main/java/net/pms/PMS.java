@@ -65,6 +65,8 @@ import net.pms.external.umsapi.APIUtils;
 import net.pms.external.update.AutoUpdater;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.GuiManager;
+import net.pms.gui.splash.Splash;
+import net.pms.gui.systray.SysTray;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.ThreadedProcessWrapper;
@@ -81,7 +83,6 @@ import net.pms.newgui.GuiUtil;
 import net.pms.newgui.LanguageSelection;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
-import net.pms.newgui.Splash;
 import net.pms.newgui.Wizard;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.platform.PlatformUtils;
@@ -164,8 +165,6 @@ public class PMS {
 	 * blocking the next realtime task from starting.
 	 */
 	public static final Lock REALTIME_LOCK = new ReentrantLock();
-
-	private static Splash splash = null;
 
 	/**
 	 * Pointer to a running UMS server.
@@ -356,30 +355,6 @@ public class PMS {
 		tfm.schedule();
 	}
 
-	public static void createSplash(WindowPropertiesConfiguration conf) {
-		if (splash == null) {
-			splash = new Splash(umsConfiguration, conf.getGraphicsConfiguration());
-		}
-	}
-
-	public static void setSplashText(String text) {
-		if (splash != null) {
-			splash.setText(text);
-		}
-	}
-
-	public static void showSplash(boolean value) {
-		if (splash != null) {
-			splash.setVisible(value);
-		}
-	}
-
-	public static void disposeSplash() {
-		if (splash != null) {
-			splash.dispose();
-		}
-	}
-
 	/**
 	 * Initialization procedure.
 	 *
@@ -420,26 +395,26 @@ public class PMS {
 			windowConfiguration = new WindowPropertiesConfiguration(
 				Paths.get(umsConfiguration.getProfileDirectory()).resolve("UMS.dat")
 			);
-			createSplash(windowConfiguration);
-			setSplashText("loading");
+			Splash.create(umsConfiguration, windowConfiguration);
+			Splash.setStatusMessage("Loading");
 		}
 
 		// Call this as early as possible
 		displayBanner();
 
 		// Start network scanner
-		setSplashText("starting network");
+		Splash.setStatusMessage("StartingNetwork");
 		NetworkConfiguration.start();
 		// Initialize databases
-		setSplashText("init media db");
+		Splash.setStatusMessage("InitMediaDb");
 		MediaDatabase.init();
-		setSplashText("init user db");
+		Splash.setStatusMessage("InitUserDb");
 		UserDatabase.init();
-		setSplashText("reset filters");
+		Splash.setStatusMessage("InitFilters");
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
 		RendererUser.reset();
-		setSplashText("init scanner");
+		Splash.setStatusMessage("InitMediaScanner");
 		MediaScanner.init();
 
 		// Log registered ImageIO plugins
@@ -464,18 +439,18 @@ public class PMS {
 		// Wizard
 		if (umsConfiguration.isRunWizard() && !isHeadless() && !isRunningTests()) {
 			// Hide splash screen
-			showSplash(false);
+			Splash.showSplash(false);
 
 			// Run wizard
 			Wizard.run(umsConfiguration);
 
 			// Unhide splash screen
-			showSplash(true);
+			Splash.showSplash(true);
 		}
 
-		setSplashText("check update");
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
+			Splash.setStatusMessage("CheckForUpdates");
 			String serverURL = Build.getUpdateServerURL();
 			autoUpdater = new AutoUpdater(serverURL, getVersion(), getBinariesRevision());
 		}
@@ -495,7 +470,7 @@ public class PMS {
 
 		// Actions that happen only the first time UMS runs
 		if (!umsConfiguration.hasRunOnce()) {
-			setSplashText("init first run");
+			Splash.setStatusMessage("InitFirstRun");
 			/*
 			 * Enable youtube-dl once, to ensure that if it is
 			 * disabled, that was done by the user.
@@ -511,15 +486,17 @@ public class PMS {
 
 		GuiManager.setMediaScanStatus(false);
 		if (!isHeadless()) {
-			setSplashText("starting gui");
+			Splash.setStatusMessage("StartingGui");
 			GuiManager.addGui(new LooksFrame(autoUpdater, umsConfiguration, windowConfiguration));
+			Splash.setStatusMessage("InitSystray");
+			SysTray.addSystemTray();
 		} else {
 			LOGGER.info("Graphics environment not available or headless mode is forced");
 			LOGGER.info("Switching to console mode");
 		}
 
 		// Close splash screen
-		disposeSplash();
+		Splash.disposeSplash();
 
 		umsConfiguration.addConfigurationListener((ConfigurationEvent event) -> {
 			if (!event.isBeforeUpdate()) {

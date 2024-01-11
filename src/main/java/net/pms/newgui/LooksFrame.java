@@ -443,8 +443,6 @@ public class LooksFrame extends JFrame implements IGui {
 			setExtendedState(Frame.ICONIFIED);
 		}
 
-		PlatformUtils.INSTANCE.addSystemTray(this, false);
-
 		if (configuration.isAutoUpdate()) {
 			// give the GUI 5 seconds to start before checking for updates
 			Timer t = new Timer();
@@ -684,7 +682,6 @@ public class LooksFrame extends JFrame implements IGui {
 					autoUpdater.pollServer();
 				}
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater, isStartup);
-				PlatformUtils.INSTANCE.addSystemTray(this, autoUpdater.isUpdateAvailable());
 			} catch (NoClassDefFoundError ncdfe) {
 				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
 			}

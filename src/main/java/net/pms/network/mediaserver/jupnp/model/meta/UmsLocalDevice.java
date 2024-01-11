@@ -107,13 +107,13 @@ public class UmsLocalDevice extends LocalDevice {
 	private static Icon[] createDeviceIcons() {
 		List<Icon> icons = new ArrayList<>();
 		try {
-			icons.add(new Icon("image/png", 256, 256, 24, "images/icon-256.png", getResourceInputStream("images/icon-256.png")));
-			icons.add(new Icon("image/png", 128, 128, 24, "images/icon-128.png", getResourceInputStream("images/icon-128.png")));
-			icons.add(new Icon("image/png", 120, 120, 24, "images/icon-120.png", getResourceInputStream("images/icon-120.png")));
-			icons.add(new Icon("image/png", 48, 48, 24, "images/icon-48.png", getResourceInputStream("images/icon-48.png")));
-			icons.add(new Icon("image/jpeg", 128, 128, 24, "images/icon-128.jpg", getResourceInputStream("images/icon-128.jpg")));
-			icons.add(new Icon("image/jpeg", 120, 120, 24, "images/icon-120.jpg", getResourceInputStream("images/icon-120.jpg")));
-			icons.add(new Icon("image/jpeg", 48, 48, 24, "images/icon-48.jpg", getResourceInputStream("images/icon-48.jpg")));
+			icons.add(new Icon("image/png", 256, 256, 24, "images/icon-square-256.png", getResourceInputStream("images/icon-square-256.png")));
+			icons.add(new Icon("image/png", 128, 128, 24, "images/icon-square-128.png", getResourceInputStream("images/icon-square-128.png")));
+			icons.add(new Icon("image/png", 120, 120, 24, "images/icon-square-120.png", getResourceInputStream("images/icon-square-120.png")));
+			icons.add(new Icon("image/png", 48, 48, 24, "images/icon-square-48.png", getResourceInputStream("images/icon-square-48.png")));
+			icons.add(new Icon("image/jpeg", 128, 128, 24, "images/icon-square-128.jpg", getResourceInputStream("images/icon-square-128.jpg")));
+			icons.add(new Icon("image/jpeg", 120, 120, 24, "images/icon-square-120.jpg", getResourceInputStream("images/icon-square-120.jpg")));
+			icons.add(new Icon("image/jpeg", 48, 48, 24, "images/icon-square-48.jpg", getResourceInputStream("images/icon-square-48.jpg")));
 		} catch (IOException ex) {
 			LOGGER.debug("Error in device icons creation: {}", ex);
 		}

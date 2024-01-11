@@ -272,11 +272,11 @@ public class MacUtils extends PlatformUtils {
 	}
 
 	@Override
-	protected String getTrayIcon() {
+	public String getTrayIcon() {
 		if (isDarkMode()) {
-			return "icon-darkmode.png";
+			return "icon-darkmode-32.png";
 		} else {
-			return "icon-22.png";
+			return "icon-bw-22.png";
 		}
 	}
 
@@ -318,10 +318,13 @@ public class MacUtils extends PlatformUtils {
 			final Process proc = Runtime.getRuntime().exec(new String[]{"defaults", "read", "-g", "AppleInterfaceStyle"});
 			proc.waitFor(100, TimeUnit.MILLISECONDS);
 			return proc.exitValue() == 0;
-		} catch (IOException | InterruptedException | IllegalThreadStateException ex) {
+		} catch (IOException | IllegalThreadStateException ex) {
 			// IllegalThreadStateException thrown by proc.exitValue(), if process didn't terminate
 			LOGGER.warn("Could not determine whether 'dark mode' is being used. Falling back to default (light) mode.");
 			LOGGER.debug("" + ex);
+			return false;
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
 			return false;
 		}
 	}

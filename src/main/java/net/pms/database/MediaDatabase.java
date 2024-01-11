@@ -18,7 +18,7 @@ package net.pms.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import net.pms.PMS;
+import net.pms.gui.splash.Splash;
 import net.pms.store.MediaScanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +79,7 @@ public class MediaDatabase extends Database {
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
-				PMS.setSplashText("upgrading media db");
+				Splash.setStatusMessage("UpgradingMediaDb");
 				//Tables Versions (need to be first)
 				MediaTableTablesVersions.checkTable(connection);
 
