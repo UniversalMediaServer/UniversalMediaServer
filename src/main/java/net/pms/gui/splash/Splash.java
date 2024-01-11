@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-package net.pms.newgui;
+package net.pms.gui.splash;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -35,14 +35,16 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.newgui.components.WindowProperties;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Splash extends JFrame implements MouseListener {
 
-	private static final long serialVersionUID = 2357524127613134620L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Splash.class);
+	private static Splash instance = null;
+
 	private final UmsConfiguration configuration;
 	private final transient Object optionLock = new Object();
 	private JLabel imageLabel;
@@ -50,6 +52,36 @@ public class Splash extends JFrame implements MouseListener {
 	private String status;
 	private String dots;
 	private Timer timer;
+
+	public static void create(UmsConfiguration configuration, WindowProperties.WindowPropertiesConfiguration conf) {
+		if (instance == null) {
+			instance = new Splash(configuration, conf.getGraphicsConfiguration());
+		}
+	}
+
+	public static void setStatusMessage(String text) {
+		if (instance != null) {
+			instance.setText(Messages.getString(text));
+		}
+	}
+
+	public static void setStatus(String text) {
+		if (instance != null) {
+			instance.setText(text);
+		}
+	}
+
+	public static void showSplash(boolean value) {
+		if (instance != null) {
+			instance.setVisible(value);
+		}
+	}
+
+	public static void disposeSplash() {
+		if (instance != null) {
+			instance.dispose();
+		}
+	}
 
 	/**
 	 * Creates a new instance and displays it.

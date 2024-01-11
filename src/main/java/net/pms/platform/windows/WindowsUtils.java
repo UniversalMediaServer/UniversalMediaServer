@@ -489,7 +489,7 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	protected String getTrayIcon() {
+	public String getTrayIcon() {
 		return "icon-32.png";
 	}
 

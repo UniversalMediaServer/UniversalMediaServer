@@ -36,6 +36,7 @@ public class AutoUpdaterServerProperties {
 	private static final String DEFAULT_LATEST_VERSION = "0";
 	private static final String KEY_DOWNLOAD_URL = "DownloadUrl2";
 	private static final String DEFAULT_DOWNLOAD_URL = "";
+
 	private final PropertiesWrapper properties = new PropertiesWrapper();
 	private final OperatingSystem operatingSystem = new OperatingSystem();
 
