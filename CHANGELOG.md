@@ -7,6 +7,7 @@
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
 - Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.18.1 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376))
 - Bump `@typescript-eslint/parser` from 6.17.0 to 6.18.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365))
+- Bump `@mantine/form` from 6.0.21 to 7.4.1 ([#4382](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4382))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
