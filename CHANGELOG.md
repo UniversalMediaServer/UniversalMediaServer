@@ -9,6 +9,7 @@
 - Bump `@typescript-eslint/parser` from 6.17.0 to 6.18.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365))
 - Bump `react-router-dom` from 6.21.1 to 6.21.2 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380))
 - Bump `@playwright/test` from 1.40.1 to 1.41.0 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397))
+- Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.9.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
