@@ -316,7 +316,7 @@ public class WindowsUtils extends PlatformUtils {
 			}
 			if (OS_VERSION.isGreaterThanOrEqualTo("5.1.0")) {
 				try {
-					String[] command = { "reg", "query", "\"HKU\\S-1-5-19\"" };
+					String[] command = {"reg", "query", "\"HKU\\S-1-5-19\""};
 					Process p = Runtime.getRuntime().exec(command);
 					p.waitFor();
 					int exitValue = p.exitValue();
