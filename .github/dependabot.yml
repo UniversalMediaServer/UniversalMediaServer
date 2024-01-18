@@ -9,6 +9,16 @@ updates:
     directory: "/react-client"
     schedule:
       interval: "daily"
+    groups:
+      eslint:
+        patterns:
+        - "*eslint*|eslint|eslint*"
+      mantine:
+        patterns:
+        - "@mantine*"
+      react:
+        patterns:
+        - "react|react-dom"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
