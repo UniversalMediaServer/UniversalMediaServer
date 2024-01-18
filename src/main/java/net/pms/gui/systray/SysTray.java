@@ -18,12 +18,14 @@ package net.pms.gui.systray;
 
 import java.awt.AWTException;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
@@ -124,7 +126,9 @@ public class SysTray implements ChangeListener {
 	 * @return The tray icon.
 	 */
 	private static Image resolveTrayIcon(boolean updateAvailable) {
-		String icon = PlatformUtils.INSTANCE.getTrayIcon();
+		double width = SystemTray.getSystemTray().getTrayIconSize().getWidth();
+		AffineTransform tx = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getDefaultTransform();
+		String icon = PlatformUtils.INSTANCE.getTrayIcon(width * tx.getScaleX());
 		try {
 			BufferedImage image = ImageIO.read(SysTray.class.getResource("/resources/images/" + icon));
 			if (updateAvailable) {

@@ -64,7 +64,7 @@ public interface IPlatformUtils {
 
 	public boolean isNetworkInterfaceLoopback(NetworkInterface ni) throws SocketException;
 
-	public abstract String getTrayIcon();
+	public abstract String getTrayIcon(double pixels);
 
 	/**
 	 * Fetch the hardware address for a network interface.
