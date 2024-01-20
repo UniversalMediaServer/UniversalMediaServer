@@ -252,6 +252,7 @@ public class OpenSubtitle {
 					Thread.sleep(retrySleepMS);
 				} catch (InterruptedException e) {
 					LOGGER.debug("OpenSubtitles was interrupted while waiting to retry a request to {}", connection.getURL().getHost());
+					Thread.currentThread().interrupt();
 					throw new OpenSubtitlesException("Interrupted while waiting to retry", e);
 				}
 			} else {
@@ -302,8 +303,8 @@ public class OpenSubtitle {
 			// Setup connection
 			URL url;
 			try {
-				url = new URL(OPENSUBS_URL);
-			} catch (MalformedURLException e) {
+				url = URI.create(OPENSUBS_URL).toURL();
+			} catch (IllegalArgumentException | MalformedURLException e) {
 				throw new AssertionError("OpenSubtitles URL \"" + OPENSUBS_URL + "\" is invalid");
 			}
 
@@ -1862,7 +1863,7 @@ public class OpenSubtitle {
 			if (user != null && user.getContentLocation() != null) {
 				try {
 					return user.getContentLocation().toURL();
-				} catch (MalformedURLException e) {
+				} catch (IllegalArgumentException | MalformedURLException e) {
 					LOGGER.error("OpenSubtitles: Not using user specified API URL: {}", e.getMessage());
 					LOGGER.trace("", e);
 				}

@@ -16,9 +16,9 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.*;
+import com.jgoodies.forms.factories.Paddings;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Container;
@@ -35,7 +35,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.text.DecimalFormat;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -172,17 +172,14 @@ public class StatusTab {
 			//                   //////////////////////////////////////////////////
 		);
 
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DIALOG);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DIALOG);
 		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		// Renderers
-		JComponent cmp = builder.addSeparator(Messages.getString("DetectedMediaRenderers"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		Font bold = cmp.getFont().deriveFont(Font.BOLD);
+		builder.addSeparator(Messages.getString("DetectedMediaRenderers")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		Color fgColor = new Color(68, 68, 68);
-		cmp.setFont(bold);
 
 		renderers = new JPanel(new GuiUtil.WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
@@ -193,9 +190,9 @@ public class StatusTab {
 		rsp.setPreferredSize(new Dimension(0, 260));
 		rsp.getHorizontalScrollBar().setLocation(0, 250);
 
-		builder.add(rsp, cc.xyw(1, 3, 5));
+		builder.add(rsp).at(cc.xyw(1, 3, 5));
 
-		builder.addSeparator(null, FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
+		builder.addSeparator(null).at(FormLayoutUtil.flip(cc.xyw(1, 5, 5), colSpec, orientation));
 
 		connectedIcon.start();
 		searchingIcon.start();
@@ -204,27 +201,27 @@ public class StatusTab {
 
 		// Bitrate
 		String conColSpec = "left:pref, 3dlu, right:pref:grow";
-		PanelBuilder connectionBuilder = new PanelBuilder(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
-		connectionBuilder.add(connectionStatus, FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
+		UmsFormBuilder connectionBuilder = UmsFormBuilder.create().layout(new FormLayout(conColSpec, "p, 1dlu, p, 1dlu, p"));
+		connectionBuilder.add(connectionStatus).at(FormLayoutUtil.flip(cc.xywh(1, 1, 1, 3, "center, fill"), conColSpec, orientation));
 		// Set initial connection state
 		setConnectionState(EConnectionState.SEARCHING);
 
 		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);
-		connectionBuilder.add(mediaServerLabel, FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
+		connectionBuilder.add(mediaServerLabel).at(FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
 		mediaServerBindLabel = new JLabel("-");
 		mediaServerBindLabel.setForeground(fgColor);
 		mediaServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		mediaServerBindLabel.addMouseListener(new ServerBindMouseListener(mediaServerBindLabel));
 		mediaServerBindLabel.setToolTipText(Messages.getString("MediaServerIpAddress"));
-		connectionBuilder.add(mediaServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 3, "left, top"), conColSpec, orientation));
+		connectionBuilder.add(mediaServerBindLabel).at(FormLayoutUtil.flip(cc.xy(3, 3, "left, top"), conColSpec, orientation));
 		interfaceServerBindLabel = new JLabel("-");
 		interfaceServerBindLabel.setForeground(fgColor);
 		interfaceServerBindLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		interfaceServerBindLabel.addMouseListener(new ServerBindMouseListener(interfaceServerBindLabel));
 		interfaceServerBindLabel.setToolTipText(Messages.getString("WebSettingsServerIpAddress"));
-		connectionBuilder.add(interfaceServerBindLabel, FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
-		builder.add(connectionBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
+		connectionBuilder.add(interfaceServerBindLabel).at(FormLayoutUtil.flip(cc.xy(3, 5, "left, top"), conColSpec, orientation));
+		builder.add(connectionBuilder.getPanel()).at(FormLayoutUtil.flip(cc.xywh(1, 7, 1, 3, "left, top"), colSpec, orientation));
 
 		// Memory
 		memBarUI = new GuiUtil.SegmentedProgressBarUI(Color.white, Color.gray);
@@ -239,35 +236,36 @@ public class StatusTab {
 		memoryProgressBar.setForeground(new Color(75, 140, 181));
 		memoryProgressBar.setString(Messages.getString("Empty"));
 
-		JLabel mem = builder.addLabel("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>", FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		JLabel mem = new JLabel("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>");
 		mem.setForeground(fgColor);
-		builder.add(memoryProgressBar, FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
+		builder.add(mem).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		builder.add(memoryProgressBar).at(FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
-		PanelBuilder bitrateBuilder = new PanelBuilder(new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p"));
+		UmsFormBuilder bitrateBuilder = UmsFormBuilder.create().layout((new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p")));
 
 		JLabel bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(bitrateLabel, FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
+		bitrateBuilder.add(bitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
 		JLabel currentBitrateLabel = new JLabel(Messages.getString("Current"));
 		currentBitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
+		bitrateBuilder.add(currentBitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
 		currentBitrate = new JLabel("0");
 		currentBitrate.setForeground(fgColor);
-		bitrateBuilder.add(currentBitrate, FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
+		bitrateBuilder.add(currentBitrate).at(FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
 		JLabel peakBitrateLabel = new JLabel(Messages.getString("Peak"));
 		peakBitrateLabel.setForeground(fgColor);
-		bitrateBuilder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
+		bitrateBuilder.add(peakBitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 
 		peakBitrate = new JLabel("0");
 		peakBitrate.setForeground(fgColor);
-		bitrateBuilder.add(peakBitrate, FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
+		bitrateBuilder.add(peakBitrate).at(FormLayoutUtil.flip(cc.xy(3, 5), bitColSpec, orientation));
 
-		builder.add(bitrateBuilder.getPanel(), FormLayoutUtil.flip(cc.xywh(5, 7, 1, 3, "left, top"), colSpec, orientation));
+		builder.add(bitrateBuilder.getPanel()).at(FormLayoutUtil.flip(cc.xywh(5, 7, 1, 3, "left, top"), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -345,7 +343,7 @@ public class StatusTab {
 
 			if (icon.matches(".*\\S+://.*")) {
 				try {
-					bi = ImageIO.read(new URL(icon));
+					bi = ImageIO.read(URI.create(icon).toURL());
 				} catch (IOException e) {
 					LOGGER.debug("Error reading icon url: " + e);
 				}
@@ -540,17 +538,17 @@ public class StatusTab {
 
 		public JPanel getPanel() {
 			if (panel == null) {
-				PanelBuilder b = new PanelBuilder(new FormLayout(
+				UmsFormBuilder b = UmsFormBuilder.create().layout(new FormLayout(
 					"center:pref",
 					"max(140px;pref), 3dlu, pref, 2dlu, pref, 2dlu, pref, 2dlu, pref"
 				));
 				b.opaque(true);
 				CellConstraints cc = new CellConstraints();
-				b.add(icon, cc.xy(1, 1));
-				b.add(label, cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-				b.add(rendererProgressBar, cc.xy(1, 5));
-				b.add(playing, cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
-				b.add(time, cc.xy(1, 9));
+				b.add(icon).at(cc.xy(1, 1));
+				b.add(label).at(cc.xy(1, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(rendererProgressBar).at(cc.xy(1, 5));
+				b.add(playing).at(cc.xy(1, 7, CellConstraints.CENTER, CellConstraints.DEFAULT));
+				b.add(time).at(cc.xy(1, 9));
 				panel = b.getPanel();
 			}
 			return panel;

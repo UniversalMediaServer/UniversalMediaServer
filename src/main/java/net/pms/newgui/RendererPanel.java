@@ -16,7 +16,6 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
@@ -47,7 +46,7 @@ public class RendererPanel extends JPanel {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 	private static final RowSpec RSPEC = RowSpec.decode("center:pref");
 
-	private final Renderer renderer;
+	private final transient Renderer renderer;
 	private final CellConstraints cc = new CellConstraints();
 	private JPanel editBar;
 	private boolean ready = false;
@@ -58,19 +57,19 @@ public class RendererPanel extends JPanel {
 
 	public JPanel buildPanel() {
 		FormLayout layout = new FormLayout("left:pref, 400:grow");
-		PanelBuilder builder = new PanelBuilder(layout);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
 		builder.border(new EmptyBorder(10, 10, 10, 10));
 		int y = 0;
 
 		builder.appendRow(RSPEC);
 		editBar = new JPanel();
 		editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
-		builder.add(editBar, cc.xyw(1, ++y, 2));
+		builder.add(editBar).at(cc.xyw(1, ++y, 2));
 		if (/*renderer.loaded &&*/ !renderer.isFileless()) {
 			buildEditBar(false);
 		}
 		builder.appendRow(RSPEC);
-		builder.addLabel(" ", cc.xy(1, ++y));
+		builder.addLabel(" ").at(cc.xy(1, ++y));
 
 		y = addMap(renderer.getDetails(), builder, y);
 		if (renderer.isUpnp()) {
@@ -80,11 +79,11 @@ public class RendererPanel extends JPanel {
 
 		if (renderer.isControllable()) {
 			builder.appendRow(RSPEC);
-			builder.addLabel(" ", cc.xy(1, ++y));
+			builder.addLabel(" ").at(cc.xy(1, ++y));
 			builder.appendRow(RSPEC);
-			builder.addSeparator(Messages.getString("Controls"), cc.xyw(1, ++y, 2));
+			builder.addSeparator(Messages.getString("Controls")).at(cc.xyw(1, ++y, 2));
 			builder.appendRow(RSPEC);
-			builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
+			builder.add(new PlayerControlPanel(renderer.getPlayer())).at(cc.xyw(1, ++y, 2));
 		}
 		return builder.getPanel();
 	}
@@ -248,24 +247,24 @@ public class RendererPanel extends JPanel {
 		};
 	}
 
-	public int addItem(String key, String value, PanelBuilder builder, int y) {
+	public int addItem(String key, String value, UmsFormBuilder builder, int y) {
 		builder.appendRow(RSPEC);
-		builder.addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
+		builder.addLabel(key.length() > 0 ? key + ":  " : "").at(cc.xy(1, ++y));
 		JTextField val = new JTextField(value);
 		val.setEditable(false);
 		val.setBackground(Color.white);
-		builder.add(val, cc.xy(2, y));
+		builder.add(val).at(cc.xy(2, y));
 		return y;
 	}
 
-	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
+	public int addMap(Map<String, String> map, UmsFormBuilder builder, int y) {
 		for (Map.Entry<String, String> entry : map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;
 	}
 
-	public int addStrings(String title, String[] strings, PanelBuilder builder, int y) {
+	public int addStrings(String title, String[] strings, UmsFormBuilder builder, int y) {
 		for (String string : strings) {
 			y = addItem(title, string, builder, y);
 			title = "";
@@ -273,7 +272,7 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addList(String title, List<String> list, PanelBuilder builder, int y) {
+	public int addList(String title, List<String> list, UmsFormBuilder builder, int y) {
 		for (String item : list) {
 			y = addItem(title, item, builder, y);
 			title = "";

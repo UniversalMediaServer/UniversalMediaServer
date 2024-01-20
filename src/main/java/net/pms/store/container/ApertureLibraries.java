@@ -54,7 +54,7 @@ public class ApertureLibraries extends LocalizedStoreContainer {
 			Process process = null;
 
 			try {
-				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
+				process = Runtime.getRuntime().exec(new String[]{"defaults", "read", "com.apple.iApps", "ApertureLibraries"});
 				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 					// Every line entry is one aperture library. We want all of them as a dlna folder.
 					String line;

@@ -21,6 +21,7 @@ import com.ibm.icu.text.CharsetMatch;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -274,14 +275,23 @@ public class FileUtil {
 		return null;
 	}
 
-	public static String urlJoin(String base, String filename) {
+	public static URL urlFrom(String base, String filename) throws MalformedURLException {
 		if (isUrl(filename)) {
-			return filename;
+			return URI.create(filename).normalize().toURL();
 		}
+		if (filename == null || filename.isEmpty()) {
+			filename = "/";
+		}
+		if (filename.charAt(0) != '/') {
+			filename = '/' + filename;
+		}
+		return URI.create(base).normalize().resolve(filename).toURL();
+	}
 
+	public static String urlJoin(String base, String filename) {
 		try {
-			return new URL(new URL(base), filename).toString();
-		} catch (MalformedURLException e) {
+			return urlFrom(base, filename).toString();
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			return filename;
 		}
 	}

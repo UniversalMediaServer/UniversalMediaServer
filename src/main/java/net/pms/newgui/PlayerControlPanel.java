@@ -235,7 +235,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public final void addUriControls(Container parent) {
-		uris = new JComboBox(player.getPlaylist());
+		uris = new JComboBox<>(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
 		// limit width to available space

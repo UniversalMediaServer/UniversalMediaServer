@@ -16,15 +16,13 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -128,8 +126,8 @@ public class SharedContentTab implements SharedContentListener {
 
 		// Set basic layout
 		FormLayout layout = new FormLayout(colSpec, PANEL_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DLU4);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DLU4);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
@@ -140,7 +138,7 @@ public class SharedContentTab implements SharedContentListener {
 		// Load WEB.conf after we are sure the GUI has initialized
 		SharedContentConfiguration.addListener(this);
 
-		builder.add(sharedContentPanel, FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
+		builder.add(sharedContentPanel).at(FormLayoutUtil.flip(cc.xyw(1, 1, 12), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -167,18 +165,16 @@ public class SharedContentTab implements SharedContentListener {
 		refreshSharedContent();
 	}
 
-	private PanelBuilder initSharedContentGuiComponents(CellConstraints cc) {
+	private UmsFormBuilder initSharedContentGuiComponents(CellConstraints cc) {
 		// Apply the orientation for the locale
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(SHARED_FOLDER_COL_SPEC, orientation);
 
 		FormLayout layoutFolders = new FormLayout(colSpec, SHARED_FOLDER_ROW_SPEC);
-		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
+		UmsFormBuilder builderFolder = UmsFormBuilder.create().layout(layoutFolders);
 		builderFolder.opaque(true);
 
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("SharedContent"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builderFolder.addSeparator(Messages.getString("SharedContent")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 
 		sharedContentTableModel = new SharedContentTableModel();
 		sharedContentList = new JTable(sharedContentTableModel);
@@ -223,7 +219,7 @@ public class SharedContentTab implements SharedContentListener {
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(addFolderButton, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		builderFolder.add(addFolderButton).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		JImageButton addWebContentButton = new JImageButton("button-add-webcontent.png");
 		addWebContentButton.setToolTipText(Messages.getString("AddNewWebContent"));
@@ -353,7 +349,7 @@ public class SharedContentTab implements SharedContentListener {
 				}
 			}
 		});
-		builderFolder.add(addWebContentButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builderFolder.add(addWebContentButton).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		JImageButton removeButton = new JImageButton("button-remove-folder.png");
 		removeButton.setToolTipText(Messages.getString("RemoveSelectedSharedContent"));
@@ -367,7 +363,7 @@ public class SharedContentTab implements SharedContentListener {
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(removeButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+		builderFolder.add(removeButton).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 		JImageButton arrowDownButton = new JImageButton("button-arrow-down.png");
 		arrowDownButton.setToolTipText(Messages.getString("MoveSelectedContentDown"));
@@ -380,7 +376,7 @@ public class SharedContentTab implements SharedContentListener {
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builderFolder.add(arrowDownButton).at(FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
 		JImageButton arrowUpButton = new JImageButton("button-arrow-up.png");
 		arrowUpButton.setToolTipText(Messages.getString("MoveSelectedContentUp"));
@@ -393,7 +389,7 @@ public class SharedContentTab implements SharedContentListener {
 				SharedContentConfiguration.updateSharedContent(sharedContentArray, true);
 			}
 		});
-		builderFolder.add(arrowUpButton, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+		builderFolder.add(arrowUpButton).at(FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 
 		SCAN_BUTTON.setToolTipText(Messages.getString("ScanAllSharedFolders"));
 		SCAN_BUSY_ICON.start();
@@ -425,7 +421,7 @@ public class SharedContentTab implements SharedContentListener {
 		 * realtime.
 		 */
 		if (!configuration.isHideAdvancedOptions()) {
-			builderFolder.add(SCAN_BUTTON, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
+			builderFolder.add(SCAN_BUTTON).at(FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 		}
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setSelected(configuration.isScanSharedFoldersOnStartup());
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setContentAreaFilled(false);
@@ -433,12 +429,12 @@ public class SharedContentTab implements SharedContentListener {
 			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisControlsUmsScanShared"));
-		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP, FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
+		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP).at(FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
 		JScrollPane pane = new JScrollPane(sharedContentList);
 		Dimension d = sharedContentList.getPreferredSize();
 		pane.setPreferredSize(new Dimension(d.width, sharedContentList.getRowHeight() * 2));
-		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
+		builderFolder.add(pane).at(FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
 	}

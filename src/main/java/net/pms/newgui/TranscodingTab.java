@@ -16,8 +16,7 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
@@ -120,20 +119,19 @@ public class TranscodingTab {
 
 	public JComponent build() {
 		String colSpec = FormLayoutUtil.getColSpec(MAIN_COL_SPEC, orientation);
-		FormLayout mainlayout = new FormLayout(colSpec, MAIN_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(mainlayout);
-		builder.border(Borders.DLU4);
-
+		FormLayout layout = new FormLayout(colSpec, MAIN_ROW_SPEC);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DLU4);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.add(buildRightTabbedPanel(), FormLayoutUtil.flip(cc.xyw(4, 1, 3), colSpec, orientation));
-			builder.add(buildLeft(), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+			builder.add(buildRightTabbedPanel()).at(FormLayoutUtil.flip(cc.xyw(4, 1, 3), colSpec, orientation));
+			builder.add(buildLeft()).at(FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
 		} else {
-			builder.add(buildRightTabbedPanel(), FormLayoutUtil.flip(cc.xyw(2, 1, 5), colSpec, orientation));
-			builder.add(buildLeft(), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+			builder.add(buildRightTabbedPanel()).at(FormLayoutUtil.flip(cc.xyw(2, 1, 5), colSpec, orientation));
+			builder.add(buildLeft()).at(FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -184,8 +182,8 @@ public class TranscodingTab {
 	public JComponent buildLeft() {
 		String colSpec = FormLayoutUtil.getColSpec(LEFT_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, LEFT_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
@@ -214,7 +212,7 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(arrowDownButton, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builder.add(arrowDownButton).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		arrowUpButton = new JImageButton("button-arrow-up.png");
 		arrowUpButton.setToolTipText(Messages.getString("ChangePositionSelectedEngine"));
@@ -239,7 +237,7 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(arrowUpButton, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+		builder.add(arrowUpButton).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 		toggleButton = new JImageButton();
 		toggleButton.setToolTipText(Messages.getString("EnableDisableTranscodingEngine"));
@@ -256,7 +254,7 @@ public class TranscodingTab {
 				setButtonsState();
 			}
 		});
-		builder.add(toggleButton, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builder.add(toggleButton).at(FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode(Messages.getString("Engines"));
 		TreeNodeSettings commonEnc = new TreeNodeSettings(Messages.getString("CommonTranscodeSettings"), null, buildCommon());
@@ -297,10 +295,10 @@ public class TranscodingTab {
 		tree.setCellRenderer(new TreeRenderer());
 		JScrollPane pane = new JScrollPane(tree, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(2, 1, 4), colSpec, orientation));
+		builder.add(pane).at(FormLayoutUtil.flip(cc.xyw(2, 1, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("EnginesAreInDescending"), FormLayoutUtil.flip(cc.xyw(2, 5, 4), colSpec, orientation));
-		builder.addLabel(Messages.getString("OrderTheHighestIsFirst"), FormLayoutUtil.flip(cc.xyw(2, 7, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("EnginesAreInDescending")).at(FormLayoutUtil.flip(cc.xyw(2, 5, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("OrderTheHighestIsFirst")).at(FormLayoutUtil.flip(cc.xyw(2, 7, 4), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -342,8 +340,8 @@ public class TranscodingTab {
 	public JComponent buildEmpty() {
 		String colSpec = FormLayoutUtil.getColSpec(EMPTY_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, EMPTY_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
@@ -361,22 +359,20 @@ public class TranscodingTab {
 	public JComponent buildCommon() {
 		String colSpec = FormLayoutUtil.getColSpec(COMMON_COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, COMMON_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, 1, 3), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 3), colSpec, orientation));
 
 		disableSubs = new JCheckBox(Messages.getString("DisableSubtitles"), configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
 		disableSubs.addItemListener((ItemEvent e) -> configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
 
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.addLabel(Messages.getString("MaximumTranscodeBufferSize"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("MaximumTranscodeBufferSize")).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
 			maxbuffer.setToolTipText(Messages.getString("UsingSettingHigherThan200"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
@@ -390,10 +386,10 @@ public class TranscodingTab {
 					}
 				}
 			});
-			builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+			builder.add(maxbuffer).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
 			String nCpusLabel = String.format(Messages.getString("CpuThreadsToUse"), Runtime.getRuntime().availableProcessors());
-			builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+			builder.addLabel(nCpusLabel).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 			Integer[] guiCores = new Integer[MAX_CORES];
 			for (int i = 0; i < MAX_CORES; i++) {
@@ -408,10 +404,8 @@ public class TranscodingTab {
 				nbcores.setSelectedIndex(0);
 			}
 
-			nbcores.addItemListener((ItemEvent e) -> {
-				configuration.setNumberOfCpuCores((int) e.getItem());
-			});
-			builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
+			nbcores.addItemListener((ItemEvent e) -> configuration.setNumberOfCpuCores((int) e.getItem()));
+			builder.add(nbcores).at(FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 
 			JCheckBox chapterSupport = new JCheckBox(Messages.getString("ChaptersSupportInTranscodeFolder"), configuration.isChapterSupport());
 			chapterSupport.setContentAreaFilled(false);
@@ -419,7 +413,7 @@ public class TranscodingTab {
 				configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
 				chapterInterval.setEnabled(configuration.isChapterSupport());
 			});
-			builder.add(GuiUtil.getPreferredSizeComponent(chapterSupport), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(chapterSupport)).at(FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 
 			chapterInterval = new JTextField("" + configuration.getChapterInterval());
 			chapterInterval.setEnabled(configuration.isChapterSupport());
@@ -434,10 +428,10 @@ public class TranscodingTab {
 					}
 				}
 			});
-			builder.add(chapterInterval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+			builder.add(chapterInterval).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs)).at(FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		} else {
-			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(disableSubs)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 		}
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
@@ -448,7 +442,7 @@ public class TranscodingTab {
 		setupTabbedPanel.addTab(Messages.getString("SubtitlesSettings"), buildSubtitlesSetupPanel());
 
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
+			builder.add(setupTabbedPanel).at(FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -460,26 +454,24 @@ public class TranscodingTab {
 	private JComponent buildVideoSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref");
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DLU4);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DLU4);
 		CellConstraints cc = new CellConstraints();
 
 		videoHWacceleration = new JCheckBox(Messages.getString("EnableGpuAcceleration"), configuration.isGPUAcceleration());
 		videoHWacceleration.addItemListener((ItemEvent e) -> configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(videoHWacceleration), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(videoHWacceleration)).at(FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
 
 		JCheckBox mpeg2remux = new JCheckBox(Messages.getString("LosslessDvdVideoPlayback"), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setToolTipText(Messages.getString("WhenEnabledMuxesDvd") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener((ItemEvent e) -> configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(mpeg2remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(mpeg2remux)).at(FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
-		JComponent cmp = builder.addSeparator(Messages.getString("MiscSettings"), FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("MiscSettings")).at(FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TranscodingQualityMpeg2")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.add(new JLabel(Messages.getString("TranscodingQualityMpeg2"))).at(FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		String[] keys = new String[] {
 			"Automatic (Wired)",
 			"Automatic (Wireless)",
@@ -532,9 +524,9 @@ public class TranscodingTab {
 			}
 		});
 		vq.setEditable(true);
-		builder.add(vq, FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
+		builder.add(vq).at(FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TranscodingQualityH264")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(new JLabel(Messages.getString("TranscodingQualityH264"))).at(FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		keys = new String[] {
 			"Automatic (Wired)",
 			"Automatic (Wireless)",
@@ -562,9 +554,9 @@ public class TranscodingTab {
 			}
 		});
 		x264Quality.setEditable(true);
-		builder.add(x264Quality, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(x264Quality).at(FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("SkipTranscodingFollowingExtensions")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.add(new JLabel(Messages.getString("SkipTranscodingFollowingExtensions"))).at(FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
 		notranscode.setToolTipText(Messages.getString("ThisOverridesRendererConfiguration"));
 		notranscode.addKeyListener(new KeyAdapter() {
@@ -573,9 +565,9 @@ public class TranscodingTab {
 				configuration.setDisableTranscodeForExtensions(notranscode.getText());
 			}
 		});
-		builder.add(notranscode, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(notranscode).at(FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("ForceTranscodingFollowingExtensions"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
+		builder.addLabel(Messages.getString("ForceTranscodingFollowingExtensions")).at(FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
 		forcetranscode.setToolTipText(Messages.getString("ThisOverridesRendererConfiguration"));
 		forcetranscode.addKeyListener(new KeyAdapter() {
@@ -584,7 +576,7 @@ public class TranscodingTab {
 				configuration.setForceTranscodeForExtensions(forcetranscode.getText());
 			}
 		});
-		builder.add(forcetranscode, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
+		builder.add(forcetranscode).at(FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
@@ -595,11 +587,11 @@ public class TranscodingTab {
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DLU4);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DLU4);
 		CellConstraints cc = new CellConstraints();
 
-		builder.addLabel(Messages.getString("MaximumNumberAudioChannelsOutput"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
+		builder.addLabel(Messages.getString("MaximumNumberAudioChannelsOutput")).at(FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
 		Integer[] keys = new Integer[] {2, 6};
 		String[] values = new String[] {
@@ -612,26 +604,26 @@ public class TranscodingTab {
 		channels.setEditable(false);
 		audioChannelsModel.setSelectedKey(configuration.getAudioChannelCount());
 		channels.addItemListener((ItemEvent e) -> configuration.setAudioChannelCount(audioChannelsModel.getSelectedKey()));
-		builder.add(GuiUtil.getPreferredSizeComponent(channels), FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(channels)).at(FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		JCheckBox forcePCM = new JCheckBox(Messages.getString("UseLpcmForAudio"), configuration.isAudioUsePCM());
 		forcePCM.setToolTipText(Messages.getString("ThisOptionLosslessNotBest"));
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener((ItemEvent e) -> configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED));
-		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(forcePCM)).at(FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		JCheckBox ac3remux = new JCheckBox(Messages.getString("KeepAc3Tracks"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("ThisOptionLosslessVeryStable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener((ItemEvent e) -> configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(ac3remux)).at(FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		JCheckBox forceDTSinPCM = new JCheckBox(Messages.getString("KeepDtsTracks"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("ThisOptionLosslessUnstable") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
 		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener((ActionEvent e) -> configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected()));
-		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(forceDTSinPCM)).at(FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		JCheckBox encodedAudioPassthrough = new JCheckBox(Messages.getString("EncodedAudioPassthrough"), configuration.isEncodedAudioPassthrough());
 		encodedAudioPassthrough.setToolTipText(Messages.getString("ThisOptionLossless") + (Platform.isWindows() ? " " + Messages.getString("AviSynthNotSupported") : "") + "</html>");
@@ -641,9 +633,9 @@ public class TranscodingTab {
 			ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough), cc.xyw(1, 10, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(encodedAudioPassthrough)).at(cc.xyw(1, 10, 3));
 
-		builder.addLabel(Messages.getString("Ac3ReencodingAudioBitrate"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("Ac3ReencodingAudioBitrate")).at(FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
@@ -656,9 +648,9 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(abitrate).at(FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("AudioLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("AudioLanguagePriority")).at(FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.setToolTipText(Messages.getString("YouCanRearrangeOrderAudio"));
 		langs.addKeyListener(new KeyAdapter() {
@@ -667,7 +659,7 @@ public class TranscodingTab {
 				configuration.setAudioLanguages(langs.getText());
 			}
 		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(langs).at(FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
@@ -678,8 +670,8 @@ public class TranscodingTab {
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, pref:grow", orientation);
 		FormLayout layout = new FormLayout(colSpec, "$lgap, 11*(pref, 3dlu), pref");
-		final PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DLU4);
+		final UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.DLU4);
 		CellConstraints cc = new CellConstraints();
 
 		builder.addLabel(Messages.getString("SubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
@@ -691,9 +683,9 @@ public class TranscodingTab {
 				configuration.setSubtitlesLanguages(defaultsubs.getText());
 			}
 		});
-		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 2, 13), colSpec, orientation));
+		builder.add(defaultsubs).at(FormLayoutUtil.flip(cc.xyw(3, 2, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("ForcedLanguage"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("ForcedLanguage")).at(FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
@@ -701,9 +693,9 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleLanguage(forcedsub.getText());
 			}
 		});
-		builder.add(forcedsub, FormLayoutUtil.flip(cc.xyw(3, 4, 3), colSpec, orientation));
+		builder.add(forcedsub).at(FormLayoutUtil.flip(cc.xyw(3, 4, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("ForcedTags"), FormLayoutUtil.flip(cc.xyw(7, 4, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("ForcedTags")).at(FormLayoutUtil.flip(cc.xyw(7, 4, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
@@ -711,9 +703,9 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleTags(forcedtags.getText());
 			}
 		});
-		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(13, 4, 3), colSpec, orientation));
+		builder.add(forcedtags).at(FormLayoutUtil.flip(cc.xyw(13, 4, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("AudioSubtitlesLanguagePriority"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.addLabel(Messages.getString("AudioSubtitlesLanguagePriority")).at(FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
 		defaultaudiosubs.setToolTipText(Messages.getString("AnExplanationDefaultValueAudio"));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
@@ -722,9 +714,9 @@ public class TranscodingTab {
 				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
-		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 6, 13), colSpec, orientation));
+		builder.add(defaultaudiosubs).at(FormLayoutUtil.flip(cc.xyw(3, 6, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("AlternateSubtitlesFolder"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
+		builder.addLabel(Messages.getString("AlternateSubtitlesFolder")).at(FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubtitlesFolder());
 		alternateSubFolder.addKeyListener(new KeyAdapter() {
 			@Override
@@ -732,7 +724,7 @@ public class TranscodingTab {
 				configuration.setAlternateSubtitlesFolder(alternateSubFolder.getText());
 			}
 		});
-		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 8, 12), colSpec, orientation));
+		builder.add(alternateSubFolder).at(FormLayoutUtil.flip(cc.xyw(3, 8, 12), colSpec, orientation));
 
 		JButton folderSelectButton = new JButton("...");
 		folderSelectButton.addActionListener((ActionEvent e) -> {
@@ -749,9 +741,9 @@ public class TranscodingTab {
 				configuration.setAlternateSubtitlesFolder(chooser.getSelectedFile().getAbsolutePath());
 			}
 		});
-		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 8), colSpec, orientation));
+		builder.add(folderSelectButton).at(FormLayoutUtil.flip(cc.xy(15, 8), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("NonUnicodeSubtitleEncoding"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		builder.addLabel(Messages.getString("NonUnicodeSubtitleEncoding")).at(FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		String[] keys = new String[]{
 			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
 			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
@@ -819,15 +811,15 @@ public class TranscodingTab {
 		});
 
 		subtitleCodePage.setEditable(false);
-		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 10, 7), colSpec, orientation));
+		builder.add(subtitleCodePage).at(FormLayoutUtil.flip(cc.xyw(3, 10, 7), colSpec, orientation));
 
 		JCheckBox fribidi = new JCheckBox(Messages.getString("FribidiMode"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
 		fribidi.addItemListener((ItemEvent e) -> configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED));
 
-		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 10, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(fribidi).at(FormLayoutUtil.flip(cc.xyw(11, 10, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("SpecifyTruetypeFont"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("SpecifyTruetypeFont")).at(FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());
 		defaultfont.setToolTipText(Messages.getString("ToUseFontMustBeRegistered"));
 		defaultfont.addKeyListener(new KeyAdapter() {
@@ -836,7 +828,7 @@ public class TranscodingTab {
 				configuration.setFont(defaultfont.getText());
 			}
 		});
-		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 12, 12), colSpec, orientation));
+		builder.add(defaultfont).at(FormLayoutUtil.flip(cc.xyw(3, 12, 12), colSpec, orientation));
 
 		JButton fontselect = new CustomJButton("...");
 		fontselect.addActionListener((ActionEvent e) -> {
@@ -849,13 +841,13 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(fontselect, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
+		builder.add(fontselect).at(FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("StyledSubtitles"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("StyledSubtitles")).at(FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 
 		JPanel flowPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		flowPanel.setComponentOrientation(orientation);
-		builder.addLabel(Messages.getString("FontScale"), FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("FontScale")).at(FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		assScale = new JTextField(configuration.getAssScale());
 		assScale.addKeyListener(new KeyAdapter() {
 			@Override
@@ -904,14 +896,14 @@ public class TranscodingTab {
 		assMargin.addChangeListener((ChangeEvent e) -> configuration.setAssMargin(assMarginModel.getValue().toString()));
 
 		flowPanel.add(assMargin);
-		builder.add(flowPanel, FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
+		builder.add(flowPanel).at(FormLayoutUtil.flip(cc.xyw(3, 14, 13), colSpec, orientation));
 
 		JCheckBox autoloadExternalSubtitles = new JCheckBox(Messages.getString("AutomaticallyLoadSrtSubtitles"), configuration.isAutoloadExternalSubtitles());
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesPrioritized"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 10), colSpec, orientation));
+		builder.add(autoloadExternalSubtitles).at(FormLayoutUtil.flip(cc.xyw(1, 16, 10), colSpec, orientation));
 
 		JButton subColor = new JButton();
 		subColor.setText(Messages.getString("Color"));
@@ -933,7 +925,7 @@ public class TranscodingTab {
 			dialog.setVisible(true);
 			dialog.dispose();
 		});
-		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(11, 16, 5), colSpec, orientation));
+		builder.add(subColor).at(FormLayoutUtil.flip(cc.xyw(11, 16, 5), colSpec, orientation));
 
 		JCheckBox forceExternalSubtitles = new JCheckBox(Messages.getString("ForceExternalSubtitles"), configuration.isForceExternalSubtitles());
 		forceExternalSubtitles.setToolTipText(Messages.getString("IfEnabledExternalSubtitlesAlways"));
@@ -946,21 +938,21 @@ public class TranscodingTab {
 			autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		});
 
-		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles), FormLayoutUtil.flip(cc.xyw(1, 18, 6), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(forceExternalSubtitles)).at(FormLayoutUtil.flip(cc.xyw(1, 18, 6), colSpec, orientation));
 
 		JCheckBox deleteDownloadedSubtitles = new JCheckBox(Messages.getString("DeleteDownloadedLiveSubtitlesAfter"), !configuration.isLiveSubtitlesKeep());
 		deleteDownloadedSubtitles.setToolTipText(Messages.getString("DeterminesDownloadedLiveSubtitlesDeleted"));
 		deleteDownloadedSubtitles.setContentAreaFilled(false);
 		deleteDownloadedSubtitles.addItemListener((ItemEvent e) -> configuration.setLiveSubtitlesKeep((e.getStateChange() != ItemEvent.SELECTED)));
 
-		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles), FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(deleteDownloadedSubtitles)).at(FormLayoutUtil.flip(cc.xyw(7, 18, 9, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		JCheckBox useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("UseEmbeddedStyle"), configuration.isUseEmbeddedSubtitlesStyle());
 		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("IfEnabledWontModifySubtitlesStyling"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener((ItemEvent e) -> configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED));
 
-		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle), FormLayoutUtil.flip(cc.xyw(1, 20, 4), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(useEmbeddedSubtitlesStyle)).at(FormLayoutUtil.flip(cc.xyw(1, 20, 4), colSpec, orientation));
 
 
 		final SpinnerIntModel liveSubtitlesLimitModel = new SpinnerIntModel(configuration.getLiveSubtitlesLimit(), 1, 999, 1);
@@ -969,12 +961,12 @@ public class TranscodingTab {
 		liveSubtitlesLimit.addChangeListener((ChangeEvent e) -> configuration.setLiveSubtitlesLimit(liveSubtitlesLimitModel.getIntValue()));
 		JLabel liveSubtitlesLimitLabel = new JLabel(Messages.getString("LimitNumberLiveSubtitlesTo"));
 		liveSubtitlesLimitLabel.setLabelFor(liveSubtitlesLimit);
-		builder.add(liveSubtitlesLimitLabel, FormLayoutUtil.flip(cc.xyw(7, 20, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		builder.add(liveSubtitlesLimit, FormLayoutUtil.flip(cc.xy(15, 20), colSpec, orientation));
+		builder.add(liveSubtitlesLimitLabel).at(FormLayoutUtil.flip(cc.xyw(7, 20, 7, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(liveSubtitlesLimit).at(FormLayoutUtil.flip(cc.xy(15, 20), colSpec, orientation));
 
 		Integer[] depth = {-5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5};
 
-		builder.addLabel(Messages.getString("3dSubtitlesDepth"), FormLayoutUtil.flip(cc.xy(1, 22), colSpec, orientation));
+		builder.addLabel(Messages.getString("3dSubtitlesDepth")).at(FormLayoutUtil.flip(cc.xy(1, 22), colSpec, orientation));
 		JComboBox<Integer> depth3D = new JComboBox<>(depth);
 		depth3D.setSelectedItem(configuration.getDepth3D());
 		depth3D.addItemListener((ItemEvent e) -> {
@@ -982,7 +974,7 @@ public class TranscodingTab {
 				configuration.setDepth3D((int) e.getItem());
 			}
 		});
-		builder.add(depth3D, FormLayoutUtil.flip(cc.xyw(3, 22, 13), colSpec, orientation));
+		builder.add(depth3D).at(FormLayoutUtil.flip(cc.xyw(3, 22, 13), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 		GuiUtil.enableContainer(panel, !configuration.isDisableSubtitles());

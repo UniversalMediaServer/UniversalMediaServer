@@ -21,7 +21,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -105,12 +105,14 @@ public final class PlaylistFolder extends StoreContainer {
 			charset = StandardCharsets.ISO_8859_1;
 		}
 		if (FileUtil.isUrl(uri)) {
-			return new BufferedReader(new InputStreamReader(new BOMInputStream(new URL(uri).openStream()), charset));
+			BOMInputStream bi = BOMInputStream.builder().setInputStream(URI.create(uri).toURL().openStream()).get();
+			return new BufferedReader(new InputStreamReader(bi, charset));
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
 				FileInputStream inputStream = new FileInputStream(playlistfile);
-				return new BufferedReader(new InputStreamReader(new BOMInputStream(inputStream), charset));
+				BOMInputStream bi = BOMInputStream.builder().setInputStream(inputStream).get();
+				return new BufferedReader(new InputStreamReader(bi, charset));
 			}
 		}
 		return null;

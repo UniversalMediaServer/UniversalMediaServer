@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -1340,7 +1341,7 @@ public class RequestV2 extends HTTPResource {
 			String cb = soapaction.replace("<", "").replace(">", "");
 
 			try {
-				URL soapActionUrl = new URL(cb);
+				URL soapActionUrl = URI.create(cb).toURL();
 				String addr = soapActionUrl.getHost();
 				int port = soapActionUrl.getPort();
 				try (
@@ -1359,7 +1360,7 @@ public class RequestV2 extends HTTPResource {
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.flush();
 				}
-			} catch (MalformedURLException ex) {
+			} catch (IllegalArgumentException | MalformedURLException ex) {
 				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 			}
 		} else {

@@ -786,6 +786,7 @@ public class TsMuxeRVideo extends Engine {
 				}
 			}
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		return result.build();

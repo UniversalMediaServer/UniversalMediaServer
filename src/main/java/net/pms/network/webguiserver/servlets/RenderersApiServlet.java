@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.net.URL;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
@@ -213,7 +214,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				String mime = getMimeType(icon);
 				if (icon.matches(".*\\S+://.*")) {
 					try {
-						URL url = new URL(icon);
+						URL url = URI.create(icon).toURL();
 						is = url.openStream();
 						mime = getMimeType(url.getPath());
 					} catch (IOException e) {

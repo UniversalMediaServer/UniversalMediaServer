@@ -394,7 +394,7 @@ public class WindowsUtils extends PlatformUtils {
 
 	@Override
 	public String getiTunesFile() throws IOException {
-		Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
+		Process process = Runtime.getRuntime().exec(new String[]{"reg", "query", "\"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\"", "/v", "\"My Music\""});
 		String location = null;
 		//TODO The encoding of the output from reg query is unclear, this must be investigated further
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {

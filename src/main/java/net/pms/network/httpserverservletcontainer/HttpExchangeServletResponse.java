@@ -335,14 +335,4 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		}
 	}
 
-	@Override
-	@Deprecated
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
-		}
-	}
-
 }

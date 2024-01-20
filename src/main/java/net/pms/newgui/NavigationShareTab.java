@@ -16,14 +16,15 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
-import java.awt.Font;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.sql.SQLException;
 import javax.swing.*;
 import net.pms.Messages;
@@ -132,9 +133,7 @@ public class NavigationShareTab {
 
 		// Set basic layout
 		FormLayout layout = new FormLayout(colSpec, PANEL_ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DLU4);
-		builder.opaque(true);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout).border(Paddings.DLU4).opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -143,70 +142,64 @@ public class NavigationShareTab {
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
-			JComponent cmp = builder.addSeparator(Messages.getString("Thumbnails"),      FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
-			cmp = (JComponent) cmp.getComponent(0);
-			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+			builder.addSeparator(Messages.getString("Thumbnails")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(generateThumbnails),           FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("ThumbnailSeekingPosition"),             FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
-			builder.add(seekPosition,                                                    FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(imageThumbnails),              FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(generateThumbnails)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("ThumbnailSeekingPosition")).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+			builder.add(seekPosition).at(FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(imageThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AudioThumbnailsImport"),                FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-			builder.add(audioThumbnails,                                                 FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(mplayerThumbnails),            FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
+			builder.addLabel(Messages.getString("AudioThumbnailsImport")).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+			builder.add(audioThumbnails).at(FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(mplayerThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AlternateVideoCoverArtFolder"),         FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
-			builder.add(defaultThumbFolder,                                              FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
-			builder.add(select,                                                          FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(dvdIsoThumbnails),             FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
+			builder.addLabel(Messages.getString("AlternateVideoCoverArtFolder")).at(FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.add(defaultThumbFolder).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+			builder.add(select).at(FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(dvdIsoThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("FileSortingNaming"),          FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-			cmp = (JComponent) cmp.getComponent(0);
-			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+			builder.addSeparator(Messages.getString("FileSortingNaming")).at(FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FileOrder"),                            FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
-			builder.add(sortMethod,                                                      FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(ignoreTheWordThe),             FormLayoutUtil.flip(cc.xy(7, 11), colSpec, orientation));
+			builder.addLabel(Messages.getString("FileOrder")).at(FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+			builder.add(sortMethod).at(FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(ignoreTheWordThe)).at(FormLayoutUtil.flip(cc.xy(7, 11), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(prettifyFilenames),            FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideExtensions),               FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isUseInfoFromAPI),             FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(prettifyFilenames)).at(FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideExtensions)).at(FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isUseInfoFromAPI)).at(FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AddSubtitlesInformationVideoNames"),    FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
-			builder.add(addVideoSuffix,                                                  FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideEngines),                  FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+			builder.addLabel(Messages.getString("AddSubtitlesInformationVideoNames")).at(FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+			builder.add(addVideoSuffix).at(FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideEngines)).at(FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
-			cmp = builder.addSeparator(Messages.getString("VirtualFoldersFiles"),        FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
-			cmp = (JComponent) cmp.getComponent(0);
-			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+			builder.addSeparator(Messages.getString("VirtualFoldersFiles")).at(FormLayoutUtil.flip(cc.xyw(1, 17, 10), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(iTunes),                       FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(iPhoto),                       FormLayoutUtil.flip(cc.xy(3, 19), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(aperture),                     FormLayoutUtil.flip(cc.xy(7, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iTunes)).at(FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(iPhoto)).at(FormLayoutUtil.flip(cc.xy(3, 19), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(aperture)).at(FormLayoutUtil.flip(cc.xy(7, 19), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("DatabaseCache"),                        FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-			builder.add(cacheReset,                                                      FormLayoutUtil.flip(cc.xyw(3, 21, 3), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderMediaLibrary),     FormLayoutUtil.flip(cc.xy(7, 21), colSpec, orientation));
+			builder.addLabel(Messages.getString("DatabaseCache")).at(FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
+			builder.add(cacheReset).at(FormLayoutUtil.flip(cc.xyw(3, 21, 3), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderMediaLibrary)).at(FormLayoutUtil.flip(cc.xy(7, 21), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(archive),                      FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderServerSettings),   FormLayoutUtil.flip(cc.xy(3, 23), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderTranscode),        FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(archive)).at(FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderServerSettings)).at(FormLayoutUtil.flip(cc.xy(3, 23), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderTranscode)).at(FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles),    FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
-			builder.addLabel(Messages.getString("MinimumItemLimitBeforeAZ"),             FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
-			builder.add(atzLimit,                                                        FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles)).at(FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
+			builder.addLabel(Messages.getString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
+			builder.add(atzLimit).at(FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(resume),                       FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed),   FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
-			builder.add(GuiUtil.getPreferredSizeComponent(hideEmptyFolders),             FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(resume)).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed)).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(hideEmptyFolders)).at(FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
 
-			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile),        FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+			builder.add(GuiUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FullyPlayedAction"),                    FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
-			builder.add(fullyPlayedAction,                                               FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory,                                      FormLayoutUtil.flip(cc.xy(7, 31), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory,                                FormLayoutUtil.flip(cc.xy(9, 31), colSpec, orientation));
+			builder.addLabel(Messages.getString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
+			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 31), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 31), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();

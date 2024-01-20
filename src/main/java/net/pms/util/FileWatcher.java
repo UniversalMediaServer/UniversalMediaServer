@@ -17,7 +17,6 @@
 package net.pms.util;
 
 import com.sun.jna.Platform;
-import com.sun.nio.file.ExtendedWatchEventModifier;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.ClosedWatchServiceException;
@@ -94,24 +93,12 @@ public class FileWatcher {
 	}
 
 	/**
-	 * Adds a watch event to one directory only.
-	 *
-	 * @param w   the watch instance
-	 * @param dir the directory to watch
-	 */
-	public static void add(Watch w, Path dir) {
-		add(w, dir, false);
-	}
-
-	/**
-	 * Adds a watch event that can be recursive using the FILE_TREE modifier.
-	 * The modifier is only supported on Windows at the time of writing this.
+	 * Adds a watch event to one directory.
 	 *
 	 * @param w               the watch instance
 	 * @param dir             the directory to watch
-	 * @param nativeRecursive whether to try making the watcher recursive
 	 */
-	public static void add(Watch w, Path dir, boolean nativeRecursive) {
+	public static void add(Watch w, Path dir) {
 		if (watchService == null) {
 			start(dir);
 		}
@@ -129,15 +116,9 @@ public class FileWatcher {
 			return;
 		}
 
-		WatchKey key;
-
 		try {
 			Kind[] events = new Kind[] {ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE};
-			if (nativeRecursive) {
-				key = dir.register(watchService, events, ExtendedWatchEventModifier.FILE_TREE);
-			} else {
-				key = dir.register(watchService, events);
-			}
+			WatchKey key = dir.register(watchService, events);
 			keys.put(key, w);
 			LOGGER.debug("Added file watch at {}: {}", dir, w.getFileSpec());
 		} catch (IOException e) {
@@ -152,20 +133,16 @@ public class FileWatcher {
 	 * @param dir the directory to watch
 	 */
 	public static void addRecursive(final Watch w, Path dir) {
-		if (Platform.isWindows()) {
-			add(w, dir, true);
-		} else {
-			try {
-				Files.walkFileTree(dir, EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
-					@Override
-					public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-						add(w, dir);
-						return FileVisitResult.CONTINUE;
-					}
-				});
-			} catch (IOException e) {
-				LOGGER.debug("Recursion error: " + e, e);
-			}
+		try {
+			Files.walkFileTree(dir, EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
+				@Override
+				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					add(w, dir);
+					return FileVisitResult.CONTINUE;
+				}
+			});
+		} catch (IOException e) {
+			LOGGER.debug("Recursion error: " + e, e);
 		}
 	}
 

@@ -21,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -115,7 +114,7 @@ public class IPhotoLibrary extends LocalizedStoreContainer {
 			Process process;
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
-				process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
+				process = Runtime.getRuntime().exec(new String[]{"defaults", "read", "com.apple.iApps", "iPhotoRecentDatabases"});
 			} catch (IOException e1) {
 				LOGGER.error("Something went wrong with the iPhoto folder finder: ", e1);
 				return null;
@@ -135,14 +134,13 @@ public class IPhotoLibrary extends LocalizedStoreContainer {
 					// Remove quotes
 					line = line.substring(1, line.length() - 1);
 
-					URI uri = new URI(line);
-					URL url = uri.toURL();
+					URL url = URI.create(line).toURL();
 					file = FileUtils.toFile(url);
 					LOGGER.debug("Resolved URL to file: {} -> {}", url, file.getAbsolutePath());
 				} else {
 					LOGGER.info("iPhoto folder not found");
 				}
-			} catch (URISyntaxException | IOException e) {
+			} catch (IllegalArgumentException | IOException e) {
 				LOGGER.error("Something went wrong with the iPhoto iPhoto folder finder: ", e);
 			}
 		} else {

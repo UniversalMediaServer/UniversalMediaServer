@@ -16,12 +16,10 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.ComponentOrientation;
-import java.awt.Font;
 import java.awt.event.ItemEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -30,6 +28,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.UmsFormBuilder;
 import net.pms.newgui.util.FormLayoutUtil;
 
 public class TsMuxeRVideo {
@@ -49,29 +48,23 @@ public class TsMuxeRVideo {
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 
 		JCheckBox tsmuxerforcefps = new JCheckBox(Messages.getString("ForceFpsParsedFfmpeg"), CONFIGURATION.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
-		tsmuxerforcefps.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		tsmuxerforcefps.addItemListener((ItemEvent e) -> CONFIGURATION.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(tsmuxerforcefps)).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
 		JCheckBox muxallaudiotracks = new JCheckBox(Messages.getString("MuxAllAudioTracks"), CONFIGURATION.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
-		muxallaudiotracks.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(muxallaudiotracks), FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
+		muxallaudiotracks.addItemListener((ItemEvent e) -> CONFIGURATION.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(muxallaudiotracks)).at(FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

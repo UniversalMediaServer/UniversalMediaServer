@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends DefaultComboBoxModel {
+public class Playlist extends DefaultComboBoxModel<PlaylistItem> {
 
 	private static final long serialVersionUID = 5934677633834195753L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);

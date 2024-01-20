@@ -1180,6 +1180,7 @@ public class FFMpegVideo extends Engine {
 				Thread.sleep(300);
 			} catch (InterruptedException e) {
 				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+				Thread.currentThread().interrupt();
 			}
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -1322,6 +1323,7 @@ public class FFMpegVideo extends Engine {
 			try {
 				wait(50);
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 
 			pipe.deleteLater();
@@ -1334,6 +1336,7 @@ public class FFMpegVideo extends Engine {
 			try {
 				wait(50);
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 
 			ffAudioPipe.deleteLater();
@@ -1349,6 +1352,7 @@ public class FFMpegVideo extends Engine {
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
 			LOGGER.trace("", e);
+			Thread.currentThread().interrupt();
 		}
 		return pw;
 	}
@@ -1676,6 +1680,7 @@ public class FFMpegVideo extends Engine {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+			Thread.currentThread().interrupt();
 		}
 
 		// Launch the transcode command...
@@ -1685,6 +1690,7 @@ public class FFMpegVideo extends Engine {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			Thread.currentThread().interrupt();
 		}
 		return pw;
 	}

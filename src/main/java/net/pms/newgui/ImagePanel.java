@@ -27,8 +27,8 @@ import org.slf4j.LoggerFactory;
 public class ImagePanel extends JButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagePanel.class);
 	private static final long serialVersionUID = -6709086531128513425L;
-	protected RenderedImage source;
-	protected RenderedImage grey;
+	protected transient RenderedImage source;
+	protected transient RenderedImage grey;
 	protected int originX;
 	protected int originY;
 	protected boolean isGrey;

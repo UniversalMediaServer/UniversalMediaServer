@@ -278,10 +278,10 @@ public class LanguageSelection {
 			Locale tmpLocale = Languages.toLocale(locale);
 			if (tmpLocale == null) {
 				// Trying to find a supported locale based only on language and country
-				tmpLocale = Languages.toLocale(new Locale(locale.getLanguage(), locale.getCountry()));
+				tmpLocale = Languages.toLocale(new Locale.Builder().setLanguage(locale.getLanguage()).setRegion(locale.getCountry()).build());
 				if (tmpLocale == null) {
 					// Trying to find a supported locale based only on language
-					tmpLocale = Languages.toLocale(new Locale(locale.getLanguage()));
+					tmpLocale = Languages.toLocale(new Locale.Builder().setLanguage(locale.getLanguage()).build());
 					if (tmpLocale == null) {
 						// Giving up, defaulting to US English
 						tmpLocale = Languages.toLocale("en-US");
