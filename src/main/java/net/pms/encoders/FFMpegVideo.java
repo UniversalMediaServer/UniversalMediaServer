@@ -367,13 +367,19 @@ public class FFMpegVideo extends Engine {
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
 
 			if (
-				configuration.isAudioRemuxAC3() &&
 				params.getAid() != null &&
-				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&
+				(
+					(
+						configuration.isAudioRemuxAC3() &&
+						params.getAid().isAC3()
+					) ||
+					!params.getAid().isAC3()
+				) &&
+				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&  
 				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek
 			) {
-				// AC-3 and AAC remux
+				// Audio remux if the renderer supports the audio stream inside the transcoding container
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
@@ -419,7 +425,7 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (canMuxVideoWithFFmpeg && renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+				if (canMuxVideoWithFFmpeg) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
 						transcodeOptions.add("copy");
@@ -950,9 +956,6 @@ public class FFMpegVideo extends Engine {
 			} else if (!params.getMediaRenderer().isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision")) {
-				canMuxVideoWithFFmpeg = false;
-				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
 
