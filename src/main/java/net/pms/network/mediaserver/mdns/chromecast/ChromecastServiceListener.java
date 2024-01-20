@@ -81,6 +81,7 @@ public class ChromecastServiceListener implements ServiceListener {
 			LOGGER.trace("", e);
 		} catch (InterruptedException e) {
 			LOGGER.info("Chromecast registration was interrupted");
+			Thread.currentThread().interrupt();
 		}
 	}
 

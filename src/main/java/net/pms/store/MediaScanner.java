@@ -369,7 +369,6 @@ public class MediaScanner implements SharedContentListener {
 				 */
 				if (FileUtil.isLocked(file)) {
 					System.gc();
-					System.runFinalization();
 				}
 
 				return true;

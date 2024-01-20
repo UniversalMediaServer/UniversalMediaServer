@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -522,16 +523,18 @@ public class JUPnPDeviceHelper {
 		String url = null;
 		int maxH = maxHeight == 0 ? 99999 : maxHeight;
 		int height = 0;
-		for (Icon i : d.getIcons()) {
-			int h = i.getHeight();
-			if (h < maxH && h > height) {
-				icon = i;
-				height = h;
+		if (d != null) {
+			for (Icon i : d.getIcons()) {
+				int h = i.getHeight();
+				if (h < maxH && h > height) {
+					icon = i;
+					height = h;
+				}
 			}
 		}
 		try {
-			url = icon != null ? new URL(base, icon.getUri().toString()).toString() : null;
-		} catch (MalformedURLException e) {
+			url = icon != null ? base.toURI().resolve(icon.getUri()).toURL().toString() : null;
+		} catch (URISyntaxException | MalformedURLException e) {
 		}
 		LOGGER.debug("Device icon: " + url);
 		return url;

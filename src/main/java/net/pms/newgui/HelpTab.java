@@ -16,7 +16,6 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
@@ -64,7 +63,7 @@ public class HelpTab {
 			"left:pref, 0:grow",
 			"pref, fill:default:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
 		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 		editorPane = new JEditorPane();
@@ -100,7 +99,7 @@ public class HelpTab {
 		JScrollPane pane = new JScrollPane(editorPane, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 400));
 		pane.setBorder(BorderFactory.createEmptyBorder());
-		builder.add(pane, cc.xy(2, 2));
+		builder.add(pane).at(cc.xy(2, 2));
 
 		return builder.getPanel();
 	}

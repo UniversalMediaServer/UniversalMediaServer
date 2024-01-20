@@ -459,6 +459,7 @@ public class AviDemuxerInputStream extends InputStream {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				LOGGER.trace("Sleep interrupted", e);
+				Thread.currentThread().interrupt();
 			}
 
 			c++;
@@ -485,6 +486,7 @@ public class AviDemuxerInputStream extends InputStream {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				LOGGER.trace("Sleep interrupted", e);
+				Thread.currentThread().interrupt();
 			}
 
 			c++;

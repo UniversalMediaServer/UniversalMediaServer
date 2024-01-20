@@ -253,6 +253,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+			Thread.currentThread().interrupt();
 		}
 
 		// Launch the transcode command...
@@ -262,6 +263,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			Thread.currentThread().interrupt();
 		}
 
 		return pw;

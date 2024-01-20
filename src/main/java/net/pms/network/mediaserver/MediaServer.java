@@ -77,6 +77,7 @@ public class MediaServer {
 				Thread.sleep(100);
 			} catch (InterruptedException ex) {
 				LOGGER.info("Starting media server interrupted.");
+				Thread.currentThread().interrupt();
 				return false;
 			}
 		}

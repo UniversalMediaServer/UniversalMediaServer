@@ -33,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
+import java.nio.file.Paths;
 import net.pms.image.Image;
 import net.pms.image.ImageTypeAdapter;
 import net.pms.network.HttpServletHelper;
@@ -43,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class GuiHttpServlet extends HttpServletHelper {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GuiHttpServlet.class);
-	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[]{getUrl("file:" + CONFIGURATION.getWebPath() + "/react-client/")});
+	private static final ClassLoader CLASS_LOADER = new URLClassLoader(new URL[]{getUrl(CONFIGURATION.getWebPath() + "/react-client/")});
 	protected static final Gson GSON = new GsonBuilder()
 			.setObjectToNumberStrategy(ToNumberPolicy.LONG_OR_DOUBLE)
 			.registerTypeAdapter(Image.class, new ImageTypeAdapter())
@@ -132,8 +133,8 @@ public class GuiHttpServlet extends HttpServletHelper {
 
 	private static URL getUrl(String url) {
 		try {
-			return new URL(url);
-		} catch (MalformedURLException e) {
+			return Paths.get(url).toUri().toURL();
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			return null;
 		}
 	}

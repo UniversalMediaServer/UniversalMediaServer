@@ -374,6 +374,7 @@ public class DCRaw extends ImageEngine {
 				result.available(Boolean.FALSE);
 			}
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		return result.build();

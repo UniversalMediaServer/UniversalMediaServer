@@ -159,8 +159,7 @@ public class APIUtils {
 			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
-				URL domain = new URL(API_URL);
-				URL url = new URL(domain, "/api/subversions");
+				URL url = FileUtil.urlFrom(API_URL, "/api/subversions");
 				String apiResult = getJson(url);
 
 				try {
@@ -225,8 +224,7 @@ public class APIUtils {
 			JsonObject jsonData = null;
 
 			if (CONFIGURATION.getExternalNetwork()) {
-				URL domain = new URL(API_URL);
-				URL url = new URL(domain, "/api/configuration");
+				URL url = FileUtil.urlFrom(API_URL, "/api/configuration");
 				String apiResult = getJson(url);
 
 				try {
@@ -930,7 +928,6 @@ public class APIUtils {
 		String osdbHash,
 		long filebytesize
 	) throws IOException {
-		URL domain = new URL(API_URL);
 		String endpoint = isSeries ? "series/v2" : "video/v2";
 		ArrayList<String> getParameters = new ArrayList<>();
 		if (isNotBlank(title)) {
@@ -959,7 +956,7 @@ public class APIUtils {
 			getParameters.add("language=" + CONFIGURATION.getLanguageTag());
 		}
 		String getParametersJoined = StringUtils.join(getParameters, "&");
-		URL url = new URL(domain, "/api/media/" + endpoint + "?" + getParametersJoined);
+		URL url = FileUtil.urlFrom(API_URL, "/api/media/" + endpoint + "?" + getParametersJoined);
 
 		if (isSeries) {
 			LOGGER.trace("Getting API data for series from: {}", url);
@@ -1137,7 +1134,6 @@ public class APIUtils {
 		) {
 			String apiResult = null;
 			try {
-				URL domain = new URL(API_URL);
 				ArrayList<String> getParameters = new ArrayList<>();
 				getParameters.add("language=" + URLEncoder.encode(language, StandardCharsets.UTF_8.toString()));
 				getParameters.add("mediaType=" + URLEncoder.encode(mediaType, StandardCharsets.UTF_8.toString()));
@@ -1152,7 +1148,7 @@ public class APIUtils {
 					getParameters.add("episode=" + URLEncoder.encode(episode, StandardCharsets.UTF_8.toString()));
 				}
 				String getParametersJoined = StringUtils.join(getParameters, "&");
-				URL url = new URL(domain, "/api/media/localize?" + getParametersJoined);
+				URL url = FileUtil.urlFrom(API_URL, "/api/media/localize?" + getParametersJoined);
 				LOGGER.trace("Getting API data from: {}", url);
 				apiResult = getJson(url);
 				JsonObject localizedMetadataFromAPI = GSON.fromJson(apiResult, JsonObject.class);

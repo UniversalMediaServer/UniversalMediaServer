@@ -156,8 +156,8 @@ public class UmsLocalDevice extends LocalDevice {
 	 * Creates the upnp ContentDirectoryService.
 	 * @return The ContenDirectoryService.
 	 */
-	private static LocalService<UmsContentDirectoryService> createContentDirectoryService() {
-		LocalService<UmsContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(UmsContentDirectoryService.class);
+	private static LocalService createContentDirectoryService() {
+		LocalService contentDirectoryService = new AnnotationLocalServiceBinder().read(UmsContentDirectoryService.class);
 		contentDirectoryService.setManager(new DefaultServiceManager<UmsContentDirectoryService>(contentDirectoryService, null) {
 
 			@Override
@@ -178,8 +178,8 @@ public class UmsLocalDevice extends LocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<UmsConnectionManagerService> createServerConnectionManagerService() {
-		LocalService<UmsConnectionManagerService> connectionManagerService = new AnnotationLocalServiceBinder().read(UmsConnectionManagerService.class);
+	private static LocalService createServerConnectionManagerService() {
+		LocalService connectionManagerService = new AnnotationLocalServiceBinder().read(UmsConnectionManagerService.class);
 		connectionManagerService.setManager(new DefaultServiceManager<UmsConnectionManagerService>(connectionManagerService, UmsConnectionManagerService.class) {
 
 			@Override
@@ -201,8 +201,8 @@ public class UmsLocalDevice extends LocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<UmsMediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
-		LocalService<UmsMediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(UmsMediaReceiverRegistrarService.class);
+	private static LocalService createMediaReceiverRegistrarService() {
+		LocalService mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(UmsMediaReceiverRegistrarService.class);
 		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<UmsMediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
 			@Override
 			protected int getLockTimeoutMillis() {

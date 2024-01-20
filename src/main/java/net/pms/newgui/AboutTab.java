@@ -16,8 +16,8 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.FormsSetup;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Cursor;
@@ -65,18 +65,17 @@ public class AboutTab {
 			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.DIALOG);
-		builder.opaque(true);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout).border(Paddings.DIALOG).opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
 
 		final LinkMouseListener pms3Link = new LinkMouseListener(projectName + " " + PMS.getVersion(),
 			"https://www.universalmediaserver.com/");
-		JLabel lPms3Link = builder.addLabel(pms3Link.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lPms3Link = FormsSetup.getComponentFactoryDefault().createLabel(pms3Link.getLabel());
 		lPms3Link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lPms3Link.addMouseListener(pms3Link);
+		builder.add(lPms3Link).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		// Create a build name from the available git properties
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
@@ -85,64 +84,75 @@ public class AboutTab {
 		String buildLabel = Messages.getString("BuildDate") + " " + commitTime;
 
 		final LinkMouseListener commitLink = new LinkMouseListener(buildLabel, commitUrl);
-		JLabel lCommitLink = builder.addLabel(commitLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lCommitLink = FormsSetup.getComponentFactoryDefault().createLabel(commitLink.getLabel());
 		lCommitLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCommitLink.addMouseListener(commitLink);
+		builder.add(lCommitLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		imagePanel = buildImagePanel();
-		builder.add(imagePanel, cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		builder.add(imagePanel).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		builder.addLabel(Messages.getString("RelatedLinks"), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		builder.addLabel(Messages.getString("RelatedLinks")).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener crowdinLink = new LinkMouseListener(Messages.getString("XCrowdinProject"), PMS.CROWDIN_LINK);
-		JLabel lCrowdinLink = builder.addLabel(crowdinLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lCrowdinLink = FormsSetup.getComponentFactoryDefault().createLabel(crowdinLink.getLabel());
 		lCrowdinLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCrowdinLink.addMouseListener(crowdinLink);
+		builder.add(lCrowdinLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener ffmpegLink = new LinkMouseListener("FFmpeg", "https://ffmpeg.org/");
-		JLabel lFfmpegLink = builder.addLabel(ffmpegLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lFfmpegLink = FormsSetup.getComponentFactoryDefault().createLabel(ffmpegLink.getLabel());
 		lFfmpegLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lFfmpegLink.addMouseListener(ffmpegLink);
+		builder.add(lFfmpegLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener mplayerLink = new LinkMouseListener("MPlayer", "http://www.mplayerhq.hu");
-		JLabel lMplayerLink = builder.addLabel(mplayerLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lMplayerLink = FormsSetup.getComponentFactoryDefault().createLabel(mplayerLink.getLabel());
 		lMplayerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMplayerLink.addMouseListener(mplayerLink);
+		builder.add(lMplayerLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "https://www.spirton.com");
-		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lSpirtonLink = FormsSetup.getComponentFactoryDefault().createLabel(spirtonLink.getLabel());
 		lSpirtonLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSpirtonLink.addMouseListener(spirtonLink);
+		builder.add(lSpirtonLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener mediaInfoLink = new LinkMouseListener("MediaInfo", "https://mediaarea.net/en/MediaInfo");
-		JLabel lMediaInfoLink = builder.addLabel(mediaInfoLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lMediaInfoLink = FormsSetup.getComponentFactoryDefault().createLabel(mediaInfoLink.getLabel());
 		lMediaInfoLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMediaInfoLink.addMouseListener(mediaInfoLink);
+		builder.add(lMediaInfoLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener avisynthMTLink = new LinkMouseListener("AviSynth MT", "https://forum.doom9.org/showthread.php?t=148782");
-		JLabel lAvisynthMTLink = builder.addLabel(avisynthMTLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lAvisynthMTLink = FormsSetup.getComponentFactoryDefault().createLabel(avisynthMTLink.getLabel());
 		lAvisynthMTLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lAvisynthMTLink.addMouseListener(avisynthMTLink);
+		builder.add(lAvisynthMTLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener dryIconsLink = new LinkMouseListener("DryIcons", "https://dryicons.com/");
-		JLabel lDryIconsLink = builder.addLabel(dryIconsLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lDryIconsLink = FormsSetup.getComponentFactoryDefault().createLabel(dryIconsLink.getLabel());
 		lDryIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lDryIconsLink.addMouseListener(dryIconsLink);
+		builder.add(lDryIconsLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener jmgIconsLink = new LinkMouseListener("Jordan Michael Groll's Icons", "https://www.deviantart.com/jrdng");
-		JLabel lJmgIconsLink = builder.addLabel(jmgIconsLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lJmgIconsLink = FormsSetup.getComponentFactoryDefault().createLabel(jmgIconsLink.getLabel());
 		lJmgIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lJmgIconsLink.addMouseListener(jmgIconsLink);
+		builder.add(lJmgIconsLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "https://www.svp-team.com/");
-		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lSVPLink = FormsSetup.getComponentFactoryDefault().createLabel(svpLink.getLabel());
 		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSVPLink.addMouseListener(svpLink);
+		builder.add(lSVPLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		final LinkMouseListener openSubtitlesLink = new LinkMouseListener("OpenSubtitles.org", "https://www.opensubtitles.org/");
-		JLabel lOpenSubtitlesLink = builder.addLabel(openSubtitlesLink.getLabel(), cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		JLabel lOpenSubtitlesLink = FormsSetup.getComponentFactoryDefault().createLabel(openSubtitlesLink.getLabel());
 		lOpenSubtitlesLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lOpenSubtitlesLink.addMouseListener(openSubtitlesLink);
+		builder.add(lOpenSubtitlesLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		JScrollPane scrollPane = new JScrollPane(builder.getPanel());
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());

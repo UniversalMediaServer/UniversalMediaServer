@@ -1418,7 +1418,7 @@ public class PMS {
 		}
 		LOCALE_LOCK.writeLock().lock();
 		try {
-			locale = new Locale(language, country, variant);
+			locale = new Locale.Builder().setLanguage(language).setRegion(country).setVariant(variant).build();
 		} finally {
 			LOCALE_LOCK.writeLock().unlock();
 		}

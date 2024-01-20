@@ -17,7 +17,6 @@
 package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
-import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
@@ -234,8 +233,8 @@ public class TracesTab {
 
 				if (found) {
 					jList.requestFocusInWindow();
-					Rectangle viewRect = jList.modelToView(match.start());
-					Rectangle viewRectEnd = jList.modelToView(match.end());
+					Rectangle viewRect = jList.modelToView2D(match.start()).getBounds();
+					Rectangle viewRectEnd = jList.modelToView2D(match.end()).getBounds();
 					if (viewRectEnd.x < viewRect.x) {
 						viewRectEnd.x = jList.getWidth();
 					}
@@ -269,7 +268,7 @@ public class TracesTab {
 			colSpec,
 			"p, fill:10:grow, p, p"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
 		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
@@ -351,27 +350,17 @@ public class TracesTab {
 			configuration.setLoggingLogsTabLinebuffer(jList.getMaxLines());
 		});
 
-		jSearchBox.addActionListener((ActionEvent e) -> {
-			searchTraces();
-		});
+		jSearchBox.addActionListener((ActionEvent e) -> searchTraces());
 
-		jSearchButton.addActionListener((ActionEvent e) -> {
-			searchTraces();
-		});
+		jSearchButton.addActionListener((ActionEvent e) -> searchTraces());
 
-		jCSSearch.addActionListener((ActionEvent e) -> {
-			configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected());
-		});
+		jCSSearch.addActionListener((ActionEvent e) -> configuration.setGUILogSearchCaseSensitive(jCSSearch.isSelected()));
 
-		jRESearch.addActionListener((ActionEvent e) -> {
-			configuration.setGUILogSearchRegEx(jRESearch.isSelected());
-		});
+		jRESearch.addActionListener((ActionEvent e) -> configuration.setGUILogSearchRegEx(jRESearch.isSelected()));
 
-		jMLSearch.addActionListener((ActionEvent e) -> {
-			configuration.setGUILogSearchMultiLine(jMLSearch.isSelected());
-		});
+		jMLSearch.addActionListener((ActionEvent e) -> configuration.setGUILogSearchMultiLine(jMLSearch.isSelected()));
 
-		builder.add(jSearchPanel, cc.xyw(1, 1, cols));
+		builder.add(jSearchPanel).at(cc.xyw(1, 1, cols));
 
 		// Create traces text box
 		jList = new TextAreaFIFO(configuration.getLoggingLogsTabLinebuffer(), 500);
@@ -386,9 +375,7 @@ public class TracesTab {
 		popup.add(copyItem);
 		popup.addSeparator();
 		JMenuItem clearItem = new JMenuItem(Messages.getString("Clear"));
-		clearItem.addActionListener((ActionEvent e) -> {
-			jList.setText("");
-		});
+		clearItem.addActionListener((ActionEvent e) -> jList.setText(""));
 		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
 
@@ -412,7 +399,7 @@ public class TracesTab {
 		jListPane = new JScrollPane(jList, ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
 		new SmartScroller(jListPane);
-		builder.add(jListPane, cc.xyw(1, 2, cols));
+		builder.add(jListPane).at(cc.xyw(1, 2, cols));
 
 		// Create the logging options panel
 		jOptionsPanel = new JPanel();
@@ -538,7 +525,7 @@ public class TracesTab {
 		jOptionsPanel.add(jSyslogFacility);
 
 		jOptionsPanel.setFocusTraversalPolicyProvider(true);
-		builder.add(jOptionsPanel, cc.xyw(1, 3, cols));
+		builder.add(jOptionsPanel).at(cc.xyw(1, 3, cols));
 
 		jShowOptions = new JCheckBox(Messages.getString("ShowLoggingOptions"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
 		jShowOptions.setHorizontalTextPosition(SwingConstants.LEADING);
@@ -551,7 +538,7 @@ public class TracesTab {
 				jBuffered.requestFocusInWindow();
 			}
 		});
-		builder.add(jShowOptions, cc.xy(3, 4));
+		builder.add(jShowOptions).at(cc.xy(3, 4));
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -576,7 +563,7 @@ public class TracesTab {
 			});
 			pLogFileButtons.add(b);
 		}
-		builder.add(pLogFileButtons, cc.xy(cols, 4));
+		builder.add(pLogFileButtons).at(cc.xy(cols, 4));
 
 		final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
@@ -602,8 +589,8 @@ public class TracesTab {
 			configuration.setRootLogLevel(newLevel);
 		});
 
-		builder.add(rootLevelLabel, cc.xy(5, 4));
-		builder.add(rootLevel, cc.xy(6, 4));
+		builder.add(rootLevelLabel).at(cc.xy(5, 4));
+		builder.add(rootLevel).at(cc.xy(6, 4));
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
 			rootLevel.setEnabled(false);
@@ -637,8 +624,8 @@ public class TracesTab {
 					comp, Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 		});
 		pLogPackButtons.add(packDbg);
-		builder.add(pLogPackButtons, cc.xy(1, 4));
-		builder.add(jSearchOutput, cc.xy(2, 4));
+		builder.add(pLogPackButtons).at(cc.xy(1, 4));
+		builder.add(jSearchOutput).at(cc.xy(2, 4));
 
 		JPanel builtPanel = builder.getPanel();
 		// Add a Ctrl + F shortcut to search field

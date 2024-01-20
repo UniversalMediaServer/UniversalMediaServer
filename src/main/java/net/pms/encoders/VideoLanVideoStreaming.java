@@ -244,7 +244,7 @@ public class VideoLanVideoStreaming extends Engine {
 					return result.build();
 				}
 				if (output.getExitCode() == 0) {
-					if (output.getOutput() != null && output.getOutput().size() > 0) {
+					if (!output.getOutput().isEmpty()) {
 						Pattern pattern = Pattern.compile("VLC version\\s+[^\\(]*\\(([^\\)]*)", Pattern.CASE_INSENSITIVE);
 						Matcher matcher = pattern.matcher(output.getOutput().get(0));
 						if (matcher.find() && isNotBlank(matcher.group(1))) {
@@ -258,6 +258,7 @@ public class VideoLanVideoStreaming extends Engine {
 					result.available(Boolean.FALSE);
 				}
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				return null;
 			}
 		}
@@ -269,7 +270,7 @@ public class VideoLanVideoStreaming extends Engine {
 				result.available(Boolean.FALSE);
 				LOGGER.warn(String.format(Messages.getRootString("OnlyVersionXAboveSupported"), requiredVersion, this));
 			}
-		} else if (result.available() != null && result.available().booleanValue()) {
+		} else if (Boolean.TRUE.equals(result.available())) {
 			LOGGER.warn("Could not parse VLC version, the version might be too low (< 2.0.2)");
 		}
 		return result.build();

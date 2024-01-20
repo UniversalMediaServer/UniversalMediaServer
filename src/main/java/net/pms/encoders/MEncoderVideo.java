@@ -2313,6 +2313,7 @@ public class MEncoderVideo extends Engine {
 				result.available(Boolean.FALSE);
 			}
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		return result.build();

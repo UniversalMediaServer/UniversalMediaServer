@@ -16,8 +16,7 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
@@ -47,6 +46,7 @@ import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.video.MediaVideo;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.UmsFormBuilder;
 import net.pms.newgui.components.CustomJButton;
 import net.pms.newgui.util.FormLayoutUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -82,38 +82,30 @@ public class MEncoderVideo {
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
 
 		JCheckBox mencodermt = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getMencoderMT());
 		mencodermt.setContentAreaFilled(false);
-		mencodermt.addActionListener((ActionEvent e) -> {
-			CONFIGURATION.setMencoderMT(mencodermt.isSelected());
-		});
+		mencodermt.addActionListener((ActionEvent e) -> CONFIGURATION.setMencoderMT(mencodermt.isSelected()));
 		mencodermt.setEnabled(Platform.isWindows() || Platform.isMac());
-		builder.add(GuiUtil.getPreferredSizeComponent(mencodermt), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(mencodermt)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		JCheckBox skipLoopFilter = new JCheckBox(Messages.getString("SkipLoopFilterDeblocking"), CONFIGURATION.getSkipLoopFilterEnabled());
 		skipLoopFilter.setContentAreaFilled(false);
 		skipLoopFilter.setToolTipText(Messages.getString("CanDegradeQuality"));
-		skipLoopFilter.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(skipLoopFilter), FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
+		skipLoopFilter.addItemListener((ItemEvent e) -> CONFIGURATION.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED)));
+		builder.add(GuiUtil.getPreferredSizeComponent(skipLoopFilter)).at(FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
 
 		JCheckBox noskip = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), CONFIGURATION.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
-		noskip.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(noskip), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		noskip.addItemListener((ItemEvent e) -> CONFIGURATION.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED)));
+		builder.add(GuiUtil.getPreferredSizeComponent(noskip)).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		CustomJButton button = new CustomJButton(Messages.getString("CodecSpecificParametersAdvanced"));
 		button.addActionListener((ActionEvent e) -> {
@@ -184,22 +176,18 @@ public class MEncoderVideo {
 				}
 			}
 		});
-		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		builder.add(button).at(FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
 		JCheckBox forcefps = new JCheckBox(Messages.getString("ForceFramerateParsedFfmpeg"), CONFIGURATION.isMencoderForceFps());
 		forcefps.setContentAreaFilled(false);
-		forcefps.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED);
-		});
+		forcefps.addItemListener((ItemEvent e) -> CONFIGURATION.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED));
 
-		builder.add(GuiUtil.getPreferredSizeComponent(forcefps), FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(forcefps)).at(FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
 		JCheckBox yadif = new JCheckBox(Messages.getString("DeinterlaceFilter_Sentencecase"), CONFIGURATION.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
-		yadif.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(yadif), FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
+		yadif.addItemListener((ItemEvent e) -> CONFIGURATION.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(yadif)).at(FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
 		JCheckBox scaler = new JCheckBox(Messages.getString("ChangeVideoResolution"));
 		scaler.setContentAreaFilled(false);
@@ -208,9 +196,9 @@ public class MEncoderVideo {
 			scaleX.setEnabled(CONFIGURATION.isMencoderScaler());
 			scaleY.setEnabled(CONFIGURATION.isMencoderScaler());
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(scaler), FormLayoutUtil.flip(cc.xyw(3, 5, 6), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(scaler)).at(FormLayoutUtil.flip(cc.xyw(3, 5, 6), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("Width"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("Width")).at(FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleX = new JTextField("" + CONFIGURATION.getMencoderScaleX());
 		scaleX.addKeyListener(new KeyAdapter() {
 			@Override
@@ -222,9 +210,9 @@ public class MEncoderVideo {
 				}
 			}
 		});
-		builder.add(scaleX, FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
+		builder.add(scaleX).at(FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("Height"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("Height")).at(FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + CONFIGURATION.getMencoderScaleY());
 		scaleY.addKeyListener(new KeyAdapter() {
 			@Override
@@ -236,7 +224,7 @@ public class MEncoderVideo {
 				}
 			}
 		});
-		builder.add(scaleY, FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
+		builder.add(scaleY).at(FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
 
 		if (CONFIGURATION.isMencoderScaler()) {
 			scaler.setSelected(true);
@@ -247,20 +235,16 @@ public class MEncoderVideo {
 
 		JCheckBox videoremux = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), CONFIGURATION.isMencoderMuxWhenCompatible());
 		videoremux.setContentAreaFilled(false);
-		videoremux.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(videoremux), FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
+		videoremux.addItemListener((ItemEvent e) -> CONFIGURATION.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED)));
+		builder.add(GuiUtil.getPreferredSizeComponent(videoremux)).at(FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
 		JCheckBox normalizeaudio = new JCheckBox(Messages.getString("NormalizeAudioVolume"), CONFIGURATION.isMEncoderNormalizeVolume());
 		normalizeaudio.setContentAreaFilled(false);
-		normalizeaudio.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		normalizeaudio.addItemListener((ItemEvent e) -> CONFIGURATION.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED)));
 		// Uncomment this if volume normalizing in MEncoder is ever fixed.
-		// builder.add(normalizeaudio, FormLayoutUtil.flip(cc.xyw(1, 13, 13), colSpec, orientation));
+		// builder.add(normalizeaudio).at(FormLayoutUtil.flip(cc.xyw(1, 13, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("CustomOptionsVf"), FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+		builder.addLabel(Messages.getString("CustomOptionsVf")).at(FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 		mencoderCustomOptions = new JTextField(CONFIGURATION.getMencoderCustomOptions());
 		mencoderCustomOptions.addKeyListener(new KeyAdapter() {
 			@Override
@@ -268,11 +252,11 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderCustomOptions(mencoderCustomOptions.getText());
 			}
 		});
-		builder.add(mencoderCustomOptions, FormLayoutUtil.flip(cc.xyw(3, 15, 13), colSpec, orientation));
+		builder.add(mencoderCustomOptions).at(FormLayoutUtil.flip(cc.xyw(3, 15, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("AddBordersOverscanCompensation"), FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
+		builder.addLabel(Messages.getString("AddBordersOverscanCompensation")).at(FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("Width") + " (%)", FormLayoutUtil.flip(cc.xy(1, 17, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("Width") + " (%)").at(FormLayoutUtil.flip(cc.xy(1, 17, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		ocw = new JTextField(CONFIGURATION.getMencoderOverscanCompensationWidth());
 		ocw.addKeyListener(new KeyAdapter() {
 			@Override
@@ -280,9 +264,9 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderOverscanCompensationWidth(ocw.getText());
 			}
 		});
-		builder.add(ocw, FormLayoutUtil.flip(cc.xy(3, 17), colSpec, orientation));
+		builder.add(ocw).at(FormLayoutUtil.flip(cc.xy(3, 17), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("Height") + " (%)", FormLayoutUtil.flip(cc.xy(5, 17), colSpec, orientation));
+		builder.addLabel(Messages.getString("Height") + " (%)").at(FormLayoutUtil.flip(cc.xy(5, 17), colSpec, orientation));
 		och = new JTextField(CONFIGURATION.getMencoderOverscanCompensationHeight());
 		och.addKeyListener(new KeyAdapter() {
 			@Override
@@ -290,14 +274,12 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderOverscanCompensationHeight(och.getText());
 			}
 		});
-		builder.add(och, FormLayoutUtil.flip(cc.xy(7, 17), colSpec, orientation));
+		builder.add(och).at(FormLayoutUtil.flip(cc.xy(7, 17), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("SubtitlesSettings"), FormLayoutUtil.flip(cc.xyw(1, 19, 15), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("SubtitlesSettings")).at(FormLayoutUtil.flip(cc.xyw(1, 19, 15), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("PlaintextSubtitlesSettings"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-		builder.addLabel(Messages.getString("FontScale"), FormLayoutUtil.flip(cc.xy(1, 27, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("PlaintextSubtitlesSettings")).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+		builder.addLabel(Messages.getString("FontScale")).at(FormLayoutUtil.flip(cc.xy(1, 27, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoderNoassScale = new JTextField(CONFIGURATION.getMencoderNoAssScale());
 		mencoderNoassScale.addKeyListener(new KeyAdapter() {
@@ -307,7 +289,7 @@ public class MEncoderVideo {
 			}
 		});
 
-		builder.addLabel(Messages.getString("FontOutline"), FormLayoutUtil.flip(cc.xy(5, 27), colSpec, orientation));
+		builder.addLabel(Messages.getString("FontOutline")).at(FormLayoutUtil.flip(cc.xy(5, 27), colSpec, orientation));
 
 		mencoderNoassOutline = new JTextField(CONFIGURATION.getMencoderNoAssOutline());
 		mencoderNoassOutline.addKeyListener(new KeyAdapter() {
@@ -317,7 +299,7 @@ public class MEncoderVideo {
 			}
 		});
 
-		builder.addLabel(Messages.getString("FontBlur"), FormLayoutUtil.flip(cc.xy(9, 27), colSpec, orientation));
+		builder.addLabel(Messages.getString("FontBlur")).at(FormLayoutUtil.flip(cc.xy(9, 27), colSpec, orientation));
 
 		mencoderNoassBlur = new JTextField(CONFIGURATION.getMencoderNoAssBlur());
 		mencoderNoassBlur.addKeyListener(new KeyAdapter() {
@@ -327,7 +309,7 @@ public class MEncoderVideo {
 			}
 		});
 
-		builder.addLabel(Messages.getString("MarginPercentage"), FormLayoutUtil.flip(cc.xy(13, 27), colSpec, orientation));
+		builder.addLabel(Messages.getString("MarginPercentage")).at(FormLayoutUtil.flip(cc.xy(13, 27), colSpec, orientation));
 
 		mencoderNoassSubpos = new JTextField(CONFIGURATION.getMencoderNoAssSubPos());
 		mencoderNoassSubpos.addKeyListener(new KeyAdapter() {
@@ -337,10 +319,10 @@ public class MEncoderVideo {
 			}
 		});
 
-		builder.add(mencoderNoassScale, FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
-		builder.add(mencoderNoassOutline, FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
-		builder.add(mencoderNoassBlur, FormLayoutUtil.flip(cc.xy(11, 27), colSpec, orientation));
-		builder.add(mencoderNoassSubpos, FormLayoutUtil.flip(cc.xy(15, 27), colSpec, orientation));
+		builder.add(mencoderNoassScale).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
+		builder.add(mencoderNoassOutline).at(FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
+		builder.add(mencoderNoassBlur).at(FormLayoutUtil.flip(cc.xy(11, 27), colSpec, orientation));
+		builder.add(mencoderNoassSubpos).at(FormLayoutUtil.flip(cc.xy(15, 27), colSpec, orientation));
 
 		JCheckBox ass = new JCheckBox(Messages.getString("UseAssSubtitlesStyling"), CONFIGURATION.isMencoderAss());
 		ass.setContentAreaFilled(false);
@@ -349,17 +331,15 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderAss(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(ass), FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
+		builder.add(GuiUtil.getPreferredSizeComponent(ass)).at(FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
 		ass.getItemListeners()[0].itemStateChanged(null);
 
 		JCheckBox fc = new JCheckBox(Messages.getString("FonconfigEmbeddedFonts"), CONFIGURATION.isMencoderFontConfig());
 		fc.setContentAreaFilled(false);
-		fc.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(fc), FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
+		fc.addItemListener((ItemEvent e) -> CONFIGURATION.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(fc)).at(FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("DvdvobsubSubtitlesQuality"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+		builder.addLabel(Messages.getString("DvdvobsubSubtitlesQuality")).at(FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		subq = new JTextField(CONFIGURATION.getMencoderVobsubSubtitleQuality());
 		subq.addKeyListener(new KeyAdapter() {
 			@Override
@@ -367,7 +347,7 @@ public class MEncoderVideo {
 				CONFIGURATION.setMencoderVobsubSubtitleQuality(subq.getText());
 			}
 		});
-		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
+		builder.add(subq).at(FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
 
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
 			if (event.getPropertyName() == null) {

@@ -16,12 +16,10 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.ComponentOrientation;
-import java.awt.Font;
 import java.awt.event.ItemEvent;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -31,6 +29,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.UmsFormBuilder;
 import net.pms.newgui.util.FormLayoutUtil;
 
 public class VLCVideo {
@@ -55,29 +54,23 @@ public class VLCVideo {
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(PMS.getLocale());
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 
 		experimentalCodecs = new JCheckBox(Messages.getString("EnableExperimentalCodecs"), CONFIGURATION.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		experimentalCodecs.addItemListener((ItemEvent e) -> CONFIGURATION.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(experimentalCodecs)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), CONFIGURATION.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener((ItemEvent e) -> {
-			CONFIGURATION.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled), FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		audioSyncEnabled.addItemListener((ItemEvent e) -> CONFIGURATION.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED));
+		builder.add(GuiUtil.getPreferredSizeComponent(audioSyncEnabled)).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

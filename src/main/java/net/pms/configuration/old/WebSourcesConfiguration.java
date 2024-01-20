@@ -45,6 +45,12 @@ public class WebSourcesConfiguration {
 	private static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 
 	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebSourcesConfiguration() {
+	}
+
+	/**
 	 * This parses the web config and return WebSource's List.
 	 */
 	public static synchronized List<WebSource> getWebSourcesFromConfiguration() {

@@ -24,6 +24,7 @@ import jakarta.servlet.http.HttpServlet;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -49,10 +50,10 @@ public class HttpServerServletContainer {
 		ArrayList<URL> cleanedUrls = new ArrayList<>();
 		try {
 			for (String url : urls) {
-				URL currentUrl = new URL(url);
+				URL currentUrl = URI.create(url).toURL();
 				cleanedUrls.add(currentUrl);
 			}
-		} catch (MalformedURLException e) {
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			LOGGER.debug("Error adding resource url: " + e);
 		}
 		classLoader = new URLClassLoader(cleanedUrls.toArray(URL[]::new), null);

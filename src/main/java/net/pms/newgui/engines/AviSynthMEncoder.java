@@ -16,13 +16,11 @@
  */
 package net.pms.newgui.engines;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
@@ -40,6 +38,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.newgui.GuiUtil;
+import net.pms.newgui.UmsFormBuilder;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 
 public class AviSynthMEncoder {
@@ -57,20 +56,18 @@ public class AviSynthMEncoder {
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
 		);
-		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout);
+		builder.border(Paddings.EMPTY);
 		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase"), cc.xyw(2, 1, 1));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(cc.xyw(2, 1, 1));
 
 		JCheckBox multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(multithreading), cc.xy(2, 3));
+		builder.add(GuiUtil.getPreferredSizeComponent(multithreading)).at(cc.xy(2, 3));
 
 		JCheckBox interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), CONFIGURATION.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
@@ -85,17 +82,17 @@ public class AviSynthMEncoder {
 				);
 			}
 		});
-		builder.add(GuiUtil.getPreferredSizeComponent(interframe), cc.xy(2, 5));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframe)).at(cc.xy(2, 5));
 
 		JCheckBox interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), CONFIGURATION.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu), cc.xy(2, 7));
+		builder.add(GuiUtil.getPreferredSizeComponent(interframegpu)).at(cc.xy(2, 7));
 
 		JCheckBox convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), CONFIGURATION.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED)));
-		builder.add(GuiUtil.getPreferredSizeComponent(convertfps), cc.xy(2, 9));
+		builder.add(GuiUtil.getPreferredSizeComponent(convertfps)).at(cc.xy(2, 9));
 
 		String aviSynthScriptInstructions = Messages.getString("AvisynthScriptFullyCustomizable") +
 			Messages.getString("TheFollowingVariablesAvailable") +
@@ -107,7 +104,7 @@ public class AviSynthMEncoder {
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
 		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
+		builder.add(aviSynthScriptInstructionsContainer).at(cc.xy(2, 11));
 
 		String clip = CONFIGURATION.getAvisynthScript();
 		if (clip == null) {
@@ -143,7 +140,7 @@ public class AviSynthMEncoder {
 
 		JScrollPane pane = new JScrollPane(textArea, ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 13));
+		builder.add(pane).at(cc.xy(2, 13));
 
 		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
 			if (event.getPropertyName() == null) {
