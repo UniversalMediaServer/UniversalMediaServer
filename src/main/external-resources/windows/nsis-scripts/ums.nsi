@@ -22,6 +22,7 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 ; use java.exe to keep stdout/stderr
 !define JAVAEXE "javaw.exe"
 
+ManifestDPIAware true
 RequestExecutionLevel user
 SilentInstall silent
 AutoCloseWindow true

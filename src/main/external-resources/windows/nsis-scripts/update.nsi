@@ -12,6 +12,7 @@
 !define SERVICE_NAME "UniversalMediaServer"
 !define OLD_SERVICE_NAME "Universal Media Server"
 
+ManifestDPIAware true
 RequestExecutionLevel admin
 
 Name "${PROJECT_NAME}"
