@@ -1,22 +1,22 @@
-Installers for Windows and Mac OS X and tarballs for Linux can be found at:
+Installers for Windows and macOS and tarballs for Linux can be found at:
 
     https://www.universalmediaserver.com
 
 To install UMS from the tarball on Linux, open a terminal and enter the
 following commands (set VERSION to the version you're installing):
-Note: These instructions have been tested on Ubuntu 16.04, but something similar
+Note: These instructions have been tested on Ubuntu 22.04, but something similar
 should work on most Unix distributions)
 
 1. Install the dependencies (this only needs to be done once):
     
     All releases of UMS come with Java Runtime Environment bundled, except for
-    the ARM architecture releases. You will need to ensure you have JRE 8 installed.
+    the ARM architecture releases. You will need to ensure you have JRE 17 installed.
 
     Next, add some other pre-reqs:
 
-        sudo apt-get install mediainfo dcraw vlc-nox mplayer mencoder
+        sudo apt-get install mediainfo dcraw vlc-bin mplayer mencoder
       
-  you can also optionally install dcraw and VLC: `sudo apt-get install dcraw vlc`
+  you can also optionally install dcraw: `sudo apt-get install dcraw`
 
 2. Download the tarball e.g.:
 

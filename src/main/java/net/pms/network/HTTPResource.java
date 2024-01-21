@@ -156,6 +156,9 @@ public abstract class HTTPResource {
 	 * @see #downloadAndSendBinary(String)
 	 */
 	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
+		if (u == null) {
+			return null;
+		}
 		URL url = URI.create(u).toURL();
 		File f = null;
 
@@ -201,6 +204,9 @@ public abstract class HTTPResource {
 	 * @throws IOException
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
+		if (u == null) {
+			return new byte[0];
+		}
 		URL url = URI.create(u).toURL();
 
 		// The URL may contain user authentication information
