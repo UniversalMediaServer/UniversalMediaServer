@@ -132,7 +132,7 @@ public class SysTray implements ChangeListener {
 		try {
 			BufferedImage image = ImageIO.read(SysTray.class.getResource("/resources/images/" + icon));
 			if (updateAvailable) {
-				BufferedImage overlay = ImageIO.read(SysTray.class.getResource("/resources/images/icon-updatable-32.png"));
+				BufferedImage overlay = ImageIO.read(SysTray.class.getResource("/resources/images/systray/icon-updatable-32.png"));
 				Graphics2D g = image.createGraphics();
 				g.drawImage(overlay.getScaledInstance(image.getWidth(), image.getHeight(), Image.SCALE_DEFAULT), 0, 0, null);
 				g.dispose();

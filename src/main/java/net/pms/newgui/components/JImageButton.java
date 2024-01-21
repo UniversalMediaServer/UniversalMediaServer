@@ -18,7 +18,6 @@ package net.pms.newgui.components;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.UIManager;
 import net.pms.newgui.LooksFrame;
@@ -31,7 +30,7 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 
 	public JImageButton(String text, String iconName) {
 		super(text, null);
-		setProperites();
+		setProperties();
 		setIcons(iconName);
 	}
 
@@ -45,15 +44,15 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 
 	public JImageButton(String text, Icon icon) {
 		super(text, icon);
-		setProperites();
+		setProperties();
 	}
 
 	public JImageButton(Icon icon) {
 		super(icon);
-		setProperites();
+		setProperties();
 	}
 
-	private void setProperites() {
+	private void setProperties() {
 		setRequestFocusEnabled(false);
 		setBorderPainted(false);
 		setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
@@ -61,37 +60,39 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 		setOpaque(false);
 	}
 
+	protected Icon readIcon(String filename) {
+		return LooksFrame.readImageIcon(filename);
+	}
+
 	/**
 	 * Set icons from standard naming convention based on a base image name.
 	 * @param defaultIconName the base image resource name used when the
 	 *                        button is in the normal state and which
 	 *                        the other state names are derived from.
-	 *
-	 * @see JAnimatedButton#setIcons(String)
 	 */
-	protected void setIcons(String defaultIconName) {
+	private void setIcons(String defaultIconName) {
 		if (defaultIconName == null) {
 			return;
 		}
 
-		ImageIcon icon = LooksFrame.readImageIcon(defaultIconName);
+		Icon icon = readIcon(defaultIconName);
 		if (icon == null) {
 			setIcon(UIManager.getIcon("OptionPane.warningIcon"));
 			return;
 		}
 		setIcon(icon);
 
-		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_pressed"));
+		icon = readIcon(FileUtil.appendToFileName(defaultIconName, "_pressed"));
 		if (icon != null) {
 			setPressedIcon(icon);
 		}
 
-		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_disabled"));
+		icon = readIcon(FileUtil.appendToFileName(defaultIconName, "_disabled"));
 		if (icon != null) {
 			setDisabledIcon(icon);
 		}
 
-		icon = LooksFrame.readImageIcon(FileUtil.appendToFileName(defaultIconName, "_mouseover"));
+		icon = readIcon(FileUtil.appendToFileName(defaultIconName, "_mouseover"));
 		if (icon != null) {
 			setRolloverIcon(icon);
 		}
@@ -113,26 +114,13 @@ public class JImageButton extends JButton implements AnimatedIconCallback {
 	@Override
 	public void setNextIcon(AnimatedIconStage stage) {
 		switch (stage.iconType) {
-			case PRESSEDICON:
-				setPressedIcon(stage.icon);
-				break;
-			case DISABLEDICON:
-				setDisabledIcon(stage.icon);
-				break;
-			case SELECTEDICON:
-				setSelectedIcon(stage.icon);
-				break;
-			case DISABLEDSELECTEDICON:
-				setDisabledSelectedIcon(stage.icon);
-				break;
-			case ROLLOVERICON:
-				setRolloverIcon(stage.icon);
-				break;
-			case ROLLOVERSELECTEDICON:
-				setRolloverSelectedIcon(stage.icon);
-				break;
-			default:
-				setIcon(stage.icon);
+			case PRESSEDICON -> setPressedIcon(stage.icon);
+			case DISABLEDICON -> setDisabledIcon(stage.icon);
+			case SELECTEDICON -> setSelectedIcon(stage.icon);
+			case DISABLEDSELECTEDICON -> setDisabledSelectedIcon(stage.icon);
+			case ROLLOVERICON -> setRolloverIcon(stage.icon);
+			case ROLLOVERSELECTEDICON -> setRolloverSelectedIcon(stage.icon);
+			default -> setIcon(stage.icon);
 		}
 	}
 }

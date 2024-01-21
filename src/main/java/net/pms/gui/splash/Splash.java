@@ -98,7 +98,7 @@ public class Splash extends JFrame implements MouseListener {
 			return;
 		}
 
-		URL imageURL = getClass().getResource("/resources/images/splash.png");
+		URL imageURL = getClass().getResource("/resources/images/splash/splash.png");
 		if (imageURL == null) {
 			return;
 		}

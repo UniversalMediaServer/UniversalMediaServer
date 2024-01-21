@@ -62,7 +62,7 @@ public class ImagesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
 
 	/** A constant for use for constructing a path to the language "flags" */
-	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/codes/%s.png";
+	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/store/flags/%s.png";
 
 	private static final HashMap<String, WeakReference<BufferedImage>> LANGUAGE_FLAGS_CACHE = new HashMap<>();
 

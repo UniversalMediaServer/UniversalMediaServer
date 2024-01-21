@@ -83,7 +83,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			BufferedImage warningIcon = null;
 
 			try {
-				warningIcon = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
+				warningIcon = ImageIO.read(LooksFrame.getImageResource("icon-status-warning.png"));
 			} catch (IOException e) {
 				LOGGER.debug("Error reading icon-status-warning: ", e.getMessage());
 				LOGGER.trace("", e);

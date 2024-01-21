@@ -425,9 +425,7 @@ public class SharedContentTab implements SharedContentListener {
 		}
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setSelected(configuration.isScanSharedFoldersOnStartup());
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setContentAreaFilled(false);
-		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.addItemListener((ItemEvent e) -> {
-			configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED));
-		});
+		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.addItemListener((ItemEvent e) -> configuration.setScanSharedFoldersOnStartup((e.getStateChange() == ItemEvent.SELECTED)));
 		IS_SCAN_SHARED_FOLDERS_ON_STARTUP.setToolTipText(Messages.getString("ThisControlsUmsScanShared"));
 		builderFolder.add(IS_SCAN_SHARED_FOLDERS_ON_STARTUP).at(FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 

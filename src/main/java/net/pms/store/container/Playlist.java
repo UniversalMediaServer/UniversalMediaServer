@@ -42,7 +42,7 @@ public class Playlist extends StoreContainer {
 	}
 
 	public Playlist(Renderer renderer, String name, String filename, int maxSize, int mode) {
-		super(renderer, name, "images/thumbnail-folder-256.png");
+		super(renderer, name, "images/store/folder.png");
 		this.maxSize = maxSize > 0 ? maxSize : 0;
 		list = new IOList(renderer, filename, mode);
 		list.save();

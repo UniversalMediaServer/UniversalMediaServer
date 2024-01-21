@@ -23,9 +23,11 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BaseMultiResolutionImage;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Timer;
 import javax.annotation.Nonnull;
 import javax.swing.*;
@@ -52,6 +54,7 @@ import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -93,7 +96,7 @@ public class LooksFrame extends JFrame implements IGui {
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
 	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
-	private final AnimatedIcon restartRequredIcon = new AnimatedIcon(
+	private final AnimatedIcon restartRequiredIcon = new AnimatedIcon(
 		reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
 	);
 	private AnimatedIcon restartIcon;
@@ -458,9 +461,33 @@ public class LooksFrame extends JFrame implements IGui {
 		}
 	}
 
+	public static URL getImageResource(String filename) {
+		return LooksFrame.class.getResource("/resources/images/swing/" + filename);
+	}
+
 	public static ImageIcon readImageIcon(String filename) {
-		URL url = LooksFrame.class.getResource("/resources/images/" + filename);
-		return url == null ? null : new ImageIcon(url);
+		URL url = getImageResource(filename);
+		if (url != null) {
+			Image img = new ImageIcon(url).getImage();
+			//check for better resolutions for hdpi
+			//todo : add multi res 100% to 400% by 25% step on image folder
+			ArrayList<Image> images = new ArrayList<>();
+			images.add(img);
+			String[] resolutions = {"@1.25x", "@1.5x", "@1.75x", "@2x", "@2.25x", "@2.5x", "@2.75x", "@3x", "@3.25x", "@3.5x", "@3.75x", "@4x"};
+			for (String resolution : resolutions) {
+				url = getImageResource(FileUtil.appendToFileName(filename, resolution));
+				if (url != null) {
+					images.add(new ImageIcon(url).getImage());
+				}
+			}
+			if (images.size() > 1) {
+				BaseMultiResolutionImage multiImg = new BaseMultiResolutionImage(images.toArray(Image[]::new));
+				return new ImageIcon(multiImg);
+			} else {
+				return new ImageIcon(images.get(0));
+			}
+		}
+		return null;
 	}
 
 	public final JComponent buildContent() {
@@ -504,7 +531,7 @@ public class LooksFrame extends JFrame implements IGui {
 		}
 
 		restartIcon = (AnimatedIcon) reload.getIcon();
-		restartRequredIcon.start();
+		restartRequiredIcon.start();
 		setReloadable(false);
 		reload.addActionListener((ActionEvent e) -> {
 			reload.setEnabled(false);
@@ -518,6 +545,7 @@ public class LooksFrame extends JFrame implements IGui {
 		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener((ActionEvent e) -> PMS.quit());
+		quit.getSize();
 		toolBar.add(quit);
 		if (System.getProperty(START_SERVICE) != null) {
 			quit.setEnabled(false);
@@ -604,9 +632,8 @@ public class LooksFrame extends JFrame implements IGui {
 	}
 
 	protected JImageButton createToolBarButton(String text, String iconName, String toolTipText) {
-		JImageButton button = new JImageButton(text, iconName);
+		JImageButton button = createToolBarButton(text, iconName);
 		button.setToolTipText(toolTipText);
-		button.setFocusable(false);
 		button.setBorderPainted(false);
 		return button;
 	}
@@ -652,13 +679,13 @@ public class LooksFrame extends JFrame implements IGui {
 		SwingUtilities.invokeLater(() -> {
 			if (required) {
 				if (reload.getIcon() == restartIcon) {
-					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequredIcon, false));
+					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequiredIcon, false));
 					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
 				}
 			} else {
-				if (restartRequredIcon == reload.getIcon()) {
+				if (restartRequiredIcon == reload.getIcon()) {
 					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
-					restartRequredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
+					restartRequiredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}
 			reload.setEnabled(true);

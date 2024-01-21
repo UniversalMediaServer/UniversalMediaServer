@@ -40,7 +40,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 	private LocalizedStoreContainer vfAudio = null;
 
 	public MediaLibrary(Renderer renderer) {
-		super(renderer, "MediaLibrary", "/images/folder-icons/media-library.png");
+		super(renderer, "MediaLibrary", "/images/store/media-library.png");
 		addVideoFolder();
 		addAudioFolder();
 		addImageFolder();

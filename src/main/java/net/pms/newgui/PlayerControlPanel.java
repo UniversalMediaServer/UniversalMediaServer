@@ -383,23 +383,23 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	private static void loadIcons() {
-		addIcon    = loadIcon("/resources/images/player/add16.png");
-		removeIcon = loadIcon("/resources/images/player/remove16.png");
-		clearIcon  = loadIcon("/resources/images/player/clear16.png");
-		playIcon   = loadIcon("/resources/images/player/play16.png");
-		pauseIcon  = loadIcon("/resources/images/player/pause16.png");
-		stopIcon   = loadIcon("/resources/images/player/stop16.png");
-		fwdIcon    = loadIcon("/resources/images/player/fwd16.png");
-		rewIcon    = loadIcon("/resources/images/player/rew16.png");
-		nextIcon   = loadIcon("/resources/images/player/next16.png");
-		prevIcon   = loadIcon("/resources/images/player/prev16.png");
-		volumeIcon = loadIcon("/resources/images/player/vol16.png");
-		muteIcon   = loadIcon("/resources/images/player/mute16.png");
-		sliderIcon = loadIcon("/resources/images/player/bar16.png");
+		addIcon    = loadIcon("add16.png");
+		removeIcon = loadIcon("remove16.png");
+		clearIcon  = loadIcon("clear16.png");
+		playIcon   = loadIcon("play16.png");
+		pauseIcon  = loadIcon("pause16.png");
+		stopIcon   = loadIcon("stop16.png");
+		fwdIcon    = loadIcon("fwd16.png");
+		rewIcon    = loadIcon("rew16.png");
+		nextIcon   = loadIcon("next16.png");
+		prevIcon   = loadIcon("prev16.png");
+		volumeIcon = loadIcon("vol16.png");
+		muteIcon   = loadIcon("mute16.png");
+		sliderIcon = loadIcon("bar16.png");
 	}
 
 	private static ImageIcon loadIcon(String path) {
-		URL url = PlayerControlPanel.class.getResource(path);
+		URL url = LooksFrame.getImageResource("player/" + path);
 		if (url != null) {
 			return new ImageIcon(url);
 		}
