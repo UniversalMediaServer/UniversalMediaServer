@@ -50,8 +50,10 @@ public class HttpServerServletContainer {
 		ArrayList<URL> cleanedUrls = new ArrayList<>();
 		try {
 			for (String url : urls) {
-				URL currentUrl = URI.create(url).toURL();
-				cleanedUrls.add(currentUrl);
+				if (url != null) {
+					URL currentUrl = URI.create(url).toURL();
+					cleanedUrls.add(currentUrl);
+				}
 			}
 		} catch (IllegalArgumentException | MalformedURLException e) {
 			LOGGER.debug("Error adding resource url: " + e);

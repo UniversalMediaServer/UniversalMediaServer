@@ -282,6 +282,9 @@ public class FileUtil {
 		if (filename == null || filename.isEmpty()) {
 			filename = "/";
 		}
+		if (base == null) {
+			base = "";
+		}
 		if (filename.charAt(0) != '/') {
 			filename = '/' + filename;
 		}

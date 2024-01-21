@@ -38,20 +38,24 @@ public class WebStream extends StoreItem {
 	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type) {
 		super(renderer, type);
 
-		try {
-			URL tmpUrl = URI.create(url).toURL();
-			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			this.url = tmpUrl.toString();
-		} catch (IllegalArgumentException | MalformedURLException e) {
-			this.url = url;
+		if (url != null) {
+			try {
+				URL tmpUrl = URI.create(url).toURL();
+				tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
+				this.url = tmpUrl.toString();
+			} catch (IllegalArgumentException | MalformedURLException e) {
+				this.url = url;
+			}
 		}
 
-		try {
-			URL tmpUrl = URI.create(thumbURL).toURL();
-			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			this.thumbURL = tmpUrl.toString();
-		} catch (IllegalArgumentException | MalformedURLException e) {
-			this.thumbURL = thumbURL;
+		if (thumbURL != null) {
+			try {
+				URL tmpUrl = URI.create(thumbURL).toURL();
+				tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
+				this.thumbURL = tmpUrl.toString();
+			} catch (IllegalArgumentException | MalformedURLException e) {
+				this.thumbURL = thumbURL;
+			}
 		}
 
 		this.fluxName = fluxName;
