@@ -3095,9 +3095,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:6.2.0":
-  version: 6.2.0
-  resolution: "@testing-library/jest-dom@npm:6.2.0"
+"@testing-library/jest-dom@npm:6.2.1":
+  version: 6.2.1
+  resolution: "@testing-library/jest-dom@npm:6.2.1"
   dependencies:
     "@adobe/css-tools": ^4.3.2
     "@babel/runtime": ^7.9.2
@@ -3109,11 +3109,14 @@ __metadata:
     redent: ^3.0.0
   peerDependencies:
     "@jest/globals": ">= 28"
+    "@types/bun": "*"
     "@types/jest": ">= 28"
     jest: ">= 28"
     vitest: ">= 0.32"
   peerDependenciesMeta:
     "@jest/globals":
+      optional: true
+    "@types/bun":
       optional: true
     "@types/jest":
       optional: true
@@ -3121,7 +3124,7 @@ __metadata:
       optional: true
     vitest:
       optional: true
-  checksum: 3d46e36b1b7c2cb3c92f64d55d458aab44ae135ac77299df14d14dcf567a286590de58b2f140011b8f7a343f0703ff88f144f27c6ae4921fd612741771d8ee2c
+  checksum: 36bb8c23fd102a572bb22e37933c5134c6b4737c9d1ca575d2abde64bd5ffbb5f571caa76c1d8ab0b384670fcc680353f1ef563a2d9a6d46d00c47b4eb38969b
   languageName: node
   linkType: hard
 
@@ -14198,7 +14201,7 @@ __metadata:
     "@microsoft/fetch-event-source": 2.0.1
     "@mycujoo/videojs-hls-quality-selector": 1.1.5-rc.4
     "@playwright/test": ^1.41.0
-    "@testing-library/jest-dom": 6.2.0
+    "@testing-library/jest-dom": 6.2.1
     "@testing-library/react": 14.1.2
     "@testing-library/user-event": 14.5.2
     "@types/jest": 29.5.11
