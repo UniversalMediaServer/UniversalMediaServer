@@ -310,7 +310,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser fc = new JFileChooser(pwd);
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				if (fc.showOpenDialog(parent) == JFileChooser.APPROVE_OPTION) {
 					uri.setText(fc.getSelectedFile().getPath());
 					setEdited(true);
 				}

@@ -17,18 +17,12 @@
 package net.pms.gui.systray;
 
 import java.awt.AWTException;
-import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -36,10 +30,13 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.update.AutoUpdater;
 import net.pms.gui.GuiManager;
+import net.pms.newgui.components.SvgMultiResolutionImage;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
+import org.w3c.dom.svg.SVGDocument;
 
 /**
  * @author Surf@ceS
@@ -126,22 +123,15 @@ public class SysTray implements ChangeListener {
 	 * @return The tray icon.
 	 */
 	private static Image resolveTrayIcon(boolean updateAvailable) {
-		double width = SystemTray.getSystemTray().getTrayIconSize().getWidth();
-		AffineTransform tx = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration().getDefaultTransform();
-		String icon = PlatformUtils.INSTANCE.getTrayIcon(width * tx.getScaleX());
-		try {
-			BufferedImage image = ImageIO.read(SysTray.class.getResource("/resources/images/" + icon));
-			if (updateAvailable) {
-				BufferedImage overlay = ImageIO.read(SysTray.class.getResource("/resources/images/systray/icon-updatable-32.png"));
-				Graphics2D g = image.createGraphics();
-				g.drawImage(overlay.getScaledInstance(image.getWidth(), image.getHeight(), Image.SCALE_DEFAULT), 0, 0, null);
-				g.dispose();
+		String icon = PlatformUtils.INSTANCE.getTrayIcon();
+		SVGDocument document = SvgMultiResolutionImage.getSVGDocument(SysTray.class.getResource("/resources/images/" + icon + ".svg"));
+		if (updateAvailable) {
+			Element elem = document.getElementById("Updatable");
+			if (elem != null) {
+				elem.setAttribute("opacity", "1");
 			}
-			return image;
-		} catch (IOException e) {
-			LOGGER.debug("TrayIcon exception", e);
 		}
-		return null;
+		return new SvgMultiResolutionImage(document);
 	}
 
 }

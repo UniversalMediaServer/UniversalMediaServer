@@ -34,6 +34,7 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import net.pms.Messages;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.newgui.components.SvgMultiResolutionImage;
 import net.pms.newgui.components.WindowProperties;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
@@ -110,7 +111,7 @@ public class Splash extends JFrame implements MouseListener {
 		setBackground(new Color(1.0f, 1.0f, 1.0f, 0.0f));
 		add(imageLabel);
 		imageLabel.addMouseListener(this);
-		image = new ImageIcon(getClass().getResource("/resources/images/icon-32.png"));
+		image = new SvgMultiResolutionImage(getClass().getResource("/resources/images/icon.svg")).toImageIcon();
 		setIconImage(image.getImage());
 		statusLabel = new JLabel();
 		statusLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));

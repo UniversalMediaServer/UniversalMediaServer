@@ -491,36 +491,6 @@ public class WindowsUtils extends PlatformUtils {
 		}
 	}
 
-	@Override
-	public String getTrayIcon(double pixels) {
-		if (pixels >= 64) {
-			return "icon-64.png";
-		} else if (pixels >= 60) {
-			return "icon-60.png";
-		} else if (pixels >= 56) {
-			return "icon-56.png";
-		} else if (pixels >= 52) {
-			return "icon-52.png";
-		} else if (pixels >= 48) {
-			return "icon-48.png";
-		} else if (pixels >= 44) {
-			return "icon-44.png";
-		} else if (pixels >= 40) {
-			return "icon-40.png";
-		} else if (pixels >= 36) {
-			return "icon-36.png";
-		} else if (pixels >= 32) {
-			return "icon-32.png";
-		} else if (pixels >= 28) {
-			return "icon-28.png";
-		} else if (pixels >= 24) {
-			return "icon-24.png";
-		} else if (pixels >= 20) {
-			return "icon-20.png";
-		}
-		return "icon-16.png";
-	}
-
 	private void setVLCRegistryInfo() {
 		String key = "SOFTWARE\\VideoLAN\\VLC";
 		try {

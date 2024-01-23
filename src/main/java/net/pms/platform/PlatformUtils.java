@@ -224,8 +224,8 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getTrayIcon(double pixels) {
-		return "icon-24.png";
+	public String getTrayIcon() {
+		return "icon";
 	}
 
 	@Override

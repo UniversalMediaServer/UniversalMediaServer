@@ -273,11 +273,11 @@ public class MacUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getTrayIcon(double pixels) {
+	public String getTrayIcon() {
 		if (isDarkMode()) {
-			return "icon-darkmode-32.png";
+			return "icon-darkmode";
 		} else {
-			return "icon-bw-22.png";
+			return "icon-bw";
 		}
 	}
 

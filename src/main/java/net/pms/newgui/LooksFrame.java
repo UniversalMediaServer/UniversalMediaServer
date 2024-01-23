@@ -49,6 +49,7 @@ import net.pms.newgui.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.newgui.components.AnimatedIcon.AnimatedIconType;
 import net.pms.newgui.components.JAnimatedButton;
 import net.pms.newgui.components.JImageButton;
+import net.pms.newgui.components.SvgMultiResolutionImage;
 import net.pms.newgui.components.WindowProperties;
 import net.pms.newgui.components.WindowProperties.WindowPropertiesConfiguration;
 import net.pms.newgui.update.AutoUpdateDialog;
@@ -369,8 +370,8 @@ public class LooksFrame extends JFrame implements IGui {
 		UIManager.put("Tree.font", controlFont);
 		UIManager.put("Viewport.font", controlFont);
 
-		setTitle("Test");
-		ImageIcon imageIcon = readImageIcon("icon-32.png");
+		setTitle(PMS.NAME);
+		ImageIcon imageIcon = new SvgMultiResolutionImage(LooksFrame.class.getResource("/resources/images/icon.svg")).toImageIcon();
 		if (imageIcon != null) {
 			setIconImage(imageIcon.getImage());
 		}
