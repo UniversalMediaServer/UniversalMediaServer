@@ -26,6 +26,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
+import net.pms.newgui.components.SvgMultiResolutionImage;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.LogicalPlayer;
@@ -383,25 +384,25 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	private static void loadIcons() {
-		addIcon    = loadIcon("add16.png");
-		removeIcon = loadIcon("remove16.png");
-		clearIcon  = loadIcon("clear16.png");
-		playIcon   = loadIcon("play16.png");
-		pauseIcon  = loadIcon("pause16.png");
-		stopIcon   = loadIcon("stop16.png");
-		fwdIcon    = loadIcon("fwd16.png");
-		rewIcon    = loadIcon("rew16.png");
-		nextIcon   = loadIcon("next16.png");
-		prevIcon   = loadIcon("prev16.png");
-		volumeIcon = loadIcon("vol16.png");
-		muteIcon   = loadIcon("mute16.png");
-		sliderIcon = loadIcon("bar16.png");
+		addIcon    = loadMultiResolutionIcon("add.svg");
+		removeIcon = loadMultiResolutionIcon("remove.svg");
+		clearIcon  = loadMultiResolutionIcon("clear.svg");
+		playIcon   = loadMultiResolutionIcon("play.svg");
+		pauseIcon  = loadMultiResolutionIcon("pause.svg");
+		stopIcon   = loadMultiResolutionIcon("stop.svg");
+		fwdIcon    = loadMultiResolutionIcon("fwd.svg");
+		rewIcon    = loadMultiResolutionIcon("rew.svg");
+		nextIcon   = loadMultiResolutionIcon("next.svg");
+		prevIcon   = loadMultiResolutionIcon("prev.svg");
+		volumeIcon = loadMultiResolutionIcon("vol.svg");
+		muteIcon   = loadMultiResolutionIcon("mute.svg");
+		sliderIcon = loadMultiResolutionIcon("bar.svg");
 	}
 
-	private static ImageIcon loadIcon(String path) {
+	private static ImageIcon loadMultiResolutionIcon(String path) {
 		URL url = LooksFrame.getImageResource("player/" + path);
 		if (url != null) {
-			return new ImageIcon(url);
+			return new SvgMultiResolutionImage(url).toImageIcon();
 		}
 		throw new RuntimeException("icon not found: " + path);
 	}
