@@ -469,23 +469,27 @@ public class LooksFrame extends JFrame implements IGui {
 	public static ImageIcon readImageIcon(String filename) {
 		URL url = getImageResource(filename);
 		if (url != null) {
-			Image img = new ImageIcon(url).getImage();
-			//check for better resolutions for hdpi
-			//todo : add multi res 100% to 400% by 25% step on image folder
-			ArrayList<Image> images = new ArrayList<>();
-			images.add(img);
-			String[] resolutions = {"@1.25x", "@1.5x", "@1.75x", "@2x", "@2.25x", "@2.5x", "@2.75x", "@3x", "@3.25x", "@3.5x", "@3.75x", "@4x"};
-			for (String resolution : resolutions) {
-				url = getImageResource(FileUtil.appendToFileName(filename, resolution));
-				if (url != null) {
-					images.add(new ImageIcon(url).getImage());
-				}
-			}
-			if (images.size() > 1) {
-				BaseMultiResolutionImage multiImg = new BaseMultiResolutionImage(images.toArray(Image[]::new));
-				return new ImageIcon(multiImg);
+			if ("svg".equalsIgnoreCase(FileUtil.getExtension(filename))) {
+				return new SvgMultiResolutionImage(url).toImageIcon();
 			} else {
-				return new ImageIcon(images.get(0));
+				Image img = new ImageIcon(url).getImage();
+				//check for better resolutions for hdpi
+				//todo : add multi res 100% to 400% by 25% step on image folder
+				ArrayList<Image> images = new ArrayList<>();
+				images.add(img);
+				String[] resolutions = {"@1.25x", "@1.5x", "@1.75x", "@2x", "@2.25x", "@2.5x", "@2.75x", "@3x", "@3.25x", "@3.5x", "@3.75x", "@4x"};
+				for (String resolution : resolutions) {
+					url = getImageResource(FileUtil.appendToFileName(filename, resolution));
+					if (url != null) {
+						images.add(new ImageIcon(url).getImage());
+					}
+				}
+				if (images.size() > 1) {
+					BaseMultiResolutionImage multiImg = new BaseMultiResolutionImage(images.toArray(Image[]::new));
+					return new ImageIcon(multiImg);
+				} else {
+					return new ImageIcon(images.get(0));
+				}
 			}
 		}
 		return null;

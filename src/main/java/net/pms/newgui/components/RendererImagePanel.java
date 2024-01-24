@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.newgui;
+package net.pms.newgui.components;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -24,23 +24,19 @@ import javax.swing.event.ChangeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ImagePanel extends JButton {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ImagePanel.class);
+public class RendererImagePanel extends JButton {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RendererImagePanel.class);
 	private static final long serialVersionUID = -6709086531128513425L;
 	protected transient RenderedImage source;
 	protected transient RenderedImage grey;
-	protected int originX;
-	protected int originY;
 	protected boolean isGrey;
 
-	public ImagePanel() {
+	public RendererImagePanel() {
 		this(null);
 	}
 
-	public ImagePanel(RenderedImage renderedimage) {
+	public RendererImagePanel(RenderedImage renderedimage) {
 		source = null;
-		originX = 0;
-		originY = 0;
 		setLayout(null);
 		if (renderedimage != null) {
 			source = renderedimage;
@@ -59,16 +55,6 @@ public class ImagePanel extends JButton {
 		setFocusPainted(false);
 	}
 
-	public void setOrigin(int i, int j) {
-		originX = i;
-		originY = j;
-		repaint();
-	}
-
-	public Point getOrigin() {
-		return new Point(originX, originY);
-	}
-
 	public void set(RenderedImage renderedimage) {
 		source = renderedimage;
 		int i = 0;
@@ -85,17 +71,6 @@ public class ImagePanel extends JButton {
 		setPreferredSize(dimension);
 		revalidate();
 		repaint();
-	}
-
-	public void set(RenderedImage renderedimage, int i, int j) {
-		if (renderedimage == null) {
-			originX = 0;
-			originY = 0;
-		} else {
-			originX = i;
-			originY = j;
-		}
-		set(renderedimage);
 	}
 
 	public RenderedImage getSource() {
@@ -118,8 +93,8 @@ public class ImagePanel extends JButton {
 			rectangle.width,
 			rectangle.height);
 		Insets insets = getInsets();
-		int i = insets.left + originX;
-		int j = insets.top + originY;
+		int i = insets.left;
+		int j = insets.top;
 		try {
 			graphics2d.drawRenderedImage(
 				getCurrentSource(),
@@ -162,7 +137,7 @@ public class ImagePanel extends JButton {
 		return isGrey ? grey : source;
 	}
 
-	public BufferedImage greyed(BufferedImage bi, int pct) {
+	public BufferedImage greyed(Image bi, int pct) {
 		ImageFilter filter = new GrayFilter(true, pct);
 		ImageProducer producer = new FilteredImageSource(bi.getSource(), filter);
 		return toBufferedImage(createImage(producer));

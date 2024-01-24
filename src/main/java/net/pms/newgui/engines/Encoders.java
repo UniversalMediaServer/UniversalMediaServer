@@ -18,12 +18,12 @@ package net.pms.newgui.engines;
 
 import javax.swing.JComponent;
 
-public class Players {
+public class Encoders {
 
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	private Players() {
+	private Encoders() {
 	}
 
 	public static JComponent config(String name) {

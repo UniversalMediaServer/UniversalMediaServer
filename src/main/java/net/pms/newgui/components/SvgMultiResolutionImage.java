@@ -24,6 +24,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.imageio.ImageIO;
@@ -49,10 +50,14 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 
 	private final SVGDocument svg;
 	private final BufferedImage baseImage;
+	private final List<BufferedImage> variants = new ArrayList<>();
 
 	public SvgMultiResolutionImage(SVGDocument svg) {
 		this.svg = svg;
 		baseImage = getBufferedImage(svg);
+		if (baseImage != null) {
+			variants.add(baseImage);
+		}
 	}
 
 	public SvgMultiResolutionImage(URL imageResource) {
@@ -71,12 +76,21 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 
 	@Override
 	public BufferedImage getResolutionVariant(double destImageWidth, double destImageHeight) {
-		return getResolutionVariant(svg, (float) destImageWidth, (float) destImageHeight);
+		synchronized (variants) {
+			for (BufferedImage variant : variants) {
+				if (variant.getHeight() == destImageHeight && variant.getWidth() == destImageHeight) {
+					return variant;
+				}
+			}
+			BufferedImage variant = getResolutionVariant(svg, (float) destImageWidth, (float) destImageHeight);
+			variants.add(variant);
+			return variant;
+		}
 	}
 
 	@Override
 	public List<Image> getResolutionVariants() {
-		return Collections.unmodifiableList(List.of(baseImage));
+		return Collections.unmodifiableList(variants);
 	}
 
 	public ImageIcon toImageIcon() {
@@ -85,7 +99,7 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 
 	public static SVGDocument getSVGDocument(URL imageResource) {
 		try {
-			InputStream  rs = imageResource.openStream();
+			InputStream rs = imageResource.openStream();
 			return FACTORY.createSVGDocument(imageResource.toString(), rs);
 		} catch (IOException ex) {
 			LOGGER.error("SVG MultiResolution error", ex);

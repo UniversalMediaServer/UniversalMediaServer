@@ -702,6 +702,7 @@
 				<targetPath>resources</targetPath>
 				<excludes>
 					<exclude>project.properties</exclude>
+					<exclude>/images/not-in-use/*</exclude>
 				</excludes>
 
 				<!-- Avoid inadvertently filtering binaries -->

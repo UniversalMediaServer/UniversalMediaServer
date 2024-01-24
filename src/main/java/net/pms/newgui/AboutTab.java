@@ -23,35 +23,25 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Cursor;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.newgui.components.SvgMultiResolutionImage;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AboutTab {
-	private static final Logger LOGGER = LoggerFactory.getLogger(AboutTab.class);
-
-	private ImagePanel imagePanel;
-
-	public ImagePanel getImagePanel() {
-		return imagePanel;
-	}
 
 	private Integer rowPosition = 1;
 
 	/**
-	 * Gets the current GUI row position and adds 2 to it
-	 * for next time. Using it saves having to manually specify
-	 * numbers which can waste time when we make changes.
+	 * Gets the current GUI row position and adds 2 to it for next time. Using
+	 * it saves having to manually specify numbers which can waste time when we
+	 * make changes.
 	 */
 	private Integer getAndIncrementRowPosition() {
 		Integer currentRowPosition = rowPosition;
@@ -61,8 +51,8 @@ public class AboutTab {
 
 	public JComponent build() {
 		FormLayout layout = new FormLayout(
-			"0:grow, pref, 0:grow",
-			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+				"0:grow, pref, 0:grow",
+				"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
 		UmsFormBuilder builder = UmsFormBuilder.create().layout(layout).border(Paddings.DIALOG).opaque(true);
@@ -71,7 +61,7 @@ public class AboutTab {
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
 
 		final LinkMouseListener pms3Link = new LinkMouseListener(projectName + " " + PMS.getVersion(),
-			"https://www.universalmediaserver.com/");
+				"https://www.universalmediaserver.com/");
 		JLabel lPms3Link = FormsSetup.getComponentFactoryDefault().createLabel(pms3Link.getLabel());
 		lPms3Link.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lPms3Link.addMouseListener(pms3Link);
@@ -89,8 +79,7 @@ public class AboutTab {
 		lCommitLink.addMouseListener(commitLink);
 		builder.add(lCommitLink).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		imagePanel = buildImagePanel();
-		builder.add(imagePanel).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		builder.add(buildLogoImage()).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
 		builder.addLabel(Messages.getString("RelatedLinks")).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
@@ -160,6 +149,7 @@ public class AboutTab {
 	}
 
 	private static class LinkMouseListener implements MouseListener {
+
 		private final String name;
 		private final String link;
 
@@ -206,13 +196,8 @@ public class AboutTab {
 		}
 	}
 
-	public ImagePanel buildImagePanel() {
-		BufferedImage bi = null;
-		try {
-			bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/logo.png"));
-		} catch (IOException e) {
-			LOGGER.debug("Caught exception", e);
-		}
-		return new ImagePanel(bi);
+	private static ImageIcon buildLogoImage() {
+		return new SvgMultiResolutionImage(AboutTab.class.getResource("/resources/images/icon.svg"), 256, 256).toImageIcon();
 	}
+
 }
