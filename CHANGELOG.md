@@ -13,6 +13,7 @@
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
 - Bump `@types/react` from 18.2.47 to 18.2.48 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392))
 - Bump `@testing-library/jest-dom` from 6.2.0 to 6.2.1 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417))
+- Bump `org.mockito:mockito-core` from 5.8.0 to 5.9.0 ([#4389](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4389))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
