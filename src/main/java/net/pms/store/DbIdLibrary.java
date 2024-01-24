@@ -124,18 +124,10 @@ public class DbIdLibrary {
 			LOGGER.warn("no person name given.");
 			return null;
 		}
+
 		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
-
-		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, typeIdent.ident);
-		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, typeIdent.ident);
-
-		VirtualFolderDbId allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
-		VirtualFolderDbId byAlbum = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
-
 		renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
-
-		personFolder.addChild(allFiles);
-		personFolder.addChild(byAlbum);
+		personFolder.discoverChildren();
 		return personFolder;
 	}
 

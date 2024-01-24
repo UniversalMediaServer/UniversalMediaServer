@@ -46,7 +46,6 @@ public enum DbIdMediaType {
 	public static final String PERSON_COMPOSER_PREFIX = "COMP_";
 	public static final String PERSON_CONDUCTOR_PREFIX = "COND_";
 	public static final String PERSON_ALBUMARTIST_PREFIX = "AART_";
-	public static final String SPLIT_CHARS = "___";
 	public final String dbidPrefix;
 	public final String uclass;
 
