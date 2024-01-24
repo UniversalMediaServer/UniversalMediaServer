@@ -6,7 +6,7 @@
 - Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
 - Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.19.0 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391))
-- Bump `@typescript-eslint/parser` from 6.17.0 to 6.18.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365))
+- Bump `@typescript-eslint/parser` from 6.17.0 to 6.19.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419))
 - Bump `react-router-dom` from 6.21.1 to 6.21.3 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408))
 - Bump `@playwright/test` from 1.40.1 to 1.41.1 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.9.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388))
