@@ -153,6 +153,9 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
 		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV");
 
+		testUPNPDetails("Naim Mu-So Qb",
+			"friendlyName=MyDevice, address=192.168.1.8, udn=4A9EC1C3-ED59-89BB-5530-E8C74F0B2E3A, manufacturer=Naim Audio Ltd., modelName=Mu-so Qb, modelNumber=20-004-0024, modelDescription=Naim Mu-so Qb all-in-one audio player, manufacturerURL=http://www.naimaudio.com, modelURL=https://www.naimaudio.com/mu-so");
+
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
 		testUPNPDetails(
