@@ -3095,9 +3095,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:6.2.1":
-  version: 6.2.1
-  resolution: "@testing-library/jest-dom@npm:6.2.1"
+"@testing-library/jest-dom@npm:6.3.0":
+  version: 6.3.0
+  resolution: "@testing-library/jest-dom@npm:6.3.0"
   dependencies:
     "@adobe/css-tools": ^4.3.2
     "@babel/runtime": ^7.9.2
@@ -3124,7 +3124,7 @@ __metadata:
       optional: true
     vitest:
       optional: true
-  checksum: 36bb8c23fd102a572bb22e37933c5134c6b4737c9d1ca575d2abde64bd5ffbb5f571caa76c1d8ab0b384670fcc680353f1ef563a2d9a6d46d00c47b4eb38969b
+  checksum: cea8aa17895cf4aff573fedee80e8a592611caf7bc724702fc70b3b7bfee94becd3a10873c818d931424018d6fdeeca9d1a2ea5f53b74092ad5e8e09f03dde90
   languageName: node
   linkType: hard
 
@@ -14201,7 +14201,7 @@ __metadata:
     "@microsoft/fetch-event-source": 2.0.1
     "@mycujoo/videojs-hls-quality-selector": 1.1.5-rc.4
     "@playwright/test": ^1.41.1
-    "@testing-library/jest-dom": 6.2.1
+    "@testing-library/jest-dom": 6.3.0
     "@testing-library/react": 14.1.2
     "@testing-library/user-event": 14.5.2
     "@types/jest": 29.5.11
