@@ -18,4 +18,3 @@ jobs:
         dirtyLabel: "conflicting"
         repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
         commentOnDirty: '@dependabot recreate'
-        commentOnClean: 'Conflicts have been resolved. A maintainer will take a look shortly.'
