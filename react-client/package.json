@@ -14,7 +14,7 @@
     "@mantine/prism": "6.0.21",
     "@microsoft/fetch-event-source": "2.0.1",
     "@mycujoo/videojs-hls-quality-selector": "1.1.5-rc.4",
-    "axios": "1.6.5",
+    "axios": "1.6.7",
     "jwt-decode": "3.1.2",
     "lodash": "4.17.21",
     "react": "18.2.0",
