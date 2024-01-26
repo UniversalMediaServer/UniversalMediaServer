@@ -263,10 +263,10 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.20</version>
 		</dependency>
-        <dependency>
-            <groupId>org.apache.xmlgraphics</groupId>
-            <artifactId>batik-rasterizer-ext</artifactId>
-            <version>1.17</version>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-rasterizer-ext</artifactId>
+			<version>1.17</version>
 			<exclusions>
 				<exclusion>
 					<groupId>commons-io</groupId>
@@ -277,7 +277,7 @@
 					<artifactId>commons-logging</artifactId>
 				</exclusion>
 			</exclusions>
-        </dependency>
+		</dependency>
 
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes

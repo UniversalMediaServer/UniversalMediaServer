@@ -22,8 +22,8 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.network.webguiserver.WebGuiServer;
-import net.pms.newgui.LooksFrame;
 import net.pms.renderers.Renderer;
+import net.pms.swing.gui.JavaGui;
 
 public class GuiManager {
 
@@ -55,7 +55,7 @@ public class GuiManager {
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
-			if (gui instanceof LooksFrame) {
+			if (gui instanceof JavaGui) {
 				// fill the log
 				dumpCurrentLog(gui);
 				swingFrame = gui;
@@ -180,7 +180,7 @@ public class GuiManager {
 	}
 
 	public static void showSwingFrame() {
-		if (swingFrame instanceof LooksFrame frame) {
+		if (swingFrame instanceof JavaGui frame) {
 			frame.setVisible(true);
 		}
 	}
