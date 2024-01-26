@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import net.pms.PMS;
-import net.pms.newgui.GeneralTab;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.util.FileWatcher;
@@ -273,7 +272,7 @@ public class RendererConfigurations {
 	 */
 	public static synchronized JsonArray getEnabledRendererNamesAsJsonArray() {
 		List<RendererConfiguration> values = getEnabledRenderersConfigurations();
-		GeneralTab.sortRendererConfigurationsByName(values);
+		sortRendererConfigurationsByName(values);
 		JsonArray jsonArray = new JsonArray();
 		JsonObject jsonObject = new JsonObject();
 		jsonObject.addProperty("value", "");
@@ -505,6 +504,24 @@ public class RendererConfigurations {
 				}
 			}
 		}
+	}
+
+	public static void sortRendererConfigurationsByName(List<RendererConfiguration> rendererConfigurations) {
+		Collections.sort(rendererConfigurations, (RendererConfiguration o1, RendererConfiguration o2) -> {
+			if (o1 == null && o2 == null) {
+				return 0;
+			}
+
+			if (o1 == null) {
+				return 1;
+			}
+
+			if (o2 == null) {
+				return -1;
+			}
+
+			return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
+		});
 	}
 
 }

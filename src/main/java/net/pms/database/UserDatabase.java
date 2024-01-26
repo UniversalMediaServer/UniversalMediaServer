@@ -17,7 +17,7 @@
 package net.pms.database;
 
 import java.sql.*;
-import net.pms.gui.splash.Splash;
+import net.pms.swing.Splash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

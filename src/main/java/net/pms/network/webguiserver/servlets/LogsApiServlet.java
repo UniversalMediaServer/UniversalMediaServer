@@ -46,8 +46,6 @@ public class LogsApiServlet extends GuiHttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogsApiServlet.class);
 
-	private static DbgPacker dbgPacker = null;
-
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		//don't serve if user have no config write perm as log contain critical infos that can elevated user
@@ -80,11 +78,8 @@ public class LogsApiServlet extends GuiHttpServlet {
 					respond(req, resp, result.toString(), 200, "application/json", false);
 				}
 				case "/packer" -> {
-					if (dbgPacker == null) {
-						dbgPacker = new DbgPacker();
-					}
 					JsonArray itemsArray = new JsonArray();
-					for (File file : dbgPacker.getItems()) {
+					for (File file : PMS.get().debugPacker().getFiles()) {
 						JsonObject fileObject = new JsonObject();
 						fileObject.addProperty("name", file.getName());
 						fileObject.addProperty("path", file.getAbsolutePath());
@@ -121,10 +116,6 @@ public class LogsApiServlet extends GuiHttpServlet {
 			var path = req.getServletPath();
 			switch (path) {
 				case "/packer" -> {
-					if (dbgPacker == null) {
-						respondInternalServerError(req, resp);
-						return;
-					}
 					JsonObject data = getJsonObjectFromBody(req);
 					if (!data.has("items")) {
 						respondBadRequest(req, resp);
@@ -137,7 +128,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 
 					//check the file exists in the dbgPacker items to prevent hack (get other file from disk)
 					List<File> files = new ArrayList<>();
-					for (File file : dbgPacker.getItems()) {
+					for (File file : PMS.get().debugPacker().getFiles()) {
 						if (items.contains(file.getAbsolutePath())) {
 							files.add(file);
 						}

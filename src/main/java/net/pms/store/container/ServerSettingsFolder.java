@@ -122,7 +122,7 @@ public class ServerSettingsFolder extends LocalizedStoreContainer {
 		}
 
 		// Restart UMS
-		res.addChild(new VirtualVideoActionLocalized(renderer, "RestartUms", true, "images/icon-videothumbnail-restart.png") {
+		res.addChild(new VirtualVideoActionLocalized(renderer, "RestartUms", true, "images/store/action-restart.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.reboot();
@@ -132,7 +132,7 @@ public class ServerSettingsFolder extends LocalizedStoreContainer {
 		});
 
 		// Shut down computer
-		res.addChild(new VirtualVideoActionLocalized(renderer, "ShutDownComputer", true, "images/icon-videothumbnail-shutdown.png") {
+		res.addChild(new VirtualVideoActionLocalized(renderer, "ShutDownComputer", true, "images/store/action-shutdown.png") {
 			@Override
 			public boolean enable() {
 				ProcessUtil.shutDownComputer();

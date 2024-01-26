@@ -263,11 +263,31 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.20</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-rasterizer-ext</artifactId>
+			<version>1.17</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes
 		   must be made in src/main/external-resources/META-INF/services
 		-->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-batik</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
@@ -682,6 +702,7 @@
 				<targetPath>resources</targetPath>
 				<excludes>
 					<exclude>project.properties</exclude>
+					<exclude>/images/not-in-use/*</exclude>
 				</excludes>
 
 				<!-- Avoid inadvertently filtering binaries -->
