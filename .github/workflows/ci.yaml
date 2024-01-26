@@ -29,7 +29,7 @@ jobs:
       - name: Get previous commit SHA
         id: prev_commit
         run: echo "PREV_COMMIT_SHA=$(git rev-parse HEAD~1)" >> $GITHUB_ENV
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           base: ${{ env.PREV_COMMIT_SHA }}

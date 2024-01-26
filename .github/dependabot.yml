@@ -27,3 +27,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      mockito:
+        patterns:
+        - "mockito"
