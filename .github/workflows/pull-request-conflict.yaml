@@ -10,15 +10,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      pull-requests: write
-      contents: write
     steps:
     - name: check if prs are dirty
       uses: eps1lon/actions-label-merge-conflict@releases/2.x
       id: check
       with:
         dirtyLabel: "conflicting"
-        repoToken: "${{ secrets.GITHUB_TOKEN }}"
+        repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
         commentOnDirty: '@dependabot recreate'
-        commentOnClean: 'Conflicts have been resolved. A maintainer will take a look shortly.'
