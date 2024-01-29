@@ -34,6 +34,7 @@ import javax.swing.Timer;
 import net.pms.Messages;
 import net.pms.configuration.GuiConfiguration;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.swing.components.SvgMultiResolutionImage;
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class Splash extends JFrame {
 			return;
 		}
 
-		ImageIcon image = SwingUtil.getImageIcon("splash/splash.png");
+		ImageIcon image = new SvgMultiResolutionImage(SwingUtil.getImageResource("splash/splash.svg"), 512, 256).toImageIcon();
 		imageLabel = new JLabel(image);
 		imageLabel.setBounds(0, 0, image.getIconWidth(), image.getIconHeight());
 		setSize(imageLabel.getWidth(), imageLabel.getHeight());
