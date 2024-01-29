@@ -123,7 +123,7 @@ public class SysTray {
 		String icon = PlatformUtils.INSTANCE.getTrayIcon();
 		SVGDocument document = SvgMultiResolutionImage.getSVGDocument(SwingUtil.getImageResource(icon + ".svg"));
 		if (updateAvailable) {
-			Element elem = document.getElementById("Updatable");
+			Element elem = document.getElementById("updatable");
 			if (elem != null) {
 				elem.setAttribute("opacity", "1");
 			}

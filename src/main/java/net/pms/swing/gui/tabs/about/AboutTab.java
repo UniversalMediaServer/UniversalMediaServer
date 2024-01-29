@@ -32,6 +32,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.platform.PlatformUtils;
 import net.pms.swing.SwingUtil;
+import net.pms.swing.components.SvgMultiResolutionImage;
 import net.pms.swing.gui.UmsFormBuilder;
 import net.pms.util.PropertiesUtil;
 
@@ -198,9 +199,7 @@ public class AboutTab {
 	}
 
 	private static ImageIcon buildLogoImage() {
-		//remove comment for dpi aware
-		//return new SvgMultiResolutionImage(SwingUtil.getImageResource("icon.svg"), 256, 256).toImageIcon();
-		return SwingUtil.getImageIcon("logo.png");
+		return new SvgMultiResolutionImage(SwingUtil.getImageResource("logo.svg"), 256, 256).toImageIcon();
 	}
 
 }
