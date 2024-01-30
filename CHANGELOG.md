@@ -16,6 +16,7 @@
 - Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.11 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
+- Bump `@types/node` from 18.19.4 to 18.19.10 ([#4441](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4441))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
