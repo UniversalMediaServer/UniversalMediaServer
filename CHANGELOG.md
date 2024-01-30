@@ -12,7 +12,7 @@
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
 - Bump `@types/react` from 18.2.47 to 18.2.48 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392))
-- Bump `@testing-library/jest-dom` from 6.2.0 to 6.3.0 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423))
+- Bump `@testing-library/jest-dom` from 6.2.0 to 6.4.0 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423), [#4442](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4442))
 - Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.11 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
