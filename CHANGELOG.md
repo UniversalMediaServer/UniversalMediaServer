@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `axios` from 1.6.4 to 1.6.5 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349))
+- Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
 - Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.19.0 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391))
 - Bump `@typescript-eslint/parser` from 6.17.0 to 6.19.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419))

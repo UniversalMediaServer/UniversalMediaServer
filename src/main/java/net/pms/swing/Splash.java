@@ -66,7 +66,12 @@ public class Splash extends JFrame {
 			return;
 		}
 
-		ImageIcon image = new SvgMultiResolutionImage(SwingUtil.getImageResource("splash/splash.svg"), 512, 256).toImageIcon();
+		ImageIcon image;
+		if (SwingUtil.HDPI_AWARE) {
+			image = new SvgMultiResolutionImage(SwingUtil.getImageResource("splash/splash.svg"), 512, 256).toImageIcon();
+		} else {
+			image = SwingUtil.getImageIcon("splash/splash.png");
+		}
 		imageLabel = new JLabel(image);
 		imageLabel.setBounds(0, 0, image.getIconWidth(), image.getIconHeight());
 		setSize(imageLabel.getWidth(), imageLabel.getHeight());
@@ -95,7 +100,7 @@ public class Splash extends JFrame {
 				}
 			}
 		});
-		setIconImage(SwingUtil.getImage("icon.svg"));
+		setIconImage(SwingUtil.getImage("icon" + (SwingUtil.HDPI_AWARE ? ".svg" : "-32.png")));
 		statusLabel = new JLabel();
 		statusLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 10));
 		statusLabel.setSize(imageLabel.getWidth(), 12);

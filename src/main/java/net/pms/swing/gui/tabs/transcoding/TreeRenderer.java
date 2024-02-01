@@ -24,11 +24,18 @@ import javax.swing.JTree;
 import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Engine;
+import net.pms.swing.SwingUtil;
 import net.pms.swing.gui.JavaGui;
 
 public class TreeRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 8830634234336247114L;
+	private static final String ICON_TREEMENU_CATEGORY = "icon-treemenu-category.png";
+	private static final String ICON_TREEMENU_ENGINE_DISABLED = "icon-treemenu-enginedisabled.png";
+	private static final String ICON_TREEMENU_ENGINE_ENABLED = "icon-treemenu-engineenabled." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_TREEMENU_ENGINE_WARNING = "icon-treemenu-enginewarning.png";
+
+	private final transient Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
 
 	/**
 	 * Sets the color to use for the background if node is selected.
@@ -37,8 +44,6 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 	public void setBackgroundSelectionColor(Color newColor) {
 		backgroundSelectionColor = new Color(57, 114, 147);
 	}
-
-	private final transient Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
 
 	@Override
 	public Component getTreeCellRendererComponent(
@@ -55,17 +60,17 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		if (leaf && value instanceof TreeNodeSettings) {
 			Engine player = ((TreeNodeSettings) value).getPlayer();
 			if (player == null) {
-				setIcon(JavaGui.readImageIcon("icon-treemenu-category.png"));
+				setIcon(JavaGui.readImageIcon(ICON_TREEMENU_CATEGORY));
 				setToolTipText(null);
 			} else {
 				if (player.isEnabled()) {
 					if (player.isAvailable()) {
-						setIcon(JavaGui.readImageIcon("icon-treemenu-engineenabled.png"));
+						setIcon(JavaGui.readImageIcon(ICON_TREEMENU_ENGINE_ENABLED));
 					} else {
-						setIcon(JavaGui.readImageIcon("icon-treemenu-enginewarning.png"));
+						setIcon(JavaGui.readImageIcon(ICON_TREEMENU_ENGINE_WARNING));
 					}
 				} else {
-					setIcon(JavaGui.readImageIcon("icon-treemenu-enginedisabled.png"));
+					setIcon(JavaGui.readImageIcon(ICON_TREEMENU_ENGINE_DISABLED));
 				}
 				setToolTipText(player.getStatusText());
 			}
@@ -76,7 +81,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				setFont(getFont().deriveFont(Font.PLAIN));
 			}
 		} else {
-			setIcon(JavaGui.readImageIcon("icon-treemenu-category.png"));
+			setIcon(JavaGui.readImageIcon(ICON_TREEMENU_CATEGORY));
 		}
 
 		setBorder(border);

@@ -17,12 +17,19 @@
 package net.pms.swing;
 
 import java.awt.AWTException;
+import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
+import java.awt.image.BaseMultiResolutionImage;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import net.pms.Messages;
@@ -121,14 +128,51 @@ public class SysTray {
 	 */
 	private static Image resolveTrayIcon(boolean updateAvailable) {
 		String icon = PlatformUtils.INSTANCE.getTrayIcon();
-		SVGDocument document = SvgMultiResolutionImage.getSVGDocument(SwingUtil.getImageResource(icon + ".svg"));
-		if (updateAvailable) {
-			Element elem = document.getElementById("updatable");
-			if (elem != null) {
-				elem.setAttribute("opacity", "1");
+		if (SwingUtil.HDPI_AWARE) {
+			SVGDocument document = SvgMultiResolutionImage.getSVGDocument(SwingUtil.getImageResource(icon + ".svg"));
+			if (updateAvailable) {
+				Element elem = document.getElementById("updatable");
+				if (elem != null) {
+					elem.setAttribute("opacity", "1");
+				}
+			}
+			return new SvgMultiResolutionImage(document);
+		} else {
+			String[] iconsPath;
+			switch (icon) {
+				case "icon-darkmode" -> {
+					iconsPath = new String[]{"icon-darkmode.png", "icon-darkmode@2x.png", "icon-darkmode-32.png"};
+				}
+				case "icon-bw" -> {
+					iconsPath = new String[]{"icon-bw-22.png", "icon-bw-32.png"};
+				}
+				default -> {
+					iconsPath = new String[]{"icon-16.png", "icon-20.png", "icon-24.png", "icon-28.png", "icon-32.png", "icon-36.png",
+						"icon-40.png", "icon-44.png", "icon-48.png", "icon-52.png", "icon-56.png", "icon-60.png", "icon-64.png"};
+				}
+			}
+			List<BufferedImage> bufferedImages = new ArrayList<>();
+			for (String iconPath : iconsPath) {
+				try {
+					BufferedImage image = ImageIO.read(SysTray.class.getResource("/resources/images/" + iconPath));
+					if (updateAvailable) {
+						BufferedImage overlay = ImageIO.read(SysTray.class.getResource("/resources/images/systray/icon-updatable-32.png"));
+						Graphics2D g = image.createGraphics();
+						g.drawImage(overlay.getScaledInstance(image.getWidth(), image.getHeight(), Image.SCALE_DEFAULT), 0, 0, null);
+						g.dispose();
+					}
+					bufferedImages.add(image);
+				} catch (IOException e) {
+					LOGGER.debug("TrayIcon exception", e);
+				}
+			}
+			if (bufferedImages.size() > 1) {
+				return new BaseMultiResolutionImage(bufferedImages.toArray(BufferedImage[]::new));
+			} else if (!bufferedImages.isEmpty()) {
+				return bufferedImages.get(0);
 			}
 		}
-		return new SvgMultiResolutionImage(document);
+		return null;
 	}
 
 }

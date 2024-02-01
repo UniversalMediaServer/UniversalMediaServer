@@ -55,6 +55,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.container.Feed;
+import net.pms.swing.SwingUtil;
 import net.pms.swing.components.AnimatedIcon;
 import net.pms.swing.components.JAnimatedButton;
 import net.pms.swing.components.JImageButton;
@@ -70,15 +71,25 @@ public class SharedContentTab implements SharedContentListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
-	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton("button-scan.png");
+	private static final String BUTTON_ADD_FOLDER = "button-add-folder.png";
+	private static final String BUTTON_ADD_WEBCONTENT = "button-add-webcontent.png";
+	private static final String BUTTON_ARROW_DOWN = "button-arrow-down." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_ARROW_UP = "button-arrow-up." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_CANCEL = "button-cancel.png";
+	private static final String BUTTON_CANCEL_PRESSED = "button-cancel_pressed.png";
+	private static final String BUTTON_REMOVE_FOLDER = "button-remove-folder.png";
+	private static final String BUTTON_SCAN = "button-scan." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_SCAN_BUSY = "button-scan-busy." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_SCAN_BUSY_DISABLED = "button-scan-busy_disabled." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final JAnimatedButton SCAN_BUTTON = new JAnimatedButton(BUTTON_SCAN);
 	private static final AnimatedIcon SCAN_NORMAL_ICON = (AnimatedIcon) SCAN_BUTTON.getIcon();
 	private static final AnimatedIcon SCAN_ROLLOVER_ICON = (AnimatedIcon) SCAN_BUTTON.getRolloverIcon();
 	private static final AnimatedIcon SCAN_PRESSED_ICON = (AnimatedIcon) SCAN_BUTTON.getPressedIcon();
 	private static final AnimatedIcon SCAN_DISABLED_ICON = (AnimatedIcon) SCAN_BUTTON.getDisabledIcon();
-	private static final AnimatedIcon SCAN_BUSY_ICON = new AnimatedIcon(SCAN_BUTTON, "button-scan-busy.png");
-	private static final AnimatedIcon SCAN_BUSY_ROLLOVER_ICON = new AnimatedIcon(SCAN_BUTTON, "button-cancel.png");
-	private static final AnimatedIcon SCAN_BUSY_PRESSED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-cancel_pressed.png");
-	private static final AnimatedIcon SCAN_BUSY_DISABLED_ICON = new AnimatedIcon(SCAN_BUTTON, "button-scan-busy_disabled.png");
+	private static final AnimatedIcon SCAN_BUSY_ICON = new AnimatedIcon(SCAN_BUTTON, BUTTON_SCAN_BUSY);
+	private static final AnimatedIcon SCAN_BUSY_ROLLOVER_ICON = new AnimatedIcon(SCAN_BUTTON, BUTTON_CANCEL);
+	private static final AnimatedIcon SCAN_BUSY_PRESSED_ICON = new AnimatedIcon(SCAN_BUTTON, BUTTON_CANCEL_PRESSED);
+	private static final AnimatedIcon SCAN_BUSY_DISABLED_ICON = new AnimatedIcon(SCAN_BUTTON, BUTTON_SCAN_BUSY_DISABLED);
 	private static final String PANEL_COL_SPEC = "left:pref,          50dlu,                pref, 150dlu,                       pref, 25dlu,               pref, 9dlu, pref, default:grow, pref, 25dlu";
 	private static final String PANEL_ROW_SPEC = "fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
@@ -196,7 +207,7 @@ public class SharedContentTab implements SharedContentListener {
 		sharedContentList.setRowHeight(metrics.getLeading() + metrics.getMaxAscent() + metrics.getMaxDescent() + 4);
 		sharedContentList.setIntercellSpacing(new Dimension(8, 2));
 
-		JImageButton addFolderButton = new JImageButton("button-add-folder.png");
+		JImageButton addFolderButton = new JImageButton(BUTTON_ADD_FOLDER);
 		addFolderButton.setToolTipText(Messages.getString("AddFolder"));
 		addFolderButton.addActionListener((ActionEvent e) -> {
 			JFileChooser chooser;
@@ -223,7 +234,7 @@ public class SharedContentTab implements SharedContentListener {
 		});
 		builderFolder.add(addFolderButton).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		JImageButton addWebContentButton = new JImageButton("button-add-webcontent.png");
+		JImageButton addWebContentButton = new JImageButton(BUTTON_ADD_WEBCONTENT);
 		addWebContentButton.setToolTipText(Messages.getString("AddNewWebContent"));
 		addWebContentButton.addActionListener((ActionEvent e) -> {
 			JLabel labelType = new JLabel(Messages.getString("TypeColon"));
@@ -353,7 +364,7 @@ public class SharedContentTab implements SharedContentListener {
 		});
 		builderFolder.add(addWebContentButton).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JImageButton removeButton = new JImageButton("button-remove-folder.png");
+		JImageButton removeButton = new JImageButton(BUTTON_REMOVE_FOLDER);
 		removeButton.setToolTipText(Messages.getString("RemoveSelectedSharedContent"));
 		removeButton.addActionListener((ActionEvent e) -> {
 			int currentlySelectedRow = sharedContentList.getSelectedRow();
@@ -367,7 +378,7 @@ public class SharedContentTab implements SharedContentListener {
 		});
 		builderFolder.add(removeButton).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		JImageButton arrowDownButton = new JImageButton("button-arrow-down.png");
+		JImageButton arrowDownButton = new JImageButton(BUTTON_ARROW_DOWN);
 		arrowDownButton.setToolTipText(Messages.getString("MoveSelectedContentDown"));
 		arrowDownButton.addActionListener((ActionEvent e) -> {
 			int index = sharedContentList.getSelectedRow();
@@ -380,7 +391,7 @@ public class SharedContentTab implements SharedContentListener {
 		});
 		builderFolder.add(arrowDownButton).at(FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		JImageButton arrowUpButton = new JImageButton("button-arrow-up.png");
+		JImageButton arrowUpButton = new JImageButton(BUTTON_ARROW_UP);
 		arrowUpButton.setToolTipText(Messages.getString("MoveSelectedContentUp"));
 		arrowUpButton.addActionListener((ActionEvent e) -> {
 			int index = sharedContentList.getSelectedRow();

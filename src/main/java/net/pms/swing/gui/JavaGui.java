@@ -96,15 +96,20 @@ public class JavaGui extends JFrame implements IGui {
 		null
 	};
 
+	private static final String ICON_BUTTON_QUIT = "button-quit" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
+	private static final String ICON_BUTTON_RESTART = "button-restart" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
+	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
+	private static final String ICON_BUTTON_WIF = "button-wif.png";
+
 	private NavigationShareTab navigationSettingsTab;
 	private SharedContentTab sharedContentTab;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab generalSettingsTab;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), "button-restart.png");
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), ICON_BUTTON_RESTART);
 	private final AnimatedIcon restartRequiredIcon = new AnimatedIcon(
-			reload, true, AnimatedIcon.buildAnimation("button-restart-requiredF%d.png", 0, 24, true, 800, 300, 15)
+			reload, true, AnimatedIcon.buildAnimation(ICON_BUTTON_RESTART_REQUIRED, 0, 25, true, 800, 300, 15)
 	);
 	private AnimatedIcon restartIcon;
 	private AbstractButton webinterface;
@@ -437,7 +442,7 @@ public class JavaGui extends JFrame implements IGui {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebPlayerServer()) {
-			webinterface = createToolBarButton(Messages.getString("WebSettings"), "button-wif.png", Messages.getString("ThisLaunchesOurWebSettings"));
+			webinterface = createToolBarButton(Messages.getString("WebSettings"), ICON_BUTTON_WIF, Messages.getString("ThisLaunchesOurWebSettings"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
@@ -480,7 +485,7 @@ public class JavaGui extends JFrame implements IGui {
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
-		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), "button-quit.png");
+		AbstractButton quit = createToolBarButton(Messages.getString("Quit"), ICON_BUTTON_QUIT);
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener((ActionEvent e) -> PMS.quit());
 		quit.getSize();

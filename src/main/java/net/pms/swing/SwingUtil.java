@@ -57,6 +57,11 @@ public final class SwingUtil {
 	 */
 	private static final String METAL_LNF = "javax.swing.plaf.metal.MetalLookAndFeel";
 
+	/**
+	 * Temp flag until svg is fully implemented.
+	 */
+	public static final boolean HDPI_AWARE = false;
+
 	private static boolean lookAndFeelInitialized = false;
 
 	/**
