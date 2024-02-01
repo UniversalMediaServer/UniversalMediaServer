@@ -36,6 +36,7 @@ import net.pms.util.StringUtil;
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	private static final long serialVersionUID = -337606760204027449L;
+	private static final String ICON_STATUS_WARNING = "icon-status-warning.png";
 	private final Engine engine;
 	private final JComponent otherConfigPanel;
 	private JPanel warningPanel;
@@ -76,7 +77,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	private JPanel getWarningPanel() {
 		if (warningPanel == null) {
-			ImageIcon warningIcon = JavaGui.readImageIcon("icon-status-warning.png");
+			ImageIcon warningIcon = JavaGui.readImageIcon(ICON_STATUS_WARNING);
 
 			FormLayout layout = new FormLayout(
 				"10dlu, pref, 10dlu, pref:grow, 10dlu",

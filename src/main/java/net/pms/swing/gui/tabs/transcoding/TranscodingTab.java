@@ -72,6 +72,11 @@ public class TranscodingTab {
 	 */
 	private static final int MAX_CORES = 16;
 
+	private static final String BUTTON_ARROW_DOWN = "button-arrow-down." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_ARROW_UP = "button-arrow-up." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_TOOGLE_OFF = "button-toggle-off.png";
+	private static final String BUTTON_TOOGLE_ON_DISABLED = "button-toggle-on_disabled.png";
+	private static final String BUTTON_TOOGLE_ON = "button-toggle-on.png";
 	private final UmsConfiguration configuration;
 	private final ComponentOrientation orientation;
 	private final JavaGui looksFrame;
@@ -109,9 +114,9 @@ public class TranscodingTab {
 	private JImageButton arrowUpButton;
 	private JImageButton toggleButton;
 	private enum ToggleButtonState {
-		UNKNOWN("button-toggle-on_disabled.png"),
-		ON("button-toggle-on.png"),
-		OFF("button-toggle-off.png");
+		UNKNOWN(BUTTON_TOOGLE_ON_DISABLED),
+		ON(BUTTON_TOOGLE_ON),
+		OFF(BUTTON_TOOGLE_OFF);
 
 		private final String iconName;
 		private ToggleButtonState(String name) {
@@ -194,7 +199,7 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		arrowDownButton = new JImageButton("button-arrow-down.png");
+		arrowDownButton = new JImageButton(BUTTON_ARROW_DOWN);
 		arrowDownButton.setToolTipText(Messages.getString("ChangePositionSelectedEngine"));
 		arrowDownButton.addActionListener((ActionEvent e) -> {
 			TreePath path = tree.getSelectionModel().getSelectionPath();
@@ -220,7 +225,7 @@ public class TranscodingTab {
 		});
 		builder.add(arrowDownButton).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		arrowUpButton = new JImageButton("button-arrow-up.png");
+		arrowUpButton = new JImageButton(BUTTON_ARROW_UP);
 		arrowUpButton.setToolTipText(Messages.getString("ChangePositionSelectedEngine"));
 		arrowUpButton.addActionListener((ActionEvent e) -> {
 			TreePath path = tree.getSelectionModel().getSelectionPath();

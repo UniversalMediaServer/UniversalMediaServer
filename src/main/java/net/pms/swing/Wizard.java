@@ -43,7 +43,7 @@ public class Wizard {
 	}
 
 	public static void run(final UmsConfiguration configuration) {
-		ImageIcon icon = SwingUtil.getImageIcon("icon.svg");
+		ImageIcon icon = SwingUtil.getImageIcon("icon" + (SwingUtil.HDPI_AWARE ? ".svg" : "-32.png"));
 
 		// Total number of questions
 		int numberOfQuestions = 5;

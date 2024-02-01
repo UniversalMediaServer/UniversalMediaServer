@@ -30,6 +30,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.gui.EConnectionState;
 import net.pms.renderers.Renderer;
+import net.pms.swing.SwingUtil;
 import net.pms.swing.components.AnimatedIcon;
 import net.pms.swing.components.AnimatedIcon.AnimatedIconStage;
 import net.pms.swing.components.AnimatedIcon.AnimatedIconType;
@@ -47,7 +48,10 @@ public class StatusTab {
 	private static final Color DB_COLOR = new Color(75, 140, 181, 128);
 	private static final Color BUF_COLOR = new Color(255, 128, 0, 128);
 	private static final DecimalFormat FORMATTER = new DecimalFormat("#,###");
-
+	private static final String ICON_STATUS_CONNECTING = "icon-status-connecting." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_STATUS_CONNECTED = "icon-status-connected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_STATUS_DISCONNECTED = "icon-status-disconnected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_STATUS_WARNING = "icon-status-warning.png";
 	private JPanel renderers;
 	private JLabel mediaServerBindLabel;
 	private JLabel interfaceServerBindLabel;
@@ -69,13 +73,13 @@ public class StatusTab {
 	 */
 	public StatusTab() {
 		// Build Animations
-		searchingIcon = new AnimatedIcon(connectionStatus, "icon-status-connecting.png");
+		searchingIcon = new AnimatedIcon(connectionStatus, ICON_STATUS_CONNECTING);
 
-		connectedIcon = new AnimatedIcon(connectionStatus, "icon-status-connected.png");
+		connectedIcon = new AnimatedIcon(connectionStatus, ICON_STATUS_CONNECTED);
 
-		disconnectedIcon = new AnimatedIcon(connectionStatus, "icon-status-disconnected.png");
+		disconnectedIcon = new AnimatedIcon(connectionStatus, ICON_STATUS_DISCONNECTED);
 
-		blockedIcon = new AnimatedIcon(connectionStatus, "icon-status-warning.png");
+		blockedIcon = new AnimatedIcon(connectionStatus, ICON_STATUS_WARNING);
 	}
 
 	public void setConnectionState(EConnectionState connectionState) {

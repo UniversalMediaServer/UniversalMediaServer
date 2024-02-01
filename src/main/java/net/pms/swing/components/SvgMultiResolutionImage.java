@@ -19,25 +19,21 @@ package net.pms.swing.components;
 import java.awt.Image;
 import java.awt.image.AbstractMultiResolutionImage;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
-import org.apache.batik.transcoder.Transcoder;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Element;
 import org.w3c.dom.svg.SVGDocument;
 
 /**
@@ -70,7 +66,7 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 	}
 
 	@Override
-	protected BufferedImage getBaseImage() {
+	public BufferedImage getBaseImage() {
 		return baseImage;
 	}
 
@@ -115,20 +111,26 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 		if (svg == null) {
 			return null;
 		}
-		Transcoder t = new PNGTranscoder();
+		SvgTranscoder t = new SvgTranscoder();
 		if (destImageWidth != null && destImageHeight != null) {
 			t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, destImageWidth);
 			t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, destImageHeight);
+			float height = svg.getRootElement().getHeight().getBaseVal().getValue();
+			float width = svg.getRootElement().getWidth().getBaseVal().getValue();
+			if (destImageWidth < width || destImageHeight < height) {
+				//show small id
+				Element elem = svg.getElementById("small");
+				if (elem != null) {
+					elem.setAttribute("opacity", "1");
+				}
+			}
 		}
-		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+		try {
 			// Create the transcoder input.
 			TranscoderInput input = new TranscoderInput(svg);
-			TranscoderOutput output = new TranscoderOutput(outputStream);
-			t.transcode(input, output);
-			outputStream.flush();
-			byte[] imgData = outputStream.toByteArray();
-			return ImageIO.read(new ByteArrayInputStream(imgData));
-		} catch (IOException | TranscoderException ex) {
+			t.transcode(input, null);
+			return t.getBufferedImage();
+		} catch (TranscoderException ex) {
 			LOGGER.error("SVG Transcoder error", ex);
 		}
 		return null;
