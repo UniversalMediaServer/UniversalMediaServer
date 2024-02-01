@@ -51,7 +51,7 @@ public class StatusTab {
 	private static final String ICON_STATUS_CONNECTING = "icon-status-connecting." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_STATUS_CONNECTED = "icon-status-connected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_STATUS_DISCONNECTED = "icon-status-disconnected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
-	private static final String ICON_STATUS_WARNING = "icon-status-warning.png";
+	private static final String ICON_STATUS_WARNING = "icon-status-warning." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private JPanel renderers;
 	private JLabel mediaServerBindLabel;
 	private JLabel interfaceServerBindLabel;

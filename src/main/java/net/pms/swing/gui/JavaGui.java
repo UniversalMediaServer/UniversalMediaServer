@@ -96,10 +96,10 @@ public class JavaGui extends JFrame implements IGui {
 		null
 	};
 
-	private static final String ICON_BUTTON_QUIT = "button-quit" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_RESTART = "button-restart" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_WIF = "button-wif.png";
+	private static final String ICON_BUTTON_QUIT = "button-quit." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_RESTART = "button-restart." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_WIF = "button-wif." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 
 	private NavigationShareTab navigationSettingsTab;
 	private SharedContentTab sharedContentTab;

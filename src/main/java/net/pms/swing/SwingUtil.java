@@ -60,7 +60,7 @@ public final class SwingUtil {
 	/**
 	 * Temp flag until svg is fully implemented.
 	 */
-	public static final boolean HDPI_AWARE = false;
+	public static final boolean HDPI_AWARE = true;
 
 	private static boolean lookAndFeelInitialized = false;
 
