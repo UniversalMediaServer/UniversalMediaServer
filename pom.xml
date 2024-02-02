@@ -265,7 +265,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
-			<artifactId>batik-rasterizer-ext</artifactId>
+			<artifactId>batik-svgrasterizer</artifactId>
 			<version>1.17</version>
 			<exclusions>
 				<exclusion>
@@ -278,7 +278,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes
 		   must be made in src/main/external-resources/META-INF/services
