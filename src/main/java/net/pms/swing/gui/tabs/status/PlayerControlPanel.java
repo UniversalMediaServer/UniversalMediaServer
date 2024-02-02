@@ -402,19 +402,19 @@ public class PlayerControlPanel extends JPanel {
 	}
 
 	private static void loadIcons() {
-		addIcon    = getImageIcon("add.svg");
-		removeIcon = getImageIcon("remove.svg");
-		clearIcon  = getImageIcon("clear.svg");
-		playIcon   = getImageIcon("play.svg");
-		pauseIcon  = getImageIcon("pause.svg");
-		stopIcon   = getImageIcon("stop.svg");
-		fwdIcon    = getImageIcon("fwd.svg");
-		rewIcon    = getImageIcon("rew.svg");
-		nextIcon   = getImageIcon("next.svg");
-		prevIcon   = getImageIcon("prev.svg");
-		volumeIcon = getImageIcon("vol.svg");
-		muteIcon   = getImageIcon("mute.svg");
-		sliderIcon = getImageIcon("bar.svg");
+		addIcon    = getImageIcon("add" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		removeIcon = getImageIcon("remove" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		clearIcon  = getImageIcon("clear" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		playIcon   = getImageIcon("play" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		pauseIcon  = getImageIcon("pause" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		stopIcon   = getImageIcon("stop" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		fwdIcon    = getImageIcon("fwd" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		rewIcon    = getImageIcon("rew" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		nextIcon   = getImageIcon("next" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		prevIcon   = getImageIcon("prev" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		volumeIcon = getImageIcon("vol" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		muteIcon   = getImageIcon("mute" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
+		sliderIcon = getImageIcon("bar" + (SwingUtil.HDPI_AWARE ? ".svg" : "16.png"));
 	}
 
 	public static ImageIcon getImageIcon(String filename) {

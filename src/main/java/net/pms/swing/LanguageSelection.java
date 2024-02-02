@@ -111,7 +111,7 @@ public class LanguageSelection {
 			pane.setComponentOrientation(ComponentOrientation.getOrientation(locale));
 			dialog = pane.createDialog(parentComponent, PMS.NAME);
 			dialog.setModalityType(ModalityType.APPLICATION_MODAL);
-			dialog.setIconImage(SwingUtil.getImage("icon" + (SwingUtil.HDPI_AWARE ? ".svg" : "-32.png")));
+			dialog.setIconImage(SwingUtil.getAppIconImage());
 			setStrings();
 			dialog.pack();
 			dialog.setLocationRelativeTo(parentComponent);

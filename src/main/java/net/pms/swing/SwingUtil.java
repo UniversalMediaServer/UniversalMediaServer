@@ -60,7 +60,7 @@ public final class SwingUtil {
 	/**
 	 * Temp flag until svg is fully implemented.
 	 */
-	public static final boolean HDPI_AWARE = true;
+	public static final boolean HDPI_AWARE = false;
 
 	private static boolean lookAndFeelInitialized = false;
 
@@ -189,32 +189,27 @@ public final class SwingUtil {
 	}
 
 	public static ImageIcon getImageIcon(String filename) {
-		URL url = getImageResource(filename);
-		if (url != null) {
-			if ("svg".equalsIgnoreCase(FileUtil.getExtension(filename))) {
-				return new SvgMultiResolutionImage(url).toImageIcon();
-			} else {
-				Image img = new ImageIcon(url).getImage();
-				//check for better resolutions for hdpi
-				//todo : add multi res 100% to 400% by 25% step on image folder
-				ArrayList<Image> images = new ArrayList<>();
-				images.add(img);
-				String[] resolutions = {"@1.25x", "@1.5x", "@1.75x", "@2x", "@2.25x", "@2.5x", "@2.75x", "@3x", "@3.25x", "@3.5x", "@3.75x", "@4x"};
-				for (String resolution : resolutions) {
-					url = getImageResource(FileUtil.appendToFileName(filename, resolution));
-					if (url != null) {
-						images.add(new ImageIcon(url).getImage());
-					}
-				}
-				if (images.size() > 1) {
-					BaseMultiResolutionImage multiImg = new BaseMultiResolutionImage(images.toArray(Image[]::new));
-					return new ImageIcon(multiImg);
-				} else {
-					return new ImageIcon(images.get(0));
-				}
-			}
+		Image image = getImage(filename);
+		if (image != null) {
+			return new ImageIcon(image);
 		}
 		return null;
+	}
+
+	public static Image getAppIconImage() {
+		if (HDPI_AWARE) {
+			return new SvgMultiResolutionImage(getImageResource("icon.svg"));
+		} else {
+			ArrayList<Image> images = new ArrayList<>();
+			for (String filename : new String[]{"icon-16.png", "icon-20.png", "icon-24.png", "icon-28.png", "icon-32.png", "icon-36.png",
+					"icon-40.png", "icon-44.png", "icon-48.png", "icon-52.png", "icon-56.png", "icon-60.png", "icon-64.png"}) {
+				URL url = getImageResource(filename);
+				if (url != null) {
+					images.add(new ImageIcon(url).getImage());
+				}
+			}
+			return new BaseMultiResolutionImage(images.toArray(Image[]::new));
+		}
 	}
 
 	/**

@@ -52,7 +52,6 @@ import net.pms.swing.components.AnimatedIcon.AnimatedIconType;
 import net.pms.swing.components.CustomTabbedPaneUI;
 import net.pms.swing.components.JAnimatedButton;
 import net.pms.swing.components.JImageButton;
-import net.pms.swing.components.SvgMultiResolutionImage;
 import net.pms.swing.gui.tabs.about.AboutTab;
 import net.pms.swing.gui.tabs.general.GeneralTab;
 import net.pms.swing.gui.tabs.help.HelpTab;
@@ -230,9 +229,9 @@ public class JavaGui extends JFrame implements IGui {
 		UIManager.put("Viewport.font", controlFont);
 
 		setTitle(PMS.NAME);
-		ImageIcon imageIcon = new SvgMultiResolutionImage(JavaGui.class.getResource("/resources/images/icon.svg")).toImageIcon();
-		if (imageIcon != null) {
-			setIconImage(imageIcon.getImage());
+		Image image = SwingUtil.getAppIconImage();
+		if (image != null) {
+			setIconImage(image);
 		}
 
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);

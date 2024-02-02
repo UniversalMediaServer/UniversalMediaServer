@@ -199,7 +199,11 @@ public class AboutTab {
 	}
 
 	private static ImageIcon buildLogoImage() {
-		return new SvgMultiResolutionImage(SwingUtil.getImageResource("logo.svg"), 256, 256).toImageIcon();
+		if (SwingUtil.HDPI_AWARE) {
+			return new SvgMultiResolutionImage(SwingUtil.getImageResource("logo.svg"), 256, 256).toImageIcon();
+		} else {
+			return SwingUtil.getImageIcon("logo.png");
+		}
 	}
 
 }
