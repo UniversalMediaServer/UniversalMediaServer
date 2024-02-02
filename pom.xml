@@ -264,11 +264,6 @@
 			<version>0.4.20</version>
 		</dependency>
 		<dependency>
-			<groupId>xml-apis</groupId>
-			<artifactId>xml-apis</artifactId>
-			<version>1.0.b2</version>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svgrasterizer</artifactId>
 			<version>1.17</version>
