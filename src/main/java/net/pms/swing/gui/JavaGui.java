@@ -52,7 +52,6 @@ import net.pms.swing.components.AnimatedIcon.AnimatedIconType;
 import net.pms.swing.components.CustomTabbedPaneUI;
 import net.pms.swing.components.JAnimatedButton;
 import net.pms.swing.components.JImageButton;
-import net.pms.swing.components.SvgMultiResolutionImage;
 import net.pms.swing.gui.tabs.about.AboutTab;
 import net.pms.swing.gui.tabs.general.GeneralTab;
 import net.pms.swing.gui.tabs.help.HelpTab;
@@ -96,10 +95,10 @@ public class JavaGui extends JFrame implements IGui {
 		null
 	};
 
-	private static final String ICON_BUTTON_QUIT = "button-quit" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_RESTART = "button-restart" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d" + (SwingUtil.HDPI_AWARE ? ".svg" : ".png");
-	private static final String ICON_BUTTON_WIF = "button-wif.png";
+	private static final String ICON_BUTTON_QUIT = "button-quit." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_RESTART = "button-restart." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_BUTTON_WIF = "button-wif." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 
 	private NavigationShareTab navigationSettingsTab;
 	private SharedContentTab sharedContentTab;
@@ -230,9 +229,9 @@ public class JavaGui extends JFrame implements IGui {
 		UIManager.put("Viewport.font", controlFont);
 
 		setTitle(PMS.NAME);
-		ImageIcon imageIcon = new SvgMultiResolutionImage(JavaGui.class.getResource("/resources/images/icon.svg")).toImageIcon();
-		if (imageIcon != null) {
-			setIconImage(imageIcon.getImage());
+		Image image = SwingUtil.getAppIconImage();
+		if (image != null) {
+			setIconImage(image);
 		}
 
 		setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
