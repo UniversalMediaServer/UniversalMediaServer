@@ -16,6 +16,7 @@
  */
 package net.pms.swing.components;
 
+import java.awt.image.BufferedImage;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -30,7 +31,13 @@ public class SvgMultiResolutionImageTest {
 	@Test
 	public void testSvgMultiResolutionImage() {
 		try {
-			new SvgMultiResolutionImage(SvgMultiResolutionImageTest.class.getResource("/resources/images/icon.svg")).toImageIcon();
+			SvgMultiResolutionImage test = new SvgMultiResolutionImage(SvgMultiResolutionImageTest.class.getResource("/resources/images/icon.svg"));
+			BufferedImage base = test.getBaseImage();
+			Assertions.assertEquals(32, base.getWidth(), "Base Width");
+			Assertions.assertEquals(32, base.getHeight(), "Base Height");
+			BufferedImage variant = test.getResolutionVariant(64, 64);
+			Assertions.assertEquals(64, variant.getWidth(), "Variant Width");
+			Assertions.assertEquals(64, variant.getHeight(), "Variant Height");
 		} catch (Exception e) {
 			Assertions.fail(e.getMessage());
 		}
