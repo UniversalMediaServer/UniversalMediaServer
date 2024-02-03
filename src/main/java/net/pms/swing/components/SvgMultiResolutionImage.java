@@ -20,7 +20,6 @@ import java.awt.Image;
 import java.awt.image.AbstractMultiResolutionImage;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,8 +94,7 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 
 	public static SVGDocument getSVGDocument(URL imageResource) {
 		try {
-			InputStream rs = imageResource.openStream();
-			return FACTORY.createSVGDocument(imageResource.toString(), rs);
+			return FACTORY.createSVGDocument(null, imageResource.openStream());
 		} catch (IOException ex) {
 			LOGGER.error("SVG MultiResolution error", ex);
 		}
