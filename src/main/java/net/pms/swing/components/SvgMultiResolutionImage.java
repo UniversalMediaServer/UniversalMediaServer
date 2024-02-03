@@ -94,7 +94,7 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 
 	public static SVGDocument getSVGDocument(URL imageResource) {
 		try {
-			return FACTORY.createSVGDocument(imageResource.toString());
+			return FACTORY.createSVGDocument(null, imageResource.openStream());
 		} catch (IOException ex) {
 			LOGGER.error("SVG MultiResolution error", ex);
 		}
