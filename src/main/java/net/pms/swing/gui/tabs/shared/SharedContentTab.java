@@ -71,13 +71,13 @@ public class SharedContentTab implements SharedContentListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentTab.class);
 	private static final JCheckBox IS_SCAN_SHARED_FOLDERS_ON_STARTUP = new JCheckBox(Messages.getString("ScanSharedFoldersStartup"));
-	private static final String BUTTON_ADD_FOLDER = "button-add-folder.png";
-	private static final String BUTTON_ADD_WEBCONTENT = "button-add-webcontent.png";
+	private static final String BUTTON_ADD_FOLDER = "button-add-folder." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String BUTTON_ADD_WEBCONTENT = "button-add-webcontent." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_ARROW_DOWN = "button-arrow-down." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_ARROW_UP = "button-arrow-up." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_CANCEL = "button-cancel." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_CANCEL_PRESSED = "button-cancel_pressed." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
-	private static final String BUTTON_REMOVE_FOLDER = "button-remove-folder.png";
+	private static final String BUTTON_REMOVE_FOLDER = "button-remove-folder." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_SCAN = "button-scan." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_SCAN_BUSY = "button-scan-busy." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String BUTTON_SCAN_BUSY_DISABLED = "button-scan-busy_disabled." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
