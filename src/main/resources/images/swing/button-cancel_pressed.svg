@@ -1,0 +1,15 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="48" height="48">
+	<defs>
+		<path id="a" d="M24 3.8a2.7 2.7 90 0 0 0 40.5 2.7 2.7 90 0 0 0-40.5zm0 8.1a2.7 2.7 90 0 1 0 24.3 2.7 2.7 90 0 1 0-24.3m-13.5 4 21.6 21.7 5.4-5.4-21.6-21.6-5.4 5.4"/>
+		<linearGradient id="b" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#FF0000"/>
+			<stop offset="100%" stop-color="#A90000"/>
+		</linearGradient>
+	</defs>
+	<use xlink:href="#a" fill="none" stroke="#000" stroke-width="7" stroke-opacity=".2"/>
+	<use xlink:href="#a" fill="none" stroke="#FFF" stroke-width="6" stroke-opacity=".8"/>
+	<use xlink:href="#a" fill="url(#b)"/>
+</svg>

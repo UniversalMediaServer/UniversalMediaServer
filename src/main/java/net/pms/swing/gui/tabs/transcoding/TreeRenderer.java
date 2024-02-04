@@ -30,10 +30,10 @@ import net.pms.swing.gui.JavaGui;
 public class TreeRenderer extends DefaultTreeCellRenderer {
 
 	private static final long serialVersionUID = 8830634234336247114L;
-	private static final String ICON_TREEMENU_CATEGORY = "icon-treemenu-category.png";
-	private static final String ICON_TREEMENU_ENGINE_DISABLED = "icon-treemenu-enginedisabled.png";
+	private static final String ICON_TREEMENU_CATEGORY = "icon-treemenu-category." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
+	private static final String ICON_TREEMENU_ENGINE_DISABLED = "icon-treemenu-enginedisabled." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_TREEMENU_ENGINE_ENABLED = "icon-treemenu-engineenabled." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
-	private static final String ICON_TREEMENU_ENGINE_WARNING = "icon-treemenu-enginewarning.png";
+	private static final String ICON_TREEMENU_ENGINE_WARNING = "icon-treemenu-enginewarning." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 
 	private final transient Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
 

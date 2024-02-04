@@ -58,9 +58,14 @@ public final class SwingUtil {
 	private static final String METAL_LNF = "javax.swing.plaf.metal.MetalLookAndFeel";
 
 	/**
+	 * Class name of GTK L&F.
+	 */
+	private static final String GTK_LNF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+
+	/**
 	 * Temp flag until svg is fully implemented.
 	 */
-	public static final boolean HDPI_AWARE = false;
+	public static final boolean HDPI_AWARE = true;
 
 	private static boolean lookAndFeelInitialized = false;
 
@@ -323,11 +328,10 @@ public final class SwingUtil {
 					if (!Platform.isMac()) {
 						// Workaround for Gnome
 						try {
-							String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
-							Class.forName(gtkLAF);
+							Class.forName(GTK_LNF);
 
-							if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
-								systemClassName = gtkLAF;
+							if (systemClassName.equals(METAL_LNF)) {
+								systemClassName = GTK_LNF;
 							}
 						} catch (ClassNotFoundException ce) {
 							LOGGER.error("Error loading GTK look and feel: ", ce);

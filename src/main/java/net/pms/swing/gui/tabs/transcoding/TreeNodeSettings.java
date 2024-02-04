@@ -29,6 +29,7 @@ import javax.swing.JTextArea;
 import javax.swing.tree.DefaultMutableTreeNode;
 import net.pms.Messages;
 import net.pms.encoders.Engine;
+import net.pms.swing.SwingUtil;
 import net.pms.swing.gui.JavaGui;
 import net.pms.swing.gui.UmsFormBuilder;
 import net.pms.util.StringUtil;
@@ -36,9 +37,11 @@ import net.pms.util.StringUtil;
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	private static final long serialVersionUID = -337606760204027449L;
-	private static final String ICON_STATUS_WARNING = "icon-status-warning.png";
+	private static final String ICON_ENGINE_WARNING = (SwingUtil.HDPI_AWARE ? "icon-engine-warning.svg" : "icon-status-warning.png");
+
 	private final Engine engine;
 	private final JComponent otherConfigPanel;
+
 	private JPanel warningPanel;
 
 	public Engine getPlayer() {
@@ -77,7 +80,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 	private JPanel getWarningPanel() {
 		if (warningPanel == null) {
-			ImageIcon warningIcon = JavaGui.readImageIcon(ICON_STATUS_WARNING);
+			ImageIcon warningIcon = JavaGui.readImageIcon(ICON_ENGINE_WARNING);
 
 			FormLayout layout = new FormLayout(
 				"10dlu, pref, 10dlu, pref:grow, 10dlu",
