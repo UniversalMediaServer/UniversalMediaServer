@@ -17,7 +17,32 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.11 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 
-## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v14) (2023-12-08)
+## 14.0.0 (Unreleased)
+
+### General
+- Added menu option to clear all renderer/device filter settings
+- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
+- Added status text to splash screen
+- Refresh data after device filter settings change
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Fixed TV series sometimes not being set for episodes
+- Updates to INSTALL.txt (#4409) (thanks, easleydp!)
+- Stability improvements
+- Logging improvements
+- Refactored to remove deprecated code use
+- All changes from 13.9.0
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+
+### Dependencies
+- Bump `mantine` from 7.3.2 to 7.4.0
+- Bump `video.js` from 8.8.0 to 8.9.0
+
+## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
 ### General
 - Added ability to block/allow renderers in web settings
