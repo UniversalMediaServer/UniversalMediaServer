@@ -17,6 +17,7 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.11 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
+- Bump `@types/node` from 18.19.4 to 18.19.14 ([#4448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4448))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
