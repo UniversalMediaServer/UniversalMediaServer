@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="148" height="128">
+  <defs>
+    <radialGradient id="c" cx="80.9" cy="90.4" r="47.7" gradientUnits="userSpaceOnUse">
+      <stop offset=".7" stop-opacity="0"/>
+      <stop offset=".9" stop-opacity=".5"/>
+      <stop offset="1"/>
+    </radialGradient>
+    <radialGradient id="f" cx="-170.15" cy="31.5" r="71.6" gradientTransform="matrix(.15 -.99 -.8 -.12 88.3 -62.7)" gradientUnits="userSpaceOnUse">
+      <stop offset=".8" stop-opacity="0"/>
+      <stop offset=".9" stop-opacity=".5"/>
+      <stop offset="1"/>
+    </radialGradient>
+    <radialGradient id="h" cx="56.7" cy="285.1" r="101.2" gradientTransform="matrix(-.04 1 2.13 .08 -589.75 -53.35)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#35c1f1"/>
+      <stop offset=".1" stop-color="#34c1ed"/>
+      <stop offset=".2" stop-color="#2fc2df"/>
+      <stop offset=".3" stop-color="#2bc3d2"/>
+      <stop offset=".7" stop-color="#36c752"/>
+    </radialGradient>
+    <radialGradient id="i" cx="188.25" cy="284" r="48.65" gradientTransform="matrix(.28 .96 .78 -.23 -151.9 -74.25)" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#66eb6e"/>
+      <stop offset="1" stop-color="#66eb6e" stop-opacity="0"/>
+    </radialGradient>
+    <path id="a" d="M125.55 95.25a46.85 46.85 90 0 1-5.3 2.35 50.95 50.95 90 0 1-17.95 3.2c-23.65 0-44.25-16.25-44.25-37.15A15.75 15.75 90 0 1 66.25 50c-21.4.9-26.9 23.2-26.9 36.25 0 37 34.05 40.7 41.4 40.7 3.95 0 9.9-1.15 13.5-2.3l.65-.2a64.15 64.15 90 0 0 33.3-26.4 2 2 90 0 0-2.65-2.8Z"/>
+    <path id="d" d="M62.85 120.65A39.6 39.6 90 0 1 51.5 110a40.35 40.35 90 0 1 14.75-60c1.6-.75 4.25-2.05 7.8-2a16.2 16.2 90 0 1 12.85 6.5 15.95 15.95 90 0 1 3.15 9.35c0-.1 12.25-39.8-40-39.8-21.95 0-40 20.8-40 39.1a65.1 65.1 90 0 0 6.05 28 64 64 90 0 0 78.2 33.5 37.75 37.75 90 0 1-31.4-4z"/>
+    <path id="g" d="M86.2 74.4c-.45.5-1.7 1.25-1.7 2.8 0 1.3.85 2.6 2.4 3.65 7.15 5 20.7 4.3 20.75 4.3A29.8 29.8 90 0 0 122.8 81 30.7 30.7 90 0 0 138 54.55c.15-11.2-4-18.65-5.65-21.95C121.7 11.9 98.85 0 74 0a64 64 90 0 0-64 63.1c.25-18.25 18.4-33 40-33 1.75 0 11.75.15 21 5a36.3 36.3 90 0 1 15.45 14.65c3.05 5.3 3.6 12.05 3.6 14.75s-1.35 6.65-3.9 9.95z"/>
+    <linearGradient id="b" x1="31.65" x2="120.85" y1="91" y2="91" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0c59a4"/>
+      <stop offset="1" stop-color="#114a8b"/>
+    </linearGradient>
+    <linearGradient id="e" x1="78.65" x2="23" y1="52.3" y2="112.95" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1b9de2"/>
+      <stop offset=".2" stop-color="#1595df"/>
+      <stop offset=".7" stop-color="#0680d7"/>
+      <stop offset="1" stop-color="#0078d4"/>
+    </linearGradient>
+  </defs>
+  <use xlink:href="#a" fill="url(#b)"/>
+  <use xlink:href="#a" fill="url(#c)" opacity=".35"/>
+  <use xlink:href="#d" fill="url(#e)"/>
+  <use xlink:href="#d" fill="url(#f)" opacity=".41"/>
+  <use xlink:href="#g" fill="url(#h)"/>
+  <use xlink:href="#g" fill="url(#i)"/>
+</svg>

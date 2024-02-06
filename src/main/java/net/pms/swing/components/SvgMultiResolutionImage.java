@@ -17,9 +17,13 @@
 package net.pms.swing.components;
 
 import java.awt.Image;
+import java.awt.Toolkit;
 import java.awt.image.AbstractMultiResolutionImage;
-import java.awt.image.BufferedImage;
+import java.awt.image.FilteredImageSource;
+import java.awt.image.ImageFilter;
+import java.awt.image.ImageProducer;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +32,6 @@ import javax.swing.ImageIcon;
 import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
 import org.apache.batik.transcoder.TranscoderException;
 import org.apache.batik.transcoder.TranscoderInput;
-import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.batik.util.XMLResourceDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,40 +47,53 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 	private static final SAXSVGDocumentFactory FACTORY = new SAXSVGDocumentFactory(XMLResourceDescriptor.getXMLParserClassName());
 
 	private final SVGDocument svg;
-	private final BufferedImage baseImage;
-	private final List<BufferedImage> variants = new ArrayList<>();
+	private final ImageFilter filter;
+	private final Image baseImage;
+	private final List<Image> variants = new ArrayList<>();
 
-	public SvgMultiResolutionImage(SVGDocument svg) {
+	public SvgMultiResolutionImage(SVGDocument svg, ImageFilter filter, Float width, Float height) {
 		this.svg = svg;
-		baseImage = getBufferedImage(svg);
+		this.filter = filter;
+		baseImage = getResolutionVariant(svg, filter, width, height);
 		if (baseImage != null) {
 			variants.add(baseImage);
 		}
+	}
+
+	public SvgMultiResolutionImage(SVGDocument svg, ImageFilter filter) {
+		this(svg, filter, null, null);
+	}
+
+	public SvgMultiResolutionImage(SVGDocument svg) {
+		this(svg, null);
 	}
 
 	public SvgMultiResolutionImage(URL imageResource) {
 		this(getSVGDocument(imageResource));
 	}
 
+	public SvgMultiResolutionImage(InputStream imageStream) {
+		this(getSVGDocument(imageStream));
+	}
+
 	public SvgMultiResolutionImage(URL imageResource, int width, int height) {
-		svg = getSVGDocument(imageResource);
-		baseImage = getResolutionVariant(svg, (float) width, (float) height);
+		this(getSVGDocument(imageResource), null, (float) width, (float) height);
 	}
 
 	@Override
-	public BufferedImage getBaseImage() {
+	public Image getBaseImage() {
 		return baseImage;
 	}
 
 	@Override
-	public BufferedImage getResolutionVariant(double destImageWidth, double destImageHeight) {
+	public Image getResolutionVariant(double destImageWidth, double destImageHeight) {
 		synchronized (variants) {
-			for (BufferedImage variant : variants) {
-				if (variant.getHeight() == destImageHeight && variant.getWidth() == destImageHeight) {
+			for (Image variant : variants) {
+				if (variant.getHeight(null) == destImageHeight && variant.getWidth(null) == destImageHeight) {
 					return variant;
 				}
 			}
-			BufferedImage variant = getResolutionVariant(svg, (float) destImageWidth, (float) destImageHeight);
+			Image variant = getResolutionVariant(svg, filter, (float) destImageWidth, (float) destImageHeight);
 			variants.add(variant);
 			return variant;
 		}
@@ -92,27 +108,36 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 		return new ImageIcon(this);
 	}
 
+	public SVGDocument getSVGDocument() {
+		return svg;
+	}
+
 	public static SVGDocument getSVGDocument(URL imageResource) {
 		try {
-			return FACTORY.createSVGDocument(null, imageResource.openStream());
+			return getSVGDocument(imageResource.openStream());
 		} catch (IOException ex) {
 			LOGGER.error("SVG MultiResolution error", ex);
 		}
 		return null;
 	}
 
-	private static BufferedImage getBufferedImage(SVGDocument svg) {
-		return getResolutionVariant(svg, null, null);
+	private static SVGDocument getSVGDocument(InputStream imageStream) {
+		try {
+			return FACTORY.createSVGDocument(null, imageStream);
+		} catch (IOException ex) {
+			LOGGER.error("SVG MultiResolution error", ex);
+		}
+		return null;
 	}
 
-	private static BufferedImage getResolutionVariant(SVGDocument svg, Float destImageWidth, Float destImageHeight) {
+	private static Image getResolutionVariant(SVGDocument svg, ImageFilter filter, Float destImageWidth, Float destImageHeight) {
 		if (svg == null) {
 			return null;
 		}
 		SvgTranscoder t = new SvgTranscoder();
 		if (destImageWidth != null && destImageHeight != null) {
-			t.addTranscodingHint(PNGTranscoder.KEY_WIDTH, destImageWidth);
-			t.addTranscodingHint(PNGTranscoder.KEY_HEIGHT, destImageHeight);
+			t.addTranscodingHint(SvgTranscoder.KEY_WIDTH, destImageWidth);
+			t.addTranscodingHint(SvgTranscoder.KEY_HEIGHT, destImageHeight);
 			float height = svg.getRootElement().getHeight().getBaseVal().getValue();
 			float width = svg.getRootElement().getWidth().getBaseVal().getValue();
 			if (destImageWidth < width || destImageHeight < height) {
@@ -127,7 +152,12 @@ public class SvgMultiResolutionImage extends AbstractMultiResolutionImage {
 			// Create the transcoder input.
 			TranscoderInput input = new TranscoderInput(svg);
 			t.transcode(input, null);
-			return t.getBufferedImage();
+			Image variant = t.getBufferedImage();
+			if (filter != null && variant != null) {
+				ImageProducer producer = new FilteredImageSource(variant.getSource(), filter);
+				variant = Toolkit.getDefaultToolkit().createImage(producer);
+			}
+			return variant;
 		} catch (TranscoderException ex) {
 			LOGGER.error("SVG Transcoder error", ex);
 		}

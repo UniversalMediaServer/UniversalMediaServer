@@ -4,7 +4,7 @@ when UMS identifies that renderer.
 These images typically follow the same convention:
    - A photo of the renderer.
    - The renderer is facing slightly to your left.
-   - The image format is PNG with a transparent background.
+   - The image format is PNG or SVG with a transparent background.
    - The height is 128 pixels.
    - The width does not exceed 300 pixels.
    - The photo is vertically centered when applicable.
