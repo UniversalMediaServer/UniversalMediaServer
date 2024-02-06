@@ -162,7 +162,7 @@ public class UmsLocalDevice extends LocalDevice {
 
 			@Override
 			protected int getLockTimeoutMillis() {
-				return 1000;
+				return 5000;
 			}
 
 			@Override
