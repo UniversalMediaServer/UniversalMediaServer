@@ -131,16 +131,16 @@ public class WebGuiRenderer extends Renderer {
 	@Override
 	public String getRendererIcon() {
 		return switch (browser) {
-			case CHROME -> "chrome.png";
-			case MSIE -> "internetexplorer.png";
-			case FIREFOX -> "firefox.png";
-			case SAFARI -> "safari.png";
+			case CHROME -> "chrome.svg";
+			case MSIE -> "internetexplorer.svg";
+			case FIREFOX -> "firefox.svg";
+			case SAFARI -> "safari.svg";
 			case PS4 -> "ps4.png";
 			case XBOX1 -> "xbox-one.png";
-			case OPERA -> "opera.png";
-			case EDGE -> "edge.png";
-			case CHROMIUM -> "chromium.png";
-			case VIVALDI -> "vivaldi.png";
+			case OPERA -> "opera.svg";
+			case EDGE -> "edge.svg";
+			case CHROMIUM -> "chromium.svg";
+			case VIVALDI -> "vivaldi.svg";
 			default -> super.getRendererIcon();
 		};
 	}
