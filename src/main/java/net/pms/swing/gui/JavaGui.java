@@ -78,23 +78,6 @@ public class JavaGui extends JFrame implements IGui {
 	private final GuiConfiguration guiConfiguration;
 	private Rectangle effectiveScreenBounds;
 
-	/**
-	 * List of context sensitive help pages URLs. These URLs should be relative
-	 * to the documentation directory and in the same order as the tabs. The
-	 * value <code>null</code> means "don't care", activating the tab will not
-	 * change the help page.
-	 */
-	protected static final String[] HELP_PAGES = {
-		"index.html",
-		null,
-		"general_configuration.html",
-		null,
-		"navigation_share.html",
-		"transcoding.html",
-		null,
-		null
-	};
-
 	private static final String ICON_BUTTON_QUIT = "button-quit." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_BUTTON_RESTART = "button-restart." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_BUTTON_RESTART_REQUIRED = "button-restart-requiredF%d." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
@@ -536,17 +519,10 @@ public class JavaGui extends JFrame implements IGui {
 		} else {
 			tr.build();
 		}
-		tabbedPane.addTab(Messages.getString("Help"), new HelpTab().build());
+		tabbedPane.addTab(Messages.getString("Help"), ht.build());
 		tabbedPane.addTab(Messages.getString("About"), new AboutTab().build());
 
-		tabbedPane.addChangeListener((ChangeEvent e) -> {
-			int selectedIndex = tabbedPane.getSelectedIndex();
-			if (HELP_PAGES[selectedIndex] != null) {
-				PMS.setHelpPage(HELP_PAGES[selectedIndex]);
-				// Update the contents of the help tab itself
-				ht.updateContents();
-			}
-		});
+		tabbedPane.addChangeListener((ChangeEvent e) -> ht.setTabIndex(tabbedPane.getSelectedIndex()));
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 

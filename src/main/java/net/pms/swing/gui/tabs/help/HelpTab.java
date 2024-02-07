@@ -31,7 +31,6 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.StyleSheet;
-import net.pms.PMS;
 import net.pms.platform.PlatformUtils;
 import net.pms.swing.gui.UmsFormBuilder;
 import net.pms.util.PropertiesUtil;
@@ -45,6 +44,28 @@ public class HelpTab {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(HelpTab.class);
 
+	/**
+	 * List of context sensitive help pages URLs. These URLs should be relative
+	 * to the documentation directory and in the same order as the tabs. The
+	 * value <code>null</code> means "don't care", activating the tab will not
+	 * change the help page.
+	 */
+	private static final String[] HELP_PAGES = {
+		"index.html",
+		null,
+		"general_configuration.html",
+		null,
+		"navigation_share.html",
+		"transcoding.html",
+		null,
+		null
+	};
+
+	/**
+	 * Relative location of a context sensitive help page in the documentation
+	 * directory.
+	 */
+	private String helpPage = "index.html";
 	private JEditorPane editorPane;
 
 	/**
@@ -111,7 +132,6 @@ public class HelpTab {
 	public void updateContents() {
 		if (editorPane != null) {
 			File documentationDir = new File(PropertiesUtil.getProjectProperties().get("project.documentation.dir"));
-			String helpPage = PMS.getHelpPage();
 			if (!documentationDir.exists()) {
 				// Try to load help files from the source tree if not found to make it work while running from an IDE
 				File sourceDocumentationDir = new File("src/main/external-resources/documentation");
@@ -163,6 +183,20 @@ public class HelpTab {
 
 		rule = String.format("dd { margin-bottom: %dpx; }", Math.round((double) baseSize * 10 / 6));
 		styleSheet.addRule(rule);
+	}
+
+	/**
+	 * Sets the relative URL of a context sensitive help page located in the
+	 * documentation directory.
+	 *
+	 * @param page The help page.
+	 */
+	public void setTabIndex(int selectedIndex) {
+		if (HELP_PAGES[selectedIndex] != null) {
+			helpPage = HELP_PAGES[selectedIndex];
+			// Update the contents of the help tab itself
+			updateContents();
+		}
 	}
 
 }
