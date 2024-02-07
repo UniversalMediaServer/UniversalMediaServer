@@ -29,15 +29,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.store.MediaScanner;
-import net.pms.store.MediaStoreIds;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.Messages;
+import net.pms.PMS;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.database.MediaDatabase;
+import net.pms.renderers.Renderer;
+import net.pms.store.MediaScanner;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreResource;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.item.RealFile;
 
 public class PlaylistManager {
 
@@ -48,6 +53,9 @@ public class PlaylistManager {
 	private final List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
 	private final MediaDatabase db = PMS.get().getMediaDatabase();
 	private boolean serviceDisabled = true;
+
+	// migration step towards UPnP handling
+	private final Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
 	public PlaylistManager() {
 		checkPlaylistDirectoryConfiguration();
@@ -139,22 +147,25 @@ public class PlaylistManager {
 		return null;
 	}
 
-	private Path getPlaylistPathFromName(String playlistName) {
-		String baseName = FilenameUtils.getBaseName(playlistName);
-		if (playlistsNames.indexOf(baseName.toLowerCase()) > -1) {
-			return availablePlaylists.get(playlistsNames.indexOf(baseName.toLowerCase()));
+	private Path getPlaylistPathFromObjectId(String playlistObjectId) {
+		StoreResource sr = renderer.getMediaStore().getResource(playlistObjectId);
+		if (sr instanceof PlaylistFolder realFile) {
+			File pl = new File(realFile.getSystemName());
+			if (pl != null) {
+				return pl.toPath();
+			}
 		}
-		throw new RuntimeException(Messages.getString("UnknownPlaylistName") + " : " + playlistName);
+		throw new RuntimeException(Messages.getString("UnknownPlaylistName") + " : " + playlistObjectId);
 	}
 
-	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromName(playlistName);
-		String filenameToAdd = getFilenameFromId(audiotrackID);
+	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistObjectId) throws SQLException, IOException {
+		Path playlistPath = getPlaylistPathFromObjectId(playlistObjectId);
+		String filenameToAdd = getFilenameFromAudiotrackId(audiotrackID);
 
 		if (StringUtils.isAllBlank(filenameToAdd)) {
 			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackID);
 		}
-		if (playlistName == null) {
+		if (playlistObjectId == null) {
 			throw new RuntimeException(Messages.getString("PlaylistNameNotProvided"));
 		}
 
@@ -171,7 +182,7 @@ public class PlaylistManager {
 		return playlistEntries;
 	}
 
-	private String getFilenameFromId(Integer audiotrackId) throws SQLException {
+	private String getFilenameFromAudiotrackId(Integer audiotrackId) throws SQLException {
 		try (Connection connection = db.getConnection()) {
 			String sql = "select FILENAME from FILES as F join AUDIO_METADATA as A on F.ID = A.FILEID where (audiotrack_id = ?)";
 			try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -191,8 +202,8 @@ public class PlaylistManager {
 	}
 
 	public List<String> removeSongFromPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromName(playlistName);
-		String filenameToRemove = getFilenameFromId(audiotrackID);
+		Path playlistPath = getPlaylistPathFromObjectId(playlistName);
+		String filenameToRemove = getFilenameFromAudiotrackId(audiotrackID);
 		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
