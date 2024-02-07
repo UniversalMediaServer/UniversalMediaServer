@@ -183,11 +183,6 @@ public class PMS {
 	 */
 	private static Boolean headless = null;
 	/**
-	 * Relative location of a context sensitive help page in the documentation
-	 * directory.
-	 */
-	private static String helpPage = "index.html";
-	/**
 	 * The instanciated {@link AutoUpdater}.
 	 */
 	private static AutoUpdater autoUpdater;
@@ -1505,26 +1500,6 @@ public class PMS {
 	 */
 	public static void setLocale(String language) {
 		setLocale(language, "", "");
-	}
-
-	/**
-	 * Sets the relative URL of a context sensitive help page located in the
-	 * documentation directory.
-	 *
-	 * @param page The help page.
-	 */
-	public static void setHelpPage(String page) {
-		helpPage = page;
-	}
-
-	/**
-	 * Returns the relative URL of a context sensitive help page in the
-	 * documentation directory.
-	 *
-	 * @return The help page.
-	 */
-	public static String getHelpPage() {
-		return helpPage;
 	}
 
 	public static boolean isReady() {

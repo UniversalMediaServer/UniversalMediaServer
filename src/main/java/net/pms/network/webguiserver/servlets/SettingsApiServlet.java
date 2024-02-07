@@ -269,7 +269,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		JsonObject jsonResponse = new JsonObject();
 		File requestedDirectoryFile = new File(path);
 		if (!requestedDirectoryFile.exists()) {
-			return null;
+			return getRootsDirectoryResponse();
 		}
 		File[] directories = requestedDirectoryFile.listFiles(
 				(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
