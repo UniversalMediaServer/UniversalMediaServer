@@ -244,9 +244,12 @@ public class MediaScanner implements SharedContentListener {
 			}
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			if (systemFileResources.isEmpty()) {
-				//not yet discovered ?
-				scanFileOrFolder(file.getParentFile().getAbsolutePath());
-				systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+				//not yet discovered or root path outside shared folders ?
+				String parent = file.getParentFile().getAbsolutePath();
+				if (isInSharedFolders(parent)) {
+					scanFileOrFolder(parent);
+					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
+				}
 			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
