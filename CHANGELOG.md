@@ -8,7 +8,7 @@
 - Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.19.0 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391))
 - Bump `@typescript-eslint/parser` from 6.17.0 to 6.19.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419))
 - Bump `react-router-dom` from 6.21.1 to 6.21.3 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408))
-- Bump `@playwright/test` from 1.40.1 to 1.41.1 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416))
+- Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
 - Bump `@types/react` from 18.2.47 to 18.2.48 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392))
