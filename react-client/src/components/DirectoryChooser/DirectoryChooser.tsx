@@ -54,8 +54,8 @@ export default function DirectoryChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: i18n.get['Error'],
-      message: i18n.get['NoDirectorySelected'],
+      title: i18n.get('Error'),
+      message: i18n.get('NoDirectorySelected'),
       autoClose: 3000,
     });
   };
@@ -72,8 +72,8 @@ export default function DirectoryChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['SubdirectoriesNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('SubdirectoriesNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -105,7 +105,7 @@ export default function DirectoryChooser(props: {
           title={
             <Group>
               <Folders />
-              {i18n.get['SelectedDirectory']}
+              {i18n.get('SelectedDirectory')}
             </Group>
           }
           scrollAreaComponent={ScrollArea.Autosize}

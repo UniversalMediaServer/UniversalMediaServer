@@ -204,7 +204,7 @@ export const Player = () => {
                 leftSection=<RecordMail />
                 onClick={() => setFullyPlayed(sse.reqId, true)}
               >
-                {i18n.get['MarkContentsFullyPlayed']}
+                {i18n.get('MarkContentsFullyPlayed')}
               </Menu.Item>
             }
             {breadcrumb.fullyplayed === true &&
@@ -213,7 +213,7 @@ export const Player = () => {
                 leftSection=<RecordMailOff />
                 onClick={() => setFullyPlayed(sse.reqId, false)}
               >
-                {i18n.get['MarkContentsUnplayed']}
+                {i18n.get('MarkContentsUnplayed')}
               </Menu.Item>
             }
             {isVideoMetadataEditable() &&
@@ -221,7 +221,7 @@ export const Player = () => {
                 leftSection=<Edit />
                 onClick={() => setShowVideoMetadataEdit(true)}
               >
-                {i18n.get['Edit']}
+                {i18n.get('Edit')}
               </Menu.Item>
             }
           </Menu.Dropdown>
@@ -333,7 +333,7 @@ export const Player = () => {
       const medias = selection.map((media: BaseMedia) => {
         return getMedia(media);
       })
-      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get[title]}</Title><div style={{ height: '240px', overflowY: 'hidden' }} className='media-grid front-page-grid'>{medias}</div></>);
+      return (<><Title order={2} mb='md' size='h4' fw={400}>{i18n.get(title)}</Title><div style={{ height: '240px', overflowY: 'hidden' }} className='media-grid front-page-grid'>{medias}</div></>);
     }
   }
 
@@ -351,7 +351,7 @@ export const Player = () => {
   const getMetadataBaseMediaList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
       return (<Group gap='xs' mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-        <Text fw={700}>{i18n.get[title]}: </Text>
+        <Text fw={700}>{i18n.get(title)}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
             <Badge
@@ -377,7 +377,7 @@ export const Player = () => {
   const getMetadataCountryList = (title: string, mediaList?: BaseMedia[]) => {
     if (mediaList && mediaList.length > 0) {
       return (<Group gap='xs' mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-        <Text fw={700}>{i18n.get[title]}: </Text>
+        <Text fw={700}>{i18n.get(title)}: </Text>
         {mediaList.map((media: BaseMedia) => {
           return (
             <ReactCountryFlag
@@ -405,7 +405,7 @@ export const Player = () => {
     if (mediaString) {
       return (
         <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text fw={700}>{i18n.get[title]}: </Text><Text>{mediaString}</Text>
+          <Text fw={700}>{i18n.get(title)}: </Text><Text>{mediaString}</Text>
         </Group>);
     }
   }
@@ -432,7 +432,7 @@ export const Player = () => {
     if (rating) {
       return (
         <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text fw={700}>{i18n.get['Rating']}: </Text><Tooltip label={rating}><Rating value={rating / 2} fractions={4} readOnly /></Tooltip>
+          <Text fw={700}>{i18n.get('Rating')}: </Text><Tooltip label={rating}><Rating value={rating / 2} fractions={4} readOnly /></Tooltip>
         </Group>);
     }
   }
@@ -441,7 +441,7 @@ export const Player = () => {
     if (ratingsList && ratingsList.length > 0) {
       return (<>
         <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-          <Text fw={700}>{i18n.get['Ratings']}: </Text>
+          <Text fw={700}>{i18n.get('Ratings')}: </Text>
         </Group>
         <List withPadding>
           {ratingsList.map((media: MediaRating) => {
@@ -609,17 +609,17 @@ export const Player = () => {
     if (data.goal === 'show') {
       return (
         <Button.Group>
-          <Button variant='default' size='compact-md' leftSection={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get['Play']}</Button>
+          <Button variant='default' size='compact-md' leftSection={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get('Play')}</Button>
           {data.useWebControl && (
-            <Tooltip withinPortal label={i18n.get['PlayOnAnotherRenderer']}>
+            <Tooltip withinPortal label={i18n.get('PlayOnAnotherRenderer')}>
               <Button variant='default' disabled size='compact-md' onClick={() => { }}><Cast size={14} /></Button>
             </Tooltip>
           )}
-          <Tooltip withinPortal label={i18n.get['AddToPlaylist']}>
+          <Tooltip withinPortal label={i18n.get('AddToPlaylist')}>
             <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
           </Tooltip>
           {((data.medias[0]) as PlayMedia).isDownload && (
-            <Tooltip withinPortal label={i18n.get['Download']}>
+            <Tooltip withinPortal label={i18n.get('Download')}>
               <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
@@ -752,7 +752,7 @@ export const Player = () => {
     }
     const getNavFolders = () => {
       if (data.mediaLibraryFolders && data.mediaLibraryFolders.length > 0) {
-        return (<><div>{i18n.get['MediaLibrary']}</div>{getMediaLibraryFolders()}<div>{i18n.get['YourFolders']}</div>{getFoldersButtons()}</>);
+        return (<><div>{i18n.get('MediaLibrary')}</div>{getMediaLibraryFolders()}<div>{i18n.get('YourFolders')}</div>{getFoldersButtons()}</>);
       } else {
         return getFoldersButtons();
       }
@@ -789,7 +789,7 @@ export const Player = () => {
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
 };

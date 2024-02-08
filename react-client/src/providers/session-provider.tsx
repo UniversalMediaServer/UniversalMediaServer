@@ -40,8 +40,8 @@ export const SessionProvider = ({ children }: Props) => {
           showNotification({
             id: 'data-loading',
             color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['SessionNotReceived'],
+            title: i18n.get('Error'),
+            message: i18n.get('SessionNotReceived'),
             autoClose: 3000,
           });
         });

@@ -37,10 +37,10 @@ const About = () => {
     <Table.Tr key={language.id}>
       <Table.Td><Group style={{ cursor: 'default' }}><ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} /><Text>{language.name}</Text></Group></Table.Td>
       {language.id === 'en-US' ? (
-        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></Table.Td>
+        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get('Source')}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></Table.Td>
       ) : (
         <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'>
-          <Text>{language.coverage === 100 ? i18n.get['Completed'] : i18n.get['InProgress'] + ' (' + language.coverage + '%)'}</Text>
+          <Text>{language.coverage === 100 ? i18n.get('Completed') : i18n.get('InProgress') + ' (' + language.coverage + '%)'}</Text>
           <ActionIcon variant='default' onClick={() => { window.open('https://crowdin.com/project/universalmediaserver/' + language.id, '_blank'); }}>
             <Edit />
           </ActionIcon>
@@ -63,8 +63,8 @@ const About = () => {
         showNotification({
           id: 'about-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       });
@@ -74,9 +74,9 @@ const About = () => {
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Tabs defaultValue='application'>
         <Tabs.List>
-          <Tabs.Tab value='application'>{i18n.get['Application']}</Tabs.Tab>
-          <Tabs.Tab value='translations'>{i18n.get['Translations']}</Tabs.Tab>
-          <Tabs.Tab value='relatedLinks'>{i18n.get['RelatedLinks_title']}</Tabs.Tab>
+          <Tabs.Tab value='application'>{i18n.get('Application')}</Tabs.Tab>
+          <Tabs.Tab value='translations'>{i18n.get('Translations')}</Tabs.Tab>
+          <Tabs.Tab value='relatedLinks'>{i18n.get('RelatedLinks_title')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value='application' pt='xs'>
           <Table striped>
@@ -87,43 +87,43 @@ const About = () => {
             </Table.Thead>
             <Table.Tbody>
               <Table.Tr>
-                <Table.Td>{i18n.get['Version']}</Table.Td>
+                <Table.Td>{i18n.get('Version')}</Table.Td>
                 <Table.Td>{aboutDatas.version}</Table.Td>
               </Table.Tr>
               <Table.Tr>
-                <Table.Td>{i18n.get['GitCommitHash']}</Table.Td>
+                <Table.Td>{i18n.get('GitCommitHash')}</Table.Td>
                 <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.commitUrl, '_blank'); }}>{aboutDatas.commit}</Text></Table.Td>
               </Table.Tr>
               <Table.Tr>
-                <Table.Td>{i18n.get['Website']}</Table.Td>
+                <Table.Td>{i18n.get('Website')}</Table.Td>
                 <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.website, '_blank'); }}>{aboutDatas.website}</Text></Table.Td>
               </Table.Tr>
               <Table.Tr>
-                <Table.Td>{i18n.get['Licence']}</Table.Td>
+                <Table.Td>{i18n.get('Licence')}</Table.Td>
                 <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.licenceUrl, '_blank'); }}>{aboutDatas.licence}</Text></Table.Td>
               </Table.Tr>
             </Table.Tbody>
             {(canView && !session.player) && <>
               <Table.Thead>
                 <Table.Tr>
-                  <Table.Th colSpan={2}><Text c='blue' size='lg' ta='center'>{i18n.get['System']}</Text></Table.Th>
+                  <Table.Th colSpan={2}><Text c='blue' size='lg' ta='center'>{i18n.get('System')}</Text></Table.Th>
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
                 <Table.Tr>
-                  <Table.Td>{i18n.get['OperatingSystem']}</Table.Td>
+                  <Table.Td>{i18n.get('OperatingSystem')}</Table.Td>
                   <Table.Td>{aboutDatas.operatingSystem}</Table.Td>
                 </Table.Tr>
                 <Table.Tr>
-                  <Table.Td>{i18n.get['SystemMemorySize']}</Table.Td>
+                  <Table.Td>{i18n.get('SystemMemorySize')}</Table.Td>
                   <Table.Td>{aboutDatas.systemMemorySize}</Table.Td>
                 </Table.Tr>
                 <Table.Tr>
-                  <Table.Td>{i18n.get['JVMMemoryMax']}</Table.Td>
+                  <Table.Td>{i18n.get('JVMMemoryMax')}</Table.Td>
                   <Table.Td>{aboutDatas.jvmMemoryMax}</Table.Td>
                 </Table.Tr>
                 <Table.Tr>
-                  <Table.Td>{i18n.get['JVMMemoryUsage']}</Table.Td>
+                  <Table.Td>{i18n.get('JVMMemoryUsage')}</Table.Td>
                   <Table.Td><ServerEventContext.Consumer>{sse => (<MemoryBar decorate={false} sse={sse} i18n={i18n} />)}</ServerEventContext.Consumer></Table.Td>
                 </Table.Tr>
               </Table.Tbody>
