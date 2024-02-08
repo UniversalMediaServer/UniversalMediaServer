@@ -30,9 +30,9 @@ export const ServerEventStatus = () => {
     'red',
   ];
   const connectionStatusTooltip = [
-    i18n.get['ConnectingToServer'],
-    i18n.get['UniversalMediaServerRunning'],
-    i18n.get['UniversalMediaServerUnreachable'],
+    i18n.get('ConnectingToServer'),
+    i18n.get('UniversalMediaServerRunning'),
+    i18n.get('UniversalMediaServerUnreachable'),
   ];
 
   return (

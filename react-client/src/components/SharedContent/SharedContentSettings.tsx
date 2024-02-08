@@ -76,13 +76,13 @@ export default function SharedContentSettings(
       );
 
       showNotification({
-        message: i18n.get['Saved'],
+        message: i18n.get('Saved'),
       })
     } catch (err) {
       showNotification({
         color: 'red',
-        title: i18n.get['Error'],
-        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        title: i18n.get('Error'),
+        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
       })
     }
@@ -104,15 +104,15 @@ export default function SharedContentSettings(
       } else {
         showNotification({
           color: 'orange',
-          title: i18n.get['Information'],
-          message: i18n.get['FeedNameNotFound'],
+          title: i18n.get('Information'),
+          message: i18n.get('FeedNameNotFound'),
         })
       }
     } catch (err) {
       showNotification({
         color: 'red',
-        title: i18n.get['Error'],
-        message: i18n.get['DataNotReceived'],
+        title: i18n.get('Error'),
+        message: i18n.get('DataNotReceived'),
       })
     }
     setLoading(false);
@@ -121,25 +121,25 @@ export default function SharedContentSettings(
   const getSharedContentTypeLocalized = (value: string) => {
     switch (value) {
       case 'FeedAudio':
-        return i18n.get['Podcast'];
+        return i18n.get('Podcast');
       case 'FeedImage':
-        return i18n.get['ImageFeed'];
+        return i18n.get('ImageFeed');
       case 'FeedVideo':
-        return i18n.get['VideoFeed'];
+        return i18n.get('VideoFeed');
       case 'StreamAudio':
-        return i18n.get['AudioStream'];
+        return i18n.get('AudioStream');
       case 'StreamVideo':
-        return i18n.get['VideoStream'];
+        return i18n.get('VideoStream');
       case 'Folder':
-        return i18n.get['Folder'];
+        return i18n.get('Folder');
       case 'VirtualFolder':
-        return i18n.get['VirtualFolders'];
+        return i18n.get('VirtualFolders');
       case 'iTunes':
-        return i18n.get['ItunesLibrary'];
+        return i18n.get('ItunesLibrary');
       case 'iPhoto':
-        return i18n.get['IphotoLibrary'];
+        return i18n.get('IphotoLibrary');
       case 'Aperture':
-        return i18n.get['ApertureLibrary'];
+        return i18n.get('ApertureLibrary');
     }
   }
 
@@ -160,7 +160,7 @@ export default function SharedContentSettings(
   const getRestrictedGroupsNames = (value: SharedContent) => {
     return value.groups.map((groupId: number) => {
       const groupName = getGroupName(groupId, configuration.groups);
-      return <Code color={groupName ? 'red' : 'grape'} key={groupId}>{groupName ? groupName : (i18n.get['NonExistentGroup'] + ' ' + groupId)}</Code>;
+      return <Code color={groupName ? 'red' : 'grape'} key={groupId}>{groupName ? groupName : (i18n.get('NonExistentGroup') + ' ' + groupId)}</Code>;
     });
   }
 
@@ -169,7 +169,7 @@ export default function SharedContentSettings(
     return (
       <div>
         <div>{type}</div>
-        <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get['FeedNameNotFound']}</Code>}</div>
+        <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>}</div>
         <div><Code color='blue'>{value.uri}</Code></div>
         { getRestrictedGroups(value) }
       </div>
@@ -244,13 +244,13 @@ export default function SharedContentSettings(
       case 'VirtualFolder':
         return getSharedContentVirtualFolderView(value as VirtualFolder);
       case 'iTunes':
-        return i18n.get['ItunesLibrary'];
+        return i18n.get('ItunesLibrary');
       case 'iPhoto':
-        return i18n.get['IphotoLibrary'];
+        return i18n.get('IphotoLibrary');
       case 'Aperture':
-        return i18n.get['ApertureLibrary'];
+        return i18n.get('ApertureLibrary');
     }
-    return (<div>{i18n.get['Unknown']}</div>);
+    return (<div>{i18n.get('Unknown')}</div>);
   }
 
   const getSharedContentFeedActions = (value: Feed) => {
@@ -263,7 +263,7 @@ export default function SharedContentSettings(
           disabled={!canModify || !value.uri || isLoading}
           onClick={() => updateSharedContentFeedName(value)}
         >
-          {i18n.get['UpdateFeedName']}
+          {i18n.get('UpdateFeedName')}
         </Menu.Item>
       </>
     );
@@ -279,7 +279,7 @@ export default function SharedContentSettings(
           disabled={!canModify}
           onClick={() => toggleFolderMonitored(value)}
         >
-          {i18n.get['MonitorPlayedStatusFiles']}
+          {i18n.get('MonitorPlayedStatusFiles')}
         </Menu.Item>
         <Menu.Item
           color='blue'
@@ -287,7 +287,7 @@ export default function SharedContentSettings(
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
-          {i18n.get['MarkContentsFullyPlayed']}
+          {i18n.get('MarkContentsFullyPlayed')}
         </Menu.Item>
         <Menu.Item
           color='green'
@@ -295,7 +295,7 @@ export default function SharedContentSettings(
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
-          {i18n.get['MarkContentsUnplayed']}
+          {i18n.get('MarkContentsUnplayed')}
         </Menu.Item>
       </>
      );
@@ -366,7 +366,7 @@ export default function SharedContentSettings(
             disabled={!canModify}
             onClick={() => editSharedContentItem(value)}
           >
-            {i18n.get['Edit']}
+            {i18n.get('Edit')}
           </Menu.Item>
           <Menu.Item
             color={value.active ? 'blue' : 'orange'}
@@ -374,7 +374,7 @@ export default function SharedContentSettings(
             disabled={!canModify}
             onClick={() => toogleSharedContentItemActive(value)}
           >
-            {value.active ? i18n.get['Disable'] : i18n.get['Enable']}
+            {value.active ? i18n.get('Disable') : i18n.get('Enable')}
           </Menu.Item>
           {getSharedContentActions(value)}
           <Menu.Divider />
@@ -384,7 +384,7 @@ export default function SharedContentSettings(
             disabled={!canModify}
             onClick={() => removeSharedContentItem(value)}
           >
-            {i18n.get['Delete']}
+            {i18n.get('Delete')}
           </Menu.Item>
         </Menu.Dropdown>
       </Menu>
@@ -445,7 +445,7 @@ export default function SharedContentSettings(
 
   const getSharedContentChilds = () => {
     return modalForm.values['contentChilds'] && modalForm.values['contentChilds'].length > 0 ? (<>
-      <label>{i18n.get['SharedFolders']}</label>
+      <label>{i18n.get('SharedFolders')}</label>
       {getSharedContentChildsDirectoryChooser()}
     </>) : null;
   }
@@ -485,28 +485,28 @@ export default function SharedContentSettings(
   const getSharedContentModifyModal = () => {
     const isNew = editingIndex < 0;
     const data=[
-      { value: 'Folder', label: i18n.get['Folder'] },
-      { value: 'VirtualFolder', label: i18n.get['VirtualFolders'] },
-      { value: 'FeedAudio', label: i18n.get['Podcast'] },
-      { value: 'FeedImage', label: i18n.get['ImageFeed'] },
-      { value: 'FeedVideo', label: i18n.get['VideoFeed'] },
-      { value: 'StreamAudio', label: i18n.get['AudioStream'] },
-      { value: 'StreamVideo', label: i18n.get['VideoStream'] },
+      { value: 'Folder', label: i18n.get('Folder') },
+      { value: 'VirtualFolder', label: i18n.get('VirtualFolders') },
+      { value: 'FeedAudio', label: i18n.get('Podcast') },
+      { value: 'FeedImage', label: i18n.get('ImageFeed') },
+      { value: 'FeedVideo', label: i18n.get('VideoFeed') },
+      { value: 'StreamAudio', label: i18n.get('AudioStream') },
+      { value: 'StreamVideo', label: i18n.get('VideoStream') },
     ];
-    configuration.show_itunes_library && data.push({ value: 'iTunes', label: i18n.get['ItunesLibrary'] });
-    configuration.show_iphoto_library && data.push({ value: 'iPhoto', label: i18n.get['IphotoLibrary'] });
-    configuration.show_aperture_library && data.push({ value: 'Aperture', label: i18n.get['ApertureLibrary'] });
+    configuration.show_itunes_library && data.push({ value: 'iTunes', label: i18n.get('ItunesLibrary') });
+    configuration.show_iphoto_library && data.push({ value: 'iPhoto', label: i18n.get('IphotoLibrary') });
+    configuration.show_aperture_library && data.push({ value: 'Aperture', label: i18n.get('ApertureLibrary') });
     return (
       <Modal
         scrollAreaComponent={ScrollArea.Autosize}
         opened={newOpened}
         onClose={() => setNewOpened(false)}
-        title={i18n.get['SharedContent']}
+        title={i18n.get('SharedContent')}
         lockScroll={false}
       >
         <Select
           disabled={!canModify || !isNew}
-          label={i18n.get['Type']}
+          label={i18n.get('Type')}
           data={data}
           maxDropdownHeight={120}
           {...modalForm.getInputProps('contentType')}
@@ -514,8 +514,8 @@ export default function SharedContentSettings(
         {modalForm.values['contentType'] !== 'Folder' && modalForm.values['contentType'] !== 'iTunes' && (
           <TextInput
             disabled={!canModify || modalForm.values['contentType'].startsWith('Feed')}
-            label={i18n.get['Name']}
-            placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get['NamesSetAutomaticallyFeeds'] : ''}
+            label={i18n.get('Name')}
+            placeholder={modalForm.values['contentType'].startsWith('Feed') ? i18n.get('NamesSetAutomaticallyFeeds') : ''}
             name='contentName'
             style={{ flex: 1 }}
             {...modalForm.getInputProps('contentName')}
@@ -524,7 +524,7 @@ export default function SharedContentSettings(
         {modalForm.values['contentType'] !== 'Folder' && modalForm.values['contentType'] !== 'iTunes' && (
           <TextInput
             disabled={!canModify}
-            label={i18n.get['Path']}
+            label={i18n.get('Path')}
             placeholder={modalForm.values['contentType'] !== 'VirtualFolder' ? 'Web' : ''}
             name='contentPath'
             style={{ flex: 1 }}
@@ -534,17 +534,17 @@ export default function SharedContentSettings(
         {modalForm.values['contentType'] === 'Folder' || modalForm.values['contentType'] === 'iTunes' ? (
           <DirectoryChooser
             disabled={!canModify}
-            label={i18n.get['Folder']}
+            label={i18n.get('Folder')}
             size='xs'
             path={modalForm.values['contentSource']}
             callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
-            placeholder= {modalForm.values['contentType'] === 'iTunes' ? i18n.get['AutoDetect'] : undefined}
+            placeholder= {modalForm.values['contentType'] === 'iTunes' ? i18n.get('AutoDetect') : undefined}
             withAsterisk= {modalForm.values['contentType'] === 'Folder'}
           ></DirectoryChooser>
         ) : modalForm.values['contentType'] !== 'VirtualFolder' && (
           <TextInput
             disabled={!canModify}
-            label={i18n.get['SourceURLColon']}
+            label={i18n.get('SourceURLColon')}
             name='contentSource'
             style={{ flex: 1 }}
             {...modalForm.getInputProps('contentSource')}
@@ -552,7 +552,7 @@ export default function SharedContentSettings(
         )}
         {modalForm.values['contentType'] === 'VirtualFolder' && (<>
           {getSharedContentChilds()}
-          <label>{i18n.get['AddFolder']}</label>
+          <label>{i18n.get('AddFolder')}</label>
           <DirectoryChooser
             disabled={!canModify}
             size='xs'
@@ -564,15 +564,15 @@ export default function SharedContentSettings(
           leftSection={<Users />}
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
-          label={i18n.get['AuthorizedGroups']}
-          placeholder={modalForm.values['contentGroups'].length > 0 ? undefined : i18n.get['NoGroupRestrictions']}
+          label={i18n.get('AuthorizedGroups')}
+          placeholder={modalForm.values['contentGroups'].length > 0 ? undefined : i18n.get('NoGroupRestrictions')}
           maxDropdownHeight={120}
           hidePickedOptions
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group justify='flex-end' mt='sm'>
           <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
-            {canModify ? isNew ? i18n.get['Add'] : i18n.get['Apply'] : i18n.get['Close']}
+            {canModify ? isNew ? i18n.get('Add') : i18n.get('Apply') : i18n.get('Close')}
           </Button>
         </Group>
       </Modal>
@@ -649,13 +649,13 @@ export default function SharedContentSettings(
   const getScanSharedFoldersButton = () => {
     const haveFolder = sharedContents.find(sharedContent => sharedContent.type.startsWith('Folder'));
     return haveFolder ? (
-      <Tooltip label={i18n.get[sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']} {...defaultTooltipSettings}>
+      <Tooltip label={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')} {...defaultTooltipSettings}>
         <ActionIcon
           size='xl'
           disabled={!canModify || isLoading}
           variant='transparent'
           color={sse.mediaScan ? 'red' : 'blue'}
-          title={i18n.get[sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders']}
+          title={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
           onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
         >
           <ListSearch />
@@ -690,7 +690,7 @@ export default function SharedContentSettings(
     <>
       <Group>
         <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
-          {i18n.get['AddNewSharedContent']}
+          {i18n.get('AddNewSharedContent')}
         </Button>
         {getScanSharedFoldersButton()}
       </Group>

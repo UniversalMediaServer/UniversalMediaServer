@@ -29,17 +29,17 @@ export const MemoryBar = ({ decorate, sse, i18n }: { decorate?: boolean, sse: Se
   const BufferMemPercent = () => { return Math.floor((sse.memory.buffer / sse.memory.max) * 100) };
   const MemoryBarProgress =
     <Progress.Root size='xl' mt='4px'>
-      <Tooltip label={ 'UMS: ' + UsedMem() + ' ' + i18n.get['Mb'] }>
+      <Tooltip label={ 'UMS: ' + UsedMem() + ' ' + i18n.get('Mb') }>
         <Progress.Section value={UsedMemPercent()} color='pink'>
           <Progress.Label>{UsedMemPercent() > 10 ? UsedMemLabel() : ''}</Progress.Label>
         </Progress.Section>
       </Tooltip>
-      <Tooltip label={ i18n.get['DatabaseCache'] + ' ' + sse.memory.dbcache + ' ' + i18n.get['Mb'] }>
+      <Tooltip label={ i18n.get('DatabaseCache') + ' ' + sse.memory.dbcache + ' ' + i18n.get('Mb') }>
         <Progress.Section value={DbCacheMemPercent()} color='grape'>
           <Progress.Label>{DbCacheMemPercent() > 10 ? DbCacheMemLabel() : ''}</Progress.Label>
         </Progress.Section>
       </Tooltip>
-      <Tooltip label={ sse.memory.buffer + ' ' + i18n.get['Mb'] }>
+      <Tooltip label={ sse.memory.buffer + ' ' + i18n.get('Mb') }>
         <Progress.Section value={BufferMemPercent()} color='orange' />
       </Tooltip>
     </Progress.Root>
@@ -47,9 +47,9 @@ export const MemoryBar = ({ decorate, sse, i18n }: { decorate?: boolean, sse: Se
 
   return decorate ? (
     <Group justify='center' gap='xs' grow>
-      <Text>{i18n.get['MemoryUsage']}</Text>
+      <Text>{i18n.get('MemoryUsage')}</Text>
       {MemoryBarProgress}
-      <Text>{MaxMemLabel() + ' ' + i18n.get['Mb']}</Text>
+      <Text>{MaxMemLabel() + ' ' + i18n.get('Mb')}</Text>
     </Group>
   ) : MemoryBarProgress;
 };

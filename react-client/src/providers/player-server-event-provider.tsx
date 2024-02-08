@@ -108,8 +108,8 @@ export const PlayerEventProvider = ({ children }: Props) => {
         showNotification({
           id: 'player-play',
           color: 'orange',
-          title: i18n.get['RemoteControl'],
-          message: i18n.get['RemotePlayOnlyAllowed'],
+          title: i18n.get('RemoteControl'),
+          message: i18n.get('RemotePlayOnlyAllowed'),
           autoClose: true
         });
       }
@@ -129,8 +129,8 @@ export const PlayerEventProvider = ({ children }: Props) => {
       showNotification({
         id: 'connection-lost',
         color: 'orange',
-        title: i18n.get['Warning'],
-        message: i18n.get['UniversalMediaServerUnreachable'],
+        title: i18n.get('Warning'),
+        message: i18n.get('UniversalMediaServerUnreachable'),
         autoClose: false
       });
     }

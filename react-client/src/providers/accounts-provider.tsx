@@ -45,8 +45,8 @@ export const AccountsProvider = ({ children }: Props) => {
         showNotification({
           id: 'accounts-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['AccountsNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('AccountsNotReceived'),
           autoClose: 3000,
         });
       });

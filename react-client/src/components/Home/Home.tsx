@@ -97,8 +97,8 @@ const Home = () => {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       })
@@ -120,8 +120,8 @@ const Home = () => {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       })
@@ -150,8 +150,8 @@ const Home = () => {
     showNotification({
       id: 'settings-save',
       loading: true,
-      title: i18n.get['Save'],
-      message: i18n.get['SavingConfiguration'],
+      title: i18n.get('Save'),
+      message: i18n.get('SavingConfiguration'),
       autoClose: false,
       withCloseButton: false
     });
@@ -162,8 +162,8 @@ const Home = () => {
           color: 'teal',
           autoClose:true,
           loading: false,
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
+          title: i18n.get('Saved'),
+          message: i18n.get('ConfigurationSaved'),
           icon: <Check size='1rem' />
         });
         fromDevice ? refreshDeviceData() : refreshData();
@@ -175,8 +175,8 @@ const Home = () => {
             color: 'red',
             autoClose:true,
             loading: false,
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotReceived'],
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived'),
             icon: <ExclamationMark size='1rem' />
           })
         } else {
@@ -185,8 +185,8 @@ const Home = () => {
             color: 'red',
             autoClose:true,
             loading: false,
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotSaved']
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotSaved')
           })
         }
       });
@@ -197,9 +197,9 @@ const Home = () => {
       <LoadingOverlay visible={loading} />
       <Tabs keepMounted={false} defaultValue='renderers'>
         <Tabs.List>
-          <Tabs.Tab value='renderers'>{i18n.get['DetectedMediaRenderers']}</Tabs.Tab>
-          <Tabs.Tab value='blocked_renderers'>{i18n.get['BlockedMediaRenderers']}</Tabs.Tab>
-          <Tabs.Tab value='network_devices'>{i18n.get['NetworkDevices']}</Tabs.Tab>
+          <Tabs.Tab value='renderers'>{i18n.get('DetectedMediaRenderers')}</Tabs.Tab>
+          <Tabs.Tab value='blocked_renderers'>{i18n.get('BlockedMediaRenderers')}</Tabs.Tab>
+          <Tabs.Tab value='network_devices'>{i18n.get('NetworkDevices')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value='renderers' pt='xs'>
           <Renderers
@@ -244,7 +244,7 @@ const Home = () => {
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
 };

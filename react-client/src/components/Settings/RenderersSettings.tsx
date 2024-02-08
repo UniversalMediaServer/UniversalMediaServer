@@ -40,27 +40,27 @@ export default function RenderersSettings(
   return (
     <Accordion>
       <Accordion.Item value='Renderers'>
-        <Accordion.Control>{i18n.get['Renderers']}</Accordion.Control>
+        <Accordion.Control>{i18n.get('Renderers')}</Accordion.Control>
         <Accordion.Panel>
           <Stack>
             <MultiSelect
               disabled={!canModify}
               data={getI18nSelectData(selectionSettings.allRendererNames)}
-              label={i18n.get['EnabledRenderers']}
+              label={i18n.get('EnabledRenderers')}
               {...form.getInputProps('selected_renderers')}
             />
             <Select
               disabled={!canModify}
               style={{ flex: 1 }}
-              label={i18n.get['DefaultRendererWhenAutoFails']}
+              label={i18n.get('DefaultRendererWhenAutoFails')}
               data={getI18nSelectData(selectionSettings.enabledRendererNames)}
               {...form.getInputProps('renderer_default')}
               searchable
             />
-            <Tooltip label={allowHtml(i18n.get['DisablesAutomaticDetection'])} {...defaultTooltipSettings}>
+            <Tooltip label={allowHtml(i18n.get('DisablesAutomaticDetection'))} {...defaultTooltipSettings}>
               <Checkbox
                 disabled={!canModify}
-                label={i18n.get['ForceDefaultRenderer']}
+                label={i18n.get('ForceDefaultRenderer')}
                 {...form.getInputProps('renderer_force_default', { type: 'checkbox' })}
               />
             </Tooltip>

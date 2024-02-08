@@ -50,7 +50,7 @@ export default function VideoMetadataEditModal(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
+          title: i18n.get('Error'),
           message: 'Your edit data was not received from the server.',
           autoClose: 3000,
         });
@@ -70,7 +70,7 @@ export default function VideoMetadataEditModal(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
+          title: i18n.get('Error'),
           message: 'Your search data was not received from the server.',
           autoClose: 3000,
         });
@@ -91,7 +91,7 @@ export default function VideoMetadataEditModal(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
+          title: i18n.get('Error'),
           message: 'Your data sent was not received from the server.',
           autoClose: 3000,
         });
@@ -118,7 +118,7 @@ export default function VideoMetadataEditModal(props: {
   }
 
   const getMetadataResultCard = (tmdbResult: TmdbResult) => {
-    const buttonText = tmdbResult.selected ? i18n.get['SelectedMedia'] : editData?.media_type=='tv_episode' ? i18n.get['UpdateEpisode'] : editData?.media_type=='tv' ? i18n.get['UpdateTvSeries'] : i18n.get['UpdateMovie'];
+    const buttonText = tmdbResult.selected ? i18n.get('SelectedMedia') : editData?.media_type=='tv_episode' ? i18n.get('UpdateEpisode') : editData?.media_type=='tv' ? i18n.get('UpdateTvSeries') : i18n.get('UpdateMovie');
     return (
       <Card shadow='sm' padding='lg' radius='md' withBorder>
         <Flex
@@ -177,21 +177,21 @@ export default function VideoMetadataEditModal(props: {
     <Modal
         opened={opened}
         onClose={() => setOpened(false)}
-        title={i18n.get['EditMetadata']}
+        title={i18n.get('EditMetadata')}
         scrollAreaComponent={ScrollArea.Autosize}
         size='lg'
       >
         <form onSubmit={searchForm.onSubmit(handleSearchForm)}>
-          {editData?.folder && (<Group><Text size='xs' fw={500} c='dimmed'>{i18n.get['Folder']}</Text><Text size='xs'>{editData.folder}</Text></Group>)}
-          {editData?.filename && (<Group><Text size='xs' fw={500} c='dimmed'>{i18n.get['File']}</Text><Text size='xs'>{editData.filename}</Text></Group>)}
+          {editData?.folder && (<Group><Text size='xs' fw={500} c='dimmed'>{i18n.get('Folder')}</Text><Text size='xs'>{editData.folder}</Text></Group>)}
+          {editData?.filename && (<Group><Text size='xs' fw={500} c='dimmed'>{i18n.get('File')}</Text><Text size='xs'>{editData.filename}</Text></Group>)}
           <TextInput
             required
-            label={i18n.get['Search']}
+            label={i18n.get('Search')}
             name='search'
             {...searchForm.getInputProps('search')}
           />
           <NumberInput
-            label={i18n.get['Year']}
+            label={i18n.get('Year')}
             {...searchForm.getInputProps('year')}
           />
           <Button
@@ -202,7 +202,7 @@ export default function VideoMetadataEditModal(props: {
             loading={isLoading}
             size='compact-md'
           >
-            {i18n.get['Search']}
+            {i18n.get('Search')}
           </Button>
         </form>
         {getMetadataResultsForm()}

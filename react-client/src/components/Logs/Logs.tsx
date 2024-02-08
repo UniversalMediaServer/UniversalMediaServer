@@ -60,16 +60,16 @@ const Logs = () => {
   const searchForm = useForm({ initialValues: { search: '', isCapSensitive: true, isRexp: false } as SearchValue });
 
   const logLevels = [
-    { value: '1', label: i18n.get['Error'] },
-    { value: '2', label: i18n.get['Warning'] },
-    { value: '3', label: i18n.get['Info'] },
-    { value: '4', label: i18n.get['Debug'] },
-    { value: '5', label: i18n.get['Trace'] },
+    { value: '1', label: i18n.get('Error') },
+    { value: '2', label: i18n.get('Warning') },
+    { value: '3', label: i18n.get('Info') },
+    { value: '4', label: i18n.get('Debug') },
+    { value: '5', label: i18n.get('Trace') },
   ];
 
   const allLogLevels = logLevels.concat([
-    { value: '6', label: i18n.get['All'] },
-    { value: '0', label: i18n.get['Off'] },
+    { value: '6', label: i18n.get('All') },
+    { value: '0', label: i18n.get('Off') },
   ]);
 
   const getLogLevel = (level: string) => {
@@ -111,8 +111,8 @@ const Logs = () => {
         showNotification({
           id: 'logs-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       });
@@ -281,10 +281,10 @@ const Logs = () => {
         centered
         opened={filterOpened}
         onClose={() => setFilterOpened(false)}
-        title={i18n.get['Filter']}
+        title={i18n.get('Filter')}
       >
         <Select
-          label={i18n.get['LogLevel']}
+          label={i18n.get('LogLevel')}
           value={logLevel.toString()}
           onChange={(value) => value === null ? 0 : setLogLevel(parseInt(value))}
           data={allLogLevels}
@@ -292,18 +292,18 @@ const Logs = () => {
         <Divider my='sm' />
         <form onSubmit={searchForm.onSubmit(handleSearchSubmit)}>
           <TextInput
-            label={i18n.get['EnterSearchString']}
+            label={i18n.get('EnterSearchString')}
             {...searchForm.getInputProps('search')}
           />
-          <Tooltip label={i18n.get['FilterLogMessagesLogWindow']} {...defaultTooltipSettings}>
+          <Tooltip label={i18n.get('FilterLogMessagesLogWindow')} {...defaultTooltipSettings}>
             <Switch
-              label={i18n.get['CaseSensitive']}
+              label={i18n.get('CaseSensitive')}
               {...searchForm.getInputProps('isCapSensitive', { type: 'checkbox' })}
             />
           </Tooltip>
-          <Tooltip label={i18n.get['SearchUsingRegularExpressions']} {...defaultTooltipSettings}>
+          <Tooltip label={i18n.get('SearchUsingRegularExpressions')} {...defaultTooltipSettings}>
             <Switch
-              label={i18n.get['RegularExpression']}
+              label={i18n.get('RegularExpression')}
               {...searchForm.getInputProps('isRexp', { type: 'checkbox' })}
             />
           </Tooltip>
@@ -311,18 +311,18 @@ const Logs = () => {
             type='submit'
             leftSection={<ListSearch />}
           >
-            {i18n.get['Search']}
+            {i18n.get('Search')}
           </Button>
         </form>
         <MultiSelect
-          label={i18n.get['FilterBySeverity']}
+          label={i18n.get('FilterBySeverity')}
           value={logLevelFilter}
           onChange={setLogLevelFilter}
           data={logLevels}
         />
         {fileMode && (
           <MultiSelect
-            label={i18n.get['FilterByThread']}
+            label={i18n.get('FilterByThread')}
             value={logThreadFilter}
             onChange={setLogThreadFilter}
             data={logThreads}
@@ -335,32 +335,32 @@ const Logs = () => {
         scrollAreaComponent={ScrollArea.Autosize}
         opened={settingsOpened}
         onClose={() => setSettingsOpened(false)}
-        title={i18n.get['Settings']}
+        title={i18n.get('Settings')}
       >
         <Stack>
-          <Tooltip label={allowHtml(i18n.get['FilterLogMessagesLogWindow'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get('FilterLogMessagesLogWindow'))} {...defaultTooltipSettings}>
             <Select
-              label={i18n.get['Filter']}
+              label={i18n.get('Filter')}
               value={guiLogLevel.toString()}
               onChange={(value) => value === null ? 0 : setGuiLogLevel(parseInt(value))}
               data={[
-                { value: '1', label: i18n.get['Error'], disabled: rootLogLevel < 1 },
-                { value: '2', label: i18n.get['Warning'], disabled: rootLogLevel < 2 },
-                { value: '3', label: i18n.get['Info'], disabled: rootLogLevel < 3 },
-                { value: '4', label: i18n.get['Debug'], disabled: rootLogLevel < 4 },
-                { value: '5', label: i18n.get['Trace'], disabled: rootLogLevel < 5 },
-                { value: '6', label: i18n.get['All'], disabled: rootLogLevel < 6 },
-                { value: '0', label: i18n.get['Off'] },
+                { value: '1', label: i18n.get('Error'), disabled: rootLogLevel < 1 },
+                { value: '2', label: i18n.get('Warning'), disabled: rootLogLevel < 2 },
+                { value: '3', label: i18n.get('Info'), disabled: rootLogLevel < 3 },
+                { value: '4', label: i18n.get('Debug'), disabled: rootLogLevel < 4 },
+                { value: '5', label: i18n.get('Trace'), disabled: rootLogLevel < 5 },
+                { value: '6', label: i18n.get('All'), disabled: rootLogLevel < 6 },
+                { value: '0', label: i18n.get('Off') },
               ]}
             />
           </Tooltip>
           {traceMode === 0 &&
-            <Tooltip label={allowHtml(i18n.get['RestartUniversalMediaServerTrace'])} {...defaultTooltipSettings}>
-              <Button leftSection={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get['CreateTraceLogs']}</Button>
+            <Tooltip label={allowHtml(i18n.get('RestartUniversalMediaServerTrace'))} {...defaultTooltipSettings}>
+              <Button leftSection={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get('CreateTraceLogs')}</Button>
             </Tooltip>
           }
-          <Tooltip label={allowHtml(i18n.get['PackLogConfigurationFileCompressed'])} {...defaultTooltipSettings}>
-            <Button leftSection={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get['PackDebugFiles']}</Button>
+          <Tooltip label={allowHtml(i18n.get('PackLogConfigurationFileCompressed'))} {...defaultTooltipSettings}>
+            <Button leftSection={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get('PackDebugFiles')}</Button>
           </Tooltip>
         </Stack>
       </Modal>
@@ -370,9 +370,9 @@ const Logs = () => {
           centered
           opened={packerOpened}
           onClose={() => { setPackerOpened(false); }}
-          title={i18n.get['PackDebugFiles']}
+          title={i18n.get('PackDebugFiles')}
         >
-          <Button disabled={packerFiles.length === 0} onClick={() => { getPackerZip(); setPackerOpened(false); setSettingsOpened(false) }}>{i18n.get['ZipSelectedFiles']}</Button>
+          <Button disabled={packerFiles.length === 0} onClick={() => { getPackerZip(); setPackerOpened(false); setSettingsOpened(false) }}>{i18n.get('ZipSelectedFiles')}</Button>
           <Checkbox.Group value={packerFiles} onChange={setPackerFiles}>
             {getPackerItems()}
           </Checkbox.Group>
@@ -381,12 +381,12 @@ const Logs = () => {
           centered
           opened={restartOpened}
           onClose={() => { setRestartOpened(false); setRestartOpened(false) }}
-          title={i18n.get['StartupLogLevelNotTrace']}
+          title={i18n.get('StartupLogLevelNotTrace')}
         >
-          <span dangerouslySetInnerHTML={{ __html: i18n.get['ForReportingMostIssuesBest'] }}></span>
+          <span dangerouslySetInnerHTML={{ __html: i18n.get('ForReportingMostIssuesBest')}}></span>
           <Group>
-            <Button onClick={() => { sendAction('Process.Reboot.Trace'); setRestartOpened(false); setSettingsOpened(false) }}>{i18n.get['Yes']}</Button>
-            <Button onClick={() => { setRestartOpened(false) }}>{i18n.get['No']}</Button>
+            <Button onClick={() => { sendAction('Process.Reboot.Trace'); setRestartOpened(false); setSettingsOpened(false) }}>{i18n.get('Yes')}</Button>
+            <Button onClick={() => { setRestartOpened(false) }}>{i18n.get('No')}</Button>
           </Group>
         </Modal>
       </>)}
@@ -394,9 +394,9 @@ const Logs = () => {
         <SegmentedControl
           value={fileMode}
           onChange={setFileMode}
-          data={[{ label: i18n.get['Server'], value: '' }, { label: i18n.get['File'], value: 'file' }]}
+          data={[{ label: i18n.get('Server'), value: '' }, { label: i18n.get('File'), value: 'file' }]}
         />
-        <Button leftSection={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get['Filter']}</Button>
+        <Button leftSection={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get('Filter')}</Button>
         {fileMode ?
           <Dropzone
             p={5}
@@ -406,7 +406,7 @@ const Logs = () => {
             <Text ta='center'>Drop/Select log here</Text>
           </Dropzone>
           :
-          <Button leftSection={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get['Options']}</Button>
+          <Button leftSection={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get('Options')}</Button>
         }
       </Group>
       <Divider my='sm' />
@@ -418,7 +418,7 @@ const Logs = () => {
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   )
 };

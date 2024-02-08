@@ -52,8 +52,8 @@ export default function MediaChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: i18n.get['Error'],
-      message: i18n.get['NoMediaSelected'],
+      title: i18n.get('Error'),
+      message: i18n.get('NoMediaSelected'),
       autoClose: 3000,
     });
   };
@@ -69,8 +69,8 @@ export default function MediaChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -100,7 +100,7 @@ export default function MediaChooser(props: {
           title={
             <Group>
               <PictureInPictureOn />
-              {i18n.get['SelectedMedia']}
+              {i18n.get('SelectedMedia')}
             </Group>
           }
           scrollAreaComponent={ScrollArea.Autosize}
