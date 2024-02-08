@@ -72,7 +72,7 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>181</binary-revision>
+		<binary-revision>183</binary-revision>
 
 		<exec-maven-plugin-version>3.1.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
