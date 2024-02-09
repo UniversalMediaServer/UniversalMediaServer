@@ -3646,16 +3646,15 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	private boolean ignoredFolderNamesRead;
 
-
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
 	 */
 	@Nonnull
-	public ArrayList<String> getIgnoredFolderNames() {
+	public List<String> getIgnoredFolderNames() {
 		if (!ignoredFolderNamesRead) {
 			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted");
 
-			ArrayList<String> folders = new ArrayList<>();
+			List<String> folders = new ArrayList<>();
 			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
 				return folders;
 			}

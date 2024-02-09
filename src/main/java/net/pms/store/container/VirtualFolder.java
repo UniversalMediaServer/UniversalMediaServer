@@ -127,7 +127,7 @@ public class VirtualFolder extends StoreContainer {
 
 	private List<File> getFilesListForDirectories() {
 		List<File> out = new ArrayList<>();
-		ArrayList<String> ignoredDirectoryNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+		List<String> ignoredDirectoryNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 		String directoryName;
 		for (File directory : getFiles()) {
 			directoryName = directory == null || directory.getName() == null ? "unnamed" : directory.getName();

@@ -382,22 +382,26 @@ public class MediaScanner implements SharedContentListener {
 		return false;
 	}
 
-	private static void addFolderEntry(String filename) {
-		LOGGER.trace("Folder {} was created on the hard drive", filename);
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileAdded(filename);
+	private static void addFolderEntry(File directory) {
+		LOGGER.trace("Folder {} was created on the hard drive", directory);
+		if (RENDERER.getUmsConfiguration().getIgnoredFolderNames().contains(directory.getName())) {
+			LOGGER.debug("Ignoring {} because it is in the ignored folders list", directory.getName());
+			return;
 		}
-		File[] files = new File(filename).listFiles();
+		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+			connectedRenderer.getMediaStore().fileAdded(directory.getName());
+		}
+		File[] files = directory.listFiles();
 		if (files != null) {
-			LOGGER.trace("Crawling {}", filename);
+			LOGGER.trace("Crawling {}", directory.getName());
 			for (File file : files) {
 				if (file.isFile()) {
-					LOGGER.trace("File {} found in {}", file.getName(), filename);
+					LOGGER.trace("File {} found in {}", file.getName(), directory.getName());
 					parseFileEntry(file);
 				}
 			}
 		} else {
-			LOGGER.trace("Folder {} is empty", filename);
+			LOGGER.trace("Folder {} is empty", directory.getName());
 		}
 	}
 
@@ -435,7 +439,7 @@ public class MediaScanner implements SharedContentListener {
 			 */
 			if (isDir) {
 				if (ENTRY_CREATE.equals(event)) {
-					addFolderEntry(filename);
+					addFolderEntry(new File(filename));
 					reset();
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFolderEntry(filename);
@@ -468,14 +472,18 @@ public class MediaScanner implements SharedContentListener {
 			FileWatcher.remove(watcher);
 		}
 		MEDIA_FILEWATCHERS.clear();
+		List<String> ignoredFolderNames = RENDERER.getUmsConfiguration().getIgnoredFolderNames();
 		for (File file : SharedContentConfiguration.getMonitoredFolders()) {
 			if (file.exists()) {
 				if (!file.isDirectory()) {
 					LOGGER.trace("Skip adding a FileWatcher for non-folder \"{}\"", file);
+				} else if (ignoredFolderNames.contains(file.getName())) {
+					LOGGER.debug("Skip adding a FileWatcher for \"{}\" because it is in the ignored folders list", file.getName());
 				} else {
 					LOGGER.trace("Creating FileWatcher for " + file.toString());
 					try {
 						FileWatcher.Watch watcher = new FileWatcher.Watch(file.toString() + File.separator + "**", MEDIA_RESCANNER);
+						watcher.setIgnoredFolderNames(ignoredFolderNames);
 						MEDIA_FILEWATCHERS.add(watcher);
 						FileWatcher.add(watcher);
 					} catch (Exception e) {
