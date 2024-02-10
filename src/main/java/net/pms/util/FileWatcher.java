@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -137,6 +138,9 @@ public class FileWatcher {
 			Files.walkFileTree(dir, EnumSet.of(FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+					if (w.getIgnoredFolderNames().contains(dir.toFile().getName())) {
+						return FileVisitResult.SKIP_SUBTREE;
+					}
 					add(w, dir);
 					return FileVisitResult.CONTINUE;
 				}
@@ -271,6 +275,7 @@ public class FileWatcher {
 		private WeakReference<Listener> listener;
 		private WeakReference<Object> item;
 		private PathMatcher matcher;
+		private List<String> ignoredFolderNames;
 
 		// Convenience constructors
 
@@ -330,6 +335,14 @@ public class FileWatcher {
 
 		public Object getItem() {
 			return (item != null) ? item.get() : null;
+		}
+
+		public void setIgnoredFolderNames(List<String> ignoredFolderNames) {
+			this.ignoredFolderNames = ignoredFolderNames;
+		}
+
+		public List<String> getIgnoredFolderNames() {
+			return (ignoredFolderNames != null) ? ignoredFolderNames : List.of();
 		}
 
 		@Override

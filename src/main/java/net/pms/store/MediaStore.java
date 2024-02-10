@@ -777,7 +777,7 @@ public class MediaStore extends StoreContainer {
 				return d;
 			}
 		} else {
-			ArrayList<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
+			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
 			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
