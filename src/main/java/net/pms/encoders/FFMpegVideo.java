@@ -367,13 +367,19 @@ public class FFMpegVideo extends Engine {
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
 
 			if (
-				configuration.isAudioRemuxAC3() &&
 				params.getAid() != null &&
+				(
+					(
+						configuration.isAudioRemuxAC3() &&
+						params.getAid().isAC3()
+					) ||
+					!params.getAid().isAC3()
+				) &&
 				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&
 				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek
 			) {
-				// AC-3 and AAC remux
+				// Audio remux if the renderer supports the audio stream inside the transcoding container
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
@@ -419,7 +425,7 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (canMuxVideoWithFFmpeg && renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+				if (canMuxVideoWithFFmpeg) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
 						transcodeOptions.add("copy");
