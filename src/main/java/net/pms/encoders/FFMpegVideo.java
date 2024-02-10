@@ -369,7 +369,7 @@ public class FFMpegVideo extends Engine {
 			if (
 				params.getAid() != null &&
 				(
-					 (
+					(
 						configuration.isAudioRemuxAC3() &&
 						params.getAid().isAC3()
 					) ||
