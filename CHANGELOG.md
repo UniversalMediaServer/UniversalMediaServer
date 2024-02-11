@@ -5,8 +5,8 @@
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
-- Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.19.0 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391))
-- Bump `@typescript-eslint/parser` from 6.17.0 to 6.19.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419))
+- Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 6.21.0 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391), [#4464](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4464))
+- Bump `@typescript-eslint/parser` from 6.17.0 to 6.21.0 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419), [#4459](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4459))
 - Bump `react-router-dom` from 6.21.1 to 6.21.3 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408))
 - Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
@@ -17,6 +17,7 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
+- Bump `@types/node` from 18.19.4 to 18.19.15 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462))
 
 ## 14.0.0 (Unreleased)
 

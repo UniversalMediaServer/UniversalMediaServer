@@ -19,6 +19,9 @@ updates:
       react:
         patterns:
         - "react|react-dom"
+      typescript-eslint:
+        patterns:
+        - "@typescript-eslint*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
