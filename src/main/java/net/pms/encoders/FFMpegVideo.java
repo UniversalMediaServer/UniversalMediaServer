@@ -924,6 +924,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
+		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!params.getMediaRenderer().isVideoStreamTypeSupportedInTranscodingContainer(media)) {
@@ -952,6 +953,27 @@ public class FFMpegVideo extends Engine {
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (media.getVideoHDRFormatForRenderer() != null && media.getVideoHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
+				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+					"mpegts",
+					media.getCodecV(),
+					null,
+					0,
+					0,
+					media.getBitrate(),
+					0,
+					media.getWidth(),
+					media.getHeight(),
+					media.getVideoBitDepth(),
+					media.getVideoHDRFormatForRenderer(),
+					media.getVideoHDRFormatCompatibilityForRenderer(),
+					media.getExtras(),
+					null,
+					false,
+					renderer
+				) != null;
+				if (videoWouldBeCompatibleInTsContainer) {
+					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
+				}
 				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
@@ -1022,6 +1044,11 @@ public class FFMpegVideo extends Engine {
 
 				return tsMuxeRVideoInstance.launchTranscode(dlna, media, params);
 			}
+		}
+
+		// If we got here, we are not deferring to tsMuxeR and can mux the video
+		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
+			canMuxVideoWithFFmpeg = true;
 		}
 
 		// Apply any video filters and associated options. These should go
