@@ -339,29 +339,21 @@ public class JavaGui extends JFrame implements IGui {
 			addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowOpened(WindowEvent e) {
-					if (e.getSource() == this) {
+					if (e.getSource() instanceof JavaGui) {
 						updateGuiConfiguration();
 					}
 				}
 			});
-			addWindowListener(new WindowAdapter() {
-					@Override
-					public void windowOpened(WindowEvent e) {
-						if (e.getSource() == this) {
-							updateGuiConfiguration();
-						}
-					}
-				});
 			addComponentListener(new ComponentAdapter() {
 					@Override
 					public void componentResized(ComponentEvent e) {
-						if (e.getSource() == this) {
+						if (e.getSource() instanceof JavaGui) {
 							updateGuiConfiguration();
 						}
 					}
 					@Override
 					public void componentMoved(ComponentEvent e) {
-						if (e.getSource() == this) {
+						if (e.getSource() instanceof JavaGui) {
 							updateGuiConfiguration();
 						}
 					}
