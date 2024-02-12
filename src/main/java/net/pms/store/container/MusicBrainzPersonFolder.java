@@ -92,4 +92,24 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 	public VirtualFolderDbId getAlbumFolder() {
 		return albumFiles;
 	}
+
+	public VirtualFolderDbId getPersonFolder(Renderer renderer) {
+		switch (getMediaType()) {
+			case TYPE_PERSON_COMPOSER -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonComposerFolder();
+			}
+			case TYPE_PERSON_CONDUCTOR -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonConductorFolder();
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonComposerFolder();
+			}
+			case TYPE_PERSON -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonFolder();
+			}
+			default -> {
+				throw new RuntimeException("Unknown DbidMediaType " + getMediaType());
+			}
+		}
+	}
 }

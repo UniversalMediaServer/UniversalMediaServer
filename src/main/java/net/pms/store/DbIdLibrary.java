@@ -42,6 +42,8 @@ public class DbIdLibrary {
 	private VirtualFolderDbId audioLikesFolder;
 	private VirtualFolderDbId mbidFolder;
 	private VirtualFolderDbId personFolder;
+	private VirtualFolderDbId personComposerFolder;
+	private VirtualFolderDbId personConductorFolder;
 
 	public DbIdLibrary(Renderer renderer) {
 		this.renderer = renderer;
@@ -64,6 +66,14 @@ public class DbIdLibrary {
 	 */
 	public VirtualFolderDbId getPersonFolder() {
 		return personFolder;
+	}
+
+	public VirtualFolderDbId getPersonConductorFolder() {
+		return personConductorFolder;
+	}
+
+	public VirtualFolderDbId getPersonComposerFolder() {
+		return personComposerFolder;
 	}
 
 	protected final void reset(List<StoreResource> backupChildren) {
@@ -110,6 +120,16 @@ public class DbIdLibrary {
 			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
 		}
 		addChildToMediaLibraryAudioFolder(personFolder);
+
+		if (personComposerFolder == null) {
+			personComposerFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, null));
+		}
+		addChildToMediaLibraryAudioFolder(personComposerFolder);
+
+		if (personConductorFolder == null) {
+			personConductorFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_CONDUCTOR, null));
+		}
+		addChildToMediaLibraryAudioFolder(personConductorFolder);
 	}
 
 	/**
@@ -126,6 +146,7 @@ public class DbIdLibrary {
 		}
 
 		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
+		personFolder.getPersonFolder(renderer);
 		renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
 		personFolder.discoverChildren();
 		return personFolder;
