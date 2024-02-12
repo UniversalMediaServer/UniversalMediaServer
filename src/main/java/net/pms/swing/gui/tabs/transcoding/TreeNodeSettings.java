@@ -48,9 +48,9 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 		return engine;
 	}
 
-	public TreeNodeSettings(String name, Engine p, JComponent otherConfigPanel) {
+	public TreeNodeSettings(String name, Engine engine, JComponent otherConfigPanel) {
 		super(name);
-		this.engine = p;
+		this.engine = engine;
 		this.otherConfigPanel = otherConfigPanel;
 
 	}

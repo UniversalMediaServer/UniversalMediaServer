@@ -21,8 +21,8 @@ import com.jgoodies.forms.factories.Paddings;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -52,6 +52,7 @@ public class AboutTab {
 	}
 
 	public JComponent build() {
+		rowPosition = 1;
 		FormLayout layout = new FormLayout(
 				"0:grow, pref, 0:grow",
 				"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
@@ -150,7 +151,7 @@ public class AboutTab {
 		return scrollPane;
 	}
 
-	private static class LinkMouseListener implements MouseListener {
+	private static class LinkMouseListener extends MouseAdapter {
 
 		private final String name;
 		private final String link;
@@ -177,25 +178,6 @@ public class AboutTab {
 			PlatformUtils.INSTANCE.browseURI(link);
 		}
 
-		@Override
-		public void mouseEntered(MouseEvent e) {
-			//nothing to do
-		}
-
-		@Override
-		public void mouseExited(MouseEvent e) {
-			//nothing to do
-		}
-
-		@Override
-		public void mousePressed(MouseEvent e) {
-			//nothing to do
-		}
-
-		@Override
-		public void mouseReleased(MouseEvent e) {
-			//nothing to do
-		}
 	}
 
 	private static ImageIcon buildLogoImage() {

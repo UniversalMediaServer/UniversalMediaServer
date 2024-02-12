@@ -51,12 +51,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GeneralTab {
-	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private final JavaGui looksFrame;
+	private final UmsConfiguration configuration;
 	private final JTextField currentLanguage = new JTextField();
 
 	private JComboBox<String> renderers;
@@ -65,7 +66,6 @@ public class GeneralTab {
 	private JTextField serverName;
 	private JTextField ipFilter;
 	private JTextField maxbitrate;
-	private final UmsConfiguration configuration;
 	private CustomJButton installService;
 
 	public GeneralTab(UmsConfiguration configuration, JavaGui looksFrame) {
@@ -106,6 +106,7 @@ public class GeneralTab {
 			selectionDialog.show();
 			if (!selectionDialog.isAborted()) {
 				currentLanguage.setText(Messages.getString("Language." + configuration.getLanguageTag()));
+				looksFrame.applyLanguage();
 			}
 		});
 		languagePanel.add(selectLanguage);
@@ -172,17 +173,17 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		JCheckBox hideAdvancedOptions = new JCheckBox(Messages.getString("HideAdvancedOptions"), configuration.isHideAdvancedOptions());
-		hideAdvancedOptions.setContentAreaFilled(false);
-		hideAdvancedOptions.addActionListener((ActionEvent e) -> {
-			configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
-			if (hideAdvancedOptions.isSelected()) {
+		JCheckBox showAdvancedOptions = new JCheckBox(Messages.getString("ShowAdvancedSettings"), !configuration.isHideAdvancedOptions());
+		showAdvancedOptions.setContentAreaFilled(false);
+		showAdvancedOptions.addActionListener((ActionEvent e) -> {
+			configuration.setHideAdvancedOptions(!showAdvancedOptions.isSelected());
+			if (!showAdvancedOptions.isSelected()) {
 				looksFrame.setViewLevel(ViewLevel.NORMAL);
 			} else {
 				looksFrame.setViewLevel(ViewLevel.ADVANCED);
 			}
 		});
-		builder.add(SwingUtil.getPreferredSizeComponent(hideAdvancedOptions)).at(FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+		builder.add(SwingUtil.getPreferredSizeComponent(showAdvancedOptions)).at(FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		ypos += 2;
 
 		JCheckBox runWizardOnProgramStartup = new JCheckBox(Messages.getString("RunTheConfigurationWizard"), configuration.isRunWizard());
@@ -345,7 +346,7 @@ public class GeneralTab {
 			adaptBitrate.addActionListener((ActionEvent e) -> {
 				configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
 				maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
-				looksFrame.getTr().enableVideoQualitySettings(configuration.isAutomaticMaximumBitrate());
+				looksFrame.getTranscodingTab().enableVideoQualitySettings(configuration.isAutomaticMaximumBitrate());
 			});
 
 			builder.addLabel(Messages.getString("ForceNetworkingInterface")).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
@@ -357,7 +358,7 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("ForcePortServer")).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(port).at(FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
-			builder.addLabel(Messages.getString((configuration.isNetworkDevicesBlockedByDefault() ? "AllowedNetworkDevices" : "BlockedNetworkDevices")), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.addLabel(Messages.getString((configuration.isNetworkDevicesBlockedByDefault() ? "AllowedNetworkDevices" : "BlockedNetworkDevices"))).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(ipFilter).at(FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("MaximumBandwidthMbs")).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));

@@ -192,7 +192,7 @@ public class HelpTab {
 	 * @param page The help page.
 	 */
 	public void setTabIndex(int selectedIndex) {
-		if (HELP_PAGES[selectedIndex] != null) {
+		if (selectedIndex != -1 && HELP_PAGES.length > selectedIndex && HELP_PAGES[selectedIndex] != null) {
 			helpPage = HELP_PAGES[selectedIndex];
 			// Update the contents of the help tab itself
 			updateContents();
