@@ -49,6 +49,9 @@ public class NavigationShareTab {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(NavigationShareTab.class);
 
+	private final UmsConfiguration configuration;
+	private final JavaGui looksFrame;
+
 	private JCheckBox hideExtensions;
 	private JCheckBox hideEmptyFolders;
 	private JCheckBox hideEngines;
@@ -75,18 +78,17 @@ public class NavigationShareTab {
 	private JComboBox<String> fullyPlayedAction;
 	private JTextField fullyPlayedOutputDirectory;
 	private CustomJButton selectFullyPlayedOutputDirectory;
-
+	private JTextField chapterInterval;
 	private JComboBox<String> addVideoSuffix;
 
 	// Settings for the visibility of virtual folders
 	private JCheckBox isShowFolderServerSettings;
 	private JCheckBox isShowFolderTranscode;
+	private JCheckBox isChapterSupport;
 	private JCheckBox isShowFolderMediaLibrary;
 	private JCheckBox isShowFolderRecentlyPlayed;
 	private JCheckBox isShowFolderLiveSubtitles;
-
-	private final UmsConfiguration configuration;
-	private final JavaGui looksFrame;
+	private JComponent component;
 
 	public NavigationShareTab(UmsConfiguration configuration, JavaGui looksFrame) {
 		this.configuration = configuration;
@@ -113,6 +115,8 @@ public class NavigationShareTab {
 		"p," +                            //
 		"9dlu," +                         //
 		"p," +                            // Virtual folders
+		"3dlu," +                         //
+		"p," +                            //
 		"3dlu," +                         //
 		"p," +                            //
 		"3dlu," +                         //
@@ -188,22 +192,25 @@ public class NavigationShareTab {
 
 			builder.add(SwingUtil.getPreferredSizeComponent(archive)).at(FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderServerSettings)).at(FormLayoutUtil.flip(cc.xy(3, 23), colSpec, orientation));
-			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderTranscode)).at(FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles)).at(FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
-			builder.addLabel(Messages.getString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
-			builder.add(atzLimit).at(FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderTranscode)).at(FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
+			builder.add(isChapterSupport).at(FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
+			builder.add(chapterInterval).at(FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(resume)).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed)).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
-			builder.add(SwingUtil.getPreferredSizeComponent(hideEmptyFolders)).at(FormLayoutUtil.flip(cc.xy(7, 27), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles)).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+			builder.addLabel(Messages.getString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
+			builder.add(atzLimit).at(FormLayoutUtil.flip(cc.xy(5, 27), colSpec, orientation));
 
-			builder.add(SwingUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(resume)).at(FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderRecentlyPlayed)).at(FormLayoutUtil.flip(cc.xy(3, 29), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(hideEmptyFolders)).at(FormLayoutUtil.flip(cc.xy(7, 29), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
-			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 31, 3), colSpec, orientation));
-			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 31), colSpec, orientation));
-			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 31), colSpec, orientation));
+			builder.add(SwingUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
+			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 33, 3), colSpec, orientation));
+			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 33), colSpec, orientation));
+			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 33), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
@@ -211,14 +218,17 @@ public class NavigationShareTab {
 		// Apply the orientation to the panel and all components in it
 		panel.applyComponentOrientation(orientation);
 
-		JScrollPane scrollPane = new JScrollPane(
+		component = new JScrollPane(
 			panel,
 			ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 			ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 		);
+		component.setBorder(BorderFactory.createEmptyBorder());
+		return component;
+	}
 
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		return scrollPane;
+	public Component getComponent() {
+		return component;
 	}
 
 	private void initSimpleComponents(CellConstraints cc) {
@@ -316,7 +326,34 @@ public class NavigationShareTab {
 		// Show #--TRANSCODE--# folder
 		isShowFolderTranscode = new JCheckBox(Messages.getString("ShowTranscodeFolder"), configuration.isShowTranscodeFolder());
 		isShowFolderTranscode.setContentAreaFilled(false);
-		isShowFolderTranscode.addItemListener((ItemEvent e) -> configuration.setShowTranscodeFolder((e.getStateChange() == ItemEvent.SELECTED)));
+		isShowFolderTranscode.addItemListener((ItemEvent e) -> {
+			configuration.setShowTranscodeFolder((e.getStateChange() == ItemEvent.SELECTED));
+			isChapterSupport.setEnabled(configuration.isShowTranscodeFolder());
+		});
+
+		// Chapters support in #--TRANSCODE--# folder
+		isChapterSupport = new JCheckBox(Messages.getString("ChaptersSupportInTranscodeFolder"), configuration.isChapterSupport());
+		isChapterSupport.setEnabled(configuration.isShowTranscodeFolder());
+		isChapterSupport.setContentAreaFilled(false);
+		isChapterSupport.addItemListener((ItemEvent e) -> {
+			configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
+			chapterInterval.setEnabled(configuration.isShowTranscodeFolder() && configuration.isChapterSupport());
+		});
+
+		// Chapters interval in #--TRANSCODE--# folder
+		chapterInterval = new JTextField("" + configuration.getChapterInterval());
+		chapterInterval.setEnabled(configuration.isChapterSupport());
+		chapterInterval.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				try {
+					int ab = Integer.parseInt(chapterInterval.getText());
+					configuration.setChapterInterval(ab);
+				} catch (NumberFormatException nfe) {
+					LOGGER.debug("Could not parse chapter interval from \"" + chapterInterval.getText() + "\"");
+				}
+			}
+		});
 
 		// Show Media Library folder
 		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());

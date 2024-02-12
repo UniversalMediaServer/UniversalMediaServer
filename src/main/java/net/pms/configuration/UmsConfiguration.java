@@ -3838,6 +3838,10 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_DISABLE_TRANSCODING, false);
 	}
 
+	public void setDisableTranscoding(boolean value) {
+		configuration.setProperty(KEY_DISABLE_TRANSCODING, value);
+	}
+
 	public String getForceTranscodeForExtensions() {
 		return getString(KEY_FORCE_TRANSCODE_FOR_EXTENSIONS, "");
 	}

@@ -52,24 +52,29 @@ public class StatusTab {
 	private static final String ICON_STATUS_CONNECTED = "icon-status-connected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_STATUS_DISCONNECTED = "icon-status-disconnected." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
 	private static final String ICON_STATUS_WARNING = "icon-status-warning." + (SwingUtil.HDPI_AWARE ? "svg" : "png");
-	private JPanel renderers;
-	private JLabel mediaServerBindLabel;
-	private JLabel interfaceServerBindLabel;
-	private SegmentedProgressBarUI memBarUI;
-	private JLabel currentBitrate;
-	private JLabel peakBitrate;
 
-	private EConnectionState connectionState = EConnectionState.UNKNOWN;
 	private final JAnimatedButton connectionStatus = new JAnimatedButton();
 	private final AnimatedIcon searchingIcon;
 	private final AnimatedIcon connectedIcon;
 	private final AnimatedIcon disconnectedIcon;
 	private final AnimatedIcon blockedIcon;
 
+	private JPanel renderersPanel;
+	private JComponent detectedMediaRenderersSeparator;
+	private JLabel mediaServerLabel;
+	private JLabel mediaServerBindLabel;
+	private JLabel interfaceServerBindLabel;
+	private JLabel memLabel;
+	private SegmentedProgressBarUI memBarUI;
+	private JLabel currentBitrate;
+	private JLabel peakBitrate;
+	private JLabel bitrateLabel;
+	private JLabel currentBitrateLabel;
+	private JLabel peakBitrateLabel;
+	private EConnectionState connectionState = EConnectionState.UNKNOWN;
+
 	/**
 	 * Shows a simple visual status of the server.
-	 *
-	 * @todo choose better icons for these
 	 */
 	public StatusTab() {
 		// Build Animations
@@ -162,12 +167,13 @@ public class StatusTab {
 		CellConstraints cc = new CellConstraints();
 
 		// Renderers
-		builder.addSeparator(Messages.getString("DetectedMediaRenderers")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		detectedMediaRenderersSeparator = builder.createBoldedSeparator(Messages.getString("DetectedMediaRenderers"));
+		builder.add(detectedMediaRenderersSeparator).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		Color fgColor = new Color(68, 68, 68);
 
-		renderers = new JPanel(new WrapLayout(FlowLayout.CENTER, 20, 10));
+		renderersPanel = new JPanel(new WrapLayout(FlowLayout.CENTER, 20, 10));
 		JScrollPane rsp = new JScrollPane(
-				renderers,
+				renderersPanel,
 				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
 				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
@@ -190,7 +196,7 @@ public class StatusTab {
 		// Set initial connection state
 		setConnectionState(EConnectionState.SEARCHING);
 
-		JLabel mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
+		mediaServerLabel = new JLabel("<html><b>" + Messages.getString("Servers") + "</b></html>");
 		mediaServerLabel.setForeground(fgColor);
 		connectionBuilder.add(mediaServerLabel).at(FormLayoutUtil.flip(cc.xy(3, 1, "left, top"), conColSpec, orientation));
 		mediaServerBindLabel = new JLabel("-");
@@ -220,20 +226,20 @@ public class StatusTab {
 		memoryProgressBar.setForeground(new Color(75, 140, 181));
 		memoryProgressBar.setString(Messages.getString("Empty"));
 
-		JLabel mem = new JLabel("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>");
-		mem.setForeground(fgColor);
-		builder.add(mem).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+		memLabel = new JLabel("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>");
+		memLabel.setForeground(fgColor);
+		builder.add(memLabel).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 		builder.add(memoryProgressBar).at(FormLayoutUtil.flip(cc.xyw(3, 9, 1), colSpec, orientation));
 
 		// Bitrate
 		String bitColSpec = "left:pref, 3dlu, right:pref:grow";
 		UmsFormBuilder bitrateBuilder = UmsFormBuilder.create().layout((new FormLayout(bitColSpec, "p, 1dlu, p, 1dlu, p")));
 
-		JLabel bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
+		bitrateLabel = new JLabel("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
 		bitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(bitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 1), bitColSpec, orientation));
 
-		JLabel currentBitrateLabel = new JLabel(Messages.getString("Current"));
+		currentBitrateLabel = new JLabel(Messages.getString("Current"));
 		currentBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 3), bitColSpec, orientation));
 
@@ -241,7 +247,7 @@ public class StatusTab {
 		currentBitrate.setForeground(fgColor);
 		bitrateBuilder.add(currentBitrate).at(FormLayoutUtil.flip(cc.xy(3, 3), bitColSpec, orientation));
 
-		JLabel peakBitrateLabel = new JLabel(Messages.getString("Peak"));
+		peakBitrateLabel = new JLabel(Messages.getString("Peak"));
 		peakBitrateLabel.setForeground(fgColor);
 		bitrateBuilder.add(peakBitrateLabel).at(FormLayoutUtil.flip(cc.xy(1, 5), bitColSpec, orientation));
 
@@ -281,9 +287,9 @@ public class StatusTab {
 	}
 
 	public void addRenderer(final Renderer renderer) {
-		final RendererPanel r = new RendererPanel(renderer);
-		r.addTo(renderers);
-		renderer.addGuiListener(r);
+		final RendererPanel rendererPanel = new RendererPanel(renderer);
+		rendererPanel.addTo(renderersPanel);
+		renderer.addGuiListener(rendererPanel);
 	}
 
 	private int getTickMarks() {
@@ -293,6 +299,35 @@ public class StatusTab {
 
 	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
 		SwingUtilities.invokeLater(() -> memBarUI.setValues(0, maxMemory, Math.max(0, usedMemory - dbCacheMemory - bufferMemory), dbCacheMemory, bufferMemory));
+	}
+
+	public void applyLanguage() {
+		if (detectedMediaRenderersSeparator != null &&
+				detectedMediaRenderersSeparator.getComponentCount() > 0 &&
+				detectedMediaRenderersSeparator.getComponent(0) instanceof JLabel jlabel) {
+			jlabel.setText(Messages.getString("DetectedMediaRenderers"));
+		}
+		switch (connectionState) {
+			case SEARCHING -> {
+				connectionStatus.setToolTipText(Messages.getString("SearchingForRenderers"));
+			}
+			case CONNECTED -> {
+				connectionStatus.setToolTipText(Messages.getString("Connected"));
+			}
+			case DISCONNECTED -> {
+				connectionStatus.setToolTipText(Messages.getString("NoRenderersWereFound"));
+			}
+			case BLOCKED -> {
+				connectionStatus.setToolTipText(Messages.getString("PortBlockedChangeIt"));
+			}
+		}
+		mediaServerBindLabel.setToolTipText(Messages.getString("MediaServerIpAddress"));
+		interfaceServerBindLabel.setToolTipText(Messages.getString("WebSettingsServerIpAddress"));
+		mediaServerLabel.setText("<html><b>" + Messages.getString("Servers") + "</b></html>");
+		memLabel.setText("<html><b>" + Messages.getString("MemoryUsage") + "</b> (" + Messages.getString("Mb") + ")</html>");
+		bitrateLabel.setText("<html><b>" + Messages.getString("Bitrate") + "</b> (" + Messages.getString("Mbs") + ")</html>");
+		currentBitrateLabel.setText(Messages.getString("Current"));
+		peakBitrateLabel.setText(Messages.getString("Peak"));
 	}
 
 }

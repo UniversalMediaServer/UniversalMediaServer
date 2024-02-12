@@ -54,6 +54,16 @@ public class UmsFormBuilder extends FormBuilder {
 		return addRaw(expression, separator);
 	}
 
+	public JComponent createBoldedSeparator(String markedText) {
+		int alignment = isLeftToRight() ? SwingConstants.LEFT : SwingConstants.RIGHT;
+		JComponent separator = getFactory().createSeparator(markedText, alignment);
+		if (separator.getComponentCount() > 0) {
+			Component label = separator.getComponent(0);
+			label.setFont(label.getFont().deriveFont(Font.BOLD));
+		}
+		return separator;
+	}
+
 	private boolean isLeftToRight() {
 		ComponentOrientation orientation = getPanel().getComponentOrientation();
 		return orientation.isLeftToRight() || !orientation.isHorizontal();
