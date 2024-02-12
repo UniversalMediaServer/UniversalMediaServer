@@ -41,7 +41,8 @@ public class DbIdLibrary {
 	private final Renderer renderer;
 	private VirtualFolderDbId audioLikesFolder;
 	private VirtualFolderDbId mbidFolder;
-	private VirtualFolderDbId personFolder;
+	private VirtualFolderDbId personFolder; // Default is a search for Artist
+	private VirtualFolderDbId personAlbumArtistFolder;
 	private VirtualFolderDbId personComposerFolder;
 	private VirtualFolderDbId personConductorFolder;
 
@@ -66,6 +67,10 @@ public class DbIdLibrary {
 	 */
 	public VirtualFolderDbId getPersonFolder() {
 		return personFolder;
+	}
+
+	public VirtualFolderDbId getPersonAlbumArtistFolder() {
+		return personAlbumArtistFolder;
 	}
 
 	public VirtualFolderDbId getPersonConductorFolder() {
@@ -130,6 +135,11 @@ public class DbIdLibrary {
 			personConductorFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_CONDUCTOR, null));
 		}
 		addChildToMediaLibraryAudioFolder(personConductorFolder);
+
+		if (personAlbumArtistFolder == null) {
+			personAlbumArtistFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUMARTIST, null));
+		}
+		addChildToMediaLibraryAudioFolder(personAlbumArtistFolder);
 	}
 
 	/**
@@ -146,8 +156,7 @@ public class DbIdLibrary {
 		}
 
 		MusicBrainzPersonFolder personFolder = new MusicBrainzPersonFolder(renderer, typeIdent.ident, typeIdent);
-		personFolder.getPersonFolder(renderer);
-		renderer.getMediaStore().getDbIdLibrary().getPersonFolder().addChild(personFolder);
+		personFolder.getPersonFolder(renderer).addChild(personFolder);
 		personFolder.discoverChildren();
 		return personFolder;
 	}

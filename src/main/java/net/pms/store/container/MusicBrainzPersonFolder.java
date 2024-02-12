@@ -102,7 +102,7 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 				return renderer.getMediaStore().getDbIdLibrary().getPersonConductorFolder();
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return renderer.getMediaStore().getDbIdLibrary().getPersonComposerFolder();
+				return renderer.getMediaStore().getDbIdLibrary().getPersonAlbumArtistFolder();
 			}
 			case TYPE_PERSON -> {
 				return renderer.getMediaStore().getDbIdLibrary().getPersonFolder();
