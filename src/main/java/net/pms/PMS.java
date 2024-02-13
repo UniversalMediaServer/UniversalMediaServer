@@ -1440,68 +1440,6 @@ public class PMS {
 		}
 	}
 
-	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor.
-	 *
-	 * <code>null</code> values are treated as empty strings.
-	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the <code>Locale</code>
-	 * class description about valid language values.
-	 * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3
-	 * area code. See the <code>Locale</code> class description about valid
-	 * country values.
-	 * @param variant Any arbitrary value used to indicate a variation of a
-	 * <code>Locale</code>. See the <code>Locale</code> class description for
-	 * the details.
-	 */
-	public static void setLocale(String language, String country, String variant) {
-		if (country == null) {
-			country = "";
-		}
-		if (variant == null) {
-			variant = "";
-		}
-		LOCALE_LOCK.writeLock().lock();
-		try {
-			locale = new Locale.Builder().setLanguage(language).setRegion(country).setVariant(variant).build();
-		} finally {
-			LOCALE_LOCK.writeLock().unlock();
-		}
-	}
-
-	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor.
-	 *
-	 * <code>null</code> values are treated as empty strings.
-	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the <code>Locale</code>
-	 * class description about valid language values.
-	 * @param country An ISO 3166 alpha-2 country code or a UN M.49 numeric-3
-	 * area code. See the <code>Locale</code> class description about valid
-	 * country values.
-	 */
-	public static void setLocale(String language, String country) {
-		setLocale(language, country, "");
-	}
-
-	/**
-	 * Sets UMS' {@link Locale} with the same parameters as the {@link Locale}
-	 * class constructor.
-	 *
-	 * <code>null</code> values are treated as empty strings.
-	 *
-	 * @param language An ISO 639 alpha-2 or alpha-3 language code, or a
-	 * language subtag up to 8 characters in length. See the <code>Locale</code>
-	 * class description about valid language values.
-	 */
-	public static void setLocale(String language) {
-		setLocale(language, "", "");
-	}
-
 	public static boolean isReady() {
 		return get().ready;
 	}
