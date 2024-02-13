@@ -88,6 +88,11 @@ public final class PlaylistFolder extends StoreContainer {
 		return valid;
 	}
 
+	@Override
+	public void discoverChildren() {
+		resolve();
+	}
+
 	private BufferedReader getBufferedReader() throws IOException {
 		String extension;
 		Charset charset;
