@@ -484,7 +484,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 	 * @param apiExtendedMetadata JsonObject from metadata
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, MediaInfo media) throws SQLException {
+	public static synchronized void insertVideoMetadata(final Connection connection, String path, long modified, MediaInfo media) throws SQLException {
 		if (StringUtils.isBlank(path)) {
 			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
 			return;

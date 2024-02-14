@@ -390,7 +390,7 @@ public final class SwingUtil {
 			return false;
 		} else {
 			try {
-				Class c = Class.forName(lookAndFeelClassPath);
+				Class<?> c = Class.forName(lookAndFeelClassPath);
 				return c.isInstance(lnf);
 			} catch (ClassNotFoundException cnfe) {
 				// if it is not possible to load the Windows LnF class, the
