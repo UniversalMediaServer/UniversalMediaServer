@@ -105,7 +105,7 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 				return renderer.getMediaStore().getDbIdLibrary().getPersonAlbumArtistFolder();
 			}
 			case TYPE_PERSON -> {
-				return renderer.getMediaStore().getDbIdLibrary().getPersonFolder();
+				return renderer.getMediaStore().getDbIdLibrary().getPersonArtistFolder();
 			}
 			default -> {
 				throw new RuntimeException("Unknown DbidMediaType " + getMediaType());

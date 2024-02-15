@@ -41,7 +41,7 @@ public class DbIdLibrary {
 	private final Renderer renderer;
 	private VirtualFolderDbId audioLikesFolder;
 	private VirtualFolderDbId mbidFolder;
-	private VirtualFolderDbId personFolder; // Default is a search for Artist
+	private VirtualFolderDbId personArtistFolder;
 	private VirtualFolderDbId personAlbumArtistFolder;
 	private VirtualFolderDbId personComposerFolder;
 	private VirtualFolderDbId personConductorFolder;
@@ -65,8 +65,8 @@ public class DbIdLibrary {
 	/**
 	 * Person root folder
 	 */
-	public VirtualFolderDbId getPersonFolder() {
-		return personFolder;
+	public VirtualFolderDbId getPersonArtistFolder() {
+		return personArtistFolder;
 	}
 
 	public VirtualFolderDbId getPersonAlbumArtistFolder() {
@@ -121,23 +121,23 @@ public class DbIdLibrary {
 	}
 
 	private void setPersonFolder() {
-		if (personFolder == null) {
-			personFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
+		if (personArtistFolder == null) {
+			personArtistFolder = new VirtualFolderDbId(renderer, "BrowseByArtist", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON, null));
 		}
-		addChildToMediaLibraryAudioFolder(personFolder);
+		addChildToMediaLibraryAudioFolder(personArtistFolder);
 
 		if (personComposerFolder == null) {
-			personComposerFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, null));
+			personComposerFolder = new VirtualFolderDbId(renderer, "BrowseByComposer", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_COMPOSER, null));
 		}
 		addChildToMediaLibraryAudioFolder(personComposerFolder);
 
 		if (personConductorFolder == null) {
-			personConductorFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_CONDUCTOR, null));
+			personConductorFolder = new VirtualFolderDbId(renderer, "BrowseByConductor", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_CONDUCTOR, null));
 		}
 		addChildToMediaLibraryAudioFolder(personConductorFolder);
 
 		if (personAlbumArtistFolder == null) {
-			personAlbumArtistFolder = new VirtualFolderDbId(renderer, "BrowseByPerson", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUMARTIST, null));
+			personAlbumArtistFolder = new VirtualFolderDbId(renderer, "BrowseByAlbumArtist", new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUMARTIST, null));
 		}
 		addChildToMediaLibraryAudioFolder(personAlbumArtistFolder);
 	}
