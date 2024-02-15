@@ -42,7 +42,6 @@ import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.container.PlaylistFolder;
-import net.pms.store.item.RealFile;
 
 public class PlaylistManager {
 
