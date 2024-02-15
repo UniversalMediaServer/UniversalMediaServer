@@ -18,6 +18,7 @@
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `@types/node` from 18.19.4 to 18.19.15 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462))
+- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 1.1.2 ([#4478](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4478))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
