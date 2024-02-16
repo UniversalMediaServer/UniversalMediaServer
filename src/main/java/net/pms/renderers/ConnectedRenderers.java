@@ -190,7 +190,7 @@ public class ConnectedRenderers {
 		RendererConfiguration ref = RendererConfigurations.getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
 			boolean isNew = !ADDRESS_RENDERER_ASSOCIATION.containsKey(ia);
-			r = ConnectedRenderers.resolve(ia, ref);
+			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
 						"Matched {}media renderer \"{}\" based on headers {}",
@@ -274,7 +274,11 @@ public class ConnectedRenderers {
 					PMS.get().setRendererFound(renderer);
 				}
 				renderer.setActive(true);
-				if (renderer.isUpnpPostponed()) {
+				if (JUPnPDeviceHelper.getDevice(ia) == null) {
+					//UPnP device not yet discovered, device just started ?
+					LOGGER.debug("Sending UPnP search for newly created renderer: {}", renderer);
+					JUPnPDeviceHelper.searchMediaRendererDevices();
+				} else if (renderer.isUpnpPostponed()) {
 					renderer.setUpnpMode(Renderer.UPNP_ALLOW);
 				}
 			}
@@ -354,7 +358,7 @@ public class ConnectedRenderers {
 	public static List<Renderer> getInheritors(Renderer renderer) {
 		ArrayList<Renderer> renderers = new ArrayList<>();
 		RendererConfiguration ref = renderer.getRef();
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+		for (Renderer connectedRenderer : getConnectedRenderers()) {
 			if (connectedRenderer.getRef() == ref) {
 				renderers.add(connectedRenderer);
 			}
@@ -544,7 +548,7 @@ public class ConnectedRenderers {
 	}
 
 	public static List<Renderer> getConnectedControlPlayers() {
-		return ConnectedRenderers.getConnectedRenderers(JUPnPDeviceHelper.ANY);
+		return getConnectedRenderers(JUPnPDeviceHelper.ANY);
 	}
 
 	public static boolean hasConnectedControlPlayers() {

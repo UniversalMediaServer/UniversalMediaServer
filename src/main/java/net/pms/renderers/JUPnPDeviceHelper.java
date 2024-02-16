@@ -48,6 +48,7 @@ import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.model.action.ActionArgumentValue;
 import org.jupnp.model.action.ActionInvocation;
 import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.meta.Action;
 import org.jupnp.model.meta.Device;
 import org.jupnp.model.meta.DeviceDetails;
@@ -70,10 +71,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class JUPnPDeviceHelper {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(JUPnPDeviceHelper.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
-	public static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
+	private static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
 		new UDADeviceType("MediaRenderer", 1),
 		// Older Sony Blurays provide only 'Basic' service
 		new UDADeviceType("Basic", 1)
@@ -121,6 +122,15 @@ public class JUPnPDeviceHelper {
 	 * This class is not meant to be instantiated.
 	 */
 	private JUPnPDeviceHelper() {
+	}
+
+	public static void searchMediaRendererDevices() {
+		if (MediaServer.upnpService != null) {
+			for (DeviceType deviceType : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
+				LOGGER.trace("Sending UPnP search for devices of type: {}", deviceType);
+				MediaServer.upnpService.getControlPoint().search(new DeviceTypeHeader(deviceType));
+			}
+		}
 	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {

@@ -30,8 +30,6 @@ import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.renderers.JUPnPDeviceHelper;
-import org.jupnp.model.message.header.DeviceTypeHeader;
-import org.jupnp.model.types.DeviceType;
 import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,9 +118,7 @@ public class MediaServer {
 					LOGGER.error("FATAL ERROR: Unable to start upnp service");
 				} else {
 					upnpService.sendAlive();
-					for (DeviceType t : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
-						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-					}
+					JUPnPDeviceHelper.searchMediaRendererDevices();
 					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
 				}
 			}
