@@ -34,6 +34,20 @@
 - Stability improvements
 - Logging improvements
 - Refactored to remove deprecated code use
+- Updated browser logos
+- Fixed response on web player when directory has been deleted
+- Fixed scanning unshared parent directories
+- Added a warning that the offline help pages are not maintained
+- Added a link to the new maintained documentation at https://support.universalmediaserver.com
+- Added caching to translations
+- Fixed scanning ignored directories
+- Fixed broken folder browsing over time
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
 - All changes from 13.9.0
 
 ### Renderers
