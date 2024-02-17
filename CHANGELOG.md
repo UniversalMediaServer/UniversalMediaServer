@@ -16,7 +16,7 @@
 - Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
-- Bump `@types/react` from 18.2.47 to 18.2.48 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392))
+- Bump `@types/react` from 18.2.47 to 18.2.55 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392), [#4468](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4468))
 - Bump `@testing-library/jest-dom` from 6.2.0 to 6.3.0 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423))
 - Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
