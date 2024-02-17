@@ -82,10 +82,9 @@ public class Splash extends JFrame {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				synchronized (optionLock) {
-					int isShowSplashScreen = JOptionPane.showConfirmDialog(
-							imageLabel,
-							Messages.getString("DisableSplashScreenDuringStartup"),
-							Messages.getString("SplashScreenSetting"),
+					int isShowSplashScreen = JOptionPane.showConfirmDialog(imageLabel,
+							Messages.getGuiString("DisableSplashScreenDuringStartup"),
+							Messages.getGuiString("SplashScreenSetting"),
 							JOptionPane.YES_NO_OPTION,
 							JOptionPane.QUESTION_MESSAGE
 					);
@@ -158,7 +157,7 @@ public class Splash extends JFrame {
 
 	public static void setStatusMessage(String text) {
 		if (instance != null) {
-			instance.setText(Messages.getString(text));
+			instance.setText(Messages.getGuiString(text));
 		}
 	}
 

@@ -33,7 +33,7 @@ public class FontFileFilter extends FileFilter {
 
 	@Override
 	public String getDescription() {
-		return Messages.getString("TruetypeFonts");
+		return Messages.getGuiString("TruetypeFonts");
 	}
 
 }

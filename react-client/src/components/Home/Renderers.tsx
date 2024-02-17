@@ -89,8 +89,8 @@ const Renderers = (
   );
 
   const getAccountNameList = () => {
-    return [ { value: '-1', label: i18n.get('NoAccountAssigned') },
-      { value: '0', label: i18n.get('DefaultAccount') }
+    return [{ value: '-1', label: i18n.get('NoAccountAssigned') },
+    { value: '0', label: i18n.get('DefaultAccount') }
     ].concat(users.map(user => ({ value: user.value.toString(), label: user.label })));
   }
 
@@ -98,7 +98,7 @@ const Renderers = (
     <Modal
       centered
       opened={userChanger != null}
-      title={userChanger?.name}
+      title={userChanger?.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : userChanger?.name}
       onClose={() => setUserChanger(null)}
       withinPortal={false}
       lockScroll={false}
@@ -107,7 +107,7 @@ const Renderers = (
         mb={'xl'}
         label={i18n.get('LinkRendererTo')}
         defaultValue={userChanger?.userId.toString()}
-        onChange={(value) => {setUserChangerValue(value)}}
+        onChange={(value) => { setUserChangerValue(value) }}
         withScrollArea={false}
         styles={{ dropdown: { maxHeight: 70, overflowY: 'auto' } }}
         data={getAccountNameList()}
@@ -124,7 +124,7 @@ const Renderers = (
   );
 
   const getAccountName = (userId: number) => {
-    switch(userId) {
+    switch (userId) {
       case -1: return i18n.get('NoAccountAssigned');
       case 0: return i18n.get('DefaultAccount');
       default: {
@@ -150,7 +150,7 @@ const Renderers = (
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
           <Group justify='space-between'>
-            <Text fw={500} c={getNameColor(renderer)}>{renderer.name}</Text>
+            <Text fw={500} c={getNameColor(renderer)}>{renderer.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : renderer.name}</Text>
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
@@ -221,7 +221,7 @@ const Renderers = (
       size='full'
       opened={controlId > -1}
       onClose={() => setControlId(-1)}
-      title={rendererControlled.name}
+      title={rendererControlled.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : rendererControlled.name}
     >
       <Stack>
         {!rendererControlled.isActive &&

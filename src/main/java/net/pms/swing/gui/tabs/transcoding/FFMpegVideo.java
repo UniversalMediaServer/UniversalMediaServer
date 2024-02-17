@@ -55,13 +55,13 @@ public class FFMpegVideo {
 
 		CellConstraints cc = new CellConstraints();
 		int y = 1;
-		builder.addSeparator(Messages.getString(languageLabel)).at(cc.xyw(1, y, 1));
+		builder.addSeparator(Messages.getGuiString(languageLabel)).at(cc.xyw(1, y, 1));
 
 		y += 2;
-		builder.addLabel(Messages.getString("LogLevel")).at(cc.xy(1, y));
+		builder.addLabel(Messages.getGuiString("LogLevel")).at(cc.xy(1, y));
 		JComboBox<String> fFmpegLoggingLevel = new JComboBox<>(FFmpegLogLevels.getLabels());
 		fFmpegLoggingLevel.setSelectedItem(CONFIGURATION.getFFmpegLoggingLevel());
-		fFmpegLoggingLevel.setToolTipText(Messages.getString("SetFfmpegLoggingLevelDecides"));
+		fFmpegLoggingLevel.setToolTipText(Messages.getGuiString("SetFfmpegLoggingLevelDecides"));
 		fFmpegLoggingLevel.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				CONFIGURATION.setFFmpegLoggingLevel((String) e.getItem());
@@ -71,46 +71,46 @@ public class FFMpegVideo {
 		builder.add(SwingUtil.getPreferredSizeComponent(fFmpegLoggingLevel)).at(cc.xy(3, y));
 
 		y += 2;
-		JCheckBox multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.isFfmpegMultithreading());
+		JCheckBox multithreading = new JCheckBox(Messages.getGuiString("EnableMultithreading"), CONFIGURATION.isFfmpegMultithreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener((ItemEvent e) -> CONFIGURATION.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(multithreading)).at(cc.xy(1, y));
 
 		y += 2;
-		JCheckBox videoRemuxTsMuxer = new JCheckBox(Messages.getString("RemuxVideosTsmuxer"), CONFIGURATION.isFFmpegMuxWithTsMuxerWhenCompatible());
+		JCheckBox videoRemuxTsMuxer = new JCheckBox(Messages.getGuiString("RemuxVideosTsmuxer"), CONFIGURATION.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
 		videoRemuxTsMuxer.addItemListener((ItemEvent e) -> CONFIGURATION.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(videoRemuxTsMuxer)).at(cc.xy(1, y));
 
 		y += 2;
-		JCheckBox fc = new JCheckBox(Messages.getString("UseFontSettings"), CONFIGURATION.isFFmpegFontConfig());
+		JCheckBox fc = new JCheckBox(Messages.getGuiString("UseFontSettings"), CONFIGURATION.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
-		fc.setToolTipText(Messages.getString("FontSettingAppliedEmbeddedExternal"));
+		fc.setToolTipText(Messages.getGuiString("FontSettingAppliedEmbeddedExternal"));
 		fc.addItemListener((ItemEvent e) -> CONFIGURATION.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(fc)).at(cc.xy(1, y));
 
 		y += 2;
-		JCheckBox deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("DeferMencoderTranscodingProblematic"), CONFIGURATION.isFFmpegDeferToMEncoderForProblematicSubtitles());
+		JCheckBox deferToMEncoderForSubtitles = new JCheckBox(Messages.getGuiString("DeferMencoderTranscodingProblematic"), CONFIGURATION.isFFmpegDeferToMEncoderForProblematicSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
-		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("MencoderMoreStableFfmpegTranscoding"));
+		deferToMEncoderForSubtitles.setToolTipText(Messages.getGuiString("MencoderMoreStableFfmpegTranscoding"));
 		deferToMEncoderForSubtitles.addItemListener((ItemEvent e) -> CONFIGURATION.setFFmpegDeferToMEncoderForProblematicSubtitles(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(deferToMEncoderForSubtitles)).at(cc.xy(1, y));
 
 		y += 2;
-		JCheckBox isFFmpegSoX = new JCheckBox(Messages.getString("UseSoxHigherQualityAudio"), CONFIGURATION.isFFmpegSoX());
+		JCheckBox isFFmpegSoX = new JCheckBox(Messages.getGuiString("UseSoxHigherQualityAudio"), CONFIGURATION.isFFmpegSoX());
 		isFFmpegSoX.setContentAreaFilled(false);
-		isFFmpegSoX.setToolTipText(Messages.getString("ThisMayIncreaseAudioQuality"));
+		isFFmpegSoX.setToolTipText(Messages.getGuiString("ThisMayIncreaseAudioQuality"));
 		isFFmpegSoX.addItemListener((ItemEvent e) -> CONFIGURATION.setFFmpegSoX(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(isFFmpegSoX)).at(cc.xy(1, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("GPUDecodingAccelerationMethod"))).at(cc.xy(1, y));
+		builder.add(new JLabel(Messages.getGuiString("GPUDecodingAccelerationMethod"))).at(cc.xy(1, y));
 
 		String[] keys = CONFIGURATION.getFFmpegAvailableGPUDecodingAccelerationMethods();
 
 		JComboBox<String> fFmpegGPUDecodingAccelerationMethod = new JComboBox<>(keys);
 		fFmpegGPUDecodingAccelerationMethod.setSelectedItem(CONFIGURATION.getFFmpegGPUDecodingAccelerationMethod());
-		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getString("RecommendationIsAuto"));
+		fFmpegGPUDecodingAccelerationMethod.setToolTipText(Messages.getGuiString("RecommendationIsAuto"));
 		fFmpegGPUDecodingAccelerationMethod.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				CONFIGURATION.setFFmpegGPUDecodingAccelerationMethod((String) e.getItem());
@@ -120,25 +120,25 @@ public class FFMpegVideo {
 		builder.add(SwingUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationMethod)).at(cc.xy(3, y));
 
 		y += 2;
-		builder.addLabel(Messages.getString("GpuDecodingThreadCount")).at(cc.xy(1, y));
+		builder.addLabel(Messages.getGuiString("GpuDecodingThreadCount")).at(cc.xy(1, y));
 		String[] threads = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16"};
 
 		JComboBox<String> fFmpegGPUDecodingAccelerationThreadNumber = new JComboBox<>(threads);
 		fFmpegGPUDecodingAccelerationThreadNumber.setSelectedItem(CONFIGURATION.getFFmpegGPUDecodingAccelerationThreadNumber());
-		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getString("TheNumberGpuThreads"));
+		fFmpegGPUDecodingAccelerationThreadNumber.setToolTipText(Messages.getGuiString("TheNumberGpuThreads"));
 
 		fFmpegGPUDecodingAccelerationThreadNumber.addItemListener((ItemEvent e) -> CONFIGURATION.setFFmpegGPUDecodingAccelerationThreadNumber((String) e.getItem()));
 		fFmpegGPUDecodingAccelerationThreadNumber.setEditable(true);
 		builder.add(SwingUtil.getPreferredSizeComponent(fFmpegGPUDecodingAccelerationThreadNumber)).at(cc.xy(3, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("AVCH264GPUEncodingAccelerationMethod"))).at(cc.xy(1, y));
+		builder.add(new JLabel(Messages.getGuiString("AVCH264GPUEncodingAccelerationMethod"))).at(cc.xy(1, y));
 
 		String[] keysH264 = UmsConfiguration.getFFmpegAvailableGPUH264EncodingAccelerationMethods();
 
 		JComboBox<String> fFmpegGPUH264EncodingAccelerationMethod = new JComboBox<>(keysH264);
 		fFmpegGPUH264EncodingAccelerationMethod.setSelectedItem(CONFIGURATION.getFFmpegGPUH264EncodingAccelerationMethod());
-		fFmpegGPUH264EncodingAccelerationMethod.setToolTipText(Messages.getString("NvidiaAndAmdEncoders"));
+		fFmpegGPUH264EncodingAccelerationMethod.setToolTipText(Messages.getGuiString("NvidiaAndAmdEncoders"));
 		fFmpegGPUH264EncodingAccelerationMethod.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				CONFIGURATION.setFFmpegGPUH264EncodingAccelerationMethod((String) e.getItem());
@@ -148,13 +148,13 @@ public class FFMpegVideo {
 		builder.add(SwingUtil.getPreferredSizeComponent(fFmpegGPUH264EncodingAccelerationMethod)).at(cc.xy(3, y));
 
 		y += 2;
-		builder.add(new JLabel(Messages.getString("HEVCH265GPUEncodingAccelerationMethod"))).at(cc.xy(1, y));
+		builder.add(new JLabel(Messages.getGuiString("HEVCH265GPUEncodingAccelerationMethod"))).at(cc.xy(1, y));
 
 		String[] keysH265 = UmsConfiguration.getFFmpegAvailableGPUH265EncodingAccelerationMethods();
 
 		JComboBox<String> fFmpegGPUH265EncodingAccelerationMethod = new JComboBox<>(keysH265);
 		fFmpegGPUH265EncodingAccelerationMethod.setSelectedItem(CONFIGURATION.getFFmpegGPUH265EncodingAccelerationMethod());
-		fFmpegGPUH265EncodingAccelerationMethod.setToolTipText(Messages.getString("NvidiaAndAmdEncoders"));
+		fFmpegGPUH265EncodingAccelerationMethod.setToolTipText(Messages.getGuiString("NvidiaAndAmdEncoders"));
 		fFmpegGPUH265EncodingAccelerationMethod.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				CONFIGURATION.setFFmpegGPUH265EncodingAccelerationMethod((String) e.getItem());

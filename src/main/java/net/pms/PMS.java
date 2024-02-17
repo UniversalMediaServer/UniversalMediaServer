@@ -323,7 +323,7 @@ public class PMS {
 		if (!isHeadless() && !isRunningTests() && umsConfiguration.showInfoAboutVideoAutomaticSetting()) {
 			if (!umsConfiguration.isAutomaticMaximumBitrate()) {
 				// Ask if user wants to use automatic maximum bitrate
-				boolean useAutomaticMaximumBitrate = SwingUtil.askYesNoMessage(Messages.getString("WeImprovedAutomaticVideoQuality"), Messages.getString("ImprovedFeature"), true);
+				boolean useAutomaticMaximumBitrate = SwingUtil.askYesNoMessage(Messages.getGuiString("WeImprovedAutomaticVideoQuality"), Messages.getGuiString("ImprovedFeature"), true);
 				umsConfiguration.setAutomaticMaximumBitrate(useAutomaticMaximumBitrate);
 			}
 
@@ -504,7 +504,7 @@ public class PMS {
 					}
 					LOGGER.info("Launching the graphical interface on a browser");
 					if (!PlatformUtils.INSTANCE.browseURI(webGuiServer.getUrl())) {
-						LOGGER.error(Messages.getString("ErrorOccurredTryingLaunchBrowser"));
+						LOGGER.error("An error occurred while trying to launch the default web browser");
 					}
 				}
 			}.start();
@@ -1065,7 +1065,7 @@ public class PMS {
 			LOGGER.error(errorMessage);
 
 			if (!isHeadless() && instance != null) {
-				GuiManager.showErrorMessage(errorMessage, Messages.getString("ErrorWhileStartingUms"));
+				GuiManager.showErrorMessage(errorMessage, Messages.getGuiString("ErrorWhileStartingUms"));
 			}
 		} catch (InterruptedException e) {
 			// Interrupted during startup

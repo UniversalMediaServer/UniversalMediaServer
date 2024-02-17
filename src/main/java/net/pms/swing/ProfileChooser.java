@@ -39,7 +39,7 @@ public class ProfileChooser {
 
 		@Override
 		public String getDescription() {
-			return Messages.getString("ProfileFileOrFolder");
+			return Messages.getGuiString("ProfileFileOrFolder");
 		}
 	}
 
@@ -47,10 +47,10 @@ public class ProfileChooser {
 		final JFileChooser fc = new JFileChooser();
 
 		fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-		fc.setDialogTitle(Messages.getString("UniversalMediaServerProfileChooser"));
+		fc.setDialogTitle(Messages.getGuiString("UniversalMediaServerProfileChooser"));
 		fc.setFileFilter(new ProfileChooserFileFilter());
 
-		int returnVal = fc.showDialog(null, Messages.getString("Select"));
+		int returnVal = fc.showDialog(null, Messages.getGuiString("Select"));
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
