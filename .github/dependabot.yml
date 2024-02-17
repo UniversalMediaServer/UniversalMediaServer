@@ -8,7 +8,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/react-client"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
       eslint:
         patterns:
@@ -28,11 +28,11 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
   - package-ecosystem: "maven"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     groups:
       mockito:
         patterns:
