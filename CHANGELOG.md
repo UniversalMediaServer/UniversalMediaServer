@@ -2,16 +2,21 @@
 
 ## [Unreleased]
 
+### General
+- Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
+- Remux non-AC-3 audio regardless of AC-3 setting
+- Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
 - Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 7.0.1 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391), [#4464](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4464), [#4479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4479))
 - Bump `@typescript-eslint/parser` from 6.17.0 to 7.0.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419), [#4459](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4459), [#4479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4479))
-- Bump `react-router-dom` from 6.21.1 to 6.22.0 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408), [#4465](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4465))
+- Bump `react-router-dom` from 6.21.1 to 6.22.1 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408), [#4465](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4465), [#4485](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4485))
 - Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
-- Bump `@types/react` from 18.2.47 to 18.2.48 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392))
+- Bump `@types/react` from 18.2.47 to 18.2.55 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392), [#4468](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4468))
 - Bump `@testing-library/jest-dom` from 6.2.0 to 6.3.0 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423))
 - Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
@@ -19,6 +24,7 @@
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `@types/node` from 18.19.4 to 18.19.15 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462))
 - Bump `@types/jest` from 29.5.11 to 29.5.12 ([#4482](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4482))
+- Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
 
 ## 14.0.0 (Unreleased)
 
