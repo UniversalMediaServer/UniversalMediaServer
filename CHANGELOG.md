@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### General
+- Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
+- Remux non-AC-3 audio regardless of AC-3 setting
+- Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
