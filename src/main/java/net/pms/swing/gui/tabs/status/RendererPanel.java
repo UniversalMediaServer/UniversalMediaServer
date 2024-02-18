@@ -28,6 +28,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import net.pms.Messages;
 import net.pms.gui.IRendererGuiListener;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
@@ -60,7 +61,11 @@ public class RendererPanel implements ActionListener, IRendererGuiListener {
 
 	public RendererPanel(Renderer renderer) {
 		rendererImage = new RendererImage(renderer);
-		label = new JLabel(renderer.getRendererName());
+		String rendererName = renderer.getRendererName();
+		if ("UnknownRenderer".equals(rendererName)) {
+			rendererName = Messages.getGuiString(rendererName);
+		}
+		label = new JLabel(rendererName);
 		playingLabel = new MarqueeLabel(" ");
 		playingLabel.setForeground(Color.gray);
 		int h = (int) playingLabel.getSize().getHeight();
@@ -185,7 +190,11 @@ public class RendererPanel implements ActionListener, IRendererGuiListener {
 	public void updateRenderer(final Renderer renderer) {
 		SwingUtilities.invokeLater(() -> {
 			rendererImage.set(renderer);
-			label.setText(renderer.getRendererName());
+			String rendererName = renderer.getRendererName();
+			if ("UnknownRenderer".equals(rendererName)) {
+				rendererName = Messages.getGuiString(rendererName);
+			}
+			label.setText(rendererName);
 			// Update the popup panel if it's been opened
 			if (rendererFrame != null) {
 				rendererFrame.update();

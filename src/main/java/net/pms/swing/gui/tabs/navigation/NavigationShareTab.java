@@ -150,25 +150,25 @@ public class NavigationShareTab {
 
 		// Build gui with initialized components
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.addSeparator(Messages.getString("Thumbnails")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+			builder.addSeparator(Messages.getGuiString("Thumbnails")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 
 			builder.add(SwingUtil.getPreferredSizeComponent(generateThumbnails)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-			builder.addLabel(Messages.getString("ThumbnailSeekingPosition")).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("ThumbnailSeekingPosition")).at(FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 			builder.add(seekPosition).at(FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(imageThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 3), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AudioThumbnailsImport")).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("AudioThumbnailsImport")).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 			builder.add(audioThumbnails).at(FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(mplayerThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AlternateVideoCoverArtFolder")).at(FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("AlternateVideoCoverArtFolder")).at(FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 			builder.add(defaultThumbFolder).at(FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 			builder.add(select).at(FormLayoutUtil.flip(cc.xy(5, 7), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(dvdIsoThumbnails)).at(FormLayoutUtil.flip(cc.xy(7, 7), colSpec, orientation));
 
-			builder.addSeparator(Messages.getString("FileSortingNaming")).at(FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
+			builder.addSeparator(Messages.getGuiString("FileSortingNaming")).at(FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FileOrder")).at(FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("FileOrder")).at(FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 			builder.add(sortMethod).at(FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(ignoreTheWordThe)).at(FormLayoutUtil.flip(cc.xy(7, 11), colSpec, orientation));
 
@@ -176,17 +176,17 @@ public class NavigationShareTab {
 			builder.add(SwingUtil.getPreferredSizeComponent(hideExtensions)).at(FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(isUseInfoFromAPI)).at(FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("AddSubtitlesInformationVideoNames")).at(FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("AddSubtitlesInformationVideoNames")).at(FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 			builder.add(addVideoSuffix).at(FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(hideEngines)).at(FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
-			builder.addSeparator(Messages.getString("VirtualFoldersFiles")).at(FormLayoutUtil.flip(cc.xyw(1, 17, 10), colSpec, orientation));
+			builder.addSeparator(Messages.getGuiString("VirtualFoldersFiles")).at(FormLayoutUtil.flip(cc.xyw(1, 17, 10), colSpec, orientation));
 
 			builder.add(SwingUtil.getPreferredSizeComponent(iTunes)).at(FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(iPhoto)).at(FormLayoutUtil.flip(cc.xy(3, 19), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(aperture)).at(FormLayoutUtil.flip(cc.xy(7, 19), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("DatabaseCache")).at(FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("DatabaseCache")).at(FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 			builder.add(cacheReset).at(FormLayoutUtil.flip(cc.xyw(3, 21, 3), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderMediaLibrary)).at(FormLayoutUtil.flip(cc.xy(7, 21), colSpec, orientation));
 
@@ -198,7 +198,7 @@ public class NavigationShareTab {
 			builder.add(chapterInterval).at(FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
 
 			builder.add(SwingUtil.getPreferredSizeComponent(isShowFolderLiveSubtitles)).at(FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-			builder.addLabel(Messages.getString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("MinimumItemLimitBeforeAZ")).at(FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 			builder.add(atzLimit).at(FormLayoutUtil.flip(cc.xy(5, 27), colSpec, orientation));
 
 			builder.add(SwingUtil.getPreferredSizeComponent(resume)).at(FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
@@ -207,7 +207,7 @@ public class NavigationShareTab {
 
 			builder.add(SwingUtil.getPreferredSizeComponent(useSymlinksTargetFile)).at(FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 
-			builder.addLabel(Messages.getString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
+			builder.addLabel(Messages.getGuiString("FullyPlayedAction")).at(FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
 			builder.add(fullyPlayedAction).at(FormLayoutUtil.flip(cc.xyw(3, 33, 3), colSpec, orientation));
 			builder.add(fullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(7, 33), colSpec, orientation));
 			builder.add(selectFullyPlayedOutputDirectory).at(FormLayoutUtil.flip(cc.xy(9, 33), colSpec, orientation));
@@ -249,7 +249,7 @@ public class NavigationShareTab {
 		seekPosition.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// Generate thumbnails
-		generateThumbnails = new JCheckBox(Messages.getString("GenerateThumbnails"), configuration.isThumbnailGenerationEnabled());
+		generateThumbnails = new JCheckBox(Messages.getGuiString("GenerateThumbnails"), configuration.isThumbnailGenerationEnabled());
 		generateThumbnails.setContentAreaFilled(false);
 		generateThumbnails.addItemListener((ItemEvent e) -> {
 			configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
@@ -258,26 +258,26 @@ public class NavigationShareTab {
 		});
 
 		// Use MPlayer for video thumbnails
-		mplayerThumbnails = new JCheckBox(Messages.getString("UseMplayerVideoThumbnails"), configuration.isUseMplayerForVideoThumbs());
-		mplayerThumbnails.setToolTipText(Messages.getString("WhenSettingDisabledFfmpeg"));
+		mplayerThumbnails = new JCheckBox(Messages.getGuiString("UseMplayerVideoThumbnails"), configuration.isUseMplayerForVideoThumbs());
+		mplayerThumbnails.setToolTipText(Messages.getGuiString("WhenSettingDisabledFfmpeg"));
 		mplayerThumbnails.setContentAreaFilled(false);
 		mplayerThumbnails.addItemListener((ItemEvent e) -> configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED)));
 		mplayerThumbnails.setEnabled(configuration.isThumbnailGenerationEnabled());
 
 		// DVD ISO thumbnails
-		dvdIsoThumbnails = new JCheckBox(Messages.getString("DvdIsoThumbnails"), configuration.isDvdIsoThumbnails());
+		dvdIsoThumbnails = new JCheckBox(Messages.getGuiString("DvdIsoThumbnails"), configuration.isDvdIsoThumbnails());
 		dvdIsoThumbnails.setContentAreaFilled(false);
 		dvdIsoThumbnails.addItemListener((ItemEvent e) -> configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Image thumbnails
-		imageThumbnails = new JCheckBox(Messages.getString("ImageThumbnails"), configuration.getImageThumbnailsEnabled());
+		imageThumbnails = new JCheckBox(Messages.getGuiString("ImageThumbnails"), configuration.getImageThumbnailsEnabled());
 		imageThumbnails.setContentAreaFilled(false);
 		imageThumbnails.addItemListener((ItemEvent e) -> configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel<CoverSupplier, String> thumbKCBM = new KeyedComboBoxModel<>(
 			new CoverSupplier[]{CoverSupplier.NONE, CoverSupplier.COVER_ART_ARCHIVE},
-			new String[]{Messages.getString("None"), Messages.getString("DownloadFromCoverArtArchive")}
+			new String[]{Messages.getGuiString("None"), Messages.getGuiString("DownloadFromCoverArtArchive")}
 		);
 		audioThumbnails = new JComboBox<>(thumbKCBM);
 		audioThumbnails.setEditable(false);
@@ -287,7 +287,7 @@ public class NavigationShareTab {
 		audioThumbnails.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				configuration.setAudioThumbnailMethod(thumbKCBM.getSelectedKey());
-				LOGGER.info("Setting {} {}", Messages.getRootString("AudioThumbnailsImport"), thumbKCBM.getSelectedValue());
+				LOGGER.info("Setting Audio thumbnails import: {}", thumbKCBM.getSelectedValue());
 			}
 		});
 
@@ -310,7 +310,7 @@ public class NavigationShareTab {
 				chooser = new JFileChooser(new RestrictedFileSystemView());
 			}
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getGuiString("ChooseAFolder"));
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				defaultThumbFolder.setText(chooser.getSelectedFile().getAbsolutePath());
 				configuration.setAlternateThumbFolder(chooser.getSelectedFile().getAbsolutePath());
@@ -318,13 +318,13 @@ public class NavigationShareTab {
 		});
 
 		// Show Server Settings folder
-		isShowFolderServerSettings = new JCheckBox(Messages.getString("ShowServerSettingsFolder"), configuration.isShowServerSettingsFolder());
-		isShowFolderServerSettings.setToolTipText(Messages.getString("WarningThisAllowsShutdownComputer"));
+		isShowFolderServerSettings = new JCheckBox(Messages.getGuiString("ShowServerSettingsFolder"), configuration.isShowServerSettingsFolder());
+		isShowFolderServerSettings.setToolTipText(Messages.getGuiString("WarningThisAllowsShutdownComputer"));
 		isShowFolderServerSettings.setContentAreaFilled(false);
 		isShowFolderServerSettings.addItemListener((ItemEvent e) -> configuration.setShowServerSettingsFolder((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Show #--TRANSCODE--# folder
-		isShowFolderTranscode = new JCheckBox(Messages.getString("ShowTranscodeFolder"), configuration.isShowTranscodeFolder());
+		isShowFolderTranscode = new JCheckBox(Messages.getGuiString("ShowTranscodeFolder"), configuration.isShowTranscodeFolder());
 		isShowFolderTranscode.setContentAreaFilled(false);
 		isShowFolderTranscode.addItemListener((ItemEvent e) -> {
 			configuration.setShowTranscodeFolder((e.getStateChange() == ItemEvent.SELECTED));
@@ -332,7 +332,7 @@ public class NavigationShareTab {
 		});
 
 		// Chapters support in #--TRANSCODE--# folder
-		isChapterSupport = new JCheckBox(Messages.getString("ChaptersSupportInTranscodeFolder"), configuration.isChapterSupport());
+		isChapterSupport = new JCheckBox(Messages.getGuiString("ChaptersSupportInTranscodeFolder"), configuration.isChapterSupport());
 		isChapterSupport.setEnabled(configuration.isShowTranscodeFolder());
 		isChapterSupport.setContentAreaFilled(false);
 		isChapterSupport.addItemListener((ItemEvent e) -> {
@@ -356,24 +356,23 @@ public class NavigationShareTab {
 		});
 
 		// Show Media Library folder
-		isShowFolderMediaLibrary = new JCheckBox(Messages.getString("ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
+		isShowFolderMediaLibrary = new JCheckBox(Messages.getGuiString("ShowMediaLibraryFolder"), configuration.isShowMediaLibraryFolder());
 		isShowFolderMediaLibrary.setContentAreaFilled(false);
 		isShowFolderMediaLibrary.addItemListener((ItemEvent e) -> configuration.setShowMediaLibraryFolder((e.getStateChange() == ItemEvent.SELECTED)));
-		isShowFolderMediaLibrary.setToolTipText(Messages.getString("MediaLibraryFolderWillAvailable"));
+		isShowFolderMediaLibrary.setToolTipText(Messages.getGuiString("MediaLibraryFolderWillAvailable"));
 
 		// Browse compressed archives
-		archive = new JCheckBox(Messages.getString("BrowseCompressedArchives"), configuration.isArchiveBrowsing());
+		archive = new JCheckBox(Messages.getGuiString("BrowseCompressedArchives"), configuration.isArchiveBrowsing());
 		archive.setContentAreaFilled(false);
 		archive.addItemListener((ItemEvent e) -> configuration.setArchiveBrowsing(e.getStateChange() == ItemEvent.SELECTED));
 
 		// Reset cache
-		cacheReset = new CustomJButton(Messages.getString("ResetCache"));
-		cacheReset.setToolTipText(Messages.getString("CacheEmptiedExceptFullyPlayed"));
+		cacheReset = new CustomJButton(Messages.getGuiString("ResetCache"));
+		cacheReset.setToolTipText(Messages.getGuiString("CacheEmptiedExceptFullyPlayed"));
 		cacheReset.addActionListener((ActionEvent e) -> {
-			int option = JOptionPane.showConfirmDialog(
-				looksFrame,
-				Messages.getString("CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getString("AreYouSure"),
-				Messages.getString("Question"),
+			int option = JOptionPane.showConfirmDialog(looksFrame,
+				Messages.getGuiString("CacheEmptiedExceptFullyPlayed") + "\n" + Messages.getGuiString("AreYouSure"),
+				Messages.getGuiString("Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (option == JOptionPane.YES_OPTION) {
 				MediaDatabase.initForce();
@@ -386,7 +385,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide file extensions
-		hideExtensions = new JCheckBox(Messages.getString("HideFileExtensions"), configuration.isHideExtensions());
+		hideExtensions = new JCheckBox(Messages.getGuiString("HideFileExtensions"), configuration.isHideExtensions());
 		hideExtensions.setContentAreaFilled(false);
 		if (configuration.isPrettifyFilenames()) {
 			hideExtensions.setEnabled(false);
@@ -394,8 +393,8 @@ public class NavigationShareTab {
 		hideExtensions.addItemListener((ItemEvent e) -> configuration.setHideExtensions((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Hide transcoding engine names
-		hideEngines = new JCheckBox(Messages.getString("AddEnginesNamesAfterFilenames"), !configuration.isHideEngineNames());
-		hideEngines.setToolTipText(Messages.getString("IfEnabledEngineNameDisplayed"));
+		hideEngines = new JCheckBox(Messages.getGuiString("AddEnginesNamesAfterFilenames"), !configuration.isHideEngineNames());
+		hideEngines.setToolTipText(Messages.getGuiString("IfEnabledEngineNameDisplayed"));
 		hideEngines.setContentAreaFilled(false);
 		hideEngines.addItemListener((ItemEvent e) -> configuration.setHideEngineNames((e.getStateChange() != ItemEvent.SELECTED)));
 
@@ -407,23 +406,22 @@ public class NavigationShareTab {
 				SubtitlesInfoLevel.FULL
 			},
 			new String[] {
-				Messages.getString("None"),
-				Messages.getString("Basic"),
-				Messages.getString("Full")
+				Messages.getGuiString("None"),
+				Messages.getGuiString("Basic"),
+				Messages.getGuiString("Full")
 			}
 		);
 
 		addVideoSuffix = new JComboBox<>(videoSuffixKCBM);
 		addVideoSuffix.setEditable(false);
-		addVideoSuffix.setToolTipText(Messages.getString("AddsInformationAboutSelectedSubtitles"));
+		addVideoSuffix.setToolTipText(Messages.getGuiString("AddsInformationAboutSelectedSubtitles"));
 
 		videoSuffixKCBM.setSelectedKey(configuration.getSubtitlesInfoLevel());
 
 		addVideoSuffix.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				LOGGER.debug(
-					"Setting \"{}\" to \"{}\"",
-					Messages.getRootString("FoldTab.addSubtitlesInfo"),
+					"Setting Subtitles Info Level to \"{}\"",
 					videoSuffixKCBM.getSelectedValue()
 				);
 				configuration.setSubtitlesInfoLevel(videoSuffixKCBM.getSelectedKey());
@@ -431,30 +429,30 @@ public class NavigationShareTab {
 		});
 
 		// Hide empty folders
-		hideEmptyFolders = new JCheckBox(Messages.getString("HideEmptyFolders"), configuration.isHideEmptyFolders());
-		hideEmptyFolders.setToolTipText(Messages.getString("ThisMakesBrowsingSlower"));
+		hideEmptyFolders = new JCheckBox(Messages.getGuiString("HideEmptyFolders"), configuration.isHideEmptyFolders());
+		hideEmptyFolders.setToolTipText(Messages.getGuiString("ThisMakesBrowsingSlower"));
 		hideEmptyFolders.setContentAreaFilled(false);
 		hideEmptyFolders.addItemListener((ItemEvent e) -> configuration.setHideEmptyFolders((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Use target file for symlinks
-		useSymlinksTargetFile = new JCheckBox(Messages.getString("UseTargetFileSymbolicLinks"), configuration.isUseSymlinksTargetFile());
-		useSymlinksTargetFile.setToolTipText(Messages.getString("TreatMultipleSymbolicLinks"));
+		useSymlinksTargetFile = new JCheckBox(Messages.getGuiString("UseTargetFileSymbolicLinks"), configuration.isUseSymlinksTargetFile());
+		useSymlinksTargetFile.setToolTipText(Messages.getGuiString("TreatMultipleSymbolicLinks"));
 		useSymlinksTargetFile.setContentAreaFilled(false);
 		useSymlinksTargetFile.addItemListener((ItemEvent e) -> configuration.setUseSymlinksTargetFile((e.getStateChange() == ItemEvent.SELECTED)));
 
 		// Show iTunes library
-		iTunes = new JCheckBox(Messages.getString("ShowItunesLibrary"), false);
-		iTunes.setToolTipText(Messages.getString("IfEnabledThreeNewVirtual"));
+		iTunes = new JCheckBox(Messages.getGuiString("ShowItunesLibrary"), false);
+		iTunes.setToolTipText(Messages.getGuiString("IfEnabledThreeNewVirtual"));
 		iTunes.setContentAreaFilled(false);
 		iTunes.setEnabled(false);
 
 		// Show iPhoto library
-		iPhoto = new JCheckBox(Messages.getString("ShowIphotoLibrary"), false);
+		iPhoto = new JCheckBox(Messages.getGuiString("ShowIphotoLibrary"), false);
 		iPhoto.setContentAreaFilled(false);
 		iPhoto.setEnabled(false);
 
 		// Show aperture library
-		aperture = new JCheckBox(Messages.getString("ShowApertureLibrary"), false);
+		aperture = new JCheckBox(Messages.getGuiString("ShowApertureLibrary"), false);
 		aperture.setContentAreaFilled(false);
 		aperture.setEnabled(false);
 
@@ -470,13 +468,13 @@ public class NavigationShareTab {
 				UMSUtils.SORT_NO_SORT    // no sorting
 			},
 			new String[]{
-				Messages.getString("AlphabeticalAZ"),
-				Messages.getString("Alphanumeric"),
-				Messages.getString("Asciibetical"),
-				Messages.getString("ByDateNewestFirst"),
-				Messages.getString("ByDateOldestFirst"),
-				Messages.getString("Random"),
-				Messages.getString("NoSorting")
+				Messages.getGuiString("AlphabeticalAZ"),
+				Messages.getGuiString("Alphanumeric"),
+				Messages.getGuiString("Asciibetical"),
+				Messages.getGuiString("ByDateNewestFirst"),
+				Messages.getGuiString("ByDateOldestFirst"),
+				Messages.getGuiString("Random"),
+				Messages.getGuiString("NoSorting")
 			}
 		);
 		sortMethod = new JComboBox<>(kcbm);
@@ -486,18 +484,18 @@ public class NavigationShareTab {
 		sortMethod.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				configuration.setSortMethod(kcbm.getSelectedKey());
-				LOGGER.info("Setting {} {}", Messages.getRootString("FileOrder"), kcbm.getSelectedValue());
+				LOGGER.info("Setting File Order to: {}", kcbm.getSelectedValue());
 			}
 		});
 
 		// Ignore the word "the" while sorting
-		ignoreTheWordThe = new JCheckBox(Messages.getString("IgnoreArticlesATheSorting"), configuration.isIgnoreTheWordAandThe());
-		ignoreTheWordThe.setToolTipText(Messages.getString("IfEnabledFilesWillOrdered"));
+		ignoreTheWordThe = new JCheckBox(Messages.getGuiString("IgnoreArticlesATheSorting"), configuration.isIgnoreTheWordAandThe());
+		ignoreTheWordThe.setToolTipText(Messages.getGuiString("IfEnabledFilesWillOrdered"));
 		ignoreTheWordThe.setContentAreaFilled(false);
 		ignoreTheWordThe.addItemListener((ItemEvent e) -> configuration.setIgnoreTheWordAandThe((e.getStateChange() == ItemEvent.SELECTED)));
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.setToolTipText(Messages.getString("IfNumberItemsFolderExceeds"));
+		atzLimit.setToolTipText(Messages.getGuiString("IfNumberItemsFolderExceeds"));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -511,29 +509,29 @@ public class NavigationShareTab {
 			}
 		});
 
-		isShowFolderLiveSubtitles = new JCheckBox(Messages.getString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder());
+		isShowFolderLiveSubtitles = new JCheckBox(Messages.getGuiString("ShowLiveSubtitlesFolder"), configuration.isShowLiveSubtitlesFolder());
 		isShowFolderLiveSubtitles.setContentAreaFilled(false);
 		isShowFolderLiveSubtitles.addItemListener((ItemEvent e) -> configuration.setShowLiveSubtitlesFolder((e.getStateChange() == ItemEvent.SELECTED)));
 
-		prettifyFilenames = new JCheckBox(Messages.getString("PrettifyFilenames"), configuration.isPrettifyFilenames());
-		prettifyFilenames.setToolTipText(Messages.getString("IfEnabledFilesWillAppear"));
+		prettifyFilenames = new JCheckBox(Messages.getGuiString("PrettifyFilenames"), configuration.isPrettifyFilenames());
+		prettifyFilenames.setToolTipText(Messages.getGuiString("IfEnabledFilesWillAppear"));
 		prettifyFilenames.setContentAreaFilled(false);
 		prettifyFilenames.addItemListener((ItemEvent e) -> {
 			configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 			hideExtensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 		});
 
-		isUseInfoFromAPI = new JCheckBox(Messages.getString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
-		isUseInfoFromAPI.setToolTipText(Messages.getString("UsesInformationApiAllowBrowsing"));
+		isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
+		isUseInfoFromAPI.setToolTipText(Messages.getGuiString("UsesInformationApiAllowBrowsing"));
 		isUseInfoFromAPI.setContentAreaFilled(false);
 		isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED)));
 
-		resume = new JCheckBox(Messages.getString("EnableVideoResuming"), configuration.isResumeEnabled());
-		resume.setToolTipText(Messages.getString("WhenEnabledPartiallyWatchVideo"));
+		resume = new JCheckBox(Messages.getGuiString("EnableVideoResuming"), configuration.isResumeEnabled());
+		resume.setToolTipText(Messages.getGuiString("WhenEnabledPartiallyWatchVideo"));
 		resume.setContentAreaFilled(false);
 		resume.addItemListener((ItemEvent e) -> configuration.setResume((e.getStateChange() == ItemEvent.SELECTED)));
 
-		isShowFolderRecentlyPlayed = new JCheckBox(Messages.getString("ShowRecentlyPlayedFolder"), configuration.isShowRecentlyPlayedFolder());
+		isShowFolderRecentlyPlayed = new JCheckBox(Messages.getGuiString("ShowRecentlyPlayedFolder"), configuration.isShowRecentlyPlayedFolder());
 		isShowFolderRecentlyPlayed.setContentAreaFilled(false);
 		isShowFolderRecentlyPlayed.addItemListener((ItemEvent e) -> configuration.setShowRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED)));
 
@@ -548,12 +546,12 @@ public class NavigationShareTab {
 				FullyPlayedAction.MOVE_TRASH
 			},
 			new String[]{
-				Messages.getString("DoNothing"),
-				Messages.getString("MarkMedia"),
-				Messages.getString("HideMedia"),
-				Messages.getString("MoveFileToDifferentFolder"),
-				Messages.getString("MoveFileDifferentFolderMark"),
-				Messages.getString("MoveFileRecycleTrashBin")
+				Messages.getGuiString("DoNothing"),
+				Messages.getGuiString("MarkMedia"),
+				Messages.getGuiString("HideMedia"),
+				Messages.getGuiString("MoveFileToDifferentFolder"),
+				Messages.getGuiString("MoveFileDifferentFolderMark"),
+				Messages.getGuiString("MoveFileRecycleTrashBin")
 			}
 		);
 		fullyPlayedAction = new JComboBox<>(fullyPlayedActionModel);
@@ -596,7 +594,7 @@ public class NavigationShareTab {
 				chooser = new JFileChooser(new RestrictedFileSystemView());
 			}
 			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("ChooseAFolder"));
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getGuiString("ChooseAFolder"));
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				fullyPlayedOutputDirectory.setText(chooser.getSelectedFile().getAbsolutePath());
 				configuration.setFullyPlayedOutputDirectory(chooser.getSelectedFile().getAbsolutePath());

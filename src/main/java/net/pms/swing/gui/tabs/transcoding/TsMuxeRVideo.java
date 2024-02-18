@@ -54,14 +54,14 @@ public class TsMuxeRVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
+		builder.addSeparator(Messages.getGuiString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 
-		JCheckBox tsmuxerforcefps = new JCheckBox(Messages.getString("ForceFpsParsedFfmpeg"), CONFIGURATION.isTsmuxerForceFps());
+		JCheckBox tsmuxerforcefps = new JCheckBox(Messages.getGuiString("ForceFpsParsedFfmpeg"), CONFIGURATION.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
 		tsmuxerforcefps.addItemListener((ItemEvent e) -> CONFIGURATION.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(tsmuxerforcefps)).at(FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JCheckBox muxallaudiotracks = new JCheckBox(Messages.getString("MuxAllAudioTracks"), CONFIGURATION.isMuxAllAudioTracks());
+		JCheckBox muxallaudiotracks = new JCheckBox(Messages.getGuiString("MuxAllAudioTracks"), CONFIGURATION.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
 		muxallaudiotracks.addItemListener((ItemEvent e) -> CONFIGURATION.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(muxallaudiotracks)).at(FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));

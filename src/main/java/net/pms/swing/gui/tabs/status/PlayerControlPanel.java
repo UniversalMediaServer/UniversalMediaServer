@@ -209,7 +209,7 @@ public class PlayerControlPanel extends JPanel {
 		});
 		parent.add(position);
 		position.setHorizontalAlignment(SwingConstants.RIGHT);
-		position.setToolTipText(Messages.getString("ShowHideDetails"));
+		position.setToolTipText(Messages.getGuiString("ShowHideDetails"));
 	}
 
 	public final void addVolumeControls(Container parent) {
@@ -298,7 +298,7 @@ public class PlayerControlPanel extends JPanel {
 			}
 		};
 		Button a = new Button(add);
-		a.setToolTipText(Messages.getString("AddToPlaylist"));
+		a.setToolTipText(Messages.getGuiString("AddToPlaylist"));
 		parent.add(a);
 		remove = new AbstractAction("", removeIcon) {
 			private static final long serialVersionUID = 1L;
@@ -309,7 +309,7 @@ public class PlayerControlPanel extends JPanel {
 			}
 		};
 		Button r = new Button(remove);
-		r.setToolTipText(Messages.getString("RemoveFromPlaylist"));
+		r.setToolTipText(Messages.getGuiString("RemoveFromPlaylist"));
 		parent.add(r);
 		clear = new AbstractAction("", clearIcon) {
 			private static final long serialVersionUID = 1L;
@@ -320,7 +320,7 @@ public class PlayerControlPanel extends JPanel {
 			}
 		};
 		Button c = new Button(clear);
-		c.setToolTipText(Messages.getString("ClearPlaylist"));
+		c.setToolTipText(Messages.getGuiString("ClearPlaylist"));
 		parent.add(c);
 		parent.add(new Button(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;

@@ -32,7 +32,6 @@ import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * An utility class for handling "fully played" functionality.
  */

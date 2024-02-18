@@ -1565,7 +1565,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public final String getJwtSecret() {
-		//don't use RendererConfiguration.getString as it will log the value
+		//don't use BaseConfiguration.getString as it will log the value
 		//jwt_secret can elevate users !!!
 		return configuration.getString(KEY_JWT_SIGNER_SECRET, "");
 	}
@@ -2016,7 +2016,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_LANGUAGES,
-				Messages.getString("AudioLanguages")
+				Messages.getConfigurationString("AudioLanguages")
 		);
 	}
 
@@ -2032,7 +2032,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_SUBTITLES_LANGUAGES,
-				Messages.getString("SubtitlesLanguages")
+				Messages.getConfigurationString("SubtitlesLanguages")
 		);
 	}
 
@@ -2071,7 +2071,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
 				KEY_AUDIO_SUB_LANGS,
-				Messages.getString("AudioSubtitlesPairs")
+				Messages.getConfigurationString("AudioSubtitlesPairs")
 		);
 	}
 
@@ -2670,7 +2670,7 @@ public class UmsConfiguration extends BaseConfiguration {
 			} catch (IOException e) {
 				if (!PlatformUtils.INSTANCE.isAdmin()) {
 					try {
-						GuiManager.showErrorMessage(Messages.getString("UmsMustRunAdministrator"), Messages.getString("PermissionsError"));
+						GuiManager.showErrorMessage(Messages.getGuiString("UmsMustRunAdministrator"), Messages.getGuiString("PermissionsError"));
 					} catch (NullPointerException e2) {
 						// This happens on the initial program load, ignore it
 					}
@@ -2920,7 +2920,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public String getFFmpegGPUDecodingAccelerationMethod() {
-		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, Messages.getString("None_lowercase"));
+		return getString(KEY_FFMPEG_GPU_DECODING_ACCELERATION_METHOD, "none");
 	}
 
 	public String getFFmpegGPUH264EncodingAccelerationMethod() {
@@ -2952,7 +2952,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public String[] getFFmpegAvailableGPUDecodingAccelerationMethods() {
-		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, Messages.getString("None_lowercase")).split(",");
+		return getString(KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS, "none").split(",");
 	}
 
 	public static String[] getFFmpegAvailableGPUH264EncodingAccelerationMethods() {
@@ -4605,7 +4605,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	 * @return The folder name.
 	 */
 	public String getTranscodeFolderName() {
-		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("Transcode_FolderName"));
+		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getConfigurationString("Transcode_FolderName"));
 	}
 
 	/**
@@ -4697,7 +4697,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public String getTmdbApiKey() {
-		return getString(KEY_TMDB_API_KEY, "");
+		//don't use BaseConfiguration.getString as it will log the value
+		//tmdb_api_key should stay secret !!!
+		return configuration.getString(KEY_TMDB_API_KEY, "");
 	}
 
 	public void setTmdbApiKey(String value) {
@@ -5564,7 +5566,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_AUDIO_CHANNEL_COUNT, "6");
 		jObj.addProperty(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
 		jObj.addProperty(KEY_AUDIO_BITRATE, "448");
-		jObj.addProperty(KEY_AUDIO_LANGUAGES, Messages.getString("AudioLanguages"));
+		jObj.addProperty(KEY_AUDIO_LANGUAGES, Messages.getConfigurationString("AudioLanguages"));
 		jObj.addProperty(KEY_AUDIO_REMUX_AC3, true);
 		jObj.addProperty(KEY_AUDIO_RESAMPLE, true);
 		jObj.addProperty(KEY_AUDIO_SUB_LANGS, "");
@@ -5674,7 +5676,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SORT_METHOD, "4");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");
-		jObj.addProperty(KEY_SUBTITLES_LANGUAGES, Messages.getString("SubtitlesLanguages"));
+		jObj.addProperty(KEY_SUBTITLES_LANGUAGES, Messages.getConfigurationString("SubtitlesLanguages"));
 		jObj.addProperty(KEY_SUBS_COLOR, "0xFFFFFFFF");
 		jObj.addProperty(KEY_SUBS_FONT, "");
 		jObj.addProperty(KEY_ASS_MARGIN, 10);

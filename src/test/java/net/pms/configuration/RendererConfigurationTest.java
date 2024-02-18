@@ -449,7 +449,7 @@ public class RendererConfigurationTest {
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeaders(
-			"Unknown renderer",
+			"UnknownRenderer",
 			"User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0",
 			"User-Agent: Unknown Renderer",
 			"X-Unknown-Header: Unknown Content"

@@ -52,30 +52,29 @@ public class Wizard {
 		int currentQuestionNumber = 0;
 
 		String status = new StringBuilder()
-				.append(Messages.getString("ConfigurationWizardQuestion"))
+				.append(Messages.getGuiString("ConfigurationWizardQuestion"))
 				.append(" %d ")
-				.append(Messages.getString("Of"))
+				.append(Messages.getGuiString("Of"))
 				.append(" ")
 				.append(numberOfQuestions)
 				.toString();
 
 		Object[] okOptions = {
-			Messages.getString("OK")
+			Messages.getGuiString("OK")
 		};
 
 		Object[] yesNoOptions = {
-			Messages.getString("Yes"),
-			Messages.getString("No")
+			Messages.getGuiString("Yes"),
+			Messages.getGuiString("No")
 		};
 
 		Object[] defaultOptions = {
-			Messages.getString("YesRunTheWizard"),
-			Messages.getString("NoUseTheDefaults")
+			Messages.getGuiString("YesRunTheWizard"),
+			Messages.getGuiString("NoUseTheDefaults")
 		};
 
-		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(
-				null,
-				Messages.getString("WouldYouLikeRunWizard"),
+		int whetherToSelectDefaultOptions = JOptionPane.showOptionDialog(null,
+				Messages.getGuiString("WouldYouLikeRunWizard"),
 				String.format(status, ++currentQuestionNumber),
 				JOptionPane.YES_NO_OPTION,
 				JOptionPane.QUESTION_MESSAGE,
@@ -92,9 +91,8 @@ public class Wizard {
 			configuration.setScanSharedFoldersOnStartup(true);
 		} else {
 			// Ask if they want to hide advanced options
-			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("ShouldUmsHideAdvancedOptions"),
+			int whetherToHideAdvancedOptions = JOptionPane.showOptionDialog(null,
+					Messages.getGuiString("ShouldUmsHideAdvancedOptions"),
 					String.format(status, ++currentQuestionNumber),
 					JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE,
@@ -110,9 +108,8 @@ public class Wizard {
 			}
 
 			// Ask if they want to scan shared folders
-			int whetherToScanSharedFolders = JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("ShouldUmsScanFoldersStartup"),
+			int whetherToScanSharedFolders = JOptionPane.showOptionDialog(null,
+					Messages.getGuiString("ShouldUmsScanFoldersStartup"),
 					String.format(status, ++currentQuestionNumber),
 					JOptionPane.YES_NO_OPTION,
 					JOptionPane.QUESTION_MESSAGE,
@@ -128,9 +125,8 @@ public class Wizard {
 			}
 
 			// Ask to set at least one shared folder
-			JOptionPane.showOptionDialog(
-					null,
-					Messages.getString("FinallyChooseFolderShare"),
+			JOptionPane.showOptionDialog(null,
+					Messages.getGuiString("FinallyChooseFolderShare"),
 					String.format(status, ++currentQuestionNumber),
 					JOptionPane.OK_OPTION,
 					JOptionPane.INFORMATION_MESSAGE,
@@ -149,7 +145,7 @@ public class Wizard {
 					}
 
 					chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-					chooser.setDialogTitle(Messages.getString("FinallyChooseFolderShare"));
+					chooser.setDialogTitle(Messages.getGuiString("FinallyChooseFolderShare"));
 					chooser.setMultiSelectionEnabled(false);
 					if (chooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
 						SharedContentConfiguration.addFolderShared(chooser.getSelectedFile());

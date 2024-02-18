@@ -104,8 +104,8 @@ public final class SwingUtil {
 	public static boolean askYesNoMessage(Object message, String title, boolean defaultValue) {
 		if (!PMS.isHeadless()) {
 			Object[] yesNoOptions = {
-				Messages.getString("Yes"),
-				Messages.getString("No")
+				Messages.getGuiString("Yes"),
+				Messages.getGuiString("No")
 			};
 			int result = JOptionPane.showOptionDialog(
 					null,

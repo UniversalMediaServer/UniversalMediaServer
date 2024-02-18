@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -827,7 +826,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	public String getConfName() {
-		return getString(KEY_RENDERER_NAME, Messages.getString("UnknownRenderer"));
+		return getString(KEY_RENDERER_NAME, "UnknownRenderer");
 	}
 
 	/**

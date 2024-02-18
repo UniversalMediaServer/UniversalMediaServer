@@ -112,6 +112,6 @@ public class KeyedStringComboBoxModel extends KeyedComboBoxModel<String, String>
 	}
 
 	private String generateCustomValue(String key) {
-		return String.format(Messages.getString("CustomValueX"), key);
+		return String.format(Messages.getGuiString("CustomValueX"), key);
 	}
 }

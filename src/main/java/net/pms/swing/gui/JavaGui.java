@@ -80,7 +80,7 @@ public class JavaGui extends JFrame implements IGui {
 	private final AutoUpdater autoUpdater;
 	private final UmsConfiguration configuration;
 	private final GuiConfiguration guiConfiguration;
-	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getString("RestartServer"), ICON_BUTTON_RESTART);
+	private final JAnimatedButton reload = createAnimatedToolBarButton(Messages.getGuiString("RestartServer"), ICON_BUTTON_RESTART);
 	private final AnimatedIcon restartRequiredIcon = new AnimatedIcon(
 			reload, true, AnimatedIcon.buildAnimation(ICON_BUTTON_RESTART_REQUIRED, 0, 25, true, 800, 300, 15)
 	);
@@ -299,12 +299,12 @@ public class JavaGui extends JFrame implements IGui {
 
 		// If the version contains a "-" (e.g. "1.50.1-SNAPSHOT" or "1.50.1-beta1"), add a warning message
 		if (projectVersion.indexOf('-') > -1) {
-			title = title + " - " + Messages.getString("ForTestingOnly");
+			title = title + " - " + Messages.getGuiString("ForTestingOnly");
 		}
 
 		if (PMS.getTraceMode() == 2) {
 			// Forced trace mode
-			title = title + "  [" + Messages.getString("Trace").toUpperCase() + "]";
+			title = title + "  [" + Messages.getGuiString("Trace").toUpperCase() + "]";
 		}
 
 		setTitle(title);
@@ -404,7 +404,7 @@ public class JavaGui extends JFrame implements IGui {
 		toolBar.add(new JPanel());
 
 		if (PMS.getConfiguration().useWebPlayerServer()) {
-			webinterface = createToolBarButton(Messages.getString("WebSettings"), ICON_BUTTON_WIF, Messages.getString("ThisLaunchesOurWebSettings"));
+			webinterface = createToolBarButton(Messages.getGuiString("WebSettings"), ICON_BUTTON_WIF, Messages.getGuiString("ThisLaunchesOurWebSettings"));
 			webinterface.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			webinterface.addActionListener((ActionEvent e) -> {
 				String error = null;
@@ -412,7 +412,7 @@ public class JavaGui extends JFrame implements IGui {
 					try {
 						URI uri = new URI(PMS.get().getGuiServer().getUrl());
 						if (!PlatformUtils.INSTANCE.browseURI(uri.toString())) {
-							error = Messages.getString("ErrorOccurredTryingLaunchBrowser");
+							error = Messages.getGuiString("ErrorOccurredTryingLaunchBrowser");
 						}
 					} catch (URISyntaxException se) {
 						LOGGER.error(
@@ -421,13 +421,13 @@ public class JavaGui extends JFrame implements IGui {
 								se.getMessage()
 						);
 						LOGGER.trace("", se);
-						error = Messages.getString("CouldNotFormValidUrl");
+						error = Messages.getGuiString("CouldNotFormValidUrl");
 					}
 				} else {
-					error = Messages.getString("CouldNotFormValidUrl");
+					error = Messages.getGuiString("CouldNotFormValidUrl");
 				}
 				if (error != null) {
-					JOptionPane.showMessageDialog(null, error, Messages.getString("Error"), JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(null, error, Messages.getGuiString("Error"), JOptionPane.ERROR_MESSAGE);
 				}
 			});
 			webinterface.setEnabled(false);
@@ -442,12 +442,12 @@ public class JavaGui extends JFrame implements IGui {
 			reload.setEnabled(false);
 			PMS.get().resetMediaServer();
 		});
-		reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
+		reload.setToolTipText(Messages.getGuiString("ThisRestartsMediaServices"));
 		reload.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		toolBar.add(reload);
 
 		toolBar.addSeparator(new Dimension(20, 1));
-		quit = createToolBarButton(Messages.getString("Quit"), ICON_BUTTON_QUIT);
+		quit = createToolBarButton(Messages.getGuiString("Quit"), ICON_BUTTON_QUIT);
 		quit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		quit.addActionListener((ActionEvent e) -> PMS.quit());
 		quit.getSize();
@@ -489,16 +489,16 @@ public class JavaGui extends JFrame implements IGui {
 		HelpTab helpTab = new HelpTab();
 		aboutTab = new AboutTab();
 
-		tabbedPane.addTab(Messages.getString("Status"), statusTab.build());
-		tabbedPane.addTab(Messages.getString("Logs"), tracesTab.build());
-		tabbedPane.addTab(Messages.getString("GeneralSettings"), generalTab.build());
+		tabbedPane.addTab(Messages.getGuiString("Status"), statusTab.build());
+		tabbedPane.addTab(Messages.getGuiString("Logs"), tracesTab.build());
+		tabbedPane.addTab(Messages.getGuiString("GeneralSettings"), generalTab.build());
 		if (!configuration.isHideAdvancedOptions()) {
-			tabbedPane.addTab(Messages.getString("NavigationSettings"), navigationSettingsTab.build());
+			tabbedPane.addTab(Messages.getGuiString("NavigationSettings"), navigationSettingsTab.build());
 		}
-		tabbedPane.addTab(Messages.getString("SharedContent"), sharedContentTab.build());
-		tabbedPane.addTab(Messages.getString("TranscodingSettings"), transcodingTab.build());
-		tabbedPane.addTab(Messages.getString("Help"), helpTab.build());
-		tabbedPane.addTab(Messages.getString("About"), aboutTab.build());
+		tabbedPane.addTab(Messages.getGuiString("SharedContent"), sharedContentTab.build());
+		tabbedPane.addTab(Messages.getGuiString("TranscodingSettings"), transcodingTab.build());
+		tabbedPane.addTab(Messages.getGuiString("Help"), helpTab.build());
+		tabbedPane.addTab(Messages.getGuiString("About"), aboutTab.build());
 		tabbedPane.addChangeListener((ChangeEvent e) -> {
 			int helpIndex = tabbedPane.getSelectedIndex();
 			if (configuration.isHideAdvancedOptions() && helpIndex > 2) {
@@ -532,7 +532,7 @@ public class JavaGui extends JFrame implements IGui {
 		} else {
 			//add navigationSettingsTab
 			if (tabbedPane.getComponentAt(3) != navigationSettingsTab.getComponent()) {
-				tabbedPane.insertTab(Messages.getString("NavigationSettings"), null, navigationSettingsTab.build(), null, 3);
+				tabbedPane.insertTab(Messages.getGuiString("NavigationSettings"), null, navigationSettingsTab.build(), null, 3);
 			}
 			tabbedPane.setComponentAt(5, transcodingTab.build());
 		}
@@ -540,33 +540,33 @@ public class JavaGui extends JFrame implements IGui {
 
 	public void applyLanguage() {
 		setTitle();
-		webinterface.setText(Messages.getString("WebSettings"));
-		webinterface.setToolTipText(Messages.getString("ThisLaunchesOurWebSettings"));
-		reload.setText(Messages.getString("RestartServer"));
+		webinterface.setText(Messages.getGuiString("WebSettings"));
+		webinterface.setToolTipText(Messages.getGuiString("ThisLaunchesOurWebSettings"));
+		reload.setText(Messages.getGuiString("RestartServer"));
 		if (reload.getIcon() == restartRequiredIcon) {
-			reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
+			reload.setToolTipText(Messages.getGuiString("TheServerHasToRestarted"));
 		} else {
-			reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
+			reload.setToolTipText(Messages.getGuiString("ThisRestartsMediaServices"));
 		}
-		quit.setText(Messages.getString("Quit"));
+		quit.setText(Messages.getGuiString("Quit"));
 		int tabIndex = 0;
-		tabbedPane.setTitleAt(tabIndex, Messages.getString("Status"));
+		tabbedPane.setTitleAt(tabIndex, Messages.getGuiString("Status"));
 		statusTab.applyLanguage();
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("Logs"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("Logs"));
 		tracesTab.applyLanguage();
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("GeneralSettings"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("GeneralSettings"));
 		tabbedPane.setComponentAt(tabIndex, generalTab.build());
 		if (!configuration.isHideAdvancedOptions()) {
-			tabbedPane.setTitleAt(++tabIndex, Messages.getString("NavigationSettings"));
+			tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("NavigationSettings"));
 			tabbedPane.setComponentAt(tabIndex, navigationSettingsTab.build());
 		}
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("SharedContent"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("SharedContent"));
 		tabbedPane.setComponentAt(tabIndex, sharedContentTab.build());
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("TranscodingSettings"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("TranscodingSettings"));
 		tabbedPane.setComponentAt(tabIndex, transcodingTab.build());
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("Help"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("Help"));
 		//help is not translated
-		tabbedPane.setTitleAt(++tabIndex, Messages.getString("About"));
+		tabbedPane.setTitleAt(++tabIndex, Messages.getGuiString("About"));
 		tabbedPane.setComponentAt(tabIndex, aboutTab.build());
 	}
 
@@ -626,11 +626,11 @@ public class JavaGui extends JFrame implements IGui {
 			if (required) {
 				if (reload.getIcon() == restartIcon) {
 					restartIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartRequiredIcon, false));
-					reload.setToolTipText(Messages.getString("TheServerHasToRestarted"));
+					reload.setToolTipText(Messages.getGuiString("TheServerHasToRestarted"));
 				}
 			} else {
 				if (restartRequiredIcon == reload.getIcon()) {
-					reload.setToolTipText(Messages.getString("ThisRestartsMediaServices"));
+					reload.setToolTipText(Messages.getGuiString("ThisRestartsMediaServices"));
 					restartRequiredIcon.setNextStage(new AnimatedIconStage(AnimatedIconType.DEFAULTICON, restartIcon, false));
 				}
 			}

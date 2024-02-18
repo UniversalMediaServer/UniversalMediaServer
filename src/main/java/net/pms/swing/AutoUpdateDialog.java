@@ -58,7 +58,7 @@ public class AutoUpdateDialog extends JDialog {
 	}
 
 	AutoUpdateDialog(Window parent, AutoUpdater autoUpdater) {
-		super(parent, Messages.getString("UniversalMediaServerAutoUpdate"));
+		super(parent, Messages.getGuiString("UniversalMediaServerAutoUpdate"));
 		this.autoUpdater = autoUpdater;
 		AutoUpdater.addChangeListener((ChangeEvent e) -> {
 			if (SwingUtilities.isEventDispatchThread()) {
@@ -74,7 +74,7 @@ public class AutoUpdateDialog extends JDialog {
 
 	private class DownloadButton extends JButton {
 		DownloadButton() {
-			super(Messages.getString("Download"));
+			super(Messages.getGuiString("Download"));
 			setEnabled(false);
 			this.setRequestFocusEnabled(false);
 			addActionListener((ActionEvent e) -> {
@@ -86,7 +86,7 @@ public class AutoUpdateDialog extends JDialog {
 
 	private class CancelButton extends JButton {
 		CancelButton() {
-			super(Messages.getString("NotNow"));
+			super(Messages.getGuiString("NotNow"));
 			setEnabled(true);
 			this.setRequestFocusEnabled(false);
 			addActionListener((ActionEvent e) -> {
@@ -103,7 +103,7 @@ public class AutoUpdateDialog extends JDialog {
 
 	private class HyperLinkLabel extends JLabel {
 		HyperLinkLabel() {
-			super(Messages.getString("ClickHereSeeChangesRelease"));
+			super(Messages.getGuiString("ClickHereSeeChangesRelease"));
 			setForeground(Color.BLUE.darker());
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			addMouseListener(new MouseAdapter() {
@@ -113,11 +113,11 @@ public class AutoUpdateDialog extends JDialog {
 				}
 				@Override
 				public void mouseEntered(MouseEvent e) {
-					setText(String.format("<html><a href=''>%s</a></html>", Messages.getString("ClickHereSeeChangesRelease")));
+					setText(String.format("<html><a href=''>%s</a></html>", Messages.getGuiString("ClickHereSeeChangesRelease")));
 				}
 				@Override
 				public void mouseExited(MouseEvent e) {
-					setText(Messages.getString("ClickHereSeeChangesRelease"));
+					setText(Messages.getGuiString("ClickHereSeeChangesRelease"));
 				}
 			});
 		}
@@ -154,12 +154,12 @@ public class AutoUpdateDialog extends JDialog {
 	private void updateCancelButton(State state) {
 		switch (state) {
 			case UPDATE_AVAILABLE, ERROR, NO_UPDATE_AVAILABLE -> {
-				cancelButton.setText(Messages.getString("Close"));
+				cancelButton.setText(Messages.getGuiString("Close"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 			}
 			case DOWNLOAD_IN_PROGRESS -> {
-				cancelButton.setText(Messages.getString("Cancel"));
+				cancelButton.setText(Messages.getGuiString("Cancel"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 			}
@@ -173,22 +173,22 @@ public class AutoUpdateDialog extends JDialog {
 	private String getStateText() {
 		switch (autoUpdater.getState()) {
 			case NOTHING_KNOWN -> {
-				return Messages.getString("CheckForUpdatesNotStarted");
+				return Messages.getGuiString("CheckForUpdatesNotStarted");
 			}
 			case DOWNLOAD_FINISHED -> {
-				return Messages.getString("DownloadFinished");
+				return Messages.getGuiString("DownloadFinished");
 			}
 			case DOWNLOAD_IN_PROGRESS -> {
-				return Messages.getString("DownloadInProgress");
+				return Messages.getGuiString("DownloadInProgress");
 			}
 			case ERROR -> {
 				return getErrorStateText();
 			}
 			case NO_UPDATE_AVAILABLE -> {
-				return Messages.getString("NoUpdateAvailable");
+				return Messages.getGuiString("NoUpdateAvailable");
 			}
 			case POLLING_SERVER -> {
-				return Messages.getString("ConnectingToServer");
+				return Messages.getGuiString("ConnectingToServer");
 			}
 			case UPDATE_AVAILABLE -> {
 				String permissionsReminder = "";
@@ -198,43 +198,44 @@ public class AutoUpdateDialog extends JDialog {
 				File file = new File(CONFIGURATION.getProfileDirectory());
 				try {
 					if (!FileUtil.getFilePermissions(file).isWritable()) {
-						permissionsReminder = Messages.getString("ButCantWriteProfileFolder");
+						permissionsReminder = Messages.getGuiString("ButCantWriteProfileFolder");
 						if (Platform.isWindows()) {
-							permissionsReminder += "<br>" + Messages.getString("TryRunningAsAdministrator");
+							permissionsReminder += "<br>" + Messages.getGuiString("TryRunningAsAdministrator");
 						}
-						cancelButton.setText(Messages.getString("Close"));
+						cancelButton.setText(Messages.getGuiString("Close"));
 						okButton.setEnabled(false);
 						okButton.setVisible(false);
 					}
 				} catch (FileNotFoundException e) {
 					// This should never happen
-					permissionsReminder = "\n" + String.format(Messages.getString("XNotFound"), file.getAbsolutePath());
-					cancelButton.setText(Messages.getString("Close"));
+					permissionsReminder = "\n" + String.format(Messages.getGuiString("XNotFound"), file.getAbsolutePath());
+					cancelButton.setText(Messages.getGuiString("Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getString("VersionXIsAvailable"), autoUpdater.getLatestVersion()) + permissionsReminder + "</html>";
+				return "<html>" + String.format(Messages.getGuiString("VersionXIsAvailable"), autoUpdater.getLatestVersion()) + permissionsReminder + "</html>";
 			}
 			default -> {
-				return Messages.getString("UnknownState");
+				return Messages.getGuiString("UnknownState");
 			}
+
 		}
 	}
 
 	private String getErrorStateText() {
 		if (autoUpdater == null) {
-			return Messages.getString("AutoUpdate.9");
+			return Messages.getGuiString("AutoUpdate.9");
 		}
 
 		Throwable exception = autoUpdater.getErrorStateCause();
 		if (exception == null) {
-			return Messages.getString("Error");
+			return Messages.getGuiString("Error");
 		}
 
 		String message = exception.getMessage();
 		if (message == null) {
-			return Messages.getString("Error");
+			return Messages.getGuiString("Error");
 		}
 
 		return message;

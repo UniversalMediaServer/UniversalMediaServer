@@ -76,7 +76,11 @@ public class RendererFrame extends JFrame {
 	public final void update() {
 		getContentPane().removeAll();
 		getContentPane().add(buildPanel());
-		setTitle(renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""));
+		String rendererName = renderer.getRendererName();
+		if ("UnknownRenderer".equals(rendererName)) {
+			rendererName = Messages.getGuiString(rendererName);
+		}
+		setTitle(rendererName + (renderer.isActive() ? "" : " [" + Messages.getGuiString("Offline") + "]"));
 		pack();
 		ready = true;
 	}
@@ -107,7 +111,7 @@ public class RendererFrame extends JFrame {
 			builder.appendRow(RSPEC);
 			builder.addLabel(" ").at(cc.xy(1, ++y));
 			builder.appendRow(RSPEC);
-			builder.addSeparator(Messages.getString("Controls")).at(cc.xyw(1, ++y, 2));
+			builder.addSeparator(Messages.getGuiString("Controls")).at(cc.xyw(1, ++y, 2));
 			builder.appendRow(RSPEC);
 			builder.add(new PlayerControlPanel(renderer.getPlayer())).at(cc.xyw(1, ++y, 2));
 		}
@@ -134,7 +138,7 @@ public class RendererFrame extends JFrame {
 		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
 		open.setHorizontalTextPosition(SwingConstants.CENTER);
 		open.setForeground(Color.lightGray);
-		open.setToolTipText(Messages.getString("CustomizeThisDevice"));
+		open.setToolTipText(Messages.getGuiString("CustomizeThisDevice"));
 		open.setFocusPainted(false);
 		open.addActionListener((final ActionEvent e) -> {
 			File f = chooseConf(RendererConfigurations.getWritableRenderersDir(), renderer.getDefaultFilename());
@@ -155,7 +159,7 @@ public class RendererFrame extends JFrame {
 		final File ref = renderer.getParentFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
-		open.setToolTipText(exists ? (Messages.getString("OpenParentConfiguration") + ": " + ref) : Messages.getString("NoParentConfiguration"));
+		open.setToolTipText(exists ? (Messages.getGuiString("OpenParentConfiguration") + ": " + ref) : Messages.getGuiString("NoParentConfiguration"));
 		open.setFocusPainted(false);
 		open.addActionListener((final ActionEvent e) -> {
 			try {
@@ -179,7 +183,7 @@ public class RendererFrame extends JFrame {
 		if (file.exists() || !create) {
 			buttonText = "<html>" + file.getName() + "</html>";
 		} else {
-			buttonText = "<html><font color=blue>" + Messages.getString("StartNewConfigurationFile") + ":</font> " + file.getName() + "</html>";
+			buttonText = "<html><font color=blue>" + Messages.getGuiString("StartNewConfigurationFile") + ":</font> " + file.getName() + "</html>";
 		}
 		final CustomJButton open = new CustomJButton(buttonText, MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
@@ -225,10 +229,9 @@ public class RendererFrame extends JFrame {
 			@Override
 			public void approveSelection() {
 				if (getSelectedFile().exists()) {
-					int result = JOptionPane.showConfirmDialog(
-							this,
-							Messages.getString("OverwriteExistingFile"),
-							Messages.getString("FileExists"),
+					int result = JOptionPane.showConfirmDialog(this,
+							Messages.getGuiString("OverwriteExistingFile"),
+							Messages.getGuiString("FileExists"),
 							JOptionPane.YES_NO_CANCEL_OPTION
 					);
 					if (result == JOptionPane.CANCEL_OPTION || result == JOptionPane.NO_OPTION) {
@@ -248,7 +251,7 @@ public class RendererFrame extends JFrame {
 		fc.setCurrentDirectory(dir);
 		fc.setSelectedFile(file);
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		fc.setDialogTitle(Messages.getString("SpecifyFileName"));
+		fc.setDialogTitle(Messages.getGuiString("SpecifyFileName"));
 		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
 			return fc.getSelectedFile();
 		}
@@ -266,7 +269,7 @@ public class RendererFrame extends JFrame {
 			fc.setSelectedFile(defaultRef);
 		}
 		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		return switch (fc.showDialog(this, Messages.getString("SelectReferenceFile"))) {
+		return switch (fc.showDialog(this, Messages.getGuiString("SelectReferenceFile"))) {
 			case JFileChooser.APPROVE_OPTION ->
 				fc.getSelectedFile();
 			case JFileChooser.CANCEL_OPTION ->

@@ -24,7 +24,6 @@ import java.util.concurrent.Executors;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.EventListenerList;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.external.JavaHttpClient;
@@ -161,7 +160,7 @@ public class AutoUpdater implements ProgressCallback {
 			desktop.open(exe);
 		} catch (IOException e) {
 			LOGGER.debug("Failed to run update after downloading: {}", e);
-			wrapException(Messages.getString("UnableToRunUpdate"), e);
+			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
 	}
 

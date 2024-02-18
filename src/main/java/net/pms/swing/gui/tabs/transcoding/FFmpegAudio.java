@@ -48,9 +48,9 @@ public class FFmpegAudio {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(cc.xyw(2, 1, 1));
+		builder.addSeparator(Messages.getGuiString("GeneralSettings_SentenceCase")).at(cc.xyw(2, 1, 1));
 
-		JCheckBox noresample = new JCheckBox(Messages.getString("AutomaticAudioResampling"), CONFIGURATION.isAudioResample());
+		JCheckBox noresample = new JCheckBox(Messages.getGuiString("AutomaticAudioResampling"), CONFIGURATION.isAudioResample());
 		noresample.setContentAreaFilled(false);
 		noresample.addItemListener((ItemEvent e) -> CONFIGURATION.setAudioResample(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(noresample)).at(cc.xy(2, 3));
