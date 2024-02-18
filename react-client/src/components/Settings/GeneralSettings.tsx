@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
+import { Accordion, Anchor, Checkbox, Divider, Group, NumberInput, Select, Stack, Text, TextInput, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext } from 'react';
 
@@ -273,6 +273,15 @@ export default function GeneralSettings(
               disabled={!canModify || !form.values['use_tmdb_info']}
               mt='xs'
               label={i18n.get('TMDBApiKey')}
+              description=<Anchor
+                href='https://www.themoviedb.org/settings/api'
+                target='_blank'
+                c='dimmed'
+                size='xs'
+                style={{ lineHeight: 1 }}
+              >
+                {i18n.get('ToRegisterTmdbApiKey')}
+              </Anchor>
               {...form.getInputProps('tmdb_api_key')}
             />
           </Stack>
