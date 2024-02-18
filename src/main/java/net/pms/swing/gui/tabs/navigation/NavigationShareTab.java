@@ -72,7 +72,6 @@ public class NavigationShareTab {
 	private JCheckBox ignoreTheWordThe;
 	private JTextField atzLimit;
 	private JCheckBox prettifyFilenames;
-	private JCheckBox isUseInfoFromAPI;
 	private JCheckBox resume;
 	private JCheckBox useSymlinksTargetFile;
 	private JComboBox<String> fullyPlayedAction;
@@ -174,7 +173,6 @@ public class NavigationShareTab {
 
 			builder.add(SwingUtil.getPreferredSizeComponent(prettifyFilenames)).at(FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
 			builder.add(SwingUtil.getPreferredSizeComponent(hideExtensions)).at(FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
-			builder.add(SwingUtil.getPreferredSizeComponent(isUseInfoFromAPI)).at(FormLayoutUtil.flip(cc.xy(7, 13), colSpec, orientation));
 
 			builder.addLabel(Messages.getGuiString("AddSubtitlesInformationVideoNames")).at(FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 			builder.add(addVideoSuffix).at(FormLayoutUtil.flip(cc.xyw(3, 15, 3), colSpec, orientation));
@@ -520,11 +518,6 @@ public class NavigationShareTab {
 			configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 			hideExtensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 		});
-
-		isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
-		isUseInfoFromAPI.setToolTipText(Messages.getGuiString("UsesInformationApiAllowBrowsing"));
-		isUseInfoFromAPI.setContentAreaFilled(false);
-		isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED)));
 
 		resume = new JCheckBox(Messages.getGuiString("EnableVideoResuming"), configuration.isResumeEnabled());
 		resume.setToolTipText(Messages.getGuiString("WhenEnabledPartiallyWatchVideo"));

@@ -54,7 +54,7 @@ public class GeneralTab {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private final JavaGui looksFrame;
 	private final UmsConfiguration configuration;
@@ -67,6 +67,10 @@ public class GeneralTab {
 	private JTextField ipFilter;
 	private JTextField maxbitrate;
 	private CustomJButton installService;
+	private JCheckBox isUseInfoFromAPI;
+	private JCheckBox useInfoFromTMDB;
+	private JLabel tmdbApiKeyLabel;
+	private JTextField tmdbApiKey;
 
 	public GeneralTab(UmsConfiguration configuration, JavaGui looksFrame) {
 		this.configuration = configuration;
@@ -431,12 +435,52 @@ public class GeneralTab {
 
 			ypos += 2;
 
-			// External network box
+			// External network
+			builder.addSeparator(Messages.getGuiString("ExternalOutgoingTraffic")).at(FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
+			ypos += 2;
 			JCheckBox extNetBox = new JCheckBox(Messages.getGuiString("EnableExternalNetwork"), configuration.getExternalNetwork());
 			extNetBox.setToolTipText(Messages.getGuiString("ThisControlsWhetherUmsTry"));
 			extNetBox.setContentAreaFilled(false);
-			extNetBox.addItemListener((ItemEvent e) -> configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED)));
+			extNetBox.addItemListener((ItemEvent e) -> {
+				boolean checked = (e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setExternalNetwork(checked);
+				isUseInfoFromAPI.setEnabled(checked);
+				useInfoFromTMDB.setEnabled(checked);
+				tmdbApiKey.setEnabled(checked && configuration.isUseInfoFromTMDB());
+				tmdbApiKeyLabel.setEnabled(checked && configuration.isUseInfoFromTMDB());
+			});
 			builder.add(extNetBox).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			ypos += 2;
+			isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
+			isUseInfoFromAPI.setToolTipText(Messages.getGuiString("UsesInformationApiAllowBrowsing"));
+			isUseInfoFromAPI.setContentAreaFilled(false);
+			isUseInfoFromAPI.setEnabled(configuration.getExternalNetwork());
+			isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED)));
+			builder.add(isUseInfoFromAPI).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			ypos += 2;
+			useInfoFromTMDB = new JCheckBox(Messages.getGuiString("UseInfoFromTMDB"), configuration.isUseInfoFromTMDB());
+			useInfoFromTMDB.setContentAreaFilled(false);
+			useInfoFromTMDB.setEnabled(configuration.getExternalNetwork());
+			useInfoFromTMDB.addItemListener((ItemEvent e) -> {
+				boolean checked = (e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setUseInfoFromTMDB(checked);
+				tmdbApiKey.setEnabled(checked);
+				tmdbApiKeyLabel.setEnabled(checked);
+			});
+			builder.add(useInfoFromTMDB).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			tmdbApiKeyLabel = new JLabel(Messages.getGuiString("TMDBApiKey"), SwingConstants.TRAILING);
+			tmdbApiKeyLabel.setToolTipText(Messages.getGuiString("ToRegisterTmdbApiKey"));
+			tmdbApiKeyLabel.setEnabled(configuration.getExternalNetwork() && configuration.isUseInfoFromTMDB());
+			builder.add(tmdbApiKeyLabel).at(FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			tmdbApiKey = new JTextField(configuration.getTmdbApiKey());
+			tmdbApiKey.setEnabled(configuration.getExternalNetwork() && configuration.isUseInfoFromTMDB());
+			tmdbApiKey.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setTmdbApiKey(tmdbApiKey.getText());
+				}
+			});
+			builder.add(tmdbApiKey).at(FormLayoutUtil.flip(cc.xy(5, ypos), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();
