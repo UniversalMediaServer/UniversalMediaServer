@@ -1565,7 +1565,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public final String getJwtSecret() {
-		//don't use RendererConfiguration.getGuiString as it will log the value
+		//don't use BaseConfiguration.getString as it will log the value
 		//jwt_secret can elevate users !!!
 		return configuration.getString(KEY_JWT_SIGNER_SECRET, "");
 	}
@@ -4697,7 +4697,9 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	public String getTmdbApiKey() {
-		return getString(KEY_TMDB_API_KEY, "");
+		//don't use BaseConfiguration.getString as it will log the value
+		//tmdb_api_key should stay secret !!!
+		return configuration.getString(KEY_TMDB_API_KEY, "");
 	}
 
 	public void setTmdbApiKey(String value) {
