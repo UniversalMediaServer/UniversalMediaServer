@@ -62,43 +62,42 @@ public class AviSynthMEncoder {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(cc.xyw(2, 1, 1));
+		builder.addSeparator(Messages.getGuiString("GeneralSettings_SentenceCase")).at(cc.xyw(2, 1, 1));
 
-		JCheckBox multithreading = new JCheckBox(Messages.getString("EnableMultithreading"), CONFIGURATION.getAvisynthMultiThreading());
+		JCheckBox multithreading = new JCheckBox(Messages.getGuiString("EnableMultithreading"), CONFIGURATION.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
 		multithreading.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(multithreading)).at(cc.xy(2, 3));
 
-		JCheckBox interframe = new JCheckBox(Messages.getString("EnableTrueMotion"), CONFIGURATION.getAvisynthInterFrame());
+		JCheckBox interframe = new JCheckBox(Messages.getGuiString("EnableTrueMotion"), CONFIGURATION.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
 		interframe.addActionListener((ActionEvent e) -> {
 			CONFIGURATION.setAvisynthInterFrame(interframe.isSelected());
 			if (CONFIGURATION.getAvisynthInterFrame()) {
-				JOptionPane.showMessageDialog(
-						SwingUtilities.getWindowAncestor(interframe),
-						Messages.getString("ThisFeatureVeryCpuintensive"),
-						Messages.getString("Information"),
+				JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor(interframe),
+						Messages.getGuiString("ThisFeatureVeryCpuintensive"),
+						Messages.getGuiString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 				);
 			}
 		});
 		builder.add(SwingUtil.getPreferredSizeComponent(interframe)).at(cc.xy(2, 5));
 
-		JCheckBox interframegpu = new JCheckBox(Messages.getString("EnableGpuUseTrueMotion"), CONFIGURATION.getAvisynthInterFrameGPU());
+		JCheckBox interframegpu = new JCheckBox(Messages.getGuiString("EnableGpuUseTrueMotion"), CONFIGURATION.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
 		interframegpu.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(interframegpu)).at(cc.xy(2, 7));
 
-		JCheckBox convertfps = new JCheckBox(Messages.getString("EnableAvisynthVariableFramerate"), CONFIGURATION.getAvisynthConvertFps());
+		JCheckBox convertfps = new JCheckBox(Messages.getGuiString("EnableAvisynthVariableFramerate"), CONFIGURATION.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
 		convertfps.addItemListener((ItemEvent e) -> CONFIGURATION.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED)));
 		builder.add(SwingUtil.getPreferredSizeComponent(convertfps)).at(cc.xy(2, 9));
 
-		String aviSynthScriptInstructions = Messages.getString("AvisynthScriptFullyCustomizable") +
-			Messages.getString("TheFollowingVariablesAvailable") +
-			Messages.getString("MovieCompleteDirectshowsource") +
-			Messages.getString("SubCompleteSubtitlesInstruction") +
-			Messages.getString("MoviefilenameVideoFilename");
+		String aviSynthScriptInstructions = Messages.getGuiString("AvisynthScriptFullyCustomizable") +
+			Messages.getGuiString("TheFollowingVariablesAvailable") +
+			Messages.getGuiString("MovieCompleteDirectshowsource") +
+			Messages.getGuiString("SubCompleteSubtitlesInstruction") +
+			Messages.getGuiString("MoviefilenameVideoFilename");
 		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
 		aviSynthScriptInstructionsContainer.setEditable(false);
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());

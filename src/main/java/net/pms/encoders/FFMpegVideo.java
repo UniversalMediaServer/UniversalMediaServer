@@ -1623,7 +1623,7 @@ public class FFMpegVideo extends Engine {
 		} else if (
 			configuration.isGPUAcceleration() &&
 			!avisynth &&
-			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("None_lowercase"))
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals("none")
 		) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuda|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {

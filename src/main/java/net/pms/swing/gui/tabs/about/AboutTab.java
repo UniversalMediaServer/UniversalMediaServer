@@ -74,7 +74,7 @@ public class AboutTab {
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
 		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
 		String commitUrl = "https://github.com/UniversalMediaServer/UniversalMediaServer/commit/" + commitId;
-		String buildLabel = Messages.getString("BuildDate") + " " + commitTime;
+		String buildLabel = Messages.getGuiString("BuildDate") + " " + commitTime;
 
 		final LinkMouseListener commitLink = new LinkMouseListener(buildLabel, commitUrl);
 		JLabel lCommitLink = FormsSetup.getComponentFactoryDefault().createLabel(commitLink.getLabel());
@@ -84,9 +84,9 @@ public class AboutTab {
 
 		builder.add(buildLogoImage()).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		builder.addLabel(Messages.getString("RelatedLinks")).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
+		builder.addLabel(Messages.getGuiString("RelatedLinks")).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		final LinkMouseListener crowdinLink = new LinkMouseListener(Messages.getString("XCrowdinProject"), PMS.CROWDIN_LINK);
+		final LinkMouseListener crowdinLink = new LinkMouseListener(Messages.getGuiString("XCrowdinProject"), PMS.CROWDIN_LINK);
 		JLabel lCrowdinLink = FormsSetup.getComponentFactoryDefault().createLabel(crowdinLink.getLabel());
 		lCrowdinLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCrowdinLink.addMouseListener(crowdinLink);

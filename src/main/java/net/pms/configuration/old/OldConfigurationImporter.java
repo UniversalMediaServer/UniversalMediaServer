@@ -23,7 +23,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.ApertureContent;
@@ -143,9 +142,8 @@ public class OldConfigurationImporter {
 					if (KEY_FOLDERS.equals(key)) {
 						LOGGER.warn(
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
-							"list on the \"{}\" tab or in the configuration file.",
-							folder,
-							Messages.getString("SharedContent")
+							"list on the \"Shared Content\" tab or in the configuration file.",
+							folder
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -154,9 +152,8 @@ public class OldConfigurationImporter {
 			} else if (KEY_FOLDERS.equals(key)) {
 				LOGGER.warn(
 					"\"{}\" does not exist. Please remove it from your shared folders " +
-					"list on the \"{}\" tab or in the configuration file.",
-					folder,
-					Messages.getString("SharedContent")
+					"list on the \"Shared Content\" tab or in the configuration file.",
+					folder
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);

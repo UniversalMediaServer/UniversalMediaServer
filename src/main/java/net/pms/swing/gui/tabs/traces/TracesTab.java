@@ -82,13 +82,13 @@ public class TracesTab {
 	private final JLabel jSearchOutput = new JLabel();
 
 	private String[] levelStrings = {
-		Messages.getString("Error"),
-		Messages.getString("Warning"),
-		Messages.getString("Info"),
-		Messages.getString("Debug"),
-		Messages.getString("Trace"),
-		Messages.getString("All"),
-		Messages.getString("Off")
+		Messages.getGuiString("Error"),
+		Messages.getGuiString("Warning"),
+		Messages.getGuiString("Info"),
+		Messages.getGuiString("Debug"),
+		Messages.getGuiString("Trace"),
+		Messages.getGuiString("All"),
+		Messages.getGuiString("Off")
 	};
 	private JLabel jFilterLabel;
 	private JComboBox<String> jTracesFilter;
@@ -153,13 +153,13 @@ public class TracesTab {
 		jSearchPanel.setLayout(new BoxLayout(jSearchPanel, BoxLayout.LINE_AXIS));
 		jSearchPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		jFilterLabel = new JLabel(Messages.getString("Filter") + ":");
+		jFilterLabel = new JLabel(Messages.getGuiString("Filter") + ":");
 		jFilterLabel.setDisplayedMnemonic(KeyEvent.VK_F);
-		jFilterLabel.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
+		jFilterLabel.setToolTipText(Messages.getGuiString("FilterLogMessagesLogWindow"));
 		jTracesFilter = new JComboBox<>(levelStrings);
 		jTracesFilter.setSelectedIndex(findLevelsIdx(configuration.getLoggingFilterLogsTab()));
 		jFilterLabel.setLabelFor(jTracesFilter);
-		jTracesFilter.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
+		jTracesFilter.setToolTipText(Messages.getGuiString("FilterLogMessagesLogWindow"));
 		jTracesFilter.addActionListener((ActionEvent e) -> {
 			configuration.setLoggingFilterLogsTab(LOG_LEVELS[jTracesFilter.getSelectedIndex()]);
 			LoggingConfig.setTracesFilter();
@@ -172,31 +172,31 @@ public class TracesTab {
 
 		jSearchBox = new JTextField();
 		jSearchBox.setBackground(new Color(248, 248, 248));
-		jSearchBox.setToolTipText(Messages.getString("SearchLogBelowCurrentPosition"));
+		jSearchBox.setToolTipText(Messages.getGuiString("SearchLogBelowCurrentPosition"));
 		jSearchPanel.add(jSearchBox);
 		jSearchPanel.add(Box.createRigidArea(new Dimension(5, 0)));
 
-		jSearchButton = new JButton(Messages.getString("Search"));
+		jSearchButton = new JButton(Messages.getGuiString("Search"));
 		jSearchButton.setMnemonic(KeyEvent.VK_S);
-		jSearchButton.setToolTipText(Messages.getString("SearchLogBelowCurrentPosition"));
+		jSearchButton.setToolTipText(Messages.getGuiString("SearchLogBelowCurrentPosition"));
 		jSearchPanel.add(jSearchButton);
 		jCSSpace = Box.createRigidArea(new Dimension(5, 0));
 		jSearchPanel.add(jCSSpace);
-		jCSSearch = new JCheckBox(Messages.getString("CaseSensitive"), configuration.getGUILogSearchCaseSensitive());
+		jCSSearch = new JCheckBox(Messages.getGuiString("CaseSensitive"), configuration.getGUILogSearchCaseSensitive());
 		jCSSearch.setMnemonic(KeyEvent.VK_C);
-		jCSSearch.setToolTipText(Messages.getString("SearchOnlyTextMatchesSearch"));
+		jCSSearch.setToolTipText(Messages.getGuiString("SearchOnlyTextMatchesSearch"));
 		jSearchPanel.add(jCSSearch);
 		jRESpace = Box.createRigidArea(new Dimension(5, 0));
 		jSearchPanel.add(jRESpace);
 		jRESearch = new JCheckBox("RegEx", configuration.getGUILogSearchRegEx());
 		jRESearch.setMnemonic(KeyEvent.VK_R);
-		jRESearch.setToolTipText(Messages.getString("SearchUsingRegularExpressions"));
+		jRESearch.setToolTipText(Messages.getGuiString("SearchUsingRegularExpressions"));
 		jSearchPanel.add(jRESearch);
 		jMLSpace = Box.createRigidArea(new Dimension(5, 0));
 		jSearchPanel.add(jMLSpace);
-		jMLSearch = new JCheckBox(Messages.getString("Multiline"), configuration.getGUILogSearchMultiLine());
+		jMLSearch = new JCheckBox(Messages.getGuiString("Multiline"), configuration.getGUILogSearchMultiLine());
 		jMLSearch.setMnemonic(KeyEvent.VK_M);
-		jMLSearch.setToolTipText(Messages.getString("EnableSearchSpanMultipleLines"));
+		jMLSearch.setToolTipText(Messages.getGuiString("EnableSearchSpanMultipleLines"));
 		jSearchPanel.add(jMLSearch);
 		jBufferSpace1 = Box.createRigidArea(new Dimension(4, 0));
 		jBufferSeparator = new JSeparator(SwingConstants.VERTICAL);
@@ -204,16 +204,16 @@ public class TracesTab {
 		jSearchPanel.add(jBufferSpace1);
 		jSearchPanel.add(jBufferSeparator);
 		jSearchPanel.add(jBufferSpace2);
-		jBufferLabel = new JLabel(Messages.getString("LineBuffer"));
+		jBufferLabel = new JLabel(Messages.getGuiString("LineBuffer"));
 		jBufferLabel.setDisplayedMnemonic(KeyEvent.VK_B);
-		jBufferLabel.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
+		jBufferLabel.setToolTipText(Messages.getGuiString("NumberLinesLogWindowBelow"));
 		jLineBuffer = new CustomJSpinner(new SpinnerIntModel(
 			configuration.getLoggingLogsTabLinebuffer(),
 			UmsConfiguration.getLoggingLogsTabLinebufferMin(),
 			UmsConfiguration.getLoggingLogsTabLinebufferMax(),
 			UmsConfiguration.getLoggingLogsTabLinebufferStep()
 		), true);
-		jLineBuffer.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
+		jLineBuffer.setToolTipText(Messages.getGuiString("NumberLinesLogWindowBelow"));
 		jBufferLabel.setLabelFor(jLineBuffer);
 		jSearchPanel.add(jBufferLabel);
 		jBufferSpace3 = Box.createRigidArea(new Dimension(5, 0));
@@ -246,10 +246,10 @@ public class TracesTab {
 		final JPopupMenu popup = new JPopupMenu();
 		Action copy = jList.getActionMap().get("copy-to-clipboard");
 		copyItem = new JMenuItem(copy);
-		copyItem.setText(Messages.getString("Copy"));
+		copyItem.setText(Messages.getGuiString("Copy"));
 		popup.add(copyItem);
 		popup.addSeparator();
-		clearItem = new JMenuItem(Messages.getString("Clear"));
+		clearItem = new JMenuItem(Messages.getGuiString("Clear"));
 		clearItem.addActionListener((ActionEvent e) -> jList.setText(""));
 		popup.add(clearItem);
 		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
@@ -270,20 +270,17 @@ public class TracesTab {
 		// Create the logging options panel
 		jOptionsPanel = new JPanel();
 		jOptionsPanel.setLayout(new BoxLayout(jOptionsPanel, BoxLayout.LINE_AXIS));
-		jOptionsPanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createEmptyBorder(5, 5, 5, 5),
-			BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder(
-					BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-					Messages.getString("LoggingOptions")
+		jOptionsPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5),
+			BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+					Messages.getGuiString("LoggingOptions")
 				),
 				BorderFactory.createEmptyBorder(10, 5, 10, 5)
 			)
 		));
 
-		jBuffered = new JCheckBox(Messages.getString("BufferedLogging"), configuration.getLoggingBuffered());
+		jBuffered = new JCheckBox(Messages.getGuiString("BufferedLogging"), configuration.getLoggingBuffered());
 		jBuffered.setMnemonic(KeyEvent.VK_U);
-		jBuffered.setToolTipText(Messages.getString("EnableBufferedFileLogging"));
+		jBuffered.setToolTipText(Messages.getGuiString("EnableBufferedFileLogging"));
 		jBuffered.setHorizontalTextPosition(SwingConstants.LEADING);
 		jBuffered.addActionListener((ActionEvent e) -> {
 			if (PMS.getTraceMode() == 2 && jBuffered.isSelected()) {
@@ -297,16 +294,16 @@ public class TracesTab {
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
 		boolean useSyslog = configuration.getLoggingUseSyslog();
-		jUseSyslog = new JCheckBox(Messages.getString("LogToSyslog"), useSyslog);
+		jUseSyslog = new JCheckBox(Messages.getGuiString("LogToSyslog"), useSyslog);
 		jUseSyslog.setMnemonic(KeyEvent.VK_Y);
-		jUseSyslog.setToolTipText(Messages.getString("SendLogSyslogServer"));
+		jUseSyslog.setToolTipText(Messages.getGuiString("SendLogSyslogServer"));
 		jUseSyslog.setHorizontalTextPosition(SwingConstants.LEADING);
 		jUseSyslog.addActionListener((ActionEvent e) -> {
 			if (PMS.getTraceMode() == 2 && jUseSyslog.isSelected()) {
 				jUseSyslog.setSelected(false);
 				return;
 			} else if (jSyslogHost.getText().trim().isEmpty()) {
-				jSearchOutput.setText(Messages.getString("SyslogHostnameCantBeEmpty"));
+				jSearchOutput.setText(Messages.getGuiString("SyslogHostnameCantBeEmpty"));
 				jUseSyslog.setSelected(false);
 				return;
 			}
@@ -321,14 +318,14 @@ public class TracesTab {
 		jOptionsPanel.add(jUseSyslog);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
-		jSyslogHostLabel = new JLabel(Messages.getString("SyslogHostname"));
+		jSyslogHostLabel = new JLabel(Messages.getGuiString("SyslogHostname"));
 		jSyslogHostLabel.setDisplayedMnemonic(KeyEvent.VK_N);
-		jSyslogHostLabel.setToolTipText(Messages.getString("HostNameIpAddressSend"));
+		jSyslogHostLabel.setToolTipText(Messages.getGuiString("HostNameIpAddressSend"));
 		jOptionsPanel.add(jSyslogHostLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
 		jSyslogHost = new JTextField(configuration.getLoggingSyslogHost(), 10);
 		jSyslogHostLabel.setLabelFor(jSyslogHost);
-		jSyslogHost.setToolTipText(Messages.getString("HostNameIpAddressSend"));
+		jSyslogHost.setToolTipText(Messages.getGuiString("HostNameIpAddressSend"));
 		jSyslogHost.setEnabled(!useSyslog);
 		jSyslogHost.addKeyListener(new KeyAdapter() {
 			@Override
@@ -350,7 +347,7 @@ public class TracesTab {
 					// Simplified IPv6
 					s.matches("(^([0-9a-fA-F]{0,4}:)+[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)*$)|(^([0-9a-fA-F]{0,4}:)*[0-9a-fA-F]{1,4}([0-9a-fA-F]{0,4}:)+$)|(^::$)")
 				)) {
-					jSearchOutput.setText(String.format(Messages.getString("XIsntValidHostnameIp"), s));
+					jSearchOutput.setText(String.format(Messages.getGuiString("XIsntValidHostnameIp"), s));
 					return false;
 				}
 				jSearchOutput.setText("");
@@ -361,25 +358,25 @@ public class TracesTab {
 		jOptionsPanel.add(jSyslogHost);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
-		jSyslogPortLabel = new JLabel(Messages.getString("SyslogPort"));
-		jSyslogPortLabel.setToolTipText(Messages.getString("UdpPortSendSyslogMessages"));
+		jSyslogPortLabel = new JLabel(Messages.getGuiString("SyslogPort"));
+		jSyslogPortLabel.setToolTipText(Messages.getGuiString("UdpPortSendSyslogMessages"));
 		jOptionsPanel.add(jSyslogPortLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
 		jSyslogPort = new CustomJSpinner(new SpinnerIntModel(configuration.getLoggingSyslogPort(), 1, 65535), true);
-		jSyslogPort.setToolTipText(Messages.getString("UdpPortSendSyslogMessages"));
+		jSyslogPort.setToolTipText(Messages.getGuiString("UdpPortSendSyslogMessages"));
 		jSyslogPort.setEnabled(!useSyslog);
 		jSyslogPortLabel.setLabelFor(jSyslogPort);
 		jSyslogPort.addChangeListener((ChangeEvent e) -> configuration.setLoggingSyslogPort((Integer) jSyslogPort.getValue()));
 		jOptionsPanel.add(jSyslogPort);
 
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
-		jSyslogFacilityLabel = new JLabel(Messages.getString("SyslogFacility"));
+		jSyslogFacilityLabel = new JLabel(Messages.getGuiString("SyslogFacility"));
 		jSyslogFacilityLabel.setDisplayedMnemonic(KeyEvent.VK_A);
-		jSyslogFacilityLabel.setToolTipText(Messages.getString("SyslogFacilityMeantIdentifySource"));
+		jSyslogFacilityLabel.setToolTipText(Messages.getGuiString("SyslogFacilityMeantIdentifySource"));
 		jOptionsPanel.add(jSyslogFacilityLabel);
 		jOptionsPanel.add(Box.createRigidArea(new Dimension(4, 0)));
 		jSyslogFacility = new JComboBox<>(SYSLOG_FACILITIES);
-		jSyslogFacility.setToolTipText(Messages.getString("SyslogFacilityMeantIdentifySource"));
+		jSyslogFacility.setToolTipText(Messages.getGuiString("SyslogFacilityMeantIdentifySource"));
 		jSyslogFacility.setEnabled(!useSyslog);
 		jSyslogFacility.setSelectedIndex(findSyslogFacilityIdx(configuration.getLoggingSyslogFacility()));
 		jSyslogFacilityLabel.setLabelFor(jSyslogFacility);
@@ -389,9 +386,9 @@ public class TracesTab {
 		jOptionsPanel.setFocusTraversalPolicyProvider(true);
 		builder.add(jOptionsPanel).at(cc.xyw(1, 3, cols));
 
-		jShowOptions = new JCheckBox(Messages.getString("ShowLoggingOptions"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
+		jShowOptions = new JCheckBox(Messages.getGuiString("ShowLoggingOptions"), PMS.getTraceMode() != 2 && configuration.getLoggingUseSyslog());
 		jShowOptions.setHorizontalTextPosition(SwingConstants.LEADING);
-		jShowOptions.setToolTipText(Messages.getString("ShowLoggingConfigurationOptions"));
+		jShowOptions.setToolTipText(Messages.getGuiString("ShowLoggingConfigurationOptions"));
 		jShowOptions.setMnemonic(KeyEvent.VK_G);
 		jShowOptions.setEnabled(PMS.getTraceMode() != 2);
 		jShowOptions.addActionListener((ActionEvent e) -> {
@@ -408,7 +405,7 @@ public class TracesTab {
 		for (Map.Entry<String, String> logger : logFiles.entrySet()) {
 			CustomJButton b;
 			if (logger.getKey().toLowerCase().startsWith("default.log")) {
-				openFullLog = new CustomJButton(Messages.getString("OpenFullDebugLog"));
+				openFullLog = new CustomJButton(Messages.getGuiString("OpenFullDebugLog"));
 				openFullLog.setMnemonic(KeyEvent.VK_O);
 				b = openFullLog;
 			} else {
@@ -429,14 +426,14 @@ public class TracesTab {
 
 		final ch.qos.logback.classic.Logger rootLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-		rootLevelLabel = new JLabel(Messages.getString("LogLevelColon") + ": ");
+		rootLevelLabel = new JLabel(Messages.getGuiString("LogLevelColon") + ": ");
 		rootLevelLabel.setDisplayedMnemonic(KeyEvent.VK_L);
-		rootLevelLabel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
+		rootLevelLabel.setToolTipText(Messages.getGuiString("SetRootLoggingLevelDecides"));
 
 		rootLevel = new JComboBox<>(levelStrings);
 		rootLevelLabel.setLabelFor(rootLevel);
 		rootLevel.setSelectedIndex(findLevelsIdx(rootLogger.getLevel()));
-		rootLevel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
+		rootLevel.setToolTipText(Messages.getGuiString("SetRootLoggingLevelDecides"));
 		rootLevel.addActionListener((ActionEvent e) -> {
 			JComboBox<?> cb = (JComboBox<?>) e.getSource();
 			rootLogger.setLevel(LOG_LEVELS[cb.getSelectedIndex()]);
@@ -463,12 +460,12 @@ public class TracesTab {
 
 		if (PMS.getTraceMode() == 0) {
 			// UMS was not started in trace mode
-			rebootTrace = new CustomJButton(Messages.getString("CreateTraceLogs"));
-			rebootTrace.setToolTipText(Messages.getString("RestartUniversalMediaServerTrace"));
+			rebootTrace = new CustomJButton(Messages.getGuiString("CreateTraceLogs"));
+			rebootTrace.setToolTipText(Messages.getGuiString("RestartUniversalMediaServerTrace"));
 			rebootTrace.setMnemonic(KeyEvent.VK_T);
 			rebootTrace.addActionListener((ActionEvent e) -> {
-				int opt = JOptionPane.showConfirmDialog(null, Messages.getString("ForReportingMostIssuesBest"),
-						Messages.getString("StartupLogLevelNotTrace"), JOptionPane.YES_NO_OPTION);
+				int opt = JOptionPane.showConfirmDialog(null, Messages.getGuiString("ForReportingMostIssuesBest"),
+						Messages.getGuiString("StartupLogLevelNotTrace"), JOptionPane.YES_NO_OPTION);
 				if (opt == JOptionPane.YES_OPTION) {
 					ProcessUtil.reboot("trace");
 				}
@@ -476,14 +473,14 @@ public class TracesTab {
 			pLogPackButtons.add(rebootTrace);
 		}
 
-		packDbg = new CustomJButton(Messages.getString("PackDebugFiles"));
+		packDbg = new CustomJButton(Messages.getGuiString("PackDebugFiles"));
 		packDbg.setMnemonic(KeyEvent.VK_P);
-		packDbg.setToolTipText(Messages.getString("PackLogConfigurationFileCompressed"));
+		packDbg.setToolTipText(Messages.getGuiString("PackLogConfigurationFileCompressed"));
 		packDbg.addActionListener((ActionEvent e) -> {
 			JComponent comp = new DbgPackerComponent(PMS.get().debugPacker()).config();
-			String[] cancelStr = {Messages.getString("Close")};
+			String[] cancelStr = {Messages.getGuiString("Close")};
 			JOptionPane.showOptionDialog(looksFrame,
-					comp, Messages.getString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
+					comp, Messages.getGuiString("Options"), JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 		});
 		pLogPackButtons.add(packDbg);
 		builder.add(pLogPackButtons).at(cc.xy(1, 4));
@@ -546,71 +543,68 @@ public class TracesTab {
 
 	public void applyLanguage() {
 		levelStrings = new String[] {
-			Messages.getString("Error"),
-			Messages.getString("Warning"),
-			Messages.getString("Info"),
-			Messages.getString("Debug"),
-			Messages.getString("Trace"),
-			Messages.getString("All"),
-			Messages.getString("Off")
+			Messages.getGuiString("Error"),
+			Messages.getGuiString("Warning"),
+			Messages.getGuiString("Info"),
+			Messages.getGuiString("Debug"),
+			Messages.getGuiString("Trace"),
+			Messages.getGuiString("All"),
+			Messages.getGuiString("Off")
 		};
-		jFilterLabel.setText(Messages.getString("Filter") + ":");
-		jFilterLabel.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
+		jFilterLabel.setText(Messages.getGuiString("Filter") + ":");
+		jFilterLabel.setToolTipText(Messages.getGuiString("FilterLogMessagesLogWindow"));
 		int currentIndex = jTracesFilter.getSelectedIndex();
 		jTracesFilter.setModel(new DefaultComboBoxModel<>(levelStrings));
 		jTracesFilter.setSelectedIndex(currentIndex);
-		jTracesFilter.setToolTipText(Messages.getString("FilterLogMessagesLogWindow"));
-		jSearchBox.setToolTipText(Messages.getString("SearchLogBelowCurrentPosition"));
-		jSearchButton.setText(Messages.getString("Search"));
-		jSearchButton.setToolTipText(Messages.getString("SearchLogBelowCurrentPosition"));
-		jCSSearch.setText(Messages.getString("CaseSensitive"));
-		jCSSearch.setToolTipText(Messages.getString("SearchOnlyTextMatchesSearch"));
-		jRESearch.setToolTipText(Messages.getString("SearchUsingRegularExpressions"));
-		jMLSearch.setText(Messages.getString("Multiline"));
-		jMLSearch.setToolTipText(Messages.getString("EnableSearchSpanMultipleLines"));
-		jBufferLabel.setText(Messages.getString("LineBuffer"));
-		jBufferLabel.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
-		jLineBuffer.setToolTipText(Messages.getString("NumberLinesLogWindowBelow"));
-		copyItem.setText(Messages.getString("Copy"));
-		clearItem.setText(Messages.getString("Clear"));
-		jOptionsPanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createEmptyBorder(5, 5, 5, 5),
-			BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder(
-					BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
-					Messages.getString("LoggingOptions")
+		jTracesFilter.setToolTipText(Messages.getGuiString("FilterLogMessagesLogWindow"));
+		jSearchBox.setToolTipText(Messages.getGuiString("SearchLogBelowCurrentPosition"));
+		jSearchButton.setText(Messages.getGuiString("Search"));
+		jSearchButton.setToolTipText(Messages.getGuiString("SearchLogBelowCurrentPosition"));
+		jCSSearch.setText(Messages.getGuiString("CaseSensitive"));
+		jCSSearch.setToolTipText(Messages.getGuiString("SearchOnlyTextMatchesSearch"));
+		jRESearch.setToolTipText(Messages.getGuiString("SearchUsingRegularExpressions"));
+		jMLSearch.setText(Messages.getGuiString("Multiline"));
+		jMLSearch.setToolTipText(Messages.getGuiString("EnableSearchSpanMultipleLines"));
+		jBufferLabel.setText(Messages.getGuiString("LineBuffer"));
+		jBufferLabel.setToolTipText(Messages.getGuiString("NumberLinesLogWindowBelow"));
+		jLineBuffer.setToolTipText(Messages.getGuiString("NumberLinesLogWindowBelow"));
+		copyItem.setText(Messages.getGuiString("Copy"));
+		clearItem.setText(Messages.getGuiString("Clear"));
+		jOptionsPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5),
+			BorderFactory.createCompoundBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED),
+					Messages.getGuiString("LoggingOptions")
 				),
 				BorderFactory.createEmptyBorder(10, 5, 10, 5)
 			)
 		));
-		jBuffered.setText(Messages.getString("BufferedLogging"));
-		jBuffered.setToolTipText(Messages.getString("EnableBufferedFileLogging"));
-		jUseSyslog.setText(Messages.getString("LogToSyslog"));
-		jUseSyslog.setToolTipText(Messages.getString("SendLogSyslogServer"));
-		jSyslogHostLabel.setText(Messages.getString("SyslogHostname"));
-		jSyslogHostLabel.setToolTipText(Messages.getString("HostNameIpAddressSend"));
-		jSyslogHost.setToolTipText(Messages.getString("HostNameIpAddressSend"));
-		jSyslogPortLabel.setText(Messages.getString("SyslogPort"));
-		jSyslogPortLabel.setToolTipText(Messages.getString("UdpPortSendSyslogMessages"));
-		jSyslogPort.setToolTipText(Messages.getString("UdpPortSendSyslogMessages"));
-		jSyslogFacilityLabel.setText(Messages.getString("SyslogFacility"));
-		jSyslogFacilityLabel.setToolTipText(Messages.getString("SyslogFacilityMeantIdentifySource"));
-		jSyslogFacility.setToolTipText(Messages.getString("SyslogFacilityMeantIdentifySource"));
-		jShowOptions.setText(Messages.getString("ShowLoggingOptions"));
-		jShowOptions.setToolTipText(Messages.getString("ShowLoggingConfigurationOptions"));
+		jBuffered.setText(Messages.getGuiString("BufferedLogging"));
+		jBuffered.setToolTipText(Messages.getGuiString("EnableBufferedFileLogging"));
+		jUseSyslog.setText(Messages.getGuiString("LogToSyslog"));
+		jUseSyslog.setToolTipText(Messages.getGuiString("SendLogSyslogServer"));
+		jSyslogHostLabel.setText(Messages.getGuiString("SyslogHostname"));
+		jSyslogHostLabel.setToolTipText(Messages.getGuiString("HostNameIpAddressSend"));
+		jSyslogHost.setToolTipText(Messages.getGuiString("HostNameIpAddressSend"));
+		jSyslogPortLabel.setText(Messages.getGuiString("SyslogPort"));
+		jSyslogPortLabel.setToolTipText(Messages.getGuiString("UdpPortSendSyslogMessages"));
+		jSyslogPort.setToolTipText(Messages.getGuiString("UdpPortSendSyslogMessages"));
+		jSyslogFacilityLabel.setText(Messages.getGuiString("SyslogFacility"));
+		jSyslogFacilityLabel.setToolTipText(Messages.getGuiString("SyslogFacilityMeantIdentifySource"));
+		jSyslogFacility.setToolTipText(Messages.getGuiString("SyslogFacilityMeantIdentifySource"));
+		jShowOptions.setText(Messages.getGuiString("ShowLoggingOptions"));
+		jShowOptions.setToolTipText(Messages.getGuiString("ShowLoggingConfigurationOptions"));
 		if (openFullLog != null) {
-			openFullLog.setText(Messages.getString("OpenFullDebugLog"));
+			openFullLog.setText(Messages.getGuiString("OpenFullDebugLog"));
 		}
-		rootLevelLabel.setText(Messages.getString("LogLevelColon") + ": ");
-		rootLevelLabel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
+		rootLevelLabel.setText(Messages.getGuiString("LogLevelColon") + ": ");
+		rootLevelLabel.setToolTipText(Messages.getGuiString("SetRootLoggingLevelDecides"));
 		currentIndex = rootLevel.getSelectedIndex();
 		rootLevel.setModel(new DefaultComboBoxModel<>(levelStrings));
 		rootLevel.setSelectedIndex(currentIndex);
-		rootLevel.setToolTipText(Messages.getString("SetRootLoggingLevelDecides"));
-		rebootTrace.setText(Messages.getString("CreateTraceLogs"));
-		rebootTrace.setToolTipText(Messages.getString("RestartUniversalMediaServerTrace"));
-		packDbg.setText(Messages.getString("PackDebugFiles"));
-		packDbg.setToolTipText(Messages.getString("PackLogConfigurationFileCompressed"));
+		rootLevel.setToolTipText(Messages.getGuiString("SetRootLoggingLevelDecides"));
+		rebootTrace.setText(Messages.getGuiString("CreateTraceLogs"));
+		rebootTrace.setToolTipText(Messages.getGuiString("RestartUniversalMediaServerTrace"));
+		packDbg.setText(Messages.getGuiString("PackDebugFiles"));
+		packDbg.setToolTipText(Messages.getGuiString("PackLogConfigurationFileCompressed"));
 	}
 
 	public JTextArea getList() {
@@ -673,13 +667,13 @@ public class TracesTab {
 					jList.moveCaretPosition(match.end());
 					jSearchOutput.setText("");
 				} else {
-					jSearchOutput.setText(String.format(Messages.getString("XNotFound"), jSearchBox.getText()));
+					jSearchOutput.setText(String.format(Messages.getGuiString("XNotFound"), jSearchBox.getText()));
 				}
 			} catch (PatternSyntaxException pe) {
-				jSearchOutput.setText(String.format(Messages.getString("RegexErrorX"), pe.getLocalizedMessage()));
+				jSearchOutput.setText(String.format(Messages.getGuiString("RegexErrorX"), pe.getLocalizedMessage()));
 			} catch (BadLocationException ex) {
 				LOGGER.debug("Exception caught while searching traces list: " + ex);
-				jSearchOutput.setText(Messages.getString("SearchError"));
+				jSearchOutput.setText(Messages.getGuiString("SearchError"));
 			}
 		}
 	}

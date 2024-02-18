@@ -64,20 +64,20 @@ public class SysTray {
 			Image trayIconImage = resolveTrayIcon(updateAvailable);
 
 			PopupMenu popup = new PopupMenu();
-			MenuItem quitItem = new MenuItem(Messages.getString("Quit"));
-			MenuItem oldGuiItem = new MenuItem(Messages.getString("SettingsOld"));
+			MenuItem quitItem = new MenuItem(Messages.getGuiString("Quit"));
+			MenuItem oldGuiItem = new MenuItem(Messages.getGuiString("SettingsOld"));
 
 			quitItem.addActionListener((ActionEvent e) -> PMS.quit());
 
 			oldGuiItem.addActionListener((ActionEvent e) -> GuiManager.showSwingFrame());
 
 			if (PMS.getConfiguration().useWebPlayerServer()) {
-				MenuItem webPlayerItem = new MenuItem(Messages.getString("WebPlayer"));
+				MenuItem webPlayerItem = new MenuItem(Messages.getGuiString("WebPlayer"));
 				webPlayerItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getWebPlayerServer().getUrl()));
 				popup.add(webPlayerItem);
 			}
 
-			MenuItem webGuiItem = new MenuItem(Messages.getString("Settings"));
+			MenuItem webGuiItem = new MenuItem(Messages.getGuiString("Settings"));
 			webGuiItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl()));
 			popup.add(webGuiItem);
 			popup.add(oldGuiItem);

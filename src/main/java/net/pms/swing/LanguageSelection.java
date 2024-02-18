@@ -226,13 +226,11 @@ public class LanguageSelection {
 		String descriptionMessage = parentComponent != null ? "PleaseSelectLanguageForX" : "PleaseSelectLanguageX";
 		if (Messages.getString(descriptionMessage, locale).equals(Messages.getRootString(descriptionMessage))) {
 			if (parentComponent != null) {
-				descriptionText.setText(String.format(
-					Messages.getString(descriptionMessage, locale),
+				descriptionText.setText(String.format(Messages.getString(descriptionMessage, locale),
 					PMS.NAME
 				));
 			} else {
-				descriptionText.setText(String.format(
-					Messages.getString(descriptionMessage, locale),
+				descriptionText.setText(String.format(Messages.getString(descriptionMessage, locale),
 					PMS.NAME,
 					Messages.getString("GeneralSettings", locale)
 				));
@@ -245,12 +243,11 @@ public class LanguageSelection {
 					PMS.NAME
 				));
 			} else {
-				descriptionText.setText(String.format(
-					buildString(descriptionMessage, true),
+				descriptionText.setText(String.format(buildString(descriptionMessage, true),
 					PMS.NAME,
 					Messages.getString("GeneralSettings", locale),
 					PMS.NAME,
-					Messages.getRootString("LooksFrame.TabGeneralSettings")
+					Messages.getRootString("GeneralSettings")
 				));
 			}
 		}
@@ -295,8 +292,7 @@ public class LanguageSelection {
 		if (keyedModel.getSelectedKey() != null && Languages.warnCoverage(keyedModel.getSelectedKey())) {
 			String localizedLanguageName = Messages.getString("Language." + keyedModel.getSelectedKey(), locale);
 			if (Messages.getString("XIsOnlyPercentTranslated", locale).equals(Messages.getRootString("XIsOnlyPercentTranslated"))) {
-				warningText.setText(String.format(
-					Messages.getString("XIsOnlyPercentTranslated", locale),
+				warningText.setText(String.format(Messages.getString("XIsOnlyPercentTranslated", locale),
 					localizedLanguageName,
 					Languages.getLanguageCoverage(keyedModel.getSelectedKey()),
 					localizedLanguageName

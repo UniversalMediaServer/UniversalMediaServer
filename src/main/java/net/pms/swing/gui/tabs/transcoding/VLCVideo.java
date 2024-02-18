@@ -60,14 +60,14 @@ public class VLCVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-		builder.addSeparator(Messages.getString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
+		builder.addSeparator(Messages.getGuiString("GeneralSettings_SentenceCase")).at(FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 
-		experimentalCodecs = new JCheckBox(Messages.getString("EnableExperimentalCodecs"), CONFIGURATION.isVlcExperimentalCodecs());
+		experimentalCodecs = new JCheckBox(Messages.getGuiString("EnableExperimentalCodecs"), CONFIGURATION.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener((ItemEvent e) -> CONFIGURATION.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(experimentalCodecs)).at(FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		audioSyncEnabled = new JCheckBox(Messages.getString("AvSyncAlternativeMethod"), CONFIGURATION.isVlcAudioSyncEnabled());
+		audioSyncEnabled = new JCheckBox(Messages.getGuiString("AvSyncAlternativeMethod"), CONFIGURATION.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
 		audioSyncEnabled.addItemListener((ItemEvent e) -> CONFIGURATION.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED));
 		builder.add(SwingUtil.getPreferredSizeComponent(audioSyncEnabled)).at(FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
