@@ -122,6 +122,8 @@
 
 		<junit5.version>5.10.1</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
+		<node.version>v20.11.1</node.version>
+		<yarn.bootstrap>v1.22.19</yarn.bootstrap>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -874,8 +876,9 @@
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
-					<nodeVersion>v18.19.0</nodeVersion>
-					<yarnVersion>v1.22.19</yarnVersion>
+					<nodeVersion>${node.version}</nodeVersion>
+					<yarnVersion>${yarn.bootstrap}</yarnVersion>
+					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>

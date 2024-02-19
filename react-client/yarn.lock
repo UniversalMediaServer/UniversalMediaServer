@@ -3116,21 +3116,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 20.11.17
-  resolution: "@types/node@npm:20.11.17"
+"@types/node@npm:*, @types/node@npm:20.11.19":
+  version: 20.11.19
+  resolution: "@types/node@npm:20.11.19"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 1f30dae80b416cbf38f133a619ffb0e9fb9e7bc58f82d900bf73816ae5781740c4640892bf5971dd9c12570d5d05241646be3e7540bb4e059322ec6af4e51e15
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:18.19.15":
-  version: 18.19.15
-  resolution: "@types/node@npm:18.19.15"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 442e40cbbb75f17c4dbccf0a1a19ffd4b1b6b8cbbcf52ed754c3d3a3992fd1effbe48b9d45b9aae9ac9cebc8717927348b02e009b0a2c0b06b1f813e3b2896e6
+  checksum: f451ef0a1d78f29c57bad7b77e49ebec945f2a6d0d7a89851d7e185ee9fe7ad94d651c0dfbcb7858c9fa791310c8b40a881e2260f56bd3c1b7e7ae92723373ae
   languageName: node
   linkType: hard
 
@@ -13703,7 +13694,7 @@ __metadata:
     "@testing-library/user-event": "npm:14.5.2"
     "@types/jest": "npm:29.5.12"
     "@types/lodash": "npm:4.14.202"
-    "@types/node": "npm:18.19.15"
+    "@types/node": "npm:20.11.19"
     "@types/react": "npm:18.2.55"
     "@types/react-dom": "npm:18.2.19"
     "@typescript-eslint/eslint-plugin": "npm:7.0.1"
