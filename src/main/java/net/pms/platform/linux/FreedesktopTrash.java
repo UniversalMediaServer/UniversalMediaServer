@@ -326,7 +326,7 @@ public class FreedesktopTrash {
 				if (unixUID < 0) {
 					String response;
 					Process id;
-					id = Runtime.getRuntime().exec("id -u");
+					id = Runtime.getRuntime().exec(new String[] {"id", "-u"});
 					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
 						response = reader.readLine();
 					}

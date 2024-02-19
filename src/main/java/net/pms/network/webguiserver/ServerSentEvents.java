@@ -16,10 +16,10 @@
  */
 package net.pms.network.webguiserver;
 
+import jakarta.servlet.AsyncContext;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Timestamp;
-import javax.servlet.AsyncContext;
 import net.pms.network.IServerSentEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +40,7 @@ public class ServerSentEvents implements IServerSentEvents {
 	public ServerSentEvents(AsyncContext context, Runnable callback) {
 		this.context = context;
 		this.callback = callback;
+		this.context.setTimeout(0);
 		try {
 			addEventStream(this.context.getResponse().getOutputStream());
 		} catch (IOException ex) {

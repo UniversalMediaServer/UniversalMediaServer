@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import axios from 'axios';
+
 import { actionsApiUrl } from '../utils';
 
 const PERMITTED_ACTIONS = [
@@ -23,6 +24,7 @@ const PERMITTED_ACTIONS = [
   'Process.Reboot.Trace',
   'Server.ResetCache',
   'Server.Restart',
+  'Computer.Shutdown',
   'Server.ScanAllSharedFolders',
   'Server.ScanAllSharedFoldersCancel',
   'Server.ScanAllSharedFoldersCancel',

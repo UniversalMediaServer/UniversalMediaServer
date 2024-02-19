@@ -19,6 +19,7 @@ package net.pms.network;
 import java.net.Authenticator;
 import java.net.MalformedURLException;
 import java.net.PasswordAuthentication;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.StringTokenizer;
@@ -85,8 +86,8 @@ public class HTTPResourceAuthenticator extends Authenticator {
 			urlStr = urlStr.replace(protocol, protocol + userinfo + "@");
 
 			try {
-				return new URL(urlStr);
-			} catch (MalformedURLException e) {
+				return URI.create(urlStr).toURL();
+			} catch (IllegalArgumentException | MalformedURLException e) {
 				// Not a valid URL, fall back to the original.
 				return url;
 			}

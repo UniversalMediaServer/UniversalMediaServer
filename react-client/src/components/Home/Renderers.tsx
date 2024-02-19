@@ -20,6 +20,7 @@ import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import { Cast, DevicesPc, DevicesPcOff, Dots, Link, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
+import { I18nInterface } from '../../contexts/i18n-context';
 import { renderersApiUrl } from '../../utils';
 import { Renderer, User } from './Home';
 import MediaChooser, { Media } from './MediaChooser';
@@ -31,10 +32,7 @@ const Renderers = (
       blockedByDefault: boolean,
       canControlRenderers: boolean,
       canModify: boolean,
-      i18n: {
-        get: { [key: string]: string };
-        getI18nString: (value: string) => string;
-      },
+      i18n: I18nInterface,
       renderers: Renderer[],
       users: User[],
       setAllowed: (rule: string, isAllowed: boolean) => void
@@ -91,8 +89,8 @@ const Renderers = (
   );
 
   const getAccountNameList = () => {
-    return [ { value: '-1', label: i18n.get['NoAccountAssigned'] },
-      { value: '0', label: i18n.get['DefaultAccount'] }
+    return [{ value: '-1', label: i18n.get('NoAccountAssigned') },
+    { value: '0', label: i18n.get('DefaultAccount') }
     ].concat(users.map(user => ({ value: user.value.toString(), label: user.label })));
   }
 
@@ -100,16 +98,16 @@ const Renderers = (
     <Modal
       centered
       opened={userChanger != null}
-      title={userChanger?.name}
+      title={userChanger?.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : userChanger?.name}
       onClose={() => setUserChanger(null)}
       withinPortal={false}
       lockScroll={false}
     >
       <Select
         mb={'xl'}
-        label={i18n.get['LinkRendererTo']}
+        label={i18n.get('LinkRendererTo')}
         defaultValue={userChanger?.userId.toString()}
-        onChange={(value) => {setUserChangerValue(value)}}
+        onChange={(value) => { setUserChangerValue(value) }}
         withScrollArea={false}
         styles={{ dropdown: { maxHeight: 70, overflowY: 'auto' } }}
         data={getAccountNameList()}
@@ -119,19 +117,19 @@ const Renderers = (
           disabled={!userChangerValue || userChangerValue == userChanger?.userId.toString()}
           onClick={() => { userChanger && setUserId(userChanger.uuid, userChangerValue); setUserChanger(null) }}
         >
-          {i18n.get['Apply']}
+          {i18n.get('Apply')}
         </Button>
       </Group>
     </Modal>
   );
 
   const getAccountName = (userId: number) => {
-    switch(userId) {
-      case -1: return i18n.get['NoAccountAssigned'];
-      case 0: return i18n.get['DefaultAccount'];
+    switch (userId) {
+      case -1: return i18n.get('NoAccountAssigned');
+      case 0: return i18n.get('DefaultAccount');
       default: {
         const founded = users.find((user) => user.value === userId);
-        return founded ? founded.label : i18n.get['NonExistentUser']
+        return founded ? founded.label : i18n.get('NonExistentUser')
       }
     }
   }
@@ -152,7 +150,7 @@ const Renderers = (
       <Card shadow='sm' p='lg' radius='md' withBorder>
         <Card.Section withBorder inheritPadding py='xs'>
           <Group justify='space-between'>
-            <Text fw={500} c={getNameColor(renderer)}>{renderer.name}</Text>
+            <Text fw={500} c={getNameColor(renderer)}>{renderer.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : renderer.name}</Text>
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
@@ -160,9 +158,9 @@ const Renderers = (
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item leftSection={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
+                <Menu.Item leftSection={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get('Info')}</Menu.Item>
                 {canModify && (<>
-                  <Menu.Item leftSection={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
+                  <Menu.Item leftSection={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get('Settings')}</Menu.Item>
                   {!renderer.isAuthenticated && renderer.uuid && (
                     <Menu.Item
                       leftSection={<Link size={14} />}
@@ -172,14 +170,14 @@ const Renderers = (
                     </Menu.Item>
                   )}
                   {!renderer.isAuthenticated && !renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
                   )}
                   {!renderer.isAuthenticated && renderer.isAllowed && renderer.uuid && (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get['Block']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get('Block')}</Menu.Item>
                   )}
                 </>)}
                 {canControlRenderers && (
-                  <Menu.Item leftSection={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
+                  <Menu.Item leftSection={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get('Controls')}</Menu.Item>
                 )}
               </Menu.Dropdown>
             </Menu>
@@ -223,11 +221,11 @@ const Renderers = (
       size='full'
       opened={controlId > -1}
       onClose={() => setControlId(-1)}
-      title={rendererControlled.name}
+      title={rendererControlled.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : rendererControlled.name}
     >
       <Stack>
         {!rendererControlled.isActive &&
-          <Text ta='center' c='red'>{i18n.get['RendererNoLongerControllable']}</Text>
+          <Text ta='center' c='red'>{i18n.get('RendererNoLongerControllable')}</Text>
         }
         {rendererControlled.isActive && rendererControlled.playing && (<>
           <Text ta='center' c='blue'>{rendererControlled.playing}</Text>
@@ -280,7 +278,7 @@ const Renderers = (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
         <Group justify='space-between'>
-          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['RenderersBlockedByDefault'] : i18n.get['RenderersAllowedByDefault']}</Text>
+          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get('RenderersBlockedByDefault') : i18n.get('RenderersAllowedByDefault')}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
@@ -291,9 +289,9 @@ const Renderers = (
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
                   ) : (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
                   )}
                 </>
               </Menu.Dropdown>

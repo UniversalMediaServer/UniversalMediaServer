@@ -1,5 +1,5 @@
 # Universal Media Server
-![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/Universal%20Media%20Server%20CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
+![Universal Media Server CI](https://github.com/UniversalMediaServer/UniversalMediaServer/workflows/CI/badge.svg) [![Crowdin](https://badges.crowdin.net/universalmediaserver/localized.svg)](https://crowdin.com/project/universalmediaserver)
 
 [<img align="right" src="https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/src/main/resources/images/logo.png?raw=true" alt="Universal Media Server" width="256" height="auto"/>][1] Universal Media Server is a DLNA-compliant UPnP Media Server.
 It is capable of sharing video, audio and images between most modern devices.
@@ -29,7 +29,7 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * [Website][1]
 * [Forum][9]
 * [Source code][10]
-* [Offical Releases][11]
+* [Official Releases][11]
 * [Issue tracker][12]
 * [Knowledge Base][13]
 * [Wiki][14]

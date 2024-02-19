@@ -22,7 +22,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const MainProvider = ({ children, ...props }: Props) => {
+export const MainProvider = ({ children }: Props) => {
   const [navbarValue, setNavbarValue] = useState(undefined);
   const [navbarOpened, setNavbarOpened] = useState<boolean>(false);
   const [statusLine, setStatusLine] = useState(undefined);

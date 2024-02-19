@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<!-- 
+<!--
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
@@ -15,19 +15,20 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 -->
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<meta charset="UTF-8">
 		<title>Command line arguments</title>
 		<link href="css/style.css" rel="stylesheet" type="text/css" />
 	</head>
 	<body>
 		<h1>Command line arguments</h1>
-		
+		<h3 style="color:red;">IMPORTANT: This help page is not more maintained.</h3>
+		See our online <a href="https://support.universalmediaserver.com/">maintained documentation</a> instead.
+
 		<p>UMS can be launched with command line arguments. These arguments can either be used from the command line directly, be used from scripts or be used from shortcuts. The <code>Universal Media Server (Select Profile)</code> shortcut made by the Universal Media Server Windows installer is an example of this (launched with the <code>profiles</code> argument). <abbr>UMS</abbr> will be used as an abbreviation for Universal Media Server in the rest of this document.</p>
-		
+
 		<h2>Arguments</h2>
-		
+
 		<ul>
 			<li><code>headless</code> - This starts UMS without a <a href="https://en.wikipedia.org/wiki/Graphical_user_interface">GUI</a>. It can be useful for running UMS in the background without any user interface, but be aware that under Windows there is no other way than using the task manager to stop UMS again. This option in most useful under Linux, where you can stop UMS again simply by pressing <code>Ctrl + c</code>. If no graphical environment is available, UMS will automatically start in this mode.</li>
 			<li><code>console</code> - This is identical to <code>headless</code>.</li>
@@ -38,27 +39,27 @@
 			<li><code>profile=&lt;path&gt;</code> or <code>profile:&lt;path&gt;</code> - This will start UMS with the profile from the file or folder specified in <code>&lt;path&gt;</code>. This is mostly useful for starting a specific profile from a script or shortcut.</li>
 			<li><code>trace</code> - This will start UMS in &quot;forced trace&quot; mode, where the log level is forced to &lt;trace&gt; level regardless of the log level specified in the profile. It's not possible to change log level in this mode.</li>
 		</ul>
-		
+
 		To be able to use the command line arguments on Windows, follow this syntax:
-		
+
 		<h3>Windows</h3>
 		<code>UMS.exe argument 1 argument 2 ... argument X</code>
-		
+
 		<h3>Linux</h3>
 		<code>./UMS.sh argument 1 argument 2 ... argument X</code>
-		
+
 		<h3>Mac OS</h3>
 		<code>open -a "Universal Media Server" --args argument1 argument2 ...</code>
-		
-	<!--  Navigation -->
-	<hr />
-	<ul>
-		<li>Next: <a href="links.html">Links</a>
-		</li>
-		<li>Previous: <a href="coreavc.html">CoreAVC</a>
-		</li>
-		<li>Top: <a href="index.html">Help</a>
-		</li>
-	</ul>
+
+		<!--  Navigation -->
+		<hr />
+		<ul>
+			<li>Next: <a href="links.html">Links</a>
+			</li>
+			<li>Previous: <a href="coreavc.html">CoreAVC</a>
+			</li>
+			<li>Top: <a href="index.html">Help</a>
+			</li>
+		</ul>
 	</body>
 </html>

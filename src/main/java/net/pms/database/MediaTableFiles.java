@@ -141,13 +141,13 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_ALL_BY_FILENAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ALL_FILENAME_MODIFIED = SELECT_ALL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAME_BY_ID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
-	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
+	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_ID_FILENAME = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
-	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
+	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
 
 	/**
@@ -488,7 +488,7 @@ public class MediaTableFiles extends MediaTable {
 				MediaDatabase.dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
-				//put back constaints
+				//put back constraints
 				ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
 				ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
 				ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);
@@ -788,7 +788,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static void removeMediaEntriesInFolder(final Connection connection, String pathToFolder) {
 		try {
-			removeMedia(connection, sqlLikeEscape(pathToFolder) + "%", true, true);
+			removeMedia(connection, pathToFolder, true, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove files matching \"{}\" from the database: {}",
@@ -802,8 +802,6 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Removes row(s) in our other tables representing matching media. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see TableTables#sqlLikeEscape(String)
 	 *
 	 * @param connection the db connection
 	 * @param filename the filename(s) to remove.
@@ -827,8 +825,6 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Deletes a row or rows in the FILES table. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see TableTables#sqlLikeEscape(String)
 	 *
 	 * @param connection the db connection
 	 * @param filename the filename to delete
@@ -1030,7 +1026,7 @@ public class MediaTableFiles extends MediaTable {
 			return result;
 		}
 		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_FILENAME_LIKE)) {
-			ps.setString(1, fullPathToFolder + "%");
+			ps.setString(1, fullPathToFolder);
 			try (
 				ResultSet rs = ps.executeQuery();
 			) {

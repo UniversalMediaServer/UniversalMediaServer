@@ -155,8 +155,10 @@ public class ChromecastPlayer extends LogicalPlayer {
 						state.setMuted(status.volume.muted);
 					}
 					alert();
-				} catch (InterruptedException | IOException e) {
+				} catch (IOException e) {
 					LOGGER.debug("Bad chromecast mediastate " + e);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		};

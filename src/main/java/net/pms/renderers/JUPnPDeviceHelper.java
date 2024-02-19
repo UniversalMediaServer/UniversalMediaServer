@@ -20,6 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +39,7 @@ import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
@@ -46,6 +48,7 @@ import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.model.action.ActionArgumentValue;
 import org.jupnp.model.action.ActionInvocation;
 import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.meta.Action;
 import org.jupnp.model.meta.Device;
 import org.jupnp.model.meta.DeviceDetails;
@@ -68,10 +71,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class JUPnPDeviceHelper {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(JUPnPDeviceHelper.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
-	public static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
+	private static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
 		new UDADeviceType("MediaRenderer", 1),
 		// Older Sony Blurays provide only 'Basic' service
 		new UDADeviceType("Basic", 1)
@@ -119,6 +122,15 @@ public class JUPnPDeviceHelper {
 	 * This class is not meant to be instantiated.
 	 */
 	private JUPnPDeviceHelper() {
+	}
+
+	public static void searchMediaRendererDevices() {
+		if (MediaServer.upnpService != null) {
+			for (DeviceType deviceType : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
+				LOGGER.trace("Sending UPnP search for devices of type: {}", deviceType);
+				MediaServer.upnpService.getControlPoint().search(new DeviceTypeHeader(deviceType));
+			}
+		}
 	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {
@@ -521,16 +533,18 @@ public class JUPnPDeviceHelper {
 		String url = null;
 		int maxH = maxHeight == 0 ? 99999 : maxHeight;
 		int height = 0;
-		for (Icon i : d.getIcons()) {
-			int h = i.getHeight();
-			if (h < maxH && h > height) {
-				icon = i;
-				height = h;
+		if (d != null) {
+			for (Icon i : d.getIcons()) {
+				int h = i.getHeight();
+				if (h < maxH && h > height) {
+					icon = i;
+					height = h;
+				}
 			}
 		}
 		try {
-			url = icon != null ? new URL(base, icon.getUri().toString()).toString() : null;
-		} catch (MalformedURLException e) {
+			url = icon != null ? base.toURI().resolve(icon.getUri()).toURL().toString() : null;
+		} catch (URISyntaxException | MalformedURLException e) {
 		}
 		LOGGER.debug("Device icon: " + url);
 		return url;
@@ -727,9 +741,9 @@ public class JUPnPDeviceHelper {
 	 */
 	public static void play(StoreResource d, Renderer renderer) {
 		StoreResource resource = d.getParent() == null ? renderer.getMediaStore().getTemp().add(d) : d;
-		if (resource != null) {
+		if (resource instanceof StoreItem item) {
 			Device dev = getDevice(renderer.getUUID());
-			setAVTransportURI(dev, resource.getMediaURL(""), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
+			setAVTransportURI(dev, item.getMediaURL(), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
 			play(dev);
 		}
 	}

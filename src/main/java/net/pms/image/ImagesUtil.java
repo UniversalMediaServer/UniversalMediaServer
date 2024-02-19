@@ -54,17 +54,22 @@ import net.pms.util.Iso639;
 import net.pms.util.UnknownFormatException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ImagesUtil {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagesUtil.class);
 
 	/** A constant for use for constructing a path to the language "flags" */
-	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/codes/%s.png";
+	public static final String LANGUAGE_FLAGS_PATH = "/resources/images/store/flags/%s.png";
 
 	private static final HashMap<String, WeakReference<BufferedImage>> LANGUAGE_FLAGS_CACHE = new HashMap<>();
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ImagesUtil() { }
 
 	/**
 	 * Converts a raw Exif version byte array to an integer value.
@@ -391,7 +396,7 @@ public class ImagesUtil {
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public Image scaleImage(
+	public static Image scaleImage(
 		Image inputImage,
 		int width,
 		int height,
@@ -438,7 +443,7 @@ public class ImagesUtil {
 	 * @return The scaled image or {@code null} if the source is {@code null}.
 	 * @throws IOException if the operation fails.
 	 */
-	public Image scaleImage(
+	public static Image scaleImage(
 		InputStream inputStream,
 		int width,
 		int height,
@@ -484,7 +489,7 @@ public class ImagesUtil {
 	 * @throws IOException if the operation fails.
 	 */
 
-	public Image scaleImage(
+	public static Image scaleImage(
 		byte[] inputByteArray,
 		int width,
 		int height,
@@ -1607,7 +1612,7 @@ public class ImagesUtil {
 	 *         language code or {@code null}.
 	 */
 	public static BufferedImage getLanguageFlag(String languageCode) {
-		if (isBlank(languageCode)) {
+		if (StringUtils.isBlank(languageCode)) {
 			return null;
 		}
 		languageCode = Iso639.getISO639_2Code(languageCode.toLowerCase(Locale.ROOT));

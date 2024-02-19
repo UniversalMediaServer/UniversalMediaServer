@@ -21,6 +21,7 @@ import com.ibm.icu.text.CharsetMatch;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -129,7 +130,7 @@ public class FileUtil {
 	 * @since 1.90.0
 	 */
 	// this is called from a static initialiser, where errors aren't clearly reported,
-	// so do everything possible to return a valid reponse, even if the parameters aren't sane
+	// so do everything possible to return a valid response, even if the parameters aren't sane
 	public static FileLocation getFileLocation(
 		String customPath,
 		String defaultDirectory,
@@ -274,14 +275,26 @@ public class FileUtil {
 		return null;
 	}
 
-	public static String urlJoin(String base, String filename) {
+	public static URL urlFrom(String base, String filename) throws MalformedURLException {
 		if (isUrl(filename)) {
-			return filename;
+			return URI.create(filename).normalize().toURL();
 		}
+		if (filename == null || filename.isEmpty()) {
+			filename = "/";
+		}
+		if (base == null) {
+			base = "";
+		}
+		if (filename.charAt(0) != '/') {
+			filename = '/' + filename;
+		}
+		return URI.create(base).normalize().resolve(filename).toURL();
+	}
 
+	public static String urlJoin(String base, String filename) {
 		try {
-			return new URL(new URL(base), filename).toString();
-		} catch (MalformedURLException e) {
+			return urlFrom(base, filename).toString();
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			return filename;
 		}
 	}
@@ -1128,6 +1141,10 @@ public class FileUtil {
 
 			formattedName = removeFilenameEndMetadata(formattedName);
 			formattedName = convertFormattedNameToTitleCaseParts(formattedName);
+		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}([1-9]|1[0-2])([1-9]|[12][0-9]|3[01]).*")) {
+			// This matches some sports releases
+
+			formattedName = convertFormattedNameToTitleCase(formattedName);
 		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}.*")) {
 			// This matches scene and most p2p movies
 
@@ -1694,7 +1711,7 @@ public class FileUtil {
 				return Charset.forName(match.getName());
 			}
 			LOGGER.debug(
-				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virtual Machine",
 				match.getName(),
 				file.getAbsolutePath()
 			);
@@ -1795,7 +1812,7 @@ public class FileUtil {
 				return match.getName().toUpperCase(Locale.ROOT);
 			}
 			LOGGER.debug(
-				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virual Machine",
+				"Detected charset \"{}\" in file \"{}\", but cannot use it because it's not supported by the Java Virtual Machine",
 				match.getName(),
 				file.getAbsolutePath()
 			);

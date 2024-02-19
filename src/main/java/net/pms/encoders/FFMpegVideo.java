@@ -371,13 +371,19 @@ public class FFMpegVideo extends Engine {
 			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.getTimeSeek() > 0;
 
 			if (
-				configuration.isAudioRemuxAC3() &&
 				params.getAid() != null &&
+				(
+					(
+						configuration.isAudioRemuxAC3() &&
+						params.getAid().isAC3()
+					) ||
+					!params.getAid().isAC3()
+				) &&
 				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid()) &&
 				!isAviSynthEngine() &&
 				!isSubtitlesAndTimeseek
 			) {
-				// AC-3 and AAC remux
+				// Audio remux if the renderer supports the audio stream inside the transcoding container
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("copy");
@@ -423,7 +429,7 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
 			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
-				if (canMuxVideoWithFFmpeg && renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+				if (canMuxVideoWithFFmpeg) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
 						transcodeOptions.add("copy");
@@ -916,6 +922,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
+		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
@@ -944,6 +951,27 @@ public class FFMpegVideo extends Engine {
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
+				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+					"mpegts",
+					defaultVideoTrack.getCodec(),
+					null,
+					0,
+					0,
+					defaultVideoTrack.getBitRate(),
+					0,
+					defaultVideoTrack.getWidth(),
+					defaultVideoTrack.getHeight(),
+					defaultVideoTrack.getBitDepth(),
+					defaultVideoTrack.getHDRFormatForRenderer(),
+					defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+					defaultVideoTrack.getExtras(),
+					null,
+					false,
+					renderer
+				) != null;
+				if (videoWouldBeCompatibleInTsContainer) {
+					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
+				}
 				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
@@ -1014,6 +1042,11 @@ public class FFMpegVideo extends Engine {
 
 				return tsMuxeRVideoInstance.launchTranscode(resource, media, params);
 			}
+		}
+
+		// If we got here, we are not deferring to tsMuxeR and can mux the video
+		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
+			canMuxVideoWithFFmpeg = true;
 		}
 
 		// Apply any video filters and associated options. These should go
@@ -1180,6 +1213,7 @@ public class FFMpegVideo extends Engine {
 				Thread.sleep(300);
 			} catch (InterruptedException e) {
 				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+				Thread.currentThread().interrupt();
 			}
 		} else {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -1322,6 +1356,7 @@ public class FFMpegVideo extends Engine {
 			try {
 				wait(50);
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 
 			pipe.deleteLater();
@@ -1334,6 +1369,7 @@ public class FFMpegVideo extends Engine {
 			try {
 				wait(50);
 			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 
 			ffAudioPipe.deleteLater();
@@ -1349,6 +1385,7 @@ public class FFMpegVideo extends Engine {
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e.getMessage());
 			LOGGER.trace("", e);
+			Thread.currentThread().interrupt();
 		}
 		return pw;
 	}
@@ -1586,7 +1623,7 @@ public class FFMpegVideo extends Engine {
 		} else if (
 			configuration.isGPUAcceleration() &&
 			!avisynth &&
-			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals(Messages.getString("None_lowercase"))
+			!configuration.getFFmpegGPUDecodingAccelerationMethod().equals("none")
 		) {
 			// GPU decoding method
 			if (configuration.getFFmpegGPUDecodingAccelerationMethod().trim().matches("(auto|cuda|cuvid|d3d11va|dxva2|vaapi|vdpau|videotoolbox|qsv)")) {
@@ -1676,6 +1713,7 @@ public class FFMpegVideo extends Engine {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+			Thread.currentThread().interrupt();
 		}
 
 		// Launch the transcode command...
@@ -1685,6 +1723,7 @@ public class FFMpegVideo extends Engine {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			Thread.currentThread().interrupt();
 		}
 		return pw;
 	}

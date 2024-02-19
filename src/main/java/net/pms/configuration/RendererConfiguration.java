@@ -28,7 +28,6 @@ import java.util.Objects;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
@@ -827,7 +826,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	public String getConfName() {
-		return getString(KEY_RENDERER_NAME, Messages.getString("UnknownRenderer"));
+		return getString(KEY_RENDERER_NAME, "UnknownRenderer");
 	}
 
 	/**
@@ -1269,11 +1268,10 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @param resource The {@link StoreItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
-	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(StoreItem resource, Format format, UmsConfiguration configuration) {
+	public boolean isCompatible(StoreItem resource, Format format) {
 		MediaInfo mediaInfo;
 		if (resource != null) {
 			mediaInfo = resource.getMediaInfo();
@@ -1281,15 +1279,11 @@ public class RendererConfiguration extends BaseConfiguration {
 			mediaInfo = null;
 		}
 
-		if (configuration == null) {
-			configuration = umsConfiguration;
-		}
-
 		if (
-			configuration != null &&
-			(configuration.isDisableTranscoding() ||
+			umsConfiguration != null &&
+			(umsConfiguration.isDisableTranscoding() ||
 			(format != null &&
-			format.skip(configuration.getDisableTranscodeForExtensions())))
+			format.skip(umsConfiguration.getDisableTranscodeForExtensions())))
 		) {
 			return true;
 		}
@@ -1329,22 +1323,6 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		return format != null && format.skip(getStreamedExtensions());
-	}
-
-	/**
-	 * Returns whether or not the renderer can handle the given format
-	 * natively, based on its configuration in the renderer.conf. If it can
-	 * handle a format natively, content can be streamed to the renderer. If
-	 * not, content should be transcoded before sending it to the renderer.
-	 *
-	 * @param resource The {@link StoreItem} information parsed from the
-	 * 				media file.
-	 * @param format The {@link Format} to test compatibility for.
-	 * @return True if the renderer natively supports the format, false
-	 * 				otherwise.
-	 */
-	public boolean isCompatible(StoreItem resource, Format format) {
-		return isCompatible(resource, format, null);
 	}
 
 	public int getAutoPlayTmo() {

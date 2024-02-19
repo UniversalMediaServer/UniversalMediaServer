@@ -56,10 +56,10 @@ public enum GenericIcons {
 	/** The static singleton instance. */
 	INSTANCE;
 
-	private final BufferedImage genericAudioIcon = readBufferedImage("formats/audio.png");
-	private final BufferedImage genericImageIcon = readBufferedImage("formats/image.png");
-	private final BufferedImage genericVideoIcon = readBufferedImage("formats/video.png");
-	private final BufferedImage genericUnknownIcon = readBufferedImage("formats/unknown.png");
+	private final BufferedImage genericAudioIcon = readBufferedImage("store/formats/audio.png");
+	private final BufferedImage genericImageIcon = readBufferedImage("store/formats/image.png");
+	private final BufferedImage genericVideoIcon = readBufferedImage("store/formats/video.png");
+	private final BufferedImage genericUnknownIcon = readBufferedImage("store/formats/unknown.png");
 	private final DLNAThumbnail genericFolderThumbnail;
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	/**
@@ -71,7 +71,7 @@ public enum GenericIcons {
 	private GenericIcons() {
 		DLNAThumbnail thumbnail;
 		try {
-			thumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("thumbnail-folder-256.png"));
+			thumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("store/folder.png"));
 		} catch (IOException e) {
 			thumbnail = null;
 		}

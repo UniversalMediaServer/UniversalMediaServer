@@ -348,7 +348,7 @@ public class DlnaHelper {
 					}
 				}
 			} else if (mediaInfo != null && mime.equals(HTTPResource.MPEGTS_TYPEMIME)) {
-				// patters - on Sony BDP m2ts clips aren't listed without this
+				// patterns - on Sony BDP m2ts clips aren't listed without this
 				if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
 					profileId = getMpegTsH264ProfileId(localizationValue, engine == null);
 				} else if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {

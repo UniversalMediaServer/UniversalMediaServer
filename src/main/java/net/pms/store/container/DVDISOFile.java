@@ -35,7 +35,7 @@ public class DVDISOFile extends StoreContainer {
 	private String volumeId;
 
 	public DVDISOFile(Renderer renderer, File file) {
-		super(renderer, getName(file), "images/thumbnail-disc.png");
+		super(renderer, getName(file), "images/store/optical-disc.png");
 		this.file = file;
 
 		/*

@@ -32,13 +32,12 @@ import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * An utility class for handling "fully played" functionality.
  */
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
-	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/icon-fullyplayed.png";
+	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/store/fullyplayed-overlay.png";
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 	private static final int BLANK_IMAGE_RESOLUTION = 256;
 

@@ -34,7 +34,6 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
-import net.pms.store.DbIdTypeAndIdent;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
@@ -42,7 +41,6 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
-import net.pms.store.container.VirtualFolderDbId;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -272,6 +270,7 @@ public class UmsContentDirectoryService {
 		try {
 			orderByCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a browse action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -320,6 +319,7 @@ public class UmsContentDirectoryService {
 		try {
 			sortCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a search action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -464,6 +464,11 @@ public class UmsContentDirectoryService {
 				if (resource instanceof StoreContainer storeContainer) {
 					parentFolder = storeContainer;
 				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to browse direct children on a store item for objectID '{}' !", objectID);
+					} else {
+						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
+					}
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}
@@ -519,19 +524,8 @@ public class UmsContentDirectoryService {
 
 			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 
-			VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""));
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-			for (StoreResource resource : SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
-				folder.addChild(resource);
-			}
-
-			folder.discoverChildren();
-			List<StoreResource> resultResources = new ArrayList<>();
-			for (StoreResource resource : folder.getChildren()) {
-				resource.resolve();
-				resource.setFakeParentId("0");
-				resultResources.add(resource);
-			}
+			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			String result;
@@ -669,6 +663,11 @@ public class UmsContentDirectoryService {
 				if (resource instanceof StoreContainer storeContainer) {
 					parentFolder = storeContainer;
 				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to search on a store item for containerId '{}' !", containerId);
+					} else {
+						LOGGER.debug("Trying to search on a null object for containerId '{}' !", containerId);
+					}
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			}

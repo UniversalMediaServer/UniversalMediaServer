@@ -19,6 +19,7 @@ import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
+import { Check, ExclamationMark } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -27,7 +28,6 @@ import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
-import { Check, ExclamationMark } from 'tabler-icons-react';
 
 const Home = () => {
   const i18n = useContext(I18nContext);
@@ -36,6 +36,7 @@ const Home = () => {
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
   const [networkDevicesBlockedByDefault, setNetworkDevicesBlockedByDefault] = useState(false);
+  const [isLocalhost, setIsLocalhost] = useState(false);
   const [users, setUsers] = useState([] as User[]);
   const [currentTime, setCurrentTime] = useState(0);
   const session = useContext(SessionContext);
@@ -96,8 +97,8 @@ const Home = () => {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       })
@@ -110,6 +111,7 @@ const Home = () => {
     setLoading(true);
     axios.get(renderersApiUrl + 'devices')
       .then(function(response: any) {
+        setIsLocalhost(response.data.isLocalhost);
         setNetworkDeviceFilters(response.data.networkDevices);
         setNetworkDevicesBlockedByDefault(response.data.networkDevicesBlockedByDefault);
         setCurrentTime(response.data.currentTime);
@@ -118,8 +120,8 @@ const Home = () => {
         showNotification({
           id: 'renderers-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       })
@@ -129,23 +131,27 @@ const Home = () => {
   }
 
   const setUserId = async (rule: string, userId: any) => {
-    setSettings('renderers', { rule, userId });
+    setSettings('renderers', { rule, userId }, false);
   }
 
   const setRenderersAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('renderers', { rule, isAllowed });
+    setSettings('renderers', { rule, isAllowed }, false);
   }
 
   const setDevicesAllowed = async (rule: string, isAllowed: boolean) => {
-    setSettings('devices', { rule, isAllowed });
+    setSettings('devices', { rule, isAllowed }, true);
   };
 
-  const setSettings = async (endpoint:string, data: any) => {
+  const reset = async () => {
+    setSettings('reset', null, true);
+  };
+
+  const setSettings = async (endpoint:string, data: any, fromDevice: boolean) => {
     showNotification({
       id: 'settings-save',
       loading: true,
-      title: i18n.get['Save'],
-      message: i18n.get['SavingConfiguration'],
+      title: i18n.get('Save'),
+      message: i18n.get('SavingConfiguration'),
       autoClose: false,
       withCloseButton: false
     });
@@ -154,27 +160,33 @@ const Home = () => {
         updateNotification({
           id: 'settings-save',
           color: 'teal',
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
+          autoClose:true,
+          loading: false,
+          title: i18n.get('Saved'),
+          message: i18n.get('ConfigurationSaved'),
           icon: <Check size='1rem' />
         });
-        refreshData();
+        fromDevice ? refreshDeviceData() : refreshData();
       })
       .catch(function(error) {
         if (!error.response && error.request) {
           updateNotification({
             id: 'settings-save',
             color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotReceived'],
+            autoClose:true,
+            loading: false,
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived'),
             icon: <ExclamationMark size='1rem' />
           })
         } else {
           updateNotification({
             id: 'settings-save',
             color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['ConfigurationNotSaved']
+            autoClose:true,
+            loading: false,
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotSaved')
           })
         }
       });
@@ -185,9 +197,9 @@ const Home = () => {
       <LoadingOverlay visible={loading} />
       <Tabs keepMounted={false} defaultValue='renderers'>
         <Tabs.List>
-          <Tabs.Tab value='renderers'>{i18n.get['DetectedMediaRenderers']}</Tabs.Tab>
-          <Tabs.Tab value='blocked_renderers'>{i18n.get['BlockedMediaRenderers']}</Tabs.Tab>
-          <Tabs.Tab value='network_devices'>{i18n.get['NetworkDevices']}</Tabs.Tab>
+          <Tabs.Tab value='renderers'>{i18n.get('DetectedMediaRenderers')}</Tabs.Tab>
+          <Tabs.Tab value='blocked_renderers'>{i18n.get('BlockedMediaRenderers')}</Tabs.Tab>
+          <Tabs.Tab value='network_devices'>{i18n.get('NetworkDevices')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value='renderers' pt='xs'>
           <Renderers
@@ -218,19 +230,21 @@ const Home = () => {
         <Tabs.Panel value='network_devices' pt='xs'>
           <NetworkDevices
             blockedByDefault={networkDevicesBlockedByDefault}
+            isLocalhost={isLocalhost}
             canModify={canModify}
             currentTime={currentTime}
             i18n={i18n}
             networkDeviceFilters={networkDeviceFilters}
             refreshDeviceData={refreshDeviceData}
             setAllowed={setDevicesAllowed}
+            reset={reset}
           />
         </Tabs.Panel>
       </Tabs>
     </Box>
   ) : (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
-      <Text c='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
 };

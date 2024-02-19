@@ -16,7 +16,6 @@
  */
 package net.pms.network.mediaserver.handlers;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.database.MediaDatabase;
@@ -36,12 +34,14 @@ import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.network.mediaserver.handlers.message.SearchRequest;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdLibrary;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.DbIdResourceLocator;
 import net.pms.store.DbIdTypeAndIdent;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
-import net.pms.store.container.VirtualFolderDbId;
-import net.pms.store.container.VirtualFolderDbIdNamed;
+import net.pms.store.container.MusicBrainzAlbumFolder;
+import net.pms.store.container.MusicBrainzPersonFolder;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.SortCriterion;
@@ -70,8 +70,6 @@ public class SearchRequestHandler {
 	private static final Pattern TOKENIZER_PATTERN = Pattern.compile(
 		"(?<property>((\\bdc\\b)|(\\bupnp\\b)):[A-Za-z@\\[\\]\"=]+)\\s+(?<op>[A-Za-z=!<>]+)\\s+\"(?<val>.*?)\"", Pattern.CASE_INSENSITIVE);
 
-	private final AtomicInteger updateID = new AtomicInteger(1);
-
 	public static DbIdMediaType getRequestType(String searchCriteria) {
 		LOGGER.debug("search criteria : {}", searchCriteria);
 		Matcher matcher = CLASS_PATTERN.matcher(searchCriteria);
@@ -80,6 +78,7 @@ public class SearchRequestHandler {
 			LOGGER.trace("upnp:class is {}", propertyValue);
 			if (propertyValue != null) {
 				propertyValue = propertyValue.toLowerCase();
+				// More specific types must be checked first
 				if (propertyValue.startsWith("object.item.audioitem")) {
 					return DbIdMediaType.TYPE_AUDIO;
 				} else if (propertyValue.startsWith("object.item.videoitem")) {
@@ -92,6 +91,8 @@ public class SearchRequestHandler {
 					return DbIdMediaType.TYPE_ALBUM;
 				} else if (propertyValue.startsWith("object.container.playlistcontainer")) {
 					return DbIdMediaType.TYPE_PLAYLIST;
+				} else if (propertyValue.startsWith("object.container")) {
+					return DbIdMediaType.TYPE_FOLDER;
 				}
 			}
 		}
@@ -127,22 +128,14 @@ public class SearchRequestHandler {
 
 		int totalMatches = getLibraryResourceCountFromSQL(convertToCountSql(requestMessage.getSearchCriteria(), requestType));
 
-		VirtualFolderDbId folder = new VirtualFolderDbId(renderer, "SearchResult", new DbIdTypeAndIdent(requestType, ""));
 		String sqlFiles = convertToFilesSql(requestMessage, requestType);
 		for (StoreResource resource : getLibraryResourceFromSQL(renderer, sqlFiles, requestType)) {
-			folder.addChild(resource);
-		}
-
-		folder.discoverChildren();
-		for (StoreResource uf : folder.getChildren()) {
 			numberReturned++;
-			uf.resolve();
-			uf.setFakeParentId("0");
-			dlnaItems.append(DidlHelper.getDidlString(uf));
+			dlnaItems.append(DidlHelper.getDidlString(resource));
 		}
 
 		// Build response message
-		StringBuilder response = buildEnvelope(numberReturned, totalMatches, updateID.getAndIncrement(), dlnaItems);
+		StringBuilder response = buildEnvelope(numberReturned, totalMatches, MediaStoreIds.getSystemUpdateId().getValue(), dlnaItems);
 		return createResponse(response.toString());
 	}
 
@@ -161,19 +154,22 @@ public class SearchRequestHandler {
 				return "select DISTINCT ON (FILENAME) A.ARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_CONDUCTOR -> {
-				return "select DISTINCT A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.CONDUCTOR as FILENAME, A.A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_COMPOSER -> {
-				return "select DISTINCT A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.COMPOSER as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_PERSON_ALBUMARTIST -> {
-				return "select DISTINCT A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
+				return "select DISTINCT ON (FILENAME) A.ALBUMARTIST as FILENAME, A.AUDIOTRACK_ID as oid from AUDIO_METADATA as A where ";
 			}
 			case TYPE_ALBUM -> {
 				return "select DISTINCT ON (album) mbid_release as liked, MBID_RECORD, album, artist, media_year, genre, ALBUM as FILENAME, A.AUDIOTRACK_ID as oid, A.MBID_RECORD from MUSIC_BRAINZ_RELEASE_LIKE as m right outer join AUDIO_METADATA as a on m.mbid_release = A.mbid_record where ";
 			}
 			case TYPE_PLAYLIST -> {
-				return "select DISTINCT FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+				return "select DISTINCT ON (FILENAME) FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
+			}
+			case TYPE_FOLDER -> {
+				return "select DISTINCT ON (child.NAME) child.NAME, child.ID as FID, child.ID as oid, parent.ID as parent_id from STORE_IDS child, STORE_IDS parent where ";
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select FILENAME, MODIFIED, F.ID as FID, F.ID as oid from FILES as F where ";
@@ -213,6 +209,9 @@ public class SearchRequestHandler {
 			}
 			case TYPE_VIDEO, TYPE_IMAGE -> {
 				return "select count(DISTINCT F.id) from FILES as F where ";
+			}
+			case TYPE_FOLDER -> {
+				return "select count(DISTINCT child.NAME) from STORE_IDS child, STORE_IDS parent where ";
 			}
 			default -> throw new RuntimeException("not implemented request type : " + (requestType != null ? requestType : "NULL"));
 		}
@@ -320,6 +319,9 @@ public class SearchRequestHandler {
 		if (lastIndex < searchCriteria.length()) {
 			sb.append(searchCriteria, lastIndex, searchCriteria.length());
 		}
+		if (requestType.equals(DbIdMediaType.TYPE_FOLDER)) {
+			sb.append(" AND child.parent_id = parent.id and child.object_type = 'RealFolder' and parent.object_type = 'RealFolder'");
+		}
 	}
 
 	/**
@@ -405,6 +407,9 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST, TYPE_VIDEO, TYPE_IMAGE -> {
 				return " F.FILENAME ";
 			}
+			case TYPE_FOLDER -> {
+				return " child.name ";
+			}
 			default -> {
 				// nothing to do
 			}
@@ -414,7 +419,7 @@ public class SearchRequestHandler {
 
 	private static void acquireDatabaseType(StringBuilder sb, String op, String val, DbIdMediaType requestType) {
 		switch (requestType) {
-			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+			case TYPE_ALBUM, TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST, TYPE_FOLDER -> {
 				sb.append(" 1=1 ");
 				return;
 			}
@@ -453,6 +458,9 @@ public class SearchRequestHandler {
 			case TYPE_PLAYLIST -> {
 				return Format.PLAYLIST;
 			}
+			case TYPE_FOLDER -> {
+				// do nothing, where not in the FILES table, but in STORE_IDS
+			}
 			default -> {
 				// nothing to do
 			}
@@ -483,13 +491,16 @@ public class SearchRequestHandler {
 	}
 
 	/**
-	 * Converts sql statements with FILENAME to RealFiles
+	 * Converts SQL statements having 'FILENAME' as a result identifier. Makes a logical DB search and converts
+	 * result set to items and container.
 	 *
 	 * @param query
 	 * @return
+	 *
+	 * List of discovered CDS items and containers from the database.
 	 */
 	public static List<StoreResource> getLibraryResourceFromSQL(Renderer renderer, String query, DbIdMediaType type) {
-		ArrayList<StoreResource> filesList = new ArrayList<>();
+		ArrayList<StoreResource> result = new ArrayList<>();
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(String.format("SQL %s : %s", type.dbidPrefix, query));
@@ -507,41 +518,59 @@ public class SearchRequestHandler {
 								case TYPE_ALBUM -> {
 									String mbid = resultSet.getString("MBID_RECORD");
 									if (StringUtils.isAllBlank(mbid)) {
-										filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField)));
+										// Regular albums can be discovered in the media library
+										StoreResource sr = DbIdResourceLocator.getAlbumFromMediaLibrary(renderer, filenameField);
+										if (sr != null) {
+											result.add(sr);
+										}
 									} else {
 										if (!foundMbidAlbums.contains(mbid)) {
-											VirtualFolderDbIdNamed albumFolder = new VirtualFolderDbIdNamed(renderer, filenameField,
-												new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
-											MusicBrainzAlbum album = new MusicBrainzAlbum(resultSet.getString("MBID_RECORD"),
-												resultSet.getString("album"), resultSet.getString("artist"), resultSet.getInt("media_year"),
-												resultSet.getString("genre"));
-											DbIdResourceLocator.appendAlbumInformation(album, albumFolder);
-											filesList.add(albumFolder);
+											MusicBrainzAlbumFolder folder = DbIdResourceLocator.getLibraryResourceMusicBrainzFolder(
+												renderer, new DbIdTypeAndIdent(DbIdMediaType.TYPE_MUSICBRAINZ_RECORDID, mbid));
+											if (folder == null) {
+												MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, resultSet.getString("album"), resultSet.getString("artist"),
+													Integer.toString(resultSet.getInt("media_year")), resultSet.getString("genre"));
+												folder = DbIdLibrary.addLibraryResourceMusicBrainzAlbum(renderer, album);
+											}
+											result.add(folder);
 											foundMbidAlbums.add(mbid);
 										}
 									}
 								}
-								case TYPE_PERSON -> filesList
-									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, filenameField)));
-								case TYPE_PERSON_COMPOSER -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
-									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_COMPOSER_PREFIX + filenameField)));
-								case TYPE_PERSON_CONDUCTOR -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
-									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_CONDUCTOR_PREFIX + filenameField)));
-								case TYPE_PERSON_ALBUMARTIST -> filesList.add(new VirtualFolderDbIdNamed(renderer, filenameField,
-									new DbIdTypeAndIdent(type, DbIdMediaType.PERSON_ALBUMARTIST_PREFIX + filenameField)));
-								case TYPE_PLAYLIST -> filesList
-									.add(new VirtualFolderDbIdNamed(renderer, filenameField, new DbIdTypeAndIdent(type, resultSet.getString("FID"))));
+								case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR, TYPE_PERSON_ALBUMARTIST -> {
+									DbIdTypeAndIdent ti = new DbIdTypeAndIdent(type, filenameField);
+									MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, ti);
+									if (personFolder == null) {
+										personFolder = DbIdLibrary.addLibraryResourcePerson(renderer, ti);
+									}
+									result.add(personFolder);
+								}
+								case TYPE_PLAYLIST -> {
+									String realFileName = resultSet.getString("FILENAME");
+									if (realFileName != null) {
+										StoreResource res = DbIdResourceLocator.getLibraryResourcePlaylist(renderer, realFileName);
+										if (res != null) {
+											result.add(res);
+										}
+									}
+								}
+								case TYPE_FOLDER -> {
+									if (filenameField != null) {
+										StoreResource res = DbIdResourceLocator.getLibraryResourceFolder(renderer, filenameField);
+										if (res != null) {
+											result.add(res);
+										}
+									}
+								}
 								default -> {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
-										StoreResource item = DbIdResourceLocator.createResourceFromFile(
-											renderer,
-											new File(realFileName),
-											new DbIdTypeAndIdent(type, resultSet.getString("FID")));
-										filesList.add(item);
+										StoreResource res = DbIdResourceLocator.getLibraryResourceRealFile(renderer, realFileName);
+										if (res != null) {
+											result.add(res);
+										}
 									}
 								}
-
 							}
 						}
 					}
@@ -552,13 +581,16 @@ public class SearchRequestHandler {
 		} finally {
 			MediaDatabase.close(connection);
 		}
-		return filesList;
+		return result;
 	}
 
 	private static String extractDisplayName(ResultSet resultSet, DbIdMediaType type) throws SQLException {
 		switch (type) {
-			case TYPE_VIDEO, TYPE_PLAYLIST, TYPE_IMAGE, TYPE_FOLDER, TYPE_AUDIO -> {
+			case TYPE_VIDEO, TYPE_PLAYLIST, TYPE_IMAGE, TYPE_AUDIO -> {
 				return FilenameUtils.getBaseName(resultSet.getString("FILENAME"));
+			}
+			case TYPE_FOLDER -> {
+				return resultSet.getString("name");
 			}
 			default -> {
 				// artificial field 'filename' of a person or similar type is
@@ -583,7 +615,7 @@ public class SearchRequestHandler {
 		return response;
 	}
 
-	private static StringBuilder buildEnvelope(int foundNumberReturned, int totalMatches, int updateID, StringBuilder dlnaItems) {
+	private static StringBuilder buildEnvelope(int foundNumberReturned, int totalMatches, long updateID, StringBuilder dlnaItems) {
 		StringBuilder response = new StringBuilder();
 		response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
 		response.append(CRLF);

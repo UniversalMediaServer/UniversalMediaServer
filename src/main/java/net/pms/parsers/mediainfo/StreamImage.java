@@ -93,7 +93,6 @@ public class StreamImage {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.IMAGE, streamNumber, "FirstPacketOrder");
@@ -213,7 +212,6 @@ public class StreamImage {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Format_Commercial");
@@ -237,7 +235,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format).
+	 * Profile of the Format.
 	 * Shown in inform()
 	 */
 	public static final String getFormatProfile(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -533,7 +531,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDisplayAspectRatioOriginal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -541,11 +539,59 @@ public class StreamImage {
 	}
 
 	/**
-	 * The proportional relationship between the width and height of a frame, considering data only from the codec (e.g. 4:3).
+	 * The proportional relationship between the width and height of a frame (e.g. 4:3).
 	 * Shown in inform()
 	 */
 	public static final String getDisplayAspectRatioOriginalString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "DisplayAspectRatio_Original/String");
+	}
+
+	/**
+	 * Width of frame, not considering black bars.
+	 * Shown in Info_Capacities()
+	 */
+	public static final Long getActiveWidth(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.IMAGE, streamNumber, "Active_Width");
+	}
+
+	/**
+	 * Width of frame, not considering black bars, in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 920 pixels).
+	 * Shown in inform()
+	 */
+	public static final String getActiveWidthString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Active_Width/String");
+	}
+
+	/**
+	 * Height of frame, not considering black bars.
+	 * Shown in Info_Capacities()
+	 */
+	public static final Long getActiveHeight(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.IMAGE, streamNumber, "Active_Height");
+	}
+
+	/**
+	 * Height of frame, not considering black bars, in pixels, presented in SI unit digit spacing style, with measurement (e.g. 1 080 pixels).
+	 * Shown in inform()
+	 */
+	public static final String getActiveHeightString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Active_Height/String");
+	}
+
+	/**
+	 * The proportional relationship between the active width and active height of a frame (e.g. 4:3).
+	 * Shown in Info_Capacities()
+	 */
+	public static final Double getActiveDisplayAspectRatio(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getDouble(StreamKind.IMAGE, streamNumber, "Active_DisplayAspectRatio");
+	}
+
+	/**
+	 * The proportional relationship between the active width and active height of a frame (e.g. 4:3).
+	 * Shown in inform()
+	 */
+	public static final String getActiveDisplayAspectRatioString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Active_DisplayAspectRatio/String");
 	}
 
 	/**
@@ -599,7 +645,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getCompressionMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -607,7 +653,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Compression mode (Lossy or Lossless).
+	 * Compression mode (Lossy, Lossless).
 	 * Shown in inform()
 	 */
 	public static final String getCompressionModeString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -617,14 +663,13 @@ public class StreamImage {
 	/**
 	 * Stream size divided by uncompressed stream size.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final Double getCompressionRatio(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.IMAGE, streamNumber, "Compression_Ratio");
 	}
 
 	/**
-	 * Size of this stream, in bytes (e.g. 11010717).
+	 * Size of this stream, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -683,7 +728,6 @@ public class StreamImage {
 
 	/**
 	 * Size of this stream after demuxing, in bytes.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.IMAGE, streamNumber, "StreamSize_Demuxed");
@@ -749,6 +793,7 @@ public class StreamImage {
 
 	/**
 	 * Name of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryName(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Encoded_Library_Name");
@@ -756,6 +801,7 @@ public class StreamImage {
 
 	/**
 	 * Version of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Encoded_Library_Version");
@@ -763,6 +809,7 @@ public class StreamImage {
 
 	/**
 	 * Release date of the encoding software, in UTC.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Encoded_Library_Date");
@@ -847,8 +894,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDisabled(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -856,8 +902,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDisabledString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -865,8 +910,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDefault(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -874,8 +918,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDefaultString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -883,8 +926,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getForced(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -892,8 +934,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getForcedString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -918,6 +959,7 @@ public class StreamImage {
 
 	/**
 	 * Plot outline or a summary of the story.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getSummary(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.IMAGE, streamNumber, "Summary");
@@ -951,8 +993,7 @@ public class StreamImage {
 	}
 
 	/**
-	 * Presence of color description.
-	 * Options are Yes/No
+	 * Presence of color description (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getcolourdescriptionpresent(MediaInfoHelper mediaInfo, int streamNumber) {

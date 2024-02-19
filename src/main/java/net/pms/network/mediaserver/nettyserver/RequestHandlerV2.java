@@ -34,6 +34,7 @@ import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.StartStopListenerDelegate;
@@ -102,36 +103,36 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		if ((HttpMethod.GET.equals(method) || HttpMethod.HEAD.equals(method)) && uri.startsWith("ums/")) {
 			// Request to retrieve a media stream.
 			// Renderer should has been registred.
-			String umsUri = StringUtils.substringAfter(uri, "ums/");
-			/**
-			 * part 1 : renderer uuid part 2 : resource id part 3 : action
-			 */
-			String[] requestData = umsUri.split("/", 4);
-			if (requestData.length > 2) {
-				renderer = ConnectedRenderers.getUuidRenderer(requestData[0]);
-				if (renderer == null) {
-					//find renderer by uuid and ip for non registred upnp devices
-					renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
-					if (renderer != null && !requestData[0].equals(renderer.getId())) {
-						if (LOGGER.isTraceEnabled()) {
-							LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), requestData[0]);
-						}
-						renderer = null;
-					}
-				}
-
-				if (renderer == null) {
-					// If uuid not known, it mean the renderer is not registred
-					sendError(ctx, HttpResponseStatus.UNAUTHORIZED);
-					return;
-				}
-			} else {
+			MediaServerRequest mediaServerRequest = new MediaServerRequest(uri);
+			if (mediaServerRequest.isBadRequest()) {
 				sendError(ctx, HttpResponseStatus.BAD_REQUEST);
+				return;
+			}
+			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
+			if (renderer == null) {
+				//find renderer by uuid and ip for non registred upnp devices
+				renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
+				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
+					}
+					/**
+					 * here, that mean the originated renderer advised is no more available.
+					 * It may be a caster/proxy control point, so let change to the real renderer.
+					 * fixme : non-renderer should advise a special uuid.
+					 * renderer = null;
+					 */
+				}
+			}
+
+			if (renderer == null) {
+				// If uuid not known, it mean the renderer is not registred
+				sendError(ctx, HttpResponseStatus.UNAUTHORIZED);
 				return;
 			}
 			// If the reguested url contains the no-transcode tag, force the default streaming-only conf.
 			// this should not work.
-			if (request.getUri().contains(Renderer.NOTRANSCODE)) {
+			if (uri.contains(Renderer.NOTRANSCODE)) {
 				renderer = RendererConfigurations.getDefaultRenderer();
 				LOGGER.debug("Forcing streaming.");
 			}
@@ -243,7 +244,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 */
 	private String getUri(String rawUri) {
 		String uri = rawUri;
-
+		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		while (uri.startsWith("/")) {
 			LOGGER.trace("Stripping preceding slash from: " + uri);
 			uri = uri.substring(1);
@@ -345,7 +346,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 	}
 
-	private void writeResponse(ChannelHandlerContext ctx, MessageEvent event, RequestV2 request, InetAddress ia) throws HttpException {
+	private void writeResponse(ChannelHandlerContext ctx, MessageEvent event, RequestV2 request, InetAddress ia) {
 		HttpRequest nettyRequest = (HttpRequest) event.getMessage();
 		// Decide whether to close the connection or not.
 		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||

@@ -48,7 +48,7 @@ public class UmsDatagramProcessor extends DatagramProcessorImpl {
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
 
 	/**
-	 * Overrided as JUPnP logger show null char from the datagram data buffer.
+	 * Overridden as JUPnP logger show null char from the datagram data buffer.
 	 * Check on JUPnP update if it's corrected, then remove the overriding method.
 	 * @param receivedOnAddress
 	 * @param datagram
@@ -84,7 +84,7 @@ public class UmsDatagramProcessor extends DatagramProcessorImpl {
 	}
 
 	/**
-	 * Overrided as there is no simple way to change the product/version for datagrams message.
+	 * Overridden as there is no simple way to change the product/version for datagrams message.
 	 *
 	 * @param message
 	 * @return

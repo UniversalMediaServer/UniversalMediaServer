@@ -40,7 +40,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 	private LocalizedStoreContainer vfAudio = null;
 
 	public MediaLibrary(Renderer renderer) {
-		super(renderer, "MediaLibrary", "/images/folder-icons/media-library.png");
+		super(renderer, "MediaLibrary", "/images/store/media-library.png");
 		addVideoFolder();
 		addAudioFolder();
 		addImageFolder();
@@ -93,15 +93,8 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			renderer,
 			"Movies",
 			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
-			EMPTY_FILES_WITH_FILTERS
-		);
-		MediaLibraryFolder allMoviesFolder = new MediaLibraryFolder(
-			renderer,
-			"AllMovies",
-			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MOVIE_CONDITION + AND + IS_NOT_3D_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
 			FILES_WITH_FILTERS
 		);
-		moviesFolder.addChild(allMoviesFolder);
 		MediaLibraryFolder movies3DFolder = new MediaLibraryFolder(
 			renderer,
 			"3dMovies",
@@ -258,7 +251,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			new String[]{
 				SELECT_DISTINCT + COALESCE_ARTIST + AS + "ARTIST" + FROM_FILES + ", " + MediaTableAudioMetadata.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID + AND + FORMAT_TYPE_AUDIO + ORDER_BY + "ARTIST" + ASC,
 				SELECT_DISTINCT + MediaTableAudioMetadata.TABLE_COL_ALBUM + FROM_FILES + ", " + MediaTableAudioMetadata.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID + AND + FORMAT_TYPE_AUDIO + AND + COALESCE_ARTIST + EQUAL + "'${0}'" + ORDER_BY + MediaTableAudioMetadata.TABLE_COL_ALBUM + ASC,
-				SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + FROM_FILES + ", " + MediaTableAudioMetadata.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID + AND + FORMAT_TYPE_AUDIO + AND + COALESCE_ARTIST + EQUAL + "'${1}' AND " + MediaTableAudioMetadata.TABLE_COL_ALBUM + EQUAL + "'${0}'" + ORDER_BY + MediaTableAudioMetadata.TABLE_COL_TRACK + ASC + ", " + MediaTableFiles.TABLE_COL_FILENAME + ASC
+				SELECT + MediaTableFiles.TABLE_COL_FILENAME + ", " + MediaTableFiles.TABLE_COL_MODIFIED + FROM_FILES + ", " + MediaTableAudioMetadata.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID + AND + FORMAT_TYPE_AUDIO + AND + COALESCE_ARTIST + EQUAL + "'${1}'" + AND + MediaTableAudioMetadata.TABLE_COL_ALBUM + EQUAL + "'${0}'" + ORDER_BY + MediaTableAudioMetadata.TABLE_COL_TRACK + ASC + ", " + MediaTableFiles.TABLE_COL_FILENAME + ASC
 			},
 			new int[]{TEXTS, TEXTS, FILES}
 		);

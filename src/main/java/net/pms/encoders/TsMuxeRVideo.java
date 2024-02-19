@@ -715,18 +715,21 @@ public class TsMuxeRVideo extends Engine {
 			return false;
 		}
 
-		try {
-			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
+		MediaAudio audio = resource.getMediaAudio();
+		if (audio != null) {
+			try {
+				String audioTrackName = resource.getMediaAudio().toString();
+				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
-			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// We only support playback of the default audio track for tsMuxeR
-				return false;
+				if (!audioTrackName.equals(defaultAudioTrackName)) {
+					// We only support playback of the default audio track for tsMuxeR
+					return false;
+				}
+			} catch (NullPointerException e) {
+				LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + resource.getFileName());
+			} catch (IndexOutOfBoundsException e) {
+				LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + resource.getFileName());
 			}
-		} catch (NullPointerException e) {
-			LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + resource.getFileName());
-		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + resource.getFileName());
 		}
 
 		return (
@@ -783,6 +786,7 @@ public class TsMuxeRVideo extends Engine {
 				}
 			}
 		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		return result.build();

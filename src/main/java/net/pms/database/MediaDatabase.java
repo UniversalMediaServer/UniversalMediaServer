@@ -19,6 +19,7 @@ package net.pms.database;
 import java.sql.Connection;
 import java.sql.SQLException;
 import net.pms.store.MediaScanner;
+import net.pms.swing.Splash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +34,7 @@ public class MediaDatabase extends Database {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	public static final String DATABASE_NAME = "medias";
 	/**
-	 * Pointer to the instanciated MediaDatabase.
+	 * Pointer to the instantiated MediaDatabase.
 	 */
 	private static MediaDatabase instance = null;
 	private static boolean tablesChecked = false;
@@ -78,6 +79,7 @@ public class MediaDatabase extends Database {
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
+				Splash.setStatusMessage("UpgradingMediaDb");
 				//Tables Versions (need to be first)
 				MediaTableTablesVersions.checkTable(connection);
 
@@ -209,8 +211,8 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance availability.
 	 *
-	 * @return {@code true } if the MediaDatabase is instanciated and opened ,
-	 * <code>false</code> otherwise
+	 * @return {@code true } if the MediaDatabase is instantiated and opened
+	 * , <code>false</code> otherwise
 	 */
 	public static boolean isAvailable() {
 		return isInstantiated() && instance.isOpened();

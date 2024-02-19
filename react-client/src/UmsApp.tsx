@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useDirection, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useComputedColorScheme, useDirection, useMantineColorScheme } from '@mantine/core';
 
 import { useEffect } from 'react';
 import {
@@ -52,12 +52,12 @@ import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/au
 function UmsApp() {
 
   const { dir } = useDirection();
-  const { colorScheme, toggleColorScheme } = useMantineColorScheme();
+  const { toggleColorScheme } = useMantineColorScheme();
   setAxiosAuthorization();
   useEffect(() => {
     refreshAuthTokenNearExpiry();
   });
-
+  const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
   return (
     <I18nProvider>
       <MainProvider>
@@ -75,12 +75,12 @@ function UmsApp() {
                     }: undefined}
                     header={{ height: 50 }}
                     styles={(theme) => ({
-                      main: { backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
+                      main: { backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
                     })}
                   >
                     {main.navbarValue && <AppShell.Navbar
                       p='xs'
-                      style={(theme: MantineTheme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
+                      style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
                       <AppShell.Section grow my="md" component={ScrollArea}>
                         <Stack gap={0}>{main.navbarValue}</Stack>
@@ -88,7 +88,7 @@ function UmsApp() {
                     </AppShell.Navbar>}
                     <AppShell.Header
                       p='xs'
-                      style={(theme) => ({ backgroundColor: colorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
+                      style={(theme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] })}
                     >
                       <Group justify='space-between'>
                         <Group justify='left'>
@@ -104,7 +104,7 @@ function UmsApp() {
                           {session.account && session.account.user &&
                             <Button
                               variant='transparent'
-                              style={() => ({ cursor: 'default', color: colorScheme === 'dark' ? 'white' : 'black' })}
+                              style={() => ({ cursor: 'default', color: computedColorScheme === 'dark' ? 'white' : 'black' })}
                               leftSection={
                                 <Avatar radius='sm' size='sm' src={session.account.user.avatar !== '' ? session.account.user.avatar : null}>
                                   {session.account.user.avatar === '' && <User size={16} />}
@@ -117,7 +117,7 @@ function UmsApp() {
                         </Group>
                         <Group justify='right'>
                           <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                            {colorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                            {computedColorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
                           </ActionIcon>
                           <LanguagesMenu />
                           {session.account && <UserMenu />}

@@ -26,7 +26,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const SessionProvider = ({ children, ...props }: Props) => {
+export const SessionProvider = ({ children }: Props) => {
   const [session, setSession] = useState({ noAdminFound: false, authenticate: true, initialized: false, player: false } as UmsSession)
   const i18n = useContext(I18nContext);
 
@@ -40,8 +40,8 @@ export const SessionProvider = ({ children, ...props }: Props) => {
           showNotification({
             id: 'data-loading',
             color: 'red',
-            title: i18n.get['Error'],
-            message: i18n.get['SessionNotReceived'],
+            title: i18n.get('Error'),
+            message: i18n.get('SessionNotReceived'),
             autoClose: 3000,
           });
         });

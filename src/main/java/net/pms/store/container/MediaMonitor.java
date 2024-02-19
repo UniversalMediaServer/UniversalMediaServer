@@ -52,7 +52,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 	private final File[] dirs;
 
 	public MediaMonitor(Renderer renderer, File[] dirs) {
-		super(renderer, "Unused", "images/thumbnail-folder-256.png");
+		super(renderer, "Unused", "images/store/folder.png");
 		this.dirs = new File[dirs.length];
 		System.arraycopy(dirs, 0, this.dirs, 0, dirs.length);
 	}

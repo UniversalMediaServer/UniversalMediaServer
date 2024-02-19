@@ -1,0 +1,20 @@
+name: PullRequestConflicting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [ synchronize ]
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: check if prs are dirty
+      uses: eps1lon/actions-label-merge-conflict@releases/2.x
+      id: check
+      with:
+        dirtyLabel: "conflicting"
+        repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
+        commentOnDirty: '@dependabot recreate'

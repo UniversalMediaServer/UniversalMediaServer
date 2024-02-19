@@ -29,7 +29,7 @@ interface Props {
   children?: ReactNode
 }
 
-export const PlayerEventProvider = ({ children, ...props }: Props) => {
+export const PlayerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
@@ -108,8 +108,8 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
         showNotification({
           id: 'player-play',
           color: 'orange',
-          title: i18n.get['RemoteControl'],
-          message: i18n.get['RemotePlayOnlyAllowed'],
+          title: i18n.get('RemoteControl'),
+          message: i18n.get('RemotePlayOnlyAllowed'),
           autoClose: true
         });
       }
@@ -129,8 +129,8 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
       showNotification({
         id: 'connection-lost',
         color: 'orange',
-        title: i18n.get['Warning'],
-        message: i18n.get['UniversalMediaServerUnreachable'],
+        title: i18n.get('Warning'),
+        message: i18n.get('UniversalMediaServerUnreachable'),
         autoClose: false
       });
     }
@@ -140,6 +140,15 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else if (event.status == 401) {
+        //reload Unauthorized
+        console.log('SSE Unauthorized');
+        throw new Error('SSE Unauthorized');
+      } else if (event.status == 403) {
+        //stop Forbidden
+        console.log('SSE Forbidden');
+      } else {
+        throw new Error('Expected content-type to be \'text/event-stream\'');
       }
     };
 

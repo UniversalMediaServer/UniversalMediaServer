@@ -326,9 +326,9 @@ public class JaudiotaggerParser {
 			Tag t = af.getTag();
 			if (t != null) {
 				String val = t.getFirst(FieldKey.MUSICBRAINZ_RELEASEID);
-				audioMetadata.setMbidRecord(val.equals("") ? null : val);
+				audioMetadata.setMbidRecord(val.isEmpty() ? null : val);
 				val = t.getFirst(FieldKey.MUSICBRAINZ_TRACK_ID);
-				audioMetadata.setMbidTrack(val.equals("") ? null : val);
+				audioMetadata.setMbidTrack(val.isEmpty() ? null : val);
 			}
 		} catch (UnsupportedOperationException | KeyNotFoundException e) {
 			LOGGER.trace("audio musicBrainz tag not parsed: " + e.getMessage());
@@ -365,7 +365,7 @@ public class JaudiotaggerParser {
 				} else if (tag instanceof AbstractID3v2Tag || tag instanceof ID3v11Tag) {
 					return convertID3ToStars(num);
 				} else {
-					// Dont't know ... maybe we use vorbis tags by default
+					// Don't know ... maybe we use vorbis tags by default
 					return convertVorbisToStars(num);
 				}
 			}

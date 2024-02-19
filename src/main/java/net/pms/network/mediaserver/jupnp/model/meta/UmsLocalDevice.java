@@ -107,13 +107,13 @@ public class UmsLocalDevice extends LocalDevice {
 	private static Icon[] createDeviceIcons() {
 		List<Icon> icons = new ArrayList<>();
 		try {
-			icons.add(new Icon("image/png", 256, 256, 24, "images/icon-256.png", getResourceInputStream("images/icon-256.png")));
-			icons.add(new Icon("image/png", 128, 128, 24, "images/icon-128.png", getResourceInputStream("images/icon-128.png")));
-			icons.add(new Icon("image/png", 120, 120, 24, "images/icon-120.png", getResourceInputStream("images/icon-120.png")));
-			icons.add(new Icon("image/png", 48, 48, 24, "images/icon-48.png", getResourceInputStream("images/icon-48.png")));
-			icons.add(new Icon("image/jpeg", 128, 128, 24, "images/icon-128.jpg", getResourceInputStream("images/icon-128.jpg")));
-			icons.add(new Icon("image/jpeg", 120, 120, 24, "images/icon-120.jpg", getResourceInputStream("images/icon-120.jpg")));
-			icons.add(new Icon("image/jpeg", 48, 48, 24, "images/icon-48.jpg", getResourceInputStream("images/icon-48.jpg")));
+			icons.add(new Icon("image/png", 256, 256, 24, "images/icon-square-256.png", getResourceInputStream("images/icon-square-256.png")));
+			icons.add(new Icon("image/png", 128, 128, 24, "images/icon-square-128.png", getResourceInputStream("images/icon-square-128.png")));
+			icons.add(new Icon("image/png", 120, 120, 24, "images/icon-square-120.png", getResourceInputStream("images/icon-square-120.png")));
+			icons.add(new Icon("image/png", 48, 48, 24, "images/icon-square-48.png", getResourceInputStream("images/icon-square-48.png")));
+			icons.add(new Icon("image/jpeg", 128, 128, 24, "images/icon-square-128.jpg", getResourceInputStream("images/icon-square-128.jpg")));
+			icons.add(new Icon("image/jpeg", 120, 120, 24, "images/icon-square-120.jpg", getResourceInputStream("images/icon-square-120.jpg")));
+			icons.add(new Icon("image/jpeg", 48, 48, 24, "images/icon-square-48.jpg", getResourceInputStream("images/icon-square-48.jpg")));
 		} catch (IOException ex) {
 			LOGGER.debug("Error in device icons creation: {}", ex);
 		}
@@ -156,13 +156,13 @@ public class UmsLocalDevice extends LocalDevice {
 	 * Creates the upnp ContentDirectoryService.
 	 * @return The ContenDirectoryService.
 	 */
-	private static LocalService<UmsContentDirectoryService> createContentDirectoryService() {
-		LocalService<UmsContentDirectoryService> contentDirectoryService = new AnnotationLocalServiceBinder().read(UmsContentDirectoryService.class);
+	private static LocalService createContentDirectoryService() {
+		LocalService contentDirectoryService = new AnnotationLocalServiceBinder().read(UmsContentDirectoryService.class);
 		contentDirectoryService.setManager(new DefaultServiceManager<UmsContentDirectoryService>(contentDirectoryService, null) {
 
 			@Override
 			protected int getLockTimeoutMillis() {
-				return 1000;
+				return 5000;
 			}
 
 			@Override
@@ -178,8 +178,8 @@ public class UmsLocalDevice extends LocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<UmsConnectionManagerService> createServerConnectionManagerService() {
-		LocalService<UmsConnectionManagerService> connectionManagerService = new AnnotationLocalServiceBinder().read(UmsConnectionManagerService.class);
+	private static LocalService createServerConnectionManagerService() {
+		LocalService connectionManagerService = new AnnotationLocalServiceBinder().read(UmsConnectionManagerService.class);
 		connectionManagerService.setManager(new DefaultServiceManager<UmsConnectionManagerService>(connectionManagerService, UmsConnectionManagerService.class) {
 
 			@Override
@@ -201,8 +201,8 @@ public class UmsLocalDevice extends LocalDevice {
 	 *
 	 * @return the service
 	 */
-	private static LocalService<UmsMediaReceiverRegistrarService> createMediaReceiverRegistrarService() {
-		LocalService<UmsMediaReceiverRegistrarService> mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(UmsMediaReceiverRegistrarService.class);
+	private static LocalService createMediaReceiverRegistrarService() {
+		LocalService mediaReceiverRegistrarService = new AnnotationLocalServiceBinder().read(UmsMediaReceiverRegistrarService.class);
 		mediaReceiverRegistrarService.setManager(new DefaultServiceManager<UmsMediaReceiverRegistrarService>(mediaReceiverRegistrarService, null) {
 			@Override
 			protected int getLockTimeoutMillis() {

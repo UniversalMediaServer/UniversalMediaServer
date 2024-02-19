@@ -22,10 +22,11 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.network.webguiserver.WebGuiServer;
-import net.pms.newgui.LooksFrame;
 import net.pms.renderers.Renderer;
+import net.pms.swing.gui.JavaGui;
 
 public class GuiManager {
+
 	private static final List<String> LOG_BUFFER = Collections.synchronizedList(new ArrayList<>());
 	private static final int LOG_BUFFER_SIZE = 5000;
 	private static final int BYTES_TO_MBYTES = 1024 * 1024;
@@ -54,7 +55,7 @@ public class GuiManager {
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
-			if (gui instanceof LooksFrame) {
+			if (gui instanceof JavaGui) {
 				// fill the log
 				dumpCurrentLog(gui);
 				swingFrame = gui;
@@ -175,6 +176,12 @@ public class GuiManager {
 		}
 		if (webGui != null) {
 			webGui.setStatusLine(line);
+		}
+	}
+
+	public static void showSwingFrame() {
+		if (swingFrame instanceof JavaGui frame) {
+			frame.setVisible(true);
 		}
 	}
 

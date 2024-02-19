@@ -87,6 +87,8 @@ public final class EngineFactory {
 		}
 	}
 
+	private static boolean initialized = false;
+
 	/**
 	 * Not to be instantiated.
 	 */
@@ -101,6 +103,11 @@ public final class EngineFactory {
 	 */
 	public static void initialize() throws InterruptedException {
 		registerEngines();
+		initialized = true;
+	}
+
+	public static boolean isInitialized() {
+		return initialized;
 	}
 
 	/**

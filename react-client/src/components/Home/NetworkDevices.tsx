@@ -14,24 +14,28 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput } from '@mantine/core';
+import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput, Tooltip } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import _ from 'lodash';
-import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh, SettingsOff } from 'tabler-icons-react';
 
 import { NetworkDevice, NetworkDevicesFilter } from './Home';
-import { useDisclosure } from '@mantine/hooks';
-import { useEffect, useState } from 'react';
+import { defaultTooltipSettings } from '../../utils';
+import { I18nInterface } from '../../contexts/i18n-context';
 
 const NetworkDevices = (
-  { blockedByDefault, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed }:
+  { blockedByDefault, isLocalhost, canModify, currentTime, i18n, networkDeviceFilters, refreshDeviceData, setAllowed, reset }:
     {
       blockedByDefault: boolean,
+      isLocalhost: boolean,
       canModify: boolean,
       currentTime: number,
-      i18n: { get: { [key: string]: string } },
+      i18n: I18nInterface,
       networkDeviceFilters: NetworkDevicesFilter[],
       refreshDeviceData: () => void,
-      setAllowed: (rule: string, isAllowed: boolean) => void
+      setAllowed: (rule: string, isAllowed: boolean) => void,
+      reset: () => void,
     }
 ) => {
   const [showCustomFilter, { open, close }] = useDisclosure(false);
@@ -50,7 +54,7 @@ const NetworkDevices = (
     const hoursAsString = hours < 10 ? '0' + hours : hours;
     // Convert time difference from hours to days
     interval = Math.floor(interval / 24);
-    return interval + ' ' + (interval > 1 ? i18n.get['Days'] : i18n.get['Day']) + ' ' + hoursAsString + ':' + minutesAsString + ':' + secondsAsString;
+    return interval + ' ' + (interval > 1 ? i18n.get('Days') : i18n.get('Day')) + ' ' + hoursAsString + ':' + minutesAsString + ':' + secondsAsString;
   };
 
   const setCustomFilterValue = (value: string) => {
@@ -79,7 +83,7 @@ const NetworkDevices = (
     <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
       <Card.Section withBorder inheritPadding py='xs'>
         <Group justify='space-between'>
-          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get['NetworkDevicesBlockedByDefault'] : i18n.get['NetworkDevicesAllowedByDefault']}</Text>
+          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get('NetworkDevicesBlockedByDefault') : i18n.get('NetworkDevicesAllowedByDefault')}</Text>
           {canModify && (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
@@ -90,12 +94,17 @@ const NetworkDevices = (
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get['AllowByDefault']}</Menu.Item>
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
+                  ) : isLocalhost ? (
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
                   ) : (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get['BlockByDefault']}</Menu.Item>
+                    <Tooltip label={i18n.get('YouHaveToNavigateFromLocalhost')} {...defaultTooltipSettings}>
+                      <Menu.Item leftSection={<DevicesPcOff size={14} />} closeMenuOnClick={false} color='grey'>{i18n.get('BlockByDefault')}</Menu.Item>
+                    </Tooltip>
                   )}
-                  <Menu.Item leftSection={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get['Refresh']}</Menu.Item>
-                  <Menu.Item leftSection={<CodePlus size={14} />} onClick={() => open()}>{i18n.get['AddCustomFilter']}</Menu.Item>
+                  <Menu.Item leftSection={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get('Refresh')}</Menu.Item>
+                  <Menu.Item leftSection={<CodePlus size={14} />} onClick={() => open()}>{i18n.get('AddCustomFilter')}</Menu.Item>
+                  <Menu.Item leftSection={<SettingsOff size={14} />} onClick={() => reset()} color='orange'>{i18n.get('ResetToDefaultSettings')}</Menu.Item>
                 </>
               </Menu.Dropdown>
             </Menu>
@@ -106,7 +115,7 @@ const NetworkDevices = (
   );
 
   const networkDevicesCustomFilter = canModify && (
-    <Modal opened={showCustomFilter} onClose={close} title={i18n.get['AddCustomFilter']}>
+    <Modal opened={showCustomFilter} onClose={close} title={i18n.get('AddCustomFilter')}>
       <TextInput
         value={customFilter}
         onChange={(event) => setCustomFilterValue(event.currentTarget.value)}
@@ -135,10 +144,10 @@ const NetworkDevices = (
                 <Menu.Dropdown>
                   <>
                     {!deviceFilter.isAllowed && (
-                      <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get['Allow']}</Menu.Item>
+                      <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
                     )}
                     {deviceFilter.isAllowed && (
-                      <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get['Block']}</Menu.Item>
+                      <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get('Block')}</Menu.Item>
                     )}
                   </>
                 </Menu.Dropdown>

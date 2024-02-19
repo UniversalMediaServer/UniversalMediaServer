@@ -56,8 +56,10 @@ import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
+import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.item.DVDISOTitle;
@@ -99,7 +101,10 @@ public abstract class StoreItem extends StoreResource {
 	private int specificType;
 	private MediaAudio mediaAudio;
 
-	private boolean avisynth;
+	/**
+	 * The time range for the file containing the start and end time in seconds.
+	 */
+	private TimeRange splitRange = new TimeRange();
 
 	/**
 	 * The system time when the resource was last (re)started by a user.
@@ -144,7 +149,7 @@ public abstract class StoreItem extends StoreResource {
 
 	protected StoreItem(Renderer renderer, int specificType) {
 		super(renderer);
-		this.specificType = specificType;
+		setSpecificType(specificType);
 		this.isSortableByDisplayName = true;
 	}
 
@@ -190,6 +195,25 @@ public abstract class StoreItem extends StoreResource {
 	}
 
 	/**
+	 * Returns the from - to time range for this resource.
+	 *
+	 * @return The time range.
+	 */
+	public TimeRange getSplitRange() {
+		return splitRange;
+	}
+
+	/**
+	 * Sets the from - to time range for this resource.
+	 *
+	 * @param splitRange The time range to set.
+	 * @since 1.50
+	 */
+	public void setSplitRange(TimeRange splitRange) {
+		this.splitRange = splitRange;
+	}
+
+	/**
 	 * Returns the {@link Engine} object that is used to encode this resource
 	 * for the renderer. Can be null.
 	 *
@@ -217,7 +241,7 @@ public abstract class StoreItem extends StoreResource {
 	 */
 	protected String getEngineName() {
 		if (engine != null) {
-			return engine.getName() + (isAvisynth() ? " + AviSynth" : "");
+			return engine.getName();
 		}
 		return Messages.getString("NoTranscoding");
 	}
@@ -245,7 +269,7 @@ public abstract class StoreItem extends StoreResource {
 	 *
 	 * @param specificType The specific type to set.
 	 */
-	protected void setSpecificType(int specificType) {
+	private void setSpecificType(int specificType) {
 		this.specificType = specificType;
 	}
 
@@ -385,44 +409,13 @@ public abstract class StoreItem extends StoreResource {
 	}
 
 	/**
-	 * Returns whether or not this resource is handled by AviSynth.
-	 *
-	 * @return True if handled by AviSynth, otherwise false.
-	 * @since 1.50
-	 */
-	protected boolean isAvisynth() {
-		return avisynth;
-	}
-
-	/**
-	 * Sets whether or not this resource is handled by AviSynth.
-	 *
-	 * @param avisynth Set to true if handled by Avisyth, otherwise false.
-	 * @since 1.50
-	 */
-	protected void setAvisynth(boolean avisynth) {
-		this.avisynth = avisynth;
-	}
-
-	/**
 	 * Returns true if transcoding should be skipped for this resource.
 	 *
 	 * @return True if transcoding should be skipped, false otherwise.
 	 * @since 1.50
 	 */
-	protected boolean isSkipTranscode() {
+	private boolean isSkipTranscode() {
 		return skipTranscode;
-	}
-
-	/**
-	 * Set to true if transcoding should be skipped for this resource.
-	 *
-	 * @param skipTranscode Set to true if trancoding should be skipped, false
-	 * otherwise.
-	 * @since 1.50
-	 */
-	protected void setSkipTranscode(boolean skipTranscode) {
-		this.skipTranscode = skipTranscode;
 	}
 
 	/**
@@ -432,6 +425,15 @@ public abstract class StoreItem extends StoreResource {
 	 * @return An engine if transcoding or null if streaming
 	 */
 	public Engine resolveEngine() {
+		if (renderer instanceof MediaScannerDevice) {
+			return null;
+		}
+
+		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
+			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
+			return null;
+		}
+
 		// Use device-specific conf, if any
 		boolean parserV2 = mediaInfo != null && renderer.isUseMediaInfo();
 		Engine resolvedEngine;
@@ -466,11 +468,6 @@ public abstract class StoreItem extends StoreResource {
 		String rendererSkipExtensions = renderer.getStreamedExtensions();
 		String configurationForceExtensions = renderer.getUmsConfiguration().getForceTranscodeForExtensions();
 		String configurationSkipExtensions = renderer.getUmsConfiguration().getDisableTranscodeForExtensions();
-
-		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
-			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
-			return null;
-		}
 
 		// Should transcoding be skipped for this format?
 		skipTranscode = format.skip(configurationSkipExtensions, rendererSkipExtensions);
@@ -560,7 +557,7 @@ public abstract class StoreItem extends StoreResource {
 			/*
 			 * Transcode if: 1) transcoding is forced by configuration, or 2)
 			 * transcoding is not prevented by configuration and is needed due
-			 * to subtitles or some other renderer incompatbility
+			 * to subtitles or some other renderer incompatibility
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
@@ -598,6 +595,10 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		return mime;
+	}
+
+	public long getStartTime() {
+		return startTime;
 	}
 
 	/**
@@ -1061,6 +1062,35 @@ public abstract class StoreItem extends StoreResource {
 		return mediaInfo != null ? mediaInfo.getMimeType() : null;
 	}
 
+	/**
+	 * Prototype for returning URLs.
+	 *
+	 * @return a URL for a given mediaInfo item.
+	 */
+	public String getMediaURL() {
+		return getMediaURL("");
+	}
+
+	/**
+	 * @param prefix
+	 * @return Returns a URL for a given mediaInfo item.
+	 */
+	public String getMediaURL(String prefix) {
+		return getMediaURL(prefix, false);
+	}
+
+	public String getMediaURL(String prefix, boolean useSystemName) {
+		return getMediaURL(prefix, useSystemName, true);
+	}
+
+	private String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
+		StringBuilder sb = MediaServerRequest.getServerMediaURL(renderer.getUUID(), getResourceId());
+		String uri = useSystemName ? getSystemName() : getName();
+		sb.append(prefix);
+		sb.append(urlEncode ? encode(uri) : uri);
+		return sb.toString();
+	}
+
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////
@@ -1094,7 +1124,7 @@ public abstract class StoreItem extends StoreResource {
 		resume = r;
 	}
 
-	public boolean isResumeable() {
+	protected boolean isResumeable() {
 		if (format != null) {
 			// Only resume videos
 			return format.isVideo();
@@ -1175,10 +1205,6 @@ public abstract class StoreItem extends StoreResource {
 
 	public String getLocalizedResumeName(String lang) {
 		return resumeStr(getLocalizedDisplayName(lang));
-	}
-
-	public long getStartTime() {
-		return startTime;
 	}
 
 	public String getResolutionForKeepAR(int scaleWidth, int scaleHeight) {
@@ -1338,14 +1364,6 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 		}
-	}
-
-	@Override
-	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (isAvisynth()) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(getResourceInputStream("/images/logo-avisynth.png"));
-		}
-		return super.getThumbnailInputStream();
 	}
 
 	/**

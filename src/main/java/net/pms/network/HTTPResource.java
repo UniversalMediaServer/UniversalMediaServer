@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import net.pms.PMS;
@@ -155,7 +156,10 @@ public abstract class HTTPResource {
 	 * @see #downloadAndSendBinary(String)
 	 */
 	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
-		URL url = new URL(u);
+		if (u == null) {
+			return null;
+		}
+		URL url = URI.create(u).toURL();
 		File f = null;
 
 		if (saveOnDisk) {
@@ -200,7 +204,10 @@ public abstract class HTTPResource {
 	 * @throws IOException
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
-		URL url = new URL(u);
+		if (u == null) {
+			return new byte[0];
+		}
+		URL url = URI.create(u).toURL();
 
 		// The URL may contain user authentication information
 		Authenticator.setDefault(new HTTPResourceAuthenticator());

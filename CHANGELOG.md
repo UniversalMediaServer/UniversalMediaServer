@@ -1,5 +1,223 @@
 # Changelog
 
+## [Unreleased]
+
+### General
+- Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
+- Remux non-AC-3 audio regardless of AC-3 setting
+- Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+
+### Dependencies
+- Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
+- Bump `@typescript-eslint/eslint-plugin` from 6.17.0 to 7.0.1 ([#4376](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4376), [#4391](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4391), [#4464](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4464), [#4479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4479))
+- Bump `@typescript-eslint/parser` from 6.17.0 to 7.0.1 ([#4365](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4365), [#4419](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4419), [#4459](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4459), [#4479](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4479))
+- Bump `react-router-dom` from 6.21.1 to 6.22.1 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408), [#4465](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4465), [#4485](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4485))
+- Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
+- Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
+- Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
+- Bump `@types/react` from 18.2.47 to 18.2.55 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392), [#4468](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4468))
+- Bump `@testing-library/jest-dom` from 6.2.0 to 6.4.2 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423), [#4455](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4455))
+- Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
+- Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
+- Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
+- Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
+- Bump `@types/node` from 18.19.4 to 20.11.19 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462))
+- Bump `@types/jest` from 29.5.11 to 29.5.12 ([#4482](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4482))
+- Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
+- Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
+
+## 14.0.0 (Unreleased)
+
+### General
+- Added menu option to clear all renderer/device filter settings
+- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
+- Added status text to splash screen
+- Refresh data after device filter settings change
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Fixed TV series sometimes not being set for episodes
+- Updates to INSTALL.txt (#4409) (thanks, easleydp!)
+- Stability improvements
+- Logging improvements
+- Refactored to remove deprecated code use
+- Updated browser logos
+- Fixed response on web player when directory has been deleted
+- Fixed scanning unshared parent directories
+- Added a warning that the offline help pages are not maintained
+- Added a link to the new maintained documentation at https://support.universalmediaserver.com
+- Added caching to translations
+- Fixed scanning ignored directories
+- Fixed broken folder browsing over time
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
+- All changes from 13.9.0
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+
+### Dependencies
+- Bump `mantine` from 6.0.21 to 7.5.3
+- Bump `video.js` from 8.5.2 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `@types/node` from 18.19.4 to 18.19.15 ([#4448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4448))
+
+## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
+
+### General
+- Added ability to block/allow renderers in web settings
+- Added ability to block/allow network devices in web settings
+- Added ability to set whether renderers or network devices are blocked or allowed by default
+- Added ability to link people to renderers for independent playback tracking
+- Added ability to restrict share content to certain groups
+- Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
+- File status is saved per-user
+- Added status line on webgui
+- Added flag for movie/tv countries
+- Added original movie/tv series title and country if not same as title
+- Added Rating bar
+- Added option to sort by rating in Media Library
+- Improved memory use bar on the web interface
+- Added ability for user accounts to have avatars
+- Improved selection of video quality on web player
+- Removed ability to disable the local cache
+- Improved drag and drop on Shared Content tab on web settings
+- Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Improved TV series matching and lookups
+- Improved database cleanup step
+- Fixed thumbnail handling bugs
+- Fixed FirstAirDate and LastAirDate for TV series
+
+### Translation updates via Crowdin
+- Danish (60%) (thanks, GurliGebis!)
+- English (UK) (51%) (thanks, Pete Russell!)
+- French (100%)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (Brazilian) (70%) (thanks, Mauro.A!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
+### Renderers
+- Improved support for Samsung The Frame TVs
+- Improved transcoding support on Samsung OLED TVs
+
+### Dependencies
+- Updated git-commit-id-maven-plugin to 7.0.0
+- Updated h2database to 2.2.224
+- Updated jakarta.servlet-api to 6.0.0
+- Updated jwt-decode to v4
+- Updated Mantine to v7.4.0, which:
+  - Improves performance of the web interface
+  - Improves RTL language support
+  - Uses your system light/dark mode preference
+- Updated NSIS to v3
+- Updated nsis-maven-plugin to v1.0.5
+- Updated typescript to 5.3.3
+- Updated yarn to v4, which improves install performance by 3x
+- Updated web-vitals to 3.5.0
+
+## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
+
+### General
+- Added ability to shut down computer from web settings (thanks, wolfhaus!)
+- Added detection of DTS:X including the IMAX variant
+- Fixed incorrectly detecting some sports events as movies
+- Fixed various documentation typos (thanks, luzpaz!)
+- Fixed detection of DTS-HD
+- Fixed auto updater
+- Removed broken access control that crept in from v14, whoops
+- Improved performance of CI
+
+### Renderers
+- Improved support for LG 2023+ TVs
+
+### Dependencies
+- lock file maintenance
+- update actions/setup-java action to v4
+- update dependency @emotion/react to v11.11.3
+- update dependency @testing-library/jest-dom to v6.2.0
+- update dependency @testing-library/user-event to v14.5.2
+- update dependency @types/node to v18.19.4
+- update dependency @types/react to v18.2.46
+- update dependency @types/react-dom to v18.2.18
+- update dependency @types/react-color to v3.0.11
+- update dependency axios to v1.6.3
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.16.1
+- update dependency com.github.eirslett:frontend-maven-plugin to v1.15.0
+- update dependency com.github.oshi:oshi-core to v6.4.10
+- update dependency com.ibm.icu:icu4j to v74.2 
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.7
+- update dependency eslint to v8.56.0
+- update dependency org.apache.maven.plugins:maven-compiler-plugin to v3.12.1
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.2.3
+- update dependency org.slf4j:slf4j-api to v2.0.10
+- update dependency react-router-dom to v6.21.1
+- update dependency stylis to v4.3.1
+- update dependency web-vitals to v3.5.1
+- update jna monorepo to v5.14.0
+- update logback-version to v1.4.14
+- update mockito monorepo to v5.8.0
+- update typescript-eslint monorepo to v6.17.0 
+
+## [13.8.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.0...13.8.1) (2023-12-08)
+
+### General
+- Fixed transcoding on renderers with MediaInfo=false
+- Added ability to add end-to-end web browser tests on Chrome, Firefox and Safari via Playwright
+- Improved logging detail and test coverage (thanks, Priyanka Ghosh Dastidar!)
+- Made server tests not run when only front-end code has changed
+
+### Translation updates via Crowdin
+- English (UK) (49%) (thanks, Pete Russell!)
+- Estonian (13%) (thanks, Avernys!)
+- French (100%) (thanks, Fredo1650!)
+- Romanian (48%) (thanks, Bogdan Ungureanu!)
+- Spanish (61%) (thanks, Diego León Giraldo Gómez!)
+
+### Dependencies
+- Bump FFmpeg to 6.1
+- Bump Java to 17.0.9+11
+- Bump MediaInfo to 23.10
+- lock file maintenance
+- update dependency @testing-library/jest-dom to v6.1.5
+- update dependency @testing-library/react to v14.1.2
+- update dependency @types/jest to v29.5.11
+- update dependency @types/lodash to v4.14.202
+- update dependency @types/node to v18.18.13
+- update dependency @types/react to v18.2.40
+- update dependency @types/react-color to v3.0.10
+- update dependency @types/videojs-hls-quality-selector to v1.1.3
+- update dependency axios to v1.6.2
+- update dependency ch.qos.logback:logback-classic to v1.4.12
+- update dependency com.drewnoakes:metadata-extractor to v2.19.0
+- update dependency com.fasterxml.jackson.core:jackson-databind to v2.16.0
+- update dependency com.github.eirslett:frontend-maven-plugin to v1.14.2
+- update dependency com.github.oshi:oshi-core to v6.4.8
+- update dependency com.ibm.icu:icu4j to v74
+- update dependency com.puppycrawl.tools:checkstyle to v10.12.5
+- update dependency com.sun.xml.messaging.saaj:saaj-impl to v3.0.3
+- update dependency com.zaxxer:hikaricp to v5.1.0
+- update dependency commons-io:commons-io to v2.15.1
+- update dependency eslint to v8.54.0
+- update dependency org.apache.commons:commons-lang3 to v3.14.0
+- update dependency org.apache.commons:commons-text to v1.11.0
+- update dependency org.apache.maven.plugins:maven-checkstyle-plugin to v3.3.1
+- update dependency org.apache.maven.plugins:maven-surefire-plugin to v3.2.2
+- update dependency org.codehaus.mojo:exec-maven-plugin to v3.1.1
+- update dependency react-router-dom to v6.20.1
+- update junit5 monorepo to v5.10.1
+- update react monorepo
+- update twelvemonkeys-imageio-version to v3.10.1
+- update typescript-eslint monorepo to v6.12.0
+- update yarn to v3.7.0
+
 ## [13.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.7.0...13.8.0) (2023-10-21)
 
 ### General

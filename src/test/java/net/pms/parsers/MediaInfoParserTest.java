@@ -183,6 +183,14 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-vc1.mkv").toString()
 		);
 		assertEquals(
+			"Container: MKV, Size: 8710128, Overall Bitrate: 7767364, Duration: 0:00:08.971, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: high, Format Level: 4.1, Stream Order: 0, Duration: 0:00:08.967, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 4], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: DTS-HD, Stream Order: 1, Bitrate: 0, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-h264-dtshd.mkv").toString()
+		);
+		assertEquals(
+			"Container: MKV, Size: 9513954, Overall Bitrate: 8484186, Duration: 0:00:08.971, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: high, Format Level: 4.1, Stream Order: 0, Duration: 0:00:08.967, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Reference Frame Count: 4], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: DTS-HD, Stream Order: 1, Bitrate: 0, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-h264-dtshd_x.mkv").toString()
+		);
+		assertEquals(
 			"Container: MP4, Size: 1099408, Overall Bitrate: 188638, Duration: 0:00:46.625, Video Tracks: 1 [Video Id: 0, Codec: h264, Format Profile: main, Format Level: 3.1, Stream Order: 0, Duration: 0:00:46.625, Resolution: 800 x 600, Display Aspect Ratio: 4:3, Scan Type: Progressive, Frame Rate: 8.0, Frame Rate Mode: CFR (CFR), Reference Frame Count: 4], Audio Tracks: 1 [Audio Id: 0, Codec: HE-AAC, Stream Order: 1, Bitrate: 159992, Channels: 6, Sample Frequency: 44100 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-heaac.mp4").toString()
 		);
@@ -207,8 +215,8 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_hdr10-aac.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, File Title from Metadata: A Beautiful Planet (2016), Duration: 0:00:01.127, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Stream Order: 0, Duration: 0:00:01.001, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2094 App 4, HDR Format Compatibility: HDR10+ Profile A (hdr10+)], Audio Tracks: 1 [Audio Id: 0, Title: DTS:X, Language Code: eng, Codec: DTS, Stream Order: 1, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz, Video Delay: 134], Mime Type: video/x-matroska",
-			getTestFileMediaInfo("video-h265_hdr10+-dtshd_ma.mkv").toString()
+			"Container: MKV, Size: 8652028, Overall Bitrate: 61416348, File Title from Metadata: A Beautiful Planet (2016), Duration: 0:00:01.127, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Stream Order: 0, Duration: 0:00:01.001, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2094 App 4, HDR Format Compatibility: HDR10+ Profile A (hdr10+)], Audio Tracks: 1 [Audio Id: 0, Title: DTS:X, Language Code: eng, Codec: DTS-HD, Stream Order: 1, Bitrate: 8543871, Bits per Sample: 24, Channels: 8, Sample Frequency: 48000 Hz, Video Delay: 134], Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-h265_hdr10+-dtshd_x_imax.mkv").toString()
 		);
 		assertEquals(
 			"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Duration: 0:00:08.342, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Duration: 0:00:08.425, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: SDR], Mime Type: video/vnd.dlna.mpeg-tts",

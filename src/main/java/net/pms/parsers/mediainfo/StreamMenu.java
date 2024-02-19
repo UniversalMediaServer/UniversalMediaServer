@@ -93,7 +93,6 @@ public class StreamMenu {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.MENU, streamNumber, "FirstPacketOrder");
@@ -204,7 +203,6 @@ public class StreamMenu {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.MENU, streamNumber, "Format_Commercial");
@@ -228,7 +226,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format).
+	 * Profile of the Format.
 	 * Shown in inform()
 	 */
 	public static final String getFormatProfile(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -310,7 +308,6 @@ public class StreamMenu {
 
 	/**
 	 * Deprecated.
-	 * Shown in Info_Capacities()
 	 */
 	@Deprecated
 	public static final String getCodec(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -342,7 +339,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Play time, in milliseconds.
+	 * Play time of the stream, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -411,7 +408,8 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Delay fixed in the stream (relative), in milliseconds.
+	 * Delay fixed in the stream (relative), in ms.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getDouble(StreamKind.MENU, streamNumber, "Delay");
@@ -478,6 +476,57 @@ public class StreamMenu {
 	 */
 	public static final String getDelaySource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.MENU, streamNumber, "Delay_Source");
+	}
+
+	/**
+	 * Frame rate mode, as acronym (e.g. CFR, VFR).
+	 * Shown in Info_Capacities()
+	 */
+	public static final String getFrameRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.MENU, streamNumber, "FrameRate_Mode");
+	}
+
+	/**
+	 * Frame rate mode, as word (e.g. Constant, Variable).
+	 */
+	public static final String getFrameRateModeString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.MENU, streamNumber, "FrameRate_Mode/String");
+	}
+
+	/**
+	 * Frames per second, as float (e.g. 29.970).
+	 * Shown in Info_Capacities()
+	 */
+	public static final Double getFrameRate(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getDouble(StreamKind.MENU, streamNumber, "FrameRate");
+	}
+
+	/**
+	 * Frames per second, with measurement (e.g. 29.970 (29970/1000) FPS).
+	 */
+	public static final String getFrameRateString(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.MENU, streamNumber, "FrameRate/String");
+	}
+
+	/**
+	 * Numerator for determined frames per second (e.g. 29970).
+	 */
+	public static final Long getFrameRateNum(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.MENU, streamNumber, "FrameRate_Num");
+	}
+
+	/**
+	 * Denominator for determined frames per second (e.g. 1000).
+	 */
+	public static final Long getFrameRateDen(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.MENU, streamNumber, "FrameRate_Den");
+	}
+
+	/**
+	 * Numer of frames.
+	 */
+	public static final Long getFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.getLong(StreamKind.MENU, streamNumber, "FrameCount");
 	}
 
 	/**
@@ -609,7 +658,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * URL for of assisted service.
+	 * URL of assisted service.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -627,7 +676,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * URL for provider of assisted service.
+	 * URL of provider of assisted service.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -654,7 +703,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Television network name for original broadcast.
+	 * Television network name of original broadcast.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -663,7 +712,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Country information for the content.
+	 * Country information of the content.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -672,7 +721,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * TimeZone information for the content.
+	 * TimeZone information of the content.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -682,7 +731,7 @@ public class StreamMenu {
 
 	/**
 	 * Legal rating of a movie.
-	 * Format depends on country of origin (e.g.PG or R in the USA, an age in other countries, or a URI defining a logo)
+	 * Format depends on country of origin (e.g.PG, 16)
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -691,7 +740,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Reason for the law rating.
+	 * Reason of the law rating.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -700,8 +749,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDisabled(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -709,8 +757,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Set if this stream should not be used.
-	 * Options are Yes/No
+	 * Set if this stream should not be used (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDisabledString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -718,8 +765,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getDefault(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -727,8 +773,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Flag set if this stream should be used if no language found matches the user preference.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used if no language found matches the user preference (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getDefaultString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -736,8 +781,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getForced(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -745,8 +789,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie.
-	 * Options are Yes/No
+	 * Flag set if this stream should be used regardless of user preferences, often used for sparse subtitle dialogue in an otherwise unsubtitled movie (Yes, No).
 	 * Shown in inform()
 	 */
 	public static final String getForcedString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -770,7 +813,7 @@ public class StreamMenu {
 	}
 
 	/**
-	 * Used by third-party developers to know about the beginning of the chapters list, to be used by Get(Stream_Menu, x, Pos), where Pos is an Integer between Chapters_Pos_Begin and Chapters_Pos_End.
+	 * Used by third-party developers to know about the beginning of the chapters list, to be used by Get (Stream_Menu, x, Pos), where Pos is an Integer between Chapters_Pos_Begin and Chapters_Pos_End.
 	 */
 	public static final Long getChaptersPosBegin(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.MENU, streamNumber, "Chapters_Pos_Begin");

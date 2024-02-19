@@ -96,7 +96,6 @@ public class StreamContainer {
 	/**
 	 * Order of the first fully decodable packet parsed in the file for stream type.
 	 * Counting starts at 0
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFirstPacketOrder(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.GENERAL, streamNumber, "FirstPacketOrder");
@@ -127,7 +126,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Identification for this stream in the original medium of the material.
+	 * Identification for this stream in the original medium of the material, taken from Tag metadata.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getOriginalSourceMediumID(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -135,7 +134,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Identification for this stream in the original medium of the material (String format).
+	 * Identification for this stream in the original medium of the material, taken from Tag metadata (String format).
 	 * Shown in inform()
 	 */
 	public static final String getOriginalSourceMediumIDString(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -518,7 +517,6 @@ public class StreamContainer {
 
 	/**
 	 * Commercial name used by vendor for these settings or Format field if there is no difference.
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getFormatCommercial(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Format_Commercial");
@@ -543,7 +541,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Profile of the Format (old XML: 'Profile@Level' format; MIXML: 'Profile' only).
+	 * Profile of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -552,7 +550,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Level of the Format (MIXML only).
+	 * Level of the Format.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -767,7 +765,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Play time (in ms).
+	 * Play time of the content, in s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getDuration(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -882,7 +880,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Bit rate mode of all streams, as acronym (VBR, CBR).
+	 * Bit rate mode of all streams (CBR, VBR).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getOverallBitRateMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -898,7 +896,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Bit rate of all streams, in bits per second.
+	 * Bit rate of all streams, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getOverallBitRate(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -914,7 +912,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Minimum total bit rate of all streams, in bits per second.
+	 * Minimum total bit rate of all streams, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getOverallBitRateMinimum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -930,7 +928,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Nominal bit rate of all streams, in bits per second.
+	 * Nominal bit rate of all streams, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getOverallBitRateNominal(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -946,7 +944,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Maximum bit rate of all streams, in bits per second.
+	 * Maximum bit rate of all streams, in bps.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Double getOverallBitRateMaximum(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -992,14 +990,15 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Frame count, if a frame contains a count of samples.
+	 * Frame count, if a stream has the same frame rate everywhere.
+	 * Shown in Info_Capacities()
 	 */
 	public static final Long getFrameCount(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.GENERAL, streamNumber, "FrameCount");
 	}
 
 	/**
-	 * Delay fixed in the stream (relative), as floating point number in milliseconds (e.g. 213.366667).
+	 * Delay fixed in the stream (relative), is s (ms for text output).
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getDelay(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1050,6 +1049,7 @@ public class StreamContainer {
 
 	/**
 	 * Delay settings (in case of timecode, for example).
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getDelaySettings(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Delay_Settings");
@@ -1057,6 +1057,7 @@ public class StreamContainer {
 
 	/**
 	 * Delay drop frame.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getDelayDropFrame(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Delay_DropFrame");
@@ -1064,6 +1065,7 @@ public class StreamContainer {
 
 	/**
 	 * Delay source (Container, Stream, or empty).
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getDelaySource(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Delay_Source");
@@ -1077,7 +1079,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Size of this stream, in bytes (e.g. 11010717).
+	 * Size of this stream, in bytes.
 	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSize(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1135,7 +1137,6 @@ public class StreamContainer {
 
 	/**
 	 * Size of this stream after demuxing, in bytes.
-	 * Shown in Info_Capacities()
 	 */
 	public static final Long getStreamSizeDemuxed(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.getLong(StreamKind.GENERAL, streamNumber, "StreamSize_Demuxed");
@@ -1208,8 +1209,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Set if this file is streamable or not.
-	 * Options are Yes/No
+	 * Set if this file is streamable or not (Yes, No).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getIsStreamable(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1227,7 +1227,6 @@ public class StreamContainer {
 	/**
 	 * The gain to apply to reach 89dB SPL on playback.
 	 * Shown in inform()
-	 * Shown in Info_Capacities()
 	 */
 	public static final String getAlbumReplayGainGainString(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Album_ReplayGain_Gain/String");
@@ -1243,7 +1242,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard.
+	 * Encryption.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -1252,7 +1251,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard format.
+	 * Encryption format.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionFormat(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1260,7 +1259,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard length (128, 192 or 256 bits).
+	 * Encryption length (128, 192 or 256 bits).
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionLength(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1268,7 +1267,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard method.
+	 * Encryption method.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionMethod(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1276,7 +1275,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard mode.
+	 * Encryption mode.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionMode(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1284,7 +1283,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard padding.
+	 * Encryption padding.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionPadding(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1292,7 +1291,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Advanced Encryption Standard initialization vector.
+	 * Encryption initialization vector.
 	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncryptionInitializationVector(MediaInfoHelper mediaInfo, int streamNumber) {
@@ -1325,6 +1324,7 @@ public class StreamContainer {
 
 	/**
 	 * Title of file.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getTitle(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Title");
@@ -1332,6 +1332,7 @@ public class StreamContainer {
 
 	/**
 	 * More title information.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getTitleMore(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Title_More");
@@ -2165,7 +2166,7 @@ public class StreamContainer {
 
 	/**
 	 * Legal rating of a movie.
-	 * Format depends on country of origin (e.g.PG or R in the USA, an age in other countries, or a URI defining a logo)
+	 * Format depends on country of origin (e.g.PG, 16)
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2256,14 +2257,15 @@ public class StreamContainer {
 
 	/**
 	 * Time that the file was created on the file system.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFileCreatedDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "File_Created_Date");
 	}
 
 	/**
-	 * Local time that the file was created on the file system.
-	 * (Warning: this field depends of local configuration, do not use it in an international database)
+	 * Local time that the file was created on the file system (not to be used in an international database).
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getFileCreatedDateLocal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "File_Created_Date_Local");
@@ -2277,7 +2279,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Local time that the file was last modified on the file system (Warning: this field depends of local configuration, do not use it in an international database).
+	 * Local time that the file was last modified on the file system (not to be used in an international database).
 	 */
 	public static final String getFileModifiedDateLocal(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "File_Modified_Date_Local");
@@ -2294,7 +2296,6 @@ public class StreamContainer {
 
 	/**
 	 * Location that the item was originally designed/written.
-	 * Information should be stored in the following format: country code, state/province, city where the country code is the same 2 octets as in Internet domains, or possibly ISO-3166 (e.g.US, Texas, Austin)
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2385,6 +2386,7 @@ public class StreamContainer {
 
 	/**
 	 * Name of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryName(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Encoded_Library_Name");
@@ -2392,6 +2394,7 @@ public class StreamContainer {
 
 	/**
 	 * Version of the encoding software.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryVersion(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Encoded_Library_Version");
@@ -2399,6 +2402,7 @@ public class StreamContainer {
 
 	/**
 	 * Release date of the encoding software, in UTC.
+	 * Shown in Info_Capacities()
 	 */
 	public static final String getEncodedLibraryDate(MediaInfoHelper mediaInfo, int streamNumber) {
 		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "Encoded_Library_Date");
@@ -2575,6 +2579,15 @@ public class StreamContainer {
 	}
 
 	/**
+	 * Universal Media Identifier.
+	 * Shown in inform()
+	 * Shown in Info_Capacities()
+	 */
+	public static final String getUMID(MediaInfoHelper mediaInfo, int streamNumber) {
+		return mediaInfo.get(StreamKind.GENERAL, streamNumber, "UMID");
+	}
+
+	/**
 	 * A label-specific catalogue number used to identify the release (e.g. TIC 01).
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
@@ -2584,7 +2597,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * A 4-digit or 5-digit number to identify the record label, typically printed as (LC) xxxx or (LC) 0xxxx on CDs media or covers, with only the number being stored.
+	 * Label code (e.g. 12345, meaning LC-12345).
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2656,7 +2669,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * URL for of assisted service.
+	 * URL of of assisted service.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2674,7 +2687,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * URL for provider of assisted service.
+	 * URL of provider of assisted service.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2701,7 +2714,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Television network name for original broadcast.
+	 * Television network name of original broadcast.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2710,7 +2723,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * Country information for the content.
+	 * Country information of the content.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2719,7 +2732,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * TimeZone information for the content.
+	 * Time zone information of the content.
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */
@@ -2790,8 +2803,7 @@ public class StreamContainer {
 	}
 
 	/**
-	 * A numeric value defining how much a person likes the song/movie.
-	 * The number is between 1 and 5 with decimal values possible (e.g.2.7), 5(.0) being the highest possible rating
+	 * A numeric value defining how much a person likes the song/movie, 1 to 5 (e.g. 2, 5.0).
 	 * Shown in inform()
 	 * Shown in Info_Capacities()
 	 */

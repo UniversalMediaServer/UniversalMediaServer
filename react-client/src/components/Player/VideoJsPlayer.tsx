@@ -36,7 +36,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     options.liveui = true;
     options.controls = true;
     options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
-    options.poster = playerApiUrl + 'thumb/' + vpOptions.uuid + '/' + vpOptions.media.id;
+    options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id;
     if (vpOptions.media.mediaType === 'audio') {
       options.audioPosterMode = true;
     }
@@ -54,7 +54,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         }
       }
     }
-    const onready = (player: Player) => {
+    const onready = (_player: Player) => {
       const volumeStatus = () => {
         setStatus('mute', videoPlayer.muted() ? '1' : '0', true);
         setStatus('volume', ((videoPlayer.volume() || 0) * 100).toFixed(0), false);
@@ -116,8 +116,10 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
       if (vpOptions.media.mime === 'application/x-mpegURL') {
         try {
-        (videoPlayer as any).hlsQualitySelector();
-        } catch { /* continue without hlsQualitySelector */ }
+          (videoPlayer as any).hlsQualitySelector();
+        } catch (error) {
+          videojs.log.warn(error);
+        }
       }
     };
 

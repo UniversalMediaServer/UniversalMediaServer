@@ -42,8 +42,8 @@ const Login = () => {
         showNotification({
           id: 'pwd-error',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ErrorLoggingIn'],
+          title: i18n.get('Error'),
+          message: i18n.get('ErrorLoggingIn'),
           autoClose: 3000,
         });
       }
@@ -54,23 +54,23 @@ const Login = () => {
     <Box style={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleLogin)}>
         <Text size='xl'>Universal Media Server</Text>
-        <Text size='lg'>{i18n.get['LogIn']}</Text>
+        <Text size='lg'>{i18n.get('LogIn')}</Text>
         <Space h='md' />
         <TextInput
           required
-          label={i18n.get['Username']}
+          label={i18n.get('Username')}
           leftSection={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
-          label={i18n.get['Password']}
+          label={i18n.get('Password')}
           type='password'
           leftSection={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group justify='flex-end' mt='md'>
-          <Button type='submit'>{i18n.get['LogIn']}</Button>
+          <Button type='submit'>{i18n.get('LogIn')}</Button>
         </Group>
       </form>
     </Box>

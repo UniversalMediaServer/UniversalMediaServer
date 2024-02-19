@@ -282,7 +282,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 		} else if (isDTS()) {
 			return "DTS";
 		} else if (isDTSHD()) {
-			return "DTS HD";
+			return "DTS-HD";
 		} else if (isEAC3()) {
 			return "Enhanced AC-3";
 		} else if (isERBSAC()) {
@@ -346,119 +346,119 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return True if the audio codec is one of the AAC variants.
+	 * @return whether the audio codec is one of the AAC variants.
 	 */
 	public boolean isAAC() {
 		return isAACLC() || isHEAAC();
 	}
 
 	/**
-	 * @return True if the audio codec is AAC-LC.
+	 * @return whether the audio codec is AAC-LC.
 	 */
 	public boolean isAACLC() {
 		return FormatConfiguration.AAC_LC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is AC-3.
+	 * @return whether the audio codec is AC-3.
 	 */
 	public boolean isAC3() {
 		return FormatConfiguration.AC3.equalsIgnoreCase(getCodec()) || getCodec() != null && getCodec().contains("a52");
 	}
 
 	/**
-	 * @return True if the audio codec is ACELP.
+	 * @return whether the audio codec is ACELP.
 	 */
 	public boolean isACELP() {
 		return FormatConfiguration.ACELP.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is ADPCM.
+	 * @return whether the audio codec is ADPCM.
 	 */
 	public boolean isADPCM() {
 		return FormatConfiguration.ADPCM.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is AIFF.
+	 * @return whether the audio codec is AIFF.
 	 */
 	public boolean isAIFF() {
 		return FormatConfiguration.AIFF.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is ALAC.
+	 * @return whether the audio codec is ALAC.
 	 */
 	public boolean isALAC() {
 		return FormatConfiguration.ALAC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is ALS.
+	 * @return whether the audio codec is ALS.
 	 */
 	public boolean isALS() {
 		return FormatConfiguration.ALS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Atmos.
+	 * @return whether the audio codec is Atmos.
 	 */
 	public boolean isAtmos() {
 		return FormatConfiguration.ATMOS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is ATRAC.
+	 * @return whether the audio codec is ATRAC.
 	 */
 	public boolean isATRAC() {
 		return FormatConfiguration.ATRAC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Cook.
+	 * @return whether the audio codec is Cook.
 	 */
 	public boolean isCook() {
 		return FormatConfiguration.COOK.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Dolby E.
+	 * @return whether the audio codec is Dolby E.
 	 */
 	public boolean isDolbyE() {
 		return FormatConfiguration.DOLBYE.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is DSD Audio.
+	 * @return whether the audio codec is DSD Audio.
 	 */
 	public boolean isDFF() {
 		return FormatConfiguration.DFF.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is DSF.
+	 * @return whether the audio codec is DSF.
 	 */
 	public boolean isDSF() {
 		return FormatConfiguration.DSF.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is DTS.
+	 * @return whether the audio codec is DTS.
 	 */
 	public boolean isDTS() {
 		return FormatConfiguration.DTS.equalsIgnoreCase(getCodec()) || getCodec() != null && getCodec().contains("dca");
 	}
 
 	/**
-	 * @return True if the audio codec is DTS HD.
+	 * @return whether the audio codec is DTS HD.
 	 */
 	public boolean isDTSHD() {
 		return FormatConfiguration.DTSHD.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is EAC-3.
+	 * @return whether the audio codec is EAC-3.
 	 */
 	public boolean isEAC3() {
 		return FormatConfiguration.EAC3.equalsIgnoreCase(getCodec());
@@ -472,203 +472,203 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return True if the audio codec is FLAC.
+	 * @return whether the audio codec is FLAC.
 	 */
 	public boolean isFLAC() {
 		return FormatConfiguration.FLAC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is G729.
+	 * @return whether the audio codec is G729.
 	 */
 	public boolean isG729() {
 		return FormatConfiguration.G729.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is HE-AAC.
+	 * @return whether the audio codec is HE-AAC.
 	 */
 	public boolean isHEAAC() {
 		return FormatConfiguration.HE_AAC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is MLP.
+	 * @return whether the audio codec is MLP.
 	 */
 	public boolean isMLP() {
 		return FormatConfiguration.MLP.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is MonkeysAudio.
+	 * @return whether the audio codec is MonkeysAudio.
 	 */
 	public boolean isMonkeysAudio() {
 		return FormatConfiguration.MONKEYS_AUDIO.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is MP3.
+	 * @return whether the audio codec is MP3.
 	 */
 	public boolean isMP3() {
 		return FormatConfiguration.MP3.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is MPEG-1/MPEG-2.
+	 * @return whether the audio codec is MPEG-1/MPEG-2.
 	 */
 	public boolean isMpegAudio() {
 		return FormatConfiguration.MP2.equalsIgnoreCase(getCodec()) || FormatConfiguration.MPA.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is MPC.
+	 * @return whether the audio codec is MPC.
 	 */
 	public boolean isMPC() {
 		return FormatConfiguration.MPC.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is OPUS.
+	 * @return whether the audio codec is OPUS.
 	 */
 	public boolean isOpus() {
 		return FormatConfiguration.OPUS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is PCM.
+	 * @return whether the audio codec is PCM.
 	 */
 	public boolean isPCM() {
 		return FormatConfiguration.LPCM.equals(getCodec()) || getCodec() != null && getCodec().startsWith("pcm");
 	}
 
 	/**
-	 * @return True if the audio codec is QDesign.
+	 * @return whether the audio codec is QDesign.
 	 */
 	public boolean isQDesign() {
 		return FormatConfiguration.QDESIGN.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is RealAudio Lossless.
+	 * @return whether the audio codec is RealAudio Lossless.
 	 */
 	public boolean isRALF() {
 		return FormatConfiguration.RALF.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is RealAudio 14.4.
+	 * @return whether the audio codec is RealAudio 14.4.
 	 */
 	public boolean isRealAudio144() {
 		return FormatConfiguration.REALAUDIO_14_4.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is RealAudio 28.8.
+	 * @return whether the audio codec is RealAudio 28.8.
 	 */
 	public boolean isRealAudio288() {
 		return FormatConfiguration.REALAUDIO_28_8.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Shorten.
+	 * @return whether the audio codec is Shorten.
 	 */
 	public boolean isShorten() {
 		return FormatConfiguration.SHORTEN.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Sipro Lab Telecom Audio Codec.
+	 * @return whether the audio codec is Sipro Lab Telecom Audio Codec.
 	 */
 	public boolean isSipro() {
 		return FormatConfiguration.SIPRO.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is SLS.
+	 * @return whether the audio codec is SLS.
 	 */
 	public boolean isSLS() {
 		return FormatConfiguration.SLS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is TrueHD.
+	 * @return whether the audio codec is TrueHD.
 	 */
 	public boolean isTrueHD() {
 		return FormatConfiguration.TRUEHD.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is TTA.
+	 * @return whether the audio codec is TTA.
 	 */
 	public boolean isTTA() {
 		return FormatConfiguration.TTA.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Vorbis.
+	 * @return whether the audio codec is Vorbis.
 	 */
 	public boolean isVorbis() {
 		return FormatConfiguration.VORBIS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is Wav.
+	 * @return whether the audio codec is Wav.
 	 */
 	public boolean isWAV() {
 		return FormatConfiguration.WAV.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WavPack.
+	 * @return whether the audio codec is WavPack.
 	 */
 	public boolean isWavPack() {
 		return FormatConfiguration.WAVPACK.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WMA.
+	 * @return whether the audio codec is WMA.
 	 */
 	public boolean isWMA() {
 		return FormatConfiguration.WMA.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WMA10.
+	 * @return whether the audio codec is WMA10.
 	 */
 	public boolean isWMA10() {
 		return FormatConfiguration.WMA10.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WMA Lossless.
+	 * @return whether the audio codec is WMA Lossless.
 	 */
 	public boolean isWMALossless() {
 		return FormatConfiguration.WMALOSSLESS.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WMA Pro.
+	 * @return whether the audio codec is WMA Pro.
 	 */
 	public boolean isWMAPro() {
 		return FormatConfiguration.WMAPRO.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is WMA Voice.
+	 * @return whether the audio codec is WMA Voice.
 	 */
 	public boolean isWMAVoice() {
 		return FormatConfiguration.WMAVOICE.equalsIgnoreCase(getCodec());
 	}
 
 	/**
-	 * @return True if the audio codec is AC-3, DTS, DTS-HD or TrueHD.
+	 * @return whether the audio codec is AC-3, DTS, DTS-HD or TrueHD.
 	 */
 	public boolean isNonPCMEncodedAudio() {
 		return isAC3() || isAtmos() || isDTS() || isTrueHD() || isDTSHD();
 	}
 
 	/**
-	 * @return True if the audio codec is lossless.
+	 * @return whether the audio codec is lossless.
 	 */
 	public boolean isLossless() {
 		return getCodec() != null &&
@@ -676,7 +676,7 @@ public class MediaAudio extends MediaLang implements Cloneable {
 				isAIFF() || isALAC() || isALS() || isFLAC() || isMLP() ||
 				isMonkeysAudio() || isPCM() || isRALF() || isShorten() ||
 				isSLS() || isTrueHD() || isTTA() || isWAV() || isWavPack() ||
-				isWMALossless()
+				isWMALossless() || isDTSHD()
 			);
 	}
 

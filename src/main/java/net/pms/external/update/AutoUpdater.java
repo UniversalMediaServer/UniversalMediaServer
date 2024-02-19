@@ -19,10 +19,11 @@ package net.pms.external.update;
 import com.sun.jna.Platform;
 import java.awt.Desktop;
 import java.io.*;
-import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import net.pms.Messages;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.external.JavaHttpClient;
@@ -36,11 +37,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author Tim Cox (mail@tcox.org)
  */
-public class AutoUpdater extends Observable implements ProgressCallback {
+public class AutoUpdater implements ProgressCallback {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
+	private static final EventListenerList LISTENERS = new EventListenerList();
+	private static final AutoUpdaterServerProperties SERVER_PROPERTIES = new AutoUpdaterServerProperties();
 
 	public enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
@@ -56,6 +58,20 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 	private long bytesDownloaded = -1;
 	private long totalBytes = -1;
 	private boolean downloadCancelled = false;
+
+	public static void addChangeListener(ChangeListener listener) {
+		LISTENERS.add(ChangeListener.class, listener);
+	}
+
+	public static void removeChangeListener(ChangeListener listener) {
+		LISTENERS.remove(ChangeListener.class, listener);
+	}
+
+	private static void fireStateChanged(AutoUpdater autoUpdater) {
+		for (ChangeListener listener : LISTENERS.getListeners(ChangeListener.class)) {
+			listener.stateChanged(new ChangeEvent(autoUpdater));
+		}
+	}
 
 	public AutoUpdater(String updateServerUrl, String currentVersion, String binariesRevision) {
 		this.serverUrl = updateServerUrl; // may be null if updating is disabled
@@ -144,7 +160,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 			desktop.open(exe);
 		} catch (IOException e) {
 			LOGGER.debug("Failed to run update after downloading: {}", e);
-			wrapException(Messages.getString("UnableToRunUpdate"), e);
+			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
 	}
 
@@ -184,8 +200,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 			}
 		}
 
-		setChanged();
-		notifyObservers();
+		fireStateChanged(this);
 	}
 
 	public boolean isUpdateAvailable() {
@@ -218,8 +233,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 			this.totalBytes = totalBytes;
 		}
 
-		setChanged();
-		notifyObservers();
+		fireStateChanged(this);
 	}
 
 	@Override
@@ -267,6 +281,10 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 		}
 	}
 
+	public Version getLatestVersion() {
+		return SERVER_PROPERTIES.getLatestVersion();
+	}
+
 	private static String getTargetFilename() {
 		String filename = "new-version.";
 		String fileExtension = "tgz";
@@ -289,7 +307,7 @@ public class AutoUpdater extends Observable implements ProgressCallback {
 	 * @param vFrom The initial version
 	 * @param vTo The target version
 	 * @return <code>true</code> if the current version can safely be updated,
-	 *         <code>false</code> otherwise.
+	 * <code>false</code> otherwise.
 	 */
 	public static boolean isUmsUpdatable(Version vFrom, Version vTo) {
 		return vTo.isGreaterThan(vFrom);

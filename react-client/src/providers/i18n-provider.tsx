@@ -14,28 +14,29 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { useDirection } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
 import { ExclamationMark } from 'tabler-icons-react';
+
 import I18nContext, { LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
-import { Direction, useDirection } from '@mantine/core';
 
 interface Props {
   children?: ReactNode,
 }
 
-export const I18nProvider = ({ children, ...props }: Props) => {
+export const I18nProvider = ({ children }: Props) => {
   const { dir, setDirection } = useDirection();
-  const [i18n, setI18n] = useState<{ [key: string]: string }>(
-    {
-      'Error': 'Error',
-      'LanguagesNotReceived': 'Languages were not received from the server.',
-      'Warning': 'Warning',
-      'UniversalMediaServerUnreachable': 'Universal Media Server unreachable'
-    });
+  const [i18n, setI18n] = useState<{ [key: string]: string }>({
+    'Error': 'Error',
+    'LanguagesNotReceived': 'Languages were not received from the server.',
+    'Warning': 'Warning',
+    'UniversalMediaServerUnreachable': 'Universal Media Server unreachable'
+  });
+  const [version, setVersion] = useState<string>();
   const [languages, setLanguages] = useState<LanguageValue[]>([]);
   const [language, setLanguage] = useLocalStorage<string>({
     key: 'language',
@@ -44,9 +45,13 @@ export const I18nProvider = ({ children, ...props }: Props) => {
       : (navigator.language || 'en-US'),
   });
 
+  const get = (value: string) => {
+    return i18n[value] ? i18n[value] : value;
+  }
+
   const getI18nString = (value: string) => {
     if (value && value.startsWith('i18n@')) {
-      return i18n[value.substring(5)];
+      return get(value.substring(5));
     } else {
       return value;
     }
@@ -66,8 +71,8 @@ export const I18nProvider = ({ children, ...props }: Props) => {
     return result;
   }
 
-  useEffect(() => {
-    axios.post(i18nApiUrl, { language: language })
+  const getI18nLanguage = (language: string, version: string) => {
+    axios.get(i18nApiUrl, { params: { language, version } })
       .then(function(response: any) {
         setLanguages(response.data.languages);
         setI18n(response.data.i18n);
@@ -90,12 +95,41 @@ export const I18nProvider = ({ children, ...props }: Props) => {
           });
         }
       });
+  }
+
+  const getI18nVersion = (language: string) => {
+    axios.post(i18nApiUrl)
+      .then(function(response: any) {
+        setVersion(response.data.version);
+        getI18nLanguage(language, response.data.version);
+      })
+      .catch(function(error) {
+        if (!error.response && error.request) {
+          showNotification({
+            color: 'red',
+            title: i18n['Warning'],
+            message: i18n['UniversalMediaServerUnreachable'],
+            icon: <ExclamationMark size='1rem' />
+          });
+        } else {
+          showNotification({
+            id: 'data-loading',
+            color: 'red',
+            title: i18n['Error'],
+            message: i18n['LanguagesNotReceived']
+          });
+        }
+      });
+  }
+
+  useEffect(() => {
+    version ? getI18nLanguage(language, version) : getI18nVersion(language);
   }, [language]);
 
   const { Provider } = I18nContext;
   return (
     <Provider value={{
-      get: i18n,
+      get: get,
       getI18nString: getI18nString,
       getI18nFormat: getI18nFormat,
       language: language || 'en-US',

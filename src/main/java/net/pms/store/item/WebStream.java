@@ -20,6 +20,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.network.HTTPResource;
@@ -37,20 +38,24 @@ public class WebStream extends StoreItem {
 	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type) {
 		super(renderer, type);
 
-		try {
-			URL tmpUrl = new URL(url);
-			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			this.url = tmpUrl.toString();
-		} catch (MalformedURLException e) {
-			this.url = url;
+		if (url != null) {
+			try {
+				URL tmpUrl = URI.create(url).toURL();
+				tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
+				this.url = tmpUrl.toString();
+			} catch (IllegalArgumentException | MalformedURLException e) {
+				this.url = url;
+			}
 		}
 
-		try {
-			URL tmpUrl = new URL(thumbURL);
-			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			this.thumbURL = tmpUrl.toString();
-		} catch (MalformedURLException e) {
-			this.thumbURL = thumbURL;
+		if (thumbURL != null) {
+			try {
+				URL tmpUrl = URI.create(thumbURL).toURL();
+				tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
+				this.thumbURL = tmpUrl.toString();
+			} catch (IllegalArgumentException | MalformedURLException e) {
+				this.thumbURL = thumbURL;
+			}
 		}
 
 		this.fluxName = fluxName;

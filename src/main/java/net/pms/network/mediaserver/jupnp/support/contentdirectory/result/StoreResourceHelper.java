@@ -531,7 +531,7 @@ public class StoreResourceHelper {
 					}
 				}
 
-				res.setValue(URI.create(item.getFileURL() + transcodedExtension));
+				res.setValue(URI.create(item.getMediaURL() + transcodedExtension));
 				result.addResource(res);
 			}
 
@@ -788,11 +788,11 @@ public class StoreResourceHelper {
 		if (!resElement.isResolutionKnown() && DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile())) {
 			throw new IllegalArgumentException("Resolution cannot be unknown for DLNAImageProfile.JPEG_RES_H_V");
 		}
-		String url;
+		String url = null;
 		if (resElement.isThumbnail()) {
 			url = resource.getThumbnailURL(resElement.getProfile());
-		} else {
-			url = resource.getMediaURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
+		} else if (resource instanceof StoreItem item) {
+			url = item.getMediaURL((DLNAImageProfile.JPEG_RES_H_V.equals(resElement.getProfile()) ?
 				"JPEG_RES" + resElement.getWidth() + "x" + resElement.getHeight() :
 				resElement.getProfile().toString()) + "_");
 		}
@@ -800,7 +800,7 @@ public class StoreResourceHelper {
 			String ciFlag;
 			/*
 			 * Some Panasonic TV's can't handle if the thumbnails have the CI
-			 * flag set to 0 while the main resource doesn't have a CI flag.
+			 * flag set to 0 while the main item doesn't have a CI flag.
 			 * DLNA dictates that a missing CI flag should be interpreted as if
 			 * it were 0, so the result should be the same.
 			 */

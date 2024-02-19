@@ -1,0 +1,19 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="48" height="48">
+  <defs>
+    <path id="a" d="M 37.7 10.2 c -1.4 -1.3 -3.5 -1.2 -4.8 0.2 c -1.3 1.4 -1.2 3.5 0.2 4.9 c 2.6 2.4 4.1 5.8 4.1 9.5 c 0 7.2 -5.9 13.1 -13.1 13.1 c -7.2 0 -13 -5.9 -13 -13.1 c 0 -3.6 1.5 -7 4.1 -9.5 c 1.4 -1.4 1.5 -3.5 0.2 -4.9 c -1.3 -1.4 -3.5 -1.5 -4.9 -0.2 c -4.1 3.8 -6.3 9 -6.3 14.6 c 0 11 9 19.9 19.9 19.9 c 11 0 19.9 -9 19.9 -19.9 c 0 -5.5 -2.2 -10.8 -6.3 -14.6"/>
+    <path id="b" d="M 24 25.4 c 1.8 0 3.4 -1.2 3.4 -2.8 l 0 -16.5 c 0 -1.5 -1.6 -2.8 -3.4 -2.8 c -1.8 0 -3.4 1.3 -3.4 2.8 l 0 16.5 c 0 1.6 1.6 2.8 3.4 2.8"/>
+    <linearGradient id="c" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#D24B48"/>
+      <stop offset="100%" stop-color="#7B3230"/>
+    </linearGradient>
+  </defs>
+  <use xlink:href="#a" fill="none" stroke="#000" stroke-width="7" stroke-opacity=".2"/>
+  <use xlink:href="#b" fill="none" stroke="#000" stroke-width="7" stroke-opacity=".2"/>
+  <use xlink:href="#a" fill="none" stroke="#FFF" stroke-width="6" stroke-opacity=".8"/>
+  <use xlink:href="#b" fill="none" stroke="#FFF" stroke-width="6" stroke-opacity=".8"/>
+  <use xlink:href="#a" fill="url(#c)"/>
+  <use xlink:href="#b" fill="url(#c)"/>
+</svg>

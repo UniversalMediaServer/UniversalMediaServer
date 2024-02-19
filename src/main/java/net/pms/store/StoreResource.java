@@ -37,7 +37,7 @@ import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaStatus;
 import net.pms.media.subtitle.MediaSubtitle;
-import net.pms.network.mediaserver.handlers.MediaStreamHandler;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.container.CodeEnter;
@@ -45,7 +45,6 @@ import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.util.FullyPlayedAction;
 import net.pms.util.GenericIcons;
 import net.pms.util.StringUtil;
-import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -97,10 +96,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	private StoreResource first;
 	private StoreResource second;
 
-	/**
-	 * The time range for the file containing the start and end time in seconds.
-	 */
-	private TimeRange splitRange = new TimeRange();
 	private String fakeParentId;
 
 	/**
@@ -408,9 +403,9 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		StringBuilder sb = new StringBuilder();
 
 		// Base
-		if (parent instanceof ChapterFileTranscodeVirtualFolder && getSplitRange() != null) {
+		if (parent instanceof ChapterFileTranscodeVirtualFolder && this instanceof StoreItem item && item.getSplitRange() != null) {
 			sb.append(">> ");
-			sb.append(StringUtil.convertTimeToString(getSplitRange().getStartOrZero(), StringUtil.DURATION_TIME_FORMAT));
+			sb.append(StringUtil.convertTimeToString(item.getSplitRange().getStartOrZero(), StringUtil.DURATION_TIME_FORMAT));
 		} else {
 			sb.append(getDisplayNameBase());
 		}
@@ -472,21 +467,12 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Prototype for returning URLs.
-	 *
-	 * @return An empty URL
-	 */
-	public String getFileURL() {
-		return getMediaURL("");
-	}
-
-	/**
 	 * @param profile
 	 * @return Returns an URL pointing to an image representing the item. If
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	public String getThumbnailURL(DLNAImageProfile profile) {
-		StringBuilder sb = MediaStreamHandler.getServerThumbnailURL(renderer.getUUID(), getResourceId());
+		StringBuilder sb = MediaServerRequest.getServerThumbnailURL(renderer.getUUID(), encode(getResourceId()));
 		if (profile != null) {
 			if (DLNAImageProfile.JPEG_RES_H_V.equals(profile)) {
 				sb.append("JPEG_RES").append(profile.getH()).append("x");
@@ -506,33 +492,12 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * @param prefix
-	 * @return Returns a URL for a given mediaInfo item. Not used for container
-	 * types.
-	 */
-	public String getMediaURL(String prefix) {
-		return getMediaURL(prefix, false);
-	}
-
-	public String getMediaURL(String prefix, boolean useSystemName) {
-		return getMediaURL(prefix, useSystemName, true);
-	}
-
-	public String getMediaURL(String prefix, boolean useSystemName, boolean urlEncode) {
-		StringBuilder sb = MediaStreamHandler.getServerMediaURL(renderer.getUUID(), getResourceId());
-		String uri = useSystemName ? getSystemName() : getName();
-		sb.append(prefix);
-		sb.append(urlEncode ? encode(uri) : uri);
-		return sb.toString();
-	}
-
-	/**
 	 * @param subs
 	 * @return Returns a URL for a given subtitles item. Not used for container
 	 * types.
 	 */
 	public String getSubsURL(MediaSubtitle subs) {
-		StringBuilder sb = MediaStreamHandler.getServerSubtitlesURL(renderer.getUUID(), getResourceId());
+		StringBuilder sb = MediaServerRequest.getServerSubtitlesURL(renderer.getUUID(), getResourceId());
 		sb.append(encode(subs.getName()));
 		return sb.toString();
 	}
@@ -711,25 +676,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
-	 * Returns the from - to time range for this resource.
-	 *
-	 * @return The time range.
-	 */
-	public TimeRange getSplitRange() {
-		return splitRange;
-	}
-
-	/**
-	 * Sets the from - to time range for this resource.
-	 *
-	 * @param splitRange The time range to set.
-	 * @since 1.50
-	 */
-	public void setSplitRange(TimeRange splitRange) {
-		this.splitRange = splitRange;
-	}
-
-	/**
 	 * Returns the default renderer configuration for this resource.
 	 *
 	 * @return The default renderer configuration.
@@ -809,19 +755,19 @@ public abstract class StoreResource implements Cloneable, Runnable {
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(MediaStreamHandler.getBaseURL().toString()) && url.contains(MediaStreamHandler.MEDIA_PATH);
+		return url != null && url.startsWith(MediaServerRequest.getMediaURL().toString());
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if
 	// any or null
 	public static String parseResourceId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaStreamHandler.MEDIA_PATH, "/") : null;
+		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaServerRequest.MEDIA_PATH, "/") : null;
 	}
 
 	// Returns the url's objectId (i.e. index including trailing filename) if
 	// any or null
 	public static String parseObjectId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaStreamHandler.MEDIA_PATH) : null;
+		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaServerRequest.MEDIA_PATH) : null;
 	}
 
 	public boolean isRendererAllowed() {
@@ -864,11 +810,32 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	}
 
 	/**
+	 * @return whether the resource track "fully played".
+	 */
+	public boolean isFullyPlayedAware() {
+		return false;
+	}
+
+	/**
+	 * @return whether the resource is "fully played".
+	 */
+	public boolean isFullyPlayed() {
+		return false;
+	}
+
+	public void setFullyPlayed(boolean fullyPlayed) {
+		//nothing to do
+	}
+
+	/**
 	 * @return whether the media should be marked as "fully played" either with
 	 * text or a "fully played" overlay.
 	 */
 	public boolean isFullyPlayedMark() {
-		return false;
+		return isFullyPlayedAware() && (
+			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MARK ||
+			CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
+		) && isFullyPlayed();
 	}
 
 	/**
@@ -943,7 +910,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
 	 */
-	private static String encode(String s) {
+	protected static String encode(String s) {
 		try {
 			if (s == null) {
 				return "";

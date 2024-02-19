@@ -30,8 +30,6 @@ import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.renderers.JUPnPDeviceHelper;
-import org.jupnp.model.message.header.DeviceTypeHeader;
-import org.jupnp.model.types.DeviceType;
 import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,11 +40,12 @@ public class MediaServer {
 	public static final Map<Integer, String> VERSIONS = Map.of(
 		1, "JUPnP+ (Java)",
 		2, "JUPnP+ (Netty)",
+		3, "JUPnP+ (Servlet)",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
 
-	public static final int DEFAULT_VERSION = 1;
+	public static final int DEFAULT_VERSION = 2;
 
 	public static UmsUpnpService upnpService;
 	private static boolean isStarted = false;
@@ -76,6 +75,7 @@ public class MediaServer {
 				Thread.sleep(100);
 			} catch (InterruptedException ex) {
 				LOGGER.info("Starting media server interrupted.");
+				Thread.currentThread().interrupt();
 				return false;
 			}
 		}
@@ -99,12 +99,12 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 4, 5 -> {
-							upnpService = new UmsUpnpService(false);
+						case 1, 2, 3 -> {
+							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 						}
-						case 1, 2 -> {
-							upnpService = new UmsUpnpService(true);
+						case 4, 5 -> {
+							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 						}
 					}
@@ -118,9 +118,7 @@ public class MediaServer {
 					LOGGER.error("FATAL ERROR: Unable to start upnp service");
 				} else {
 					upnpService.sendAlive();
-					for (DeviceType t : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
-						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-					}
+					JUPnPDeviceHelper.searchMediaRendererDevices();
 					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
 				}
 			}

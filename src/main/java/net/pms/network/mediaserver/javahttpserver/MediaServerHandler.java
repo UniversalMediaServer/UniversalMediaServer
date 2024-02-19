@@ -53,7 +53,7 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.NetworkDeviceFilter;
-import net.pms.network.mediaserver.handlers.MediaStreamHandler;
+import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
@@ -76,7 +76,7 @@ import org.slf4j.LoggerFactory;
  *
  * It serve media stream, thumbnails and subtitles for media items.
  */
-public class MediaServerHandler extends MediaStreamHandler implements HttpHandler {
+public class MediaServerHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServerHandler.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
@@ -103,32 +103,29 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 
 			//here, renderer should has been registred.
 			String uri = exchange.getRequestURI().getPath();
-			uri = StringUtils.substringAfter(uri, BASE_PATH);
-			/**
-			 * part 1 : renderer uuid
-			 * part 2 : action
-			 * part 3 : resource id
-			 * part 4 : optional
-			 */
-			String[] requestData = uri.split("/", 4);
-			if (requestData.length < 3) {
-				//bad format, close
+			MediaServerRequest mediaServerRequest = new MediaServerRequest(uri);
+			if (mediaServerRequest.isBadRequest()) {
 				//Bad Request
 				sendErrorResponse(exchange, renderer, 400);
 				return;
 			}
 
 			//find renderer by uuid
-			renderer = ConnectedRenderers.getUuidRenderer(requestData[0]);
+			renderer = ConnectedRenderers.getUuidRenderer(mediaServerRequest.getUuid());
 
 			if (renderer == null) {
 				//find renderer by uuid and ip for non registred upnp devices
 				renderer = ConnectedRenderers.getRendererBySocketAddress(ia);
-				if (renderer != null && !requestData[0].equals(renderer.getId())) {
+				if (renderer != null && !mediaServerRequest.getUuid().equals(renderer.getId())) {
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), requestData[0]);
+						LOGGER.trace("Recognized media renderer \"{}\" is not matching UUID \"{}\"", renderer.getRendererName(), mediaServerRequest.getUuid());
 					}
-					renderer = null;
+					/**
+					 * here, that mean the originated renderer advised is no more available.
+					 * It may be a caster/proxy control point, so let change to the real renderer.
+					 * fixme : non-renderer should advise a special uuid.
+					 * renderer = null;
+					 */
 				}
 			}
 
@@ -159,22 +156,19 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 			String method = exchange.getRequestMethod().toUpperCase();
 
 			if (GET.equals(method) || HEAD.equals(method)) {
-				// Some clients escape the separators in their request: unescape them.
-				String id = requestData[2].replace("%24", "$");
-
 				// Get resource
-				StoreResource resource = renderer.getMediaStore().getResource(id);
+				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
 				if (resource == null) {
 					//resource not founded
 					sendErrorResponse(exchange, renderer, 404);
 					return;
 				}
-				switch (requestData[1]) {
+				switch (mediaServerRequest.getRequestType()) {
 					case MEDIA -> {
-						sendMediaResponse(exchange, renderer, resource, requestData[3]);
+						sendMediaResponse(exchange, renderer, resource, mediaServerRequest.getOptionalPath());
 					}
 					case THUMBNAIL -> {
-						sendThumbnailResponse(exchange, renderer, resource, requestData[3]);
+						sendThumbnailResponse(exchange, renderer, resource, mediaServerRequest.getOptionalPath());
 					}
 					case SUBTITLES -> {
 						sendSubtitlesResponse(exchange, renderer, resource);
@@ -224,7 +218,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		exchange.sendResponseHeaders(code, responseData.length);
 		// HEAD requests only require headers to be set, no need to set contents.
 		if (!HEAD.equalsIgnoreCase(exchange.getRequestMethod())) {
-			// Not a HEAD request, so set the contents of the response.
+			// Not a HEAD mediaServerRequest, so set the contents of the response.
 			try (OutputStream os = exchange.getResponseBody()) {
 				os.write(responseData);
 				os.flush();
@@ -260,7 +254,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					contentLength = -1;
 				} else if (cLoverride > -1 && cLoverride != StoreResource.TRANS_SIZE) {
 					// Since PS3 firmware 2.50, it is wiser not to send an arbitrary Content-Length,
-					// as the PS3 will display a network error and request the last seconds of the
+					// as the PS3 will display a network error and mediaServerRequest the last seconds of the
 					// transcoded video. Better to send no Content-Length at all.
 					contentLength = cLoverride;
 				} else if (cLoverride == -1) {
@@ -346,13 +340,13 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					//HLS rendition m3u8 file
 					String rendition = filename.replace("hls/", "").replace(".m3u8", "");
 					if (HlsHelper.getByKey(rendition) != null) {
-						String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+						String baseUrl = MediaServerRequest.getMediaURL(renderer.getUUID()).toString();
 						sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8ForRendition(item, renderer, baseUrl, rendition), HTTPResource.HLS_TYPEMIME);
 					} else {
 						sendResponse(exchange, renderer, 404, null);
 					}
 				} else {
-					//HLS stream request
+					//HLS stream mediaServerRequest
 					inputStream = HlsHelper.getInputStream("/" + filename, item);
 					if (inputStream != null) {
 						if (filename.endsWith(".ts")) {
@@ -395,11 +389,11 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					exchange.getResponseHeaders().set("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 				}
 
-				String baseUrl = MediaStreamHandler.getMediaURL(renderer.getUUID()).toString();
+				String baseUrl = MediaServerRequest.getMediaURL(renderer.getUUID()).toString();
 				sendResponse(exchange, renderer, 200, HlsHelper.getHLSm3u8(item, renderer, baseUrl), HTTPResource.HLS_TYPEMIME);
 				return;
 			} else if (item.getMediaInfo() != null && item.getMediaInfo().getMediaType() == MediaType.IMAGE && item.isCodeValid(item)) {
-				// This is a request for an image
+				// This is a mediaServerRequest for an image
 				SleepManager sleepManager = Services.sleepManager();
 				if (sleepManager != null) {
 					sleepManager.postponeSleep();
@@ -465,7 +459,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 					return;
 				}
 			} else if (item.isCodeValid(item)) {
-				// This is a request for a regular file.
+				// This is a mediaServerRequest for a regular file.
 
 				// If range has not been initialized yet and the LibraryResource has its
 				// own start and end defined, initialize range with those values before
@@ -600,7 +594,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 						exchange.getResponseHeaders().set("Content-Range", "bytes " + range.getStart() + "-" + (range.getEnd() > -1 ? range.getEnd() : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 						// Content-Length refers to the current chunk size here, though in chunked
-						// mode if the request is open-ended and totalsize is unknown we omit it.
+						// mode if the mediaServerRequest is open-ended and totalsize is unknown we omit it.
 						if (chunked && requested < 0 && totalsize < 0) {
 							cLoverride = -1;
 						} else {
@@ -707,7 +701,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 			contentFeatures = exchange.getRequestHeaders().getFirst("getcontentfeatures.dlna.org");
 		}
 
-		// This is a request for a thumbnail file.
+		// This is a mediaServerRequest for a thumbnail file.
 		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(filename, DLNAImageProfile.JPEG_TN);
 		exchange.getResponseHeaders().set("Content-Type", imageProfile.getMimeType().toString());
 		exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
@@ -769,7 +763,7 @@ public class MediaServerHandler extends MediaStreamHandler implements HttpHandle
 		if (resource instanceof StoreItem item &&
 				item.isCodeValid(item) &&
 				item.getMediaInfo() != null) {
-			// This is a request for a subtitles file
+			// This is a mediaServerRequest for a subtitles file
 			exchange.getResponseHeaders().set("Content-Type", "text/plain");
 			exchange.getResponseHeaders().set("Expires", getFutureDate() + " GMT");
 			MediaSubtitle sub = item.getMediaSubtitle();

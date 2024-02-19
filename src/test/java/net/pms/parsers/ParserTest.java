@@ -17,7 +17,9 @@
 package net.pms.parsers;
 
 import java.io.File;
+import java.util.logging.Level;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
@@ -37,6 +39,11 @@ public class ParserTest {
 	@BeforeAll
 	public static void SetUPClass() {
 		PMS.configureJNA();
+		TestHelper.SetLoggingOff();
+		//silent org.jaudiotagger
+		org.jaudiotagger.audio.wav.WavTagReader.logger.setLevel(Level.OFF);
+		org.jaudiotagger.audio.flac.FlacInfoReader.logger.setLevel(Level.OFF);
+		org.jaudiotagger.tag.id3.ID3v23Tag.logger.setLevel(Level.OFF);
 		try {
 			PMS.setConfiguration(new UmsConfiguration(false));
 			PMS.getConfiguration().setExternalNetwork(false);

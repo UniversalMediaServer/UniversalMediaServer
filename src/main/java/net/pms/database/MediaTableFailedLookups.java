@@ -63,7 +63,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static final String SQL_GET_LASTATTEMPT_VERSION = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_VERSION + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAME = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_FAILUREDETAILS + COMMA + TABLE_COL_VERSION + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_DELETE_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
-	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
+	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -160,7 +160,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 	}
 
 	/**
-	 * @param connection the db conncection
+	 * @param connection the db connection
 	 * @param fullPathToFile
 	 * @param isVideo whether this is a video, otherwise it's a TV series
 	 * @return whether a lookup for this file has failed recently
@@ -275,7 +275,6 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 * escaped.
 	 *
 	 * @param connection the db connection
-	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param filename the filename to remove
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare

@@ -79,7 +79,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	private static final String SQL_GET_MOVED = SELECT + PARAMETER + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_USER = SELECT + TABLE_COL_FILENAME + COMMA + PARAMETER + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
-	private static final String SQL_DELETE_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
+	private static final String SQL_DELETE_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_DELETE_USER = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
 	private static final String SQL_INSERT_MOVED = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_MOVED;
 	private static final String SQL_INSERT_USERCOPY = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_USER;
@@ -413,8 +413,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 	/**
 	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param connection the db connection
 	 * @param filename the filename to remove

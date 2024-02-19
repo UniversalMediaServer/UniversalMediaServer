@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.0.0-SNAPSHOT</version>
+	<version>14.0.0-b1</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -63,18 +63,20 @@
 		<sevenzip-version>16.02-2.01</sevenzip-version>
 		<twelvemonkeys-imageio-version>3.10.1</twelvemonkeys-imageio-version>
 
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.encoding>UTF-8</project.encoding>
+		<project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
+		<project.mainclass>${project.groupId}.PMS</project.mainclass>
+		<project.name.short>UMS</project.name.short>
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>179</binary-revision>
+		<binary-revision>184</binary-revision>
 
-		<exec-maven-plugin-version>3.1.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.1.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<maven-javadoc-plugin-version>3.4.1</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>4.9.10</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>7.0.0</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.6.0</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.4.1</maven-enforcer-plugin-version>
 
@@ -91,13 +93,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.9</slf4j-api-version>
+		<slf4j-api-version>2.0.12</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.4.11</logback-version>
+		<logback-version>1.5.0</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -105,9 +107,9 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.15.3</jackson.version>
+		<jackson.version>2.16.1</jackson.version>
 
-		<surefire-version>3.2.2</surefire-version>
+		<surefire-version>3.2.5</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -116,17 +118,11 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.13.0</jna-version>
+		<jna-version>5.14.0</jna-version>
 
-		<!--
-			use the Windows makensis.exe for Windows builds unless
-			the system makensis is explicitly selected via the
-			system-makensis profile
-		-->
-		<makensis-bin>${project.external-resources}/windows/nsis/makensis.exe</makensis-bin>
 		<junit5.version>5.10.1</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
-		<node.version>v20.9.0</node.version>
+		<node.version>v20.11.1</node.version>
 		<yarn.bootstrap>v1.22.19</yarn.bootstrap>
 	</properties>
 	<dependencies>
@@ -194,12 +190,12 @@
 
 				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
-			<version>2.15.0</version>
+			<version>2.15.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.13.0</version>
+			<version>3.14.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -269,11 +265,34 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.20</version>
 		</dependency>
-
+		<dependency>
+			<groupId>org.apache.xmlgraphics</groupId>
+			<artifactId>batik-svgrasterizer</artifactId>
+			<version>1.17</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-io</groupId>
+					<artifactId>commons-io</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>commons-logging</groupId>
+					<artifactId>commons-logging</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
 		<!--
 		   If any ImageIO plugins are added or removed, corresponding changes
 		   must be made in src/main/external-resources/META-INF/services
 		-->
+		<dependency>
+			<groupId>com.twelvemonkeys.imageio</groupId>
+			<artifactId>imageio-batik</artifactId>
+			<version>${twelvemonkeys-imageio-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-bmp</artifactId>
@@ -352,7 +371,7 @@
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
-			<version>2.18.0</version>
+			<version>2.19.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.jthink</groupId>
@@ -474,7 +493,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>74.1</version>
+			<version>74.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -493,7 +512,7 @@
 				Check the commons-logging:commons-logging version of the other libraries before upgrading
 
 				commons-io:commons-io is shared with
-					- net.pms:pms
+					- net.pms:ums
 
 				Check the commons-io:commons-io version before upgrading
 			-->
@@ -536,7 +555,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.4.7</version>
+			<version>6.4.10</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -649,7 +668,7 @@
 		<dependency>
 			<groupId>jakarta.servlet</groupId>
 			<artifactId>jakarta.servlet-api</artifactId>
-			<version>4.0.4</version>
+			<version>6.0.0</version>
 			<type>jar</type>
 		</dependency>
 		<dependency>
@@ -688,6 +707,7 @@
 				<targetPath>resources</targetPath>
 				<excludes>
 					<exclude>project.properties</exclude>
+					<exclude>/images/not-in-use/*</exclude>
 				</excludes>
 
 				<!-- Avoid inadvertently filtering binaries -->
@@ -749,7 +769,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>${surefire-version}</version>
 					<configuration>
-						<argLine>-Dfile.encoding=UTF-8</argLine>
+						<argLine>-Dfile.encoding=${project.encoding}</argLine>
 					</configuration>
 				</plugin>
 
@@ -804,8 +824,8 @@
 				See: https://github.com/ktoso/maven-git-commit-id-plugin
 			-->
 			<plugin>
-				<groupId>pl.project13.maven</groupId>
-				<artifactId>git-commit-id-plugin</artifactId>
+				<groupId>io.github.git-commit-id</groupId>
+				<artifactId>git-commit-id-maven-plugin</artifactId>
 				<version>${git-commit-id-plugin-version}</version>
 				<executions>
 					<execution>
@@ -824,7 +844,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.11.0</version>
+				<version>3.12.1</version>
 				<configuration>
 					<release>${project.jre-version}</release>
 					<testSource>${project.jre-version}</testSource>
@@ -848,21 +868,26 @@
 					<wtpversion>1.5</wtpversion>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>com.github.eirslett</groupId>
+				<artifactId>frontend-maven-plugin</artifactId>
+				<version>1.15.0</version>
+				<configuration>
+					<installDirectory>react-client</installDirectory>
+					<workingDirectory>react-client</workingDirectory>
+					<nodeVersion>${node.version}</nodeVersion>
+					<yarnVersion>${yarn.bootstrap}</yarnVersion>
+					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
+					<environmentVariables>
+						<PUBLIC_URL>/</PUBLIC_URL>
+					</environmentVariables>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
 	<profiles>
-		<profile>
-			<id>system-makensis</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-
-			<properties>
-				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
-				<makensis-bin>makensis</makensis-bin>
-			</properties>
-		</profile>
 
 		<!--
 			Windows profile: takes care of building the final package for Microsoft Windows
@@ -875,21 +900,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -905,9 +921,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -923,7 +936,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -940,7 +953,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1054,7 +1067,7 @@
 									<target>
 										<!-- Copy ums-x.x.x-jar-with-dependencies.jar to ums.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 
 										<!-- Copy the wrapper to its destination -->
 										<mkdir dir="${project.binaries}/windows/service" />
@@ -1206,23 +1219,27 @@
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0.3</version>
+						<version>1.0.5</version>
 						<configuration>
-							<makensisExecutable>${makensis-bin}</makensisExecutable>
+							<makensisExecutable>${project.external-resources}/windows/nsis/makensis.exe</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
 							<makensisExecutableMacOS>makensis</makensisExecutableMacOS>
 							<defines>
+								<PROJECT_NAME_SHORT>${project.name.short}</PROJECT_NAME_SHORT>
 								<PROJECT_VERSION_SHORT>${project.version.short}</PROJECT_VERSION_SHORT>
 								<PROJECT_BINARIES>${project.binaries}</PROJECT_BINARIES>
 								<PROJECT_JRE_VERSION>${project.jre-version}</PROJECT_JRE_VERSION>
 								<PROJECT_BINARY_REVISION>${binary-revision}</PROJECT_BINARY_REVISION>
+								<PROJECT_JARFILE>${project.artifactId}.jar</PROJECT_JARFILE>
+								<PROJECT_MAIN_CLASS>${project.mainclass}</PROJECT_MAIN_CLASS>
+								<PROJECT_ENCODING>${project.encoding}</PROJECT_ENCODING>
 							</defines>
 						</configuration>
 						<executions>
 							<execution>
 								<id>build-ums-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}.exe</outputFile>
 									<scriptFile>${project.build.directory}/ums.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1234,7 +1251,7 @@
 							<execution>
 								<id>build-update-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS-update-${binary-revision}.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}-update-${binary-revision}.exe</outputFile>
 									<scriptFile>${project.build.directory}/update.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1245,7 +1262,7 @@
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
+									<outputFile>${project.build.directory}/${project.name.short}-setup.exe</outputFile>
 									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
@@ -1273,21 +1290,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1303,9 +1311,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1317,7 +1322,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1328,7 +1333,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1337,7 +1342,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-arm64</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1348,7 +1353,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1368,7 +1373,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-arm64</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1388,7 +1393,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-arm64</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1396,7 +1401,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1420,21 +1425,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1450,9 +1446,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1464,7 +1457,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1475,7 +1468,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1484,7 +1477,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-armel</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1495,7 +1488,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1515,7 +1508,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-armel</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1535,7 +1528,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-armel</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1543,7 +1536,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1567,21 +1560,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1597,9 +1581,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1611,7 +1592,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1622,7 +1603,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1631,7 +1612,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-armhf</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1642,7 +1623,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1662,7 +1643,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-armhf</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1682,7 +1663,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-armhf</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1690,7 +1671,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1714,21 +1695,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1744,9 +1716,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1758,7 +1727,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1769,7 +1738,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1778,7 +1747,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux-x86</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1789,7 +1758,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1809,7 +1778,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-linux</id>
+								<id>process-resources-linux-x86</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -1837,7 +1806,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-linux-x86</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -1845,7 +1814,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1869,21 +1838,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -1899,9 +1859,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -1913,7 +1870,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-linux</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1924,7 +1881,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -1933,7 +1890,7 @@
 
 							<!-- Assemble the distribution file. -->
 							<execution>
-								<id>build-pms-linux</id>
+								<id>build-ums-linux</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1944,7 +1901,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2000,7 +1957,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2024,21 +1981,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2054,9 +2002,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2153,7 +2098,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2177,14 +2122,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2192,9 +2137,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2207,7 +2152,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2218,7 +2163,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2240,7 +2185,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2266,21 +2211,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2296,9 +2232,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2333,7 +2266,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-macos</id>
+								<id>process-resources-macos-arm</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -2370,7 +2303,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>prepare-package-macos</id>
+								<id>prepare-package-macos-arm</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2397,7 +2330,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos-arm</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2421,14 +2354,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2436,9 +2369,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2451,7 +2384,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2462,7 +2395,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2473,7 +2406,7 @@
 								moving them to the app Bundle.
 							-->
 							<execution>
-								<id>make-assembly-macos</id>
+								<id>make-assembly-macos-arm</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2484,7 +2417,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2510,21 +2443,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2540,9 +2464,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2637,7 +2558,7 @@
 								</configuration>
 							</execution>
 							<execution>
-								<id>package app</id>
+								<id>package-app-macos-pre1015</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2661,14 +2582,14 @@
 											outputdirectory="${project.build.directory}/${project.build.finalName}-distribution"
 											name="${project.name}"
 											displayname="${project.name}"
-											executableName="UMS"
-											identifier="net.pms.PMS"
+											executableName="${project.name.short}"
+											identifier="${project.mainclass}"
 											shortversion="${project.version.short}"
 											version="${project.version}"
 											icon="${project.basedir}/src/main/resources/images/logo.icns"
 											applicationCategory="public.app-category.entertainment"
 											workingdirectory="$APP_ROOT/Contents/Resources"
-											mainclassname="net.pms.PMS"
+											mainclassname="${project.mainclass}"
 										>
 											<!-- <runtime dir="${runtime}"/> -->
 											<!-- the following is needed because jrePreferred option doesn't work, see https://github.com/TheInfiniteKind/appbundler/issues/73 -->
@@ -2676,9 +2597,9 @@
 											<classpath file="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
 											<option value="-Xmx2048M"/>
 											<option value="-Xss16M"/>
-											<option value="-Dfile.encoding=UTF-8"/>
+											<option value="-Dfile.encoding=${project.encoding}"/>
 											<option value="-Djava.net.preferIPv4Stack=true"/>
-											<option value="-Xdock:name=UMS"/>
+											<option value="-Xdock:name=${project.name.short}"/>
 										</bundleapp>
 									</target>
 								</configuration>
@@ -2691,7 +2612,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-macos-pre1015</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2702,7 +2623,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2724,7 +2645,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2761,7 +2682,7 @@
 						<version>${maven-assembly-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -2772,7 +2693,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -2791,7 +2712,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>copy-jar-with-dependencies-linux</id>
+								<id>copy-jar-with-dependencies-win</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -2799,7 +2720,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -2830,7 +2751,7 @@
 								</goals>
 								<configuration>
 									<classpathScope>test</classpathScope>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 								</configuration>
 							</execution>
 						</executions>
@@ -2886,10 +2807,10 @@
 										<pluginExecution>
 											<pluginExecutionFilter>
 												<groupId>
-													pl.project13.maven
+													io.github.git-commit-id
 												</groupId>
 												<artifactId>
-													git-commit-id-plugin
+													git-commit-id-maven-plugin
 												</artifactId>
 												<versionRange>
 													[${git-commit-id-plugin-version},)
@@ -2943,21 +2864,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -2973,9 +2885,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -2991,7 +2900,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -3008,7 +2917,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3034,7 +2943,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="C:/Program Files (x86)/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files (x86)/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3074,7 +2983,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files (x86)/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files (x86)/Universal Media Server/${project.name.short}.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3089,21 +2998,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3119,9 +3019,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -3137,7 +3034,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -3154,7 +3051,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3180,7 +3077,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="C:/Program Files/Universal Media Server/ums.jar" overwrite="true" />
+											  tofile="C:/Program Files/Universal Media Server/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3220,7 +3117,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>C:/Program Files/Universal Media Server/UMS.exe</executable>
+									<executable>C:/Program Files/Universal Media Server/${project.name.short}.exe</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3235,21 +3132,12 @@
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3265,9 +3153,6 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
@@ -3283,7 +3168,7 @@
 							</descriptors>
 							<archive>
 								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
+									<mainClass>${project.mainclass}</mainClass>
 									<!--
 										this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
 										without it, the following exception is thrown when UMS starts:
@@ -3300,7 +3185,7 @@
 						</configuration>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies-win</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3317,7 +3202,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>prepare-package-windows</id>
+								<id>prepare-package-macos</id>
 								<phase>prepare-package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3337,7 +3222,7 @@
 						<version>3.3.1</version>
 						<executions>
 							<execution>
-								<id>copy-resources</id>
+								<id>copy-resources-macos</id>
 								<phase>validate</phase>
 								<goals>
 									<goal>copy-resources</goal>
@@ -3364,7 +3249,7 @@
 									<goal>exec</goal>
 								</goals>
 								<configuration>
-									<executable>/Applications/Universal Media Server.app/Contents/MacOS/UMS</executable>
+									<executable>/Applications/Universal Media Server.app/Contents/MacOS/${project.name.short}</executable>
 								</configuration>
 							</execution>
 						</executions>
@@ -3394,7 +3279,7 @@
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies-testing</id>
+								<id>make-jar-with-dependencies</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -3405,7 +3290,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -3425,7 +3310,7 @@
 									</descriptors>
 									<archive>
 										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
+											<mainClass>${project.mainclass}</mainClass>
 											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
@@ -3444,7 +3329,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>copy-jar-with-dependencies-test</id>
+								<id>copy-jar-with-dependencies-testing</id>
 								<phase>package</phase>
 								<goals>
 									<goal>run</goal>
@@ -3452,7 +3337,7 @@
 								<configuration>
 									<target>
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											  tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+											  tofile="${project.basedir}/target/${project.artifactId}.jar" overwrite="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -3480,7 +3365,7 @@
 						<version>${maven-antrun-plugin-version}</version>
 						<executions>
 							<execution>
-								<id>process-resources-windows</id>
+								<id>process-resources-macos</id>
 								<phase>process-resources</phase>
 								<goals>
 									<goal>run</goal>
@@ -3498,28 +3383,18 @@
 			</build>
 		</profile>
 		<profile>
-			<id>linter</id>
+			<id>testing-windows</id>
 			<build>
 				<plugins>
 					<plugin>
 						<groupId>com.github.eirslett</groupId>
 						<artifactId>frontend-maven-plugin</artifactId>
-						<version>1.14.2</version>
-						<configuration>
-							<installDirectory>react-client</installDirectory>
-							<workingDirectory>react-client</workingDirectory>
-						</configuration>
 						<executions>
 							<execution>
 								<id>install node and yarn</id>
 								<goals>
 									<goal>install-node-and-yarn</goal>
 								</goals>
-								<configuration>
-									<nodeVersion>${node.version}</nodeVersion>
-									<yarnVersion>${yarn.bootstrap}</yarnVersion>
-									<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
-								</configuration>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
@@ -3535,22 +3410,10 @@
 									<goal>yarn</goal>
 								</goals>
 								<configuration>
-									<environmentVariables>
-										<PUBLIC_URL>/</PUBLIC_URL>
-									</environmentVariables>
 									<arguments>build</arguments>
 								</configuration>
 							</execution>
 						</executions>
-					</plugin>
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<version>${maven-assembly-plugin-version}</version>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -3573,6 +3436,13 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>linter</id>
+			<build>
+				<plugins>
 					<!-- Checkstyle report -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -3582,12 +3452,12 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.12.4</version>
+								<version>10.12.7</version>
 							</dependency>
 						</dependencies>
 						<configuration>
 							<configLocation>CheckStyle.xml</configLocation>
-							<inputEncoding>UTF-8</inputEncoding>
+							<inputEncoding>${project.encoding}</inputEncoding>
 							<consoleOutput>true</consoleOutput>
 							<failsOnError>true</failsOnError>
 							<linkXRef>false</linkXRef>

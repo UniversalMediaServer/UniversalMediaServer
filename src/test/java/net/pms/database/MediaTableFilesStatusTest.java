@@ -16,17 +16,14 @@
  */
 package net.pms.database;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
 import java.sql.Connection;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class MediaTableFilesStatusTest {
 	/**
@@ -36,8 +33,7 @@ public class MediaTableFilesStatusTest {
 	 */
 	@BeforeEach
 	public final void setUp() throws ConfigurationException, InterruptedException {
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
+		TestHelper.SetLoggingOff();
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration(false));
 	}

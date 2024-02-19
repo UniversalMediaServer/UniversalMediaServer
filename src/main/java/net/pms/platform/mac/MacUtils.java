@@ -166,7 +166,7 @@ public class MacUtils extends PlatformUtils {
 	public String getiTunesFile() throws IOException, URISyntaxException {
 		// the second line should contain a quoted file URL e.g.:
 		// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
-		Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
+		Process process = Runtime.getRuntime().exec(new String[]{"defaults", "read", "com.apple.iApps", "iTunesRecentDatabases"});
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
 			// we want the 2nd line
 			String line1 = in.readLine();
@@ -215,9 +215,8 @@ public class MacUtils extends PlatformUtils {
 				return isAdmin;
 			}
 			try {
-				final String command = "id -Gn";
-				LOGGER.trace("isAdmin: Executing \"{}\"", command);
-				Process p = Runtime.getRuntime().exec(command);
+				LOGGER.trace("isAdmin: Executing \"id -Gn\"");
+				Process p = Runtime.getRuntime().exec(new String[]{"id", "-Gn"});
 				InputStream is = p.getInputStream();
 				InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
 				int exitValue;
@@ -229,12 +228,12 @@ public class MacUtils extends PlatformUtils {
 				}
 
 				if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
-					LOGGER.error("Could not determine admin privileges, \"{}\" ended with exit code: {}", command, exitValue);
+					LOGGER.error("Could not determine admin privileges, \"id -Gn\" ended with exit code: {}", exitValue);
 					isAdmin = false;
 					return false;
 				}
 
-				LOGGER.trace("isAdmin: \"{}\" returned {}", command, exitLine);
+				LOGGER.trace("isAdmin: \"id -Gn\" returned {}", exitLine);
 				if (exitLine.matches(".*\\badmin\\b.*")) {
 					LOGGER.trace("isAdmin: UMS has admin privileges");
 					isAdmin = true;
@@ -244,11 +243,13 @@ public class MacUtils extends PlatformUtils {
 				LOGGER.trace("isAdmin: UMS does not have admin privileges");
 				isAdmin = false;
 				return false;
-			} catch (IOException | InterruptedException e) {
+			} catch (IOException e) {
 				LOGGER.error(
 					"An error prevented UMS from checking macOS permissions: {}",
 					e.getMessage()
 				);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 			isAdmin = false;
 			return false;
@@ -272,11 +273,11 @@ public class MacUtils extends PlatformUtils {
 	}
 
 	@Override
-	protected String getTrayIcon() {
+	public String getTrayIcon() {
 		if (isDarkMode()) {
-			return "icon-darkmode.png";
+			return "icon-darkmode";
 		} else {
-			return "icon-22.png";
+			return "icon-bw";
 		}
 	}
 
@@ -305,8 +306,8 @@ public class MacUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown -h now";
+	public String[] getShutdownCommand() {
+		return new String[] {"shutdown", "-h", "now"};
 	}
 
 	/**
@@ -318,10 +319,13 @@ public class MacUtils extends PlatformUtils {
 			final Process proc = Runtime.getRuntime().exec(new String[]{"defaults", "read", "-g", "AppleInterfaceStyle"});
 			proc.waitFor(100, TimeUnit.MILLISECONDS);
 			return proc.exitValue() == 0;
-		} catch (IOException | InterruptedException | IllegalThreadStateException ex) {
+		} catch (IOException | IllegalThreadStateException ex) {
 			// IllegalThreadStateException thrown by proc.exitValue(), if process didn't terminate
 			LOGGER.warn("Could not determine whether 'dark mode' is being used. Falling back to default (light) mode.");
 			LOGGER.debug("" + ex);
+			return false;
+		} catch (InterruptedException ex) {
+			Thread.currentThread().interrupt();
 			return false;
 		}
 	}

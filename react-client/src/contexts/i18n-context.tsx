@@ -18,17 +18,17 @@ import { Direction } from '@mantine/core';
 import { Context, createContext } from 'react';
 
 export const I18nContext: Context<I18nInterface> = createContext({
-  get: {},
+  get: (value: string) => { return value },
   getI18nString: (value: string) => { return value },
   getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
   language: 'en-US',
   dir: 'ltr' as Direction,
   languages: [] as LanguageValue[],
-  setLanguage: (language: string) => { }
+  setLanguage: (_language: string) => { }
 });
 
 export interface I18nInterface {
-  get: { [key: string]: string };
+  get: (value: string) => string;
   getI18nString: (value: string) => string;
   getI18nFormat: (value: string[]) => string;
   language: string;

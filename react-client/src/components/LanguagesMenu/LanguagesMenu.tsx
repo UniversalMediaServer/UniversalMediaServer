@@ -52,7 +52,7 @@ function LanguagesMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Label>{i18n.get['Language']}</Menu.Label>
+        <Menu.Label>{i18n.get('Language')}</Menu.Label>
         <ScrollArea style={{ height: 250 }}>
           {languagesMenus}
         </ScrollArea>

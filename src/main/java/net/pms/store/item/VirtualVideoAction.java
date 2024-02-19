@@ -61,9 +61,9 @@ public abstract class VirtualVideoAction extends StoreItem {
 		if (StringUtils.isNotBlank(enabledIconOverride)) {
 			thumbnailIconOK = enabledIconOverride;
 		} else {
-			thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+			thumbnailIconOK = "images/store/action-ok.png";
 		}
-		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";
+		thumbnailIconKO = "images/store/action-cancel.png";
 		this.videoOk = "videos/action_success-512.mpg";
 		this.videoKo = "videos/button_cancel-512.mpg";
 		timer1 = -1;
@@ -180,7 +180,7 @@ public abstract class VirtualVideoAction extends StoreItem {
 	}
 
 	@Override
-	public boolean isResumeable() {
+	protected boolean isResumeable() {
 		return false;
 	}
 }

@@ -16,9 +16,9 @@
  */
 package net.pms.configuration;
 
-import ch.qos.logback.classic.LoggerContext;
-import java.util.*;
+import java.util.Locale;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 /**
  * Test the RendererConfiguration class
@@ -41,9 +40,7 @@ public class RendererConfigurationTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
@@ -142,6 +139,11 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
 
+// 		This does not match the OLED[0-9]{2} configuration for the LG 2023+ config ...
+//		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
+
+		testUPNPDetails("LG TV 2023+", "# modelDescription=LG WebOSTV DMRplus OLED65C3AUA");
+
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
@@ -151,6 +153,12 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG WebOS TV", "friendlyName=LG-webOSTV");
 		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
 		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV");
+
+		testUPNPDetails("Lumin", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. DEVICENUMVER 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
+		testUPNPDetails("Lumin U1 Mini", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. U1MINI 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
+
+		testUPNPDetails("Naim Mu-So Qb",
+			"friendlyName=MyDevice, address=192.168.1.8, udn=4A9EC1C3-ED59-89BB-5530-E8C74F0B2E3A, manufacturer=Naim Audio Ltd., modelName=Mu-so Qb, modelNumber=20-004-0024, modelDescription=Naim Mu-so Qb all-in-one audio player, manufacturerURL=http://www.naimaudio.com, modelURL=https://www.naimaudio.com/mu-so");
 
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
@@ -241,7 +249,7 @@ public class RendererConfigurationTest {
 		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
-		
+
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung LED UHD", "modelName=UE88KS9810");
 
@@ -441,7 +449,7 @@ public class RendererConfigurationTest {
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeaders(
-			"Unknown renderer",
+			"UnknownRenderer",
 			"User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0",
 			"User-Agent: Unknown Renderer",
 			"X-Unknown-Header: Unknown Content"
