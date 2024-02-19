@@ -27,7 +27,7 @@
 - Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
 - Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
 
-## 14.0.0 (Unreleased)
+## 14.0.0 (Unreleased) - Since 14.0.0-b1
 
 ### General
 - Added menu option to clear all renderer/device filter settings
@@ -63,9 +63,8 @@
 - Added support for Naim Mu-So Qb wireless music system
 
 ### Dependencies
-- Bump `mantine` from 6.0.21 to 7.5.3
-- Bump `video.js` from 8.5.2 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
-- Bump `@types/node` from 18.19.4 to 18.19.15 ([#4448](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4448))
+- Bump `mantine` from 7.4.0 to 7.5.3
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
