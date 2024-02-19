@@ -35,7 +35,6 @@ import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.transport.spi.UpnpStream;
 import org.jupnp.util.Exceptions;
-import org.jupnp.util.io.IO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +87,7 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 			// Body
 			byte[] bodyBytes;
 			try (InputStream is = getHttpExchange().getRequestBody()) {
-				bodyBytes = IO.readBytes(is);
+				bodyBytes = is.readAllBytes();
 			}
 
 			LOGGER.trace("Reading request body bytes: {}", bodyBytes.length);
@@ -135,7 +134,7 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 				if (contentLength > 0) {
 					LOGGER.trace("Response message has body, writing bytes to stream...");
 					try (OutputStream os = getHttpExchange().getResponseBody()) {
-						IO.writeBytes(os, responseBodyBytes);
+						os.write(responseBodyBytes);
 						os.flush();
 					}
 				}
@@ -148,7 +147,7 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 
 			responseSent(responseMessage);
 
-		} catch (Throwable t) {
+		} catch (Exception e) {
 
 			// You definitely want to catch all Exceptions here, otherwise the server will
 			// simply close the socket and you get an "unexpected end of file" on the client.
@@ -158,17 +157,17 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 			// TODO: We should only send an error if the problem was on our side
 			// You don't have to catch Throwable unless, like we do here in unit tests,
 			// you might run into Errors as well (assertions).
-			LOGGER.trace("Exception occurred during UPnP stream processing: {}", t);
+			LOGGER.trace("Exception occurred during UPnP stream processing: {}", e);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Cause: {}", Exceptions.unwrap(t), Exceptions.unwrap(t));
+				LOGGER.trace("Cause: {}", Exceptions.unwrap(e), Exceptions.unwrap(e));
 			}
 			try {
 				httpExchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, -1);
-			} catch (IOException ex) {
-				LOGGER.warn("Couldn't send error response: {}", ex.getMessage(), ex);
+			} catch (IOException ioe) {
+				LOGGER.warn("Couldn't send error response: {}", ioe.getMessage(), ioe);
 			}
 
-			responseException(t);
+			responseException(e);
 		}
 	}
 
