@@ -157,12 +157,12 @@ public class PlaylistManager {
 		throw new RuntimeException(Messages.getString("UnknownPlaylistName") + " : " + playlistObjectId);
 	}
 
-	public List<String> addSongToPlaylist(Integer audiotrackID, String playlistObjectId) throws SQLException, IOException {
+	public List<String> addSongToPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
 		Path playlistPath = getPlaylistPathFromObjectId(playlistObjectId);
-		String filenameToAdd = getFilenameFromAudiotrackId(audiotrackID);
+		String filenameToAdd = getFilenameFromSongObjectId(songObjectId);
 
 		if (StringUtils.isAllBlank(filenameToAdd)) {
-			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + songObjectId);
 		}
 		if (playlistObjectId == null) {
 			throw new RuntimeException(Messages.getString("PlaylistNameNotProvided"));
@@ -172,7 +172,7 @@ public class PlaylistManager {
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
 			LOGGER.trace("song already in playlist " + relativeSongPath);
-			throw new RuntimeException(Messages.getString("SongAlreadyInPlaylist") + ". ID : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("SongAlreadyInPlaylist") + ". ID : " + songObjectId);
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
@@ -181,28 +181,21 @@ public class PlaylistManager {
 		return playlistEntries;
 	}
 
-	private String getFilenameFromAudiotrackId(Integer audiotrackId) throws SQLException {
-		try (Connection connection = db.getConnection()) {
-			String sql = "select FILENAME from FILES as F join AUDIO_METADATA as A on F.ID = A.FILEID where (audiotrack_id = ?)";
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-				ps.setInt(1, audiotrackId);
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						return rs.getString(1);
-					}
-				}
-			}
-			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + audiotrackId);
+	private String getFilenameFromSongObjectId(String songObjectId) throws SQLException {
+		StoreResource sr = renderer.getMediaStore().getResource(songObjectId);
+		if (sr != null) {
+			return sr.getFileName();
 		}
+		throw new RuntimeException("Unknown soung objectId : " + songObjectId);
 	}
 
 	private boolean isSongAlreadyInPlaylist(String absoluteSongPath, String relativeSongPath, List<String> playlistEntries) {
 		return playlistEntries.contains(relativeSongPath) || playlistEntries.contains(absoluteSongPath);
 	}
 
-	public List<String> removeSongFromPlaylist(Integer audiotrackID, String playlistName) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromObjectId(playlistName);
-		String filenameToRemove = getFilenameFromAudiotrackId(audiotrackID);
+	public List<String> removeSongFromPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
+		Path playlistPath = getPlaylistPathFromObjectId(playlistObjectId);
+		String filenameToRemove = getFilenameFromSongObjectId(songObjectId);
 		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
@@ -210,7 +203,7 @@ public class PlaylistManager {
 			writePlaylistToDisk(playlistEntries, playlistPath);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
 		} else {
-			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + audiotrackID);
+			throw new RuntimeException(Messages.getString("SongNotInPlaylist") + " : " + songObjectId);
 		}
 		return playlistEntries;
 	}

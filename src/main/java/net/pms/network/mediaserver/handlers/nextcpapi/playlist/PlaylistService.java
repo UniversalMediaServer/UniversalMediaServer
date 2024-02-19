@@ -62,14 +62,14 @@ public class PlaylistService implements NextcpApiResponseHandler {
 				case "addsongtoplaylist" -> {
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
-					pm.addSongToPlaylist(add.getAudiotrackId(), add.getPlaylistName());
+					pm.addSongToPlaylist(add.getSongObjectId(), add.getPlaylistObjectId());
 					response.setResponse(Messages.getString("SongAddedToPlaylist"));
 					return response;
 				}
 				case "removesongfromplaylist" -> {
 					LOGGER.trace("removesongfromplaylist");
 					AudioPlaylistVO remove = getParamsFromContent(content);
-					pm.removeSongFromPlaylist(remove.getAudiotrackId(), remove.getPlaylistName());
+					pm.removeSongFromPlaylist(remove.getSongObjectId(), remove.getPlaylistObjectId());
 					response.setResponse(Messages.getString("SongRemovedFromPlaylist"));
 					return response;
 				}
@@ -96,7 +96,7 @@ public class PlaylistService implements NextcpApiResponseHandler {
 	private AudioPlaylistVO getParamsFromContent(String content) {
 		try {
 			String[] contentArray = content.split("/");
-			return new AudioPlaylistVO(Integer.valueOf(contentArray[0]), contentArray[1]);
+			return new AudioPlaylistVO(contentArray[0], contentArray[1]);
 		} catch (NumberFormatException e) {
 			throw new RuntimeException("incorrect input parameter supplied to method");
 		}
