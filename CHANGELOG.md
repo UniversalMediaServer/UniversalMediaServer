@@ -27,6 +27,7 @@
 - Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
 - Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
 - Bump `@testing-library/react` from 14.1.2 to 14.2.1 ([#4488](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4488))
+- Bump `ip` from 2.0.0 to 2.0.1 ([#4498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4498))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
