@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.CreateObjectResult;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaStoreIds;
@@ -191,45 +189,48 @@ public class PlaylistManager {
 		Files.write(playlistFile, lines);
 	}
 
-	public CreateObjectResult createPlaylist(String parentContainerId, String elements) throws Exception {
+	public CreateObjectResult createPlaylist(String parentContainerId, Item itemToCreate) throws Exception {
+		String playlistName = itemToCreate.getTitle();
+		LOGGER.trace("creating playlist {} for parentcontainer {}", playlistName, parentContainerId);
 		CreateObjectResult createResult = new CreateObjectResult();
-		Parser parser = new Parser();
-		Result modelItemToAdd = parser.parse(elements);
-		Item itemToCreate = modelItemToAdd.getItems().get(0);
-		if (itemToCreate != null) {
-			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
-				String playlistName = modelItemToAdd.getItems().get(0).getTitle();
-				if (StringUtils.isAllBlank(playlistName)) {
-					throw new RuntimeException(Messages.getString("NoPlaylistNameProvided"));
-				}
-				String fullPath = FilenameUtils.concat(getStoreContainer(parentContainerId).getFileName(), playlistName);
-				File newPlaylist = new File(fullPath);
-				if (newPlaylist.exists()) {
-					throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
-				}
-
-				createNewEmptyPlaylistFile(newPlaylist);
-				StoreResource newResource = renderer.getMediaStore().createResourceFromFile(newPlaylist);
-				getStoreContainer(parentContainerId).addChild(newResource);
-
-
-				PlaylistItem pi = new PlaylistItem();
-				pi.setTitle(playlistName);
-				pi.setParentID(newResource.getParentId());
-				pi.setId(newResource.getId());
-
-				DIDLParser didlParser = new DIDLParser();
-				DIDLContent content = new DIDLContent();
-				content.addItem(pi);
-				String xml = didlParser.generate(content);
-				createResult.setResult(xml);
-				createResult.setObjectID(newResource.getId());
-			} else {
-				LOGGER.error("cannot create item of type {}", itemToCreate.getUpnpClassName());
-			}
-		} else {
-			LOGGER.error("no item to create.");
+		if (StringUtils.isAllBlank(playlistName)) {
+			LOGGER.error(Messages.getString("NoPlaylistNameProvided"));
+			throw new RuntimeException(Messages.getString("NoPlaylistNameProvided"));
 		}
+		if (!isValidPlaylist(playlistName)) {
+			LOGGER.error("Playlist extension must end with '.pls', '.m3u' or '.m3u8'");
+			throw new RuntimeException("Playlist extension must end with '.pls', '.m3u' or '.m3u8'");
+		}
+		String playlistFullPath = FilenameUtils.concat(getStoreContainer(parentContainerId).getFileName(), playlistName);
+		File newPlaylist = new File(playlistFullPath);
+		if (newPlaylist.exists()) {
+			LOGGER.error(Messages.getString("PlaylistAlreadyExists"));
+			throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
+		}
+
+		createNewEmptyPlaylistFile(newPlaylist);
+		LOGGER.trace("empty playlist created.");
+		StoreResource newResource = renderer.getMediaStore().createResourceFromFile(newPlaylist);
+		StoreContainer parentContainer = getStoreContainer(parentContainerId);
+		if (parentContainer == null) {
+			LOGGER.error("Parent container doesn'r exist any more : " + parentContainerId);
+			throw new RuntimeException("Parent container doesn'r exist any more : " + parentContainerId);
+		}
+		parentContainer.addChild(newResource);
+		LOGGER.trace("empty playlist has new ID of {}", newResource.getId());
+
+		PlaylistItem pi = new PlaylistItem();
+		pi.setTitle(playlistName);
+		pi.setParentID(newResource.getParentId());
+		pi.setId(newResource.getId());
+
+		DIDLParser didlParser = new DIDLParser();
+		DIDLContent content = new DIDLContent();
+		content.addItem(pi);
+		String xml = didlParser.generate(content);
+		createResult.setResult(xml);
+		createResult.setObjectID(newResource.getId());
+		LOGGER.trace(createResult.toString());
 		return createResult;
 	}
 

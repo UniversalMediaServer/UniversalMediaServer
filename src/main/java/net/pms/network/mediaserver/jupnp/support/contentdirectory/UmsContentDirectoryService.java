@@ -54,8 +54,10 @@ import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.nextcpapi.playlist.PlaylistManager;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaStatusStore;
@@ -356,7 +358,16 @@ public class UmsContentDirectoryService {
 		@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements
 		) throws ContentDirectoryException {
 		try {
-			return playlistManager.createPlaylist(containerId, elements);
+			Parser parser = new Parser();
+			Result modelItemToAdd = parser.parse(elements);
+			Item itemToCreate = modelItemToAdd.getItems().get(0);
+			if (itemToCreate != null) {
+				if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+					return playlistManager.createPlaylist(containerId, itemToCreate);
+				}
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "unknown upnp:class : " + itemToCreate.getUpnpClassName());
+			}
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "no item to create.");
 		} catch (Exception e) {
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 		}
