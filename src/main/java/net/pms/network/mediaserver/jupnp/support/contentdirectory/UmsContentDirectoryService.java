@@ -27,22 +27,6 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import net.pms.dlna.DidlHelper;
-import net.pms.network.mediaserver.handlers.SearchRequestHandler;
-import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
-import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
-import net.pms.store.MediaStatusStore;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.StoreContainer;
-import net.pms.store.StoreItem;
-import net.pms.store.StoreResource;
-import net.pms.store.container.MediaLibrary;
-import net.pms.store.container.PlaylistFolder;
-import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
@@ -66,6 +50,23 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
+import net.pms.dlna.DidlHelper;
+import net.pms.network.mediaserver.handlers.SearchRequestHandler;
+import net.pms.network.mediaserver.handlers.nextcpapi.playlist.PlaylistManager;
+import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 
 @UpnpService(
 		serviceId =
@@ -159,6 +160,8 @@ public class UmsContentDirectoryService {
 
 	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
+
+	private final PlaylistManager playlistManager = new PlaylistManager();
 
 	@UpnpStateVariable(sendEvents = false)
 	private final CSV<String> searchCapabilities = new CSVString();
@@ -337,6 +340,50 @@ public class UmsContentDirectoryService {
 			throw ex;
 		} catch (Exception ex) {
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
+		}
+	}
+
+	@UpnpAction(out = {
+			@UpnpOutputArgument(name = "Result",
+					stateVariable = "A_ARG_TYPE_Result",
+					getterName = "getResult"),
+			@UpnpOutputArgument(name = "ObjectID",
+					stateVariable = "A_ARG_TYPE_ObjectID",
+					getterName = "getObjectID"),
+		})
+	public CreateObjectResult createObject(
+		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+		@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements
+		) throws ContentDirectoryException {
+		try {
+			return playlistManager.createPlaylist(containerId, elements);
+		} catch (Exception e) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+		}
+	}
+
+	@UpnpAction(out =
+		@UpnpOutputArgument(name = "NewID", stateVariable = "A_ARG_TYPE_ObjectID"))
+	public String createReference(
+		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId
+		) throws ContentDirectoryException {
+		try {
+			return playlistManager.addSongToPlaylist(objectId, containerId);
+		} catch (Exception e) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+		}
+	}
+
+	@UpnpAction(name = "DestroyObject")
+	public String destroyObject(
+		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId
+		) throws ContentDirectoryException {
+		try {
+			playlistManager.removeSongFromPlaylist(objectId);
+			return "DestroyObject()";
+		} catch (Exception e) {
+			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 		}
 	}
 

@@ -23,23 +23,25 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jupnp.support.contentdirectory.DIDLParser;
+import org.jupnp.support.model.DIDLContent;
+import org.jupnp.support.model.item.PlaylistItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.database.MediaDatabase;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.CreateObjectResult;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.renderers.Renderer;
-import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
+import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.container.PlaylistFolder;
 
@@ -47,127 +49,38 @@ public class PlaylistManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistManager.class.getName());
 
-	private final List<Path> availablePlaylists = new ArrayList<>();
-	private final List<String> playlistsNames = new ArrayList<>();
-	private final List<PlaylistIdentVO> serverAccessiblePlaylists = new ArrayList<>();
-	private final MediaDatabase db = PMS.get().getMediaDatabase();
-	private boolean serviceDisabled = true;
-
 	// migration step towards UPnP handling
 	private final Renderer renderer = RendererConfigurations.getDefaultRenderer();
 
-	public PlaylistManager() {
-		checkPlaylistDirectoryConfiguration();
-	}
 
-	private void checkPlaylistDirectoryConfiguration() {
-		LOGGER.trace("Playlist directory is set to : " + PMS.getConfiguration().getManagedPlaylistFolder());
-		if (StringUtils.isAllBlank(PMS.getConfiguration().getManagedPlaylistFolder())) {
-			LOGGER.info("Playlist directory not set. Playlist management is disabled.");
-			return;
+	private Path getPlaylistPathFromObjectId(StoreContainer playlistFolder) {
+		File pl = new File(playlistFolder.getSystemName());
+		if (pl != null) {
+			return pl.toPath();
 		}
-
-		availablePlaylists.clear();
-		playlistsNames.clear();
-		serverAccessiblePlaylists.clear();
-
-		try {
-			Path dir = Paths.get(PMS.getConfiguration().getManagedPlaylistFolder());
-			if (dir.toFile().isDirectory()) {
-				try (var dirStream = Files.newDirectoryStream(dir, path -> isValidPlaylist(path.toString()))) {
-					dirStream.forEach(this::addPlaylist);
-				}
-				serviceDisabled = false;
-			} else {
-				LOGGER.debug("Invalid playlist directory. Playlist management is disabled.");
-			}
-		} catch (IOException e) {
-			LOGGER.warn("Error while scanning Playlist files from disc.", e);
-		}
+		throw new RuntimeException("cannot resolve PATH of playlist");
 	}
 
-	public boolean isServiceEnabled() {
-		return !serviceDisabled;
-	}
-
-	/**
-	 * Returns discovered playlists name and ID from folder
-	 * PMS.getConfiguration().getManagedPlaylistFolder() if playlist is cached
-	 * in UMS database.
-	 */
-	public List<PlaylistIdentVO> getServerAccessiblePlaylists() {
-		return serverAccessiblePlaylists;
-	}
-
-	/**
-	 * Returns all discovered playlists name from folder
-	 * PMS.getConfiguration().getManagedPlaylistFolder()
-	 */
-	public List<String> getAvailablePlaylistNames() {
-		return playlistsNames;
-	}
-
-	private void addPlaylist(Path p) {
-		availablePlaylists.add(p);
-		String name = p.getName(p.getNameCount() - 1).toString();
-		name = name.substring(0, name.indexOf('.'));
-		playlistsNames.add(name.toLowerCase());
-		discoverInLocalDatabase(p, name);
-	}
-
-	/**
-	 * Discovers playlist in local database. If playlist is found it is marked
-	 * as server accessible and can later be browsed by objectid "$DBID$PLAYLIST$" + databaseId.
-	 */
-	private void discoverInLocalDatabase(Path p, String name) {
-		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("discover databaseid for file : " + p.toFile().getAbsolutePath());
-		}
-		Integer databaseId = getDatabaseId(p.toFile().getAbsolutePath());
-		if (databaseId != null) {
-			serverAccessiblePlaylists.add(new PlaylistIdentVO(name, databaseId));
-		}
-	}
-
-	private Integer getDatabaseId(String absolutePath) {
-		try (Connection connection = db.getConnection()) {
-			String sql = "select ID from FILES as F where (filename = ?)";
-			try (PreparedStatement ps = connection.prepareStatement(sql)) {
-				ps.setString(1, absolutePath);
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						return rs.getInt(1);
-					}
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.debug("exception while reading playlist id", e);
+	private PlaylistFolder getPlaylistContainer(String playlistObjectId) {
+		StoreResource sr = renderer.getMediaStore().getResource(playlistObjectId);
+		if (sr instanceof PlaylistFolder sc) {
+			return sc;
 		}
 		return null;
 	}
 
-	private Path getPlaylistPathFromObjectId(String playlistObjectId) {
-		StoreResource sr = renderer.getMediaStore().getResource(playlistObjectId);
-		if (sr instanceof PlaylistFolder realFile) {
-			File pl = new File(realFile.getSystemName());
-			if (pl != null) {
-				return pl.toPath();
-			}
+	private StoreContainer getStoreContainer(String storeContainerId) {
+		StoreResource sr = renderer.getMediaStore().getResource(storeContainerId);
+		if (sr instanceof StoreContainer sc) {
+			return sc;
 		}
-		throw new RuntimeException(Messages.getString("UnknownPlaylistName") + " : " + playlistObjectId);
+		throw new RuntimeException("unknown parent container.");
 	}
 
-	public List<String> addSongToPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromObjectId(playlistObjectId);
+	public String addSongToPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
+		PlaylistFolder playlistFolder = getPlaylistContainer(playlistObjectId);
+		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToAdd = getFilenameFromSongObjectId(songObjectId);
-
-		if (StringUtils.isAllBlank(filenameToAdd)) {
-			throw new RuntimeException(Messages.getString("UnknownAudiotrackId") + " : " + songObjectId);
-		}
-		if (playlistObjectId == null) {
-			throw new RuntimeException(Messages.getString("PlaylistNameNotProvided"));
-		}
-
 		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
@@ -176,9 +89,11 @@ public class PlaylistManager {
 		} else {
 			playlistEntries.add(relativeSongPath);
 			writePlaylistToDisk(playlistEntries, playlistPath);
+			StoreResource newPlaylistEntry = renderer.getMediaStore().createResourceFromFile(new File(filenameToAdd));
+			playlistFolder.addChild(newPlaylistEntry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
+			return newPlaylistEntry.getId();
 		}
-		return playlistEntries;
 	}
 
 	private String getFilenameFromSongObjectId(String songObjectId) throws SQLException {
@@ -193,8 +108,17 @@ public class PlaylistManager {
 		return playlistEntries.contains(relativeSongPath) || playlistEntries.contains(absoluteSongPath);
 	}
 
+	public List<String> removeSongFromPlaylist(String songObjectId) throws SQLException, IOException {
+		StoreResource sr = renderer.getMediaStore().getResource(songObjectId);
+		if (sr != null) {
+			return removeSongFromPlaylist(songObjectId, sr.getParentId());
+		}
+		LOGGER.warn("songObjectId not found.");
+		return null;
+	}
+
 	public List<String> removeSongFromPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromObjectId(playlistObjectId);
+		Path playlistPath = getPlaylistPathFromObjectId(getPlaylistContainer(playlistObjectId));
 		String filenameToRemove = getFilenameFromSongObjectId(songObjectId);
 		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
@@ -267,26 +191,46 @@ public class PlaylistManager {
 		Files.write(playlistFile, lines);
 	}
 
-	public void createPlaylist(String playlistName) throws IOException {
-		if (StringUtils.isAllBlank(playlistName)) {
-			throw new RuntimeException(Messages.getString("NoPlaylistNameProvided"));
-		}
-		if (!FilenameUtils.getBaseName(playlistName).equals(playlistName)) {
-			throw new RuntimeException(Messages.getString("DoNotProvidePathOrFileExtensions"));
-		}
-		if (playlistsNames.contains(playlistName)) {
-			throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
-		}
+	public CreateObjectResult createPlaylist(String parentContainerId, String elements) throws Exception {
+		CreateObjectResult createResult = new CreateObjectResult();
+		Parser parser = new Parser();
+		Result modelItemToAdd = parser.parse(elements);
+		Item itemToCreate = modelItemToAdd.getItems().get(0);
+		if (itemToCreate != null) {
+			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				String playlistName = modelItemToAdd.getItems().get(0).getTitle();
+				if (StringUtils.isAllBlank(playlistName)) {
+					throw new RuntimeException(Messages.getString("NoPlaylistNameProvided"));
+				}
+				String fullPath = FilenameUtils.concat(getStoreContainer(parentContainerId).getFileName(), playlistName);
+				File newPlaylist = new File(fullPath);
+				if (newPlaylist.exists()) {
+					throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
+				}
 
-		String absoluteNewFilename = FilenameUtils.concat(PMS.getConfiguration().getManagedPlaylistFolder(), playlistName + ".m3u8");
-		File newPlaylist = new File(absoluteNewFilename);
-		if (newPlaylist.exists()) {
-			throw new RuntimeException(Messages.getString("PlaylistAlreadyExists"));
-		}
+				createNewEmptyPlaylistFile(newPlaylist);
+				StoreResource newResource = renderer.getMediaStore().createResourceFromFile(newPlaylist);
+				getStoreContainer(parentContainerId).addChild(newResource);
 
-		createNewEmptyPlaylistFile(newPlaylist);
-		checkPlaylistDirectoryConfiguration();
-		MediaScanner.backgroundScanFileOrFolder(PMS.getConfiguration().getManagedPlaylistFolder());
+
+				PlaylistItem pi = new PlaylistItem();
+				pi.setTitle(playlistName);
+				pi.setParentID(newResource.getParentId());
+				pi.setId(newResource.getId());
+
+				DIDLParser didlParser = new DIDLParser();
+				DIDLContent content = new DIDLContent();
+				content.addItem(pi);
+				String xml = didlParser.generate(content);
+				createResult.setResult(xml);
+				createResult.setObjectID(newResource.getId());
+			} else {
+				LOGGER.error("cannot create item of type {}", itemToCreate.getUpnpClassName());
+			}
+		} else {
+			LOGGER.error("no item to create.");
+		}
+		return createResult;
 	}
 
 	private void createNewEmptyPlaylistFile(File newPlaylist) throws IOException {

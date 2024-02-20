@@ -325,7 +325,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_LOGGING_SYSLOG_PORT = "logging_syslog_port";
 	private static final String KEY_LOGGING_USE_SYSLOG = "logging_use_syslog";
 	private static final String KEY_LOG_DATABASE = "log_database";
-	private static final String KEY_MANAGED_PLAYLIST_FOLDER = "managed_playlist_folder";
 	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
@@ -5314,10 +5313,6 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isChromecastDbg() {
 		return getBoolean(KEY_CHROMECAST_DBG, false);
-	}
-
-	public String getManagedPlaylistFolder() {
-		return getString(KEY_MANAGED_PLAYLIST_FOLDER, "");
 	}
 
 	/**

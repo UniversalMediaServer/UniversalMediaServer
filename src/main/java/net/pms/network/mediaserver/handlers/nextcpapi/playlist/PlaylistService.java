@@ -41,24 +41,7 @@ public class PlaylistService implements NextcpApiResponseHandler {
 
 		String uriLower = uri.toLowerCase();
 		try {
-			if (!pm.isServiceEnabled()) {
-				throw new RuntimeException(Messages.getString("PlaylistServiceDisabled"));
-			}
 			switch (uriLower) {
-				case "getallplaylists" -> {
-					LOGGER.trace("getallplaylists");
-					String playlists = om.writeValueAsString(pm.getAvailablePlaylistNames());
-					response.setContentType("application/json; charset=UTF-8");
-					response.setResponse(playlists);
-					return response;
-				}
-				case "getserverplaylists" -> {
-					LOGGER.trace("getserverplaylists");
-					String serverPlaylists = om.writeValueAsString(pm.getServerAccessiblePlaylists());
-					response.setContentType("application/json; charset=UTF-8");
-					response.setResponse(serverPlaylists);
-					return response;
-				}
 				case "addsongtoplaylist" -> {
 					LOGGER.trace("addsongtoplaylist");
 					AudioPlaylistVO add = getParamsFromContent(content);
@@ -71,12 +54,6 @@ public class PlaylistService implements NextcpApiResponseHandler {
 					AudioPlaylistVO remove = getParamsFromContent(content);
 					pm.removeSongFromPlaylist(remove.getSongObjectId(), remove.getPlaylistObjectId());
 					response.setResponse(Messages.getString("SongRemovedFromPlaylist"));
-					return response;
-				}
-				case "createplaylist" -> {
-					LOGGER.trace("createplaylist");
-					pm.createPlaylist(content);
-					response.setResponse(Messages.getString("PlaylistHasBeenCreated"));
 					return response;
 				}
 				default -> {
