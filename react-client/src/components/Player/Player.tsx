@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
+import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { createElement, useContext, useEffect, useRef, useState } from 'react';
@@ -35,13 +35,11 @@ export const Player = () => {
   const [uuid, setUuid] = useState('');
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
-  const mainScroll = useRef<HTMLDivElement>(null);
   const i18n = useContext(I18nContext);
   const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
-  const { colorScheme } = useMantineColorScheme();
   const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
 
@@ -763,10 +761,10 @@ export const Player = () => {
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
-      <LoadingOverlay visible={loading} />
+      <LoadingOverlay visible={loading} overlayProps={{fixed: true}} />
       {getVideoMetadataEditModal()}
       {getBreadcrumbs()}
-      <ScrollArea offsetScrollbars viewportRef={mainScroll}>
+      <ScrollArea offsetScrollbars>
         {
           data.goal === 'play' ?
             <Paper>
