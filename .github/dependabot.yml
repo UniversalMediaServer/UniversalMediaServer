@@ -37,3 +37,6 @@ updates:
       mockito:
         patterns:
         - "mockito"
+      jupnp:
+        patterns:
+        - "org.jupnp:org.jupnp"
