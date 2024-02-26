@@ -22,7 +22,7 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
-- Bump `@types/node` from 18.19.4 to 18.19.17 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462), [#4490](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4490))
+- Bump `@types/node` from 18.19.4 to 18.19.18 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462), [#4490](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4490), [#4502](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4502))
 - Bump `@types/jest` from 29.5.11 to 29.5.12 ([#4482](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4482))
 - Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
 - Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
