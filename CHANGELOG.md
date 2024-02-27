@@ -16,18 +16,20 @@
 - Bump `@playwright/test` from 1.40.1 to 1.41.2 ([#4397](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4397), [#4416](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4416), [#4449](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4449))
 - Bump `org.mockito:mockito-junit-jupiter` from 5.8.0 to 5.10.0 ([#4388](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4388), [#4425](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4425))
 - Bump `actions/cache` from 3 to 4 ([#4400](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4400))
-- Bump `@types/react` from 18.2.47 to 18.2.55 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392), [#4468](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4468))
+- Bump `@types/react` from 18.2.47 to 18.2.59 ([#4392](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4392), [#4468](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4468), [#4505](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4505))
 - Bump `@testing-library/jest-dom` from 6.2.0 to 6.4.2 ([#4417](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4417), [#4423](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4423), [#4455](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4455))
 - Bump `org.mockito:mockito-core` from 5.8.0 to 5.10.0 ([#4426](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4426))
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
-- Bump `@types/node` from 18.19.4 to 18.19.17 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462), [#4490](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4490))
+- Bump `@types/node` from 18.19.4 to 18.19.18 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462), [#4490](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4490), [#4502](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4502))
 - Bump `@types/jest` from 29.5.11 to 29.5.12 ([#4482](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4482))
 - Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
 - Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
 - Bump `@testing-library/react` from 14.1.2 to 14.2.1 ([#4488](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4488))
 - Bump `ip` from 2.0.0 to 2.0.1 ([#4498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4498))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.1.1 to 3.2.0 ([#4504](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4504))
+- Bump `eslint` from 8.56.0 to 8.57.0 ([#4503](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4503))
 
 ## 14.0.0 (Unreleased) - Since 14.0.0-b1
 
