@@ -51,7 +51,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.add("renderers", RendererItem.getRenderersAsJsonArray());
@@ -105,7 +105,7 @@ public class RenderersApiServlet extends GuiHttpServlet {
 				respondForbidden(req, resp);
 				return;
 			}
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/infos" -> {
 					JsonObject post = getJsonObjectFromBody(req);

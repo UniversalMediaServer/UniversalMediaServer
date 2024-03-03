@@ -20,11 +20,10 @@ import jakarta.servlet.AsyncContext;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Timestamp;
-import net.pms.network.IServerSentEvents;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ServerSentEvents implements IServerSentEvents {
+public class ServerSentEvents implements IEventSourceClient {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ServerSentEvents.class);
 
 	private final Object osLock = new Object();

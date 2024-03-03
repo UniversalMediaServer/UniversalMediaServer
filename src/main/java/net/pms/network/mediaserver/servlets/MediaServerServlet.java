@@ -89,7 +89,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	protected void doGetHead(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		Renderer renderer = null;
 		try {
-			String uri = req.getServletPath();
+			String uri = req.getRequestURI();
 			MediaServerRequest mediaServerRequest = new MediaServerRequest(uri);
 			if (mediaServerRequest.isBadRequest()) {
 				//Bad Request

@@ -28,10 +28,12 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletMapping;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.MappingMatch;
 import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -205,6 +207,39 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
+	public HttpServletMapping getHttpServletMapping() {
+		return new HttpServletMapping() {
+			@Override
+			public String getMatchValue() {
+				return "";
+			}
+
+			@Override
+			public String getPattern() {
+				return "";
+			}
+
+			@Override
+			public String getServletName() {
+				return servlet.getServletName();
+			}
+
+			@Override
+			public MappingMatch getMappingMatch() {
+				return null;
+			}
+
+			@Override
+			public String toString() {
+				return "MappingImpl{" + "matchValue=" + getMatchValue() + ", pattern=" + getPattern() + ", servletName=" +
+						getServletName() + ", mappingMatch=" + getMappingMatch() + "} HttpServletRequest {" +
+						HttpExchangeServletRequest.this.toString() + '}';
+			}
+
+		};
+	}
+
+	@Override
 	public ServletInputStream getInputStream() throws IOException {
 		if (servletInputStream == null) {
 			servletInputStream = new HttpExchangeServletInputStream(exchange.getRequestBody());
@@ -290,15 +325,16 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	public String getPathInfo() {
 		if (pathInfo == null) {
 			String servpath = getServletContext().getContextPath();
-			if ("/".equals(servpath)) {
-				return null;
-			}
 			String path = exchange.getRequestURI().getPath();
-			String pInfo = path.replaceFirst(servpath, "");
-			if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
-				pInfo = "/" + pInfo;
+			if ("/".equals(servpath)) {
+				pathInfo = path;
+			} else {
+				String pInfo = path.replaceFirst(servpath, "");
+				if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
+					pInfo = "/" + pInfo;
+				}
+				pathInfo = pInfo;
 			}
-			pathInfo = pInfo;
 		}
 		return pathInfo.isEmpty() ? null : pathInfo;
 	}
@@ -414,13 +450,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 			if ("/*".equals(contextPath)) {
 				servletPath = "";
 			} else {
-				servletPath = exchange.getRequestURI().getPath();
-				if (servletPath.startsWith(contextPath)) {
-					servletPath = servletPath.substring(contextPath.length());
-				}
-				if (!servletPath.startsWith("/")) {
-					servletPath = "/" + servletPath;
-				}
+				servletPath = contextPath;
 			}
 		}
 		return servletPath;
