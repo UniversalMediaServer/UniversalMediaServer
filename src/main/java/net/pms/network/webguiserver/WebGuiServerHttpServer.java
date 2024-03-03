@@ -29,17 +29,16 @@ import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.AccountApiServlet;
 import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
+import net.pms.network.webguiserver.servlets.EventSourceServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.LogsApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.network.webguiserver.servlets.SharedContentApiServlet;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
 import net.pms.util.SimpleThreadFactory;
 
-@SuppressWarnings("restriction")
 public class WebGuiServerHttpServer extends WebGuiServer {
 
 	private HttpServer server;
@@ -77,7 +76,7 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SettingsApiServlet.class);
 				container.createServlet(SharedContentApiServlet.class);
-				container.createServlet(SseApiServlet.class);
+				container.createServlet(EventSourceServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}

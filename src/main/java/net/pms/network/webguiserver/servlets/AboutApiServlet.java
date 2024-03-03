@@ -49,7 +49,7 @@ public class AboutApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			if (path.equals("/")) {
 				JsonObject jsonResponse = new JsonObject();
 				jsonResponse.addProperty("app", PropertiesUtil.getProjectProperties().get("project.name"));

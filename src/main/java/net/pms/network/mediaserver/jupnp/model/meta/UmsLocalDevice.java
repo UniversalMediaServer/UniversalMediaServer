@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.PMS;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.support.connectionmanager.UmsConnectionManagerService;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.network.mediaserver.jupnp.support.xmicrosoft.UmsMediaReceiverRegistrarService;
@@ -48,7 +48,7 @@ public class UmsLocalDevice extends LocalDevice {
 
 	public UmsLocalDevice() throws ValidationException {
 		super(
-			new DeviceIdentity(new UDN(PMS.get().udn())),
+			new DeviceIdentity(new UDN(MediaServer.getUuid())),
 			new UDADeviceType("MediaServer"),
 			null,
 			createDeviceIcons(),

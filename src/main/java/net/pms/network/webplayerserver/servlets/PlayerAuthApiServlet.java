@@ -46,7 +46,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/session" -> {
 					JsonObject jObject = new JsonObject();
@@ -72,7 +72,7 @@ public class PlayerAuthApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/login" -> {
 					String loginDetails = getBodyAsString(req);

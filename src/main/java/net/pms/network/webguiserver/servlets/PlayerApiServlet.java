@@ -56,8 +56,9 @@ import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.ServerSentEvents;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
@@ -90,7 +91,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String path = req.getServletPath();
+			String path = req.getPathInfo();
 			if (path.equals("/")) {
 				Account account = AuthService.getPlayerAccountLoggedIn(req);
 				if (account == null) {
@@ -143,7 +144,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				return;
 			}
 			renderer.setActive(true);
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/browse" -> {
 					if (action.has("id")) {
@@ -875,7 +876,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return in;
 	}
 
-	private static WebGuiRenderer getValidRenderer(HttpServletRequest req, HttpServletResponse resp, String[] data, int count, int permissions) throws IOException {
+	private static WebGuiRenderer getValidRendererOrRespondError(HttpServletRequest req, HttpServletResponse resp, String[] data, int count, int permissions) throws IOException {
 		if (data.length < count) {
 			respondBadRequest(req, resp);
 		} else {
@@ -884,6 +885,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				respondUnauthorized(req, resp);
 			} else if (!renderer.havePermission(permissions)) {
 				respondForbidden(req, resp);
+				return null;
 			}
 			return renderer;
 		}
@@ -891,9 +893,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendRawMedia(HttpServletRequest req, HttpServletResponse resp, boolean isDownload) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
 		if (renderer == null) {
 			return;
 		}
@@ -926,7 +928,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 
 			if (isDownload) {
@@ -958,9 +960,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendDownloadMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_DOWNLOAD);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 4, Permissions.WEB_PLAYER_DOWNLOAD);
 		if (renderer == null) {
 			return;
 		}
@@ -984,7 +986,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			File media = new File(item.getFileName());
 			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			resp.setHeader("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
 			resp.setStatus(200);
@@ -1002,9 +1004,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendImageMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
 		if (renderer == null) {
 			return;
 		}
@@ -1063,7 +1065,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			AsyncContext async = req.startAsync();
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			if (in != null) {
 				if (in.available() != len) {
@@ -1090,9 +1092,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendMedia(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
 		if (renderer == null) {
 			return;
 		}
@@ -1145,7 +1147,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			//hls part
 			if (item.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(renderer.getVideoMimeType())) {
-				resp.setHeader("Server", PMS.get().getServerName());
+				resp.setHeader("Server", MediaServer.getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = HlsHelper.getChaptersWebVtt(item);
 					respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
@@ -1156,13 +1158,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (pathData[5].endsWith(".m3u8")) {
 						String rendition = pathData[5];
 						rendition = rendition.replace(".m3u8", "");
-						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getContextPath() + "/media/" + sessionId + "/", rendition);
+						String response = HlsHelper.getHLSm3u8ForRendition(item, renderer, req.getServletPath() + "/media/" + sessionId + "/", rendition);
 						respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 					} else {
 						//we need to hls stream
 						AsyncContext async = req.startAsync();
 						InputStream in = HlsHelper.getInputStream(uri, item);
-
+						resp.setHeader("Server", MediaServer.getServerName());
 						if (in != null) {
 							resp.setHeader("Connection", "keep-alive");
 							if (uri.endsWith(".ts")) {
@@ -1185,7 +1187,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						}
 					}
 				} else {
-					String response = HlsHelper.getHLSm3u8(item, renderer, req.getContextPath() + "/media/" + sessionId + "/");
+					String response = HlsHelper.getHLSm3u8(item, renderer, req.getServletPath() + "/media/" + sessionId + "/");
 					respond(req, resp, response, 200, HTTPResource.HLS_TYPEMIME);
 				}
 			} else {
@@ -1196,7 +1198,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				long len = item.length();
 				boolean isTranscoding = len == StoreResource.TRANS_SIZE;
 				resp.setContentType(mimeType);
-				resp.setHeader("Server", PMS.get().getServerName());
+				resp.setHeader("Server", MediaServer.getServerName());
 				resp.setHeader("Connection", "keep-alive");
 				if (in != null) {
 					if (isTranscoding) {
@@ -1235,19 +1237,22 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendServerSentEvents(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 3, Permissions.WEB_PLAYER_BROWSE);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 3, Permissions.WEB_PLAYER_BROWSE);
 		if (renderer == null) {
 			return;
 		}
-		resp.setHeader("Server", PMS.get().getServerName());
-		resp.setHeader("Connection", "keep-alive");
+		resp.setHeader("Server", MediaServer.getServerName());
+		resp.setHeader("Connection", "close");
 		resp.setHeader("Cache-Control", "no-transform");
 		resp.setHeader("Charset", "UTF-8");
 		resp.setContentType("text/event-stream");
+		resp.setStatus(HttpServletResponse.SC_OK);
+		resp.flushBuffer();
 		AsyncContext async = req.startAsync();
-		ServerSentEvents sse = new ServerSentEvents(async, () -> {
+		async.setTimeout(0);
+		EventSourceClient sse = new EventSourceClient(async, () -> {
 			try {
 				Thread.sleep(2000);
 				renderer.updateServerSentEventsActive();
@@ -1260,9 +1265,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static void sendThumbnail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		String path = req.getServletPath();
+		String path = req.getPathInfo();
 		String[] pathData = path.split("/");
-		WebGuiRenderer renderer = getValidRenderer(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
+		WebGuiRenderer renderer = getValidRendererOrRespondError(req, resp, pathData, 4, Permissions.WEB_PLAYER_BROWSE);
 		if (renderer == null) {
 			return;
 		}
@@ -1271,6 +1276,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (thumb != null) {
 			AsyncContext async = req.startAsync();
 			resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Connection", "keep-alive");
 			resp.setStatus(200);

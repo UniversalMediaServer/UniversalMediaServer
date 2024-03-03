@@ -66,6 +66,7 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.HTTPXMLHelper;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.handlers.message.BrowseRequest;
@@ -731,7 +732,7 @@ public class RequestV2 extends HTTPResource {
 				//------------------------- END ContentDirectory -------------------------
 			}
 
-			output.headers().set(HttpHeaders.Names.SERVER, PMS.get().getServerName());
+			output.headers().set(HttpHeaders.Names.SERVER, MediaServer.getServerName());
 
 			if (response.length() > 0) {
 				// A response message was constructed; convert it to data ready to be sent.
@@ -1332,7 +1333,7 @@ public class RequestV2 extends HTTPResource {
 
 	private String subscribeHandler(HttpResponse output) throws IOException {
 		StringBuilder response = new StringBuilder();
-		output.headers().set("SID", PMS.get().usn());
+		output.headers().set("SID", MediaServer.getUniqueDeviceName());
 
 		/**
 		 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
@@ -1354,7 +1355,7 @@ public class RequestV2 extends HTTPResource {
 						Socket sock = new Socket(addr, port); OutputStream out = sock.getOutputStream()) {
 					out.write(("NOTIFY /" + uri + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
+					out.write(("SID: " + MediaServer.getUniqueDeviceName()).getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.write(("SEQ: " + 0).getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
@@ -1384,7 +1385,7 @@ public class RequestV2 extends HTTPResource {
 		output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml");
 		output.headers().set("NT", "upnp:event");
 		output.headers().set("NTS", "upnp:propchange");
-		output.headers().set("SID", PMS.get().usn());
+		output.headers().set("SID", MediaServer.getUniqueDeviceName());
 		output.headers().set("SEQ", "0");
 
 		StringBuilder response = new StringBuilder();
