@@ -39,6 +39,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.util.StringUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -285,7 +286,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	protected static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime, boolean logBody) {
-		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Server", MediaServer.getServerName());
 		if (response != null) {
 			if (mime != null) {
 				resp.setContentType(mime);
@@ -379,7 +380,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	protected static void respondError(HttpServletRequest req, HttpServletResponse resp, int status, String msg) throws IOException {
-		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Server", MediaServer.getServerName());
 		if (LOGGER.isTraceEnabled()) {
 			resp.setStatus(status);
 			logHttpServletResponse(req, resp, msg, false);

@@ -22,7 +22,6 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
-import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
@@ -197,7 +196,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + MediaServer.getUuid()) && uri.contains("/ContentDirectory/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}

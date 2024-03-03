@@ -53,6 +53,7 @@ import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.NetworkDeviceFilter;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
@@ -195,7 +196,7 @@ public class MediaServerHandler implements HttpHandler {
 	}
 
 	private static void sendErrorResponse(final HttpExchange exchange, final Renderer renderer, int code) throws IOException {
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		exchange.sendResponseHeaders(code, 0);
 		if (LOGGER.isTraceEnabled()) {
 			logMessageSent(exchange, null, null, renderer);
@@ -203,7 +204,7 @@ public class MediaServerHandler implements HttpHandler {
 	}
 
 	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, String message, String contentType) throws IOException {
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		exchange.getResponseHeaders().set("Content-Type", contentType);
 		if (message == null || message.length() == 0) {
 			// No response data. Seems we are merely serving up headers.
@@ -237,7 +238,7 @@ public class MediaServerHandler implements HttpHandler {
 	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
 		try (exchange) {
-			exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+			exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 			if (inputStream == null) {
 				// No input stream. Seems we are merely serving up headers.
 				exchange.sendResponseHeaders(204, 0);

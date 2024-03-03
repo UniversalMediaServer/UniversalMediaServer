@@ -223,7 +223,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	}
 
 	private static void sendErrorResponse(final HttpExchange exchange, final Renderer renderer, int code) throws IOException {
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		exchange.sendResponseHeaders(code, 0);
 		if (LOGGER.isTraceEnabled()) {
 			logMessageSent(exchange, null, null, renderer);
@@ -231,7 +231,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	}
 
 	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, String message, String contentType) throws IOException {
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		exchange.getResponseHeaders().set("Content-Type", contentType);
 		if (message == null || message.length() == 0) {
 			// No response data. Seems we are merely serving up headers.
@@ -264,7 +264,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 	private static void sendResponse(final HttpExchange exchange, final Renderer renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream) throws IOException {
 		// There is an input stream to send as a response.
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		if (inputStream == null) {
 			// No input stream. Seems we are merely serving up headers.
 			exchange.sendResponseHeaders(204, 0);
@@ -735,7 +735,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	}
 
 	private String subscribeHandler(HttpExchange exchange, String uri, String soapaction) throws IOException {
-		exchange.getResponseHeaders().set("SID", PMS.get().usn());
+		exchange.getResponseHeaders().set("SID", MediaServer.getUniqueDeviceName());
 
 		/**
 		 * Requirement [7.2.22.1]: UPnP devices must send events to all properly
@@ -757,7 +757,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 						Socket sock = new Socket(addr, port); OutputStream out = sock.getOutputStream()) {
 					out.write(("NOTIFY /" + uri + " HTTP/1.1").getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
-					out.write(("SID: " + PMS.get().usn()).getBytes(StandardCharsets.UTF_8));
+					out.write(("SID: " + MediaServer.getUniqueDeviceName()).getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
 					out.write(("SEQ: " + 0).getBytes(StandardCharsets.UTF_8));
 					out.write(CRLF.getBytes(StandardCharsets.UTF_8));
@@ -788,7 +788,7 @@ public class ContentDirectoryHandler implements HttpHandler {
 	private static String notifyHandler(HttpExchange exchange) {
 		exchange.getResponseHeaders().set("NT", "upnp:event");
 		exchange.getResponseHeaders().set("NTS", "upnp:propchange");
-		exchange.getResponseHeaders().set("SID", PMS.get().usn());
+		exchange.getResponseHeaders().set("SID", MediaServer.getUniqueDeviceName());
 		exchange.getResponseHeaders().set("SEQ", "0");
 		StringBuilder response = new StringBuilder();
 		response.append("<e:propertyset xmlns:e=\"urn:schemas-upnp-org:event-1-0\">");

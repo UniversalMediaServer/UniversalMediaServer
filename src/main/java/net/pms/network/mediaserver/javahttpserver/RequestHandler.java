@@ -20,8 +20,8 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.net.InetAddress;
-import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
+import net.pms.network.mediaserver.MediaServer;
 
 public class RequestHandler implements HttpHandler {
 
@@ -49,7 +49,7 @@ public class RequestHandler implements HttpHandler {
 	}
 
 	private static void sendErrorResponse(final HttpExchange exchange, int code) throws IOException {
-		exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+		exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 		exchange.sendResponseHeaders(code, 0);
 	}
 
