@@ -33,7 +33,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
@@ -319,7 +319,7 @@ public class SharedContentConfiguration {
 		JsonObject sharedData = new JsonObject();
 		sharedData.add("shared_content", getAsJsonArray());
 		sharedMessage.add("value", sharedData);
-		SseApiServlet.broadcastSharedMessage(sharedMessage.toString());
+		EventSourceServer.broadcastSharedMessage(sharedMessage.toString());
 	}
 
 }

@@ -246,9 +246,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	@Override
 	public StreamClient createStreamClient() {
 		return new JdkStreamClients(
-				new JdkStreamClientConfiguration(
-						getStreamClientExecutorService()
-				)
+				new JdkStreamClientConfiguration(getStreamClientExecutorService())
 		);
 	}
 

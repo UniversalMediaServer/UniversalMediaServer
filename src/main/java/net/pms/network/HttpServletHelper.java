@@ -15,6 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -119,15 +120,16 @@ public abstract class HttpServletHelper extends HttpServlet {
 		}
 
 		String formattedContent = getFormattedContent(content, req.getContentType());
+		String servletName = req.getHttpServletMapping().getServletName();
 		LOGGER.trace("Received a request from {}:\n{}{}{}\n{}{}{}{}{}",
 				remoteHost,
 				LOG_START,
-				req.getServletContext().getServletContextName(),
+				servletName,
 				LOG_REQUEST_BEGIN,
 				header,
 				formattedContent,
 				LOG_START,
-				req.getServletContext().getServletContextName(),
+				servletName,
 				LOG_REQUEST_END
 		);
 	}
@@ -153,17 +155,18 @@ public abstract class HttpServletHelper extends HttpServlet {
 		}
 
 		String responseCode = req.getProtocol() + " " + resp.getStatus();
+		String servletName = req.getHttpServletMapping().getServletName();
 		if ("HEAD".equalsIgnoreCase(req.getMethod())) {
 			LOGGER.trace(
 					"HEAD only response sent to {}:\n{}{}{}\n{}\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_BEGIN,
 					responseCode,
 					header,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_END
 			);
 		} else if (StringUtils.isNotEmpty(content)) {
@@ -171,38 +174,38 @@ public abstract class HttpServletHelper extends HttpServlet {
 			LOGGER.trace("Response sent to {}:\n{}{}{}\n{}\n{}{}{}{}{}",
 					remoteHost,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_BEGIN,
 					responseCode,
 					header,
 					formattedContent,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_END
 			);
 		} else if (isStream) {
 			LOGGER.trace("Transfer response sent to {}:\n{}{}{}\n{} ({})\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_BEGIN,
 					responseCode,
 					chunked ? "chunked" : "non-chunked",
 					header,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_END
 			);
 		} else {
 			LOGGER.trace("Empty response sent to {}:\n{}{}{}\n{}\n{}{}{}{}",
 					remoteHost,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_BEGIN,
 					responseCode,
 					header,
 					LOG_START,
-					req.getServletContext().getServletContextName(),
+					servletName,
 					LOG_RESPONSE_END
 			);
 		}
@@ -420,6 +423,16 @@ public abstract class HttpServletHelper extends HttpServlet {
 			}
 		}
 		return result.toString();
+	}
+
+	public static boolean hasHeaderValue(HttpServletRequest request, String header, String value) {
+		Enumeration<String> acceptValues = request.getHeaders(header);
+		while (acceptValues.hasMoreElements()) {
+			if (acceptValues.nextElement().equals(value)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

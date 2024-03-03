@@ -37,6 +37,7 @@ import net.pms.iam.User;
 import net.pms.image.Image;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil;
+import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			if (path.equals("/accounts")) {
 				//get account list that the user can view/modify
 				Account account = AuthService.getAccountLoggedIn(req);
@@ -102,7 +103,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			if (path.equals("/action")) {
 				//action requested on account (create/modify)
 				Account account = AuthService.getAccountLoggedIn(req);
@@ -189,7 +190,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 											}
 											AccountService.createUser(connection, cuUsername, cuPassword, cuName, cuGroupId);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -260,8 +261,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 												}
 												AccountService.updateUser(connection, muUserId, muName, muGroupId, muAvatar, muPinCode, muLibraryHidden);
 												respond(req, resp, "{}", 200, "application/json");
-												SseApiServlet.setRefreshSession(muUserId);
-												SseApiServlet.setUpdateAccounts();
+												EventSourceServer.setRefreshSession(muUserId);
+												EventSourceServer.setUpdateAccounts();
 											} else {
 												//user does not exists
 												respondBadRequest(req, resp);
@@ -281,8 +282,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 										if (account.havePermission(Permissions.USERS_MANAGE)) {
 											AccountService.deleteUser(connection, duUserId);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setRefreshSession(duUserId);
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setRefreshSession(duUserId);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											LOGGER.trace("User '{}' try to delete the user with id {}", account.toString(), duUserId);
 											respondForbidden(req, resp);
@@ -298,7 +299,7 @@ public class AccountApiServlet extends GuiHttpServlet {
 											String cgName = action.get("name").getAsString();
 											AccountService.createGroup(connection, cgName, 0);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -316,8 +317,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(mgGroupId);
 											AccountService.updateGroup(connection, mgGroupId, mgName);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setRefreshSessions(userIds);
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -334,8 +335,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(dgGroupId);
 											AccountService.deleteGroup(connection, dgGroupId);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setRefreshSessions(userIds);
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}
@@ -353,8 +354,8 @@ public class AccountApiServlet extends GuiHttpServlet {
 											List<Integer> userIds = AccountService.getUserIdsForGroup(upGroupId);
 											AccountService.updatePermissions(connection, upGroupId, upPermissions);
 											respond(req, resp, "{}", 200, "application/json");
-											SseApiServlet.setRefreshSessions(userIds);
-											SseApiServlet.setUpdateAccounts();
+											EventSourceServer.setRefreshSessions(userIds);
+											EventSourceServer.setUpdateAccounts();
 										} else {
 											respondBadRequest(req, resp);
 										}

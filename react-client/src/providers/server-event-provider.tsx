@@ -79,8 +79,7 @@ export const ServerEventProvider = ({ children }: Props) => {
         setConnectionStatus(1);
       } else if (event.status == 401) {
         //reload Unauthorized
-        console.log('SSE Unauthorized');
-        throw new Error('SSE Unauthorized');
+        window.location.reload();
       } else if (event.status == 403) {
         //stop Forbidden
         console.log('SSE Forbidden');

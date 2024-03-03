@@ -1,7 +1,7 @@
 /*
  * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
+ * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation; version 2 of the License only.
  *
@@ -14,76 +14,40 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.webguiserver.servlets;
+package net.pms.network.webguiserver;
 
 import com.google.gson.JsonObject;
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
-import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
-import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.ServerSentEvents;
+import net.pms.network.webguiserver.servlets.SettingsApiServlet;
+import net.pms.network.webguiserver.servlets.WebGuiServlet;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-@WebServlet(name = "SseApiServlet", urlPatterns = {"/v1/api/sse"}, displayName = "Sse Api Servlet")
-public class SseApiServlet extends GuiHttpServlet {
+/**
+ * @author Surf@ceS
+ */
+public class EventSourceServer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(SseApiServlet.class);
-	private static final Map<Integer, ArrayList<ServerSentEvents>> SSE_INSTANCES = new HashMap<>();
-	private static final List<ServerSentEvents> SSE_ABOUT_INSTANCES = new ArrayList<>();
-	private static final List<ServerSentEvents> SSE_HOME_INSTANCES = new ArrayList<>();
-	private static final List<ServerSentEvents> SSE_LOGS_INSTANCES = new ArrayList<>();
-	private static final List<ServerSentEvents> SSE_SETTINGS_INSTANCES = new ArrayList<>();
-	private static final List<ServerSentEvents> SSE_SHARED_INSTANCES = new ArrayList<>();
+	private static final Map<Integer, ArrayList<EventSourceClient>> SSE_INSTANCES = new HashMap<>();
+	private static final List<EventSourceClient> SSE_ABOUT_INSTANCES = new ArrayList<>();
+	private static final List<EventSourceClient> SSE_HOME_INSTANCES = new ArrayList<>();
+	private static final List<EventSourceClient> SSE_LOGS_INSTANCES = new ArrayList<>();
+	private static final List<EventSourceClient> SSE_SETTINGS_INSTANCES = new ArrayList<>();
+	private static final List<EventSourceClient> SSE_SHARED_INSTANCES = new ArrayList<>();
 
-	@Override
-	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-		try {
-			var path = req.getServletPath();
-			if (path == null || path.equals("/")) {
-				Account account = AuthService.getAccountLoggedIn(req);
-				if (account != null && account.getUser().getId() > 0) {
-					String sseType = null;
-					URI referer = getRequestReferer(req);
-					if (referer != null) {
-						sseType = referer.getPath();
-					}
-					resp.setHeader("Server", PMS.get().getServerName());
-					resp.setHeader("Connection", "keep-alive");
-					resp.setHeader("Cache-Control", "no-transform");
-					resp.setHeader("Charset", "UTF-8");
-					resp.setContentType("text/event-stream");
-					AsyncContext async = req.startAsync();
-					ServerSentEvents sse = new ServerSentEvents(async);
-					addServerSentEventsFor(account.getUser().getId(), sse, sseType);
-				} else {
-					respond(req, resp, "{\"error\": \"Forbidden\"}", 403, "application/json");
-				}
-			} else {
-				respond(req, resp, "{}", 404, "application/json");
-			}
-		} catch (RuntimeException e) {
-			LOGGER.error("RuntimeException in SseApiServlet: {}", e.getMessage());
-			respond(req, resp, null, 500, "application/json");
-		}
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private EventSourceServer() {
 	}
 
-	private static void addServerSentEventsFor(int id, ServerSentEvents sse, String sseType) {
+	public static void addServerSentEventsFor(int id, EventSourceClient sse, String sseType) {
 		if (id > 0) {
 			synchronized (SSE_INSTANCES) {
 				if (!SSE_INSTANCES.containsKey(id)) {
@@ -166,9 +130,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastSettingsMessage(String message) {
 		synchronized (SSE_SETTINGS_INSTANCES) {
-			for (Iterator<ServerSentEvents> sseIterator = SSE_SETTINGS_INSTANCES.iterator(); sseIterator.hasNext();) {
-				ServerSentEvents sse = sseIterator.next();
-				if (!sse.isOpened()) {
+			for (Iterator<EventSourceClient> sseIterator = SSE_SETTINGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				EventSourceClient sse = sseIterator.next();
+				if (sse.isClosed()) {
 					sseIterator.remove();
 				} else {
 					sse.sendMessage(message);
@@ -184,9 +148,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastSharedMessage(String message) {
 		synchronized (SSE_SHARED_INSTANCES) {
-			for (Iterator<ServerSentEvents> sseIterator = SSE_SHARED_INSTANCES.iterator(); sseIterator.hasNext();) {
-				ServerSentEvents sse = sseIterator.next();
-				if (!sse.isOpened()) {
+			for (Iterator<EventSourceClient> sseIterator = SSE_SHARED_INSTANCES.iterator(); sseIterator.hasNext();) {
+				EventSourceClient sse = sseIterator.next();
+				if (sse.isClosed()) {
 					sseIterator.remove();
 				} else {
 					sse.sendMessage(message);
@@ -202,9 +166,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastAboutMessage(String message) {
 		synchronized (SSE_ABOUT_INSTANCES) {
-			for (Iterator<ServerSentEvents> sseIterator = SSE_ABOUT_INSTANCES.iterator(); sseIterator.hasNext();) {
-				ServerSentEvents sse = sseIterator.next();
-				if (!sse.isOpened()) {
+			for (Iterator<EventSourceClient> sseIterator = SSE_ABOUT_INSTANCES.iterator(); sseIterator.hasNext();) {
+				EventSourceClient sse = sseIterator.next();
+				if (sse.isClosed()) {
 					sseIterator.remove();
 				} else {
 					sse.sendMessage(message);
@@ -220,9 +184,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastHomeMessage(String message) {
 		synchronized (SSE_HOME_INSTANCES) {
-			for (Iterator<ServerSentEvents> sseIterator = SSE_HOME_INSTANCES.iterator(); sseIterator.hasNext();) {
-				ServerSentEvents sse = sseIterator.next();
-				if (!sse.isOpened()) {
+			for (Iterator<EventSourceClient> sseIterator = SSE_HOME_INSTANCES.iterator(); sseIterator.hasNext();) {
+				EventSourceClient sse = sseIterator.next();
+				if (sse.isClosed()) {
 					sseIterator.remove();
 				} else {
 					sse.sendMessage(message);
@@ -238,9 +202,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastLogsMessage(String message) {
 		synchronized (SSE_LOGS_INSTANCES) {
-			for (Iterator<ServerSentEvents> sseIterator = SSE_LOGS_INSTANCES.iterator(); sseIterator.hasNext();) {
-				ServerSentEvents sse = sseIterator.next();
-				if (!sse.isOpened()) {
+			for (Iterator<EventSourceClient> sseIterator = SSE_LOGS_INSTANCES.iterator(); sseIterator.hasNext();) {
+				EventSourceClient sse = sseIterator.next();
+				if (sse.isClosed()) {
 					sseIterator.remove();
 				} else {
 					//never log a log message
@@ -252,11 +216,11 @@ public class SseApiServlet extends GuiHttpServlet {
 
 	public static void broadcastMessage(String message, boolean log) {
 		synchronized (SSE_INSTANCES) {
-			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
-				Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
-				for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
-					ServerSentEvents sse = sseIterator.next();
-					if (!sse.isOpened()) {
+			for (Iterator<Map.Entry<Integer, ArrayList<EventSourceClient>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<EventSourceClient>> entry = ssesIterator.next();
+				for (Iterator<EventSourceClient> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+					EventSourceClient sse = sseIterator.next();
+					if (sse.isClosed()) {
 						sseIterator.remove();
 					} else {
 						sse.sendMessage(message, log);
@@ -278,13 +242,13 @@ public class SseApiServlet extends GuiHttpServlet {
 	 */
 	public static void broadcastMessageWithPermission(String message, int permission) {
 		synchronized (SSE_INSTANCES) {
-			for (Iterator<Entry<Integer, ArrayList<ServerSentEvents>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
-				Entry<Integer, ArrayList<ServerSentEvents>> entry = ssesIterator.next();
+			for (Iterator<Map.Entry<Integer, ArrayList<EventSourceClient>>> ssesIterator = SSE_INSTANCES.entrySet().iterator(); ssesIterator.hasNext();) {
+				Map.Entry<Integer, ArrayList<EventSourceClient>> entry = ssesIterator.next();
 				Account account = AccountService.getAccountByUserId(entry.getKey());
 				if (account.havePermission(permission)) {
-					for (Iterator<ServerSentEvents> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
-						ServerSentEvents sse = sseIterator.next();
-						if (!sse.isOpened()) {
+					for (Iterator<EventSourceClient> sseIterator = entry.getValue().iterator(); sseIterator.hasNext();) {
+						EventSourceClient sse = sseIterator.next();
+						if (sse.isClosed()) {
 							sseIterator.remove();
 						} else {
 							sse.sendMessage(message);
@@ -308,9 +272,9 @@ public class SseApiServlet extends GuiHttpServlet {
 	public static void broadcastMessage(String message, int id) {
 		synchronized (SSE_INSTANCES) {
 			if (SSE_INSTANCES.containsKey(id)) {
-				for (Iterator<ServerSentEvents> sseIterator = SSE_INSTANCES.get(id).iterator(); sseIterator.hasNext();) {
-					ServerSentEvents sse = sseIterator.next();
-					if (!sse.isOpened()) {
+				for (Iterator<EventSourceClient> sseIterator = SSE_INSTANCES.get(id).iterator(); sseIterator.hasNext();) {
+					EventSourceClient sse = sseIterator.next();
+					if (sse.isClosed()) {
 						sseIterator.remove();
 					} else {
 						sse.sendMessage(message);

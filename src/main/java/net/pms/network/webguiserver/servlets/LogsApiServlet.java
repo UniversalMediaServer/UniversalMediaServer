@@ -60,7 +60,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			var path = req.getServletPath() != null ? req.getServletPath() : "/";
+			var path = req.getPathInfo() != null ? req.getPathInfo() : "/";
 			switch (path) {
 				case "/" -> {
 					JsonObject result = new JsonObject();
@@ -113,7 +113,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/packer" -> {
 					JsonObject data = getJsonObjectFromBody(req);

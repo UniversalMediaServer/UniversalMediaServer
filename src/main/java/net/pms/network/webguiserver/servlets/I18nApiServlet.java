@@ -44,7 +44,7 @@ public class I18nApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/" -> {
 					String language = req.getParameter(LANGUAGE_MEMBER_NAME);
@@ -82,7 +82,7 @@ public class I18nApiServlet extends GuiHttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			var path = req.getServletPath();
+			var path = req.getPathInfo();
 			switch (path) {
 				case "/" -> {
 					JsonObject version = new JsonObject();

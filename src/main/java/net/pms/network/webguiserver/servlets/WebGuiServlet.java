@@ -25,7 +25,7 @@ import net.pms.network.webguiserver.GuiHttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@WebServlet({"/"})
+@WebServlet(name = "WebGuiServlet", urlPatterns = {"/"})
 public class WebGuiServlet extends GuiHttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServlet.class);
