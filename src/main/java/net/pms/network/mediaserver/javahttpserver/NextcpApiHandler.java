@@ -24,6 +24,7 @@ import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.handlers.nextcpapi.AbstractNextcpApiHandler;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponse;
 import net.pms.network.mediaserver.handlers.nextcpapi.NextcpApiResponseHandler;
@@ -112,7 +113,7 @@ public class NextcpApiHandler extends AbstractNextcpApiHandler implements HttpHa
 
 	private static void sendResponse(final HttpExchange exchange, NextcpApiResponse response) throws IOException {
 		try (exchange) {
-			exchange.getResponseHeaders().set("Server", PMS.get().getServerName());
+			exchange.getResponseHeaders().set("Server", MediaServer.getServerName());
 			if (response.getConnection() != null) {
 				exchange.getResponseHeaders().set("Connection", response.getConnection());
 			}

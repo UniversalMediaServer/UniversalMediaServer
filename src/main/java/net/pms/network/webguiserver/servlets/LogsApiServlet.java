@@ -36,6 +36,7 @@ import net.pms.gui.GuiManager;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.util.DbgPacker;
 import org.slf4j.Logger;
@@ -136,7 +137,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 					if (!files.isEmpty()) {
 						resp.setContentType("application/zip");
 						resp.setHeader("Accept-Ranges", "bytes");
-						resp.setHeader("Server", PMS.get().getServerName());
+						resp.setHeader("Server", MediaServer.getServerName());
 						resp.setHeader("Connection", "keep-alive");
 						resp.setHeader("Transfer-Encoding", "chunked");
 						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");

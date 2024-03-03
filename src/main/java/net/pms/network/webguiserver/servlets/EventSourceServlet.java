@@ -23,9 +23,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
-import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
@@ -53,7 +53,7 @@ public class EventSourceServlet extends GuiHttpServlet {
 				if (referer != null) {
 					sseType = referer.getPath();
 				}
-				response.setHeader("Server", PMS.get().getServerName());
+				response.setHeader("Server", MediaServer.getServerName());
 				response.setHeader("Connection", "close");
 				response.setHeader("Cache-Control", "no-transform");
 				response.setHeader("Charset", "UTF-8");

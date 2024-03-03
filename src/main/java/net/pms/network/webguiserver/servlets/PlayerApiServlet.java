@@ -56,6 +56,7 @@ import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.renderers.ConnectedRenderers;
@@ -927,7 +928,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 
 			if (isDownload) {
@@ -985,7 +986,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			File media = new File(item.getFileName());
 			String mime = renderer.getMimeType(item);
 			resp.setContentType(mime);
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			resp.setHeader("Content-Disposition", "attachment; filename=\"" + media.getName() + "\"");
 			resp.setStatus(200);
@@ -1064,7 +1065,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			AsyncContext async = req.startAsync();
 			resp.setContentType(mime);
 			resp.setHeader("Accept-Ranges", "bytes");
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Connection", "keep-alive");
 			if (in != null) {
 				if (in.available() != len) {
@@ -1146,7 +1147,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		try {
 			//hls part
 			if (item.getFormat().isVideo() && HTTPResource.HLS_TYPEMIME.equals(renderer.getVideoMimeType())) {
-				resp.setHeader("Server", PMS.get().getServerName());
+				resp.setHeader("Server", MediaServer.getServerName());
 				if (uri.endsWith("/chapters.vtt")) {
 					String response = HlsHelper.getChaptersWebVtt(item);
 					respond(req, resp, response, 200, HTTPResource.WEBVTT_TYPEMIME);
@@ -1163,7 +1164,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						//we need to hls stream
 						AsyncContext async = req.startAsync();
 						InputStream in = HlsHelper.getInputStream(uri, item);
-						resp.setHeader("Server", PMS.get().getServerName());
+						resp.setHeader("Server", MediaServer.getServerName());
 						if (in != null) {
 							resp.setHeader("Connection", "keep-alive");
 							if (uri.endsWith(".ts")) {
@@ -1197,7 +1198,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				long len = item.length();
 				boolean isTranscoding = len == StoreResource.TRANS_SIZE;
 				resp.setContentType(mimeType);
-				resp.setHeader("Server", PMS.get().getServerName());
+				resp.setHeader("Server", MediaServer.getServerName());
 				resp.setHeader("Connection", "keep-alive");
 				if (in != null) {
 					if (isTranscoding) {
@@ -1242,7 +1243,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (renderer == null) {
 			return;
 		}
-		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Server", MediaServer.getServerName());
 		resp.setHeader("Connection", "close");
 		resp.setHeader("Cache-Control", "no-transform");
 		resp.setHeader("Charset", "UTF-8");
@@ -1275,7 +1276,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		if (thumb != null) {
 			AsyncContext async = req.startAsync();
 			resp.setContentType(ImageFormat.PNG.equals(thumb.getFormat()) ? HTTPResource.PNG_TYPEMIME : HTTPResource.JPEG_TYPEMIME);
-			resp.setHeader("Server", PMS.get().getServerName());
+			resp.setHeader("Server", MediaServer.getServerName());
 			resp.setHeader("Accept-Ranges", "bytes");
 			resp.setHeader("Connection", "keep-alive");
 			resp.setStatus(200);

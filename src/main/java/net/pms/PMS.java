@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -205,10 +204,6 @@ public class PMS {
 	 */
 	private boolean ready = false;
 	/**
-	 * Universally Unique Identifier used in the UPnP mediaServer.
-	 */
-	private String uuid;
-	/**
 	 * UPnP mediaServer that serves the XML files, media files and broadcast
 	 * messages needed by UPnP Service.
 	 */
@@ -221,10 +216,7 @@ public class PMS {
 	 * HTTP server that serves a browser/player of media files.
 	 */
 	private WebPlayerServer webPlayerServer;
-	/**
-	 * User friendly name for the server.
-	 */
-	private String serverName;
+
 	private CodeDb codes;
 	private CodeEnter masterCode;
 	private CredMgr credMgr;
@@ -769,59 +761,6 @@ public class PMS {
 		}
 	}
 
-	/**
-	 * Creates a new random {@link #uuid}.
-	 * <p>
-	 * These are used to uniquely identify the server to renderers (i.e.
-	 * renderers treat multiple servers with the same UUID as the same server).
-	 *
-	 * @return {@link String} with an Universally Unique Identifier.
-	 */
-	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
-	public String usn() {
-		return "uuid:" + udn();
-	}
-
-	public synchronized String udn() {
-		if (uuid == null) {
-			// Retrieve UUID from configuration
-			uuid = umsConfiguration.getUuid();
-
-			if (uuid == null) {
-				uuid = UUID.randomUUID().toString();
-				LOGGER.info("Generated new random UUID: {}", uuid);
-
-				// save the newly-generated UUID
-				umsConfiguration.setUuid(uuid);
-				saveConfiguration();
-			}
-
-			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
-		}
-
-		return uuid;
-	}
-
-	/**
-	 * Returns the user friendly name of the UMS server.
-	 *
-	 * @return {@link String} with the user friendly name.
-	 */
-	public String getServerName() {
-		if (serverName == null) {
-			StringBuilder sb = new StringBuilder();
-			sb.append(System.getProperty("os.name").replace(" ", "_"));
-			sb.append('-');
-			sb.append(System.getProperty("os.arch").replace(" ", "_"));
-			sb.append('-');
-			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(getVersion());
-			serverName = sb.toString();
-		}
-
-		return serverName;
-	}
-
 	public MediaServer getMediaServer() {
 		return mediaServer;
 	}
@@ -832,18 +771,6 @@ public class PMS {
 
 	public WebPlayerServer getWebPlayerServer() {
 		return webPlayerServer;
-	}
-
-	/**
-	 * Save the configuration changes immediately to the configuration file and
-	 * not wait for the automatic saving.
-	 */
-	public void saveConfiguration() {
-		try {
-			umsConfiguration.save();
-		} catch (ConfigurationException e) {
-			LOGGER.error("Could not save configuration", e);
-		}
 	}
 
 	/**
