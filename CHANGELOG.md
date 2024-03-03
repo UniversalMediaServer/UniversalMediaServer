@@ -6,6 +6,7 @@
 - Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
 - Remux non-AC-3 audio regardless of AC-3 setting
 - Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+- Implements Jetty 12 servlets server + client
 
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
@@ -30,6 +31,7 @@
 - Bump `ip` from 2.0.0 to 2.0.1 ([#4498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4498))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.1.1 to 3.2.0 ([#4504](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4504))
 - Bump `eslint` from 8.56.0 to 8.57.0 ([#4503](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4503))
+- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.0 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
 
 ## 14.0.0 (Unreleased) - Since 14.0.0-b1
 

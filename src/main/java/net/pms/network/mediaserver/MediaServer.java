@@ -36,17 +36,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaServer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final Map<Integer, String> VERSIONS = Map.of(
 		1, "JUPnP+ (Java)",
 		2, "JUPnP+ (Netty)",
-		3, "JUPnP+ (Servlet)",
+		3, "JUPnP+ (Jetty)",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
 
-	public static final int DEFAULT_VERSION = 2;
+	public static final int DEFAULT_VERSION = 3;
 
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;

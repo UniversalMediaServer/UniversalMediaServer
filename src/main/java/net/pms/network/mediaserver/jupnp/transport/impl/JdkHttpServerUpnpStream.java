@@ -147,7 +147,7 @@ public class JdkHttpServerUpnpStream extends UpnpStream {
 
 			responseSent(responseMessage);
 
-		} catch (Exception e) {
+		} catch (IOException | RuntimeException e) {
 
 			// You definitely want to catch all Exceptions here, otherwise the server will
 			// simply close the socket and you get an "unexpected end of file" on the client.

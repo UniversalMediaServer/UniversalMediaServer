@@ -16,9 +16,6 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -29,6 +26,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import net.pms.network.HttpServletHelper;
+import net.pms.network.mediaserver.MediaServer;
 import org.jupnp.model.message.Connection;
 import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
@@ -41,25 +39,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation based on Servlet 6.0 API.
+ * Abstract implementation of a {@link UpnpStream}. This class is extended for
+ * each servlet implementations (blocking servlet 2.4 and async servlet 3.0).
  *
- * @author Surf@ceS
+ * @author Ivan Iliev - Initial contribution and API
+ * @author Surf@ceS - Adapt to JakartaEE 9+
  */
-public class JdkHttpServletUpnpStream extends UpnpStream {
+public abstract class JakartaServletUpnpStream extends UpnpStream {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(JdkHttpServletUpnpStream.class);
+	protected static final Logger LOGGER = LoggerFactory.getLogger(JakartaServletUpnpStream.class);
 
-	private final AsyncContext asyncContext;
+	protected StreamResponseMessage responseMessage;
 
-	public JdkHttpServletUpnpStream(ProtocolFactory protocolFactory, AsyncContext asyncContext) {
+	protected JakartaServletUpnpStream(ProtocolFactory protocolFactory) {
 		super(protocolFactory);
-		this.asyncContext = asyncContext;
 	}
 
 	@Override
 	public void run() {
 		try {
 			StreamRequestMessage requestMessage = readRequestMessage();
+			LOGGER.trace("Processing new request message: {}", requestMessage);
 			if (LOGGER.isTraceEnabled()) {
 				if (requestMessage.isBodyNonEmptyString()) {
 					HttpServletHelper.logHttpServletRequest(getRequest(), requestMessage.getBodyString());
@@ -67,21 +67,22 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletRequest(getRequest(), "");
 				}
 			}
-			StreamResponseMessage responseMessage = process(requestMessage);
+			responseMessage = process(requestMessage);
 
 			if (responseMessage != null) {
-				LOGGER.trace("Preparing HTTP response message: " + responseMessage);
+				LOGGER.trace("Preparing HTTP response message: {}", responseMessage);
 				writeResponseMessage(responseMessage);
 			} else {
 				// If it's null, it's 404
-				LOGGER.trace("Sending HTTP response status: " + HttpURLConnection.HTTP_NOT_FOUND);
+				LOGGER.trace("Sending HTTP response status: {}", HttpURLConnection.HTTP_NOT_FOUND);
 				getResponse().setStatus(HttpServletResponse.SC_NOT_FOUND);
 				if (LOGGER.isTraceEnabled()) {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, false);
 				}
 			}
-		} catch (IOException t) {
-			LOGGER.info("Exception occurred during UPnP stream processing: " + t);
+
+		} catch (IOException e) {
+			LOGGER.info("Exception occurred during UPnP stream processing", e);
 			if (!getResponse().isCommitted()) {
 				LOGGER.trace("Response hasn't been committed, returning INTERNAL SERVER ERROR to client");
 				getResponse().setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -91,25 +92,25 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 			} else {
 				LOGGER.info("Could not return INTERNAL SERVER ERROR to client, response was already committed");
 			}
-			responseException(t);
+			responseException(e);
 		} finally {
 			complete();
 		}
 	}
 
-	private StreamRequestMessage readRequestMessage() throws IOException {
+	protected StreamRequestMessage readRequestMessage() throws IOException {
 		// Extract what we need from the HTTP httpRequest
 		String requestMethod = getRequest().getMethod();
 		String requestURI = getRequest().getRequestURI();
 
-		LOGGER.trace("Processing HTTP request: " + requestMethod + " " + requestURI);
+		LOGGER.trace("Processing HTTP request: {} {} ", requestMethod, requestURI);
 
 		StreamRequestMessage requestMessage;
 		try {
 			requestMessage = new StreamRequestMessage(UpnpRequest.Method.getByHttpName(requestMethod),
 					URI.create(requestURI));
-		} catch (IllegalArgumentException ex) {
-			throw new RuntimeException("Invalid request URI: " + requestURI, ex);
+		} catch (IllegalArgumentException e) {
+			throw new RuntimeException("Invalid request URI: " + requestURI, e);
 		}
 
 		if (requestMessage.getOperation().getMethod().equals(UpnpRequest.Method.UNKNOWN)) {
@@ -135,15 +136,16 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 		// Body
 		byte[] bodyBytes;
 		try (InputStream is = getRequest().getInputStream()) {
+
 			// Needed as on some bad HTTP Stack implementations the inputStream may block when trying to read a request
 			// without a body (GET)
-            if (UpnpRequest.Method.GET.getHttpName().equals(requestMethod)) {
-                bodyBytes = new byte[] {};
-            } else {
-                bodyBytes = is.readAllBytes();
-            }
+			if (UpnpRequest.Method.GET.getHttpName().equals(requestMethod)) {
+				bodyBytes = new byte[]{};
+			} else {
+				bodyBytes = is.readAllBytes();
+			}
 		}
-		LOGGER.trace("Reading request body bytes: " + bodyBytes.length);
+		LOGGER.trace("Reading request body bytes: {}", bodyBytes.length);
 
 		if (bodyBytes.length > 0 && requestMessage.isContentTypeMissingOrText()) {
 			LOGGER.trace("Request contains textual entity body, converting then setting string on message");
@@ -152,6 +154,7 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 		} else if (bodyBytes.length > 0) {
 			LOGGER.trace("Request contains binary entity body, setting bytes on message");
 			requestMessage.setBody(UpnpMessage.BodyType.BYTES, bodyBytes);
+
 		} else {
 			LOGGER.trace("Request did not contain entity body");
 		}
@@ -159,11 +162,10 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 		return requestMessage;
 	}
 
-	private void writeResponseMessage(StreamResponseMessage responseMessage) throws IOException {
-		int statusCode = responseMessage.getOperation().getStatusCode();
-		LOGGER.trace("Sending HTTP response status: " + statusCode);
+	protected void writeResponseMessage(StreamResponseMessage responseMessage) throws IOException {
+		LOGGER.trace("Sending HTTP response status: {}", responseMessage.getOperation().getStatusCode());
 
-		getResponse().setStatus(statusCode);
+		getResponse().setStatus(responseMessage.getOperation().getStatusCode());
 
 		// Headers
 		for (Map.Entry<String, List<String>> entry : responseMessage.getHeaders().entrySet()) {
@@ -171,12 +173,10 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 				getResponse().addHeader(entry.getKey(), value);
 			}
 		}
+
+		getResponse().setHeader("Server", MediaServer.getServerName());
 		// The Date header is recommended in UDA
 		getResponse().setDateHeader("Date", System.currentTimeMillis());
-
-		if (responseMessage.getContentTypeHeader() != null) {
-			getResponse().setContentType(responseMessage.getContentTypeHeader().getString());
-		}
 
 		// Body
 		byte[] responseBodyBytes = responseMessage.hasBody() ? responseMessage.getBodyBytes() : null;
@@ -191,7 +191,6 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 					HttpServletHelper.logHttpServletResponse(getRequest(), getResponse(), null, true);
 				}
 			}
-			LOGGER.trace("Response message has body, writing bytes to stream...");
 			getResponse().getOutputStream().write(responseBodyBytes);
 		} else {
 			if (LOGGER.isTraceEnabled()) {
@@ -200,34 +199,11 @@ public class JdkHttpServletUpnpStream extends UpnpStream {
 		}
 	}
 
-	private Connection createConnection() {
-		return new ServletConnection(getRequest());
-	}
+	protected abstract Connection createConnection();
 
-	private HttpServletRequest getRequest() {
-		ServletRequest request = asyncContext.getRequest();
-		if (request instanceof HttpServletRequest httpRequest) {
-			return httpRequest;
-		}
-		throw new IllegalStateException("Couldn't get response from asynchronous context, already timed out");
-	}
+	protected abstract HttpServletRequest getRequest();
 
-	private HttpServletResponse getResponse() {
-		ServletResponse response = asyncContext.getResponse();
-		if (response instanceof HttpServletResponse httpResponse) {
-			return httpResponse;
-		}
-		throw new IllegalStateException("Couldn't get response from asynchronous context, already timed out");
-	}
+	protected abstract HttpServletResponse getResponse();
 
-	private void complete() {
-		try {
-			asyncContext.complete();
-		} catch (IllegalStateException ex) {
-			// If server connection, for whatever reason, is in an illegal state, this will be thrown
-			// and we can "probably" ignore it. The request is complete, no matter how it ended.
-			LOGGER.info("Error calling servlet container's AsyncContext#complete() method: " + ex);
-		}
-	}
-
+	protected abstract void complete();
 }
