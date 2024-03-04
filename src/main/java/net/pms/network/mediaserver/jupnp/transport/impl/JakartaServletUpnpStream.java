@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class JakartaServletUpnpStream extends UpnpStream {
 
-	protected static final Logger LOGGER = LoggerFactory.getLogger(JakartaServletUpnpStream.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(JakartaServletUpnpStream.class);
 
 	protected StreamResponseMessage responseMessage;
 

@@ -17,13 +17,12 @@
 package net.pms.network.mediaserver.jupnp.transport.async;
 
 import jakarta.servlet.AsyncContext;
-import jakarta.servlet.AsyncEvent;
-import jakarta.servlet.AsyncListener;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import net.pms.network.HttpServletHelper;
+import net.pms.network.UmsAsyncListener;
 import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerConfigurationImpl;
 import org.jupnp.transport.Router;
 import org.slf4j.Logger;
@@ -62,34 +61,7 @@ public class JakartaAsyncServlet extends HttpServletHelper {
 
 		AsyncContext async = req.startAsync();
 		async.setTimeout(configuration.getAsyncTimeoutSeconds() * 1000);
-
-		async.addListener(new AsyncListener() {
-
-			@Override
-			public void onTimeout(AsyncEvent arg0) throws IOException {
-				long duration = System.currentTimeMillis() - startTime;
-				LOGGER.trace("{}", String.format("AsyncListener.onTimeout(): id: %3d, duration: %,4d, request: %s", counter, duration, arg0.getSuppliedRequest()));
-			}
-
-			@Override
-			public void onStartAsync(AsyncEvent arg0) throws IOException {
-				// useless
-				LOGGER.trace("{}", String.format("AsyncListener.onStartAsync(): id: %3d, request: %s", counter, arg0.getSuppliedRequest()));
-			}
-
-			@Override
-			public void onError(AsyncEvent arg0) throws IOException {
-				long duration = System.currentTimeMillis() - startTime;
-				LOGGER.trace("{}", String.format("AsyncListener.onError(): id: %3d, duration: %,4d, response: %s", counter, duration, arg0.getSuppliedResponse()));
-			}
-
-			@Override
-			public void onComplete(AsyncEvent arg0) throws IOException {
-				long duration = System.currentTimeMillis() - startTime;
-				LOGGER.trace("{}", String.format("AsyncListener.onComplete(): id: %3d, duration: %,4d, response: %s", counter, duration, arg0.getSuppliedResponse()));
-			}
-		});
-
+		async.addListener(new UmsAsyncListener(startTime, counter));
 		JakartaAsyncServletUpnpStream stream = new JakartaAsyncServletUpnpStream(router.getProtocolFactory(), async, req);
 
 		router.received(stream);
