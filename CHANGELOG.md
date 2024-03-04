@@ -31,6 +31,7 @@
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.1.1 to 3.2.0 ([#4504](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4504))
 - Bump `eslint` from 8.56.0 to 8.57.0 ([#4503](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4503))
 - Bump `@types/react-color` from 3.0.11 to 3.0.12 ([#4518](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4518))
+- Bump `react-movable` from 3.0.4 to 3.2.0 ([#4517](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4517))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
