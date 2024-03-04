@@ -12246,13 +12246,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-movable@npm:3.0.4":
-  version: 3.0.4
-  resolution: "react-movable@npm:3.0.4"
+"react-movable@npm:3.2.0":
+  version: 3.2.0
+  resolution: "react-movable@npm:3.2.0"
   peerDependencies:
     react: ">=16.3"
     react-dom: ">=16.3"
-  checksum: 1da4eedde1995f2a56fe60fb301c60fad6df3ee1bae47357ff2d7c9a3b9270d2c953f08e666ef07eb7486a2ab029f8fdfd357faa6dedd5665ba2b4af9360bed7
+  checksum: a3b2e2da6633743b06ca6807dc65827c49fd04984a5dad8ad3f70d5dd65377cbb3cdded4dcc52d3ce40a56ebd73b41f81e4368d8846cecc210fd873ed292a45a
   languageName: node
   linkType: hard
 
@@ -14258,7 +14258,7 @@ __metadata:
     react-color: 2.19.3
     react-country-flag: 3.1.0
     react-dom: 18.2.0
-    react-movable: 3.0.4
+    react-movable: 3.2.0
     react-router-dom: 6.22.1
     react-scripts: 5.0.1
     stylis: 4.3.1
