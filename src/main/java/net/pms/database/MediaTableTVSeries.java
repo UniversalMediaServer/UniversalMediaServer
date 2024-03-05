@@ -129,12 +129,15 @@ public final class MediaTableTVSeries extends MediaTable {
 	 */
 	private static final String SQL_GET_BY_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_BY_TITLE = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_BY_TITLE_YEAR = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TITLE + EQUAL + PARAMETER + AND + "(" + TABLE_COL_STARTYEAR + EQUAL + PARAMETER + " OR " + TABLE_COL_STARTYEAR + EQUAL + NULL + ") " + LIMIT_1;
 	private static final String SQL_GET_BY_IMDBID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_IMDBID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_BY_TMDBID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TMDBID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_BY_IMDBID = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_IMDBID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_BY_IMDBID_API_VERSION = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_IMDBID + EQUAL + PARAMETER + AND + COL_API_VERSION + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_BY_SIMPLIFIEDTITLE = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + "REGEXP_REPLACE(LOWER(" + COL_TITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ID_BY_SIMPLIFIEDTITLE_YEAR = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + "REGEXP_REPLACE(LOWER(" + COL_TITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER + AND + "(" + TABLE_COL_STARTYEAR + EQUAL + PARAMETER + " OR " + TABLE_COL_STARTYEAR + EQUAL + NULL + ") " + LIMIT_1;
 	private static final String SQL_GET_ID_BY_ORIGINALTITLE = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + "REGEXP_REPLACE(LOWER(" + COL_ORIGINALTITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ID_BY_ORIGINALTITLE_YEAR = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + "REGEXP_REPLACE(LOWER(" + COL_ORIGINALTITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER + AND + "(" + TABLE_COL_STARTYEAR + EQUAL + PARAMETER + " OR " + TABLE_COL_STARTYEAR + EQUAL + NULL + ") " + LIMIT_1;
 	private static final String SQL_GET_TITLE_BY_ID = SELECT + TABLE_COL_TITLE + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_TMDBID_BY_ID = SELECT + TABLE_COL_TMDBID + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_IMAGES_BY_ID = SELECT + TABLE_COL_IMAGES + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
@@ -499,15 +502,23 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param title the title of the series
 	 * @return the new row ID
 	 */
-	public static Long set(final Connection connection, final String title) {
+	public static Long set(final Connection connection, final String title, final Integer startYear) {
 		if (StringUtils.isBlank(title)) {
 			LOGGER.debug("Attempted to set TV series info with no series title");
 			return null;
 		}
+		String sql = SQL_GET_BY_TITLE;
+		if (startYear != null) {
+			sql = SQL_GET_BY_TITLE_YEAR;
+		}
+
 		boolean trace = LOGGER.isTraceEnabled();
 		try {
-			try (PreparedStatement selectStatement = connection.prepareStatement(SQL_GET_BY_TITLE, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			try (PreparedStatement selectStatement = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
 				selectStatement.setString(1, title);
+				if (startYear != null) {
+					selectStatement.setInt(2, startYear);
+				}
 				try (ResultSet result = selectStatement.executeQuery()) {
 					if (result.next()) {
 						if (trace) {
@@ -520,8 +531,11 @@ public final class MediaTableTVSeries extends MediaTable {
 						}
 						result.moveToInsertRow();
 						result.updateString(COL_TITLE, title);
+						if (startYear != null) {
+							result.updateInt(COL_STARTYEAR, startYear);
+						}
 						result.insertRow();
-						return set(connection, title);
+						return set(connection, title, startYear);
 					}
 				}
 			}
@@ -782,11 +796,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param tmdbId
 	 * @return the title or null
 	 */
-	public static Long getTmdbIdByTitle(final Connection connection, final String title) {
+	public static Long getTmdbIdByTitle(final Connection connection, final String title, final Integer startYear) {
 		if (connection == null || StringUtils.isBlank(title)) {
 			return null;
 		}
-		Long id = getIdBySimilarTitle(connection, title);
+		Long id = getIdBySimilarTitle(connection, title, startYear);
 		if (id != null) {
 			try {
 				try (PreparedStatement statement = connection.prepareStatement(SQL_GET_TMDBID_BY_ID)) {
@@ -883,11 +897,11 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param title
 	 * @return tvSeriesId
 	 */
-	public static Long getIdBySimilarTitle(final Connection connection, final String title) {
+	public static Long getIdBySimilarTitle(final Connection connection, final String title, final Integer startYear) {
 		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
-		Long tvSeriesId = getIdBySimplifiedTitle(connection, simplifiedTitle);
+		Long tvSeriesId = getIdBySimplifiedTitle(connection, simplifiedTitle, startYear);
 		if (tvSeriesId == null) {
-			tvSeriesId = getIdByOriginalTitle(connection, simplifiedTitle);
+			tvSeriesId = getIdByOriginalTitle(connection, title, startYear);
 		}
 		if (tvSeriesId == null) {
 			tvSeriesId = MediaTableVideoMetadataLocalized.getTvSeriesIdFromTitle(connection, simplifiedTitle);
@@ -902,10 +916,18 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param simplifiedTitle
 	 * @return tvSeriesId
 	 */
-	private static Long getIdBySimplifiedTitle(final Connection connection, final String simplifiedTitle) {
+	private static Long getIdBySimplifiedTitle(final Connection connection, final String simplifiedTitle, final Integer startYear) {
+		String sql = SQL_GET_ID_BY_SIMPLIFIEDTITLE;
+		if (startYear != null) {
+			sql = SQL_GET_ID_BY_SIMPLIFIEDTITLE_YEAR;
+		}
+
 		try {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_BY_SIMPLIFIEDTITLE)) {
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
 				statement.setString(1, simplifiedTitle);
+				if (startYear != null) {
+					statement.setInt(2, startYear);
+				}
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
 						return resultSet.getLong(COL_ID);
@@ -926,9 +948,17 @@ public final class MediaTableTVSeries extends MediaTable {
 	 * @param simplifiedTitle
 	 * @return tvSeriesId
 	 */
-	private static Long getIdByOriginalTitle(final Connection connection, final String simplifiedTitle) {
-		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_BY_ORIGINALTITLE)) {
+	private static Long getIdByOriginalTitle(final Connection connection, final String simplifiedTitle, final Integer startYear) {
+		String sql = SQL_GET_ID_BY_ORIGINALTITLE;
+		if (startYear != null) {
+			sql = SQL_GET_ID_BY_ORIGINALTITLE_YEAR;
+		}
+
+		try (PreparedStatement statement = connection.prepareStatement(sql)) {
 			statement.setString(1, simplifiedTitle);
+			if (startYear != null) {
+				statement.setInt(2, startYear);
+			}
 			try (ResultSet resultSet = statement.executeQuery()) {
 				if (resultSet.next()) {
 					return resultSet.getLong(COL_ID);
