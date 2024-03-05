@@ -70,6 +70,8 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 		ServerConnector connector = new ServerConnector(server);
 		connector.setHost(host);
 		connector.setPort(port);
+		//let some time for pausing from media renderer (2 hours)
+		connector.setIdleTimeout(2 * 60 * 60 * 1000);
 		server.addConnector(connector);
 		return port;
 	}
@@ -129,4 +131,5 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 		threadPool.setName("jupnp-stream-server");
 		server = new Server(threadPool);
 	}
+
 }

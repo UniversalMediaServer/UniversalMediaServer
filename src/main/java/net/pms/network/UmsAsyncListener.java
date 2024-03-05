@@ -18,6 +18,7 @@ package net.pms.network;
 
 import jakarta.servlet.AsyncEvent;
 import jakarta.servlet.AsyncListener;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,11 +29,13 @@ import org.slf4j.LoggerFactory;
 public class UmsAsyncListener implements AsyncListener {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsAsyncListener.class);
+	private static final int ADVISE_MS_TRIGGER = 1000;
 
 	private final long startTime;
 	private final int counter;
 
 	private long bytesSent = 0;
+	private long nextBytesAdvise = System.currentTimeMillis() + ADVISE_MS_TRIGGER;
 
 	public UmsAsyncListener(long startTime, int counter) {
 		this.startTime = startTime;
@@ -41,13 +44,13 @@ public class UmsAsyncListener implements AsyncListener {
 
 	@Override
 	public void onTimeout(AsyncEvent asyncEvent) throws IOException {
-		log(asyncEvent, "timed out", true);
+		log(asyncEvent, "Timed out", true);
 	}
 
 	@Override
 	public void onStartAsync(AsyncEvent asyncEvent) throws IOException {
 		// useless
-		log(asyncEvent, "start", false);
+		log(asyncEvent, "Start", false);
 	}
 
 	@Override
@@ -61,23 +64,30 @@ public class UmsAsyncListener implements AsyncListener {
 	}
 
 	public void log(AsyncEvent asyncEvent, String state, boolean extended) {
+		String data = String.format("Stream Async %s", state);
+		if (counter > 0) {
+			data += String.format(", id: %d", counter);
+		}
+		if (asyncEvent.getSuppliedRequest() instanceof HttpServletRequest request) {
+			data += String.format(", uri: %s", request.getRequestURI());
+			request.getRequestURI();
+		}
 		if (extended) {
 			long duration = System.currentTimeMillis() - startTime;
-			String data = "";
-			if (counter > 0) {
-				data += String.format(", request: %3d", counter);
-			}
+			data += String.format(", duration: %d ms", duration);
 			if (bytesSent > 0) {
 				data += String.format(", sent: %d bytes", bytesSent);
 			}
-			LOGGER.trace("Stream Async {}: duration: {}, request: {}{}", state, duration, asyncEvent.getSuppliedRequest(), data);
-		} else {
-			LOGGER.trace("Stream Async {}: request: {}", state, asyncEvent.getSuppliedRequest());
 		}
+		LOGGER.trace(data);
 	}
 
 	public void setBytesSent(long bytesSent) {
 		this.bytesSent = bytesSent;
+		if (LOGGER.isTraceEnabled() && System.currentTimeMillis() > nextBytesAdvise) {
+			nextBytesAdvise = System.currentTimeMillis() + ADVISE_MS_TRIGGER;
+			LOGGER.trace("Stream Async progress: {} bytes sent", bytesSent);
+		}
 	}
 
 }

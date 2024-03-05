@@ -62,6 +62,8 @@ public class WebGuiServerJetty extends WebGuiServer {
 		ServerConnector connector = new ServerConnector(server);
 		connector.setHost("0.0.0.0");
 		connector.setPort(port);
+		//let some time for pausing from media renderer (2 hours)
+		connector.setIdleTimeout(2 * 60 * 60 * 1000);
 		server.addConnector(connector);
 		ServletContextHandler servletHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
 		addServlet(servletHandler, AboutApiServlet.class);
