@@ -23,6 +23,7 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
@@ -54,6 +55,7 @@ public class MediaScanner implements SharedContentListener {
 	private static final String ENTRY_DELETE = StandardWatchEventKinds.ENTRY_DELETE.name();
 	private static final String ENTRY_MODIFY = StandardWatchEventKinds.ENTRY_MODIFY.name();
 	private static final Object DEFAULT_FOLDERS_LOCK = new Object();
+	private static final ReentrantLock SCANNER_LOCK = new ReentrantLock();
 	private static final List<FileWatcher.Watch> MEDIA_FILEWATCHERS = new ArrayList<>();
 	private static final List<String> SHARED_FOLDERS = new ArrayList<>();
 	private static final Renderer RENDERER = MediaScannerDevice.getRenderer();
@@ -185,7 +187,12 @@ public class MediaScanner implements SharedContentListener {
 					if (RENDERER != null) {
 						LOGGER.info("Media scan started");
 						long start = System.currentTimeMillis();
-						startScan();
+						try {
+							SCANNER_LOCK.lock();
+							startScan();
+						} finally {
+							SCANNER_LOCK.unlock();
+						}
 						LOGGER.info("Media scan completed in {} seconds", ((System.currentTimeMillis() - start) / 1000));
 						LOGGER.info("Database analyze started");
 						start = System.currentTimeMillis();
@@ -229,16 +236,35 @@ public class MediaScanner implements SharedContentListener {
 	/**
 	 * Starts partial rescan.
 	 *
-	 * only used by nextcpapi
-	 *
 	 * @param filename This is the partial root of the scan. If a file is given,
 	 * the parent folder will be scanned.
 	 */
 	private static void scanFileOrFolder(String filename) {
+		try {
+			SCANNER_LOCK.lock();
+			reset();
+			internalScanFileOrFolder(filename);
+			reset();
+		} finally {
+			SCANNER_LOCK.unlock();
+		}
+	}
+
+	/**
+	 * Starts partial rescan.
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 * the parent folder will be scanned.
+	 */
+	private static void internalScanFileOrFolder(String filename) {
 		if (isInSharedFolders(filename) || isInDefaultFolders(filename)) {
 			LOGGER.debug("scanning file or folder : " + filename);
 
 			File file = new File(filename);
+			if (!file.exists()) {
+				LOGGER.debug("Not scanning file or folder that no longer exists: " + filename);
+				return;
+			}
 			if (file.isFile()) {
 				file = file.getParentFile();
 				LOGGER.debug("scanning folder {} for file {}", file.getAbsolutePath(), filename);
@@ -250,16 +276,19 @@ public class MediaScanner implements SharedContentListener {
 				//not yet discovered or root path outside shared folders ?
 				String parent = file.getParentFile().getAbsolutePath();
 				if (isInSharedFolders(parent)) {
-					scanFileOrFolder(parent);
+					internalScanFileOrFolder(parent);
 					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 				}
 			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
 				for (StoreResource storeResource : systemFileResources) {
-					if (storeResource instanceof VirtualFolder virtualFolder) {
-						virtualFolder.doRefreshChildren();
-						scan(virtualFolder);
+					if (storeResource instanceof StoreContainer storeContainer) {
+						storeContainer.discoverChildren();
+						if (storeResource instanceof VirtualFolder virtualFolder) {
+							virtualFolder.doRefreshChildren();
+						}
+						storeContainer.setDiscovered(true);
 					}
 				}
 			} else {
@@ -445,19 +474,16 @@ public class MediaScanner implements SharedContentListener {
 			if (isDir) {
 				if (ENTRY_CREATE.equals(event)) {
 					addFolderEntry(new File(filename));
-					reset();
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFolderEntry(filename);
 				}
 			} else {
 				if (ENTRY_CREATE.equals(event)) {
 					addFileEntry(filename);
-					reset();
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
 				} else {
 					parseFileEntry(new File(filename));
-					reset();
 				}
 			}
 		}
