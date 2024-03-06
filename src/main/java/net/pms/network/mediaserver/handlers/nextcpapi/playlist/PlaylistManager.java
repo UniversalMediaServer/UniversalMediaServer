@@ -34,7 +34,6 @@ import org.jupnp.support.model.item.PlaylistItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.Messages;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.CreateObjectResult;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.renderers.Renderer;
@@ -47,10 +46,6 @@ public class PlaylistManager {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistManager.class.getName());
 
-	// migration step towards UPnP handling
-	private final Renderer renderer = RendererConfigurations.getDefaultRenderer();
-
-
 	private Path getPlaylistPathFromObjectId(StoreContainer playlistFolder) {
 		File pl = new File(playlistFolder.getSystemName());
 		if (pl != null) {
@@ -59,7 +54,7 @@ public class PlaylistManager {
 		throw new RuntimeException("cannot resolve PATH of playlist");
 	}
 
-	private PlaylistFolder getPlaylistContainer(String playlistObjectId) {
+	private PlaylistFolder getPlaylistContainer(String playlistObjectId, Renderer renderer) {
 		StoreResource sr = renderer.getMediaStore().getResource(playlistObjectId);
 		if (sr instanceof PlaylistFolder sc) {
 			return sc;
@@ -67,7 +62,7 @@ public class PlaylistManager {
 		return null;
 	}
 
-	private StoreContainer getStoreContainer(String storeContainerId) {
+	private StoreContainer getStoreContainer(String storeContainerId, Renderer renderer) {
 		StoreResource sr = renderer.getMediaStore().getResource(storeContainerId);
 		if (sr instanceof StoreContainer sc) {
 			return sc;
@@ -75,10 +70,10 @@ public class PlaylistManager {
 		throw new RuntimeException("unknown parent container.");
 	}
 
-	public String addSongToPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
-		PlaylistFolder playlistFolder = getPlaylistContainer(playlistObjectId);
+	public String addSongToPlaylist(String songObjectId, String playlistObjectId, Renderer renderer) throws SQLException, IOException {
+		PlaylistFolder playlistFolder = getPlaylistContainer(playlistObjectId, renderer);
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
-		String filenameToAdd = getFilenameFromSongObjectId(songObjectId);
+		String filenameToAdd = getFilenameFromSongObjectId(songObjectId, renderer);
 		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
@@ -94,7 +89,7 @@ public class PlaylistManager {
 		}
 	}
 
-	private String getFilenameFromSongObjectId(String songObjectId) throws SQLException {
+	private String getFilenameFromSongObjectId(String songObjectId, Renderer renderer) throws SQLException {
 		StoreResource sr = renderer.getMediaStore().getResource(songObjectId);
 		if (sr != null) {
 			return sr.getFileName();
@@ -106,18 +101,18 @@ public class PlaylistManager {
 		return playlistEntries.contains(relativeSongPath) || playlistEntries.contains(absoluteSongPath);
 	}
 
-	public List<String> removeSongFromPlaylist(String songObjectId) throws SQLException, IOException {
+	public List<String> removeSongFromPlaylist(String songObjectId, Renderer renderer) throws SQLException, IOException {
 		StoreResource sr = renderer.getMediaStore().getResource(songObjectId);
 		if (sr != null) {
-			return removeSongFromPlaylist(songObjectId, sr.getParentId());
+			return removeSongFromPlaylist(songObjectId, sr.getParentId(), renderer);
 		}
 		LOGGER.warn("songObjectId not found.");
 		return null;
 	}
 
-	public List<String> removeSongFromPlaylist(String songObjectId, String playlistObjectId) throws SQLException, IOException {
-		Path playlistPath = getPlaylistPathFromObjectId(getPlaylistContainer(playlistObjectId));
-		String filenameToRemove = getFilenameFromSongObjectId(songObjectId);
+	public List<String> removeSongFromPlaylist(String songObjectId, String playlistObjectId, Renderer renderer) throws SQLException, IOException {
+		Path playlistPath = getPlaylistPathFromObjectId(getPlaylistContainer(playlistObjectId, renderer));
+		String filenameToRemove = getFilenameFromSongObjectId(songObjectId, renderer);
 		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
@@ -189,7 +184,7 @@ public class PlaylistManager {
 		Files.write(playlistFile, lines);
 	}
 
-	public CreateObjectResult createPlaylist(String parentContainerId, Item itemToCreate) throws Exception {
+	public CreateObjectResult createPlaylist(String parentContainerId, Item itemToCreate, Renderer renderer) throws Exception {
 		String playlistName = itemToCreate.getTitle();
 		LOGGER.trace("creating playlist {} for parentcontainer {}", playlistName, parentContainerId);
 		CreateObjectResult createResult = new CreateObjectResult();
@@ -201,7 +196,7 @@ public class PlaylistManager {
 			LOGGER.error("Playlist extension must end with '.pls', '.m3u' or '.m3u8'");
 			throw new RuntimeException("Playlist extension must end with '.pls', '.m3u' or '.m3u8'");
 		}
-		String playlistFullPath = FilenameUtils.concat(getStoreContainer(parentContainerId).getFileName(), playlistName);
+		String playlistFullPath = FilenameUtils.concat(getStoreContainer(parentContainerId, renderer).getFileName(), playlistName);
 		File newPlaylist = new File(playlistFullPath);
 		if (newPlaylist.exists()) {
 			LOGGER.error(Messages.getString("PlaylistAlreadyExists"));
@@ -211,7 +206,7 @@ public class PlaylistManager {
 		createNewEmptyPlaylistFile(newPlaylist);
 		LOGGER.trace("empty playlist created.");
 		StoreResource newResource = renderer.getMediaStore().createResourceFromFile(newPlaylist);
-		StoreContainer parentContainer = getStoreContainer(parentContainerId);
+		StoreContainer parentContainer = getStoreContainer(parentContainerId, renderer);
 		if (parentContainer == null) {
 			LOGGER.error("Parent container doesn'r exist any more : " + parentContainerId);
 			throw new RuntimeException("Parent container doesn'r exist any more : " + parentContainerId);

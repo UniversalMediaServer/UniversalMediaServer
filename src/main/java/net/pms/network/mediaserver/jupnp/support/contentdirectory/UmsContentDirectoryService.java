@@ -355,15 +355,22 @@ public class UmsContentDirectoryService {
 		})
 	public CreateObjectResult createObject(
 		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
-		@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements
+		@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements,
+		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
+			Renderer renderer = getRenderer(remoteClientInfo);
+			if (renderer == null) {
+				LOGGER.trace("Unrecognized media renderer");
+				return null;
+			}
+
 			Parser parser = new Parser();
 			Result modelItemToAdd = parser.parse(elements);
 			Item itemToCreate = modelItemToAdd.getItems().get(0);
 			if (itemToCreate != null) {
 				if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
-					return playlistManager.createPlaylist(containerId, itemToCreate);
+					return playlistManager.createPlaylist(containerId, itemToCreate, renderer);
 				}
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "unknown upnp:class : " + itemToCreate.getUpnpClassName());
 			}
@@ -377,23 +384,65 @@ public class UmsContentDirectoryService {
 		@UpnpOutputArgument(name = "NewID", stateVariable = "A_ARG_TYPE_ObjectID"))
 	public String createReference(
 		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
-		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId
+		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			return playlistManager.addSongToPlaylist(objectId, containerId);
+			Renderer renderer = getRenderer(remoteClientInfo);
+			if (renderer == null) {
+				LOGGER.trace("Unrecognized media renderer");
+				return null;
+			}
+
+			StoreResource sr = renderer.getMediaStore().getResource(containerId);
+			if (sr instanceof PlaylistFolder) {
+				return playlistManager.addSongToPlaylist(objectId, containerId, renderer);
+			} else {
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "createReference supports only playlist container id's yet.");
+			}
 		} catch (Exception e) {
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 		}
 	}
 
+	private Renderer getRenderer(RemoteClientInfo remoteClientInfo) {
+		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+		Renderer renderer = info.renderer;
+		return renderer;
+	}
+
 	@UpnpAction(name = "DestroyObject")
 	public String destroyObject(
-		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId
+		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			playlistManager.removeSongFromPlaylist(objectId);
-			return "DestroyObject()";
+			Renderer renderer = getRenderer(remoteClientInfo);
+			if (renderer == null) {
+				LOGGER.trace("Unrecognized media renderer");
+				return null;
+			}
+
+			StoreResource sr = renderer.getMediaStore().getResource(objectId);
+			if (sr.getParent() instanceof PlaylistFolder pf) {
+				LOGGER.info("removing song {} from playlist {} ...", sr.getDisplayName(), sr.getParent().getDisplayName());
+				playlistManager.removeSongFromPlaylist(objectId, renderer);
+				return "DestroyObject()";
+			} else if (sr instanceof PlaylistFolder pf) {
+				try {
+					LOGGER.info("removing playlist {} ...", sr.getDisplayName());
+					pf.getPlaylistfile().delete();
+					sr.getParent().removeChild(sr);
+					return "DestroyObject()";
+				} catch (Exception e) {
+					LOGGER.error("destroyObject failed", e);
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file : " + e.getMessage());
+				}
+			} else {
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "destroyObject supports only playlist and contained objects (yet).");
+			}
 		} catch (Exception e) {
+			LOGGER.error("destroyObject failed", e);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 		}
 	}
