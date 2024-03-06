@@ -229,12 +229,31 @@ public class MediaScanner implements SharedContentListener {
 	/**
 	 * Starts partial rescan.
 	 *
-	 * only used by nextcpapi
-	 *
 	 * @param filename This is the partial root of the scan. If a file is given,
 	 * the parent folder will be scanned.
 	 */
-	private static void scanFileOrFolder(String filename) {
+	private static synchronized void scanFileOrFolder(String filename) {
+		if (running) {
+			LOGGER.debug("Waiting current scan in progress has complete");
+			while (running) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ex) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		}
+		scanFileOrFolder(filename, false);
+	}
+
+	/**
+	 * Starts partial rescan.
+	 *
+	 * @param filename This is the partial root of the scan. If a file is given,
+	 * the parent folder will be scanned.
+	 * @param fromSelf internal call or direct call
+	 */
+	private static void scanFileOrFolder(String filename, boolean fromSelf) {
 		if (isInSharedFolders(filename) || isInDefaultFolders(filename)) {
 			LOGGER.debug("scanning file or folder : " + filename);
 
@@ -250,20 +269,26 @@ public class MediaScanner implements SharedContentListener {
 				//not yet discovered or root path outside shared folders ?
 				String parent = file.getParentFile().getAbsolutePath();
 				if (isInSharedFolders(parent)) {
-					scanFileOrFolder(parent);
+					scanFileOrFolder(parent, true);
 					systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 				}
 			}
 			if (!systemFileResources.isEmpty()) {
 				//if it is still empty, it mean the tree is no more accessible
 				for (StoreResource storeResource : systemFileResources) {
-					if (storeResource instanceof VirtualFolder virtualFolder) {
-						virtualFolder.doRefreshChildren();
-						scan(virtualFolder);
+					if (storeResource instanceof StoreContainer storeContainer) {
+						storeContainer.discoverChildren();
+						if (storeResource instanceof VirtualFolder virtualFolder) {
+							virtualFolder.doRefreshChildren();
+						}
+						storeContainer.setDiscovered(true);
 					}
 				}
 			} else {
 				LOGGER.warn("given folder was not found in store : " + file.getAbsolutePath());
+			}
+			if (!fromSelf) {
+				RENDERER.getMediaStore().clearWeakResources();
 			}
 		} else {
 			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
