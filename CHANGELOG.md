@@ -33,6 +33,7 @@
 - Bump `@types/react-color` from 3.0.11 to 3.0.12 ([#4518](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4518))
 - Bump `react-movable` from 3.0.4 to 3.2.0 ([#4517](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4517))
 - Bump `org.eclipse.angus:angus-activation` from 2.0.1 to 2.0.2 ([#4514](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4514))
+- Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.6.0 to 3.7.0 ([#4526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4526))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
