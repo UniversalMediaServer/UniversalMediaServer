@@ -24,7 +24,7 @@
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `@types/node` from 18.19.4 to 18.19.18 ([#4462](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4462), [#4490](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4490), [#4502](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4502))
 - Bump `@types/jest` from 29.5.11 to 29.5.12 ([#4482](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4482))
-- Bump `logback-version` from 1.4.14 to 1.5.0 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484))
+- Bump `logback-version` from 1.4.14 to 1.5.3 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484), [#4525](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4525))
 - Bump `@types/react-dom` from 18.2.18 to 18.2.19 ([#4469](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4469))
 - Bump `@testing-library/react` from 14.1.2 to 14.2.1 ([#4488](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4488))
 - Bump `ip` from 2.0.0 to 2.0.1 ([#4498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4498))
