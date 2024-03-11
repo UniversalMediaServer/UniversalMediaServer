@@ -288,7 +288,9 @@ public class DidlHelper extends DlnaHelper {
 				if (renderer.isSendDLNAOrgFlags()) {
 					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
 				}
+
 				String tempString = "http-get:*:" + item.getRendererMimeType() + ":" + dlnaOrgFlags;
+				// tempString += DlnaHelper.getDlnaOrgCiFlag(item);
 				addAttribute(sb, "protocolInfo", tempString);
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", mediaSubtitle.getType().getExtension().toUpperCase());

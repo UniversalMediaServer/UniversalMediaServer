@@ -32,6 +32,7 @@ docker/ums.jar
 docker/logback.headless.xml
 docker/linux*
 docker/jre*
+/osx
 .yarn-integrity
 /nb-*
 /nbactions-*

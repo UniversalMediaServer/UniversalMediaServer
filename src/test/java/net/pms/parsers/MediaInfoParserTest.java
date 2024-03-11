@@ -179,6 +179,10 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-av1.mp4").toString()
 		);
 		assertEquals(
+			"Container: MKV, Size: 20825743, Overall Bitrate: 1188854, Video Tracks: 1, Video Codec: av1, Duration: 0:02:20.140, Video Resolution: 3840 x 2014, Display Aspect Ratio: 2.00:1, Frame Rate: 23.976, Frame Rate Mode: CFR (CFR), Frame Rate Mode Raw: CFR, Matrix Coefficients: BT.2020 non-constant, Video Bit Depth: 10, Video HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), Video HDR Format Compatibility: HDR10 / HDR10 (hdr10), Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-av1_dolbyvision.mkv")
+		);
+		assertEquals(
 			"Container: MKV, Size: 6291087, Overall Bitrate: 22468168, Duration: 0:00:02.240, Video Tracks: 1 [Video Id: 0, Codec: vc1, Format Profile: advanced, Format Level: 3, Stream Order: 0, Duration: 0:00:02.240, Resolution: 1920 x 1080, Display Aspect Ratio: 16:9, Scan Type: Interlaced, Scan Order: Top Field First, Frame Rate: 25.0, Frame Rate Mode: CFR (CFR)], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-vc1.mkv").toString()
 		);

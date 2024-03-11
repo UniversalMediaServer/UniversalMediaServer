@@ -145,8 +145,10 @@ public class DlnaHelper {
 	 * by time) headers; the second allows it to send RANGE (seek by byte)
 	 * headers.
 	 *
-	 * 00 - no seeking (or even pausing) allowed 01 - seek by byte 10 - seek by
-	 * time 11 - seek by both
+	 * 00 - no seeking (or even pausing) allowed
+	 * 01 - seek by byte
+	 * 10 - seek by time
+	 * 11 - seek by both
 	 *
 	 * See here for an example of how these options can be mapped to keys on the
 	 * renderer's controller:

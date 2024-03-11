@@ -105,8 +105,10 @@ public class DlnaHelper {
 	 * by time) headers; the second allows it to send RANGE (seek by byte)
 	 * headers.
 	 *
-	 * 00 - no seeking (or even pausing) allowed 01 - seek by byte 10 - seek by
-	 * time 11 - seek by both
+	 * 00 - no seeking (or even pausing) allowed
+	 * 01 - seek by byte
+	 * 10 - seek by time
+	 * 11 - seek by both
 	 *
 	 * See here for an example of how these options can be mapped to keys on the
 	 * renderer's controller:
@@ -296,7 +298,7 @@ public class DlnaHelper {
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MPEGTS_TYPEMIME)) {
 					// patterns - on Sony BDP m2ts clips aren't listed without this
-					if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
+					if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()))) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsH264OrgPN(localizationValue, engine == null);
 					} else if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, engine == null);
@@ -392,7 +394,7 @@ public class DlnaHelper {
 		);
 
 		if (!isStreaming) {
-			orgPN += "_ISO";
+			orgPN += "_T";
 		}
 
 		return orgPN;
