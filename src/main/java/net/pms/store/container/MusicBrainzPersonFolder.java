@@ -10,6 +10,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * This class represents one person, having two folders to navigate into. One is the "all files" folder and one is the "albums" related to
+ * that person in regard if it's role.
+ *
+ * Currently known roles are ALBUM_ARTIST, COMPOSER and CONDUCTOR.
+ */
 public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MusicBrainzPersonFolder.class);
@@ -33,14 +39,19 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 	}
 
 	private void initChilds() {
-		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, getIdent(getMediaType(), getMediaIdent()));
-		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, getIdent(getMediaType(), getMediaIdent()));
+		String encodedIdent = getIdent(getMediaType(), getMediaIdent());
+		DbIdTypeAndIdent tiAllFilesFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALL_FILES, encodedIdent);
+		DbIdTypeAndIdent tiAlbumFolder = new DbIdTypeAndIdent(DbIdMediaType.TYPE_PERSON_ALBUM, encodedIdent);
 		allFiles = new VirtualFolderDbId(renderer, "AllAudioTracks", tiAllFilesFolder);
 		albumFiles = new VirtualFolderDbId(renderer, "ByAlbum_lowercase", tiAlbumFolder);
 		addChild(allFiles);
 		addChild(albumFiles);
 	}
 
+	/*
+	 * TYPE_PERSON_ALL_FILES and TYPE_PERSON_ALBUM folder are used for all person role types. To distinguish between the person roles
+	 * encode the role type in the name field and revert later.
+	 */
 	private static String getIdent(DbIdMediaType type, String person) {
 		if (type ==  null) {
 			throw new RuntimeException("DbidMediaType is NULL");
@@ -80,5 +91,25 @@ public class MusicBrainzPersonFolder extends VirtualFolderDbIdNamed {
 
 	public VirtualFolderDbId getAlbumFolder() {
 		return albumFiles;
+	}
+
+	public VirtualFolderDbId getPersonFolder(Renderer renderer) {
+		switch (getMediaType()) {
+			case TYPE_PERSON_COMPOSER -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonComposerFolder();
+			}
+			case TYPE_PERSON_CONDUCTOR -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonConductorFolder();
+			}
+			case TYPE_PERSON_ALBUMARTIST -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonAlbumArtistFolder();
+			}
+			case TYPE_PERSON -> {
+				return renderer.getMediaStore().getDbIdLibrary().getPersonArtistFolder();
+			}
+			default -> {
+				throw new RuntimeException("Unknown DbidMediaType " + getMediaType());
+			}
+		}
 	}
 }

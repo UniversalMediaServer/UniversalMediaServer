@@ -22,6 +22,7 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.UUID;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -47,13 +48,21 @@ public class MediaServer {
 
 	public static final int DEFAULT_VERSION = 2;
 
-	public static UmsUpnpService upnpService;
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
-	protected static int port = CONFIGURATION.getMediaServerPort();
-	protected static String hostname;
-	protected static InetAddress inetAddress;
-	protected static NetworkInterface networkInterface;
+	private static int port = CONFIGURATION.getMediaServerPort();
+	private static String hostname;
+	private static InetAddress inetAddress;
+	private static NetworkInterface networkInterface;
+	/**
+	 * User friendly name for the server.
+	 */
+	private static String serverName;
+	/**
+	 * Universally Unique Identifier used in the UPnP mediaServer.
+	 */
+	private static String uuid;
+	public static UmsUpnpService upnpService;
 
 	private static boolean init() {
 		//get config ip port
@@ -244,6 +253,63 @@ public class MediaServer {
 		}
 
 		return jsonArray;
+	}
+
+	/**
+	 * Returns the user friendly name of the UMS server.
+	 *
+	 * @return {@link String} with the user friendly name.
+	 */
+	public static String getServerName() {
+		if (serverName == null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(System.getProperty("os.name").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.arch").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.version").replace(" ", "_"));
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(PMS.getVersion());
+			serverName = sb.toString();
+		}
+		return serverName;
+	}
+
+	/**
+	 * Get unique device name from {@link #uuid}.
+	 *
+	 * @return {@link String} with an unique device name.
+	 */
+	public static String getUniqueDeviceName() {
+		return "uuid:" + getUuid();
+	}
+
+	/**
+	 * Get saved server {@link #uuid} or creates a new random one.
+	 * <p>
+	 * These are used to uniquely identify the server to renderers (i.e.
+	 * renderers treat multiple servers with the same UUID as the same server).
+	 *
+	 * @return {@link String} with an Universally Unique Identifier.
+	 */
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
+	public static synchronized String getUuid() {
+		if (uuid == null) {
+			// Retrieve UUID from configuration
+			uuid = CONFIGURATION.getUuid();
+
+			if (uuid == null) {
+				uuid = UUID.randomUUID().toString();
+				LOGGER.info("Generated new random UUID: {}", uuid);
+
+				// save the newly-generated UUID
+				CONFIGURATION.setUuid(uuid);
+				CONFIGURATION.saveConfiguration();
+			}
+
+			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
+		}
+
+		return uuid;
 	}
 
 }

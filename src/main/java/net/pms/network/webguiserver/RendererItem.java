@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.IRendererGuiListener;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.store.StoreItem;
@@ -271,10 +270,10 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void sendRendererAction(String action) {
-		if (SseApiServlet.hasHomeServerSentEvents()) {
+		if (EventSourceServer.hasHomeServerSentEvents()) {
 			JsonObject result = toJsonObject();
 			result.addProperty("action", action);
-			SseApiServlet.broadcastHomeMessage(result.toString());
+			EventSourceServer.broadcastHomeMessage(result.toString());
 		}
 	}
 

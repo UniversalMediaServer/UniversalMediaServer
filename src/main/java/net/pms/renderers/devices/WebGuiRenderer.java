@@ -22,7 +22,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
-import net.pms.network.IServerSentEvents;
+import net.pms.network.webguiserver.IEventSourceClient;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
@@ -50,7 +50,7 @@ public class WebGuiRenderer extends Renderer {
 
 	private final int browser;
 	private final String subLang;
-	private IServerSentEvents sse;
+	private IEventSourceClient sse;
 	private StartStopListenerDelegate startStop;
 
 	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
@@ -220,7 +220,7 @@ public class WebGuiRenderer extends Renderer {
 		updateServerSentEventsActive();
 	}
 
-	public void addServerSentEvents(IServerSentEvents sse) {
+	public void addServerSentEvents(IEventSourceClient sse) {
 		if (this.sse != null && this.sse.isOpened()) {
 			this.sse.close();
 		}

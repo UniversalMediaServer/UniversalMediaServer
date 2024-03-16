@@ -3639,6 +3639,18 @@ public class UmsConfiguration extends BaseConfiguration {
 		LOGGER.info("Configuration saved to \"{}\"", PROFILE_PATH);
 	}
 
+	/**
+	 * Save the configuration changes immediately to the configuration file and
+	 * not wait for the automatic saving.
+	 */
+	public void saveConfiguration() {
+		try {
+			save();
+		} catch (ConfigurationException e) {
+			LOGGER.error("Could not save configuration", e);
+		}
+	}
+
 	private ArrayList<String> ignoredFolderNames;
 
 	/**

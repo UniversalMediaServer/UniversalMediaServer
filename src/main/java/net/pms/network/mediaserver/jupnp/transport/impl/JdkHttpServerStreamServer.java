@@ -22,7 +22,6 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import net.pms.PMS;
 import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.javahttpserver.RequestHandler;
@@ -129,7 +128,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + MediaServer.getUuid()) && uri.contains("/ContentDirectory/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}

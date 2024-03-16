@@ -772,7 +772,7 @@ public class MediaStore extends StoreContainer {
 				lcFilename.endsWith(".pls") ||
 				lcFilename.endsWith(".cue") ||
 				lcFilename.endsWith(".ups")) {
-			StoreContainer d = PlaylistFolder.getPlaylist(renderer, lcFilename, file.getAbsolutePath(), 0);
+			StoreContainer d = PlaylistFolder.getPlaylist(renderer, file.getName(), file.getAbsolutePath(), 0);
 			if (d != null) {
 				return d;
 			}

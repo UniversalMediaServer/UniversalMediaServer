@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
-import net.pms.PMS;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -50,6 +49,7 @@ import net.pms.media.MediaType;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
@@ -89,7 +89,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	protected void doGetHead(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		Renderer renderer = null;
 		try {
-			String uri = req.getServletPath();
+			String uri = req.getRequestURI();
 			MediaServerRequest mediaServerRequest = new MediaServerRequest(uri);
 			if (mediaServerRequest.isBadRequest()) {
 				//Bad Request
@@ -189,7 +189,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	}
 
 	private static void sendResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, int code, String message, String contentType) throws IOException {
-		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Server", MediaServer.getServerName());
 		resp.setContentType(contentType);
 		if (StringUtils.isEmpty(message)) {
 			// No response data. Seems we are merely serving up headers.
@@ -224,7 +224,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 	private static void sendResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, int code, InputStream inputStream, long cLoverride, boolean writeStream, StartStopListener startStopListener) throws IOException {
 		// There is an input stream to send as a response.
-		resp.setHeader("Server", PMS.get().getServerName());
+		resp.setHeader("Server", MediaServer.getServerName());
 		AsyncContext async = req.startAsync();
 		async.addListener(startStopListener);
 		if (inputStream == null) {

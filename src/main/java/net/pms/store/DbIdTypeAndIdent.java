@@ -17,10 +17,6 @@
 package net.pms.store;
 
 /**
- * Will be DbIdTypeAndIdent but as some dev use windows git, only changing case
- * fail. Should be renamed on the next release, then dev will have time to
- * import DbIdTypeAndIdent2 on their git, that will allow rename to
- * DbIdTypeAndIdent.
  */
 public class DbIdTypeAndIdent {
 
@@ -49,4 +45,20 @@ public class DbIdTypeAndIdent {
 		return type.toString() + ident;
 	}
 
+	/**
+	 * Removes person role names in case one exist.
+	 *
+	 * @return
+	 */
+	public String getIdentUnprefixed() {
+		if (ident.startsWith(DbIdMediaType.PERSON_COMPOSER_PREFIX)) {
+			return ident.substring(DbIdMediaType.PERSON_COMPOSER_PREFIX.length());
+		} else if (ident.startsWith(DbIdMediaType.PERSON_CONDUCTOR_PREFIX)) {
+			return ident.substring(DbIdMediaType.PERSON_CONDUCTOR_PREFIX.length());
+		} else if (ident.startsWith(DbIdMediaType.PERSON_ALBUMARTIST_PREFIX)) {
+			return ident.substring(DbIdMediaType.PERSON_ALBUMARTIST_PREFIX.length());
+		} else {
+			return ident;
+		}
+	}
 }

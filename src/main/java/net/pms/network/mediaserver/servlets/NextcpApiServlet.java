@@ -58,9 +58,9 @@ public class NextcpApiServlet extends HttpServletHelper {
 				String uri = "";
 				String handler = "";
 				String call = "";
-				int pos = req.getServletPath().indexOf("api/");
+				int pos = req.getRequestURI().indexOf("api/");
 				if (pos != -1) {
-					uri = req.getServletPath().substring(pos + "api/".length());
+					uri = req.getRequestURI().substring(pos + "api/".length());
 				}
 				pos = uri.indexOf("/");
 				if (pos != -1) {

@@ -142,8 +142,7 @@ export const PlayerEventProvider = ({ children }: Props) => {
         setConnectionStatus(1);
       } else if (event.status == 401) {
         //reload Unauthorized
-        console.log('SSE Unauthorized');
-        throw new Error('SSE Unauthorized');
+        window.location.reload();
       } else if (event.status == 403) {
         //stop Forbidden
         console.log('SSE Forbidden');
@@ -211,10 +210,12 @@ export const PlayerEventProvider = ({ children }: Props) => {
     };
 
     const startSse = () => {
+      const player = sessionStorage.getItem('player');
       setConnectionStatus(0);
-      fetchEventSource(playerApiUrl + 'sse/' + sessionStorage.getItem('player'), {
+      fetchEventSource(playerApiUrl + 'sse/' + player, {
         headers: {
-          'Authorization': 'Bearer ' + getJwt()
+          'Authorization': 'Bearer ' + getJwt(),
+          'Player': player ? player : ''
         },
         async onopen(event: Response) { onOpen(event); },
         onmessage(event: EventSourceMessage) {

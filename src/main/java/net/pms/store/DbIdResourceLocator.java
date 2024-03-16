@@ -159,7 +159,7 @@ public class DbIdResourceLocator {
 			}
 			case TYPE_PERSON, TYPE_PERSON_COMPOSER, TYPE_PERSON_CONDUCTOR -> {
 				if (StringUtils.isAllBlank(typeIdent.ident)) {
-					return renderer.getMediaStore().getDbIdLibrary().getPersonFolder();
+					return renderer.getMediaStore().getDbIdLibrary().getPersonArtistFolder();
 				}
 				MusicBrainzPersonFolder personFolder = DbIdResourceLocator.getLibraryResourcePersonFolder(renderer, typeIdent);
 				if (personFolder == null) {
