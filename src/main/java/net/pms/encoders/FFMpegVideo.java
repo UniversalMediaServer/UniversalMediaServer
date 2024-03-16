@@ -317,6 +317,8 @@ public class FFMpegVideo extends Engine {
 		return videoFilterOptions;
 	}
 
+	private List<String> audioTranscodeOptions = new ArrayList<>();
+
 	/**
 	 * Returns a list of <code>String</code>s representing ffmpeg output
 	 * options (i.e. options that define the output file's video codec,
@@ -351,8 +353,9 @@ public class FFMpegVideo extends Engine {
 			transcodeOptions.add("wmv2");
 
 			if (!customFFmpegOptions.contains("-c:a ")) {
-				transcodeOptions.add("-c:a");
-				transcodeOptions.add("wmav2");
+				audioTranscodeOptions.add("-c:a");
+				audioTranscodeOptions.add("wmav2");
+				transcodeOptions.addAll(audioTranscodeOptions);
 			}
 
 			transcodeOptions.add("-f");
@@ -385,8 +388,8 @@ public class FFMpegVideo extends Engine {
 			) {
 				// Audio remux if the renderer supports the audio stream inside the transcoding container
 				if (!customFFmpegOptions.contains("-c:a ")) {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("copy");
+					audioTranscodeOptions.add("-c:a");
+					audioTranscodeOptions.add("copy");
 				}
 			} else {
 				if (dtsRemux) {
@@ -396,14 +399,16 @@ public class FFMpegVideo extends Engine {
 					// Skip
 				} else if (!customFFmpegOptions.matches(".*-(c:a|codec:a|acodec).*")) {
 					if (renderer.isTranscodeToAAC()) {
-						transcodeOptions.add("-c:a");
-						transcodeOptions.add("aac");
+						audioTranscodeOptions.add("-c:a");
+						audioTranscodeOptions.add("aac");
 					} else if (!customFFmpegOptions.contains("-c:a ")) {
-						transcodeOptions.add("-c:a");
-						transcodeOptions.add("ac3");
+						audioTranscodeOptions.add("-c:a");
+						audioTranscodeOptions.add("ac3");
 					}
 				}
 			}
+
+			transcodeOptions.addAll(audioTranscodeOptions);
 
 			InputFile newInput;
 			if (filename != null) {
@@ -976,7 +981,7 @@ public class FFMpegVideo extends Engine {
 			}
 		}
 
-		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
+		// Decide whether to defer to tsMuxeR or continue to use FFmpeg (which might still eventually pass the transcoded output to tsMuxeR)
 		boolean deferToTsmuxer = !canMuxVideoWithFFmpeg;
 		if (!(renderer instanceof OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
@@ -987,15 +992,8 @@ public class FFMpegVideo extends Engine {
 			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), renderer.getTranscodingContainer());
-			} else if (params.getSid() != null && !(defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))) {
+			} else if (params.getSid() != null) {
 				deferToTsmuxer = false;
-				/**
-				 * @todo here we are manually preventing hardcoding subtitles
-				 * to a Dolby Vision video stream, because the colors will be
-				 * wrong and unwatchable. When this FFmpegVideo engine supports
-				 * handling and encoding Dolby Vision streams we should remove
-				 * this condition
-				 */
 				LOGGER.debug(prependTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
@@ -1119,16 +1117,16 @@ public class FFMpegVideo extends Engine {
 				}
 
 				if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
-					cmdList.add("-ac");
-					cmdList.add(String.valueOf(channels));
+					audioTranscodeOptions.add("-ac");
+					audioTranscodeOptions.add(String.valueOf(channels));
 				}
 
 				if (!customFFmpegOptions.matches(".* -(-ab|b:a) .*")) {
-					cmdList.add("-ab");
+					audioTranscodeOptions.add("-ab");
 					if (renderer.isTranscodeToAAC()) {
-						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+						audioTranscodeOptions.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 					} else {
-						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.getAid())) + "k");
+						audioTranscodeOptions.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.getAid())) + "k");
 					}
 				}
 
@@ -1137,8 +1135,8 @@ public class FFMpegVideo extends Engine {
 					params.getAid() != null &&
 					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate()
 				) {
-					cmdList.add("-ar");
-					cmdList.add("" + renderer.getTranscodedVideoAudioSampleRate());
+					audioTranscodeOptions.add("-ar");
+					audioTranscodeOptions.add("" + renderer.getTranscodedVideoAudioSampleRate());
 				}
 
 				// Use high quality resampler
@@ -1149,14 +1147,15 @@ public class FFMpegVideo extends Engine {
 					params.getAid().getSampleRate() != renderer.getTranscodedVideoAudioSampleRate() &&
 					configuration.isFFmpegSoX()
 				) {
-					cmdList.add("-resampler");
-					cmdList.add("soxr");
-					cmdList.add("-precision");
-					cmdList.add("33");
-					cmdList.add("-cheby");
-					cmdList.add("1");
+					audioTranscodeOptions.add("-resampler");
+					audioTranscodeOptions.add("soxr");
+					audioTranscodeOptions.add("-precision");
+					audioTranscodeOptions.add("33");
+					audioTranscodeOptions.add("-cheby");
+					audioTranscodeOptions.add("1");
 				}
 			}
+			cmdList.addAll(audioTranscodeOptions);
 
 			// Add the output options (-f, -c:a, -c:v, etc.)
 			cmdList.addAll(getVideoTranscodeOptions(resource, media, params, canMuxVideoWithFFmpeg));
@@ -1197,25 +1196,14 @@ public class FFMpegVideo extends Engine {
 
 		setOutputParsing(configuration, resource, pw, false);
 
-		if (!dtsRemux) {
-			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
+		boolean isDolbyVision = false;
+		if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
+			isDolbyVision = true;
+		}
 
-			/**
-			 * It can take a long time for Windows to create a named pipe (and
-			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
-			 * the current thread.
-			 */
-			mkfifoProcess.runInSameThread();
-			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
+		boolean isMuxOutputWithTsmuxer = dtsRemux || isDolbyVision;
 
-			// Give the mkfifo process a little time
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
-				Thread.currentThread().interrupt();
-			}
-		} else {
+		if (isMuxOutputWithTsmuxer) {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
@@ -1245,53 +1233,98 @@ public class FFMpegVideo extends Engine {
 			ffVideo.runInNewThread();
 
 			PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
-			StreamModifier sm = new StreamModifier();
-			sm.setPcm(false);
-			sm.setDtsEmbed(dtsRemux);
-			sm.setSampleFrequency(48000);
-			sm.setBitsPerSample(16);
-			sm.setNbChannels(2);
 
-			List<String> cmdListDTS = new ArrayList<>();
-			cmdListDTS.add(getExecutable());
-			cmdListDTS.add("-y");
-			cmdListDTS.add("-ss");
+			List<String> cmdListAudioStream = new ArrayList<>();
+			cmdListAudioStream.add(getExecutable());
+			cmdListAudioStream.add("-y");
+			cmdListAudioStream.add("-ss");
 
 			if (params.getTimeSeek() > 0) {
-				cmdListDTS.add(String.valueOf(params.getTimeSeek()));
+				cmdListAudioStream.add(String.valueOf(params.getTimeSeek()));
 			} else {
-				cmdListDTS.add("0");
+				cmdListAudioStream.add("0");
 			}
 
 			if (params.getStdIn() == null) {
-				cmdListDTS.add("-i");
+				cmdListAudioStream.add("-i");
 			} else {
-				cmdListDTS.add("-");
+				cmdListAudioStream.add("-");
 			}
-			cmdListDTS.add(filename);
+			cmdListAudioStream.add(filename);
 
 			if (params.getTimeSeek() > 0) {
-				cmdListDTS.add("-copypriorss");
-				cmdListDTS.add("0");
-				cmdListDTS.add("-avoid_negative_ts");
-				cmdListDTS.add("1");
+				cmdListAudioStream.add("-copypriorss");
+				cmdListAudioStream.add("0");
+				cmdListAudioStream.add("-avoid_negative_ts");
+				cmdListAudioStream.add("1");
 			}
 
-			cmdListDTS.add("-ac");
-			cmdListDTS.add("2");
+			String tsmuxerAudioType = "A_AC3";
+			if (dtsRemux) {
+				cmdListAudioStream.add("-ac");
+				cmdListAudioStream.add("2");
 
-			cmdListDTS.add("-f");
-			cmdListDTS.add("dts");
+				cmdListAudioStream.add("-f");
+				cmdListAudioStream.add("dts");
 
-			cmdListDTS.add("-c:a");
-			cmdListDTS.add("copy");
+				cmdListAudioStream.add("-c:a");
+				cmdListAudioStream.add("copy");
 
-			cmdListDTS.add(ffAudioPipe.getInputPipe());
+				if (renderer.isMuxDTSToMpeg()) {
+					// Renderer can play proper DTS track
+					tsmuxerAudioType = "A_DTS";
+				} else {
+					// DTS padded in LPCM trick
+					tsmuxerAudioType = "A_LPCM";
+				}
+			} else {
+				cmdListAudioStream.addAll(audioTranscodeOptions);
 
-			String[] cmdArrayDTS = new String[cmdListDTS.size()];
-			cmdListDTS.toArray(cmdArrayDTS);
+				if (audioTranscodeOptions != null && audioTranscodeOptions.contains("-c:a")) {
+					int audioCodecIndex = audioTranscodeOptions.indexOf("-c:a") + 1;
+					String audioCodecFfmpeg = audioTranscodeOptions.get(audioCodecIndex);
+					String ffmpegAudioFormat = "ac3";
+					if (audioCodecFfmpeg == "copy") {
+						if (params.getAid().isAC3()) {
+							tsmuxerAudioType = "A_AC3";
+							ffmpegAudioFormat = "ac3";
+						} else if (params.getAid().isEAC3()) {
+							tsmuxerAudioType = "A_AC3";
+							ffmpegAudioFormat = "eac3";
+						} else if (params.getAid().isAAC()) {
+							tsmuxerAudioType = "A_AAC";
+							ffmpegAudioFormat = "adts";
+						} else if (params.getAid().isMP3()) {
+							tsmuxerAudioType = "A_MP3";
+							ffmpegAudioFormat = "mp3";
+						}
+					} else {
+						if (audioCodecFfmpeg == "ac3") {
+							tsmuxerAudioType = "A_AC3";
+							ffmpegAudioFormat = "ac3";
+						} else if (audioCodecFfmpeg == "aac") {
+							tsmuxerAudioType = "A_AAC";
+							ffmpegAudioFormat = "adts";
+						}
+					}
 
-			if (!renderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
+					cmdListAudioStream.add("-f");
+					cmdListAudioStream.add(ffmpegAudioFormat);
+				}
+			}
+
+			cmdListAudioStream.add(ffAudioPipe.getInputPipe());
+
+			String[] cmdArrayDTS = new String[cmdListAudioStream.size()];
+			cmdListAudioStream.toArray(cmdArrayDTS);
+
+			if (dtsRemux && !renderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
+				StreamModifier sm = new StreamModifier();
+				sm.setPcm(false);
+				sm.setDtsEmbed(dtsRemux);
+				sm.setSampleFrequency(48000);
+				sm.setBitsPerSample(16);
+				sm.setNbChannels(2);
 				ffAudioPipe.setModifier(sm);
 			}
 
@@ -1303,33 +1336,39 @@ public class FFMpegVideo extends Engine {
 			params.setStdIn(null);
 			try (PrintWriter pwMux = new PrintWriter(f)) {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-				String videoType = "V_MPEG-2";
-
-				if (renderer.isTranscodeToH264()) {
-					videoType = "V_MPEG4/ISO/AVC";
-				} else if (renderer.isTranscodeToH265()) {
-					videoType = "V_MPEGH/ISO/HEVC";
+				String tsmuxerVideoType = "V_MPEG-2";
+				if (canMuxVideoWithFFmpeg) {
+					if (defaultVideoTrack != null && defaultVideoTrack.getCodec() != null) {
+						if (defaultVideoTrack.isH264()) {
+							tsmuxerVideoType = "V_MPEG4/ISO/AVC";
+						} else if (defaultVideoTrack.isH265()) {
+							tsmuxerVideoType = "V_MPEGH/ISO/HEVC";
+						} else if (defaultVideoTrack.getCodec().startsWith("mpeg2")) {
+							tsmuxerVideoType = "V_MPEG-2";
+						} else if (defaultVideoTrack.getCodec().equals("vc1")) {
+							tsmuxerVideoType = "V_MS/VFW/WVC1";
+						}
+					}
+				} else {
+					if (renderer.isTranscodeToH264()) {
+						tsmuxerVideoType = "V_MPEG4/ISO/AVC";
+					} else if (renderer.isTranscodeToH265()) {
+						tsmuxerVideoType = "V_MPEGH/ISO/HEVC";
+					} else if (renderer.isTranscodeToMPEG2()) {
+						tsmuxerVideoType = "V_MPEG-2";
+					} else if (renderer.isTranscodeToWMV()) {
+						tsmuxerVideoType = "V_MS/VFW/WVC1";
+					}
 				}
 
 				if (params.isNoVideoEncode() && params.getForceType() != null) {
-					videoType = params.getForceType();
+					tsmuxerVideoType = params.getForceType();
 				}
 
 				StringBuilder fps = new StringBuilder();
 				fps.append("");
 				if (params.getForceFps() != null) {
 					fps.append("fps=").append(params.getForceFps()).append(", ");
-				}
-
-				String audioType = "A_AC3";
-				if (dtsRemux) {
-					if (renderer.isMuxDTSToMpeg()) {
-						// Renderer can play proper DTS track
-						audioType = "A_DTS";
-					} else {
-						// DTS padded in LPCM trick
-						audioType = "A_LPCM";
-					}
 				}
 
 				String videoparams;
@@ -1345,8 +1384,8 @@ public class FFMpegVideo extends Engine {
 				} else {
 					videoparams = "track=1";
 				}
-				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + videoparams);
-				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+				pwMux.println(tsmuxerVideoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + videoparams);
+				pwMux.println(tsmuxerAudioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
 			}
 
 			ProcessWrapper pipeProcess = pipe.getPipeProcess();
@@ -1375,6 +1414,24 @@ public class FFMpegVideo extends Engine {
 			ffAudioPipe.deleteLater();
 			pw.attachProcess(ffAudio);
 			ffAudio.runInNewThread();
+		} else {
+			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
+
+			/**
+			 * It can take a long time for Windows to create a named pipe (and
+			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+			 * the current thread.
+			 */
+			mkfifoProcess.runInSameThread();
+			pw.attachProcess(mkfifoProcess); // Clean up the mkfifo process when the transcode ends
+
+			// Give the mkfifo process a little time
+			try {
+				Thread.sleep(300);
+			} catch (InterruptedException e) {
+				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+				Thread.currentThread().interrupt();
+			}
 		}
 
 		// Launch the transcode command...
