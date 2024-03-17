@@ -1170,9 +1170,14 @@ public class FFMpegVideo extends Engine {
 		// Set up the process
 		IPipeProcess pipe = null;
 
-		if (!dtsRemux) {
-			// cmdList.add("pipe:");
+		boolean isDolbyVision = false;
+		if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
+			isDolbyVision = true;
+		}
 
+		boolean isMuxOutputWithTsmuxer = dtsRemux || isDolbyVision;
+
+		if (!isMuxOutputWithTsmuxer) {
 			// basename of the named pipe:
 			String fifoName = String.format(
 				"ffmpegvideo_%d_%d",
@@ -1196,13 +1201,6 @@ public class FFMpegVideo extends Engine {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
 		setOutputParsing(configuration, resource, pw, false);
-
-		boolean isDolbyVision = false;
-		if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
-			isDolbyVision = true;
-		}
-
-		boolean isMuxOutputWithTsmuxer = dtsRemux || isDolbyVision;
 
 		if (isMuxOutputWithTsmuxer) {
 			pipe = PlatformUtils.INSTANCE.getPipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -1583,8 +1581,9 @@ public class FFMpegVideo extends Engine {
 			cmdList.add("-level");
 			cmdList.add(String.valueOf(level));
 
-			cmdList.add("-pix_fmt");
-			cmdList.add("yuv420p");
+			// The two lines should be conditional upon both the renderer support and the original video
+			// cmdList.add("-pix_fmt");
+			// cmdList.add("yuv420p");
 		} else {
 			//don't encode stream if not needed
 			cmdList.add("-vn");
