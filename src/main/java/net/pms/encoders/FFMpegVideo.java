@@ -1212,6 +1212,7 @@ public class FFMpegVideo extends Engine {
 
 			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
+			cmdList.add("-an");
 			cmdList.add(ffVideoPipe.getInputPipe());
 
 			OutputParams ffparams = new OutputParams(configuration);
