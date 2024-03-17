@@ -1219,10 +1219,10 @@ public class FFMpegVideo extends Engine {
 			ffparams.setMaxBufferSize(1);
 			ffparams.setStdIn(params.getStdIn());
 
-			String[] cmdArrayDts = new String[cmdList.size()];
-			cmdList.toArray(cmdArrayDts);
+			String[] cmdArrayVideoStream = new String[cmdList.size()];
+			cmdList.toArray(cmdArrayVideoStream);
 
-			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArrayDts, ffparams);
+			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArrayVideoStream, ffparams);
 
 			ProcessWrapper ffVideoPipeProcess = ffVideoPipe.getPipeProcess();
 			pw.attachProcess(ffVideoPipeProcess);
