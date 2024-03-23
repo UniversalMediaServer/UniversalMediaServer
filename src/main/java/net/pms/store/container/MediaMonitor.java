@@ -174,32 +174,38 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		long startTimeUser = realFile.getLastStartSystemTimeUser();
 		double startPosition = realFile.getLastStartPosition();
 		int minimumPlayTime = CONFIGURATION.getMinimumWatchedPlayTimeSeconds();
-		double elapsed;
-		if (startPosition == 0) {
-			elapsed = (now - startTime) / 1000D;
-		} else {
-			elapsed = (now - startTimeUser) / 1000D;
-			if (startTimeUser == 0 || elapsed < minimumPlayTime) {
-				LOGGER.trace("the minimum play time is not reached");
-				return;
-			}
-			elapsed += startPosition;
-		}
 
 		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
 		double triggerPlayTime = fileDuration * CONFIGURATION.getResumeBackFactor();
 
-
-		if (LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION)) {
+		boolean logTrace = LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION);
+		if (logTrace) {
 			LOGGER.trace("Fully Played feature logging:");
 			LOGGER.trace("   duration: " + fileDuration);
 			LOGGER.trace("   getLastStartPosition: " + startPosition);
 			LOGGER.trace("   currentTime: " + now);
 			LOGGER.trace("   getStartTime: " + startTime);
 			LOGGER.trace("   getLastStartSystemTimeUser: " + startTimeUser);
-			LOGGER.trace("   elapsed: " + elapsed);
 			LOGGER.trace("   minimum play time: " + minimumPlayTime);
 			LOGGER.trace("   triggered fully played time: " + triggerPlayTime);
+		}
+
+		double elapsed;
+		if (startPosition == 0) {
+			elapsed = (now - startTime) / 1000D;
+		} else {
+			elapsed = (now - startTimeUser) / 1000D;
+			if (startTimeUser == 0 || elapsed < minimumPlayTime) {
+				if (logTrace) {
+					LOGGER.trace("   elapsed: " + elapsed);
+				}
+				LOGGER.trace("the minimum play time is not reached");
+				return;
+			}
+			elapsed += startPosition;
+		}
+		if (logTrace) {
+			LOGGER.trace("   elapsed: " + elapsed);
 		}
 
 		int userId = renderer.getAccountUserId();
