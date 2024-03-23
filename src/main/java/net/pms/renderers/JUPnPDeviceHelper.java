@@ -449,7 +449,7 @@ public class JUPnPDeviceHelper {
 	private static URL getURL(Device device) {
 		if (device instanceof RemoteDevice remoteDevice) {
 			return remoteDevice.getIdentity().getDescriptorURL();
-		} else if (device != null) {
+		} else if (device != null && device.getDetails() != null) {
 			return device.getDetails().getBaseURL();
 		}
 		return null;
