@@ -27,7 +27,6 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "analyze": "source-map-explorer '../src/main/external-resources/web/react-client/static/js/*.js'",
     "build-player": "REACT_APP_MODE=player react-scripts build",
     "eject": "react-scripts eject",
     "test:runserver:macos": "cd ../;./runtestserver.sh",
@@ -68,7 +67,6 @@
     "@typescript-eslint/parser": "7.2.0",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.33.2",
-    "react-scripts": "5.0.1",
-    "source-map-explorer": "2.5.3"
+    "react-scripts": "5.0.1"
   }
 }
