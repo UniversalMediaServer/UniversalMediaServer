@@ -37,6 +37,7 @@
 - Bump `follow-redirects` from 1.15.4 to 1.15.6 ([#4535](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4535))
 - Bump `@emotion/react` from 11.11.3 to 11.11.4 ([#4538](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4538))
 - Bump `webpack-dev-middleware` from 5.3.3 to 5.3.4 ([#4543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4543))
+- Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.12.1 to 3.13.0 ([#4547](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4547))
 
 ## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
 
