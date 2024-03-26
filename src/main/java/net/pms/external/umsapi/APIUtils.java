@@ -651,8 +651,8 @@ public class APIUtils {
 				boolean isSeriesFromAPI = isNotBlank(typeFromAPI) && "series".equals(typeFromAPI);
 
 				String validationFailedPrepend = "not storing the series API lookup result because ";
-				// Only continue if the simplified titles match
-				if (!titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
+				// Only continue if the simplified titles match or we sent the IMDb ID to the API
+				if (seriesIMDbIDFromAPI == null && !titleSimplified.equalsIgnoreCase(titleSimplifiedFromFilename)) {
 					LOGGER.debug(validationFailedPrepend + "file and API TV series titles do not match. {} vs {}", titleSimplified, titleSimplifiedFromFilename);
 					MediaTableFailedLookups.set(connection, titleSimplifiedFromFilename, "Title mismatch - expected " + titleSimplifiedFromFilename + " but got " + titleSimplified, false);
 					return null;
