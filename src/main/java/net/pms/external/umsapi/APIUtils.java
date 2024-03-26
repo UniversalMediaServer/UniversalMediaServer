@@ -667,7 +667,7 @@ public class APIUtils {
 				 * to insert it or update existing data, so we attempt to find or
 				 * create an entry based on the title.
 				 */
-				Long tvSeriesId = MediaTableTVSeries.set(connection, title);
+				Long tvSeriesId = MediaTableTVSeries.set(connection, title, startYear);
 				if (tvSeriesId == null) {
 					LOGGER.debug("tvSeriesDatabaseId was not set, something went wrong");
 					return null;
