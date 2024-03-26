@@ -77,7 +77,7 @@
 		<exec-maven-plugin-version>3.2.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>7.0.0</git-commit-id-plugin-version>
-		<maven-assembly-plugin-version>3.7.0</maven-assembly-plugin-version>
+		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.4.1</maven-enforcer-plugin-version>
 
 		<!--
@@ -865,7 +865,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.12.1</version>
+				<version>3.13.0</version>
 				<configuration>
 					<release>${project.jre-version}</release>
 					<testSource>${project.jre-version}</testSource>
