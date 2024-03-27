@@ -50,7 +50,7 @@ export const AccountsProvider = ({ children }: Props) => {
           autoClose: 3000,
         });
       });
-  }, [i18n, sse]);
+  }, [sse]);
 
   const { Provider } = AccountsContext;
   return (

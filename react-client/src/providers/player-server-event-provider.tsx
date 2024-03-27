@@ -16,6 +16,7 @@
  */
 import { hideNotification, showNotification } from '@mantine/notifications';
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
+import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import videojs from 'video.js';
 
@@ -36,6 +37,8 @@ export const PlayerEventProvider = ({ children }: Props) => {
   const i18n = useContext(I18nContext);
   const [reqId, setReqId] = useState('0');
   const [reqType, setReqType] = useState('browse');
+  const [uuid, setUuid] = useState('');
+  const [askingUuid, setAskingUuid] = useState<boolean>(false);
 
   const askReqId = (id: string, type: string) => {
     setReqType('');
@@ -93,7 +96,33 @@ export const PlayerEventProvider = ({ children }: Props) => {
   }
 
   useEffect(() => {
-    if (started || !sessionStorage.getItem('player')) {
+    if (uuid || askingUuid) return;
+    setAskingUuid(true);
+    if (sessionStorage.getItem('player')) {
+      setUuid(sessionStorage.getItem('player') as string);
+    } else {
+      axios.get(playerApiUrl)
+        .then(function(response: any) {
+          if (response.data.uuid) {
+            sessionStorage.setItem('player', response.data.uuid);
+            setUuid(response.data.uuid);
+          }
+        })
+        .catch(function() {
+          showNotification({
+            id: 'player-data-loading',
+            color: 'red',
+            title: 'Error',
+            message: 'Your player session was not received from the server.',
+            autoClose: 3000,
+          });
+        });
+    }
+    setAskingUuid(false);
+  }, [session]);
+
+  useEffect(() => {
+    if (started || !uuid) {
       return;
     }
     setStarted(true);
@@ -210,12 +239,11 @@ export const PlayerEventProvider = ({ children }: Props) => {
     };
 
     const startSse = () => {
-      const player = sessionStorage.getItem('player');
       setConnectionStatus(0);
-      fetchEventSource(playerApiUrl + 'sse/' + player, {
+      fetchEventSource(playerApiUrl + 'sse/' + uuid, {
         headers: {
           'Authorization': 'Bearer ' + getJwt(),
-          'Player': player ? player : ''
+          'Player': uuid
         },
         async onopen(event: Response) { onOpen(event); },
         onmessage(event: EventSourceMessage) {
@@ -228,12 +256,13 @@ export const PlayerEventProvider = ({ children }: Props) => {
     };
 
     startSse();
-  }, [started, session, i18n]);
+  }, [started, uuid]);
 
   const { Provider } = PlayerEventContext;
 
   return (
     <Provider value={{
+      uuid: uuid,
       connectionStatus: connectionStatus,
       reqId: reqId,
       reqType: reqType,

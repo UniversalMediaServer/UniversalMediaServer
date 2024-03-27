@@ -17,6 +17,7 @@
 import { Context, createContext } from 'react';
 
 export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
+  uuid: '',
   connectionStatus: 0,
   reqId: '0',
   reqType: 'browse',
@@ -27,6 +28,7 @@ export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
 });
 
 export interface PlayerEventInterface {
+  uuid:string;
   connectionStatus: number;
   reqId: string;
   reqType: string;

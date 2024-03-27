@@ -271,7 +271,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				}
 
 			}
-		} catch (RuntimeException e) {
+		} catch (IOException | RuntimeException e) {
 			LOGGER.error("Exception in PlayerApiServlet: {}", e.getMessage());
 			LOGGER.trace("{}", e);
 			respondInternalServerError(req, resp);
