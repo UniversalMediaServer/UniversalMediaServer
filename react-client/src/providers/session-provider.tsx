@@ -49,7 +49,7 @@ export const SessionProvider = ({ children }: Props) => {
     if (!session.initialized) {
       refresh();
     }
-  }, [session.initialized, i18n]);
+  }, [session.initialized]);
 
   const { Provider } = SessionContext;
   return (
