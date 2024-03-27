@@ -16,20 +16,21 @@
  */
 package net.pms.image;
 
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Metadata;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.drew.imaging.ImageProcessingException;
-import com.drew.metadata.Metadata;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.parsers.MetadataExtractorParser;
 import net.pms.util.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is simply a byte array for holding an {@link ImageIO} supported
@@ -116,7 +117,7 @@ public class Image implements Serializable {
 		}
 		if (metadata == null) {
 			try {
-				metadata = ImagesUtil.getMetadata(this.bytes, format);
+				metadata = MetadataExtractorParser.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
 				LOGGER.error("Error reading image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);
@@ -170,7 +171,7 @@ public class Image implements Serializable {
 
 		if (metadata == null) {
 			try {
-				metadata = ImagesUtil.getMetadata(this.bytes, format);
+				metadata = MetadataExtractorParser.getMetadata(this.bytes, format);
 			} catch (ImageProcessingException | IOException e) {
 				LOGGER.error("Error while reading image metadata: {}", e.getMessage());
 				LOGGER.trace("", e);

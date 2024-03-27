@@ -20,10 +20,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +35,12 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
-import net.pms.util.StringUtil;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -45,6 +48,7 @@ import org.jupnp.controlpoint.ActionCallback;
 import org.jupnp.model.action.ActionArgumentValue;
 import org.jupnp.model.action.ActionInvocation;
 import org.jupnp.model.message.UpnpResponse;
+import org.jupnp.model.message.header.DeviceTypeHeader;
 import org.jupnp.model.meta.Action;
 import org.jupnp.model.meta.Device;
 import org.jupnp.model.meta.DeviceDetails;
@@ -67,10 +71,10 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class JUPnPDeviceHelper {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(JUPnPDeviceHelper.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
-	public static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
+	private static final DeviceType[] MEDIA_RENDERER_TYPES = new DeviceType[]{
 		new UDADeviceType("MediaRenderer", 1),
 		// Older Sony Blurays provide only 'Basic' service
 		new UDADeviceType("Basic", 1)
@@ -114,20 +118,39 @@ public class JUPnPDeviceHelper {
 
 	private static DocumentBuilder db;
 
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private JUPnPDeviceHelper() {
+	}
+
+	public static void searchMediaRendererDevices() {
+		if (MediaServer.upnpService != null) {
+			for (DeviceType deviceType : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
+				LOGGER.trace("Sending UPnP search for devices of type: {}", deviceType);
+				MediaServer.upnpService.getControlPoint().search(new DeviceTypeHeader(deviceType));
+			}
+		}
+	}
 
 	public static void remoteDeviceAdded(RemoteDevice device) {
-		if (isBlocked(getUUID(device)) || !addRenderer(device)) {
-			LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
-			addIgnoredDeviceToList(device);
-		}
-		// This may be unnecessary, but we might as well be thorough
-		if (device.hasEmbeddedDevices()) {
-			for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
-				if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
-					LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
-					addIgnoredDeviceToList((RemoteDevice) embedded);
+		ConnectedRenderers.RENDERER_LOCK.lock();
+		try {
+			if (isBlocked(getUUID(device)) || !addRenderer(device)) {
+				LOGGER.trace("Ignoring remote device: {} {}", device.getType().getType(), device);
+				addIgnoredDeviceToList(device);
+			}
+			// This may be unnecessary, but we might as well be thorough
+			if (device.hasEmbeddedDevices()) {
+				for (Device<?, RemoteDevice, ?> embedded : device.getEmbeddedDevices()) {
+					if (isBlocked(getUUID(embedded)) || !addRenderer(embedded)) {
+						LOGGER.trace("Ignoring embedded device: {} {}", embedded.getType(), embedded.toString());
+						addIgnoredDeviceToList((RemoteDevice) embedded);
+					}
 				}
 			}
+		} finally {
+			ConnectedRenderers.RENDERER_LOCK.unlock();
 		}
 	}
 
@@ -137,40 +160,40 @@ public class JUPnPDeviceHelper {
 
 	public static void remoteDeviceRemoved(RemoteDevice d) {
 		String uuid = getUUID(d);
-		if (ConnectedRenderers.hasUpNPRenderer(uuid)) {
-			ConnectedRenderers.markRenderer(uuid, ACTIVE, false);
+		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
+			ConnectedRenderers.markUpnpRenderer(uuid, ACTIVE, false);
 			LOGGER.debug("Renderer {} is now offline.", getFriendlyName(d));
 		}
 	}
 
 	public static void markRenderer(String uuid, int property, Object value) {
-		ConnectedRenderers.markRenderer(uuid, property, value);
+		ConnectedRenderers.markUpnpRenderer(uuid, property, value);
 	}
 
 	public static boolean isUpnpDevice(String uuid) {
-		return getDevice(uuid) != null;
+		return JUPnPDeviceHelper.getDevice(uuid) != null;
 	}
 
 	public static boolean isActive(String uuid) {
-		if (ConnectedRenderers.hasUpNPRenderer(uuid)) {
-			return ConnectedRenderers.getUpNPRenderer(uuid).isActive();
+		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
+			return ConnectedRenderers.getUuidRenderer(uuid).isActive();
 		}
 		return false;
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
-		if (ConnectedRenderers.hasUpNPRenderer(uuid)) {
-			return ConnectedRenderers.getUpNPRenderer(uuid).isControllable();
+		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
+			return ConnectedRenderers.getUuidRenderer(uuid).isControllable();
 		}
 		return false;
 	}
 
 	public static String getFriendlyName(String uuid) {
-		return getFriendlyName(getDevice(uuid));
+		return getFriendlyName(JUPnPDeviceHelper.getDevice(uuid));
 	}
 
 	public static boolean activate(String uuid) {
-		if (!ConnectedRenderers.hasUpNPRenderer(uuid)) {
+		if (!ConnectedRenderers.hasUuidRenderer(uuid)) {
 			LOGGER.debug("Activating upnp service for {}", uuid);
 			return addRenderer(uuid);
 		}
@@ -178,7 +201,7 @@ public class JUPnPDeviceHelper {
 	}
 
 	public static boolean isNonRenderer(InetAddress socket) {
-		Device d = getDevice(socket);
+		Device d = getRendererDevice(socket);
 		if (d != null && !isMediaRenderer(d)) {
 			LOGGER.debug("Device at {} is {}: {}", socket, d.getType(), d.toString());
 			return true;
@@ -187,7 +210,7 @@ public class JUPnPDeviceHelper {
 	}
 
 	public static ActionArgumentValue[] getPositionInfo(Renderer renderer) {
-		Device dev = getDevice(renderer.getUUID());
+		Device dev = JUPnPDeviceHelper.getDevice(renderer.getUUID());
 		if (dev == null) {
 			return null;
 		}
@@ -195,26 +218,36 @@ public class JUPnPDeviceHelper {
 		return invocation == null ? null : invocation.getOutput();
 	}
 
-	public static InetAddress getAddress(String uuid) {
+	public static InetAddress getInetAddress(String uuid) {
+		Device device = JUPnPDeviceHelper.getDevice(uuid);
+		if (device != null) {
+			return JUPnPDeviceHelper.getInetAddress(device);
+		}
+		return null;
+	}
+
+	private static InetAddress getInetAddress(Device device) {
 		try {
-			Device device = getDevice(uuid);
-			if (device != null) {
-				return InetAddress.getByName(getURL(device).getHost());
+			URL url = getURL(device);
+			if (url != null && url.getHost() != null) {
+				return InetAddress.getByName(url.getHost());
 			}
 		} catch (UnknownHostException e) {
+			//no IP address for the host could be found.
 		}
 		return null;
 	}
 
 	private static boolean addRenderer(String uuid) {
-		Device device = getDevice(uuid);
+		Device device = JUPnPDeviceHelper.getDevice(uuid);
 		return (device != null && addRenderer(device));
 	}
 
 	private static synchronized boolean addRenderer(Device<?, RemoteDevice, ?> device) {
-		if (device != null) {
+		if (device != null && isMediaRenderer(device)) {
 			String uuid = getUUID(device);
-			if (isMediaRenderer(device)) {
+			if (uuid != null) {
+				ConnectedRenderers.addUuidAssociation(getInetAddress(device), uuid);
 				Renderer renderer = rendererFound(device, uuid);
 				if (renderer != null) {
 					LOGGER.debug("Adding device: {} {}", device.getType(), device.toString());
@@ -232,7 +265,7 @@ public class JUPnPDeviceHelper {
 	private static Renderer rendererFound(Device device, String uuid) {
 		// Create or retrieve an instance
 		try {
-			InetAddress socket = InetAddress.getByName(getURL(device).getHost());
+			InetAddress socket = JUPnPDeviceHelper.getInetAddress(device);
 			Renderer renderer = ConnectedRenderers.getRendererBySocketAddress(socket);
 			RendererConfiguration ref = CONFIGURATION.isRendererForceDefault() ? null :
 				RendererConfigurations.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(device));
@@ -240,6 +273,10 @@ public class JUPnPDeviceHelper {
 			if (renderer != null && !renderer.isUpnpAllowed()) {
 				LOGGER.debug("Upnp service is {} for \"{}\"", renderer.getUpnpModeString(), renderer);
 				return null;
+			}
+
+			if (renderer != null && ref != null) {
+				LOGGER.debug("Upnp service found device \"{}\" with upnp details matching conf \"{}\"", renderer, ref);
 			}
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a
@@ -268,7 +305,7 @@ public class JUPnPDeviceHelper {
 				renderer.setUUID(uuid);
 
 				// Make sure it's mapped
-				ConnectedRenderers.addUpNPRenderer(uuid, renderer);
+				ConnectedRenderers.addUuidRenderer(uuid, renderer);
 				Map<String, String> details = getDeviceDetails(device);
 				renderer.setDetails(details);
 				// Update gui
@@ -276,7 +313,7 @@ public class JUPnPDeviceHelper {
 				LOGGER.debug("Found upnp service for \"{}\" with dlna details: {}", renderer, details);
 			} else {
 				// It's brand new
-				renderer = ConnectedRenderers.getOrCreateUpNPRenderer(uuid);
+				renderer = ConnectedRenderers.getOrCreateUuidRenderer(uuid);
 				if (ref != null) {
 					renderer.inherit(ref);
 				} else {
@@ -297,16 +334,13 @@ public class JUPnPDeviceHelper {
 				}
 			}
 			return renderer;
-		} catch (UnknownHostException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(device) + ": " + e);
 		}
 		return null;
 	}
 
 	private static boolean isBlocked(String uuid) {
-		if (uuid.startsWith("uuid:")) {
-			ConnectedRenderers.addUuidAssociation(getAddress(uuid), uuid);
-		}
 		int mode = RendererConfigurations.getDeviceUpnpMode(uuid);
 		if (mode != Renderer.UPNP_ALLOW) {
 			LOGGER.debug("Upnp service is {} for {}", Renderer.getUpnpModeString(mode), uuid);
@@ -334,8 +368,8 @@ public class JUPnPDeviceHelper {
 
 	private static void rendererUpdated(Device d) {
 		String uuid = getUUID(d);
-		if (ConnectedRenderers.hasUpNPRenderer(uuid)) {
-			Renderer renderer = ConnectedRenderers.getUpNPRenderer(uuid);
+		if (ConnectedRenderers.hasUuidRenderer(uuid)) {
+			Renderer renderer = ConnectedRenderers.getUuidRenderer(uuid);
 			if (renderer.needsRenewal()) {
 				LOGGER.debug("Renewing subscriptions to ", getFriendlyName(d));
 				subscribeAll(d, renderer);
@@ -350,17 +384,12 @@ public class JUPnPDeviceHelper {
 	 * @param socket address of the checked remote device.
 	 * @return Device
 	 */
-	private static Device getDevice(InetAddress socket) {
+	private static Device getRendererDevice(InetAddress socket) {
 		if (MediaServer.upnpService != null) {
 			for (DeviceType r : MEDIA_RENDERER_TYPES) {
-				for (Device d : MediaServer.upnpService.getRegistry().getDevices(r)) {
-					try {
-						InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-						if (devsocket.equals(socket)) {
-							return d;
-						}
-					} catch (UnknownHostException e) {
-					}
+				Device device = getDevice(socket, MediaServer.upnpService.getRegistry().getDevices(r));
+				if (device != null) {
+					return device;
 				}
 			}
 		}
@@ -384,16 +413,34 @@ public class JUPnPDeviceHelper {
 	 * @param socket address of the checked remote device.
 	 * @return Device
 	 */
-	public static Device getAnyDevice(InetAddress socket) {
+	public static Device getDevice(InetAddress socket) {
 		if (MediaServer.upnpService != null) {
-			for (Device d : MediaServer.upnpService.getRegistry().getDevices()) {
-				try {
-					InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-					if (devsocket.equals(socket)) {
-						return d;
+			return getDevice(socket, MediaServer.upnpService.getRegistry().getDevices());
+		}
+		return null;
+	}
+
+	/**
+	 * Returns the first device regardless of type at the given address, if any.
+	 * Seems not used.
+	 *
+	 * @param socket address of the checked remote device.
+	 * @return Device
+	 */
+	private static Device getDevice(InetAddress socket, Collection<Device> devices) {
+		for (Device device : devices) {
+			try {
+				URL url = getURL(device);
+				if (url != null && url.getHost() != null) {
+					InetAddress[] addresses = InetAddress.getAllByName(url.getHost());
+					for (InetAddress address : addresses) {
+						if (address.equals(socket)) {
+							return device;
+						}
 					}
-				} catch (UnknownHostException e) {
 				}
+			} catch (UnknownHostException e) {
+				//no IP address for the host could be found
 			}
 		}
 		return null;
@@ -402,7 +449,7 @@ public class JUPnPDeviceHelper {
 	private static URL getURL(Device device) {
 		if (device instanceof RemoteDevice remoteDevice) {
 			return remoteDevice.getIdentity().getDescriptorURL();
-		} else if (device != null) {
+		} else if (device != null && device.getDetails() != null) {
 			return device.getDetails().getBaseURL();
 		}
 		return null;
@@ -410,7 +457,7 @@ public class JUPnPDeviceHelper {
 
 	public static List<String> getServiceNames(String uuid) {
 		if (isUpnpDevice(uuid)) {
-			return getServiceNames(getDevice(uuid));
+			return getServiceNames(JUPnPDeviceHelper.getDevice(uuid));
 		}
 		return null;
 	}
@@ -425,7 +472,7 @@ public class JUPnPDeviceHelper {
 
 	public static Map<String, String> getDeviceDetails(String uuid) {
 		if (isUpnpDevice(uuid)) {
-			return getDeviceDetails(getDevice(uuid));
+			return getDeviceDetails(JUPnPDeviceHelper.getDevice(uuid));
 		}
 		return null;
 	}
@@ -475,7 +522,7 @@ public class JUPnPDeviceHelper {
 
 	public static String getDeviceIcon(String uuid, int maxHeight) {
 		if (isUpnpDevice(uuid)) {
-			return getDeviceIcon(getDevice(uuid), maxHeight);
+			return getDeviceIcon(JUPnPDeviceHelper.getDevice(uuid), maxHeight);
 		}
 		return null;
 	}
@@ -486,16 +533,18 @@ public class JUPnPDeviceHelper {
 		String url = null;
 		int maxH = maxHeight == 0 ? 99999 : maxHeight;
 		int height = 0;
-		for (Icon i : d.getIcons()) {
-			int h = i.getHeight();
-			if (h < maxH && h > height) {
-				icon = i;
-				height = h;
+		if (d != null) {
+			for (Icon i : d.getIcons()) {
+				int h = i.getHeight();
+				if (h < maxH && h > height) {
+					icon = i;
+					height = h;
+				}
 			}
 		}
 		try {
-			url = icon != null ? new URL(base, icon.getUri().toString()).toString() : null;
-		} catch (MalformedURLException e) {
+			url = icon != null ? base.toURI().resolve(icon.getUri()).toURL().toString() : null;
+		} catch (URISyntaxException | MalformedURLException e) {
 		}
 		LOGGER.debug("Device icon: " + url);
 		return url;
@@ -516,10 +565,10 @@ public class JUPnPDeviceHelper {
 	}
 
 	/**
-	 * seems not used.
+	 * Get the device uuid if exists.
 	 */
 	public static String getUUID(InetAddress socket) {
-		Device d = getDevice(socket);
+		Device d = getRendererDevice(socket);
 		if (d != null) {
 			return getUUID(d);
 		}
@@ -527,7 +576,7 @@ public class JUPnPDeviceHelper {
 	}
 
 	private static String getUUID(Device d) {
-		return d.getIdentity().getUdn().toString();
+		return d.getIdentity().getUdn().getIdentifierString();
 	}
 
 	/**
@@ -559,8 +608,8 @@ public class JUPnPDeviceHelper {
 					public void success(ActionInvocation invocation) {
 						Map<String, ActionArgumentValue<RemoteService>> outputs = invocation.getOutputMap();
 						ActionArgumentValue<RemoteService> sink = outputs.get("Sink");
-						if (sink != null && ConnectedRenderers.hasUpNPRenderer(uuid)) {
-							ConnectedRenderers.getUpNPRenderer(uuid).deviceProtocolInfo.add(DeviceProtocolInfo.GET_PROTOCOLINFO_SINK, sink.toString());
+						if (sink != null && ConnectedRenderers.hasUuidRenderer(uuid)) {
+							ConnectedRenderers.getUuidRenderer(uuid).deviceProtocolInfo.add(DeviceProtocolInfo.GET_PROTOCOLINFO_SINK, sink.toString());
 						}
 						if (LOGGER.isTraceEnabled()) {
 							StringBuilder sb = new StringBuilder();
@@ -586,8 +635,8 @@ public class JUPnPDeviceHelper {
 						LOGGER.debug(
 							"GetProtocolInfo from \"{}\" failed with status code {}: {} ({})",
 							name,
-							operation.getStatusCode(),
-							operation.getStatusMessage(),
+							operation != null ? operation.getStatusCode() : invocation.getFailure().getErrorCode(),
+							operation != null ? operation.getStatusMessage() : invocation.getFailure().getMessage(),
 							defaultMsg
 						);
 					}
@@ -624,7 +673,7 @@ public class JUPnPDeviceHelper {
 				new ActionCallback(a, MediaServer.upnpService.getControlPoint()) {
 					@Override
 					public void success(ActionInvocation invocation) {
-						ConnectedRenderers.markRenderer(uuid, ACTIVE, true);
+						ConnectedRenderers.markUpnpRenderer(uuid, ACTIVE, true);
 					}
 
 					@Override
@@ -638,7 +687,7 @@ public class JUPnPDeviceHelper {
 							// Mark the renderer false when there is an error except
 							// the GetPositionInfo failure. It could be wrong
 							// implementation in the renderer.
-							ConnectedRenderers.markRenderer(uuid, ACTIVE, false);
+							ConnectedRenderers.markUpnpRenderer(uuid, ACTIVE, false);
 						} else if (renderer != null && renderer.isGetPositionInfoImplemented) {
 							if (invocation.getFailure().getErrorCode() == (int) 501) { // renderer returns that GetPositionInfo is not implemented.
 								renderer.isGetPositionInfoImplemented = false;
@@ -681,7 +730,7 @@ public class JUPnPDeviceHelper {
 	 * Seems not used.
 	 */
 	public static void play(String uri, String name, Renderer renderer) {
-		DLNAResource d = DLNAResource.getValidResource(uri, name, renderer);
+		StoreResource d = renderer.getMediaStore().getValidResource(uri, name);
 		if (d != null) {
 			play(d, renderer);
 		}
@@ -690,11 +739,11 @@ public class JUPnPDeviceHelper {
 	/**
 	 * Seems not used.
 	 */
-	public static void play(DLNAResource d, Renderer renderer) {
-		DLNAResource d1 = d.getParent() == null ? DLNAResource.TEMP.add(d) : d;
-		if (d1 != null) {
+	public static void play(StoreResource d, Renderer renderer) {
+		StoreResource resource = d.getParent() == null ? renderer.getMediaStore().getTemp().add(d) : d;
+		if (resource instanceof StoreItem item) {
 			Device dev = getDevice(renderer.getUUID());
-			setAVTransportURI(dev, d1.getURL(""), renderer.isPushMetadata() ? d1.getDidlString(renderer) : null);
+			setAVTransportURI(dev, item.getMediaURL(), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
 			play(dev);
 		}
 	}
@@ -794,7 +843,7 @@ public class JUPnPDeviceHelper {
 
 	public static void setAVTransportURI(Device dev, String uri, String metaData) {
 		send(dev, AV_TRANSPORT_SERVICE, "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? StringUtil.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData != null ? DidlHelper.unEncodeXML(metaData) : null);
 	}
 
 	/**
@@ -916,7 +965,7 @@ public class JUPnPDeviceHelper {
 				String id = ((Element) ids.item(i)).getAttribute("val");
 //				if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				if (item == null) {
-					item = ConnectedRenderers.getUpNPRenderer(uuid);
+					item = ConnectedRenderers.getUuidRenderer(uuid);
 				}
 				item.data.put(Renderer.INSTANCE_ID, id);
 				for (int n = 0; n < c.getLength(); n++) {

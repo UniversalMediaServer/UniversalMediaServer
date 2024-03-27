@@ -64,7 +64,7 @@ public abstract class BaseConfiguration {
 		return configurationReader.getBoolean(key, def);
 	}
 
-	public String getString(String key, String def) {
+	public final String getString(String key, String def) {
 		return configurationReader.getNonBlankConfigurationString(key, def);
 	}
 
@@ -79,12 +79,12 @@ public abstract class BaseConfiguration {
 	public void setStringList(String key, List<String> value) {
 		StringBuilder result = new StringBuilder();
 		for (String element : value) {
-			if (!result.toString().equals("")) {
+			if (!result.toString().isEmpty()) {
 				result.append(", ");
 			}
 			result.append(element);
 		}
-		if (result.toString().equals("")) {
+		if (result.toString().isEmpty()) {
 			result.append(EMPTY_LIST_VALUE);
 		}
 		configuration.setProperty(key, result.toString());

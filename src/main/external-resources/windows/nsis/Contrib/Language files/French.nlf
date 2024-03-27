@@ -1,11 +1,11 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1036
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
@@ -16,7 +16,7 @@ Nullsoft Install System %s
 # ^SetupCaption
 Installation de $(^Name)
 # ^UninstallCaption
-Désinstallation de $(^Name)
+DÃ©sinstallation de $(^Name)
 # ^LicenseSubCaption
 : Licence
 # ^ComponentsSubCaption
@@ -26,19 +26,19 @@ Désinstallation de $(^Name)
 # ^InstallingSubCaption
 : Installation des fichiers
 # ^CompletedSubCaption
-: Terminé
+: TerminÃ©
 # ^UnComponentsSubCaption
-: Options de désinstallation
+: Options de dÃ©sinstallation
 # ^UnDirSubCaption
-: Dossier de désinstallation
+: Dossier de dÃ©sinstallation
 # ^ConfirmSubCaption
 : Confirmation
 # ^UninstallingSubCaption
-: Désinstallation des fichiers
+: DÃ©sinstallation des fichiers
 # ^UnCompletedSubCaption
-: Terminé
+: TerminÃ©
 # ^BackBtn
-< &Précédent
+< &PrÃ©cÃ©dent
 # ^NextBtn
 &Suivant >
 # ^AgreeBtn
@@ -50,7 +50,7 @@ Je &n'accepte pas les termes de la licence
 # ^InstallBtn
 &Installer
 # ^UninstallBtn
-&Désinstaller
+&DÃ©sinstaller
 # ^CancelBtn
 Annuler
 # ^CloseBtn
@@ -62,71 +62,71 @@ P&lus d'infos
 # ^ClickNext
 Cliquez sur Suivant pour continuer.
 # ^ClickInstall
-Cliquez sur Installer pour démarrer l'installation.
+Cliquez sur Installer pour dÃ©marrer l'installation.
 # ^ClickUninstall
-Cliquez sur Désinstaller pour démarrer la désinstallation.
+Cliquez sur DÃ©sinstaller pour dÃ©marrer la dÃ©sinstallation.
 # ^Name
 Nom
 # ^Completed
-Terminé
+TerminÃ©
 # ^LicenseText
 Veuillez examiner le contrat de licence avant d'installer $(^NameDA). Si vous acceptez tous les termes du contrat, cliquez sur J'accepte.
 # ^LicenseTextCB
-Veuillez examiner le contrat de licence avant d'installer $(^NameDA). Si vous acceptez tous les termes du contrat, cochez la boîte de contrôle ci-dessous. $_CLICK
+Veuillez examiner le contrat de licence avant d'installer $(^NameDA). Si vous acceptez tous les termes du contrat, cochez la boÃ®te de contrÃ´le ci-dessous. $_CLICK
 # ^LicesnseTextRB
-Veuillez examiner le contrat de licence avant d'installer $(^NameDA). Si vous acceptez tous les termes du contrat, sélectionnez la première option ci-dessous. $_CLICK
+Veuillez examiner le contrat de licence avant d'installer $(^NameDA). Si vous acceptez tous les termes du contrat, sÃ©lectionnez la premiÃ¨re option ci-dessous. $_CLICK
 # ^UnLicenseText
-Veuillez examiner le contrat de licence avant de désinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, cliquez sur J'accepte.
+Veuillez examiner le contrat de licence avant de dÃ©sinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, cliquez sur J'accepte.
 # ^UnLicenseTextCB
-Veuillez examiner le contrat de licence avant de désinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, cochez la boîte de contrôle ci-dessous. $_CLICK
+Veuillez examiner le contrat de licence avant de dÃ©sinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, cochez la boÃ®te de contrÃ´le ci-dessous. $_CLICK
 # ^UnLicesnseTextRB
-Veuillez examiner le contrat de licence avant de désinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, sélectionnez la première option ci-dessous. $_CLICK
+Veuillez examiner le contrat de licence avant de dÃ©sinstaller $(^NameDA). Si vous acceptez tous les termes du contrat, sÃ©lectionnez la premiÃ¨re option ci-dessous. $_CLICK
 # ^Custom
-Personnalisée
+PersonnalisÃ©e
 # ^ComponentsText
-Cochez les composants que vous désirez installer et décochez ceux que vous ne désirez pas installer. $_CLICK
+Cochez les composants que vous dÃ©sirez installer et dÃ©cochez ceux que vous ne dÃ©sirez pas installer. $_CLICK
 # ^ComponentsSubText1
 Type d'installation :
 # ^ComponentsSubText2_NoInstTypes
-Sélectionnez les composants à installer :
+SÃ©lectionnez les composants Ã  installer :
 # ^ComponentsSubText2
-Ou, sélectionnez les composants optionnels que vous voulez installer :
+Ou, sÃ©lectionnez les composants optionnels que vous voulez installer :
 # ^UnComponentsText
-Cochez les composants que vous désirez désinstaller et décochez ceux que vous ne désirez pas désinstaller. $_CLICK
+Cochez les composants que vous dÃ©sirez dÃ©sinstaller et dÃ©cochez ceux que vous ne dÃ©sirez pas dÃ©sinstaller. $_CLICK
 # ^UnComponentsSubText1
-Sélectionnez le type de désinstallation :
+SÃ©lectionnez le type de dÃ©sinstallation :
 # ^UnComponentsSubText2_NoInstTypes
-Sélectionnez les composants à désinstaller :
+SÃ©lectionnez les composants Ã  dÃ©sinstaller :
 # ^UnComponentsSubText2
-Ou, sélectionnez les composants optionnels que vous voulez désinstaller :
+Ou, sÃ©lectionnez les composants optionnels que vous voulez dÃ©sinstaller :
 # ^DirText
 Ceci installera $(^NameDA) dans le dossier suivant. Pour installer dans un autre dossier, cliquez sur Parcourir et choisissez un autre dossier. $_CLICK
 # ^DirSubText
 Dossier d'installation
 # ^DirBrowseText
-Sélectionnez le dossier d'installation pour $(^NameDA) :
+SÃ©lectionnez le dossier d'installation pour $(^NameDA) :
 # ^UnDirText
-Ceci désinstallera $(^NameDA) du dossier suivant. Pour désinstaller d'un autre dossier, cliquez sur Parcourir et choisissez un autre dossier. $_CLICK
+Ceci dÃ©sinstallera $(^NameDA) du dossier suivant. Pour dÃ©sinstaller d'un autre dossier, cliquez sur Parcourir et choisissez un autre dossier. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Sélectionnez le dossier de désinstallation pour $(^NameDA) :
+SÃ©lectionnez le dossier de dÃ©sinstallation pour $(^NameDA) :
 # ^SpaceAvailable
 "Espace disponible : "
 # ^SpaceRequired
 "Espace requis : "
 # ^UninstallingText
-Ce programme désinstallera $(^NameDA) de votre ordinateur. $_CLICK
+Ce programme dÃ©sinstallera $(^NameDA) de votre ordinateur. $_CLICK
 # ^UninstallingSubText
-Désinstallation à partir de :
+DÃ©sinstallation Ã  partir de :
 # ^FileError
-Erreur lors de l'ouverture du fichier en écriture : \r\n\t"$0"\r\nAppuyez sur Abandonner pour annuler l'installation,\r\nRéessayer pour réessayer l'écriture du fichier, ou\r\nIgnorer pour passer ce fichier
+Erreur lors de l'ouverture du fichier en Ã©criture : \r\n\t"$0"\r\nAppuyez sur Abandonner pour annuler l'installation,\r\nRÃ©essayer pour rÃ©essayer l'Ã©criture du fichier, ou\r\nIgnorer pour passer ce fichier
 # ^FileError_NoIgnore
-Erreur lors de l'ouverture du fichier en écriture : \r\n\t"$0"\r\nAppuyez sur Réessayez pour re-écrire le fichier, ou\r\nAnnuler pour abandonner l'installation
+Erreur lors de l'ouverture du fichier en Ã©criture : \r\n\t"$0"\r\nAppuyez sur RÃ©essayez pour re-Ã©crire le fichier, ou\r\nAnnuler pour abandonner l'installation
 # ^CantWrite
-"Impossible d'écrire : "
+"Impossible d'Ã©crire : "
 # ^CopyFailed
-Échec de la copie
+Ã‰chec de la copie
 # ^CopyTo
 "Copier vers "
 # ^Registering
@@ -138,31 +138,31 @@ Erreur lors de l'ouverture du fichier en écriture : \r\n\t"$0"\r\nAppuyez sur Ré
 # ^CouldNotLoad
 "Impossible de charger : "
 # ^CreateFolder
-"Création du dossier : "
+"CrÃ©ation du dossier : "
 # ^CreateShortcut
-"Création du raccourci : "
+"CrÃ©ation du raccourci : "
 # ^CreatedUninstaller
-"Création de la désinstallation : "
+"CrÃ©ation de la dÃ©sinstallation : "
 # ^Delete
 "Suppression : "
 # ^DeleteOnReboot
-"Suppression au redémarrage : "
+"Suppression au redÃ©marrage : "
 # ^ErrorCreatingShortcut
-"Erreur lors de la création du raccourci : "
+"Erreur lors de la crÃ©ation du raccourci : "
 # ^ErrorCreating
-"Erreur de la création : "
+"Erreur de la crÃ©ation : "
 # ^ErrorDecompressing
-Erreur lors de la décompression des données ! Installation corrompue ?
+Erreur lors de la dÃ©compression des donnÃ©es ! Installation corrompue ?
 # ^ErrorRegistering
 Erreur lors de l'enregistrement de la DLL
 # ^ExecShell
 "ExecShell: "
 # ^Exec
-"Exécution : "
+"ExÃ©cution : "
 # ^Extract
 "Extraction : "
 # ^ErrorWriting
-"Extraction : erreur d'écriture du fichier "
+"Extraction : erreur d'Ã©criture du fichier "
 # ^InvalidOpcode
 Installation corrompue : opcode incorrect
 # ^NoOLE
@@ -172,20 +172,20 @@ Installation corrompue : opcode incorrect
 # ^RemoveFolder
 "Suppression du dossier : "
 # ^RenameOnReboot
-"Renommer au redémarrage : "
+"Renommer au redÃ©marrage : "
 # ^Rename
 "Renommer : "
 # ^Skipped
-"Passé : "
+"PassÃ© : "
 # ^CopyDetails
-Copier les Détails dans le Presse-papier
+Copier les DÃ©tails dans le Presse-papier
 # ^LogInstall
-Enregistrer le déroulement de l'installation
+Enregistrer le dÃ©roulement de l'installation
 # ^Byte
 o
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

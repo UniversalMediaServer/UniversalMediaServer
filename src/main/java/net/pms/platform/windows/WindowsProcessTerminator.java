@@ -26,10 +26,10 @@ import java.io.IOException;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.platform.PlatformProgramPaths;
+import net.pms.service.process.AbstractProcessTerminator;
 import net.pms.service.process.ProcessInfo;
 import net.pms.service.process.ProcessManager;
 import net.pms.service.process.ProcessState;
-import net.pms.service.process.AbstractProcessTerminator;
 
 public class WindowsProcessTerminator extends AbstractProcessTerminator {
 	/** Windows API {@code CTRL_C_EVENT} */
@@ -115,7 +115,7 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 			);
 		}
 		ProcessBuilder processBuilder = new ProcessBuilder(
-			PlatformProgramPaths.get().getTaskKill().toString(),
+			String.valueOf(PlatformProgramPaths.get().getTaskKill()),
 			"/PID",
 			Long.toString(processInfo.getPID())
 		);
@@ -175,7 +175,7 @@ public class WindowsProcessTerminator extends AbstractProcessTerminator {
 			);
 		}
 		ProcessBuilder processBuilder = new ProcessBuilder(
-			PlatformProgramPaths.get().getCtrlSender().toString(),
+			String.valueOf(PlatformProgramPaths.get().getCtrlSender()),
 			Long.toString(processInfo.getPID()),
 			Integer.toString(ctrlEvent)
 		);

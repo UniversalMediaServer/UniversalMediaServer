@@ -20,13 +20,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.database.MediaDatabase;
 import net.pms.network.webguiserver.WebGuiServer;
-import net.pms.newgui.LooksFrame;
 import net.pms.renderers.Renderer;
+import net.pms.swing.gui.JavaGui;
 
 public class GuiManager {
+
 	private static final List<String> LOG_BUFFER = Collections.synchronizedList(new ArrayList<>());
 	private static final int LOG_BUFFER_SIZE = 5000;
+	private static final int BYTES_TO_MBYTES = 1024 * 1024;
+
 	private static IGui swingFrame;
 	private static IGui webGui;
 
@@ -36,12 +40,12 @@ public class GuiManager {
 	private static int peakBitrate = 0;
 	private static int maxMemory;
 	private static int usedMemory;
+	private static int dbCacheMemory;
 	private static int bufferMemory;
 	private static boolean reloadable = false;
 	private static boolean serverReady = false;
 	private static boolean needLogFile = false;
-	private static boolean libraryScanEnabled = false;
-	private static boolean libraryScanRunning = false;
+	private static boolean mediaScanRunning = false;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -51,7 +55,7 @@ public class GuiManager {
 
 	public static void addGui(IGui gui) {
 		if (gui != null) {
-			if (gui instanceof LooksFrame) {
+			if (gui instanceof JavaGui) {
 				// fill the log
 				dumpCurrentLog(gui);
 				swingFrame = gui;
@@ -65,8 +69,8 @@ public class GuiManager {
 			gui.setCurrentBitrate(currentBitrate);
 			gui.setPeakBitrate(peakBitrate);
 			gui.setReloadable(reloadable);
-			gui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
-			gui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+			gui.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
+			gui.setMediaScanStatus(mediaScanRunning);
 			if (serverReady) {
 				gui.serverReady();
 			}
@@ -175,6 +179,12 @@ public class GuiManager {
 		}
 	}
 
+	public static void showSwingFrame() {
+		if (swingFrame instanceof JavaGui frame) {
+			frame.setVisible(true);
+		}
+	}
+
 	public static void setSecondaryStatusLine(String line) {
 		if (swingFrame != null) {
 			swingFrame.setSecondaryStatusLine(line);
@@ -205,15 +215,14 @@ public class GuiManager {
 		}
 	}
 
-	public static void setScanLibraryStatus(boolean enabled, boolean running) {
-		if (enabled != libraryScanEnabled || running != libraryScanRunning) {
-			libraryScanEnabled = enabled;
-			libraryScanRunning = running;
+	public static void setMediaScanStatus(boolean running) {
+		if (running != mediaScanRunning) {
+			mediaScanRunning = running;
 			if (swingFrame != null) {
-				swingFrame.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+				swingFrame.setMediaScanStatus(mediaScanRunning);
 			}
 			if (webGui != null) {
-				webGui.setScanLibraryStatus(libraryScanEnabled, libraryScanRunning);
+				webGui.setMediaScanStatus(mediaScanRunning);
 			}
 		}
 	}
@@ -301,10 +310,15 @@ public class GuiManager {
 		}
 	}
 
+	private static int getBytesToMegabytes(long value) {
+		return (int) (value / BYTES_TO_MBYTES);
+	}
+
 	private static void updateMemoryUsage() {
 		if (hasGui()) {
-			maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1048576);
-			usedMemory = (int) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1048576);
+			maxMemory = getBytesToMegabytes(Runtime.getRuntime().maxMemory());
+			usedMemory = getBytesToMegabytes(Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory());
+			dbCacheMemory = MediaDatabase.getCacheSize();
 			long buf = 0;
 			List<Renderer> foundRenderers = PMS.get().getFoundRenderers();
 			synchronized (foundRenderers) {
@@ -318,10 +332,10 @@ public class GuiManager {
 			}
 			bufferMemory = (int) buf;
 			if (swingFrame != null) {
-				swingFrame.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+				swingFrame.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 			}
 			if (webGui != null) {
-				webGui.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+				webGui.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 			}
 		}
 	}

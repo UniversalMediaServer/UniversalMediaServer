@@ -71,15 +71,6 @@ public class MediaInfoHelper implements AutoCloseable {
 		}
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
-		}
-	}
-
 	// File
 	/**
 	 * Open a file and collect information about it (technical information and tags).
@@ -188,6 +179,40 @@ public class MediaInfoHelper implements AutoCloseable {
 			streamNumber,
 			parameterIndex,
 			infoType.getValue()).toString();
+	}
+
+	public Long getLong(StreamKind streamType, int streamNumber, String parameter) {
+		String result = get(streamType, streamNumber, parameter);
+		if (result != null && !"".equals(result)) {
+			try {
+				return Long.valueOf(result);
+			} catch (NumberFormatException e) {
+				StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+				if (stackTraceElements.length > 1) {
+					LOGGER.debug("Could not parse \"{}\" as Long for \"{}.{}\"", result, stackTraceElements[2].getClassName(), stackTraceElements[2].getMethodName());
+				} else {
+					LOGGER.debug("Could not parse \"{}\" as Long", result);
+				}
+			}
+		}
+		return null;
+	}
+
+	public Double getDouble(StreamKind streamType, int streamNumber, String parameter) {
+		String result = get(streamType, streamNumber, parameter);
+		if (result != null && !"".equals(result)) {
+			try {
+				return Double.valueOf(result);
+			} catch (NumberFormatException e) {
+				StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
+				if (stackTraceElements.length > 1) {
+					LOGGER.debug("Could not parse \"{}\" as Double for \"{}.{}\"", result, stackTraceElements[2].getClassName(), stackTraceElements[2].getMethodName());
+				} else {
+					LOGGER.debug("Could not parse \"{}\" as Double", result);
+				}
+			}
+		}
+		return null;
 	}
 
 	/**

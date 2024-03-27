@@ -21,6 +21,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,9 +33,8 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.old.OldConfigurationImporter;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
+import net.pms.network.webguiserver.EventSourceServer;
 import net.pms.platform.PlatformUtils;
-import net.pms.service.LibraryScanner;
 import net.pms.util.FileWatcher;
 import org.apache.commons.lang.SerializationUtils;
 import org.slf4j.Logger;
@@ -83,13 +83,36 @@ public class SharedContentConfiguration {
 		}
 	}
 
-	public static List<File> getSharedFolders(List<SharedContent> sharedContents) {
+	/**
+	 * Get all shared directories including virtual folders for a group.
+	 */
+	public static List<File> getSharedFolders(int groupId) {
+		synchronized (SHARED_CONTENT_ARRAY) {
+			return getSharedFolders(SHARED_CONTENT_ARRAY, groupId);
+		}
+	}
+
+	private static List<File> getSharedFolders(List<SharedContent> sharedContents) {
 		List<File> files = new ArrayList<>();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
 				files.add(folder.getFile());
 			} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
 				files.addAll(getSharedFolders(folders.getChilds()));
+			}
+		}
+		return files;
+	}
+
+	private static List<File> getSharedFolders(List<SharedContent> sharedContents, int groupId) {
+		List<File> files = new ArrayList<>();
+		for (SharedContent sharedContent : sharedContents) {
+			if (sharedContent.isGroupAllowed(groupId)) {
+				if (sharedContent instanceof FolderContent folder && folder.getFile() != null) {
+					files.add(folder.getFile());
+				} else if (sharedContent instanceof VirtualFolderContent folders && folders.getChilds() != null) {
+					files.addAll(getSharedFolders(folders.getChilds()));
+				}
 			}
 		}
 		return files;
@@ -118,7 +141,9 @@ public class SharedContentConfiguration {
 
 	public static void addListener(SharedContentListener listener) {
 		synchronized (LISTENERS) {
-			LISTENERS.add(listener);
+			if (!LISTENERS.contains(listener)) {
+				LISTENERS.add(listener);
+			}
 			listener.updateSharedContent();
 		}
 	}
@@ -131,13 +156,17 @@ public class SharedContentConfiguration {
 				LOGGER.debug("Updating shared content configuration");
 				SHARED_CONTENT_ARRAY.clear();
 				//check viability
-				Boolean wasFolderUpdate = false;
 				for (SharedContent sharedContent : values) {
 					if (sharedContent instanceof FolderContent folderContent) {
 						if (folderContent.getFile() != null) {
 							SHARED_CONTENT_ARRAY.add(sharedContent);
-							wasFolderUpdate = true;
 						}
+					} else if (sharedContent instanceof ITunesContent && !Platform.isMac() && !Platform.isWindows()) {
+						LOGGER.debug("ITunesContent not valid on this platform");
+					} else if (sharedContent instanceof IPhotoContent && !Platform.isMac()) {
+						LOGGER.debug("IPhotoContent not valid on this platform");
+					} else if (sharedContent instanceof ApertureContent && !Platform.isMac()) {
+						LOGGER.debug("ApertureContent not valid on this platform");
 					} else {
 						SHARED_CONTENT_ARRAY.add(sharedContent);
 					}
@@ -147,17 +176,9 @@ public class SharedContentConfiguration {
 				}
 				sendSseApiUpdate();
 				if (PMS.isReady()) {
-					PMS.get().resetRenderersRoot();
+					PMS.get().resetRenderersMediaStore();
 				}
 				updated = true;
-
-				if (wasFolderUpdate) {
-					// Rescan to add/remove Media Library content
-					if (CONFIGURATION.getUseCache()) {
-						LibraryScanner.stopScanLibrary();
-						LibraryScanner.scanLibrary();
-					}
-				}
 			} else {
 				LOGGER.debug("Current shared content configuration is already up to date.");
 			}
@@ -222,7 +243,9 @@ public class SharedContentConfiguration {
 			if (Files.exists(sharedConfFilePath)) {
 				LOGGER.info("Getting shared content from configuration file : " + sharedConfFilePath);
 				String json = Files.readString(sharedConfFilePath, StandardCharsets.UTF_8);
-				updateSharedContent(GSON.fromJson(json, SharedContentArray.class), false);
+				SharedContentArray values = GSON.fromJson(json, SharedContentArray.class);
+				boolean updated = OldConfigurationImporter.ensureSettingsChanges(values);
+				updateSharedContent(values, updated);
 			} else {
 				//import old settings
 				LOGGER.info("Importing old shared content configuration files");
@@ -296,6 +319,7 @@ public class SharedContentConfiguration {
 		JsonObject sharedData = new JsonObject();
 		sharedData.add("shared_content", getAsJsonArray());
 		sharedMessage.add("value", sharedData);
-		SseApiServlet.broadcastSharedMessage(sharedMessage.toString());
+		EventSourceServer.broadcastSharedMessage(sharedMessage.toString());
 	}
+
 }

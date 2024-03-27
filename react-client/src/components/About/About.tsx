@@ -22,8 +22,8 @@ import ReactCountryFlag from 'react-country-flag';
 import { Edit, EditOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
-import { ServerEventProvider } from '../../providers/server-event-provider';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { aboutApiUrl } from '../../utils';
 import MemoryBar from '../MemoryBar/MemoryBar';
@@ -34,24 +34,24 @@ const About = () => {
   const session = useContext(SessionContext);
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
   const languagesRows = i18n.languages.map((language) => (
-    <tr key={language.id}>
-      <td><Group style={{ cursor: 'default' }}><ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} /><Text>{language.name}</Text></Group></td>
+    <Table.Tr key={language.id}>
+      <Table.Td><Group style={{ cursor: 'default' }}><ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} /><Text>{language.name}</Text></Group></Table.Td>
       {language.id === 'en-US' ? (
-        <td><Group style={{ cursor: 'default' }} position='right'><Text>{i18n.get['Source']}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></td>
+        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get('Source')}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></Table.Td>
       ) : (
-        <td><Group style={{ cursor: 'default' }} position='right'>
-          <Text>{language.coverage === 100 ? i18n.get['Completed'] : i18n.get['InProgress'] + ' (' + language.coverage + '%)'}</Text>
+        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'>
+          <Text>{language.coverage === 100 ? i18n.get('Completed') : i18n.get('InProgress') + ' (' + language.coverage + '%)'}</Text>
           <ActionIcon variant='default' onClick={() => { window.open('https://crowdin.com/project/universalmediaserver/' + language.id, '_blank'); }}>
             <Edit />
           </ActionIcon>
-        </Group></td>
+        </Group></Table.Td>
       )}
-    </tr>
+    </Table.Tr>
   ));
   const linksRows = aboutDatas.links.map((link: { key: string, value: string }) => (
-    <tr key={link.key}>
-      <td><Text align='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></td>
-    </tr>
+    <Table.Tr key={link.key}>
+      <Table.Td><Text ta='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></Table.Td>
+    </Table.Tr>
   ));
 
   useEffect(() => {
@@ -63,78 +63,78 @@ const About = () => {
         showNotification({
           id: 'about-data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           autoClose: 3000,
         });
       });
   }, [i18n]);
 
   return (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <Tabs defaultValue='application'>
         <Tabs.List>
-          <Tabs.Tab value='application'>{i18n.get['Application']}</Tabs.Tab>
-          <Tabs.Tab value='translations'>{i18n.get['Translations']}</Tabs.Tab>
-          <Tabs.Tab value='relatedLinks'>{i18n.get['RelatedLinks_title']}</Tabs.Tab>
+          <Tabs.Tab value='application'>{i18n.get('Application')}</Tabs.Tab>
+          <Tabs.Tab value='translations'>{i18n.get('Translations')}</Tabs.Tab>
+          <Tabs.Tab value='relatedLinks'>{i18n.get('RelatedLinks_title')}</Tabs.Tab>
         </Tabs.List>
         <Tabs.Panel value='application' pt='xs'>
           <Table striped>
-            <thead>
-              <tr>
-                <th colSpan={2}><Text color='blue' size='lg' align='center'>{aboutDatas.app}</Text></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{i18n.get['Version']}</td>
-                <td>{aboutDatas.version}</td>
-              </tr>
-              <tr>
-                <td>{i18n.get['GitCommitHash']}</td>
-                <td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.commitUrl, '_blank'); }}>{aboutDatas.commit}</Text></td>
-              </tr>
-              <tr>
-                <td>{i18n.get['Website']}</td>
-                <td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.website, '_blank'); }}>{aboutDatas.website}</Text></td>
-              </tr>
-              <tr>
-                <td>{i18n.get['Licence']}</td>
-                <td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.licenceUrl, '_blank'); }}>{aboutDatas.licence}</Text></td>
-              </tr>
-            </tbody>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th colSpan={2}><Text c='blue' size='lg' ta='center'>{aboutDatas.app}</Text></Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              <Table.Tr>
+                <Table.Td>{i18n.get('Version')}</Table.Td>
+                <Table.Td>{aboutDatas.version}</Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td>{i18n.get('GitCommitHash')}</Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.commitUrl, '_blank'); }}>{aboutDatas.commit}</Text></Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td>{i18n.get('Website')}</Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.website, '_blank'); }}>{aboutDatas.website}</Text></Table.Td>
+              </Table.Tr>
+              <Table.Tr>
+                <Table.Td>{i18n.get('Licence')}</Table.Td>
+                <Table.Td><Text style={{ cursor: 'pointer' }} onClick={() => { window.open(aboutDatas.licenceUrl, '_blank'); }}>{aboutDatas.licence}</Text></Table.Td>
+              </Table.Tr>
+            </Table.Tbody>
             {(canView && !session.player) && <>
-              <thead>
-                <tr>
-                  <th colSpan={2}><Text color='blue' size='lg' align='center'>{i18n.get['System']}</Text></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{i18n.get['OperatingSystem']}</td>
-                  <td>{aboutDatas.operatingSystem}</td>
-                </tr>
-                <tr>
-                  <td>{i18n.get['SystemMemorySize']}</td>
-                  <td>{aboutDatas.systemMemorySize}</td>
-                </tr>
-                <tr>
-                  <td>{i18n.get['JVMMemoryMax']}</td>
-                  <td>{aboutDatas.jvmMemoryMax}</td>
-                </tr>
-                <tr>
-                  <td>{i18n.get['JVMMemoryUsage']}</td>
-                  <td><ServerEventProvider><MemoryBar decorate={false} /></ServerEventProvider></td>
-                </tr>
-              </tbody>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th colSpan={2}><Text c='blue' size='lg' ta='center'>{i18n.get('System')}</Text></Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                <Table.Tr>
+                  <Table.Td>{i18n.get('OperatingSystem')}</Table.Td>
+                  <Table.Td>{aboutDatas.operatingSystem}</Table.Td>
+                </Table.Tr>
+                <Table.Tr>
+                  <Table.Td>{i18n.get('SystemMemorySize')}</Table.Td>
+                  <Table.Td>{aboutDatas.systemMemorySize}</Table.Td>
+                </Table.Tr>
+                <Table.Tr>
+                  <Table.Td>{i18n.get('JVMMemoryMax')}</Table.Td>
+                  <Table.Td>{aboutDatas.jvmMemoryMax}</Table.Td>
+                </Table.Tr>
+                <Table.Tr>
+                  <Table.Td>{i18n.get('JVMMemoryUsage')}</Table.Td>
+                  <Table.Td><ServerEventContext.Consumer>{sse => (<MemoryBar decorate={false} sse={sse} i18n={i18n} />)}</ServerEventContext.Consumer></Table.Td>
+                </Table.Tr>
+              </Table.Tbody>
             </>}
           </Table>
         </Tabs.Panel>
         <Tabs.Panel value='translations'>
           <Table highlightOnHover>
-            <tbody>
+            <Table.Tbody>
               {languagesRows}
-            </tbody>
+            </Table.Tbody>
           </Table>
         </Tabs.Panel>
         <Tabs.Panel value='relatedLinks'>

@@ -16,15 +16,15 @@
  */
 package net.pms.platform.jna;
 
+import com.sun.jna.FromNativeContext;
+import com.sun.jna.Memory;
+import com.sun.jna.Pointer;
+import com.sun.jna.PointerType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import com.sun.jna.FromNativeContext;
-import com.sun.jna.Memory;
-import com.sun.jna.Pointer;
-import com.sun.jna.PointerType;
 
 
 /**

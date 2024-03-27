@@ -33,14 +33,15 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.ConfigurableProgramPaths;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
 import net.pms.util.ExecutableInfo.ExecutableInfoBuilder;
@@ -59,6 +60,7 @@ import org.slf4j.LoggerFactory;
 @ThreadSafe
 public abstract class Engine {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Engine.class);
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	public static final int VIDEO_SIMPLEFILE_ENGINE = 0;
 	public static final int AUDIO_SIMPLEFILE_ENGINE = 1;
@@ -69,25 +71,6 @@ public abstract class Engine {
 	/** The final {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull
 	protected final ExternalProgramInfo programInfo;
-
-	public abstract int purpose();
-
-	public abstract EngineId getEngineId();
-
-	/**
-	 * @return The {@link Configuration} key for this {@link Engine}'s custom
-	 *         executable path.
-	 */
-	public abstract String getConfigurablePathKey();
-
-	public abstract String getName();
-
-	public abstract int type();
-
-	/**
-	 * Must be used to control all access to {@link #available}
-	 */
-	public abstract String getExecutableTypeKey();
 
 	/**
 	 * Used to store if this {@link Engine} can be used, e.g if the binary is
@@ -133,6 +116,67 @@ public abstract class Engine {
 		}
 	}
 
+	public abstract int purpose();
+
+	public abstract EngineId getEngineId();
+
+	/**
+	 * @return The {@link Configuration} key for this {@link Engine}'s custom
+	 *         executable path.
+	 */
+	public abstract String getConfigurablePathKey();
+
+	public abstract String getName();
+
+	public abstract int type();
+
+	public abstract String mimeType();
+
+	/**
+	 * Must be used to control all access to {@link #available}
+	 */
+	public abstract String getExecutableTypeKey();
+
+	public abstract boolean excludeFormat(Format extension);
+
+	public abstract boolean isEngineCompatible(Renderer renderer);
+
+	public abstract ProcessWrapper launchTranscode(
+		StoreItem resource,
+		MediaInfo media,
+		OutputParams params
+	) throws IOException;
+
+	/**
+	 * Returns whether or not this {@link Engine} can handle a given
+	 * {@link StoreItem}. If {@code resource} is {@code null} {@code false}
+	 * will be returned.
+	 *
+	 * @param resource the {@link StoreItem} to be matched.
+	 * @return {@code true} if {@code resource} can be handled, {@code false}
+	 *         otherwise.
+	 */
+	public abstract boolean isCompatible(StoreItem resource);
+
+	protected abstract boolean isSpecificTest();
+
+	/**
+	 * Tests a specific executable and returns the results. If the executable
+	 * has already has been tested, the previous results are used.
+	 * <p>
+	 * <b>This method must be implemented unless {@link #testEngine} is
+	 * overridden in such a way that this method is never called or no test can
+	 * be performed on this executable</b> If the method isn't implemented,
+	 * simply make it return {@code null}, which is interpreted by
+	 * {@link #testEngine} as if no test was performed.
+	 *
+	 * @param executableInfo the {@link ExecutableInfo} whose executable to
+	 *            test.
+	 * @return The resulting {@link ExecutableInfo} instance.
+	 */
+	@Nullable
+	protected abstract ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo);
+
 	/**
 	 * Gets the <i>current</i> {@link ProgramExecutableType} for this
 	 * {@link Engine}. For an explanation of the concept, see
@@ -163,7 +207,7 @@ public abstract class Engine {
 	 * For an explanation of the concept, see {@link #currentExecutableType}.
 	 */
 	public void determineCurrentExecutableType() {
-		determineCurrentExecutableType(configuration.getEngineExecutableType(this));
+		determineCurrentExecutableType(CONFIGURATION.getEngineExecutableType(this));
 	}
 
 	/**
@@ -210,8 +254,6 @@ public abstract class Engine {
 		currentExecutableType = newExecutableType;
 	}
 
-	public abstract String mimeType();
-
 	/**
 	 * @return The {@link ExternalProgramInfo} instance.
 	 */
@@ -231,16 +273,9 @@ public abstract class Engine {
 		return executable == null ? null : executable.toString();
 	}
 
-	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected UmsConfiguration configuration = CONFIGURATION;
-
 	public boolean isAviSynthEngine() {
 		return false;
 	}
-
-	public abstract boolean excludeFormat(Format extension);
-
-	public abstract boolean isEngineCompatible(Renderer renderer);
 
 	public boolean isInternalSubtitlesSupported() {
 		return true;
@@ -600,7 +635,7 @@ public abstract class Engine {
 		boolean configurationChanged = false;
 		if (setConfiguration) {
 			try {
-				configurationChanged = configuration.setEngineCustomPath(this, customPath);
+				configurationChanged = CONFIGURATION.setEngineCustomPath(this, customPath);
 			} catch (IllegalStateException e) {
 				configurationChanged = false;
 				LOGGER.warn("Failed to set custom executable path for {}: {}", getName(), e.getMessage());
@@ -732,52 +767,9 @@ public abstract class Engine {
 		return false;
 	}
 
-	public abstract ProcessWrapper launchTranscode(
-		DLNAResource dlna,
-		MediaInfo media,
-		OutputParams params
-	) throws IOException;
-
 	@Override
 	public String toString() {
 		return getName();
-	}
-
-	/**
-	 * This method populates the supplied {@link OutputParams} object with the
-	 * correct audio track (aid) and subtitles (sid) based on resource
-	 * information and configuration settings.
-	 *
-	 * @param fileName The file name used to determine the availability of
-	 *            subtitles.
-	 * @param media The MediaInfo metadata for the file.
-	 * @param params The parameters to populate.
-	 */
-	public static void setAudioAndSubs(DLNAResource resource, OutputParams params) {
-		if (resource == null || params == null || resource.getMedia() == null) {
-			return;
-		}
-
-		if (params.getAid() == null) {
-			params.setAid(resource.resolveAudioStream());
-		}
-
-		if (params.getSid() != null && params.getSid().getId() == MediaLang.DUMMY_ID) {
-			LOGGER.trace("Don't want subtitles!");
-			params.setSid(null);
-		} else if (params.getSid() instanceof MediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
-			// Download/fetch live subtitles
-			if (params.getSid().getExternalFile() == null) {
-				if (!dLNAMediaOnDemandSubtitle.fetch()) {
-					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.getSid().getName());
-				}
-				if (params.getSid().getExternalFile() == null) {
-					params.setSid(null);
-				}
-			}
-		} else if (params.getSid() == null) {
-			params.setSid(resource.resolveSubtitlesStream(params.getMediaRenderer(), params.getAid() == null ? null : params.getAid().getLang(), true));
-		}
 	}
 
 	/**
@@ -794,19 +786,6 @@ public abstract class Engine {
 
 		return number;
 	}
-
-	/**
-	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link DLNAResource}. If {@code resource} is {@code null} {@code false}
-	 * will be returned.
-	 *
-	 * @param resource the {@link DLNAResource} to be matched.
-	 * @return {@code true} if {@code resource} can be handled, {@code false}
-	 *         otherwise.
-	 */
-	public abstract boolean isCompatible(DLNAResource resource);
-
-	protected abstract boolean isSpecificTest();
 
 	/**
 	 * Does basic file tests of the specified executable, checking that it
@@ -852,23 +831,6 @@ public abstract class Engine {
 	}
 
 	/**
-	 * Tests a specific executable and returns the results. If the executable
-	 * has already has been tested, the previous results are used.
-	 * <p>
-	 * <b>This method must be implemented unless {@link #testEngine} is
-	 * overridden in such a way that this method is never called or no test can
-	 * be performed on this executable</b> If the method isn't implemented,
-	 * simply make it return {@code null}, which is interpreted by
-	 * {@link #testEngine} as if no test was performed.
-	 *
-	 * @param executableInfo the {@link ExecutableInfo} whose executable to
-	 *            test.
-	 * @return The resulting {@link ExecutableInfo} instance.
-	 */
-	@Nullable
-	protected abstract ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo);
-
-	/**
 	 * Tests the executable(s) for this {@link Engine} and stores the results.
 	 * If the executable has already been tested by another {@link Engine} or
 	 * {@link ProgramExecutableType}, the previous results are used.
@@ -905,7 +867,7 @@ public abstract class Engine {
 					);
 					return true;
 				}
-				String aviSynthPath = configuration.getAviSynthPath();
+				String aviSynthPath = CONFIGURATION.getAviSynthPath();
 				if (aviSynthPath == null || !new File(aviSynthPath).exists()) {
 					LOGGER.debug(
 						"Transcoding engine {} ({}) is unavailable since AviSynth couldn't be found",
@@ -991,4 +953,244 @@ public abstract class Engine {
 		result = prime * result + ((getEngineId() == null) ? 0 : getEngineId().hashCode());
 		return result;
 	}
+
+	/**
+	 * This method populates the supplied {@link OutputParams} object with the
+	 * correct audio track (aid) and subtitles (sid) based on resource
+	 * information and configuration settings.
+	 *
+	 * @param fileName The file name used to determine the availability of
+	 *            subtitles.
+	 * @param media The MediaInfo metadata for the file.
+	 * @param params The parameters to populate.
+	 */
+	public static void setAudioAndSubs(StoreItem resource, OutputParams params) {
+		if (resource == null || params == null || resource.getMediaInfo() == null) {
+			return;
+		}
+
+		if (params.getAid() == null) {
+			params.setAid(resource.resolveAudioStream());
+		}
+
+		if (params.getSid() != null && params.getSid().getId() == MediaLang.DUMMY_ID) {
+			LOGGER.trace("Don't want subtitles!");
+			params.setSid(null);
+		} else if (params.getSid() instanceof MediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
+			// Download/fetch live subtitles
+			if (params.getSid().getExternalFile() == null) {
+				if (!dLNAMediaOnDemandSubtitle.fetch()) {
+					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.getSid().getName());
+				}
+				if (params.getSid().getExternalFile() == null) {
+					params.setSid(null);
+				}
+			}
+		} else if (params.getSid() == null) {
+			params.setSid(resource.resolveSubtitlesStream(params.getAid() == null ? null : params.getAid().getLang(), true));
+		}
+	}
+
+	/**
+	 * Used to determine whether tsMuxeR can mux the file to the renderer
+	 * instead of transcoding.
+	 * Also used by StoreResource to help determine the DLNA.ORG_PN (file type)
+	 * value to send to the renderer.
+	 *
+	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
+	 * both functions are sometimes (but not always) used together, this is
+	 * not an efficient use of code.
+	 *
+	 * TODO: Fix the above situation.
+	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
+	 *       function for that, or even better, re-think this whole approach.
+	 *
+	 * @param videoTrack The video track we might mux
+	 * @param renderer The renderer we might mux to
+	 * @return
+	 */
+	public static boolean isMuxable(MediaVideo videoTrack, Renderer renderer) {
+		if (videoTrack == null) {
+			return false;
+		}
+		// Make sure the file is H.264 or H.265 video
+		boolean muxable = (videoTrack.isH264() || videoTrack.isH265());
+
+		// Check if the renderer supports the resolution of the video
+		if (
+			(
+				renderer.isMaximumResolutionSpecified() &&
+				(
+					videoTrack.getWidth() > renderer.getMaxVideoWidth() ||
+					videoTrack.getHeight() > renderer.getMaxVideoHeight()
+				)
+			) ||
+			(
+				!renderer.isMuxNonMod4Resolution() &&
+				!videoTrack.isMod4()
+			)
+		) {
+			muxable = false;
+		}
+
+		// Bravia does not support AVC video at less than 288px high
+		if (renderer.isBRAVIA() && videoTrack.isH264() && videoTrack.getHeight() < 288) {
+			muxable = false;
+		}
+
+		return muxable;
+	}
+
+	protected static boolean isMuxable(String codecA) {
+		return codecA != null && (codecA.startsWith("dts") || codecA.equals("dca"));
+	}
+
+	protected static String getValidFps(Double frameRate, boolean ratios) {
+		if (frameRate != null) {
+			try {
+				if (frameRate >= 14.99 && frameRate < 15.1) {
+					return "15";
+				} else if (frameRate > 23.9 && frameRate < 23.99) {
+					return ratios ? "24000/1001" : "23.976";
+				} else if (frameRate > 23.99 && frameRate < 24.1) {
+					return "24";
+				} else if (frameRate >= 24.99 && frameRate < 25.1) {
+					return "25";
+				} else if (frameRate > 29.9 && frameRate < 29.99) {
+					return ratios ? "30000/1001" : "29.97";
+				} else if (frameRate >= 29.99 && frameRate < 30.1) {
+					return "30";
+				} else if (frameRate > 47.9 && frameRate < 47.99) {
+					return ratios ? "48000/1001" : "47.952";
+				} else if (frameRate > 49.9 && frameRate < 50.1) {
+					return "50";
+				} else if (frameRate > 59.8 && frameRate < 59.99) {
+					return ratios ? "60000/1001" : "59.94";
+				} else if (frameRate >= 59.99 && frameRate < 60.1) {
+					return "60";
+				}
+			} catch (NumberFormatException nfe) {
+				LOGGER.error(null, nfe);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Whether a file is a WEB-DL release.
+	 *
+	 * It's important for some devices like PS3 because WEB-DL files often have
+	 * some difference (possibly not starting on a keyframe or something to do with
+	 * SEI output from MEncoder, possibly something else) that makes the PS3 not
+	 * accept them when output from tsMuxeR via MEncoder.
+	 *
+	 * The above statement may not be applicable when using tsMuxeR via FFmpeg
+	 * so we should reappraise the situation if we make that change.
+	 *
+	 * It is unlikely it will return false-positives but it will return
+	 * false-negatives.
+	 *
+	 * @param filename the filename
+	 * @param params the file properties
+	 *
+	 * @return whether a file is a WEB-DL release
+	 */
+	public boolean isWebDl(String filename, MediaInfo media, OutputParams params) {
+		// Check the filename
+		if (filename.toLowerCase().replaceAll("\\-", "").contains("webdl")) {
+			return true;
+		}
+
+		// Check the metadata
+		return (
+			(
+				media.getTitle() != null &&
+				media.getTitle().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				media.getDefaultVideoTrack() != null &&
+				media.getDefaultVideoTrack().getTitle() != null &&
+				media.getDefaultVideoTrack().getTitle().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.getAid() != null &&
+				params.getAid().getTitle() != null &&
+				params.getAid().getTitle().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			) ||
+			(
+				params.getSid() != null &&
+				params.getSid().getTitle() != null &&
+				params.getSid().getTitle().toLowerCase().replaceAll("\\-", "").contains("webdl")
+			)
+		);
+	}
+
+
+	/**
+	 * Checks whether the video has too many reference frames per pixels for the renderer.
+	 *
+	 * TODO move to PlayerUtil
+	 * @param f
+	 * @param renderer
+	 * @return
+	 */
+	public boolean isVideoWithinH264LevelLimits(MediaVideo video, Renderer renderer) {
+		if (video != null && video.isH264()) {
+			byte referenceFrameCount = video.getReferenceFrameCount();
+			String formatLevel = video.getFormatLevel();
+			int width = video.getWidth();
+			int height = video.getHeight();
+			if (
+				referenceFrameCount > -1 &&
+				(
+					"4.1".equals(formatLevel) ||
+					"4.2".equals(formatLevel) ||
+					"5".equals(formatLevel) ||
+					"5.0".equals(formatLevel) ||
+					"5.1".equals(formatLevel) ||
+					"5.2".equals(formatLevel)
+				) &&
+				width > 0 &&
+				height > 0
+			) {
+				int maxref;
+				if (renderer == null || renderer.isPS3()) {
+					/**
+					 * 2013-01-25: Confirmed maximum reference frames on PS3:
+					 *    - 4 for 1920x1080
+					 *    - 11 for 1280x720
+					 * Meaning this math is correct
+					 */
+					maxref = (int) Math.floor(10252743 / (double) (width * height));
+				} else {
+					/**
+					 * This is the math for level 4.1, which results in:
+					 *    - 4 for 1920x1080
+					 *    - 9 for 1280x720
+					 */
+					maxref = (int) Math.floor(8388608 / (double) (width * height));
+				}
+
+				if (referenceFrameCount > maxref) {
+					LOGGER.debug(
+						"The video is not compatible with this renderer because it " +
+						"can only take {} reference frames at this resolution while this " +
+						"video has {} reference frames",
+						maxref, referenceFrameCount
+					);
+					return false;
+				} else if (referenceFrameCount == -1) {
+					LOGGER.debug(
+						"The video may not be compatible with this renderer because " +
+						"we can't get its number of reference frames"
+					);
+					return false;
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

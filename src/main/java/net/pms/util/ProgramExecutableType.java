@@ -44,14 +44,16 @@ public enum ProgramExecutableType {
 	@Override
 	public String toString() {
 		switch (this) {
-			case BUNDLED:
+			case BUNDLED -> {
 				return Messages.getString("ProgramExecutableType.Bundled");
-			case CUSTOM:
+			}
+			case CUSTOM -> {
 				return Messages.getString("ProgramExecutableType.Custom");
-			case INSTALLED:
+			}
+			case INSTALLED -> {
 				return Messages.getString("ProgramExecutableType.Installed");
-			default:
-				throw new IllegalStateException("ProgramExecutableType " + super.toString() + "isn't implemented");
+			}
+			default -> throw new IllegalStateException("ProgramExecutableType " + super.toString() + "isn't implemented");
 		}
 	}
 
@@ -61,14 +63,16 @@ public enum ProgramExecutableType {
 	 */
 	public String toRootString() {
 		switch (this) {
-			case BUNDLED:
+			case BUNDLED -> {
 				return Messages.getRootString("ProgramExecutableType.Bundled");
-			case CUSTOM:
+			}
+			case CUSTOM -> {
 				return Messages.getRootString("ProgramExecutableType.Custom");
-			case INSTALLED:
+			}
+			case INSTALLED -> {
 				return Messages.getRootString("ProgramExecutableType.Installed");
-			default:
-				throw new IllegalStateException("ProgramExecutableType " + super.toString() + "isn't implemented");
+			}
+			default -> throw new IllegalStateException("ProgramExecutableType " + super.toString() + "isn't implemented");
 		}
 	}
 
@@ -104,16 +108,12 @@ public enum ProgramExecutableType {
 		if (StringUtils.isBlank(executableType)) {
 			return null;
 		}
-		switch (executableType.toLowerCase(Locale.ROOT)) {
-			case "bundled":
-				return BUNDLED;
-			case "installed":
-				return INSTALLED;
-			case "custom":
-				return CUSTOM;
-			default:
-				return null;
-		}
+		return switch (executableType.toLowerCase(Locale.ROOT)) {
+			case "bundled" -> BUNDLED;
+			case "installed" -> INSTALLED;
+			case "custom" -> CUSTOM;
+			default -> null;
+		};
 	}
 
 	/**

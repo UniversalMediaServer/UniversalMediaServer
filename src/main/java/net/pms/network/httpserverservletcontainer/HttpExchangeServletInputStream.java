@@ -16,10 +16,10 @@
  */
 package net.pms.network.httpserverservletcontainer;
 
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
 
 public class HttpExchangeServletInputStream extends ServletInputStream {
 	private final InputStream is;
@@ -30,7 +30,7 @@ public class HttpExchangeServletInputStream extends ServletInputStream {
 
 	@Override
 	public boolean isFinished() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class HttpExchangeServletInputStream extends ServletInputStream {
 
 	@Override
 	public void setReadListener(ReadListener readListener) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override

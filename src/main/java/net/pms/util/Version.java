@@ -146,20 +146,6 @@ public final class Version implements Comparable<Version> {
 	}
 
 	/**
-	 * Compares an initial (current) version and a target version of PMS and
-	 * returns true if the initial version can be updated to the target version.
-	 * See src/main/external-resources/update/README for the criteria.
-	 *
-	 * @param vFrom The initial version
-	 * @param vTo The target version
-	 * @return <code>true</code> if the current version can safely be updated,
-	 *         <code>false</code> otherwise.
-	 */
-	public static boolean isPmsUpdatable(Version vFrom, Version vTo) {
-		return vTo.isGreaterThan(vFrom);
-	}
-
-	/**
 	 * Returns the first integer element of this version string, or 0 if a first
 	 * integer was not defined or could not be parsed
 	 *
@@ -279,4 +265,5 @@ public final class Version implements Comparable<Version> {
 
 		return buf.toString();
 	}
+
 }

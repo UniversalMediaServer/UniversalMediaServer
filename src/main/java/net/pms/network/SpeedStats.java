@@ -29,14 +29,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.platform.IPlatformUtils;
 import net.pms.platform.PlatformUtils;
+import net.pms.util.SimpleThreadFactory;
 import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.platform.IPlatformUtils;
 
 /**
- * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.
+ * Network speed tester class.
+ *
+ * This can be used in an asynchronous way, as it returns Future objects.
  *
  * {@link Future<Integer>} speed = SpeedStats.getSpeedInMBits(addr);
  *
@@ -46,7 +49,19 @@ import net.pms.platform.IPlatformUtils;
  *
  */
 public class SpeedStats {
-	private static final ExecutorService EXECUTOR = Executors.newCachedThreadPool();
+
+	private static final ExecutorService BACKGROUND_EXECUTOR = Executors.newCachedThreadPool(
+			new SimpleThreadFactory("SpeedStats background worker", "SpeedStats background workers group", Thread.NORM_PRIORITY)
+	);
+
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread("SpeedStats Executor Shutdown Hook") {
+			@Override
+			public void run() {
+				BACKGROUND_EXECUTOR.shutdownNow();
+			}
+		});
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
@@ -60,12 +75,13 @@ public class SpeedStats {
 
 	/**
 	 * Returns the estimated networks throughput for the given IP address in
-	 * Mb/s from the cache as a {@link Future}. If no value is cached for
-	 * {@code addr}, {@code null} is returned.
+	 * Mb/s from the cache as a {@link Future}.
+	 *
+	 * If no value is cached for {@code addr}, {@code null} is returned.
 	 *
 	 * @param addr the {@link InetAddress} to lookup.
 	 * @return The {@link Future} with the estimated network throughput or
-	 *         {@code null}.
+	 * {@code null}.
 	 */
 	public static Future<Integer> getSpeedInMBitsStored(InetAddress addr) {
 		// only look in the store
@@ -76,8 +92,11 @@ public class SpeedStats {
 	}
 
 	/**
-	 * Return the network throughput for the given IP address in MBits. It is calculated in the background, and cached,
-	 * so only a reference is given to the result, which can be retrieved by calling the get() method on it.
+	 * Return the network throughput for the given IP address in MBits.
+	 *
+	 * It is calculated in the background, and cached, so only a reference is
+	 * given to the result, which can be retrieved by calling the get() method
+	 * on it.
 	 *
 	 * @param addr
 	 * @param rendererName
@@ -90,13 +109,14 @@ public class SpeedStats {
 			if (value != null) {
 				return value;
 			}
-			value = EXECUTOR.submit(new MeasureSpeed(addr, rendererName));
+			value = BACKGROUND_EXECUTOR.submit(new MeasureSpeed(addr, rendererName));
 			SPEED_STATS.put(addr.getHostAddress(), value);
 			return value;
 		}
 	}
 
 	private static class MeasureSpeed implements Callable<Integer> {
+
 		private final InetAddress addr;
 		private final String rendererName;
 
@@ -162,7 +182,7 @@ public class SpeedStats {
 				speedInMbits = -1;
 			}
 			synchronized (SPEED_STATS) {
-				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
+				Future<Integer> result = new CompletedFuture<>(speedInMbits);
 				// update the statistics with a computed future value
 				SPEED_STATS.put(ip, result);
 				SPEED_STATS.put(hostname, result);
@@ -215,6 +235,7 @@ public class SpeedStats {
 	}
 
 	static class CompletedFuture<X> implements Future<X> {
+
 		X value;
 
 		public CompletedFuture(X value) {
@@ -246,4 +267,5 @@ public class SpeedStats {
 			return value;
 		}
 	}
+
 }

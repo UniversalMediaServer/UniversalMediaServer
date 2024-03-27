@@ -16,22 +16,39 @@
  */
 package net.pms.media.audio;
 
+import net.pms.TestHelper;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class MediaAudioTest {
+	private MediaAudio audio;
 
-	@Test
-	public void testDefaultAudioProperties() {
-		MediaAudio dlnaMediaAudio = new MediaAudio();
-		assertNotNull(dlnaMediaAudio.getAudioProperties());
+	@BeforeEach
+	public void setUp() {
+		TestHelper.SetLoggingOff();
+		audio = new MediaAudio();
 	}
 
 	@Test
-	public void testSetAudioProperties_withNullAudioProperties() {
+	public void testDefaultValues() {
+		assertEquals(audio.getNumberOfChannels(), 2);
+		assertEquals(audio.getVideoDelay(), 0);
+		assertEquals(audio.getSampleRate(), 48000);
+	}
+
+	@Test
+	public void testSetNumberOfChannels_withIllegalArgument() {
 		assertThrows(IllegalArgumentException.class, () -> {
-			MediaAudio dlnaMediaAudio = new MediaAudio();
-			dlnaMediaAudio.setAudioProperties(null);
+			audio.setNumberOfChannels(0);
 		});
 	}
+
+	@Test
+	public void testSampleFrequency_withIllegalArgument() {
+		assertThrows(IllegalArgumentException.class, () -> {
+			audio.setSampleRate(0);
+		});
+	}
+
 }

@@ -52,6 +52,9 @@ public class SharedContentTypeAdapter implements JsonSerializer<SharedContent>, 
 						case FeedVideoContent.TYPE -> context.deserialize(sharedContent, FeedVideoContent.class);
 						case StreamAudioContent.TYPE -> context.deserialize(sharedContent, StreamAudioContent.class);
 						case StreamVideoContent.TYPE -> context.deserialize(sharedContent, StreamVideoContent.class);
+						case ITunesContent.TYPE -> context.deserialize(sharedContent, ITunesContent.class);
+						case ApertureContent.TYPE -> context.deserialize(sharedContent, ApertureContent.class);
+						case IPhotoContent.TYPE -> context.deserialize(sharedContent, IPhotoContent.class);
 						default -> null;
 					};
 				} catch (JsonParseException e) {

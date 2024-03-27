@@ -1,6 +1,6 @@
 ; primes.nsi
 ;
-; This is an example of the possibities of the NSIS Script language.
+; This is an example of the possibilities of the NSIS Script language.
 ; It calculates prime numbers.
 
 ;--------------------------------

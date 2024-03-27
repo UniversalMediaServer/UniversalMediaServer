@@ -24,10 +24,11 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
@@ -216,7 +217,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(StoreItem resource) {
 		Format format = resource.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
@@ -232,18 +233,21 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			return subtitle.isExternal();
 		}
 
-		try {
-			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+		MediaAudio audio = resource.getMediaAudio();
+			if (audio != null) {
+				try {
+				String audioTrackName = resource.getMediaAudio().toString();
+				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
 
-			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// This engine only supports playback of the default audio track
-				return false;
+				if (!audioTrackName.equals(defaultAudioTrackName)) {
+					// This engine only supports playback of the default audio track
+					return false;
+				}
+			} catch (NullPointerException e) {
+				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + resource.getFileName());
+			} catch (IndexOutOfBoundsException e) {
+				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getFileName());
 			}
-		} catch (NullPointerException e) {
-			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + resource.getSystemName());
-		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		return (

@@ -1,36 +1,36 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1063
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1257
 # RTL - anything else than RTL means LTR
 -
 # Translation by Vytautas Krivickas (Vytautas)
 # Updated by Danielius Scepanskis (Daan daniel@takas.lt) 2004.03.24
 # ^Branding
-Nullsoft instaliavimo sistema %s
+Nullsoft Install System %s
 # ^SetupCaption
-$(^Name) Ádiegimas
+$(^Name) Ä®diegimas
 # ^UninstallCaption
-$(^Name) Ğalinti
+$(^Name) Å alinti
 # ^LicenseSubCaption
 : Naudojimo sutartis
 # ^ComponentsSubCaption
-: Ádiegimo nustatymai
+: Ä®diegimo nustatymai
 # ^DirSubCaption
-: Ádiegimo katalogas
+: Ä®diegimo katalogas
 # ^InstallingSubCaption
-: Ádiegiama
+: Ä®diegiama
 # ^CompletedSubCaption
 : Baigta
 # ^UnComponentsSubCaption
-: Iğtrinimo nustatymai
+: IÅ¡trinimo nustatymai
 # ^UnDirSubCaption
-: Iğtrinimo katalogas
+: IÅ¡trinimo katalogas
 # ^ConfirmSubCaption
 : Patvirtinimas
 # ^UninstallingSubCaption
@@ -42,19 +42,19 @@ $(^Name) Ğalinti
 # ^NextBtn
 &Toliau >
 # ^AgreeBtn
-Ağ &sutinku
+AÅ¡ &sutinku
 # ^AcceptBtn
-Ağ &sutinku su naudojimo sutarties sàlygomis
+AÅ¡ &sutinku su naudojimo sutarties sÄ…lygomis
 # ^DontAcceptBtn
-Ağ &nesutinku su naudojimo sutarties sàlygomis
+AÅ¡ &nesutinku su naudojimo sutarties sÄ…lygomis
 # ^InstallBtn
-&Ádiegti
+&Ä®diegti
 # ^UninstallBtn
 &Panaikinti
 # ^CancelBtn
 Nutraukti
 # ^CloseBtn
-&Uşdaryti
+&UÅ¾daryti
 # ^BrowseBtn
 P&asirinkti...
 # ^ShowDetailsBtn
@@ -62,115 +62,115 @@ Parodyti &detales
 # ^ClickNext
 Paspauskite toliau
 # ^ClickInstall
-Paspauskite ádiegti
+Paspauskite Ä¯diegti
 # ^ClickUninstall
-Paspauskite iğtrinti
+Paspauskite iÅ¡trinti
 # ^Name
 Vardas
 # ^Completed
 Baigta
 # ^LicenseText
-Prağome perskaityti sutartá prieğ ádiegdami $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, spauskite Sutinku.
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ Ä¯diegdami $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, spauskite Sutinku.
 # ^LicenseTextCB
-Prağome perskaityti sutartá prieğ ádiegdami $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, padëkite varnelæ tam skirtame laukelyje. $_CLICK
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ Ä¯diegdami $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, padÄ—kite varnelÄ™ tam skirtame laukelyje. $_CLICK
 # ^LicenseTextRB
-Prağome perskaityti sutartá prieğ ádiegdami $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, pasirinkite pirmà pasirinkimà esantá şemiau. $_CLICK
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ Ä¯diegdami $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, pasirinkite pirmÄ… pasirinkimÄ… esantÄ¯ Å¾emiau. $_CLICK
 # ^UnLicenseText
-Prağome perskaityti sutartá prieğ iğtrinant $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, spauskite Sutinku.
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ iÅ¡trinant $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, spauskite Sutinku.
 # ^UnLicenseTextCB
-Prağome perskaityti sutartá prieğ iğtrinant $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, padëkite varnelæ tam skirtame laukelyje. $_CLICK
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ iÅ¡trinant $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, padÄ—kite varnelÄ™ tam skirtame laukelyje. $_CLICK
 # ^UnLicenseTextRB
-Prağome perskaityti sutartá prieğ iğtrinant $(^NameDA). Jei jûs sutinkate su nurodytomis sàlygomis, pasirinkite pirmà pasirinkimà esantá şemiau.  $_CLICK
+PraÅ¡ome perskaityti sutartÄ¯ prieÅ¡ iÅ¡trinant $(^NameDA). Jei jÅ«s sutinkate su nurodytomis sÄ…lygomis, pasirinkite pirmÄ… pasirinkimÄ… esantÄ¯ Å¾emiau.  $_CLICK
 # ^Custom
 Kitoks
 # ^ComponentsText
-Padëkite varneles laukeliuose komponentø kuriuos norite ádiegti ir nuimkite nuo kuriø nenorite ádiegti. $_CLICK
+PadÄ—kite varneles laukeliuose komponentÅ³ kuriuos norite Ä¯diegti ir nuimkite nuo kuriÅ³ nenorite Ä¯diegti. $_CLICK
 # ^ComponentsSubText1
-Pasirinkite ádiegimo bûdà:
+Pasirinkite Ä¯diegimo bÅ«dÄ…:
 # ^ComponentsSubText2_NoInstTypes
-Pasirinkite komponentus, kuriuos ádiegti:
+Pasirinkite komponentus, kuriuos Ä¯diegti:
 # ^ComponentsSubText2
-Arba, pasirinkite neprivalomus komponentus, kuriuos jûs norite ádiegti:
+Arba, pasirinkite neprivalomus komponentus, kuriuos jÅ«s norite Ä¯diegti:
 # ^UnComponentsText
-Padëkite varneles laukeliuose komponentø kuriuos norite pağalinti ir nuimkite nuo kuriø nenorite pağalinti. $_CLICK
+PadÄ—kite varneles laukeliuose komponentÅ³ kuriuos norite paÅ¡alinti ir nuimkite nuo kuriÅ³ nenorite paÅ¡alinti. $_CLICK
 # ^UnComponentsSubText1
-Pasirinkite ğalinimo bûdà:
+Pasirinkite Å¡alinimo bÅ«dÄ…:
 # ^UnComponentsSubText2_NoInstTypes
-Pasirinkite komponentus, kuriuos ğalinti:
+Pasirinkite komponentus, kuriuos Å¡alinti:
 # ^UnComponentsSubText2
-Arba, pasirinkite neprivalomus komponentus, kuriuos jûs norite pağalinti:
+Arba, pasirinkite neprivalomus komponentus, kuriuos jÅ«s norite paÅ¡alinti:
 # ^DirText
-Ádiegimas dabar ádiegs $(^NameDA) ğiame kataloge. Jeigu norite pakeisti ğá katalogà, paspauskite Pasirinkti. $_CLICK
+Ä®diegimas dabar Ä¯diegs $(^NameDA) Å¡iame kataloge. Jeigu norite pakeisti Å¡Ä¯ katalogÄ…, paspauskite Pasirinkti. $_CLICK
 # ^DirSubText
-Ádiegimo katalogas
+Ä®diegimo katalogas
 # ^DirBrowseText
-Pasirinkite katalogà, kur ádiegti $(^NameDA):
+Pasirinkite katalogÄ…, kur Ä¯diegti $(^NameDA):
 # ^UnDirText
-Ádiegimas dabar pağalins $(^NameDA) iğ ğio katalogo. Jeigu norite pakeisti ğá katalogà paspauskite Pasirinkti. $_CLICK
+Ä®diegimas dabar paÅ¡alins $(^NameDA) iÅ¡ Å¡io katalogo. Jeigu norite pakeisti Å¡Ä¯ katalogÄ… paspauskite Pasirinkti. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Pasirinkite katalogà iğ kurio pağalinti $(^NameDA):
+Pasirinkite katalogÄ… iÅ¡ kurio paÅ¡alinti $(^NameDA):
 # ^SpaceAvailable
 Yra vietos: 
 # ^SpaceRequired
 Reikia vietos: 
 # ^UninstallingText
-$(^NameDA) dabar bus pağalintas iğ ğio katalogo. $_CLICK
+$(^NameDA) dabar bus paÅ¡alintas iÅ¡ Å¡io katalogo. $_CLICK
 # ^UninstallingSubText
-Trinama iğ:
+Trinama iÅ¡:
 # ^FileError
-Klaida atidarant failà árağymui: \r\n\t"$0"\r\nPaspauskite Nutraukti, jei norite nutraukti ádiegimà,\r\nPakartoti, jei norite pabandyti dar kartà árağyti failà, ar\r\nIgnoruoti, jei norite praleisti ğá failà
+Klaida atidarant failÄ… Ä¯raÅ¡ymui: \r\n\t"$0"\r\nPaspauskite Nutraukti, jei norite nutraukti Ä¯diegimÄ…,\r\nPakartoti, jei norite pabandyti dar kartÄ… Ä¯raÅ¡yti failÄ…, ar\r\nIgnoruoti, jei norite praleisti Å¡Ä¯ failÄ…
 # ^FileError_NoIgnore
-Klaida atidarant failà árağymui: \r\n\t"$0"\r\nPaspauskite Pakartoti, jei norite pabandyti dar kartà árağyti failà, ar\r\nNutraukti, jei norite nutraukti ádiegimà.
+Klaida atidarant failÄ… Ä¯raÅ¡ymui: \r\n\t"$0"\r\nPaspauskite Pakartoti, jei norite pabandyti dar kartÄ… Ä¯raÅ¡yti failÄ…, ar\r\nNutraukti, jei norite nutraukti Ä¯diegimÄ….
 # ^CantWrite
-"Negalima árağyti: "
+"Negalima Ä¯raÅ¡yti: "
 # ^CopyFailed
 Kopijavimas nepavyko
 # ^CopyTo
-Kopijuoti á 
+Kopijuoti Ä¯ 
 # ^Registering
-"Uşregistruojama: "
+"UÅ¾registruojama: "
 # ^Unregistering
-"Iğregistruojama: "
+"IÅ¡registruojama: "
 # ^SymbolNotFound
 Nerastas simbolis: 
 # ^CouldNotLoad
-Negaliu ákrauti: 
+Negaliu Ä¯krauti: 
 # ^CreateFolder
-Sukurti katalogà: 
+Sukurti katalogÄ…: 
 # ^CreateShortcut
-Sukurti nuorodà: 
+Sukurti nuorodÄ…: 
 # ^CreatedUninstaller
-Sukurti panaikinimo programà:
+Sukurti panaikinimo programÄ…:
 # ^Delete
-Iğtrinti failà: 
+IÅ¡trinti failÄ…: 
 # ^DeleteOnReboot
-"Iğtrinti perkraunant: "
+"IÅ¡trinti perkraunant: "
 # ^ErrorCreatingShortcut
-"Klaida kuriant nuorodà: "
+"Klaida kuriant nuorodÄ…: "
 # ^ErrorCreating
 "Klaida kuriant: "
 # ^ErrorDecompressing
-Klaida iğskleidşiant duomenis! Sugadintas ádiegimo failas?
+Klaida iÅ¡skleidÅ¾iant duomenis! Sugadintas Ä¯diegimo failas?
 # ^ErrorRegistering
-Klaida uşregistruojant DLL
+Klaida uÅ¾registruojant DLL
 # ^ExecShell
 "VykdytiShell: "
 # ^Exec
 "Vykdyti: "
 # ^Extract
-"Iğskleisti: "
+"IÅ¡skleisti: "
 # ^ErrorWriting
-Iğskleisti: klaida árağant á failà
+IÅ¡skleisti: klaida Ä¯raÅ¡ant Ä¯ failÄ…
 # ^InvalidOpcode
-Ádiegimo failas sugadintas: neteisingas opkodas
+Ä®diegimo failas sugadintas: neteisingas opkodas
 # ^NoOLE
-"Nëra OLE dël: "
+"NÄ—ra OLE dÄ—l: "
 # ^OutputFolder
 "Paskirties katalogas: "
 # ^RemoveFolder
-"Panaikinti katalogà: "
+"Panaikinti katalogÄ…: "
 # ^RenameOnReboot
 "Pervardinti perkraunant: "
 # ^Rename
@@ -178,14 +178,14 @@ Iğskleisti: klaida árağant á failà
 # ^Skipped
 "Praleista: "
 # ^CopyDetails
-Kopijuoti detales á atmintá
+Kopijuoti detales Ä¯ atmintÄ¯
 # ^LogInstall
-Árağyti ádiegimo detales
+Ä®raÅ¡yti Ä¯diegimo detales
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

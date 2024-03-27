@@ -16,11 +16,12 @@
  */
 package net.pms.database;
 
-import java.sql.*;
-import net.pms.PMS;
+import java.sql.Connection;
+import java.sql.SQLException;
+import net.pms.store.MediaScanner;
+import net.pms.swing.Splash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.RootFolder;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -29,6 +30,7 @@ import net.pms.dlna.RootFolder;
  * later.
  */
 public class MediaDatabase extends Database {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	public static final String DATABASE_NAME = "medias";
 	/**
@@ -40,9 +42,9 @@ public class MediaDatabase extends Database {
 	/**
 	 * Initializes the database connection pool for the current profile.
 	 *
-	 * Will create the "UMS-tests" profile directory and put the database
-	 * in there if it doesn't exist, in order to prevent overwriting
-	 * real databases.
+	 * Will create the "UMS-tests" profile directory and put the database in
+	 * there if it doesn't exist, in order to prevent overwriting real
+	 * databases.
 	 */
 	public MediaDatabase() {
 		super(DATABASE_NAME);
@@ -61,10 +63,7 @@ public class MediaDatabase extends Database {
 
 	@Override
 	public final void onOpeningFail(boolean force) {
-		RootFolder rootFolder = PMS.get().getRootFolder(null);
-		if (rootFolder != null) {
-			rootFolder.stopScan();
-		}
+		MediaScanner.stopMediaScan();
 	}
 
 	/**
@@ -80,6 +79,7 @@ public class MediaDatabase extends Database {
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
+				Splash.setStatusMessage("UpgradingMediaDb");
 				//Tables Versions (need to be first)
 				MediaTableTablesVersions.checkTable(connection);
 
@@ -87,6 +87,7 @@ public class MediaDatabase extends Database {
 				MediaTableMetadata.checkTable(connection);
 				MediaTableFiles.checkTable(connection);
 				MediaTableVideoMetadata.checkTable(connection);
+				MediaTableVideotracks.checkTable(connection);
 				MediaTableSubtracks.checkTable(connection);
 				MediaTableChapters.checkTable(connection);
 				MediaTableRegexpRules.checkTable(connection);
@@ -104,18 +105,16 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataAwards.checkTable(connection);
 				MediaTableVideoMetadataCountries.checkTable(connection);
 				MediaTableVideoMetadataDirectors.checkTable(connection);
-				MediaTableVideoMetadataIMDbRating.checkTable(connection);
 				MediaTableVideoMetadataGenres.checkTable(connection);
-				MediaTableVideoMetadataPosters.checkTable(connection);
-				MediaTableVideoMetadataProduction.checkTable(connection);
-				MediaTableVideoMetadataRated.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
-				MediaTableVideoMetadataReleased.checkTable(connection);
 				MediaTableVideoMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
+				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
+
+				MediaTableStoreIds.checkTable(connection);
 			}
 			tablesChecked = true;
 		}
@@ -157,13 +156,8 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataLocalized.TABLE_NAME);
 
 		// Audio Metadata
@@ -172,6 +166,7 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Returns the MediaDatabase instance.
+	 *
 	 * Will create the database instance as needed.
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
@@ -185,6 +180,7 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
 	 */
 	public static synchronized void init() {
@@ -193,7 +189,9 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
+	 *
 	 * Will check all tables.
 	 */
 	public static synchronized void initForce() {
@@ -203,8 +201,8 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance.
 	 *
-	 * @return <code>true</code> if the MediaDatabase is instantiated
-	 * , <code>false</code> otherwise
+	 * @return <code>true</code> if the MediaDatabase is instantiated ,
+	 * <code>false</code> otherwise
 	 */
 	public static boolean isInstantiated() {
 		return instance != null;
@@ -222,25 +220,30 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Get a MediaDatabase connection.
-	 * Will not try to init the database.
-	 * Give a connection only if the database status is OPENED.
+	 *
+	 * Will not try to init the database. Give a connection only if the database
+	 * status is OPENED.
 	 *
 	 * Prevent for init or giving a connection on db closing
 	 *
-	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>null</code> otherwise
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available,
+	 * <code>null</code> otherwise
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
 			try {
 				return instance.getConnection();
-			} catch (SQLException ex) {}
+			} catch (SQLException ex) {
+			}
 		}
 		return null;
 	}
 
 	/**
 	 * Reset the media database cache.
+	 *
 	 * Recreate all tables related to media cache except files status.
+	 *
 	 * @throws java.sql.SQLException
 	 */
 	public static synchronized void resetCache() throws SQLException {
@@ -261,6 +264,35 @@ public class MediaDatabase extends Database {
 	public static synchronized void createDatabaseReportIfNeeded() {
 		if (instance != null && instance.isEmbedded()) {
 			instance.createDatabaseReport();
+		}
+	}
+
+	public static int getCacheSize() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					return DatabaseEmbedded.getCacheSize(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return 0;
+	}
+
+	public static void analyzeDb() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					DatabaseEmbedded.analyzeDb(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 

@@ -1,11 +1,11 @@
-# Header, don't edit
+Ôªø# Header, don't edit
 NLF v6
 # Language ID
 1061
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1257
 # RTL - anything else than RTL means LTR
 -
@@ -41,11 +41,11 @@ $(^Name) Eemaldamine
 # ^NextBtn
 Edasi >
 # ^AgreeBtn
-Nıustun
+N√µustun
 # ^AcceptBtn
-Nıustun litsentsilepingu tingimustega
+N√µustun litsentsilepingu tingimustega
 # ^DontAcceptBtn
-Ei nıustu litsentsilepingu tingimustega
+Ei n√µustu litsentsilepingu tingimustega
 # ^InstallBtn
 Paigalda
 # ^UninstallBtn
@@ -59,7 +59,7 @@ Sirvi...
 # ^ShowDetailsBtn
 Detailid
 # ^ClickNext
-J‰tkamiseks vajuta Edasi.
+J√§tkamiseks vajuta Edasi.
 # ^ClickInstall
 Paigaldamise alustamiseks vajuta Paigalda.
 # ^ClickUninstall
@@ -69,43 +69,43 @@ Nimi
 # ^Completed
 Valmis
 # ^LicenseText
-Enne $(^NameDA) paigaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, vajuta Nıustun.
+Enne $(^NameDA) paigaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, vajuta N√µustun.
 # ^LicenseTextCB
-Enne $(^NameDA) paigaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, vali allolev m‰rkeruut. $_CLICK
+Enne $(^NameDA) paigaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, vali allolev m√§rkeruut. $_CLICK
 # ^LicenseTextRB
-Enne $(^NameDA) paigaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, m‰rgi allpool esimene valik. $_CLICK
+Enne $(^NameDA) paigaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, m√§rgi allpool esimene valik. $_CLICK
 # ^UnLicenseText
-Enne $(^NameDA) eemaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, vajuta Nıustun.
+Enne $(^NameDA) eemaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, vajuta N√µustun.
 # ^UnLicenseTextCB
-Enne $(^NameDA) eemaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, vali allolev m‰rkeruut. $_CLICK
+Enne $(^NameDA) eemaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, vali allolev m√§rkeruut. $_CLICK
 # ^UnLicenseTextRB
-Enne $(^NameDA) eemaldamist vaata palun litsentsileping ¸le. Kui sa nıustud kıigi lepingu tingimustega, m‰rgi allpool esimene valik. $_CLICK
+Enne $(^NameDA) eemaldamist vaata palun litsentsileping √ºle. Kui sa n√µustud k√µigi lepingu tingimustega, m√§rgi allpool esimene valik. $_CLICK
 # ^Custom
 Kohandatud
 # ^ComponentsText
-M‰rgista komponendid mida soovid paigaldada ja eemalda m‰rgistus neilt, mida ei soovi paigaldada. $_CLICK
+M√§rgista komponendid mida soovid paigaldada ja eemalda m√§rgistus neilt, mida ei soovi paigaldada. $_CLICK
 # ^ComponentsSubText1
-Vali paigalduse t¸¸p:
+Vali paigalduse t√º√ºp:
 # ^ComponentsSubText2_NoInstTypes
 Vali paigaldatavad komponendid:
 # ^ComponentsSubText2
-vıi vali lisakomponendid mida soovid paigaldada:
+v√µi vali lisakomponendid mida soovid paigaldada:
 # ^UnComponentsText
-M‰rgista komponendid mida soovid eemaldada ja eemalda m‰rgistus neilt, mida ei soovi eemaldada. $_CLICK
+M√§rgista komponendid mida soovid eemaldada ja eemalda m√§rgistus neilt, mida ei soovi eemaldada. $_CLICK
 # ^UnComponentsSubText1
-Vali eemalduse t¸¸p:
+Vali eemalduse t√º√ºp:
 # ^UnComponentsSubText2_NoInstTypes
 Vali eemaldatavad komponendid:
 # ^UnComponentsSubText2
-vıi vali lisakomponendid mida soovid eemaldada:
+v√µi vali lisakomponendid mida soovid eemaldada:
 # ^DirText
-$(^NameDA) paigaldatakse j‰rgmisse kausta. Et mujale paigaldada, vajuta sirvi ja vali teine kaust. $_CLICK
+$(^NameDA) paigaldatakse j√§rgmisse kausta. Et mujale paigaldada, vajuta sirvi ja vali teine kaust. $_CLICK
 # ^DirSubText
 Sihtkaust
 # ^DirBrowseText
 Vali kaust kuhu $(^NameDA) paigaldada:
 # ^UnDirText
-$(^NameDA) eemaldatakse j‰rgmisest kaustast. Et mujalt eemaldada, vajuta sirvi ja vali teine kaust. $_CLICK
+$(^NameDA) eemaldatakse j√§rgmisest kaustast. Et mujalt eemaldada, vajuta sirvi ja vali teine kaust. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
@@ -115,17 +115,17 @@ Vali kaust kust $(^NameDA) eemaldada:
 # ^SpaceRequired
 "Vajalik ruum: "
 # ^UninstallingText
-$(^NameDA) eemaldatakse j‰rgmisest kaustast. $_CLICK
+$(^NameDA) eemaldatakse j√§rgmisest kaustast. $_CLICK
 # ^UninstallingSubText
 Eemaldan sealt:
 # ^FileError
-Tırge faili avamisel kirjutamiseks: \r\n\t"$0"\r\nPaigalduse katkestamiseks vajuta Katkesta,\r\nvajuta ‹rita uuesti, et faili kirjutamist uuesti proovida, vıi\r\nIgnoreeri, et see fail vahele j‰tta.
+T√µrge faili avamisel kirjutamiseks: \r\n\t"$0"\r\nPaigalduse katkestamiseks vajuta Katkesta,\r\nvajuta √úrita uuesti, et faili kirjutamist uuesti proovida, v√µi\r\nIgnoreeri, et see fail vahele j√§tta.
 # ^FileError_NoIgnore
-Tırge faili avamisel kirjutamiseks: \r\n\t"$0"\r\nVajuta ‹rita uuesti, et faili kirjutamist uuesti proovida, vıi\r\nLoobu, et paigaldamine katkestada
+T√µrge faili avamisel kirjutamiseks: \r\n\t"$0"\r\nVajuta √úrita uuesti, et faili kirjutamist uuesti proovida, v√µi\r\nLoobu, et paigaldamine katkestada
 # ^CantWrite
 "Ei saa kirjutada: "
 # ^CopyFailed
-Kopeerimine ebaınnestus
+Kopeerimine eba√µnnestus
 # ^CopyTo
 "Kopeeri sinna "
 # ^Registering
@@ -133,7 +133,7 @@ Kopeerimine ebaınnestus
 # ^Unregistering
 "Deregistreerin: "
 # ^SymbolNotFound
-"Ei leidnud s¸mbolit: "
+"Ei leidnud s√ºmbolit: "
 # ^CouldNotLoad
 "Ei saanud laadida: "
 # ^CreateFolder
@@ -145,46 +145,46 @@ Kopeerimine ebaınnestus
 # ^Delete
 "Kustuta fail: "
 # ^DeleteOnReboot
-"Kustuta taask‰ivitamisel: "
+"Kustuta taask√§ivitamisel: "
 # ^ErrorCreatingShortcut
-"Tırge otsetee loomisel: "
+"T√µrge otsetee loomisel: "
 # ^ErrorCreating
-"Tırge loomisel: "
+"T√µrge loomisel: "
 # ^ErrorDecompressing
-Tırge andmete lahtipakkimisel! Vigane paigaldaja?
+T√µrge andmete lahtipakkimisel! Vigane paigaldaja?
 # ^ErrorRegistering
-Tırge DLL-i registreerimisel
+T√µrge DLL-i registreerimisel
 # ^ExecShell
 "ExecShell: "
 # ^Exec
-"K‰ivita: "
+"K√§ivita: "
 # ^Extract
 "Paki lahti: "
 # ^ErrorWriting
 "Paki lahti: viga faili kirjutamisel "
 # ^InvalidOpcode
-Paigaldaja kılbmatu: vigane opkood
+Paigaldaja k√µlbmatu: vigane opkood
 # ^NoOLE
 "No OLE for: "
 # ^OutputFolder
-"V‰ljastatav kaust: "
+"V√§ljastatav kaust: "
 # ^RemoveFolder
 "Eemalda kaust: "
 # ^RenameOnReboot
-"Taask‰ivitusel nimeta ¸mber: "
+"Taask√§ivitusel nimeta √ºmber: "
 # ^Rename
-"Nimeta ¸mber: "
+"Nimeta √ºmber: "
 # ^Skipped
-"Vahele j‰etud: "
+"Vahele j√§etud: "
 # ^CopyDetails
-Kopeeri detailid lıikelauale
+Kopeeri detailid l√µikelauale
 # ^LogInstall
 Logi paigaldusprotsess
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

@@ -29,7 +29,7 @@ function LanguagesMenu() {
         onClick={() => { i18n.setLanguage(language.id); }}
         key={language.id}
       >
-        <Group spacing='xs'>
+        <Group gap='xs'>
           <ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} />
           <Text>{language.name}</Text>
           {language.name !== language.defaultname && (
@@ -52,7 +52,7 @@ function LanguagesMenu() {
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
-        <Menu.Label>{i18n.get['Language']}</Menu.Label>
+        <Menu.Label>{i18n.get('Language')}</Menu.Label>
         <ScrollArea style={{ height: 250 }}>
           {languagesMenus}
         </ScrollArea>

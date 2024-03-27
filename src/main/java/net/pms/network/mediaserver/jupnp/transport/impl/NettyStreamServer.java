@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
-import net.pms.PMS;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
@@ -173,9 +173,9 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		// This is executed in the request receiving thread!
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-			//check inetAddress allowed
+			//check inetAddress isAllowed
 			InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
-			if (!PMS.getConfiguration().getIpFiltering().allowed(remoteAddress.getAddress())) {
+			if (!NetworkDeviceFilter.isAllowed(remoteAddress.getAddress())) {
 				LOGGER.trace("Ip Filtering denying address: {}", remoteAddress.getAddress().getHostAddress());
 				event.getChannel().close();
 				return;
@@ -196,7 +196,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + MediaServer.getUuid()) && uri.contains("/ContentDirectory/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}

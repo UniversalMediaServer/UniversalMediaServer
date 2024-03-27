@@ -136,13 +136,14 @@ Start Menu folder page
     GetDlgItem $mui.StartMenuPage.FolderList $mui.StartMenuPage 1004
 
     !ifdef MUI_STARTMENUPAGE_BGCOLOR
-      SetCtlColors $mui.StartMenuPage.Location "" "${MUI_STARTMENUPAGE_BGCOLOR}"
-      SetCtlColors $mui.StartMenuMenu.FolderList "" "${MUI_STARTMENUPAGE_BGCOLOR}"
+      !insertmacro MUI_DEFAULT MUI_STARTMENUPAGE_TEXTCOLOR ""
+      SetCtlColors $mui.StartMenuPage.Location "${MUI_STARTMENUPAGE_TEXTCOLOR}" "${MUI_STARTMENUPAGE_BGCOLOR}"
+      SetCtlColors $mui.StartMenuMenu.FolderList "${MUI_STARTMENUPAGE_TEXTCOLOR}" "${MUI_STARTMENUPAGE_BGCOLOR}"
     !endif
 
     !insertmacro MUI_PAGE_FUNCTION_CUSTOM SHOW
-
     StartMenu::Show
+    !insertmacro MUI_PAGE_FUNCTION_CUSTOM DESTROYED
 
     Pop $mui.StartMenuPage.Temp
     ${if} $mui.StartMenuPage.Temp ==  "success"

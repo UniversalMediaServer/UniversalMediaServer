@@ -1,11 +1,11 @@
-;Language: Estonian (1061)
+Ôªø;Language: Estonian (1061)
 ;Translated by johnny izzo (izzo@hot.ee)
 
-!insertmacro LANGFILE "Estonian" "Eesti keel"
+!insertmacro LANGFILE "Estonian" = "Eesti keel" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) paigaldamine!"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "See abiline aitab paigaldada $(^NameDA).$\r$\n$\r$\nEnne paigaldamise alustamist on soovitatav kıik teised programmid sulgeda, see vıimaldab teatud s¸steemifaile uuendada ilma arvutit taask‰ivitamata.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "See abiline aitab paigaldada $(^NameDA).$\r$\n$\r$\nEnne paigaldamise alustamist on soovitatav k√µik teised programmid sulgeda, see v√µimaldab teatud s√ºsteemifaile uuendada ilma arvutit taask√§ivitamata.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
@@ -15,22 +15,22 @@
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Litsentsileping"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Enne $(^NameDA) paigaldamist vaata palun litsentsileping ¸le."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Kui sa oled lepingu tingimustega nıus, vali j‰tkamiseks Nıustun. $(^NameDA) paigaldamiseks pead sa lepinguga nıustuma."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Kui nıustud lepingu tingimustega, vali allolev m‰rkeruut. $(^NameDA) paigaldamiseks pead lepinguga nıustuma. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Kui nıustud lepingu tingimustega, m‰rgi allpool esimene valik. $(^NameDA) paigaldamiseks pead lepinguga nıustuma. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Enne $(^NameDA) paigaldamist vaata palun litsentsileping √ºle."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Kui sa oled lepingu tingimustega n√µus, vali j√§tkamiseks N√µustun. $(^NameDA) paigaldamiseks pead sa lepinguga n√µustuma."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Kui n√µustud lepingu tingimustega, vali allolev m√§rkeruut. $(^NameDA) paigaldamiseks pead lepinguga n√µustuma. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Kui n√µustud lepingu tingimustega, m√§rgi allpool esimene valik. $(^NameDA) paigaldamiseks pead lepinguga n√µustuma. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Litsentsileping"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Enne $(^NameDA) eemaldamist vaata palun litsentsileping ¸le."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Kui sa oled lepingu tingimustega nıus, vali j‰tkamiseks Nıustun. $(^NameDA) eemaldamiseks pead sa lepinguga nıustuma."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Kui nıustud lepingu tingimustega, vali allolev m‰rkeruut. $(^NameDA) eemaldamiseks pead lepinguga nıustuma. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Kui nıustud lepingu tingimustega, m‰rgi allpool esimene valik. $(^NameDA) eemaldamiseks pead lepinguga nıustuma. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Enne $(^NameDA) eemaldamist vaata palun litsentsileping √ºle."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Kui sa oled lepingu tingimustega n√µus, vali j√§tkamiseks N√µustun. $(^NameDA) eemaldamiseks pead sa lepinguga n√µustuma."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Kui n√µustud lepingu tingimustega, vali allolev m√§rkeruut. $(^NameDA) eemaldamiseks pead lepinguga n√µustuma. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Kui n√µustud lepingu tingimustega, m√§rgi allpool esimene valik. $(^NameDA) eemaldamiseks pead lepinguga n√µustuma. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Vajuta Page Down, et n‰ha ¸lej‰‰nud teksti."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Vajuta Page Down, et n√§ha √ºlej√§√§nud teksti."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
@@ -46,9 +46,9 @@
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Kirjeldus"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Nihuta hiir komponendile, et n‰ha selle kirjeldust."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Nihuta hiir komponendile, et n√§ha selle kirjeldust."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Nihuta hiir komponendile, et n‰ha selle kirjeldust."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Vali komponent, et n√§ha selle kirjeldust."
   !endif
 !endif
 
@@ -68,43 +68,43 @@
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Programm paigaldatud"
   ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Paigaldus edukalt sooritatud."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Paigaldus katkestatud"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Paigaldamine ebaınnestus."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Paigaldamine eba√µnnestus."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Eemaldan..."
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Palun oota kuni $(^NameDA) on eemaldatud."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Eemaldamine lıpetatud"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Eemaldamine edukalt lıpule viidud."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Eemaldamine l√µpetatud"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Eemaldamine edukalt l√µpule viidud."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Eemaldamine katkestatud"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Eemaldamine ebaınestus."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Eemaldamine eba√µnestus."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) paigalduse lıpule viimine."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) on sinu arvutisse paigaldatud.$\r$\n$\r$\nAbilise sulgemiseks vajuta Lıpeta."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA) t‰ielikuks paigaldamiseks tuleb arvuti taask‰ivitada. Kas soovid arvuti kohe taask‰ivitada ?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) paigalduse l√µpule viimine."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) on sinu arvutisse paigaldatud.$\r$\n$\r$\nAbilise sulgemiseks vajuta L√µpeta."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA) t√§ielikuks paigaldamiseks tuleb arvuti taask√§ivitada. Kas soovid arvuti kohe taask√§ivitada ?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) eemaldamise lıpule viimine."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) on sinu arvutist eemaldatud.$\r$\n$\r$\nAbilise sulgemiseks vajuta Lıpeta."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) t‰ielikuks eemaldamiseks tuleb arvuti taask‰ivitada. Kas soovid arvuti kohe taask‰ivitada ?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) eemaldamise l√µpule viimine."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) on sinu arvutist eemaldatud.$\r$\n$\r$\nAbilise sulgemiseks vajuta L√µpeta."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) t√§ielikuks eemaldamiseks tuleb arvuti taask√§ivitada. Kas soovid arvuti kohe taask√§ivitada ?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Taask‰ivita kohe"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Taask‰ivitan hiljem k‰sitsi"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "K‰ivita $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Taask√§ivita kohe"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Taask√§ivitan hiljem k√§sitsi"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "K√§ivita $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Kuva Loemind"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "Lıpeta"  
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "L√µpeta"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Vali Start-men¸¸ kaust"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Vali $(^NameDA) otseteede jaoks Start-men¸¸ kaust."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vali Start-men¸¸ kaust, kuhu soovid paigutada programmi otseteed. Vıid ka sisestada nime, et luua uus kaust."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "ƒra loo otseteid"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Vali Start-men√º√º kaust"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Vali $(^NameDA) otseteede jaoks Start-men√º√º kaust."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vali Start-men√º√º kaust, kuhu soovid paigutada programmi otseteed. V√µid ka sisestada nime, et luua uus kaust."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "√Ñra loo otseteid"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE

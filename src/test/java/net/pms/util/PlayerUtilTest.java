@@ -16,51 +16,53 @@
  */
 package net.pms.util;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.util.Random;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.WebStream;
+import net.pms.PMS;
+import net.pms.TestHelper;
+import net.pms.configuration.RendererConfigurations;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.Format;
+import net.pms.store.item.RealFile;
+import net.pms.store.item.WebStream;
 import static net.pms.util.PlayerUtil.*;
+import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class PlayerUtilTest {
-	private static DLNAResource video;
-	private static DLNAResource audio;
-	private static DLNAResource image;
-	private static DLNAResource webImage;
-	private static DLNAResource webVideo;
-	private static DLNAResource webAudio;
+
+	private static RealFile video;
+	private static RealFile audio;
+	private static RealFile image;
+	private static WebStream webImage;
+	private static WebStream webVideo;
+	private static WebStream webAudio;
 
 	@BeforeAll
-	public static void setUpClass() {
+	public static void setUpClass() throws ConfigurationException, InterruptedException {
+		PMS.setConfiguration(new UmsConfiguration(false));
 		// initialise the fixtures
 		// XXX we need to call isValid to call checktype(), which is needed to initialise the format
-		image = new RealFile(getNonExistingFile("test.jpg"));
-		image.isValid();
-		audio = new RealFile(getNonExistingFile("test.mp3"));
-		audio.isValid();
-		video = new RealFile(getNonExistingFile("test.mpg"));
-		video.isValid();
-		webImage = new WebStream("", "http://example.com/test.jpg", "", Format.IMAGE);
+		image = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.jpg"));
+		image.resolveFormat();
+		audio = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mp3"));
+		audio.resolveFormat();
+		video = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mpg"));
+		video.resolveFormat();
+		webImage = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.jpg", "", Format.IMAGE);
 		webImage.isValid();
-		webAudio = new WebStream("", "http://example.com/test.mp3", "", Format.AUDIO);
+		webAudio = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mp3", "", Format.AUDIO);
 		webAudio.isValid();
-		webVideo = new WebStream("", "http://example.com/test.mpg", "", Format.VIDEO);
+		webVideo = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mpg", "", Format.VIDEO);
 		webVideo.isValid();
 	}
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the PMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test
@@ -187,4 +189,5 @@ public class PlayerUtilTest {
 		}
 		return result;
 	}
+
 }

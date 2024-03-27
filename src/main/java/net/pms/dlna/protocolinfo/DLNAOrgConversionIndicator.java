@@ -16,9 +16,9 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is immutable and represents the {@code DLNA.ORG_FLAGS} parameter.
@@ -132,18 +132,19 @@ public final class DLNAOrgConversionIndicator implements ProtocolInfoAttribute {
 		 * @throws ParseException if {@code value} can't be parsed.
 		 */
 		public DLNAOrgConversionIndicator getConversionIndicator(String value) throws ParseException {
-			if (isBlank(value)) {
+			if (StringUtils.isBlank(value)) {
 				return FALSE;
 			}
 
 			value = value.trim();
 			switch (value) {
-				case "0":
+				case "0" -> {
 					return FALSE;
-				case "1":
+				}
+				case "1" -> {
 					return TRUE;
-				default:
-					throw new ParseException("Cannot parse DLNA conversion indicator value \"" + value + "\"");
+				}
+				default -> throw new ParseException("Cannot parse DLNA conversion indicator value \"" + value + "\"");
 			}
 		}
 

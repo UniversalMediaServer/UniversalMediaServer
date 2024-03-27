@@ -34,6 +34,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.util.*;
 import net.pms.PMS;
+import net.pms.TestHelper;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -49,9 +50,7 @@ public class LoggingTest {
 
 	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the UMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
+		TestHelper.SetLoggingOff();
 	}
 
 	/**
@@ -107,7 +106,7 @@ public class LoggingTest {
 	@Test
 	public void testDebugLogPropertyDefiner() throws ConfigurationException, InterruptedException {
 
-		// Set up PMS configuration
+		// Set up UMS configuration
 		PMS.get();
 		PMS.setConfiguration(new UmsConfiguration());
 		DebugLogPropertyDefiner propertyDefiner = new DebugLogPropertyDefiner();

@@ -22,6 +22,8 @@ import net.pms.renderers.devices.players.PlayerState;
 public interface IRendererGuiListener {
 	public void updateRenderer(final Renderer renderer);
 	public void setActive(final boolean active);
+	public void setAllowed(final boolean allowed);
+	public void setUserId(final int userId);
 	public void delete();
 	public void refreshPlayerState(PlayerState state);
 }

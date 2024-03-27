@@ -37,6 +37,7 @@ public class Permissions {
 	//Web player
 	public static final int WEB_PLAYER_BROWSE = 1 << 25;
 	public static final int WEB_PLAYER_DOWNLOAD = 1 << 26;
+	public static final int WEB_PLAYER_EDIT = 1 << 27;
 
 	public static final int ALL = 0xFFFFFFFF;
 

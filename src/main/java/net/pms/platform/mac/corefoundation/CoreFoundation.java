@@ -16,11 +16,6 @@
  */
 package net.pms.platform.mac.corefoundation;
 
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import com.sun.jna.DefaultTypeMapper;
 import com.sun.jna.FromNativeContext;
 import com.sun.jna.Function;
@@ -40,6 +35,11 @@ import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.ptr.PointerByReference;
 import com.sun.jna.ptr.ShortByReference;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import net.pms.platform.jna.JnaIntEnum;
 import net.pms.platform.jna.JnaIntEnumConverter;
 import net.pms.platform.jna.JnaLongEnum;
@@ -511,37 +511,37 @@ public interface CoreFoundation extends Library {
 			Memory value = new Memory(8);
 			INSTANCE.CFNumberGetValue(this, numberType, value);
 			switch (numberType) {
-				case kCFNumberCFIndexType:
-				case kCFNumberSInt32Type:
+				case kCFNumberCFIndexType, kCFNumberSInt32Type -> {
 					return value.getInt(0);
-				case kCFNumberCGFloatType:
-				case kCFNumberMaxType:
+				}
+				case kCFNumberCGFloatType, kCFNumberMaxType -> {
 					if (NativeLong.SIZE == 8) {
 						return value.getDouble(0);
 					}
 					return value.getFloat(0);
-				case kCFNumberCharType:
+				}
+				case kCFNumberCharType -> {
 					return (int) value.getChar(0);
-				case kCFNumberDoubleType:
-				case kCFNumberFloat64Type:
+				}
+				case kCFNumberDoubleType, kCFNumberFloat64Type -> {
 					return value.getDouble(0);
-				case kCFNumberFloatType:
-				case kCFNumberFloat32Type:
+				}
+				case kCFNumberFloatType, kCFNumberFloat32Type -> {
 					return value.getFloat(0);
-				case kCFNumberLongLongType:
-				case kCFNumberSInt64Type:
+				}
+				case kCFNumberLongLongType, kCFNumberSInt64Type -> {
 					return value.getLong(0);
-				case kCFNumberIntType:
-				case kCFNumberLongType:
-				case kCFNumberNSIntegerType:
+				}
+				case kCFNumberIntType, kCFNumberLongType, kCFNumberNSIntegerType -> {
 					return value.getNativeLong(0);
-				case kCFNumberSInt16Type:
-				case kCFNumberShortType:
+				}
+				case kCFNumberSInt16Type, kCFNumberShortType -> {
 					return value.getShort(0);
-				case kCFNumberSInt8Type:
+				}
+				case kCFNumberSInt8Type -> {
 					return value.getByte(0);
-				default:
-					throw new IllegalStateException("Unimplemented value " + numberType);
+				}
+				default -> throw new IllegalStateException("Unimplemented value " + numberType);
 			}
 		}
 
@@ -3113,7 +3113,7 @@ public interface CoreFoundation extends Library {
 	 */
 	public enum CFDataSearchFlags implements JnaLongEnum<CFDataSearchFlags> {
 		/** Performs searching from the end of the range toward the beginning. */
-		kCFDataSearchBackwards(1L << 0),
+		kCFDataSearchBackwards(1L),
 		/**
 		 * Performs searching only on bytes at the beginning or, if
 		 * {@link #kCFDataSearchBackwards} is also specified, at the end of the

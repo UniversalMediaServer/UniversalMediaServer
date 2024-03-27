@@ -16,15 +16,15 @@
  */
 package net.pms.image;
 
+import com.drew.metadata.Metadata;
+import com.drew.metadata.jpeg.JpegComponent;
+import com.drew.metadata.jpeg.JpegDirectory;
 import java.io.Serializable;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.drew.metadata.Metadata;
-import com.drew.metadata.jpeg.JpegComponent;
-import com.drew.metadata.jpeg.JpegDirectory;
 
 /**
  * This class is used to hold a subsampling J:a:b notation value. Use

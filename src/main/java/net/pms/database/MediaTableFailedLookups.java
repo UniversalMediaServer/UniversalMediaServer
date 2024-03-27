@@ -23,12 +23,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import net.pms.util.APIUtils;
-import static org.apache.commons.lang3.StringUtils.left;
+import net.pms.external.umsapi.APIUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableFailedLookups extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFailedLookups.class);
 	protected static final String TABLE_NAME = "FAILED_LOOKUPS";
 
@@ -63,7 +63,7 @@ public final class MediaTableFailedLookups extends MediaTable {
 	private static final String SQL_GET_LASTATTEMPT_VERSION = SELECT + TABLE_COL_LASTATTEMPT + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_VERSION + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_FILENAME = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_FAILUREDETAILS + COMMA + TABLE_COL_VERSION + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_DELETE_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
-	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + PARAMETER;
+	private static final String SQL_DELETE_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -80,9 +80,9 @@ public final class MediaTableFailedLookups extends MediaTable {
 					upgradeTable(connection, version);
 				} else if (version > TABLE_VERSION) {
 					LOGGER.warn(LOG_TABLE_NEWER_VERSION_DELETEDB,
-						DATABASE_NAME,
-						TABLE_NAME,
-						DATABASE.getDatabaseFilename()
+							DATABASE_NAME,
+							TABLE_NAME,
+							DATABASE.getDatabaseFilename()
 					);
 				}
 			} else {
@@ -129,8 +129,9 @@ public final class MediaTableFailedLookups extends MediaTable {
 					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FAILED_" + COL_FILENAME + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER);
 					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER);
 				}
-				default -> throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+				default ->
+					throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
 		}
@@ -144,17 +145,17 @@ public final class MediaTableFailedLookups extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			CREATE_TABLE + TABLE_NAME + "(" +
-				COL_ID                 + IDENTITY                   + PRIMARY_KEY                  + COMMA +
-				COL_FILENAME           + VARCHAR_1024               + NOT_NULL                     + COMMA +
-				COL_FAILUREDETAILS     + VARCHAR_20000              + NOT_NULL                     + COMMA +
-				COL_VERSION            + VARCHAR_1024               + NOT_NULL                     + COMMA +
-				COL_LASTATTEMPT        + TIMESTAMP_WITH_TIME_ZONE   + DEFAULT + CURRENT_TIMESTAMP  +
-			")",
-			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
-			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
+				CREATE_TABLE + TABLE_NAME + "(" +
+					COL_ID +               IDENTITY                 + PRIMARY_KEY    + COMMA +
+					COL_FILENAME +         VARCHAR_1024             + NOT_NULL       + COMMA +
+					COL_FAILUREDETAILS +   VARCHAR_20000            + NOT_NULL       + COMMA +
+					COL_VERSION +          VARCHAR_1024             + NOT_NULL       + COMMA +
+					COL_LASTATTEMPT +      TIMESTAMP_WITH_TIME_ZONE + DEFAULT + CURRENT_TIMESTAMP +
+				")",
+				CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")",
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_VERSION + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_VERSION + ")"
 		);
 	}
 
@@ -207,12 +208,12 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (Exception e) {
 			LOGGER.error(
-				LOG_ERROR_WHILE_IN_FOR,
-				DATABASE_NAME,
-				"writing",
-				TABLE_NAME,
-				fullPathToFile,
-				e.getMessage()
+					LOG_ERROR_WHILE_IN_FOR,
+					DATABASE_NAME,
+					"writing",
+					TABLE_NAME,
+					fullPathToFile,
+					e.getMessage()
 			);
 			LOGGER.trace("", e);
 		} finally {
@@ -229,7 +230,8 @@ public final class MediaTableFailedLookups extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param fullPathToFile
-	 * @param failureDetails the response the API server returned, or a client-side message
+	 * @param failureDetails the response the API server returned, or a
+	 * client-side message
 	 * @param isVideo
 	 */
 	public static void set(final Connection connection, final String fullPathToFile, final String failureDetails, final boolean isVideo) {
@@ -246,14 +248,14 @@ public final class MediaTableFailedLookups extends MediaTable {
 				LOGGER.trace("Searching for file/series in " + TABLE_NAME + " with \"{}\" before update", statement);
 				try (ResultSet result = statement.executeQuery()) {
 					if (result.next()) {
-						result.updateString(COL_FAILUREDETAILS, left(failureDetails, 20000));
-						result.updateString(COL_VERSION, left(latestVersion, 1024));
+						updateString(result, COL_FAILUREDETAILS, failureDetails, 20000);
+						updateString(result, COL_VERSION, latestVersion, 1024);
 						result.updateRow();
 					} else {
 						result.moveToInsertRow();
-						result.updateString(COL_FILENAME, left(fullPathToFile, 1024));
-						result.updateString(COL_FAILUREDETAILS, left(failureDetails, 20000));
-						result.updateString(COL_VERSION, left(latestVersion, 1024));
+						updateString(result, COL_FILENAME, fullPathToFile, 1024);
+						updateString(result, COL_FAILUREDETAILS, failureDetails, 20000);
+						updateString(result, COL_VERSION, latestVersion, 1024);
 						result.insertRow();
 					}
 				}
@@ -268,14 +270,15 @@ public final class MediaTableFailedLookups extends MediaTable {
 
 	/**
 	 * Removes an entry or entries based on its FILENAME.
-	 * If {@code useLike} is {@code true} {@code filename} must be properly escaped.
+	 *
+	 * If {@code useLike} is {@code true} {@code filename} must be properly
+	 * escaped.
 	 *
 	 * @param connection the db connection
-	 * @see Tables#sqlLikeEscape(String)
 	 *
 	 * @param filename the filename to remove
 	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
-	 *            operator, {@code false} if {@code =} should be used.
+	 * operator, {@code false} if {@code =} should be used.
 	 */
 	public static void remove(final Connection connection, final String filename, boolean useLike) {
 		try {
@@ -287,12 +290,12 @@ public final class MediaTableFailedLookups extends MediaTable {
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				LOG_ERROR_WHILE_IN_FOR,
-				DATABASE_NAME,
-				"removing entries",
-				TABLE_NAME,
-				filename,
-				e.getMessage()
+					LOG_ERROR_WHILE_IN_FOR,
+					DATABASE_NAME,
+					"removing entries",
+					TABLE_NAME,
+					filename,
+					e.getMessage()
 			);
 			LOGGER.trace("", e);
 		}

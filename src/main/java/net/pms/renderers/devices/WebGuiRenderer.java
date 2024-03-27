@@ -20,16 +20,14 @@ import com.google.gson.JsonObject;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.iam.Account;
-import net.pms.iam.AccountService;
 import net.pms.image.ImageFormat;
 import net.pms.network.HTTPResource;
-import net.pms.network.IServerSentEvents;
+import net.pms.network.webguiserver.IEventSourceClient;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
 import net.pms.service.StartStopListenerDelegate;
+import net.pms.store.StoreItem;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,15 +48,14 @@ public class WebGuiRenderer extends Renderer {
 	private static final int CHROMIUM = 9;
 	private static final int VIVALDI = 10;
 
-	private final int userId;
 	private final int browser;
 	private final String subLang;
-	private IServerSentEvents sse;
+	private IEventSourceClient sse;
 	private StartStopListenerDelegate startStop;
 
 	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
-		this.userId = userId;
+		setUserId(userId);
 		this.browser = getBrowser(userAgent);
 		this.subLang = subLang;
 		setFileless(true);
@@ -76,13 +73,13 @@ public class WebGuiRenderer extends Renderer {
 		configuration.setProperty(KEY_HLS_VERSION, 6);
 	}
 
+	@Override
+	public boolean isAuthenticated() {
+		return true;
+	}
+
 	public boolean havePermission(int permission) {
-		if (userId == Integer.MAX_VALUE) {
-			return true;
-		} else {
-			Account account = AccountService.getAccountByUserId(userId);
-			return (account != null && account.havePermission(permission));
-		}
+		return account.havePermission(permission);
 	}
 
 	public boolean isImageFormatSupported(ImageFormat format) {
@@ -121,14 +118,11 @@ public class WebGuiRenderer extends Renderer {
 	}
 
 	public String getUserName() {
-		if (userId != Integer.MAX_VALUE) {
-			Account account = AccountService.getAccountByUserId(userId);
-			if (account != null && account.getUser() != null) {
-				if (StringUtils.isNotEmpty(account.getUser().getDisplayName())) {
-					return account.getUser().getDisplayName();
-				} else if (StringUtils.isNotEmpty(account.getUser().getUsername())) {
-					return account.getUser().getUsername();
-				}
+		if (account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE) {
+			if (StringUtils.isNotEmpty(account.getUser().getDisplayName())) {
+				return account.getUser().getDisplayName();
+			} else if (StringUtils.isNotEmpty(account.getUser().getUsername())) {
+				return account.getUser().getUsername();
 			}
 		}
 		return null;
@@ -137,16 +131,16 @@ public class WebGuiRenderer extends Renderer {
 	@Override
 	public String getRendererIcon() {
 		return switch (browser) {
-			case CHROME -> "chrome.png";
-			case MSIE -> "internetexplorer.png";
-			case FIREFOX -> "firefox.png";
-			case SAFARI -> "safari.png";
+			case CHROME -> "chrome.svg";
+			case MSIE -> "internetexplorer.svg";
+			case FIREFOX -> "firefox.svg";
+			case SAFARI -> "safari.svg";
 			case PS4 -> "ps4.png";
 			case XBOX1 -> "xbox-one.png";
-			case OPERA -> "opera.png";
-			case EDGE -> "edge.png";
-			case CHROMIUM -> "chromium.png";
-			case VIVALDI -> "vivaldi.png";
+			case OPERA -> "opera.svg";
+			case EDGE -> "edge.svg";
+			case CHROMIUM -> "chromium.svg";
+			case VIVALDI -> "vivaldi.svg";
 			default -> super.getRendererIcon();
 		};
 	}
@@ -198,6 +192,16 @@ public class WebGuiRenderer extends Renderer {
 		return subLang;
 	}
 
+	@Override
+	public boolean isAllowed() {
+		return true;
+	}
+
+	@Override
+	public void setAllowed(boolean b) {
+		//nothing to change
+	}
+
 	public void sendMessage(String... args) {
 		JsonObject jObject = new JsonObject();
 		jObject.addProperty("action", "player");
@@ -216,7 +220,7 @@ public class WebGuiRenderer extends Renderer {
 		updateServerSentEventsActive();
 	}
 
-	public void addServerSentEvents(IServerSentEvents sse) {
+	public void addServerSentEvents(IEventSourceClient sse) {
 		if (this.sse != null && this.sse.isOpened()) {
 			this.sse.close();
 		}
@@ -231,17 +235,16 @@ public class WebGuiRenderer extends Renderer {
 		}
 	}
 
-	public void start(DLNAResource dlna) {
+	public void start(StoreItem item) {
 		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != dlna) {
+		if (getPlayingRes() != null && getPlayingRes() != item) {
 			stop();
 		}
 
-		setPlayingRes(dlna);
+		setPlayingRes(item);
 		if (startStop == null) {
 			startStop = new StartStopListenerDelegate(getAddress().getHostAddress());
 		}
-		startStop.setRenderer(this);
 		startStop.start(getPlayingRes());
 	}
 

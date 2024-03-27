@@ -23,13 +23,15 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.configuration.sharedcontent.ApertureContent;
 import net.pms.configuration.sharedcontent.FeedAudioContent;
 import net.pms.configuration.sharedcontent.FeedImageContent;
 import net.pms.configuration.sharedcontent.FeedVideoContent;
 import net.pms.configuration.sharedcontent.FolderContent;
+import net.pms.configuration.sharedcontent.IPhotoContent;
+import net.pms.configuration.sharedcontent.ITunesContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentArray;
 import net.pms.configuration.sharedcontent.StreamAudioContent;
@@ -41,9 +43,13 @@ import org.slf4j.LoggerFactory;
 public class OldConfigurationImporter {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OldConfigurationImporter.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	protected static final String KEY_FOLDERS = "folders";
-	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
-	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
+	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_IGNORED = "folders_ignored";
+	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
+	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
+	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
+	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
+	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -82,6 +88,9 @@ public class OldConfigurationImporter {
 				}
 			}
 		}
+		ensureiPhotoSettings(result);
+		ensureApertureSettings(result);
+		ensureiTunesSettings(result);
 		return result;
 	}
 
@@ -106,7 +115,7 @@ public class OldConfigurationImporter {
 	 * @return The {@link List} of folders or {@code null}.
 	 */
 	@Nonnull
-	protected static ArrayList<Path> getFolders(String key) {
+	private static ArrayList<Path> getFolders(String key) {
 		String foldersString = CONFIGURATION.getString(key, null);
 
 		ArrayList<Path> folders = new ArrayList<>();
@@ -133,9 +142,8 @@ public class OldConfigurationImporter {
 					if (KEY_FOLDERS.equals(key)) {
 						LOGGER.warn(
 							"The \"{}\" is not a folder! Please remove it from your shared folders " +
-							"list on the \"{}\" tab or in the configuration file.",
-							folder,
-							Messages.getString("SharedContent")
+							"list on the \"Shared Content\" tab or in the configuration file.",
+							folder
 						);
 					} else {
 						LOGGER.debug("The \"{}\" is not a folder - check the configuration for key \"{}\"", folder, key);
@@ -144,9 +152,8 @@ public class OldConfigurationImporter {
 			} else if (KEY_FOLDERS.equals(key)) {
 				LOGGER.warn(
 					"\"{}\" does not exist. Please remove it from your shared folders " +
-					"list on the \"{}\" tab or in the configuration file.",
-					folder,
-					Messages.getString("SharedContent")
+					"list on the \"Shared Content\" tab or in the configuration file.",
+					folder
 				);
 			} else {
 				LOGGER.debug("\"{}\" does not exist - check the configuration for key \"{}\"", folder, key);
@@ -162,21 +169,88 @@ public class OldConfigurationImporter {
 	/**
 	 * @return The {@link List} of {@link Path}s of shared folders.
 	 */
-	public static List<Path> getSharedFolders() {
+	private static List<Path> getSharedFolders() {
 		return getFolders(KEY_FOLDERS);
 	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of monitored folders.
 	 */
-	public static List<Path> getMonitoredFolders() {
+	private static List<Path> getMonitoredFolders() {
 		return getFolders(KEY_FOLDERS_MONITORED);
 	}
 
 	/**
 	 * @return The {@link List} of {@link Path}s of ignored folders.
 	 */
-	public static List<Path> getIgnoredFolders() {
+	private static List<Path> getIgnoredFolders() {
 		return getFolders(KEY_FOLDERS_IGNORED);
 	}
+
+	public static boolean ensureSettingsChanges(SharedContentArray values) {
+		boolean updated = OldConfigurationImporter.ensureiPhotoSettings(values);
+		updated |= OldConfigurationImporter.ensureApertureSettings(values);
+		updated |= OldConfigurationImporter.ensureiTunesSettings(values);
+		return updated;
+	}
+
+	private static boolean ensureiPhotoSettings(SharedContentArray values) {
+		boolean updated = false;
+		if (CONFIGURATION.getBoolean(KEY_SHOW_IPHOTO_LIBRARY, false)) {
+			boolean iphotoFounded = false;
+			for (SharedContent value : values) {
+				if (value instanceof IPhotoContent) {
+					iphotoFounded = true;
+					break;
+				}
+			}
+			if (!iphotoFounded) {
+				values.add(new IPhotoContent());
+				updated = true;
+			}
+			CONFIGURATION.getConfiguration().clearProperty(KEY_SHOW_IPHOTO_LIBRARY);
+		}
+		return updated;
+	}
+
+	private static boolean ensureApertureSettings(SharedContentArray values) {
+		boolean updated = false;
+		if (CONFIGURATION.getBoolean(KEY_SHOW_APERTURE_LIBRARY, false)) {
+			boolean apertureFounded = false;
+			for (SharedContent value : values) {
+				if (value instanceof ApertureContent) {
+					apertureFounded = true;
+					break;
+				}
+			}
+			if (!apertureFounded) {
+				values.add(new ApertureContent());
+				updated = true;
+			}
+			CONFIGURATION.getConfiguration().clearProperty(KEY_SHOW_APERTURE_LIBRARY);
+		}
+		return updated;
+	}
+
+	private static boolean ensureiTunesSettings(SharedContentArray values) {
+		boolean updated = false;
+		if (CONFIGURATION.getBoolean(KEY_SHOW_ITUNES_LIBRARY, false)) {
+			String path = CONFIGURATION.getString(KEY_ITUNES_LIBRARY_PATH, "");
+			boolean itunesFounded = false;
+			for (SharedContent value : values) {
+				if (value instanceof ITunesContent iTunesContent && path.equals(iTunesContent.getPath())) {
+					itunesFounded = true;
+					break;
+				}
+			}
+			if (!itunesFounded) {
+				values.add(new ITunesContent(path));
+				updated = true;
+			}
+			CONFIGURATION.getConfiguration().clearProperty(KEY_SHOW_ITUNES_LIBRARY);
+			CONFIGURATION.getConfiguration().clearProperty(KEY_ITUNES_LIBRARY_PATH);
+		}
+		return updated;
+	}
+
 }

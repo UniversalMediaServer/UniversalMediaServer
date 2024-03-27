@@ -1,15 +1,15 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1069
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
-# Translation by Iñaki San Vicente
+# Translation by IÃ±aki San Vicente
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
@@ -151,7 +151,7 @@ Kopiatzeak hutsegin du
 # ^ErrorCreating
 "Hutsegitea sortzerakoan: "
 # ^ErrorDecompressing
-¡Hutsegitea datuak deskomprimatzean! Instalatzailea okerra?
+Â¡Hutsegitea datuak deskomprimatzean! Instalatzailea okerra?
 # ^ErrorRegistering
 Hutsegitea DLL erregistratzerakoan
 # ^ExecShell
@@ -183,8 +183,8 @@ Instalazio prozesuaren erregistroa gorde
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

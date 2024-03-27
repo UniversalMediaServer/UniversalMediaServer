@@ -5,6 +5,21 @@ Deprecated code - display warnings
 
 */
 
+
+!macro MUI_LEGACY_MAP_NOSTRETCH NAME R
+  !if "${R}" != ""
+    !ifdef ${NAME}NOSTRETCH
+        !define /IfNDef ${NAME}STRETCH NoStretchNoCropNoAlign
+    !endif
+  !else
+    !insertmacro ${__MACRO__} ${NAME}BITMAP_ 1
+    !insertmacro ${__MACRO__} ${NAME}BITMAP_RTL_ 1
+    !insertmacro ${__MACRO__} ${NAME}UNBITMAP_ 1
+    !insertmacro ${__MACRO__} ${NAME}UNBITMAP_RTL_ 1
+  !endif
+!macroend
+
+
 ;--------------------------------
 ;InstallOptions
 
@@ -66,7 +81,6 @@ Deprecated code - display warnings
 
 !macro MUI_RESERVEFILE_INSTALLOPTIONS
 
-  !define MUI_DOLLAR "$"
-  !error "MUI_RESERVEFILE_INSTALLOPTIONS is no longer supported as InstallOptions is no longer used by MUI2. Instead, use ReserveFile '${MUI_DOLLAR}{NSISDIR}\Plugins\InstallOptions.dll'. It is also recommended to upgrade to nsDialogs."
+  !error `MUI_RESERVEFILE_INSTALLOPTIONS is no longer supported as InstallOptions is no longer used by MUI2. Instead, use "ReserveFile /plugin InstallOptions.dll". It is also recommended to upgrade to nsDialogs.`
 
 !macroend

@@ -5,7 +5,7 @@
 ; Update (Macro, Define, Windows 7 detection) - John T. Haller of PortableApps.com - 2008-01-07
 ; Update (Windows 8 detection) - Marek Mizanin (Zanir) - 2013-02-07
 ; Update (Windows 8.1 detection) - John T. Haller of PortableApps.com - 2014-04-04
-; Update (Windows 2008, 2008R2, 2012 and 2012R2 detection) - Francisco Simoıes Filho franksimoes@gmail.com - 2014-08-25
+; Update (Windows 2008, 2008R2, 2012 and 2012R2 detection) - Francisco Simo√µes Filho franksimoes@gmail.com - 2014-08-25
 ; Update (Windows 10 TP detection) - John T. Haller of PortableApps.com - 2014-10-01
 ; Update (Windows 10 TP4 and 2016 detection, and added include guards) - Kairu - 2015-06-22
 ;

@@ -18,6 +18,7 @@ package net.pms.configuration;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.util.UUID;
 import net.pms.PMS;
 import net.pms.renderers.ConnectedRenderers;
 import org.apache.commons.configuration.CompositeConfiguration;
@@ -46,20 +47,16 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	private RendererConfiguration ref = null;
 	protected String uuid;
 
-	public RendererDeviceConfiguration(String uuid) throws ConfigurationException, InterruptedException {
-		this.uuid = uuid;
-		initDeviceConfiguration(null);
-		inherit(null);
-	}
-
-	public RendererDeviceConfiguration(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
-		initDeviceConfiguration(null);
+	public RendererDeviceConfiguration(RendererConfiguration ref, InetAddress ia, String uuid) throws ConfigurationException, InterruptedException {
+		initDeviceConfiguration(ia, uuid);
 		inherit(ref);
-	}
-
-	public RendererDeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
-		initDeviceConfiguration(ia);
-		inherit(ref);
+		if (uuid == null && ia != null) {
+			//create a temp uuid to serve files
+			uuid = UUID.nameUUIDFromBytes(ia.getAddress()).toString();
+		}
+		if (uuid != null) {
+			this.uuid = uuid;
+		}
 	}
 
 	/**
@@ -132,9 +129,11 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	public void setUUID(String uuid) {
 		if (uuid != null && !uuid.equals(this.uuid)) {
 			this.uuid = uuid;
+			//advise uuid changed
+			uuidChanged();
 			// Switch to the custom device conf for this new uuid, if any
 			if (RendererConfigurations.isDeviceConfigurationChanged(uuid, deviceConf)) {
-				initDeviceConfiguration(null);
+				initDeviceConfiguration(null, uuid);
 				reset();
 			}
 		}
@@ -149,7 +148,11 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 		return uuid;
 	}
 
-	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia) {
+	protected void uuidChanged() {
+		//let renderer know uuid was changed
+	}
+
+	public final PropertiesConfiguration initDeviceConfiguration(InetAddress ia, String uuid) {
 		//try first the uuid if exists then ip address
 		String id = uuid != null ? uuid : ConnectedRenderers.getUuidOf(ia);
 		if (ia != null && (id == null || !RendererConfigurations.hasDeviceConfiguration(id))) {

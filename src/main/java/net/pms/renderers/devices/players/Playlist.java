@@ -18,14 +18,15 @@ package net.pms.renderers.devices.players;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
-import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
+import net.pms.dlna.DidlHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends DefaultComboBoxModel {
+public class Playlist extends DefaultComboBoxModel<PlaylistItem> {
 
 	private static final long serialVersionUID = 5934677633834195753L;
 	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
@@ -134,16 +135,16 @@ public class Playlist extends DefaultComboBoxModel {
 	}
 
 	public static boolean isValid(PlaylistItem item, Renderer renderer) {
-		if (DLNAResource.isResourceUrl(item.getUri())) {
+		if (StoreResource.isResourceUrl(item.getUri())) {
 			// Check existence for resource uris
-			if (PMS.getGlobalRepo().exists(DLNAResource.parseResourceId(item.getUri()))) {
+			if (renderer.getMediaStore().weakResourceExists(StoreResource.parseResourceId(item.getUri()))) {
 				return true;
 			}
 			// Repair the item if possible
-			DLNAResource d = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
-			if (d != null) {
-				item.setUri(d.getURL("", true));
-				item.setMetadata(d.getDidlString(renderer));
+			StoreResource resource = renderer.getMediaStore().getValidResource(item.getUri(), item.getName());
+			if (resource instanceof StoreItem storeItem) {
+				item.setUri(storeItem.getMediaURL("", true));
+				item.setMetadata(DidlHelper.getDidlString(resource));
 				return true;
 			}
 			return false;

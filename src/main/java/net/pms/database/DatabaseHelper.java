@@ -16,15 +16,15 @@
  */
 package net.pms.database;
 
-import com.google.common.base.CharMatcher;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.text.MessageFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -94,6 +94,14 @@ public abstract class DatabaseHelper {
 	 * Mapped to java.sql.Clob.
 	 */
 	protected static final String CLOB = " CLOB";
+
+	/**
+	 * The date data type.
+	 * The proleptic Gregorian calendar is used.
+	 * Mapped to java.sql.Date.
+	 * java.time.LocalDate is also supported and recommended.
+	 */
+	protected static final String DATE = " DATE";
 
 	/**
 	 * A double precision floating point number.
@@ -197,6 +205,7 @@ public abstract class DatabaseHelper {
 	protected static final String FOREIGN_KEY = " FOREIGN KEY";
 	protected static final String DEFAULT = " DEFAULT ";
 	protected static final String DEFAULT_0 = DEFAULT + "0";
+	protected static final String DEFAULT_0D = DEFAULT_0 + ".0";
 	protected static final String COMMA = ", ";
 	protected static final String IDX_MARKER = "_IDX";
 	protected static final String FK_MARKER = "_FK";
@@ -207,43 +216,57 @@ public abstract class DatabaseHelper {
 	protected static final String FALSE = "FALSE";
 	protected static final String NULL = "NULL";
 	protected static final String TRUE = "TRUE";
+	protected static final String EMPTY_STRING = "''";
 	protected static final String PARAMETER = "?";
+	protected static final String STRINGENCODE_PARAMETER = "STRINGENCODE(" + PARAMETER + ")";
+	protected static final String LIKE_STARTING_WITH_PARAMETER = STRINGENCODE_PARAMETER + " || '%'";
+	protected static final String LIKE_ENDING_WITH_PARAMETER = "'%' || " + STRINGENCODE_PARAMETER;
+	protected static final String LIKE_CONTAIN_PARAMETER = "'%' || " + LIKE_STARTING_WITH_PARAMETER;
 
 	/**
 	 * SQL COMMANDS
 	 */
 	protected static final String CREATE = "CREATE ";
-	protected static final String INSERT = "INSERT ";
+	protected static final String INSERT_INTO = "INSERT INTO ";
 	protected static final String SELECT = "SELECT ";
 	protected static final String UPDATE = "UPDATE ";
+	protected static final String WITH = "WITH ";
 
 	protected static final String ADD = " ADD ";
 	protected static final String DROP = " DROP ";
 	protected static final String ALTER = "ALTER ";
 	protected static final String AND = " AND ";
+	protected static final String AS = " AS ";
 	protected static final String ASC = " ASC";
-
 	protected static final String COLUMN = "COLUMN ";
 	protected static final String CONSTRAINT = "CONSTRAINT ";
 	protected static final String DELETE_FROM = "DELETE FROM ";
+	protected static final String DESC = " DESC";
 	protected static final String EQUAL = " = ";
+	protected static final String EQUAL_0 = EQUAL + "0";
 	protected static final String EXISTS = "EXISTS ";
 	protected static final String FROM = " FROM ";
+	protected static final String GREATER_OR_EQUAL_THAN = " >= ";
+	protected static final String GREATER_THAN = " > ";
 	protected static final String IF = "IF ";
-	protected static final String INDEX = "INDEX ";
-	protected static final String NOT = "NOT ";
+	protected static final String IN = " IN ";
 	protected static final String IS = " IS ";
-	protected static final String LEFT_JOIN = " LEFT JOIN ";
+	protected static final String INDEX = "INDEX ";
+	protected static final String JOIN = " JOIN ";
+	protected static final String LESS_OR_EQUAL_THAN = " <= ";
+	protected static final String NOT = "NOT ";
+	protected static final String NOT_IN = " NOT" + IN;
+	protected static final String NOT_EQUAL = " != ";
+	protected static final String LEFT_JOIN = " LEFT" + JOIN;
 	protected static final String LIMIT = " LIMIT ";
 	protected static final String LIMIT_1 = LIMIT + "1";
 	protected static final String LIKE = " LIKE ";
 	protected static final String ON = " ON ";
 	protected static final String ON_DELETE_CASCADE = ON + "DELETE CASCADE";
 	protected static final String OR = " OR ";
+	protected static final String ORDER_BY = " ORDER BY ";
 	protected static final String REFERENCES = " REFERENCES ";
 	protected static final String RENAME = " RENAME ";
-
-	protected static final String INSERT_INTO = "INSERT INTO ";
 
 	protected static final String SET = " SET ";
 	protected static final String TABLE = "TABLE ";
@@ -257,12 +280,14 @@ public abstract class DatabaseHelper {
 	protected static final String CREATE_INDEX = CREATE + INDEX;
 	protected static final String CREATE_UNIQUE_INDEX = CREATE + UNIQUE + INDEX;
 	protected static final String DROP_INDEX = "DROP " + INDEX;
-	protected static final String NOT_NULL = " NOT NULL";
+	protected static final String DROP_TABLE = "DROP TABLE ";
 	protected static final String IF_EXISTS = IF + EXISTS;
 	protected static final String IF_NOT_EXISTS = IF + NOT + EXISTS;
 	protected static final String IS_NOT_NULL = IS + NOT + NULL;
 	protected static final String IS_NOT_TRUE = IS + NOT + TRUE;
 	protected static final String IS_NULL = IS + NULL;
+	protected static final String IS_TRUE = IS + TRUE;
+	protected static final String NOT_NULL = " NOT NULL";
 	protected static final String RENAME_TO = RENAME + "TO ";
 	protected static final String SELECT_ALL = SELECT + "*";
 	protected static final String UNIQUE_NOT_NULL = " UNIQUE NOT NULL";
@@ -289,9 +314,9 @@ public abstract class DatabaseHelper {
 		LOGGER.trace("Checking if database table \"{}\" in schema \"{}\" exists", tableName, tableSchema);
 
 		try (PreparedStatement statement = connection.prepareStatement(
-			"SELECT * FROM INFORMATION_SCHEMA.TABLES " +
-			"WHERE TABLE_SCHEMA = ? " +
-			"AND  TABLE_NAME = ?"
+			SELECT_ALL + FROM + "INFORMATION_SCHEMA.TABLES" +
+			WHERE + "TABLE_SCHEMA" + EQUAL + PARAMETER +
+			AND + "TABLE_NAME" + EQUAL + PARAMETER
 		)) {
 			statement.setString(1, tableSchema);
 			statement.setString(2, tableName);
@@ -333,7 +358,7 @@ public abstract class DatabaseHelper {
 	protected static final void dropTable(final Connection connection, final String tableName) throws SQLException {
 		LOGGER.debug("Dropping database table if it exists \"{}\"", tableName);
 		try (Statement statement = connection.createStatement()) {
-			statement.execute("DROP TABLE IF EXISTS " + tableName);
+			statement.execute(DROP_TABLE + IF_EXISTS + tableName);
 		}
 	}
 
@@ -348,7 +373,7 @@ public abstract class DatabaseHelper {
 		try {
 			if (tableExists(connection, tableName)) {
 				dropReferentialsConstraint(connection, tableName);
-				executeUpdate(connection, "DROP TABLE IF EXISTS " + tableName + " CASCADE");
+				executeUpdate(connection, DROP_TABLE + IF_EXISTS + tableName + " CASCADE");
 			}
 		} catch (SQLException e) {
 			LOGGER.error("error during dropping table\"" + tableName + "\":" + e.getMessage(), e);
@@ -359,34 +384,40 @@ public abstract class DatabaseHelper {
 	 * Drops referentials constraints on the named table.
 	 *
 	 * @param connection the {@link Connection} to use
-	 * @param tableName the name of the table to delete
+	 * @param tableName the name of the table to delete constraint
+	 *
+	 * @return <code>true</code> if table has constraint or error exception
+	 *         <code>false</code> otherwise
 	 */
-	protected static final void dropReferentialsConstraint(final Connection connection, final String tableName) {
+	protected static final boolean dropReferentialsConstraint(final Connection connection, final String tableName) {
 		LOGGER.debug("Dropping table \"{}\" constraints if it exists", tableName);
+		boolean hasConstraint = false;
 		try {
 			String sql;
-			ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
-			if (rs.next()) {
-				sql = "SELECT CONSTRAINT_NAME " +
-					"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
-			} else {
-				sql = "SELECT CONSTRAINT_NAME " +
-					"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-					"WHERE TABLE_NAME = '" + tableName + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
+			try (ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null)) {
+				if (rs.next()) {
+					sql = SELECT + "CONSTRAINT_NAME" +
+						FROM + "INFORMATION_SCHEMA.TABLE_CONSTRAINTS" +
+						WHERE + "TABLE_NAME" + EQUAL + "'" + tableName + "'" + AND + "CONSTRAINT_TYPE" + EQUAL + "'FOREIGN KEY'" + OR + "CONSTRAINT_TYPE" + EQUAL + "'REFERENTIAL'";
+				} else {
+					sql = SELECT + "CONSTRAINT_NAME " +
+						FROM + "INFORMATION_SCHEMA.CONSTRAINTS" +
+						WHERE + "TABLE_NAME" + EQUAL + "'" + tableName + "'" + AND + "CONSTRAINT_TYPE" + EQUAL + "'REFERENTIAL'";
+				}
 			}
-			try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-				rs = stmt.executeQuery();
-
+			try (PreparedStatement stmt = connection.prepareStatement(sql); ResultSet rs = stmt.executeQuery();) {
 				while (rs.next()) {
+					hasConstraint = true;
 					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + tableName + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+						statement.execute(ALTER_TABLE + tableName + DROP + CONSTRAINT + IF_EXISTS + rs.getString("CONSTRAINT_NAME"));
 					}
 				}
 			}
 		} catch (SQLException e) {
+			hasConstraint = true;
 			LOGGER.error("error during dropping table\"" + tableName + "\" constraints:" + e.getMessage(), e);
 		}
+		return hasConstraint;
 	}
 
 	/**
@@ -412,12 +443,43 @@ public abstract class DatabaseHelper {
 
 				while (rs.next()) {
 					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE IF EXISTS " + rs.getString("TABLE_NAME") + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
+						statement.execute(ALTER_TABLE + IF_EXISTS + rs.getString("TABLE_NAME") + DROP + CONSTRAINT + IF_EXISTS + rs.getString("CONSTRAINT_NAME"));
 					}
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error("error during dropping table\"" + tableName + "\" constraints:" + e.getMessage(), e);
+		}
+	}
+
+	protected static final void ensureCascadeConstraint(final Connection connection, String table, String column, String refTable, String refColumn) {
+		try {
+			if (isTableExist(connection, table)) {
+				//first delete bad entries if any
+				executeUpdate(connection, DELETE_FROM + table + WHERE + column + " NOT IN (" + SELECT + refTable + "." + refColumn + FROM + refTable + ")");
+				//then add cascade if needed
+				executeUpdate(connection, ALTER_TABLE + table + ADD + CONSTRAINT + IF_NOT_EXISTS + table + CONSTRAINT_SEPARATOR + column + FK_MARKER + FOREIGN_KEY + "(" + column + ")" + REFERENCES + refTable + "(" + refColumn + ")" + ON_DELETE_CASCADE);
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during ensuring cascade exists on table\"" + table + "\":" + e.getMessage(), e);
+		}
+	}
+
+	protected static final void dropUniqueConstraint(final Connection connection, String table, String column) {
+		LOGGER.debug("Dropping table \"{}.{}\" unique constraint if it exists", table, column);
+		String sql = SELECT + "INDEX_NAME" + FROM + "INFORMATION_SCHEMA.INDEX_COLUMNS" + WHERE + "TABLE_NAME" + EQUAL + "'" + table + "'" + AND + "COLUMN_NAME" + EQUAL + "'" + column + "'" + AND + "IS_UNIQUE" + IS + TRUE;
+		try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				try (Statement statement = connection.createStatement()) {
+					String indexName = rs.getString("INDEX_NAME");
+					LOGGER.trace("removing index \"{}\"", indexName);
+					statement.execute(ALTER_TABLE + IF_EXISTS + table + DROP + CONSTRAINT + IF_EXISTS + indexName);
+					statement.execute(DROP_INDEX + IF_EXISTS + indexName);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("error during dropping table \"{}.{}\" unique constraints: {}", table, column, e.getMessage(), e);
 		}
 	}
 
@@ -439,13 +501,13 @@ public abstract class DatabaseHelper {
 	 */
 	public static final String sqlNullIfBlank(final String s, boolean quote, boolean like) {
 		if (s == null || s.trim().isEmpty()) {
-			return " IS NULL ";
+			return IS_NULL;
 		} else if (like) {
-			return " LIKE " + sqlQuote(s);
+			return LIKE + sqlQuote(s);
 		} else if (quote) {
-			return " = " + sqlQuote(s);
+			return EQUAL + sqlQuote(s);
 		} else {
-			return " = " + s;
+			return EQUAL + s;
 		}
 	}
 
@@ -453,45 +515,14 @@ public abstract class DatabaseHelper {
 	 * Surrounds the argument with single quotes and escapes any existing single
 	 * quotes.
 	 *
-	 * @see #sqlEscape(String)
+	 * PreparedStatement is a preferable solution as it take care of this
+	 * and avoid sql injection.
 	 *
 	 * @param s the {@link String} to escape and quote.
 	 * @return The escaped and quoted {@code s}.
 	 */
 	public static final String sqlQuote(final String s) {
 		return s == null ? null : "'" + s.replace("'", "''") + "'";
-	}
-
-	/**
-	 * Escapes any existing single quotes in the argument but doesn't quote it.
-	 *
-	 * @see #sqlQuote(String)
-	 *
-	 * @param s the {@link String} to escape.
-	 * @return The escaped {@code s}.
-	 */
-	public static String sqlEscape(final String s) {
-		return s == null ? null : s.replace("'", "''");
-	}
-
-	/**
-	 * Escapes the argument with the default H2 escape character for the
-	 * escape character itself and the two wildcard characters <code>%</code>
-	 * and <code>_</code>. This escaping is only valid when using,
-	 * <code>LIKE</code>, not when using <code>=</code>.
-	 *
-	 * TODO: Escaping should be generalized so that any escape character could
-	 *       be used and that the class would set the correct escape character
-	 *       when opening the database.
-	 *
-	 * @param s the {@link String} to be SQL escaped.
-	 * @return The escaped {@link String}.
-	 */
-	public static final String sqlLikeEscape(final String s) {
-		return s == null ? null : s.
-			replace(ESCAPE_CHARACTER, ESCAPE_CHARACTER + ESCAPE_CHARACTER).
-			replace("%", ESCAPE_CHARACTER + "%").
-			replace("_", ESCAPE_CHARACTER + "_");
 	}
 
 	/**
@@ -570,6 +601,28 @@ public abstract class DatabaseHelper {
 		}
 	}
 
+	/**
+	 * Check if the table name exists in the database.
+	 *
+	 * @param connection the {@link Connection} to use.
+	 * @param table The name of the table.
+	 *
+	 * @return <code>true</code> if the table name exists in
+	 * the database <code>false</code> otherwise.
+	 *
+	 * @throws SQLException
+	 */
+	protected static boolean isTableExist(Connection connection, String table) throws SQLException {
+		ResultSet result = connection.getMetaData().getTables(null, null, table, null);
+		if (result.first()) {
+			LOGGER.trace("Table \"{}\" found in db", table);
+			return true;
+		} else {
+			LOGGER.trace("Table \"{}\" not found in db", table);
+			return false;
+		}
+	}
+
 	protected static void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			try (Statement stmt = conn.createStatement()) {
@@ -593,52 +646,92 @@ public abstract class DatabaseHelper {
 		}
 	}
 
-	protected static void updateSerialized(ResultSet rs, Object x, String columnLabel) throws SQLException {
-		if (x != null) {
-			rs.updateObject(columnLabel, x);
-		} else {
-			rs.updateNull(columnLabel);
-		}
-	}
-
-	protected static void insertSerialized(PreparedStatement ps, Object x, int parameterIndex) throws SQLException {
-		if (x != null) {
-			ps.setObject(parameterIndex, x);
-		} else {
-			ps.setNull(parameterIndex, Types.OTHER);
-		}
-	}
-	/**
-	 * Returns the VALUES {@link String} for the SQL request.
-	 * It fills the {@link String} with {@code " VALUES (?,?,?, ...)"}.<p>
-	 * The number of the "?" is calculated from the columns and not need to be hardcoded which
-	 * often causes mistakes when columns are deleted or added.<p>
-	 * Possible implementation:
-	 * <blockquote><pre>
-	 * String columns = "FILEID, ID, LANG, TITLE, NRAUDIOCHANNELS";
-	 * PreparedStatement insertStatement = connection.prepareStatement(
-	 *    "INSERT INTO AUDIOTRACKS (" + columns + ")" +
-	 *    createDefaultValueForInsertStatement(columns)
-	 * );
-	 * </pre></blockquote><p
-	 *
-	 * @param columns the SQL parameters string
-	 * @return The " VALUES (?,?,?, ...)" string
-	 *
-	 */
-	protected static String createDefaultValueForInsertStatement(String columns) {
-		int count = CharMatcher.is(',').countIn(columns);
-		StringBuilder sb = new StringBuilder();
-		sb.append(" VALUES (").append(StringUtils.repeat("?,", count)).append("?)");
-		return sb.toString();
-	}
-
 	protected static Double toDouble(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
 		if (obj instanceof Double value) {
 			return value;
 		}
 		return null;
+	}
+
+	protected static Integer toInteger(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Integer value) {
+			return value;
+		}
+		return null;
+	}
+
+	protected static LocalDate getLocalDate(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Date value) {
+			return value.toLocalDate();
+		}
+		return null;
+	}
+
+	protected static Long toLong(ResultSet rs, String column) throws SQLException {
+		Object obj = rs.getObject(column);
+		if (obj instanceof Long value) {
+			return value;
+		}
+		return null;
+	}
+
+	protected static void updateBytes(ResultSet rs, String columnLabel, byte[] value) throws SQLException {
+		if (value != null) {
+			rs.updateBytes(columnLabel, value);
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
+	protected static void updateDouble(ResultSet result, String column, Double value) throws SQLException {
+		if (value != null) {
+			result.updateDouble(column, value);
+		} else {
+			result.updateNull(column);
+		}
+	}
+
+	protected static void updateInteger(ResultSet result, String column, Integer value) throws SQLException {
+		if (value != null) {
+			result.updateInt(column, value);
+		} else {
+			result.updateNull(column);
+		}
+	}
+
+	protected static void updateLong(ResultSet result, String column, Long value) throws SQLException {
+		if (value != null) {
+			result.updateLong(column, value);
+		} else {
+			result.updateNull(column);
+		}
+	}
+
+	protected static void updateObject(ResultSet rs, String columnLabel, Object value) throws SQLException {
+		if (value != null) {
+			rs.updateObject(columnLabel, value);
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
+	protected static void updateString(ResultSet rs, String columnLabel, String value, int size) throws SQLException {
+		if (value != null) {
+			rs.updateString(columnLabel, StringUtils.left(StringUtils.trimToEmpty(value), size));
+		} else {
+			rs.updateNull(columnLabel);
+		}
+	}
+
+	protected static void updateDate(ResultSet rs, String columnLabel, LocalDate value) throws SQLException {
+		if (value != null) {
+			rs.updateDate(columnLabel, Date.valueOf(value));
+		} else {
+			rs.updateNull(columnLabel);
+		}
 	}
 
 	public static void close(ResultSet rs) {

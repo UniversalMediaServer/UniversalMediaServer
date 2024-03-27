@@ -16,18 +16,17 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.VideoClassification;
+import net.pms.store.StoreResource;
+import net.pms.store.item.RealFile;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.WordUtils;
 
 
 /**
@@ -105,11 +104,11 @@ public class FileNamePrettifier {
 	private String episodeName;
 
 	/**
-	 * Creates a new instance for the specified {@link DLNAResource}.
+	 * Creates a new instance for the specified {@link StoreResource}.
 	 *
-	 * @param resource the {@link DLNAResource} whose name to prettify.
+	 * @param resource the {@link StoreResource} whose name to prettify.
 	 */
-	public FileNamePrettifier(DLNAResource resource) {
+	public FileNamePrettifier(StoreResource resource) {
 		if (resource == null) {
 			throw new IllegalArgumentException("resource cannot be null");
 		}
@@ -118,7 +117,7 @@ public class FileNamePrettifier {
 			tmpName = realFile.getFile().getName();
 		}
 		if (isBlank(tmpName)) {
-			tmpName = resource.getSystemName();
+			tmpName = resource.getFileName();
 		}
 		if (isBlank(tmpName)) {
 			tmpName = resource.getName();

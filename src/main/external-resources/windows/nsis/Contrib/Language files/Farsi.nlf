@@ -1,4 +1,4 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,186 +6,186 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1256
 # RTL - anything else than RTL means LTR
 RTL
 # Translation By FzerorubigD - FzerorubigD@gmail.com - Thanx to all people help me in forum.persiantools.com, Elnaz Sarbar <elnaz@farsiweb.info>
 # ^Branding
-����� ��� ������� %s
+Nullsoft Install System %s
 # ^SetupCaption
-��� $(^Name) 
+نصب $(^Name) 
 # ^UninstallCaption
-��� $(^Name) 
+حذف $(^Name) 
 # ^LicenseSubCaption
-: ���� ���
+: مجوز نصب
 # ^ComponentsSubCaption
-: �������� ���
+: گزینه‌های نصب
 # ^DirSubCaption
-: ���� ���
+: پوشه نصب
 # ^InstallingSubCaption
-: �� ��� ���
+: در حال نصب
 # ^CompletedSubCaption
-: ����� ����
+: پایان یافت
 # ^UnComponentsSubCaption
-: �������� ���
+: گزینه‌های حذف
 # ^UnDirSubCaption
-: ���� ���
+: پوشه‌ی حذف
 # ^ConfirmSubCaption
-: �����
+: تأیید
 # ^UninstallingSubCaption
-: �� ��� ���
+: در حال حذف
 # ^UnCompletedSubCaption
-: ����� ����
+: پایان یافت
 # ^BackBtn
-&��� 
+&قبل 
 # ^NextBtn
-&���
+&بعد
 # ^AgreeBtn
-&������
+&موافقم
 # ^AcceptBtn
-�� ��� ������ ���� �� ���� &����
+من همه‌ی بندهای مجوز را قبول &دارم
 # ^DontAcceptBtn
-�� ������ ���� �� ���� &�����
+من بندهای مجوز را قبول &ندارم
 # ^InstallBtn
-&���
+&نصب
 # ^UninstallBtn
-&���
+&حذف
 # ^CancelBtn
-������
+انصراف
 # ^CloseBtn
-&����
+&بستن
 # ^BrowseBtn
-&����...
+&مرور...
 # ^ShowDetailsBtn
-����� ������
+نمایش جزئیات
 # ^ClickNext
-���� ����� ��� Ϙ��  ��� ��� ����.
+برای ادامه روی دکمه‌ی بعد کلیک کنید.
 # ^ClickInstall
-���� ���� ��� ��� Ϙ�� ��� ��� ����.
+برای شروع نصب روی دکمه‌ی نصب کلیک کنید.
 # ^ClickUninstall
-���� ���� ��� ��� Ϙ�� ��� ��� ����.
+برای شروع حذف روی دکمه‌ی حذف کلیک کنید.
 # ^Name
-���
+نام
 # ^Completed
-����� ����
+پایان یافت
 # ^LicenseText
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ��� Ϙ�� ������ ��� ����.
+لطفاً قبل از نصب $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید روی دکمه‌ی موافقم کلیک کنید.
 # ^LicenseTextCB
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ��� ���� �������� ��� ��� ����. $_CLICK
+لطفاً قبل از نصب $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید روی جعبه نشانه‌زنی زیر کلیک کنید. $_CLICK
 # ^LicenseTextRB
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ����� ��� �� ������ ����. $_CLICK
+لطفاً قبل از نصب $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید گزینه‌ی اول را انتخاب کنید. $_CLICK
 # ^UnLicenseText
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ��� Ϙ�� ������ ��� ����.
+لطفاً قبل از حذف $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید روی دکمه‌ی موافقم کلیک کنید.
 # ^UnLicenseTextCB
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ��� ���� �������� ��� ��� ����. $_CLICK
+لطفاً قبل از حذف $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید روی جعبه نشانه‌زنی زیر کلیک کنید. $_CLICK
 # ^UnLicenseTextRB
-����� ��� �� ��� $(^NameDA) ��� ���� �� �������. ǐ� ��� ������ �� �� ���� ����� ����� ��� �� ������ ����. $_CLICK
+لطفاً قبل از حذف $(^NameDA) متن مجوز را بخوانید. اگر همه‌ی بندهای آن را قبول دارید گزینه‌ی اول را انتخاب کنید. $_CLICK
 # ^Custom
-������
+سفارشی
 # ^ComponentsText
-���� ��ԝ���� �� �������� ��� ���� ����� ����� � ����� ��ԝ���� �� �� ��������� ��� ���� �������. $_CLICK
+کنار بخش‌هایی که می‌خواهید نصب شوند نشانه بزنید و نشانه بخش‌هایی را که نمی‌خواهید نصب شوند بردارید. $_CLICK
 # ^ComponentsSubText1
-��� ��� �� ���� ����: 
+نوع نصب را مشخص کنید: 
 # ^ComponentsSubText2_NoInstTypes
-��ԝ���� �� �� �������� ��� ���� ������ ����:
+بخش‌هایی را که می‌خواهید نصب شوند انتخاب کنید:
 # ^ComponentsSubText2
-�ǡ ��ԝ��� ������� �� �� �������� ��� ���� ������ ����: 
+یا، بخش‌های اختیاری را که می‌خواهید نصب شوند انتخاب کنید: 
 # ^UnComponentsText
-���� ��ԝ���� �� �������� ��� ���� ����� ����� � ����� ��ԝ���� �� �� ��������� ��� ���� �������. $_CLICK
+کنار بخش‌هایی که می‌خواهید حذف شوند نشانه بزنید و نشانه بخش‌هایی را که نمی‌خواهید حذف شوند بردارید. $_CLICK
 # ^UnComponentsSubText1
-��� ��� �� ������ ����: 
+نوع حذف را انتخاب کنید: 
 # ^UnComponentsSubText2_NoInstTypes
-��ԝ���� �� �� �������� ��� ���� ������ ����:
+بخش‌هایی را که می‌خواهید حذف شوند انتخاب کنید:
 # ^UnComponentsSubText2
-�ǡ ��ԝ��� ������� �� �� �������� ��� ���� ������ ����: 
+یا، بخش‌های اختیاری را که می‌خواهید حذف شوند انتخاب کنید: 
 # ^DirText
-������ ��ȡ $(^NameDA) �� �� ���� ��� ��� ����� ���. ���� ��� �� ���� ��� ��� Ϙ�� ���� ��� ���� � ���� ���� ������ ����. $_CLICK
+برنامه نصب، $(^NameDA) را در پوشه‌ی زیر نصب خواهد کرد. برای نصب در پوشه‌ی دیگر روی دکمه مرور کلیک کنید و پوشه‌ی دیگری انتخاب کنید. $_CLICK
 # ^DirSubText
-���� ����
+پوشه‌ی مقصد
 # ^DirBrowseText
-������ ���� ���� ��� $(^NameDA):
+انتخاب پوشه برای نصب $(^NameDA):
 # ^UnDirText
-������ ��ȡ $(^NameDA) �� �� ���� ��� ��� ����� ���. ���� ��� �� ���� ��� ��� Ϙ�� ���� ��� ���� � ���� ���� ������ ����. $_CLICK
+برنامه نصب، $(^NameDA) را از پوشه‌ی زیر حذف خواهد کرد. برای نصب در پوشه‌ی دیگر روی دکمه مرور کلیک کنید و پوشه‌ی دیگری انتخاب کنید. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-������ ���� ���� ��� $(^NameDA):
+انتخاب پوشه برای حذف $(^NameDA):
 # ^SpaceAvailable
-"���� �����: "
+"فضای موجود: "
 # ^SpaceRequired
-"���� ���� ����: "
+"فضای مورد نیاز: "
 # ^UninstallingText
-�(^NameDA) �� ���� ��� ��� ����� ��. $_CLICK
+$(^NameDA) از پوشه‌ی زیر حذف خواهد شد. $_CLICK
 # ^UninstallingSubText
-��� ��: 
+حذف از: 
 # ^FileError
-��� ���� ��� ���� ������ ���� �����: \r\n\r\n$0\r\n\n ���� ���� ��� ��� Abort \r\n ���� ���� ���� ��� Retry \r\n � ���� ��ݝ��� �� ��� ������ ��� Ignore ��� ����.
+خطا هنگام باز کردن پرونده برای نوشتن: \r\n\r\n$0\r\n\n برای توقف نصب روی Abort \r\n برای تلاش مجدد روی Retry \r\n و برای صرف‌نظر از این پرونده روی Ignore کلیک کنید.
 # ^FileError_NoIgnore
-��� ���� ��� ���� ������ ���� �����: \r\n\r\n$0\r\n\n���� ���� ���� ��� Retry\r\n� ���� ������ ��� Cancel ��� ����.
+خطا هنگام باز کردن پرونده برای نوشتن: \r\n\r\n$0\r\n\nبرای تلاش مجدد روی Retry\r\nو برای انصراف روی Cancel کلیک کنید.
 # ^CantWrite
-"����� ��� ����: "
+"نوشتن ممکن نیست: "
 # ^CopyFailed
-���������� ������ ���.
+نسخه‌برداری ناموفق بود.
 # ^CopyTo
-"���������� ��: "
+"نسخه‌برداری در: "
 # ^Registering
-"�� ��� ���: "
+"در حال ثبت: "
 # ^Unregistering
-"�� ��� ��� ���: "
+"در حال حذف ثبت: "
 # ^SymbolNotFound
-"����� ���� ���: "
+"علامت پیدا نشد: "
 # ^CouldNotLoad
-"��ѐ���� ��� ����: "
+"بارگذاری ممکن نیست: "
 # ^CreateFolder
-"����� ����: "
+"ایجاد پوشه: "
 # ^CreateShortcut
-"����� �������: "
+"ایجاد میان‌بُر: "
 # ^CreatedUninstaller
-"��ݝ����� ����� ��: "
+"حذف‌کننده ایجاد شد: "
 # ^Delete
-"��� ������: "
+"حذف پرونده: "
 # ^DeleteOnReboot
-"��� ���� ��� ������ ����: "
+"حذف هنگام راه اندازی مجدد: "
 # ^ErrorCreatingShortcut
-"��� ���� ����� �������: "
+"خطا هنگام ایجاد میان‌بُر: "
 # ^ErrorCreating
-"��� ���� �����: "
+"خطا هنگام ایجاد: "
 # ^ErrorDecompressing
-��� ���� ��� ���� �������! ��ȝ����� ���� ��ʿ
+خطا هنگام باز کردن اطلاعات! نصب‌کننده خراب است؟
 # ^ErrorRegistering
-��� ���� ��� DLL
+خطا هنگام ثبت DLL
 # ^ExecShell
-"����� ������: "
+"پوسته اجرایی: "
 # ^Exec
-"����: "
+"اجرا: "
 # ^Extract
-"�������: "
+"استخراج: "
 # ^ErrorWriting
-"�������: ��� ���� ����� �� ������"
+"استخراج: خطا هنگام نوشتن در پرونده"
 # ^InvalidOpcode
-��ȝ����� ���� ���: �� ������� �������.
+نصب‌کننده خراب است: کد عملیاتی نامعتبر.
 # ^NoOLE
-"�OLE ���� �����: "
+"‏OLE وجود ندارد: "
 # ^OutputFolder
-"���� �����: "
+"پوشه‌ی خروجی: "
 # ^RemoveFolder
-"��� ����: "
+"حذف پوشه: "
 # ^RenameOnReboot
-"����� ��� ���� ��� ������ ����: "
+"تغییر نام هنگام راه اندازی مجدد: "
 # ^Rename
-"����� ���: "
+"تغییر نام: "
 # ^Skipped
-"��� ���� ��: "
+"چشم پوشی شد: "
 # ^CopyDetails
-���������� ������ �� ��큝���
+نسخه‌برداری جزئیات در کلیپ‌برد
 # ^LogInstall
-��� ���� ���
+ثبت روند نصب
 # ^Byte
- ����
+ بایت
 # ^Kilo
- ����
+ کیلو
 # ^Mega
- ��
+ مگا
 # ^Giga
- ���
+ گیگا

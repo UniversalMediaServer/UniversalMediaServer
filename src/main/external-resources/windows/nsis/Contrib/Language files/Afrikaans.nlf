@@ -1,17 +1,17 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1078
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
 # Translation by Friedel Wolff
 # ^Branding
-Nullsoft Installeerstelsel %s
+Nullsoft Install System %s
 # ^SetupCaption
 $(^Name) Installasie
 # ^UninstallCaption
@@ -83,15 +83,15 @@ Lees die lisensieooreenkoms voordat u $(^NameDA) verwyder. KIes die eerste keuse
 # ^Custom
 Aangepast
 # ^ComponentsText
-Kies die komponente wat u wil installeer en deselekteer dié wat u nie wil installeer nie. $_CLICK
+Kies die komponente wat u wil installeer en deselekteer diÃ© wat u nie wil installeer nie. $_CLICK
 # ^ComponentsSubText1
 Kies die installasietipe:
 # ^ComponentsSubText2_NoInstTypes
-Kies die komponente wat geïnstalleer moet word:
+Kies die komponente wat geÃ¯nstalleer moet word:
 # ^ComponentsSubText2
-Of kies die komponente wat geïnstalleer moet word:
+Of kies die komponente wat geÃ¯nstalleer moet word:
 # ^UnComponentsText
-Kies die komponente wat u wil verwyder en deselekteer dié wat u nie wil verwyder nie. $_CLICK
+Kies die komponente wat u wil verwyder en deselekteer diÃ© wat u nie wil verwyder nie. $_CLICK
 # ^UnComponentsSubText1
 Kies die verwyderingstipe:
 # ^UnComponentsSubText2_NoInstTypes
@@ -99,7 +99,7 @@ Kies die komponente wat verwyder moet word:
 # ^UnComponentsSubText2
 Of kies die komponente wat verwyder moet word:
 # ^DirText
-$(^NameDA) sal in die volgende gids geïnstalleer word. Om elders te installeer, klik op Blaai en kies 'n ander een. $_CLICK
+$(^NameDA) sal in die volgende gids geÃ¯nstalleer word. Om elders te installeer, klik op Blaai en kies 'n ander een. $_CLICK
 # ^DirSubText
 Installasiegids
 # ^DirBrowseText
@@ -119,13 +119,13 @@ $(^NameDA) sal uit die volgende gids verwyder word. $_CLICK
 # ^UninstallingSubText
 Verwydering uit:
 # ^FileError
-Fout met skryf na lêer: \r\n\r\n$0\r\n\r\nKlik Staak om de installasie te stop,\r\nProbeer weer om weer te probeer of\r\nIgnoreer om dié lêer oor te slaan.
+Fout met skryf na lÃªer: \r\n\r\n$0\r\n\r\nKlik Staak om de installasie te stop,\r\nProbeer weer om weer te probeer of\r\nIgnoreer om diÃ© lÃªer oor te slaan.
 # ^FileError_NoIgnore
-Fout met skryf na lêer: \r\n\r\n$0\r\n\r\nKlik Probeer weer om op nuut te probeer, of \r\nKanselleer om die installasie te stop.
+Fout met skryf na lÃªer: \r\n\r\n$0\r\n\r\nKlik Probeer weer om op nuut te probeer, of \r\nKanselleer om die installasie te stop.
 # ^CantWrite
 "Kon nie skyf nie: "
 # ^CopyFailed
-Kopiëring het misluk
+KopiÃ«ring het misluk
 # ^CopyTo
 "Kopieer na "
 # ^Registering
@@ -143,7 +143,7 @@ Kopiëring het misluk
 # ^CreatedUninstaller
 "Verwyderingsprogram gemaak: "
 # ^Delete
-"Verwyder lêer: "
+"Verwyder lÃªer: "
 # ^DeleteOnReboot
 "Verwyder na herbegin van rekenaar: "
 # ^ErrorCreatingShortcut
@@ -151,7 +151,7 @@ Kopiëring het misluk
 # ^ErrorCreating
 "Fout met skep: "
 # ^ErrorDecompressing
-Fout met uitpak van data! Korrupte installasielêer?
+Fout met uitpak van data! Korrupte installasielÃªer?
 # ^ErrorRegistering
 Fout met registrasie van DLL
 # ^ExecShell
@@ -161,7 +161,7 @@ Fout met registrasie van DLL
 # ^Extract
 "Pak uit: "
 # ^ErrorWriting
-"Uitpak: fout met skryf na lêer "
+"Uitpak: fout met skryf na lÃªer "
 # ^InvalidOpcode
 Installasieprogram korrup: ongeldige opcode
 # ^NoOLE
@@ -183,8 +183,8 @@ Boekstaaf die installasieproses
 # ^Byte
 G
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 #  ^Giga
-G
+ G

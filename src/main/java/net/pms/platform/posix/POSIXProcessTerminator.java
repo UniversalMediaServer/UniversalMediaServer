@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.Locale;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import net.pms.service.process.AbstractProcessTerminator;
 import net.pms.service.process.ProcessInfo;
 import net.pms.service.process.ProcessManager;
 import net.pms.service.process.ProcessState;
-import net.pms.service.process.AbstractProcessTerminator;
 
 public class POSIXProcessTerminator extends AbstractProcessTerminator {
 

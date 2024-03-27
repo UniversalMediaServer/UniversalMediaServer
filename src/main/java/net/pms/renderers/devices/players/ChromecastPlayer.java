@@ -17,8 +17,9 @@
 package net.pms.renderers.devices.players;
 
 import java.io.IOException;
-import net.pms.dlna.DLNAResource;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import su.litvak.chromecast.api.v2.ChromeCast;
@@ -38,17 +39,18 @@ public class ChromecastPlayer extends LogicalPlayer {
 
 	@Override
 	public void setURI(String uri, String metadata) {
-		PlaylistItem item = resolveURI(uri, metadata);
-		if (item != null) {
+		PlaylistItem playlistItem = resolveURI(uri, metadata);
+		if (playlistItem != null) {
 			// this is a bit circular but what the heck
-			DLNAResource r = DLNAResource.getValidResource(item.getUri(), item.getName(), renderer);
-			if (r == null) {
+			StoreResource r = renderer.getMediaStore().getValidResource(playlistItem.getUri(), playlistItem.getName());
+			StoreItem item = r instanceof StoreItem libraryItem ? libraryItem : null;
+			if (item == null) {
 				LOGGER.debug("Bad media in cc seturi: " + uri);
 				return;
 			}
 			try {
 				api.launchApp(MEDIA_PLAYER);
-				api.load("", null, item.getUri(), r.mimeType());
+				api.load("", null, playlistItem.getUri(), item.mimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
 			}
@@ -153,8 +155,10 @@ public class ChromecastPlayer extends LogicalPlayer {
 						state.setMuted(status.volume.muted);
 					}
 					alert();
-				} catch (InterruptedException | IOException e) {
+				} catch (IOException e) {
 					LOGGER.debug("Bad chromecast mediastate " + e);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
 				}
 			}
 		};

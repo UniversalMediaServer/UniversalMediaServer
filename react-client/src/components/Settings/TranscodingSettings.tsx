@@ -14,9 +14,8 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Accordion, ActionIcon, Box, Button, Checkbox, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
+import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorSwatch, Grid, Group, Modal, NavLink, NumberInput, Select, Stack, Tabs, Text, Textarea, TextInput, Title, Tooltip } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
-import { Prism } from '@mantine/prism';
 import { useContext, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
 import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
@@ -90,21 +89,23 @@ export default function TranscodingSettings(
       [form.getInputProps('engines').value];
     if (!engine.isAvailable) {
       return (
-        <Tooltip label={allowHtml(i18n.get['ThereIsProblemTranscodingEngineX']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+        <Tooltip label={allowHtml(i18n.get('ThereIsProblemTranscodingEngineX')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <ActionIcon variant='transparent' size={20}>
+            <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+          </ActionIcon>
         </Tooltip>
       )
     } else if (items.includes(engine.id)) {
       return (
-        <Tooltip label={allowHtml(i18n.get['TranscodingEngineXEnabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation(); }}>
+        <Tooltip label={allowHtml(i18n.get('TranscodingEngineXEnabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+          <ActionIcon variant='transparent' size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation(); }}>
             <PlayerPlay strokeWidth={2} color={'green'} size={14} />
           </ActionIcon>
         </Tooltip>
       )
     }
     return (
-      <Tooltip label={allowHtml(i18n.get['TranscodingEngineXDisabled']?.replace('%s', engine.name))} {...defaultTooltipSettings}>
+      <Tooltip label={allowHtml(i18n.get('TranscodingEngineXDisabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
         <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, true); e.stopPropagation(); }}>
           <Ban color={'red'} size={14} />
         </ActionIcon>
@@ -122,16 +123,16 @@ export default function TranscodingSettings(
           canModify && moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
         }}
         renderList={({ children, props }) => (
-          <Stack justify='flex-start' align='flex-start' spacing='xs' {...props}>
+          <Stack justify='flex-start' align='flex-start' gap='xs' {...props}>
             {children}
           </Stack>
         )}
         renderItem={({ value, props, isDragged, isSelected }) => (
-          <Button {...props} color='gray' size='xs' compact
+          <Button {...props} color='gray' size='compact-xs'
             variant={isDragged || isSelected ? 'outline' : 'subtle'}
-            leftIcon={
+            leftSection={
               <>
-                <ActionIcon data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
+                <ActionIcon variant='transparent' data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
                   {engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
                 </ActionIcon>
                 {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
@@ -144,10 +145,10 @@ export default function TranscodingSettings(
         )}
       />
     ) : (
-      <Stack justify='flex-start' align='flex-start' spacing='xs'>
+      <Stack justify='flex-start' align='flex-start' gap='xs'>
         {engines.map((value: string) => (
-          <Button variant='subtle' color='gray' size='xs' compact key={value}
-            leftIcon={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
+          <Button variant='subtle' color='gray' size='compact-xs' key={value}
+            leftSection={getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
             onClick={() => setTranscodingContent(selectionSettings.transcodingEngines[value].id)}
           >
             {selectionSettings.transcodingEngines[value].name}
@@ -190,184 +191,176 @@ export default function TranscodingSettings(
 
   const getTranscodingCommon = () => {
     return (<>
-      <Title mt='sm' order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
-      <Stack spacing='xs'>
+      <Title mt='sm' order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
+      <Stack gap='xs'>
+        <Tooltip label={allowHtml(i18n.get('WhenEnabledDoNotTrancode'))} {...defaultTooltipSettings}>
+          <Checkbox
+            disabled={!canModify}
+            size='xs'
+            mt='xs'
+            label={i18n.get('DisableAllTranscoding')}
+            {...form.getInputProps('disable_transcoding', { type: 'checkbox' })}
+          />
+        </Tooltip>
         <TextInput
-          label={i18n.get['MaximumTranscodeBufferSize']}
+          disabled={!canModify || form.values['disable_transcoding']}
+          label={i18n.get('SkipTranscodingFollowingExtensions')}
+          size='xs'
+          style={{ flex: 1 }}
+          {...form.getInputProps('disable_transcode_for_extensions')}
+        />
+        <TextInput
+          disabled={!canModify || form.values['disable_transcoding']}
+          size='xs'
+          label={i18n.get('ForceTranscodingFollowingExtensions')}
+          style={{ flex: 1 }}
+          {...form.getInputProps('force_transcode_for_extensions')}
+        />
+        <TextInput
+          label={i18n.get('MaximumTranscodeBufferSize')}
           name='maximum_video_buffer_size'
-          sx={{ flex: 1 }}
+          style={{ flex: 1 }}
           size='xs'
           disabled={!canModify}
           {...form.getInputProps('maximum_video_buffer_size')}
         />
         <NumberInput
-          label={i18n.get['CpuThreadsToUse']?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
+          label={i18n.get('CpuThreadsToUse')?.replace('%d', defaultConfiguration.number_of_cpu_cores)}
           size='xs'
           max={defaultConfiguration.number_of_cpu_cores}
           min={1}
           disabled={!canModify}
           {...form.getInputProps('number_of_cpu_cores')}
         />
-        <Grid>
-          <Grid.Col span={10}>
-            <Checkbox
-              size='xs'
-              disabled={!canModify}
-              label={i18n.get['ChaptersSupportInTranscodeFolder']}
-              {...form.getInputProps('chapter_support', { type: 'checkbox' })}
-            />
-          </Grid.Col>
-          <Grid.Col span={2}>
-            <TextInput
-              size='xs'
-              sx={{ flex: 1 }}
-              disabled={!canModify || !form.values['chapter_support']}
-              {...form.getInputProps('chapter_interval')}
-            />
-          </Grid.Col>
-        </Grid>
-        <Checkbox
-          size='xs'
-          disabled={!canModify}
-          label={i18n.get['DisableSubtitles']}
-          {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
-        />
         <Tabs defaultValue='TranscodingVideoSettings'>
           <Tabs.List>
-            <Tabs.Tab value='TranscodingVideoSettings'>{i18n.get['VideoSettings']}</Tabs.Tab>
-            <Tabs.Tab value='TranscodingAudioSettings'>{i18n.get['AudioSettings']}</Tabs.Tab>
-            <Tabs.Tab value='TranscodingSubtitlesSettings'>{i18n.get['SubtitlesSettings']}</Tabs.Tab>
+            <Tabs.Tab value='TranscodingVideoSettings'>{i18n.get('VideoSettings')}</Tabs.Tab>
+            <Tabs.Tab value='TranscodingAudioSettings'>{i18n.get('AudioSettings')}</Tabs.Tab>
+            <Tabs.Tab value='TranscodingSubtitlesSettings'>{i18n.get('SubtitlesSettings')}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='TranscodingVideoSettings'>
-            <Stack spacing='xs'>
+            <Stack gap='xs'>
               <Checkbox
                 mt='xs'
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['EnableGpuAcceleration']}
+                label={i18n.get('EnableGpuAcceleration')}
                 {...form.getInputProps('gpu_acceleration', { type: 'checkbox' })}
               />
-              <Tooltip label={allowHtml(i18n.get['WhenEnabledMuxesDvd'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('WhenEnabledMuxesDvd'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['LosslessDvdVideoPlayback']}
+                  label={i18n.get('LosslessDvdVideoPlayback')}
                   {...form.getInputProps('mencoder_remux_mpeg2', { type: 'checkbox' })}
                 />
               </Tooltip>
-              <Tooltip label={allowHtml(i18n.get['AutomaticWiredOrWireless'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('AutomaticWiredOrWireless'))} {...defaultTooltipSettings}>
                 <TextInput
-                  label={i18n.get['TranscodingQualityMpeg2']}
+                  label={i18n.get('TranscodingQualityMpeg2')}
                   size='xs'
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   disabled={!canModify || form.values['automatic_maximum_bitrate']}
                   {...form.getInputProps('mpeg2_main_settings')}
                 />
               </Tooltip>
-              <Tooltip label={allowHtml(i18n.get['AutomaticSettingServeBestQuality'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('AutomaticSettingServeBestQuality'))} {...defaultTooltipSettings}>
                 <TextInput
-                  label={i18n.get['TranscodingQualityH264']}
+                  label={i18n.get('TranscodingQualityH264')}
                   size='xs'
-                  sx={{ flex: 1 }}
+                  style={{ flex: 1 }}
                   disabled={!canModify || form.values['automatic_maximum_bitrate']}
                   {...form.getInputProps('x264_constant_rate_factor')}
                 />
               </Tooltip>
-              <TextInput
-                disabled={!canModify}
-                label={i18n.get['SkipTranscodingFollowingExtensions']}
-                size='xs'
-                sx={{ flex: 1 }}
-                {...form.getInputProps('disable_transcode_for_extensions')}
-              />
-              <TextInput
-                disabled={!canModify}
-                size='xs'
-                label={i18n.get['ForceTranscodingFollowingExtensions']}
-                sx={{ flex: 1 }}
-                {...form.getInputProps('force_transcode_for_extensions')}
-              />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingAudioSettings'>
-            <Stack spacing='xs'>
+            <Stack gap='xs'>
               <Select
                 disabled={!canModify}
-                label={i18n.get['MaximumNumberAudioChannelsOutput']}
-                data={[{ value: '6', label: i18n.get['6Channels51'] }, { value: '2', label: i18n.get['2ChannelsStereo'] }]}
+                label={i18n.get('MaximumNumberAudioChannelsOutput')}
+                data={[{ value: '6', label: i18n.get('6Channels51') }, { value: '2', label: i18n.get('2ChannelsStereo') }]}
                 size='xs'
                 {...form.getInputProps('audio_channels')}
               />
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['UseLpcmForAudio']}
+                label={i18n.get('UseLpcmForAudio')}
                 {...form.getInputProps('audio_use_pcm', { type: 'checkbox' })}
               />
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['KeepAc3Tracks']}
+                label={i18n.get('KeepAc3Tracks')}
                 {...form.getInputProps('audio_remux_ac3', { type: 'checkbox' })}
               />
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['KeepDtsTracks']}
+                label={i18n.get('KeepDtsTracks')}
                 {...form.getInputProps('audio_embed_dts_in_pcm', { type: 'checkbox' })}
               />
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['EncodedAudioPassthrough']}
+                label={i18n.get('EncodedAudioPassthrough')}
                 {...form.getInputProps('encoded_audio_passthrough', { type: 'checkbox' })}
               />
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['Ac3ReencodingAudioBitrate']}
-                sx={{ flex: 1 }}
+                label={i18n.get('Ac3ReencodingAudioBitrate')}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('audio_bitrate')}
               />
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['AudioLanguagePriority']}
-                sx={{ flex: 1 }}
+                label={i18n.get('AudioLanguagePriority')}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('audio_languages')}
               />
             </Stack>
           </Tabs.Panel>
           <Tabs.Panel value='TranscodingSubtitlesSettings'>
-            <Stack spacing='xs'>
-              <Tooltip label={allowHtml(i18n.get['YouCanRearrangeOrderSubtitles'])} {...defaultTooltipSettings}>
+            <Stack gap='xs'>
+              <Checkbox
+                mt='xs'
+                disabled={!canModify}
+                size='xs'
+                label={i18n.get('DisableSubtitles')}
+                {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
+              />
+              <Tooltip label={allowHtml(i18n.get('YouCanRearrangeOrderSubtitles'))} {...defaultTooltipSettings}>
                 <TextInput
                   disabled={!canModify}
-                  label={i18n.get['SubtitlesLanguagePriority']}
-                  sx={{ flex: 1 }}
+                  label={i18n.get('SubtitlesLanguagePriority')}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('subtitles_languages')}
                 />
               </Tooltip>
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['ForcedLanguage']}
-                sx={{ flex: 1 }}
+                label={i18n.get('ForcedLanguage')}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('forced_subtitle_language')}
               />
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['ForcedTags']}
-                sx={{ flex: 1 }}
+                label={i18n.get('ForcedTags')}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('forced_subtitle_tags')}
               />
-              <Tooltip label={allowHtml(i18n.get['AnExplanationDefaultValueAudio'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('AnExplanationDefaultValueAudio'))} {...defaultTooltipSettings}>
                 <TextInput
                   disabled={!canModify}
-                  label={i18n.get['AudioSubtitlesLanguagePriority']}
-                  sx={{ flex: 1 }}
+                  label={i18n.get('AudioSubtitlesLanguagePriority')}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('audio_subtitles_languages')}
                 />
@@ -377,45 +370,45 @@ export default function TranscodingSettings(
                 size='xs'
                 path={form.getInputProps('alternate_subtitles_folder').value}
                 callback={form.setFieldValue}
-                label={i18n.get['AlternateSubtitlesFolder']}
+                label={i18n.get('AlternateSubtitlesFolder')}
                 formKey='alternate_subtitles_folder'
               ></DirectoryChooser>
               <Select
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['NonUnicodeSubtitleEncoding']}
+                label={i18n.get('NonUnicodeSubtitleEncoding')}
                 data={getI18nSelectData(selectionSettings.subtitlesCodepages)}
                 {...form.getInputProps('subtitles_codepage')}
               />
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['FribidiMode']}
+                label={i18n.get('FribidiMode')}
                 {...form.getInputProps('mencoder_subfribidi', { type: 'checkbox' })}
               />
               <DirectoryChooser
                 disabled={!canModify}
                 size='xs'
-                tooltipText={i18n.get['ToUseFontMustBeRegistered']}
+                tooltipText={i18n.get('ToUseFontMustBeRegistered')}
                 path={form.getInputProps('subtitles_font').value}
                 callback={form.setFieldValue}
-                label={i18n.get['SpecifyTruetypeFont']}
+                label={i18n.get('SpecifyTruetypeFont')}
                 formKey='subtitles_font'
               ></DirectoryChooser>
-              <Text size='xs'>{i18n.get['StyledSubtitles']}</Text>
+              <Text size='xs'>{i18n.get('StyledSubtitles')}</Text>
               <Grid>
                 <Grid.Col span={3}>
                   <TextInput
                     disabled={!canModify}
-                    label={i18n.get['FontScale']}
-                    sx={{ flex: 1 }}
+                    label={i18n.get('FontScale')}
+                    style={{ flex: 1 }}
                     size='xs'
                     {...form.getInputProps('subtitles_ass_scale')}
                   />
                 </Grid.Col>
                 <Grid.Col span={3}>
                   <NumberInput
-                    label={i18n.get['FontOutline']}
+                    label={i18n.get('FontOutline')}
                     size='xs'
                     disabled={!canModify}
                     {...form.getInputProps('mencoder_noass_outline')}
@@ -423,7 +416,7 @@ export default function TranscodingSettings(
                 </Grid.Col>
                 <Grid.Col span={3}>
                   <NumberInput
-                    label={i18n.get['FontShadow']}
+                    label={i18n.get('FontShadow')}
                     size='xs'
                     disabled={!canModify}
                     {...form.getInputProps('subtitles_ass_shadow')}
@@ -431,39 +424,39 @@ export default function TranscodingSettings(
                 </Grid.Col>
                 <Grid.Col span={3}>
                   <NumberInput
-                    label={i18n.get['MarginPx']}
+                    label={i18n.get('MarginPx')}
                     size='xs'
                     disabled={!canModify}
                     {...form.getInputProps('subtitles_ass_margin')}
                   />
                 </Grid.Col>
               </Grid>
-              <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesPrioritized'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('IfEnabledExternalSubtitlesPrioritized'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['AutomaticallyLoadSrtSubtitles']}
+                  label={i18n.get('AutomaticallyLoadSrtSubtitles')}
                   {...form.getInputProps('autoload_external_subtitles', { type: 'checkbox' })}
                 />
               </Tooltip>
-              <Tooltip label={allowHtml(i18n.get['IfEnabledExternalSubtitlesAlways'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('IfEnabledExternalSubtitlesAlways'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['ForceExternalSubtitles']}
+                  label={i18n.get('ForceExternalSubtitles')}
                   {...form.getInputProps('force_external_subtitles', { type: 'checkbox' })}
                 />
               </Tooltip>
-              <Tooltip label={allowHtml(i18n.get['IfEnabledWontModifySubtitlesStyling'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('IfEnabledWontModifySubtitlesStyling'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['UseEmbeddedStyle']}
+                  label={i18n.get('UseEmbeddedStyle')}
                   {...form.getInputProps('use_embedded_subtitles_style', { type: 'checkbox' })}
                 />
               </Tooltip>
               <Modal size='sm'
-                title={i18n.get['Color']}
+                title={i18n.get('Color')}
                 opened={subColorModalOpened}
                 onClose={() => setSubColorModalOpened(false)}
               >
@@ -477,14 +470,14 @@ export default function TranscodingSettings(
                   <Button
                     size='xs'
                     onClick={() => { canModify && form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
-                  >{i18n.get['Confirm']}</Button>
+                  >{i18n.get('Confirm')}</Button>
                 </Stack>
               </Modal>
               <Group>
                 <TextInput
                   disabled={!canModify}
-                  label={i18n.get['Color']}
-                  sx={{ flex: 1 }}
+                  label={i18n.get('Color')}
+                  style={{ flex: 1 }}
                   size='xs'
                   {...form.getInputProps('subtitles_color')}
                 />
@@ -495,20 +488,20 @@ export default function TranscodingSettings(
                   onClick={() => { if (canModify) { setSubColor(hexAToRgba(form.getInputProps('subtitles_color').value)); setSubColorModalOpened(true); } }}
                 />
               </Group>
-              <Tooltip label={allowHtml(i18n.get['DeterminesDownloadedLiveSubtitlesDeleted'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('DeterminesDownloadedLiveSubtitlesDeleted'))} {...defaultTooltipSettings}>
                 <Checkbox
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['DeleteDownloadedLiveSubtitlesAfter']}
+                  label={i18n.get('DeleteDownloadedLiveSubtitlesAfter')}
                   checked={!form.values['live_subtitles_keep']}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
                     form.setFieldValue('live_subtitles_keep', !event.currentTarget.checked);
                   }}
                 />
               </Tooltip>
-              <Tooltip label={allowHtml(i18n.get['SetsMaximumNumberLiveSubtitles'])} {...defaultTooltipSettings}>
+              <Tooltip label={allowHtml(i18n.get('SetsMaximumNumberLiveSubtitles'))} {...defaultTooltipSettings}>
                 <NumberInput
-                  label={i18n.get['LimitNumberLiveSubtitlesTo']}
+                  label={i18n.get('LimitNumberLiveSubtitlesTo')}
                   size='xs'
                   disabled={!canModify}
                   {...form.getInputProps('live_subtitles_limit')}
@@ -517,7 +510,7 @@ export default function TranscodingSettings(
               <Select
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['3dSubtitlesDepth']}
+                label={i18n.get('3dSubtitlesDepth')}
                 data={selectionSettings.subtitlesDepth}
                 {...form.getInputProps('3d_subtitles_depth')}
                 value={String(form.values['3d_subtitles_depth'])}
@@ -534,12 +527,12 @@ export default function TranscodingSettings(
 
   const getSimpleTranscodingCommon = () => {
     return (<>
-      <Title mt='sm' order={5}>{i18n.get['CommonTranscodeSettings']}</Title>
-      <Stack spacing='xs'>
+      <Title mt='sm' order={5}>{i18n.get('CommonTranscodeSettings')}</Title>
+      <Stack gap='xs'>
         <Checkbox
           size='xs'
           disabled={!canModify}
-          label={i18n.get['DisableSubtitles']}
+          label={i18n.get('DisableSubtitles')}
           {...form.getInputProps('disable_subtitles', { type: 'checkbox' })}
         />
       </Stack>
@@ -552,8 +545,8 @@ export default function TranscodingSettings(
       return (
         <>
           <Title my='sm' order={5}>{currentEngine.name}</Title>
-          <Stack spacing='xs'>
-            <Text size='xs'><ExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get['ThisEngineNotLoaded']}</Text>
+          <Stack gap='xs'>
+            <Text size='xs'><ExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get('ThisEngineNotLoaded')}</Text>
             <Text size='xs'>{i18n.getI18nFormat(currentEngine.statusText)}</Text>
           </Stack>
         </>
@@ -570,17 +563,17 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack justify='flex-start' align='flex-start' spacing='xs'>
+        <Stack justify='flex-start' align='flex-start' gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableExperimentalCodecs']}
+            label={i18n.get('EnableExperimentalCodecs')}
             {...form.getInputProps('vlc_use_experimental_codecs', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['AvSyncAlternativeMethod']}
+            label={i18n.get('AvSyncAlternativeMethod')}
             {...form.getInputProps('vlc_audio_sync_enabled', { type: 'checkbox' })}
           />
         </Stack>
@@ -596,11 +589,11 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['AutomaticAudioResampling']}
+            label={i18n.get('AutomaticAudioResampling')}
             {...form.getInputProps('audio_resample', { type: 'checkbox' })}
           />
         </Stack>
@@ -616,17 +609,17 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['ForceFpsParsedFfmpeg']}
+            label={i18n.get('ForceFpsParsedFfmpeg')}
             {...form.getInputProps('tsmuxer_forcefps', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['MuxAllAudioTracks']}
+            label={i18n.get('MuxAllAudioTracks')}
             {...form.getInputProps('tsmuxer_mux_all_audiotracks', { type: 'checkbox' })}
           />
         </Stack>
@@ -642,24 +635,24 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Title mb='sm' order={6}>{i18n.get['GeneralSettings']}</Title>
-        <Stack spacing='xs'>
+        <Title mb='sm' order={6}>{i18n.get('GeneralSettings')}</Title>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableMultithreading']}
+            label={i18n.get('EnableMultithreading')}
             {...form.getInputProps('mencoder_mt', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['SkipLoopFilterDeblocking']}
+            label={i18n.get('SkipLoopFilterDeblocking')}
             {...form.getInputProps('mencoder_skip_loop_filter', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['AvSyncAlternativeMethod']}
+            label={i18n.get('AvSyncAlternativeMethod')}
             {...form.getInputProps('mencoder_nooutofsync', { type: 'checkbox' })}
           />
           <Grid>
@@ -667,15 +660,15 @@ export default function TranscodingSettings(
               <Checkbox
                 disabled={!canModify}
                 size='xs'
-                label={i18n.get['ChangeVideoResolution']}
+                label={i18n.get('ChangeVideoResolution')}
                 {...form.getInputProps('mencoder_scaler', { type: 'checkbox' })}
               />
             </Grid.Col>
             <Grid.Col span={4}>
               <TextInput
                 disabled={!canModify || !form.values['mencoder_scaler']}
-                label={i18n.get['Width']}
-                sx={{ flex: 1 }}
+                label={i18n.get('Width')}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('mencoder_scalex')}
               />
@@ -683,7 +676,7 @@ export default function TranscodingSettings(
             <Grid.Col span={4}>
               <TextInput
                 disabled={!canModify || !form.values['mencoder_scaler']}
-                label={i18n.get['Height']}
+                label={i18n.get('Height')}
                 size='xs'
                 {...form.getInputProps('mencoder_scaley')}
               />
@@ -692,24 +685,24 @@ export default function TranscodingSettings(
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['ForceFramerateParsedFfmpeg']}
+            label={i18n.get('ForceFramerateParsedFfmpeg')}
             {...form.getInputProps('mencoder_forcefps', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['DeinterlaceFilter']}
+            label={i18n.get('DeinterlaceFilter')}
             {...form.getInputProps('mencoder_yadif', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['RemuxVideosTsmuxer']}
+            label={i18n.get('RemuxVideosTsmuxer')}
             {...form.getInputProps('mencoder_mux_compatible', { type: 'checkbox' })}
           />
           <TextInput
             disabled={!canModify}
-            label={i18n.get['CustomOptionsVf']}
+            label={i18n.get('CustomOptionsVf')}
             name='mencoder_custom_options'
             size='xs'
             {...form.getInputProps('mencoder_custom_options')}
@@ -718,51 +711,53 @@ export default function TranscodingSettings(
             size='xl'
             opened={mencoderAdvancedOpened}
             onClose={() => setMencoderAdvancedOpened(false)}
-            title={i18n.get['EditCodecSpecificParameters']}
+            title={i18n.get('EditCodecSpecificParameters')}
           >
             <Checkbox
               disabled={!canModify}
               size='xs'
-              label={i18n.get['UseApplicationDefaults']}
+              label={i18n.get('UseApplicationDefaults')}
               {...form.getInputProps('mencoder_intelligent_sync', { type: 'checkbox' })}
             />
-            <Prism language={'markup'}>{
-              i18n.get['MencoderConfigScript.1.HereYouCanInputSpecific'] +
-              i18n.get['MencoderConfigScript.2.WarningThisShouldNot'] +
-              i18n.get['MencoderConfigScript.3.SyntaxIsJavaCondition'] +
-              i18n.get['MencoderConfigScript.4.AuthorizedVariables'] +
-              i18n.get['MencoderConfigScript.5.SpecialOptions'] +
-              i18n.get['MencoderConfigScript.6.Noass'] +
-              i18n.get['MencoderConfigScript.7.Nosync'] +
-              i18n.get['MencoderConfigScript.8.Quality'] +
-              i18n.get['MencoderConfigScript.9.Nomux'] +
-              i18n.get['MencoderConfigScript.10.YouCanPut'] +
-              i18n.get['MencoderConfigScript.11.ToRemoveJudder'] +
-              i18n.get['MencoderConfigScript.12.ToRemux']}
-            </Prism>
+            <Code block>
+              {
+                i18n.get('MencoderConfigScript.1.HereYouCanInputSpecific') +
+                i18n.get('MencoderConfigScript.2.WarningThisShouldNot') +
+                i18n.get('MencoderConfigScript.3.SyntaxIsJavaCondition') +
+                i18n.get('MencoderConfigScript.4.AuthorizedVariables') +
+                i18n.get('MencoderConfigScript.5.SpecialOptions') +
+                i18n.get('MencoderConfigScript.6.Noass') +
+                i18n.get('MencoderConfigScript.7.Nosync') +
+                i18n.get('MencoderConfigScript.8.Quality') +
+                i18n.get('MencoderConfigScript.9.Nomux') +
+                i18n.get('MencoderConfigScript.10.YouCanPut') +
+                i18n.get('MencoderConfigScript.11.ToRemoveJudder') +
+                i18n.get('MencoderConfigScript.12.ToRemux')
+              }
+            </Code>
             <Textarea
               disabled={!canModify}
-              label={i18n.get['CustomParameters']}
+              label={i18n.get('CustomParameters')}
               name='mencoder_codec_specific_script'
               size='xs'
               {...form.getInputProps('mencoder_codec_specific_script')}
             />
           </Modal>
-          <Group position='center'>
-            <Button variant='subtle' compact onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get['CodecSpecificParametersAdvanced']}</Button>
+          <Group justify='center'>
+            <Button variant='subtle' size='compact-md' onClick={() => setMencoderAdvancedOpened(true)}>{i18n.get('CodecSpecificParametersAdvanced')}</Button>
           </Group>
           <Grid>
             <Grid.Col span={6}>
               <Text
                 size='xs'
                 style={{ marginTop: '14px' }}
-              >{i18n.get['AddBordersOverscanCompensation']}</Text>
+              >{i18n.get('AddBordersOverscanCompensation')}</Text>
             </Grid.Col>
             <Grid.Col span={3}>
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['Height'] + '(%)'}
-                sx={{ flex: 1 }}
+                label={i18n.get('Height') + '(%)'}
+                style={{ flex: 1 }}
                 size='xs'
                 {...form.getInputProps('mencoder_overscan_compensation_height')}
               />
@@ -770,25 +765,25 @@ export default function TranscodingSettings(
             <Grid.Col span={3}>
               <TextInput
                 disabled={!canModify}
-                label={i18n.get['Width'] + '(%)'}
+                label={i18n.get('Width') + '(%)'}
                 size='xs'
                 {...form.getInputProps('mencoder_overscan_compensation_width')}
               />
             </Grid.Col>
           </Grid>
         </Stack>
-        <Title my='sm' order={6}>{i18n.get['SubtitlesSettings']}</Title>
-        <Stack spacing='xs'>
+        <Title my='sm' order={6}>{i18n.get('SubtitlesSettings')}</Title>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['UseAssSubtitlesStyling']}
+            label={i18n.get('UseAssSubtitlesStyling')}
             {...form.getInputProps('mencoder_ass', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['FonconfigEmbeddedFonts']}
+            label={i18n.get('FonconfigEmbeddedFonts')}
             {...form.getInputProps('mencoder_fontconfig', { type: 'checkbox' })}
           />
         </Stack>
@@ -804,64 +799,64 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableMultithreading']}
+            label={i18n.get('EnableMultithreading')}
             {...form.getInputProps('ffmpeg_avisynth_multithreading', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableTrueMotion']}
+            label={i18n.get('EnableTrueMotion')}
             {...form.getInputProps('ffmpeg_avisynth_interframe', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableGpuUseTrueMotion']}
+            label={i18n.get('EnableGpuUseTrueMotion')}
             {...form.getInputProps('ffmpeg_avisynth_interframegpu', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableAvisynthVariableFramerate']}
+            label={i18n.get('EnableAvisynthVariableFramerate')}
             {...form.getInputProps('ffmpeg_avisynth_convertfps', { type: 'checkbox' })}
           />
           <Checkbox
             mt='xs'
             disabled={!canModify}
             size='xs'
-            label={i18n.get['UseFFMS2InsteadOfDirectShowSource']}
+            label={i18n.get('UseFFMS2InsteadOfDirectShowSource')}
             {...form.getInputProps('ffmpeg_avisynth_use_ffms2', { type: 'checkbox' })}
           />
           <Tabs defaultValue='2Dto3DConversionSettings'>
             <Tabs.List>
-              <Tabs.Tab value='2Dto3DConversionSettings'>{i18n.get['2Dto3DConversionSettings']}</Tabs.Tab>
+              <Tabs.Tab value='2Dto3DConversionSettings'>{i18n.get('2Dto3DConversionSettings')}</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value='2Dto3DConversionSettings'>
-              <Stack spacing='xs'>
+              <Stack gap='xs'>
                 <Checkbox
                   mt='xs'
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['Enable2Dto3DVideoConversion']}
+                  label={i18n.get('Enable2Dto3DVideoConversion')}
                   {...form.getInputProps('ffmpeg_avisynth_2d_to_3d_conversion', { type: 'checkbox' })}
                 />
                 <Select
                   disabled={!canModify}
-                  label={i18n.get['ConversionAlgorithm']}
+                  label={i18n.get('ConversionAlgorithm')}
                   data={[
-                    { value: '1', label: i18n.get['PulfrichBase'] },
-                    { value: '2', label: i18n.get['PulfrichandLighting'] }
+                    { value: '1', label: i18n.get('PulfrichBase') },
+                    { value: '2', label: i18n.get('PulfrichandLighting') }
                   ]}
                   size='xs'
                   {...form.getInputProps('ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d')}
                 />
-                <Tooltip label={allowHtml(i18n.get['SelectOrEnterFrameStretchFactorInPercent'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get('SelectOrEnterFrameStretchFactorInPercent'))} {...defaultTooltipSettings}>
                   <NumberInput
-                    label={i18n.get['FrameStretchFactor']}
+                    label={i18n.get('FrameStretchFactor')}
                     size='xs'
                     max={20}
                     min={0}
@@ -869,9 +864,9 @@ export default function TranscodingSettings(
                     {...form.getInputProps('ffmpeg_avisynth_frame_stretch_factor_2d_to_3d')}
                   />
                 </Tooltip>
-                <Tooltip label={allowHtml(i18n.get['SelectOrEnterLightingDepthOffsetFactor'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get('SelectOrEnterLightingDepthOffsetFactor'))} {...defaultTooltipSettings}>
                   <NumberInput
-                    label={i18n.get['LightingDepthOffsetFactor']}
+                    label={i18n.get('LightingDepthOffsetFactor')}
                     size='xs'
                     max={20}
                     min={1}
@@ -881,14 +876,14 @@ export default function TranscodingSettings(
                 </Tooltip>
                 <Select
                   disabled={!canModify}
-                  label={i18n.get['3DOutputFormat']}
+                  label={i18n.get('3DOutputFormat')}
                   data={[
-                    { value: '1', label: i18n.get['SBSFullSideBySide'] },
-                    { value: '2', label: i18n.get['TBOUFullTopBottom'] },
-                    { value: '3', label: i18n.get['HSBSHalfSideBySide'] },
-                    { value: '4', label: i18n.get['HTBHOUHalfTopBottom'] },
-                    { value: '5', label: i18n.get['HSBSUpscaledHalfSideBySide'] },
-                    { value: '6', label: i18n.get['HTBHOUUpscaledHalfTopBottom'] }
+                    { value: '1', label: i18n.get('SBSFullSideBySide') },
+                    { value: '2', label: i18n.get('TBOUFullTopBottom') },
+                    { value: '3', label: i18n.get('HSBSHalfSideBySide') },
+                    { value: '4', label: i18n.get('HTBHOUHalfTopBottom') },
+                    { value: '5', label: i18n.get('HSBSUpscaledHalfSideBySide') },
+                    { value: '6', label: i18n.get('HTBHOUUpscaledHalfTopBottom') }
                   ]}
                   size='xs'
                   {...form.getInputProps('ffmpeg_avisynth_output_format_index_3d')}
@@ -897,10 +892,10 @@ export default function TranscodingSettings(
                   mt='xs'
                   disabled={!canModify}
                   size='xs'
-                  label={i18n.get['ResizeVideoIfWidthLargerThan']}
+                  label={i18n.get('ResizeVideoIfWidthLargerThan')}
                   {...form.getInputProps('ffmpeg_avisynth_horizontal_resize', { type: 'checkbox' })}
                 />
-                <Tooltip label={allowHtml(i18n.get['SelectOrEnterTheMaximumWidthOfTheInputVideo'])} {...defaultTooltipSettings}>
+                <Tooltip label={allowHtml(i18n.get('SelectOrEnterTheMaximumWidthOfTheInputVideo'))} {...defaultTooltipSettings}>
                   <Select
                     disabled={!canModify}
                     label={''}
@@ -939,66 +934,66 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Stack spacing='xs'>
+        <Stack gap='xs'>
           <Select
             disabled={!canModify}
             size='xs'
-            label={i18n.get['LogLevelColon']}
+            label={i18n.get('LogLevelColon')}
             data={selectionSettings.ffmpegLoglevels}
             {...form.getInputProps('ffmpeg_logging_level')}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['EnableMultithreading']}
+            label={i18n.get('EnableMultithreading')}
             {...form.getInputProps('ffmpeg_multithreading', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['RemuxVideosTsmuxer']}
+            label={i18n.get('RemuxVideosTsmuxer')}
             {...form.getInputProps('ffmpeg_mux_tsmuxer_compatible', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['UseFontSettings']}
+            label={i18n.get('UseFontSettings')}
             {...form.getInputProps('ffmpeg_fontconfig', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['DeferMencoderTranscodingProblematic']}
+            label={i18n.get('DeferMencoderTranscodingProblematic')}
             {...form.getInputProps('ffmpeg_mencoder_problematic_subtitles', { type: 'checkbox' })}
           />
           <Checkbox
             disabled={!canModify}
             size='xs'
-            label={i18n.get['UseSoxHigherQualityAudio']}
+            label={i18n.get('UseSoxHigherQualityAudio')}
             {...form.getInputProps('ffmpeg_sox', { type: 'checkbox' })}
           />
           <NumberInput
             disabled={!canModify}
-            label={i18n.get['GpuDecodingThreadCount']}
+            label={i18n.get('GpuDecodingThreadCount')}
             size='xs'
             max={16}
             min={0}
             {...form.getInputProps('ffmpeg_gpu_decoding_acceleration_thread_number')}
           />
-          <Tooltip label={allowHtml(i18n.get['NvidiaAndAmdEncoders'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get('NvidiaAndAmdEncoders'))} {...defaultTooltipSettings}>
             <Select
               disabled={!canModify}
               size='xs'
-              label={i18n.get['AVCH264GPUEncodingAccelerationMethod']}
+              label={i18n.get('AVCH264GPUEncodingAccelerationMethod')}
               data={selectionSettings.gpuEncodingH264AccelerationMethods}
               {...form.getInputProps('ffmpeg_gpu_encoding_H264_acceleration_method')}
             />
           </Tooltip>
-          <Tooltip label={allowHtml(i18n.get['NvidiaAndAmdEncoders'])} {...defaultTooltipSettings}>
+          <Tooltip label={allowHtml(i18n.get('NvidiaAndAmdEncoders'))} {...defaultTooltipSettings}>
             <Select
               disabled={!canModify}
               size='xs'
-              label={i18n.get['HEVCH265GPUEncodingAccelerationMethod']}
+              label={i18n.get('HEVCH265GPUEncodingAccelerationMethod')}
               data={selectionSettings.gpuEncodingH265AccelerationMethods}
               {...form.getInputProps('ffmpeg_gpu_encoding_H265_acceleration_method')}
             />
@@ -1016,7 +1011,7 @@ export default function TranscodingSettings(
     return (
       <>
         <Title my='sm' order={5}>{selectionSettings.transcodingEngines[transcodingContent].name}</Title>
-        <Text size='xs'>{i18n.get['NoSettingsForNow']}</Text>
+        <Text size='xs'>{i18n.get('NoSettingsForNow')}</Text>
       </>
     )
   }
@@ -1075,11 +1070,11 @@ export default function TranscodingSettings(
     <Grid>
       <Grid.Col span={5}>
         <Box p='xs'>
-          <NavLink variant='subtle' color='gray' label={i18n.get['CommonTranscodeSettings']} onClick={() => setTranscodingContent('common')} />
+          <NavLink variant='subtle' color='gray' label={i18n.get('CommonTranscodeSettings')} onClick={() => setTranscodingContent('common')} />
           <Accordion>
             {getTranscodingEnginesAccordionItems()}
           </Accordion>
-          <Text size='xs'>{i18n.get['EnginesAreInDescending'] + ' ' + i18n.get['OrderTheHighestIsFirst']}</Text>
+          <Text size='xs'>{i18n.get('EnginesAreInDescending') + ' ' + i18n.get('OrderTheHighestIsFirst')}</Text>
         </Box>
       </Grid.Col>
       <Grid.Col span={7}>

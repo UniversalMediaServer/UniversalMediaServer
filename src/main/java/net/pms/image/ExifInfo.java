@@ -16,19 +16,19 @@
  */
 package net.pms.image;
 
-import java.awt.color.ColorSpace;
-import java.awt.image.ColorModel;
-import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import net.pms.util.InvalidStateException;
-import net.pms.util.ParseException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.ExifDirectoryBase;
 import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.ExifThumbnailDirectory;
+import java.awt.color.ColorSpace;
+import java.awt.image.ColorModel;
+import java.util.Arrays;
+import net.pms.util.InvalidStateException;
+import net.pms.util.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ExifInfo extends ImageInfo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExifInfo.class);

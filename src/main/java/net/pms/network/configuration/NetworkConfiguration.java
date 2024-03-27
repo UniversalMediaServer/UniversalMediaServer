@@ -16,6 +16,7 @@
  */
 package net.pms.network.configuration;
 
+import com.google.gson.JsonArray;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -30,14 +31,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonArray;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServerNetworkConfigurationListener;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class stores the network configuration information: which network
@@ -614,7 +614,7 @@ public class NetworkConfiguration {
 	}
 
 	/**
-	 * Returns the network interface for the servername configured in PMS, or
+	 * Returns the network interface for the servername configured in UMS, or
 	 * <code>null</code> if no servername is configured.
 	 *
 	 * @return The network interface.

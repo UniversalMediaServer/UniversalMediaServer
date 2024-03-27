@@ -17,7 +17,22 @@ unit nsis;
 interface
 
 uses
-  windows, CommCtrl, SysUtils;
+  windows, SysUtils
+{$IFNDEF FPC}
+  ,CommCtrl
+{$ENDIF}
+{$IF FPC_FULLVERSION < 30000} ; This is probably wrong
+  ,CommCtrl
+{$ENDIF}
+  ;
+
+{$IFDEF UNICODE}
+type NSISTString = System.WideString; // UnicodeString?
+type NSISPTChar = PWideChar;
+{$ELSE}
+type NSISTString = AnsiString;
+type NSISPTChar = PAnsiChar;
+{$ENDIF}
 
 type
   VarConstants = (
@@ -50,9 +65,18 @@ type
     );
   TVariableList = INST_0..__INST_LAST;
 
+type
+  PluginCallbackMessages = (
+    NSPIM_UNLOAD,   // This is the last message a plugin gets, do final cleanup
+    NSPIM_GUIUNLOAD // Called after .onGUIEnd
+    );
+  TNSPIM = NSPIM_UNLOAD..NSPIM_GUIUNLOAD;
+
+  //TPluginCallback = function (const NSPIM: Integer): Pointer; cdecl;
+
   TExecuteCodeSegment = function (const funct_id: Integer; const parent: HWND): Integer;  stdcall;
-  Tvalidate_filename = procedure (const filename: PChar); cdecl;
-  TRegisterPluginCallback = function (const unknow: Integer; const uknown2: Integer): Integer; cdecl;
+  Tvalidate_filename = procedure (const filename: NSISPTChar); stdcall;
+  TRegisterPluginCallback = function (const DllInstance: HMODULE; const CallbackFunction: Pointer): Integer; stdcall;
 
   pexec_flags_t = ^exec_flags_t;
   exec_flags_t = record
@@ -75,7 +99,7 @@ type
   pextrap_t = ^extrap_t;
   extrap_t = record
     exec_flags: Pointer; // exec_flags_t;
-    exec_code_segment: Pointer; //  TFarProc;
+    exec_code_segment: TExecuteCodeSegment; //  TFarProc;
     validate_filename: Pointer; // Tvalidate_filename;
     RegisterPluginCallback: Pointer; //TRegisterPluginCallback;
   end;
@@ -83,56 +107,50 @@ type
   pstack_t = ^stack_t;
   stack_t = record
     next: pstack_t;
-    text: PChar;
+    text: NSISPTChar;
   end;
 
 var
   g_stringsize: integer;
   g_stacktop: ^pstack_t;
-  g_variables: PChar;
+  g_variables: NSISPTChar;
   g_hwndParent: HWND;
   g_hwndList: HWND;
   g_hwndLogList: HWND;
-
   g_extraparameters: pextrap_t;
-  func : TExecuteCodeSegment;
-  extrap : extrap_t;
 
-procedure Init(const hwndParent: HWND; const string_size: integer; const variables: PChar; const stacktop: pointer; const extraparameters: pointer = nil);
-
+procedure Init(const hwndParent: HWND; const string_size: integer; const variables: NSISPTChar; const stacktop: pointer; const extraparameters: pointer = nil);
 function LogMessage(Msg : String): BOOL;
 function Call(NSIS_func : String) : Integer;
-function PopString(): string;
-procedure PushString(const str: string='');
-function GetUserVariable(const varnum: TVariableList): string;
-procedure SetUserVariable(const varnum: TVariableList; const value: string);
-procedure NSISDialog(const text, caption: string; const buttons: integer);
+function PopString(): NSISTString;
+procedure PushString(const str: NSISTString='');
+function GetUserVariable(const varnum: TVariableList): NSISTString;
+procedure SetUserVariable(const varnum: TVariableList; const value: NSISTString);
+procedure NSISDialog(const text, caption: NSISTString; const buttons: integer);
 
 implementation
 
-procedure Init(const hwndParent: HWND; const string_size: integer; const variables: PChar; const stacktop: pointer; const extraparameters: pointer = nil);
+procedure Init(const hwndParent: HWND; const string_size: integer; const variables: NSISPTChar; const stacktop: pointer; const extraparameters: pointer = nil);
 begin
   g_stringsize := string_size;
   g_hwndParent := hwndParent;
   g_stacktop   := stacktop;
   g_variables  := variables;
-  g_hwndList := 0;
-  g_hwndList := FindWindowEx(FindWindowEx(g_hwndParent, 0, '#32770', nil), 0,'SysListView32', nil);
+  g_hwndList   := FindWindowEx(FindWindowEx(g_hwndParent, 0, '#32770', nil), 0,'SysListView32', nil);
   g_extraparameters := extraparameters;
-  extrap := g_extraparameters^;
 end;
+
 
 function Call(NSIS_func : String) : Integer;
 var
-  NSISFun: Integer; //The ID of nsis function
+  codeoffset: Integer; //The ID of nsis function
 begin
   Result := 0;
-  NSISFun := StrToIntDef(NSIS_func, 0);
-  if (NSISFun <> 0) and (g_extraparameters <> nil) then
+  codeoffset := StrToIntDef(NSIS_func, 0);
+  if (codeoffset <> 0) and (g_extraparameters <> nil) then
     begin
-    @func := extrap.exec_code_segment;
-    NSISFun := NSISFun - 1;
-    Result := func(NSISFun, g_hwndParent);
+    codeoffset := codeoffset - 1;
+    Result := g_extraparameters.exec_code_segment(codeoffset, g_hwndParent);
     end;
 end;
 
@@ -147,36 +165,41 @@ begin
   ItemCount := SendMessage(g_hwndList, LVM_GETITEMCOUNT, 0, 0);
   item.iItem := ItemCount;
   item.mask := LVIF_TEXT;
-  item.pszText := PAnsiChar(Msg);
-  ListView_InsertItem(g_hwndList, item );
-  ListView_EnsureVisible(g_hwndList, ItemCount, TRUE);
+  item.pszText := PChar(Msg); // Unicode bug?
+  ListView_InsertItem(g_hwndList, item);
+  ListView_EnsureVisible(g_hwndList, ItemCount, not 0);
 end;
 
-function PopString(): string;
+function PopString(): NSISTString;
 var
   th: pstack_t;
 begin
-  if integer(g_stacktop^) <> 0 then begin
+  if NativeUInt(g_stacktop^) <> 0 then begin
     th := g_stacktop^;
-    Result := PChar(@th.text);
+    Result := NSISPTChar(@th.text);
     g_stacktop^ := th.next;
     GlobalFree(HGLOBAL(th));
   end;
 end;
 
-procedure PushString(const str: string='');
+procedure PushString(const str: NSISTString='');
 var
   th: pstack_t;
 begin
-  if integer(g_stacktop) <> 0 then begin
-    th := pstack_t(GlobalAlloc(GPTR, SizeOf(stack_t) + g_stringsize));
-    lstrcpyn(@th.text, PChar(str), g_stringsize);
+  if NativeUInt(g_stacktop) <> 0 then begin
+{$IFDEF UNICODE}
+    th := pstack_t(GlobalAlloc(GPTR, SizeOf(stack_t) + (g_stringsize * 2)));
+    lstrcpynW(@th.text, PWideChar(str), g_stringsize);
+{$ELSE}
+    th := pstack_t(GlobalAlloc(GPTR, SizeOf(stack_t) + (g_stringsize    )));
+    lstrcpynA(@th.text, PAnsiChar(str), g_stringsize);
+{$ENDIF}
     th.next := g_stacktop^;
     g_stacktop^ := th;
   end;
 end;
 
-function GetUserVariable(const varnum: TVariableList): string;
+function GetUserVariable(const varnum: TVariableList): NSISTString;
 begin
   if (integer(varnum) >= 0) and (integer(varnum) < integer(__INST_LAST)) then
     Result := g_variables + integer(varnum) * g_stringsize
@@ -184,15 +207,27 @@ begin
     Result := '';
 end;
 
-procedure SetUserVariable(const varnum: TVariableList; const value: string);
+procedure SetUserVariable(const varnum: TVariableList; const value: NSISTString);
 begin
-  if (value <> '') and (integer(varnum) >= 0) and (integer(varnum) < integer(__INST_LAST)) then
-    lstrcpy(g_variables + integer(varnum) * g_stringsize, PChar(value))
+  if (integer(varnum) >= 0) and (integer(varnum) < integer(__INST_LAST)) then
+{$IFDEF UNICODE}
+    lstrcpyW(g_variables + integer(varnum) * (g_stringsize), PWideChar(value))
+{$ELSE}
+    lstrcpyA(g_variables + integer(varnum) * (g_stringsize), PAnsiChar(value))
+{$ENDIF}
 end;
 
-procedure NSISDialog(const text, caption: string; const buttons: integer);
+procedure NSISDialog(const text, caption: NSISTString; const buttons: integer);
+var
+  hwndOwner: HWND;
 begin
-  MessageBox(g_hwndParent, PChar(text), PChar(caption), buttons);
+  hwndOwner := g_hwndParent;
+  if not IsWindow(g_hwndParent) then hwndOwner := 0; // g_hwndParent is not valid in NSPIM_[GUI]UNLOAD
+{$IFDEF UNICODE}
+  MessageBoxW(hwndOwner, PWideChar(text), PWideChar(caption), buttons);
+{$ELSE}
+  MessageBoxA(hwndOwner, PAnsiChar(text), PAnsiChar(caption), buttons);
+{$ENDIF}
 end;
 
 begin

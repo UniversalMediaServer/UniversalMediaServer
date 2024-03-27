@@ -16,17 +16,13 @@
  */
 package net.pms.network.mediaserver;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.jupnp.model.message.header.DeviceTypeHeader;
-import org.jupnp.model.types.DeviceType;
-import org.jupnp.transport.RouterException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import java.util.UUID;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
@@ -35,6 +31,9 @@ import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.jupnp.UmsUpnpService;
 import net.pms.network.mediaserver.mdns.MDNS;
 import net.pms.renderers.JUPnPDeviceHelper;
+import org.jupnp.transport.RouterException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
@@ -42,19 +41,28 @@ public class MediaServer {
 	public static final Map<Integer, String> VERSIONS = Map.of(
 		1, "JUPnP+ (Java)",
 		2, "JUPnP+ (Netty)",
+		3, "JUPnP+ (Servlet)",
 		4, "JUPnP (Netty)",
 		5, "JUPnP (Java)"
 	);
 
-	public static final int DEFAULT_VERSION = 4;
+	public static final int DEFAULT_VERSION = 2;
 
-	public static UmsUpnpService upnpService;
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
-	protected static int port = CONFIGURATION.getMediaServerPort();
-	protected static String hostname;
-	protected static InetAddress inetAddress;
-	protected static NetworkInterface networkInterface;
+	private static int port = CONFIGURATION.getMediaServerPort();
+	private static String hostname;
+	private static InetAddress inetAddress;
+	private static NetworkInterface networkInterface;
+	/**
+	 * User friendly name for the server.
+	 */
+	private static String serverName;
+	/**
+	 * Universally Unique Identifier used in the UPnP mediaServer.
+	 */
+	private static String uuid;
+	public static UmsUpnpService upnpService;
 
 	private static boolean init() {
 		//get config ip port
@@ -76,6 +84,7 @@ public class MediaServer {
 				Thread.sleep(100);
 			} catch (InterruptedException ex) {
 				LOGGER.info("Starting media server interrupted.");
+				Thread.currentThread().interrupt();
 				return false;
 			}
 		}
@@ -99,12 +108,12 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 4, 5 -> {
-							upnpService = new UmsUpnpService(false);
+						case 1, 2, 3 -> {
+							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 						}
-						case 1, 2 -> {
-							upnpService = new UmsUpnpService(true);
+						case 4, 5 -> {
+							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 						}
 					}
@@ -118,9 +127,7 @@ public class MediaServer {
 					LOGGER.error("FATAL ERROR: Unable to start upnp service");
 				} else {
 					upnpService.sendAlive();
-					for (DeviceType t : JUPnPDeviceHelper.MEDIA_RENDERER_TYPES) {
-						upnpService.getControlPoint().search(new DeviceTypeHeader(t));
-					}
+					JUPnPDeviceHelper.searchMediaRendererDevices();
 					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
 				}
 			}
@@ -247,4 +254,62 @@ public class MediaServer {
 
 		return jsonArray;
 	}
+
+	/**
+	 * Returns the user friendly name of the UMS server.
+	 *
+	 * @return {@link String} with the user friendly name.
+	 */
+	public static String getServerName() {
+		if (serverName == null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(System.getProperty("os.name").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.arch").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.version").replace(" ", "_"));
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(PMS.getVersion());
+			serverName = sb.toString();
+		}
+		return serverName;
+	}
+
+	/**
+	 * Get unique device name from {@link #uuid}.
+	 *
+	 * @return {@link String} with an unique device name.
+	 */
+	public static String getUniqueDeviceName() {
+		return "uuid:" + getUuid();
+	}
+
+	/**
+	 * Get saved server {@link #uuid} or creates a new random one.
+	 * <p>
+	 * These are used to uniquely identify the server to renderers (i.e.
+	 * renderers treat multiple servers with the same UUID as the same server).
+	 *
+	 * @return {@link String} with an Universally Unique Identifier.
+	 */
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
+	public static synchronized String getUuid() {
+		if (uuid == null) {
+			// Retrieve UUID from configuration
+			uuid = CONFIGURATION.getUuid();
+
+			if (uuid == null) {
+				uuid = UUID.randomUUID().toString();
+				LOGGER.info("Generated new random UUID: {}", uuid);
+
+				// save the newly-generated UUID
+				CONFIGURATION.setUuid(uuid);
+				CONFIGURATION.saveConfiguration();
+			}
+
+			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
+		}
+
+		return uuid;
+	}
+
 }

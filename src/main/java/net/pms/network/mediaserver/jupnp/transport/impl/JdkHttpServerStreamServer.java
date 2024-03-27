@@ -22,7 +22,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import net.pms.PMS;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.javahttpserver.RequestHandler;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
@@ -110,9 +110,10 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 		// This is executed in the request receiving thread!
 		@Override
 		public void handle(final HttpExchange httpExchange) throws IOException {
-			//check inetAddress allowed
-			if (!PMS.getConfiguration().getIpFiltering().allowed(httpExchange.getRemoteAddress().getAddress())) {
-				LOGGER.trace("Ip Filtering denying address: {}", httpExchange.getRemoteAddress().getAddress().getHostAddress());
+			//check inetAddress isAllowed
+			InetAddress remoteAddress = httpExchange.getRemoteAddress().getAddress();
+			if (!NetworkDeviceFilter.isAllowed(remoteAddress)) {
+				LOGGER.trace("Ip Filtering denying address: {}", remoteAddress.getHostAddress());
 				httpExchange.close();
 				return;
 			}
@@ -127,7 +128,7 @@ public class JdkHttpServerStreamServer implements StreamServer<UmsStreamServerCo
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + MediaServer.getUuid()) && uri.contains("/ContentDirectory/")) {
 					requestHandler.handle(httpExchange);
 					return;
 				}

@@ -29,7 +29,7 @@ XPStyle on
 ; It is not enough to just add the placeholder, we must set the image too...
 ; We will later set the image in every pre-page function.
 ; We can also set just one persistent image in .onGUIInit
-AddBrandingImage left 100
+AddBrandingImage left 100u
 
 ; Sets the font of the installer
 SetFont "Comic Sans MS" 8
@@ -62,7 +62,7 @@ Section ""
 	MessageBox MB_YESNO "We can change the branding image from within a section too!$\nDo you want me to change it?" IDNO done
 		!insertmacro BIMAGE "${NSISDIR}\Contrib\Graphics\Wizard\nsis.bmp" ""
 	done:
-	WriteUninstaller uninst.exe
+	WriteUninstaller $INSTDIR\uninst.exe
 SectionEnd
 
 ;--------------------------------

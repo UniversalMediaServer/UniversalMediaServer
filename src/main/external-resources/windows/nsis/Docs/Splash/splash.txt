@@ -15,7 +15,7 @@ Function .onInit
   File /oname=spltmp.bmp "my_splash.bmp"
 
 ; optional
-; File /oname=spltmp.wav "my_splashshit.wav"
+; File /oname=spltmp.wav "my_splashsound.wav"
 
   splash::show 1000 $TEMP\spltmp
 

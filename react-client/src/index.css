@@ -49,15 +49,15 @@ code {
 .media-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  grid-template-rows: 1;
   column-gap: 20px;
 }
 
 .thumbnail-container {
   text-align: center;
-  background-color: #000;
+  background-color: var(--mantine-color-default);
+  color: var(--mantine-color-text);
   cursor: pointer;
-  max-height: 220px;
+  height: 220px;
   margin-bottom: 20px;
 }
 
@@ -66,31 +66,26 @@ code {
   overflow-y: hidden;
 }
 
-.front-page-grid .thumbnail-container {
-  width: 310px;
-  display: inline-block;
-  margin-right: 20px;
-  height: 100%;
-}
-
 .thumbnail-container:hover {
-  box-shadow: 0 6px 9px rgb(0 0 0 / 53%), 0 6px 9px rgb(0 0 0 / 53%);
-  -webkit-transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-  transition: box-shadow .18s cubic-bezier(0.4,0,.2,1);
-  color: #eee;
+  background-color: var(--mantine-color-default-hover);
+  color: var(--mantine-color-bright);
 }
 
-.thumbnail-image {
-  object-fit: contain;
-  width: 100%;
-  height: calc(100% - 46px);
+nav button .mantine-Button-inner {
+  justify-content: normal;
+  font-weight: 400;
+  color: var(--mantine-color-text);
 }
 
-.thumbnail-text-wrapper {
-  padding: 12px 12px 12px 15px;
+nav button .mantine-Button-inner:hover {
+  font-weight:600;
+  color: var(--mantine-color-bright);
 }
 
-.poster {
-  max-width: 100%;
-  max-height: 100%;
+.mantine-Breadcrumbs-root .mantine-Button-inner {
+  color: var(--mantine-color-text);
+}
+
+.mantine-Breadcrumbs-root .mantine-Button-inner:hover {
+  color: var(--mantine-color-bright);
 }

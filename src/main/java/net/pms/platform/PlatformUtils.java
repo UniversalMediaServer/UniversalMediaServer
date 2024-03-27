@@ -19,8 +19,7 @@ package net.pms.platform;
 import com.sun.jna.Platform;
 import com.sun.jna.platform.FileUtils;
 import com.vdurmont.semver4j.Semver;
-import java.awt.*;
-import java.awt.event.ActionEvent;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -35,23 +34,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.concurrent.GuardedBy;
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.newgui.LooksFrame;
 import net.pms.platform.linux.LinuxPipeProcess;
 import net.pms.platform.linux.LinuxUtils;
 import net.pms.platform.mac.MacUtils;
 import net.pms.platform.posix.POSIXProcessTerminator;
 import net.pms.platform.solaris.SolarisUtils;
 import net.pms.platform.windows.WindowsUtils;
-import net.pms.service.process.ProcessManager;
 import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.process.ProcessManager;
 import net.pms.service.sleep.AbstractSleepWorker;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
-import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
 import net.pms.util.Version;
 import org.apache.commons.lang3.StringUtils;
@@ -67,7 +63,7 @@ public class PlatformUtils implements IPlatformUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlatformUtils.class);
 
 	/** *  The singleton platform dependent {@link IPlatformUtils} instance */
-	public static final IPlatformUtils INSTANCE = PlatformUtils.createInstance();
+	public static final IPlatformUtils INSTANCE = createInstance();
 	protected static final Object IS_ADMIN_LOCK = new Object();
 	protected static final Object DEFAULT_FOLDERS_LOCK = new Object();
 
@@ -178,50 +174,6 @@ public class PlatformUtils implements IPlatformUtils {
 		return ni.isLoopback();
 	}
 
-	@Override
-	public void addSystemTray(final LooksFrame frame, boolean updateAvailable) {
-		if (SystemTray.isSupported()) {
-			SystemTray tray = SystemTray.getSystemTray();
-
-			Image trayIconImage = resolveTrayIcon(updateAvailable);
-
-			PopupMenu popup = new PopupMenu();
-			MenuItem defaultItem = new MenuItem(Messages.getString("Quit"));
-			MenuItem traceItem = new MenuItem(Messages.getString("SettingsOld"));
-
-			defaultItem.addActionListener((ActionEvent e) -> PMS.quit());
-
-			traceItem.addActionListener((ActionEvent e) -> frame.setVisible(true));
-
-			if (PMS.getConfiguration().useWebPlayerServer()) {
-				MenuItem webPlayerItem = new MenuItem(Messages.getString("WebPlayer"));
-				webPlayerItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getWebPlayerServer().getUrl()));
-				popup.add(webPlayerItem);
-			}
-
-			MenuItem webGuiItem = new MenuItem(Messages.getString("Settings"));
-			webGuiItem.addActionListener((ActionEvent e) -> browseURI(PMS.get().getGuiServer().getUrl()));
-			popup.add(webGuiItem);
-			popup.add(traceItem);
-			popup.add(defaultItem);
-
-			final TrayIcon trayIcon = new TrayIcon(trayIconImage, PropertiesUtil.getProjectProperties().get("project.name"), popup);
-
-			trayIcon.setImageAutoSize(true);
-			trayIcon.addActionListener((ActionEvent e) -> {
-				browseURI(PMS.get().getGuiServer().getUrl());
-			});
-			try {
-				if (tray.getTrayIcons().length > 0) {
-					tray.remove(tray.getTrayIcons()[0]);
-				}
-				tray.add(trayIcon);
-			} catch (AWTException e) {
-				LOGGER.debug("Caught exception", e);
-			}
-		}
-	}
-
 	/**
 	 * Fetch the hardware address for a network interface.
 	 *
@@ -271,22 +223,9 @@ public class PlatformUtils implements IPlatformUtils {
 		return ((packetSize + 8) / 1500) + 1;
 	}
 
-	protected String getTrayIcon() {
-		return "icon-24.png";
-	}
-
-	protected String getTrayIconUpdate() {
-		return "icon-updatable-2.png";
-	}
-
-	/**
-	 * Return the proper tray icon for the operating system.
-	 *
-	 * @return The tray icon.
-	 */
-	protected Image resolveTrayIcon(boolean updateAvailable) {
-		String icon = updateAvailable ? getTrayIconUpdate() : getTrayIcon();
-		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
+	@Override
+	public String getTrayIcon() {
+		return "icon";
 	}
 
 	@Override
@@ -369,7 +308,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
+	public String[] getShutdownCommand() {
 		return null;
 	}
 

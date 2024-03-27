@@ -16,6 +16,7 @@
  */
 package net.pms.util;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
@@ -38,8 +39,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.translate.UnicodeUnescaper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,107 +70,6 @@ public class StringUtil {
 	public static final long EXA = 1000000000000000000L;
 
 	/**
-	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical
-	 * HTML/DIDL/XML tag opening.
-	 *
-	 * @param sb String to append the tag beginning to.
-	 * @param tag String that represents the tag
-	 */
-	public static void openTag(StringBuilder sb, String tag) {
-		sb.append("&lt;");
-		sb.append(tag);
-	}
-
-	/**
-	 * Appends the closing symbol &gt; to the StringBuilder. This is a typical
-	 * HTML/DIDL/XML tag closing.
-	 *
-	 * @param sb String to append the ending character of a tag.
-	 */
-	public static void endTag(StringBuilder sb) {
-		sb.append("&gt;");
-	}
-
-	/**
-	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical
-	 * closing HTML/DIDL/XML tag.
-	 *
-	 * @param sb
-	 * @param tag
-	 */
-	public static void closeTag(StringBuilder sb, String tag) {
-		sb.append("&lt;/");
-		sb.append(tag);
-		sb.append("&gt;");
-	}
-
-	public static void addAttribute(StringBuilder sb, String attribute, Object value) {
-		sb.append(' ');
-		sb.append(attribute);
-		sb.append("=\"");
-		sb.append(value);
-		sb.append("\"");
-	}
-
-	public static void addXMLTagAndAttribute(StringBuilder sb, String tag, Object value) {
-		sb.append("&lt;");
-		sb.append(tag);
-		sb.append("&gt;");
-		sb.append(value);
-		sb.append("&lt;/");
-		sb.append(tag);
-		sb.append("&gt;");
-	}
-
-	public static void addXMLTagAndAttributeWithRole(StringBuilder sb, String tag, Object value) {
-		String myTagWithoutRole = tag.split(" ")[0];
-		sb.append("&lt;");
-		sb.append(tag);
-		sb.append("&gt;");
-		sb.append(value);
-		sb.append("&lt;/");
-		sb.append(myTagWithoutRole);
-		sb.append("&gt;");
-	}
-
-	/**
-	 * Does double transformations between &<> characters and their XML
-	 * representation with ampersands.
-	 *
-	 * @param s String to be encoded
-	 * @return Encoded String
-	 */
-	public static String encodeXML(String s) {
-		s = s.replace("&", "&amp;");
-		s = s.replace("<", "&lt;");
-		s = s.replace(">", "&gt;");
-		/*
-		 * Skip encoding/escaping ' and " for compatibility with some renderers
-		 * This might need to be made into a renderer option if some renderers
-		 * require them to be encoded s = s.replace("\"", "&quot;"); s =
-		 * s.replace("'", "&apos;");
-		 */
-
-		// The second encoding/escaping of & is not a bug, it's what effectively
-		// adds the second layer of encoding/escaping
-		s = s.replace("&", "&amp;");
-		return s;
-	}
-
-	/**
-	 * Removes xml character representations.
-	 *
-	 * @param s String to be cleaned
-	 * @return Encoded String
-	 */
-	public static String unEncodeXML(String s) {
-		// Note: ampersand substitution must be first in order to undo double
-		// transformations
-		// TODO: support ' and " if/when required, see encodeXML() above
-		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
-	}
-
-	/**
 	 * Converts a URL string to a more canonical form
 	 *
 	 * @param url String to be converted
@@ -196,7 +95,7 @@ public class StringUtil {
 	 * @return
 	 */
 	public static double convertStringToTime(String time) throws IllegalArgumentException {
-		if (isBlank(time)) {
+		if (StringUtils.isBlank(time)) {
 			throw new IllegalArgumentException("time String should not be blank.");
 		}
 
@@ -279,7 +178,7 @@ public class StringUtil {
 	 */
 	public static String shortTime(String t, int n) {
 		n = n < 8 ? n : 8;
-		if (!isBlank(t)) {
+		if (!StringUtils.isBlank(t)) {
 			if (t.startsWith("NOT_IMPLEMENTED")) {
 				return t.length() > 15 ? t.substring(15) : " ";
 			}
@@ -306,7 +205,7 @@ public class StringUtil {
 	}
 
 	public static boolean isZeroTime(String t) {
-		return isBlank(t) || "00:00:00.000".contains(t);
+		return StringUtils.isBlank(t) || "00:00:00.000".contains(t);
 	}
 
 	/**
@@ -317,7 +216,7 @@ public class StringUtil {
 	 * @return The extracted year or {@code -1} if no valid year is found.
 	 */
 	public static int getYear(CharSequence date) {
-		if (isBlank(date)) {
+		if (StringUtils.isBlank(date)) {
 			return -1;
 		}
 		Pattern pattern = Pattern.compile("\\b\\d{4}\\b");
@@ -674,8 +573,8 @@ public class StringUtil {
 			}
 		}
 
-		if (blankIsNull && (isBlank(first) || isBlank(second))) {
-			return isBlank(first) && isBlank(second);
+		if (blankIsNull && (StringUtils.isBlank(first) || StringUtils.isBlank(second))) {
+			return StringUtils.isBlank(first) && StringUtils.isBlank(second);
 		}
 
 		return first.equals(second);
@@ -862,7 +761,7 @@ public class StringUtil {
 		Charset charset,
 		int indentWidth
 	) throws SAXException, ParserConfigurationException, XPathExpressionException, TransformerException {
-		if (isBlank(xml)) {
+		if (StringUtils.isBlank(xml)) {
 			return "";
 		}
 		if (charset == null) {
@@ -1052,7 +951,7 @@ public class StringUtil {
 		} else {
 			separator += " ";
 		}
-		if (isBlank(lastSeparator)) {
+		if (StringUtils.isBlank(lastSeparator)) {
 			lastSeparator = " and ";
 		} else {
 			if (!lastSeparator.substring(0, 1).equals(" ")) {
@@ -1267,7 +1166,7 @@ public class StringUtil {
 			return unknownTrue ? number.intValue() != 0 : number.intValue() == 1;
 		}
 		String stringValue = value.toString();
-		if (isBlank(stringValue)) {
+		if (StringUtils.isBlank(stringValue)) {
 			return false;
 		}
 		stringValue = stringValue.trim().toLowerCase(Locale.ROOT);

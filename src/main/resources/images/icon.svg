@@ -1,0 +1,35 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="32" height="32">
+	<title>Universal Media Server </title>
+	<desc>UMS logo - Created by Surf@ceS</desc>
+	<defs>
+		<linearGradient id="a" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#DDD"/>
+			<stop offset="100%" stop-color="#7B7B7B"/>
+		</linearGradient>
+		<radialGradient id="b">
+			<stop offset="0%" stop-color="#DDFDFE"/>
+			<stop offset="60%" stop-color="#619DC0"/>
+			<stop offset="100%" stop-color="#4B8CB5"/>
+		</radialGradient>
+		<linearGradient id="c" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#2C546D"/>
+			<stop offset="100%" stop-color="#4B8CB5"/>
+		</linearGradient>
+		<path id="d" fill="#FFF" stroke="#4B8CB5" stroke-width=".2" d="M9.7 15.8a16 16 0 0 1-1.6-5.4c0-1.7.9-3.2 2.2-3.8 1.8-.8 3.8-.4 5.9 1.3a22 22 0 0 1 8.1 13.2c1 0 1.8.9 1.7 1.8 0 1-.9 1.8-1.9 1.8-1.8 0-2.5-2.9-.3-3.6l-.2-.8c-1.8-6.2-7.9-12-11.7-10.9-.7.1-1.4.9-1.7 1.8-.2.9-.6 2.4-.3 4z"/>
+		<radialGradient id="e">
+			<stop offset="0%" stop-color="red"/>
+			<stop offset="60%" stop-color="red"/>
+			<stop offset="100%" stop-color="red" stop-opacity="0"/>
+		</radialGradient>
+	</defs>
+	<circle r="1" fill="url(#a)" transform="matrix(16 0 0 16 16 16)"/>
+	<circle r="1" fill="url(#b)" stroke="url(#c)" stroke-width=".1" transform="matrix(14 0 0 14 16 16)"/>
+	<circle r="1" id="small" fill="#4B8CB5" opacity="0" transform="matrix(14 0 0 14 16 16)"/>
+	<use xlink:href="#d" transform="rotate(240 16 16)"/>
+	<use xlink:href="#d" transform="rotate(120 16 16)"/>
+	<use xlink:href="#d"/>
+	<circle id="updatable" r="1" fill="url(#e)" opacity="0" transform="matrix(6 0 0 6 26.2 5.8)"/>
+</svg>

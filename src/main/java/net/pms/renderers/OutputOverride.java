@@ -17,9 +17,9 @@
 package net.pms.renderers;
 
 import java.util.List;
-import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Engine;
 import net.pms.io.OutputParams;
+import net.pms.store.StoreResource;
 
 public interface OutputOverride {
 	/**
@@ -27,13 +27,13 @@ public interface OutputOverride {
 	 * To be invoked by the engine after input and filter options are complete.
 	 *
 	 * @param cmdList the command so far
-	 * @param dlna the media item
+	 * @param resource the media item
 	 * @param engine the engine
 	 * @param params the output parameters
 	 *
 	 * @return whether the options have been finalized
 	 */
-	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Engine engine, OutputParams params);
+	public boolean getOutputOptions(List<String> cmdList, StoreResource resource, Engine engine, OutputParams params);
 
 	public boolean addSubtitles();
 }

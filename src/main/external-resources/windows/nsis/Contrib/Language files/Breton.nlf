@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,35 +6,35 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
-# Translation by KAD-Korvigelloù an Drouizig (drouizig@drouizig.org)
+# Translation by KAD-KorvigelloÃ¹ an Drouizig (drouizig@drouizig.org)
 # ^Branding
-Reizhiad staliañ Nullsoft %s
+Nullsoft Install System %s
 # ^SetupCaption
-Staliañ ha kefluniañ $(^Name)
+StaliaÃ± ha kefluniaÃ± $(^Name)
 # ^UninstallCaption
-Distaliañ $(^Name)
+DistaliaÃ± $(^Name)
 # ^LicenseSubCaption
-: Aotre arverañ
+: Aotre arveraÃ±
 # ^ComponentsSubCaption
-: Dibaboù staliañ
+: DibaboÃ¹ staliaÃ±
 # ^DirSubCaption
-: Kavlec'h staliañ
+: Kavlec'h staliaÃ±
 # ^InstallingSubCaption
-: O staliañ ar restroù
+: O staliaÃ± ar restroÃ¹
 # ^CompletedSubCaption
 : Echu eo
 # ^UnComponentsSubCaption
-: Dibaboù distaliañ
+: DibaboÃ¹ distaliaÃ±
 # ^UnDirSubCaption
-: Kavlec'h distaliañ
+: Kavlec'h distaliaÃ±
 # ^ConfirmSubCaption
-: Kadarnañ
+: KadarnaÃ±
 # ^UninstallingSubCaption
-: O tistaliañ ar restroù
+: O tistaliaÃ± ar restroÃ¹
 # ^UnCompletedSubCaption
 : Echu eo
 # ^BackBtn
@@ -44,73 +44,73 @@ Distaliañ $(^Name)
 # ^AgreeBtn
 &A-du emaon
 # ^AcceptBtn
-&Degemer holl dermoù al lañvaz emglev
+&Degemer holl dermoÃ¹ al laÃ±vaz emglev
 # ^DontAcceptBtn
-&Chom hep degemer termoù al lañvaz emglev
+&Chom hep degemer termoÃ¹ al laÃ±vaz emglev
 # ^InstallBtn
-&Staliañ
+&StaliaÃ±
 # ^UninstallBtn
-&Distaliañ
+&DistaliaÃ±
 # ^CancelBtn
-Nullañ
+NullaÃ±
 # ^CloseBtn
-&Serriñ
+&SerriÃ±
 # ^BrowseBtn
 F&urchal...
 # ^ShowDetailsBtn
-Muioc'h a &ditouroù
+Muioc'h a &ditouroÃ¹
 # ^ClickNext
-Klikit war « War-lerc'h » evit mont war-raok.
+Klikit war Â« War-lerc'h Â» evit mont war-raok.
 # ^ClickInstall
-Klikit war « Staliañ » evit kregiñ gant ar staliadur.
+Klikit war Â« StaliaÃ± Â» evit kregiÃ± gant ar staliadur.
 # ^ClickUninstall
-Klikit war « Distaliañ » evit kregiñ gant an distaliadur.
+Klikit war Â« DistaliaÃ± Â» evit kregiÃ± gant an distaliadur.
 # ^Name
 Anv
 # ^Completed
 Echu eo
 # ^LicenseText
-Bezit aketus en ur lenn an aotre arverañ a-raok staliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war « A-du emaon ».
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok staliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war Â« A-du emaon Â».
 # ^LicenseTextCB
-Bezit aketus en ur lenn an aotre arverañ a-raok staliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war al log a-zindan. $_CLICK
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok staliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war al log a-zindan. $_CLICK
 # ^LicenseTextRB
-Bezit aketus en ur lenn an aotre arverañ a-raok staliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, dizuzit an dibab kentañ a-zindan. $_CLICK
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok staliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, dizuzit an dibab kentaÃ± a-zindan. $_CLICK
 # ^UnLicenseText
-Bezit aketus en ur lenn an aotre arverañ a-raok distaliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war « A-du emaon ».
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok distaliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war Â« A-du emaon Â».
 # ^UnLicenseTextCB
-Bezit aketus en ur lenn an aotre arverañ a-raok distaliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war al log a-zindan. $_CLICK
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok distaliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, klikit war al log a-zindan. $_CLICK
 # ^UnLicenseTextRB
-Bezit aketus en ur lenn an aotre arverañ a-raok distaliañ $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, diuzit an dibab kentañ a-zindan. $_CLICK
+Bezit aketus en ur lenn an aotre arveraÃ± a-raok distaliaÃ± $(^NameDA) mar plij. Mar degemerit pep term eus an aotre, diuzit an dibab kentaÃ± a-zindan. $_CLICK
 # ^Custom
 Diouzh ho kiz
 # ^ComponentsText
-Dibabit an elfennoù a fell deoc'h staliañ pe diziuzit an elfennoù a fell deoc'h leuskel a-gostez. $_CLICK
+Dibabit an elfennoÃ¹ a fell deoc'h staliaÃ± pe diziuzit an elfennoÃ¹ a fell deoc'h leuskel a-gostez. $_CLICK
 # ^ComponentsSubText1
-Dibabit pe seurt staliañ a vo :
+Dibabit pe seurt staliaÃ± a vo :
 # ^ComponentsSubText2_NoInstTypes
-Dibabit an elfennoù da staliañ :
+Dibabit an elfennoÃ¹ da staliaÃ± :
 # ^ComponentsSubText2
-Pe dibabit an elfennoù diret a fell deoc'h staliañ :
+Pe dibabit an elfennoÃ¹ diret a fell deoc'h staliaÃ± :
 # ^UnComponentsText
-Dibabit an elfennoù a fell deoc'h distaliañ pe diziuzit an elfennoù a fell deoc'h mirout. $_CLICK
+Dibabit an elfennoÃ¹ a fell deoc'h distaliaÃ± pe diziuzit an elfennoÃ¹ a fell deoc'h mirout. $_CLICK
 # ^UnComponentsSubText1
-Dibabit peseurt distaliañ a vo :
+Dibabit peseurt distaliaÃ± a vo :
 # ^UnComponentsSubText2_NoInstTypes
-Dibabit an elfennoù da zistaliañ :
+Dibabit an elfennoÃ¹ da zistaliaÃ± :
 # ^UnComponentsSubText2
-Pe dibabit an elfennoù diret a fell deoc'h distaliañ :
+Pe dibabit an elfennoÃ¹ diret a fell deoc'h distaliaÃ± :
 # ^DirText
-Staliet e vo $(^NameDA) gant ar goulev-mañ er c'havlec'h da-heul. Mar fell deoc'h dibab ur c'havlec'h all, klikit war « Furchal » ha dibabit ur c'havlec'h all. $_CLICK
+Staliet e vo $(^NameDA) gant ar goulev-maÃ± er c'havlec'h da-heul. Mar fell deoc'h dibab ur c'havlec'h all, klikit war Â« Furchal Â» ha dibabit ur c'havlec'h all. $_CLICK
 # ^DirSubText
 Kavlec'h bukenn
 # ^DirBrowseText
-Dibabit ar c'havlec'h e vo diazezet $(^NameDA) ennañ :
+Dibabit ar c'havlec'h e vo diazezet $(^NameDA) ennaÃ± :
 # ^UnDirText
-Distaliet e vo $(^NameDA) gant ar goulev-mañ adalek ar c'havlec'h da heul. Ma fell deoc'h distaliañ adalek ur c'havlec'h all, klikit war « Furchal » ha diuzit ur c'havlec'h all. $_CLICK
+Distaliet e vo $(^NameDA) gant ar goulev-maÃ± adalek ar c'havlec'h da heul. Ma fell deoc'h distaliaÃ± adalek ur c'havlec'h all, klikit war Â« Furchal Â» ha diuzit ur c'havlec'h all. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Diuzit ar c'havlec'h evit distaliañ $(^NameDA) adalek :
+Diuzit ar c'havlec'h evit distaliaÃ± $(^NameDA) adalek :
 # ^SpaceAvailable
 "Egor kantenn vak : "
 # ^SpaceRequired
@@ -118,53 +118,53 @@ Diuzit ar c'havlec'h evit distaliañ $(^NameDA) adalek :
 # ^UninstallingText
 Distaliet e vo $(^NameDA) adalek ar c'havelec'h da-heul. $_CLICK
 # ^UninstallingSubText
-Distaliañ adalek :
+DistaliaÃ± adalek :
 # ^FileError
-Fazi en ur zigeriñ ur restr evit skrivañ : \r\n\r\n$0\r\n\r\nKlikit war « Paouez » evit paouez gant ar staliañ,\r\n« Adober » evit eseañ en-dro, pe\r\n« Tremen » evit leuskel a-gostez ar restr-mañ.
+Fazi en ur zigeriÃ± ur restr evit skrivaÃ± : \r\n\r\n$0\r\n\r\nKlikit war Â« Paouez Â» evit paouez gant ar staliaÃ±,\r\nÂ« Adober Â» evit eseaÃ± en-dro, pe\r\nÂ« Tremen Â» evit leuskel a-gostez ar restr-maÃ±.
 # ^FileError_NoIgnore
-Fazi en ur zigeriñ ur restr a-benn skrivañ : \r\n\r\n$0\r\n\r\nKlikit war « Adober » evit esaeañ en-dro, pe\r\nwar « Nullañ » evit paouez gant ar staliañ.
+Fazi en ur zigeriÃ± ur restr a-benn skrivaÃ± : \r\n\r\n$0\r\n\r\nKlikit war Â« Adober Â» evit esaeaÃ± en-dro, pe\r\nwar Â« NullaÃ± Â» evit paouez gant ar staliaÃ±.
 # ^CantWrite
-"N'haller ket skrivañ : "
+"N'haller ket skrivaÃ± : "
 # ^CopyFailed
-Kopiañ faziet
+KopiaÃ± faziet
 # ^CopyTo
-"Kopiañ da "
+"KopiaÃ± da "
 # ^Registering
-"Oc'h enskrivañ : "
+"Oc'h enskrivaÃ± : "
 # ^Unregistering
-"O tienskrivañ : "
+"O tienskrivaÃ± : "
 # ^SymbolNotFound
 "N'haller ket kavout ur simbolenn : "
 # ^CouldNotLoad
-"N'haller ket kargañ : "
+"N'haller ket kargaÃ± : "
 # ^CreateFolder
-"Krouiñ kavlec'h : "
+"KrouiÃ± kavlec'h : "
 # ^CreateShortcut
-"Krouiñ berradenn : "
+"KrouiÃ± berradenn : "
 # ^CreatedUninstaller
-"Skoazeller distaliañ krouet : "
+"Skoazeller distaliaÃ± krouet : "
 # ^Delete
 "Dilemel restr : "
 # ^DeleteOnReboot
-"Dilemel en ur adloc'hañ : "
+"Dilemel en ur adloc'haÃ± : "
 # ^ErrorCreatingShortcut
-"Fazi en ur grouiñ berradenn : "
+"Fazi en ur grouiÃ± berradenn : "
 # ^ErrorCreating
-"Fazi en ur grouiñ : "
+"Fazi en ur grouiÃ± : "
 # ^ErrorDecompressing
-Fazi en ur ziwaskañ stlenn ! Skoazeller staliañ gwastet ?
+Fazi en ur ziwaskaÃ± stlenn ! Skoazeller staliaÃ± gwastet ?
 # ^ErrorRegistering
-Fazi en ur enskrivañ an DLL
+Fazi en ur enskrivaÃ± an DLL
 # ^ExecShell
 "ExecShell : "
 # ^Exec
-"Lañsañ : "
+"LaÃ±saÃ± : "
 # ^Extract
-"Eztennañ : "
+"EztennaÃ± : "
 # ^ErrorWriting
-"Eztennañ : fazi en ur skrivañ restr "
+"EztennaÃ± : fazi en ur skrivaÃ± restr "
 # ^InvalidOpcode
-Skoazeller staliañ gwastet : opcode direizh
+Skoazeller staliaÃ± gwastet : opcode direizh
 # ^NoOLE
 "OLE ebet evit : "
 # ^OutputFolder
@@ -178,14 +178,14 @@ Skoazeller staliañ gwastet : opcode direizh
 # ^Skipped
 "Laosket a-gostez: "
 # ^CopyDetails
-Kopiañ ar munudoù er golver
+KopiaÃ± ar munudoÃ¹ er golver
 # ^LogInstall
-Tresañ an argerzh staliañ
+TresaÃ± an argerzh staliaÃ±
 # ^Byte
 E
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

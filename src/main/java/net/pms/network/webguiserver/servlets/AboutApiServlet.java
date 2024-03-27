@@ -18,16 +18,15 @@ package net.pms.network.webguiserver.servlets;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.platform.PlatformUtils;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
@@ -41,6 +40,7 @@ import oshi.software.os.OperatingSystem;
 
 @WebServlet(name = "AboutApiServlet", urlPatterns = {"/v1/api/about"}, displayName = "About Api Servlet")
 public class AboutApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AboutApiServlet.class);
 
 	private static SystemInfo systemInfo;
@@ -79,14 +79,14 @@ public class AboutApiServlet extends GuiHttpServlet {
 					jsonResponse.addProperty("systemMemorySize", getSystemMemorySize());
 					jsonResponse.addProperty("jvmMemoryMax", getJavaMemoryMax());
 				}
-				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
 				LOGGER.trace("AboutApiServlet request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in AboutApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
@@ -99,14 +99,14 @@ public class AboutApiServlet extends GuiHttpServlet {
 
 	private static void initSystemInfo() {
 		if (systemInfo == null) {
-			systemInfo =  new SystemInfo();
+			systemInfo = new SystemInfo();
 		}
 	}
 
 	private static void initHardwareInfo() {
 		initSystemInfo();
 		if (hardware == null) {
-			hardware =  systemInfo.getHardware();
+			hardware = systemInfo.getHardware();
 		}
 	}
 

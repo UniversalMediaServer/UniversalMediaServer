@@ -17,6 +17,24 @@
 package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpExchange;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletMapping;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.MappingMatch;
+import jakarta.servlet.http.Part;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -37,21 +55,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
 import net.pms.PMS;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,22 +90,21 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getHeader(String name) {
-		return exchange.getRequestHeaders().getFirst(name);
+	public boolean authenticate(HttpServletResponse hsr) throws IOException, ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Enumeration<String> getHeaders(String name) {
-		List<String> headers = exchange.getRequestHeaders().get(name);
-		if (headers != null) {
-			return Collections.enumeration(headers);
+	public String changeSessionId() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public AsyncContext getAsyncContext() {
+		if (isAsyncStarted()) {
+			return asyncContext;
 		}
-		return Collections.enumeration(new ArrayList<>());
-	}
-
-	@Override
-	public Enumeration<String> getHeaderNames() {
-		return Collections.enumeration(exchange.getRequestHeaders().keySet());
+		throw new IllegalStateException("This request has not been put into asynchronous mode.");
 	}
 
 	@Override
@@ -111,154 +113,18 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public void setAttribute(String name, Object o) {
-		if (!attributesName.contains(name)) {
-			attributesName.add(name);
-		}
-		exchange.setAttribute(name, o);
-	}
-
-	@Override
-	public void removeAttribute(String string) {
-		attributesName.remove(string);
-		exchange.setAttribute(string, null);
-	}
-
-	@Override
 	public Enumeration<String> getAttributeNames() {
 		return Collections.enumeration(attributesName);
 	}
 
 	@Override
-	public String getMethod() {
-		return exchange.getRequestMethod();
-	}
-
-	@Override
-	public ServletInputStream getInputStream() throws IOException {
-		if (servletInputStream == null) {
-			servletInputStream = new HttpExchangeServletInputStream(exchange.getRequestBody());
-		}
-		return servletInputStream;
-	}
-
-	@Override
-	public BufferedReader getReader() throws IOException {
-		return new BufferedReader(new InputStreamReader(getInputStream()));
-	}
-
-	@Override
-	public String getPathInfo() {
-		if (pathInfo == null) {
-			String servpath = getServletContext().getContextPath();
-			if ("/".equals(servpath)) {
-				return null;
-			}
-			String path = exchange.getRequestURI().getPath();
-			String pInfo = path.replaceFirst(servpath, "");
-			if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
-				pInfo = "/" + pInfo;
-			}
-			pathInfo = pInfo;
-		}
-		return pathInfo.isEmpty() ? null : pathInfo;
-	}
-
-	@Override
-	public String getParameter(String name) {
-		return parameters.get(name) != null && parameters.get(name).length > 0 ? parameters.get(name)[0] : null;
-	}
-
-	@Override
-	public Map<String, String[]> getParameterMap() {
-		return parameters;
-	}
-
-	@Override
-	public Enumeration<String> getParameterNames() {
-		return Collections.enumeration(parameters.keySet());
-	}
-
-	@Override
-	public Cookie[] getCookies() {
-		if (cookies == null) {
-			parseCookies();
-		}
-		return cookies;
-	}
-
-	@Override
-	public long getDateHeader(String string) {
-		String dateStr = getHeader(string);
-		if (dateStr != null) {
-			try {
-				return DATE_FORMAT.parse(dateStr).getTime();
-			} catch (ParseException e) {
-				throw new IllegalArgumentException();
-			}
-		}
-		return -1L;
-	}
-
-	@Override
-	public int getIntHeader(String string) {
-		if (exchange.getRequestHeaders().containsKey(string)) {
-			return Integer.parseInt(exchange.getRequestHeaders().getFirst(string));
-		}
-		return -1;
-	}
-
-	@Override
-	public String getPathTranslated() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	public String getContextPath() {
-		return servlet.getServletContext().getContextPath();
-	}
-
-	@Override
-	public String getQueryString() {
-		return exchange.getRequestURI().getQuery();
-	}
-
-	@Override
-	public String getRequestURI() {
-		return exchange.getRequestURI().getPath();
-	}
-
-	@Override
-	public StringBuffer getRequestURL() {
-		String url = exchange.getRequestURI().toString();
-		if (exchange.getRequestURI().getQuery() != null) {
-			url = url.substring(0, url.lastIndexOf("?"));
-		}
-		return new StringBuffer(url);
-	}
-
-	@Override
-	public String getServletPath() {
-		if (servletPath == null) {
-			String contextPath = getServletContext().getContext(getRequestURI()).getContextPath();
-			if ("/".equals(contextPath)) {
-				servletPath = exchange.getRequestURI().getPath();
-			} else {
-				servletPath = contextPath;
-			}
-		}
-		return servletPath;
-
+	public String getAuthType() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String getCharacterEncoding() {
 		return characterEncoding;
-	}
-
-	@Override
-	public void setCharacterEncoding(String string) throws UnsupportedEncodingException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
 	}
 
 	@Override
@@ -291,84 +157,107 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String[] getParameterValues(String string) {
-		return parameters.get(string);
+	public String getContextPath() {
+		return servlet.getServletContext().getContextPath();
 	}
 
 	@Override
-	public String getProtocol() {
-		return exchange.getProtocol();
-	}
-
-	@Override
-	public String getScheme() {
-		return exchange.getRequestURI().getScheme();
-	}
-
-
-	@Override
-	public Collection<Part> getParts() throws IOException, ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	public Part getPart(String string) throws IOException, ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	public <T extends HttpUpgradeHandler> T upgrade(Class<T> type) throws IOException, ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	public String getRemoteUser() {
-		return exchange.getPrincipal().getUsername();
-	}
-
-	@Override
-	public String getServerName() {
-		String hostHeader = getHeader("Host");
-		if (!StringUtils.isEmpty(hostHeader)) {
-			String[] hostSplit = hostHeader.split(":");
-			return hostSplit[0];
+	public Cookie[] getCookies() {
+		if (cookies == null) {
+			parseCookies();
 		}
-		return exchange.getRequestURI().getHost();
+		return cookies;
 	}
 
 	@Override
-	public boolean isUserInRole(String string) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public long getDateHeader(String string) {
+		String dateStr = getHeader(string);
+		if (dateStr != null) {
+			try {
+				return DATE_FORMAT.parse(dateStr).getTime();
+			} catch (ParseException e) {
+				throw new IllegalArgumentException();
+			}
+		}
+		return -1L;
 	}
 
 	@Override
-	public Principal getUserPrincipal() {
-		return exchange.getPrincipal();
+	public DispatcherType getDispatcherType() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public String getRequestedSessionId() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getHeader(String name) {
+		return exchange.getRequestHeaders().getFirst(name);
 	}
 
 	@Override
-	public String getAuthType() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public Enumeration<String> getHeaders(String name) {
+		List<String> headers = exchange.getRequestHeaders().get(name);
+		if (headers != null) {
+			return Collections.enumeration(headers);
+		}
+		return Collections.enumeration(new ArrayList<>());
 	}
 
 	@Override
-	public int getServerPort() {
-		return exchange.getLocalAddress().getPort();
+	public Enumeration<String> getHeaderNames() {
+		return Collections.enumeration(exchange.getRequestHeaders().keySet());
 	}
 
 	@Override
-	public String getRemoteAddr() {
-		return exchange.getRemoteAddress().getAddress().getHostAddress();
+	public HttpServletMapping getHttpServletMapping() {
+		return new HttpServletMapping() {
+			@Override
+			public String getMatchValue() {
+				return "";
+			}
+
+			@Override
+			public String getPattern() {
+				return "";
+			}
+
+			@Override
+			public String getServletName() {
+				return servlet.getServletName();
+			}
+
+			@Override
+			public MappingMatch getMappingMatch() {
+				return null;
+			}
+
+			@Override
+			public String toString() {
+				return "MappingImpl{" + "matchValue=" + getMatchValue() + ", pattern=" + getPattern() + ", servletName=" +
+						getServletName() + ", mappingMatch=" + getMappingMatch() + "} HttpServletRequest {" +
+						HttpExchangeServletRequest.this.toString() + '}';
+			}
+
+		};
 	}
 
 	@Override
-	public String getRemoteHost() {
-		return exchange.getRemoteAddress().getHostString();
+	public ServletInputStream getInputStream() throws IOException {
+		if (servletInputStream == null) {
+			servletInputStream = new HttpExchangeServletInputStream(exchange.getRequestBody());
+		}
+		return servletInputStream;
+	}
+
+	@Override
+	public int getIntHeader(String string) {
+		if (exchange.getRequestHeaders().containsKey(string)) {
+			return Integer.parseInt(exchange.getRequestHeaders().getFirst(string));
+		}
+		return -1;
+	}
+
+	@Override
+	public String getLocalAddr() {
+		return exchange.getLocalAddress().getAddress().getHostAddress();
 	}
 
 	@Override
@@ -388,34 +277,8 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public boolean isSecure() {
-		return exchange.getRequestURI().getScheme().equals("https");
-	}
-
-	@Override
-	public RequestDispatcher getRequestDispatcher(String string) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	@Deprecated
-	public String getRealPath(String string) {
-		return getServletContext().getRealPath(string);
-	}
-
-	@Override
-	public int getRemotePort() {
-		return exchange.getRemoteAddress().getPort();
-	}
-
-	@Override
 	public String getLocalName() {
 		return exchange.getRequestURI().getHost();
-	}
-
-	@Override
-	public String getLocalAddr() {
-		return exchange.getLocalAddress().getAddress().getHostAddress();
 	}
 
 	@Override
@@ -424,54 +287,135 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public HttpSession getSession(boolean bln) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getMethod() {
+		return exchange.getRequestMethod();
 	}
 
 	@Override
-	public HttpSession getSession() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getParameter(String name) {
+		return parameters.get(name) != null && parameters.get(name).length > 0 ? parameters.get(name)[0] : null;
 	}
 
 	@Override
-	public String changeSessionId() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public Map<String, String[]> getParameterMap() {
+		return parameters;
 	}
 
 	@Override
-	public boolean isRequestedSessionIdValid() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public Enumeration<String> getParameterNames() {
+		return Collections.enumeration(parameters.keySet());
 	}
 
 	@Override
-	public boolean isRequestedSessionIdFromCookie() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String[] getParameterValues(String string) {
+		return parameters.get(string);
 	}
 
 	@Override
-	public boolean isRequestedSessionIdFromURL() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public Part getPart(String string) throws IOException, ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	@Deprecated
-	public boolean isRequestedSessionIdFromUrl() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public Collection<Part> getParts() throws IOException, ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public boolean authenticate(HttpServletResponse hsr) throws IOException, ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getPathInfo() {
+		if (pathInfo == null) {
+			String servpath = getServletContext().getContextPath();
+			String path = exchange.getRequestURI().getPath();
+			if ("/".equals(servpath)) {
+				pathInfo = path;
+			} else {
+				String pInfo = path.replaceFirst(servpath, "");
+				if (!pInfo.isEmpty() && !pInfo.startsWith("/")) {
+					pInfo = "/" + pInfo;
+				}
+				pathInfo = pInfo;
+			}
+		}
+		return pathInfo.isEmpty() ? null : pathInfo;
 	}
 
 	@Override
-	public void login(String string, String string1) throws ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getPathTranslated() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void logout() throws ServletException {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public String getProtocol() {
+		return exchange.getProtocol();
+	}
+
+	@Override
+	public String getProtocolRequestId() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getQueryString() {
+		return exchange.getRequestURI().getQuery();
+	}
+
+	@Override
+	public BufferedReader getReader() throws IOException {
+		return new BufferedReader(new InputStreamReader(getInputStream()));
+	}
+
+	@Override
+	public String getRemoteAddr() {
+		return exchange.getRemoteAddress().getAddress().getHostAddress();
+	}
+
+	@Override
+	public String getRemoteHost() {
+		return exchange.getRemoteAddress().getHostString();
+	}
+
+	@Override
+	public int getRemotePort() {
+		return exchange.getRemoteAddress().getPort();
+	}
+
+	@Override
+	public String getRemoteUser() {
+		return exchange.getPrincipal().getUsername();
+	}
+
+	@Override
+	public RequestDispatcher getRequestDispatcher(String string) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getRequestId() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getRequestURI() {
+		return exchange.getRequestURI().getPath();
+	}
+
+	@Override
+	public StringBuffer getRequestURL() {
+		String url = exchange.getRequestURI().toString();
+		if (exchange.getRequestURI().getQuery() != null) {
+			url = url.substring(0, url.lastIndexOf("?"));
+		}
+		return new StringBuffer(url);
+	}
+
+	@Override
+	public String getRequestedSessionId() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public int getServerPort() {
+		return exchange.getLocalAddress().getPort();
 	}
 
 	@Override
@@ -480,22 +424,55 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public AsyncContext startAsync() throws IllegalStateException {
-		return startAsync(this, servletResponse);
+	public String getScheme() {
+		return exchange.getRequestURI().getScheme();
 	}
 
 	@Override
-	public AsyncContext startAsync(ServletRequest sr, ServletResponse sr1) throws IllegalStateException {
-		if (!isAsyncSupported()) {
-			throw new IllegalStateException("This request does not support asynchronous operations.");
+	public String getServerName() {
+		String hostHeader = getHeader("Host");
+		if (!StringUtils.isEmpty(hostHeader)) {
+			String[] hostSplit = hostHeader.split(":");
+			return hostSplit[0];
 		}
-		if (servletResponse.isCommitted()) {
-			throw new IllegalStateException("The response has already been closed.");
+		return exchange.getRequestURI().getHost();
+	}
+
+	@Override
+	public ServletConnection getServletConnection() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public String getServletPath() {
+		if (servletPath == null) {
+			String contextPath = getServletContext().getContext(getRequestURI()).getContextPath();
+			if ("/*".equals(contextPath)) {
+				servletPath = "";
+			} else {
+				servletPath = contextPath;
+			}
 		}
-		if (asyncContext == null) {
-			asyncContext = new HttpExchangeAsyncContext((HttpExchangeServletRequest) sr, (HttpExchangeServletResponse) sr1);
-		}
-		return asyncContext;
+		return servletPath;
+	}
+
+	public HttpExchangeServletResponse getServletResponse() {
+		return servletResponse;
+	}
+
+	@Override
+	public HttpSession getSession(boolean bln) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public HttpSession getSession() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Principal getUserPrincipal() {
+		return exchange.getPrincipal();
 	}
 
 	@Override
@@ -509,20 +486,81 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public AsyncContext getAsyncContext() {
-		if (isAsyncStarted()) {
-			return asyncContext;
-		}
-		throw new IllegalStateException("This request has not been put into asynchronous mode.");
+	public boolean isRequestedSessionIdValid() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public DispatcherType getDispatcherType() {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+	public boolean isRequestedSessionIdFromCookie() {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	public HttpExchangeServletResponse getServletResponse() {
-		return servletResponse;
+	@Override
+	public boolean isRequestedSessionIdFromURL() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public boolean isSecure() {
+		return exchange.getRequestURI().getScheme().equals("https");
+	}
+
+	@Override
+	public boolean isUserInRole(String string) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void login(String string, String string1) throws ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void logout() throws ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void removeAttribute(String string) {
+		attributesName.remove(string);
+		exchange.setAttribute(string, null);
+	}
+
+	@Override
+	public void setAttribute(String name, Object o) {
+		if (!attributesName.contains(name)) {
+			attributesName.add(name);
+		}
+		exchange.setAttribute(name, o);
+	}
+
+	@Override
+	public void setCharacterEncoding(String string) throws UnsupportedEncodingException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public AsyncContext startAsync() throws IllegalStateException {
+		return startAsync(this, servletResponse);
+	}
+
+	@Override
+	public AsyncContext startAsync(ServletRequest servletRequest, ServletResponse servletResponse) throws IllegalStateException {
+		if (!isAsyncSupported()) {
+			throw new IllegalStateException("This request does not support asynchronous operations.");
+		}
+		if (servletResponse.isCommitted()) {
+			throw new IllegalStateException("The response has already been closed.");
+		}
+		if (asyncContext == null) {
+			asyncContext = new HttpExchangeAsyncContext((HttpExchangeServletRequest) servletRequest, (HttpExchangeServletResponse) servletResponse);
+		}
+		return asyncContext;
+	}
+
+	@Override
+	public <T extends HttpUpgradeHandler> T upgrade(Class<T> type) throws IOException, ServletException {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	private void parseQueryParameters() {
@@ -548,9 +586,6 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 			List<HttpCookie> httpCookies = HttpCookie.parse(cookieStr);
 			for (HttpCookie httpCookie : httpCookies) {
 				Cookie cookie = new Cookie(httpCookie.getName(), httpCookie.getValue());
-				if (httpCookie.getComment() != null) {
-					cookie.setComment(httpCookie.getComment());
-				}
 				if (httpCookie.getDomain() != null) {
 					cookie.setDomain(httpCookie.getDomain());
 				}
@@ -562,7 +597,6 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 					cookie.setPath(httpCookie.getPath());
 				}
 				cookie.setSecure(httpCookie.getSecure());
-				cookie.setVersion(httpCookie.getVersion());
 				cookiesList.add(cookie);
 			}
 		}
@@ -592,7 +626,7 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 		}
 	}
 
-	public void parseLocales() {
+	private void parseLocales() {
 		String languagesHeader = getHeader("Accept-language");
 		if (StringUtils.isEmpty(languagesHeader)) {
 			locales = new ArrayList<>();
@@ -667,7 +701,8 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 		for (int i = 0; i < s.length(); i++) {
 			char c = s.charAt(i);
 			switch (c) {
-				case '+' -> sb.append(' ');
+				case '+' ->
+					sb.append(' ');
 				case '%' -> {
 					try {
 						sb.append((char) Integer.parseInt(s.substring(i + 1, i + 3), 16));
@@ -684,9 +719,11 @@ public class HttpExchangeServletRequest implements HttpServletRequest {
 						}
 					}
 				}
-				default -> sb.append(c);
+				default ->
+					sb.append(c);
 			}
 		}
 		return sb.toString();
 	}
+
 }

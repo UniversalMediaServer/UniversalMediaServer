@@ -25,6 +25,7 @@ SectionEnd
 Prefix  Message category
 -------------------------
 SW      ShowWindow Commands
+CCM     Generic Common Control
 BM      Button control
 CB      Combo box control
 EM      Edit control
@@ -40,6 +41,12 @@ SBM     Scroll bar control
 STM     Static control
 TCM     Tab control
 PBM     Progress bar
+ACM     Animation control
+TBM     Track bar
+UDM     Up-down control
+HKM     Hot key control
+IPM     IP address control
+NCM     Network address control
 -----------------------------------
 
 NOT included messages (WM_USER + X)
@@ -47,18 +54,12 @@ NOT included messages (WM_USER + X)
 CBEM    Extended combo box control
 CDM     Common dialog box
 DL      Drag list box
-DTM     Date and time picker control
-HKM     Hot key control
-IPM     IP address control
-MCM     Month calendar control
 PGM     Pager control
 PSM     Property sheet
 RB      Rebar control
 TB      Toolbar
-TBM     Trackbar
 TTM     Tooltip control
 TVM     Tree-view control
-UDM     Up-down control
 -----------------------------------
 */
 
@@ -67,6 +68,15 @@ UDM     Up-down control
 !define WINMESSAGES_INCLUDED
 !verbose push
 !verbose 3
+
+!define _NSIS_DEFAW '!insertmacro _NSIS_DEFAW '
+!macro _NSIS_DEFAW d
+!ifdef NSIS_UNICODE
+!define ${d} "${${d}W}"
+!else
+!define ${d} "${${d}A}"
+!endif
+!macroend
 
 !define HWND_BROADCAST      0xFFFF
 
@@ -87,6 +97,25 @@ UDM     Up-down control
 !define SW_FORCEMINIMIZE    11
 !define SW_MAX              11
 
+#Generic Common Control Messages#
+!define CCM_FIRST 0x2000
+!define /math CCM_SETBKCOLOR       ${CCM_FIRST} + 0x1 ; IE4
+!define /math CCM_SETUNICODEFORMAT ${CCM_FIRST} + 0x5 
+!define /math CCM_GETUNICODEFORMAT ${CCM_FIRST} + 0x6
+!define /math CCM_SETVERSION       ${CCM_FIRST} + 0x7 ; IE5
+!define /math CCM_GETVERSION       ${CCM_FIRST} + 0x8
+!define /math CCM_SETWINDOWTHEME   ${CCM_FIRST} + 0xB ; WinXP
+!define /math CCM_DPISCALE         ${CCM_FIRST} + 0xC
+!define WM_USER 0x400
+
+!define CCS_TOP 1
+!define CCS_BOTTOM 3
+!define CCS_NODIVIDER 64
+!define CCS_LEFT 129
+!define CCS_RIGHT 131
+
+!define I_IMAGENONE -2
+
 #Button Control Messages#
 !define BM_CLICK           0x00F5
 !define BM_GETCHECK        0x00F0
@@ -96,6 +125,7 @@ UDM     Up-down control
 !define BM_SETIMAGE        0x00F7
 !define BM_SETSTATE        0x00F3
 !define BM_SETSTYLE        0x00F4
+!define BCM_SETSHIELD      0x160C ; WinVista + ComCtl32 v6
 
 !define BST_UNCHECKED      0
 !define BST_CHECKED        1
@@ -140,6 +170,11 @@ UDM     Up-down control
 !define CB_SETLOCALE                0x0159
 !define CB_SETTOPINDEX              0x015c
 !define CB_SHOWDROPDOWN             0x014F
+!define CBM_FIRST                   0x1700 ; Vista+
+!define /math CB_SETMINVISIBLE ${CBM_FIRST} + 1
+!define /math CB_GETMINVISIBLE ${CBM_FIRST} + 2
+!define /math CB_SETCUEBANNER  ${CBM_FIRST} + 3
+!define /math CB_GETCUEBANNER  ${CBM_FIRST} + 4
 
 !define CB_ERR                      -1
 
@@ -147,7 +182,6 @@ UDM     Up-down control
 !define EM_CANUNDO              0x00C6
 !define EM_CHARFROMPOS          0x00D7
 !define EM_EMPTYUNDOBUFFER      0x00CD
-!define EM_EXLIMITTEXT          0x0435
 !define EM_FMTLINES             0x00C8
 !define EM_GETFIRSTVISIBLELINE  0x00CE
 !define EM_GETHANDLE            0x00BD
@@ -184,6 +218,42 @@ UDM     Up-down control
 !define EM_SETTABSTOPS          0x00CB
 !define EM_SETWORDBREAKPROC     0x00D0
 !define EM_UNDO                 0x00C7
+!define ECM_FIRST               0x1500 ; CC6+
+!define /math EM_SETCUEBANNER ${ECM_FIRST} + 1
+
+#RichEdit Messages#
+!define /math EM_EXGETSEL        ${WM_USER} + 52
+!define /math EM_EXLIMITTEXT     ${WM_USER} + 53
+!define /math EM_EXLINEFROMCHAR  ${WM_USER} + 54
+!define /math EM_GETEVENTMASK    ${WM_USER} + 59
+!define /math EM_GETOLEINTERFACE ${WM_USER} + 60
+!define /math EM_HIDESELECTION   ${WM_USER} + 63
+!define /math EM_SETBKGNDCOLOR   ${WM_USER} + 67
+!define /math EM_SETEVENTMASK    ${WM_USER} + 69
+!define /math EM_STREAMIN        ${WM_USER} + 73
+!define /math EM_STREAMOUT       ${WM_USER} + 74
+!define /math EM_GETTEXTRANGE    ${WM_USER} + 75
+!define /math EM_SETOPTIONS      ${WM_USER} + 77
+!define /math EM_GETOPTIONS      ${WM_USER} + 78
+!define /math EM_SETUNDOLIMIT    ${WM_USER} + 82 ; v2+
+!define /math EM_AUTOURLDETECT   ${WM_USER} + 91
+!define /Math EM_SETTEXTEX       ${WM_USER} + 97 ; v3+
+!define /math EM_SETEDITSTYLE    ${WM_USER} + 204
+!define /math EM_SETFONTSIZE     ${WM_USER} + 223
+
+!define EN_MSGFILTER 0x0700
+!define EN_SELCHANGE 0x0702
+!define EN_LINK      0x070b
+
+!define ENM_NONE         0x00000000
+!define ENM_CHANGE       0x00000001
+!define ENM_UPDATE       0x00000002
+!define ENM_SCROLL       0x00000004
+!define ENM_SCROLLEVENTS 0x00000008
+!define ENM_KEYEVENTS    0x00010000
+!define ENM_MOUSEEVENTS  0x00020000
+!define ENM_SELCHANGE    0x00080000
+!define ENM_LINK         0x04000000 ; v2+
 
 #Listbox Messages#
 !define LB_ADDFILE              0x0196
@@ -250,7 +320,7 @@ UDM     Up-down control
 !define WM_CLEAR                        0x0303
 !define WM_CLOSE                        0x0010
 !define WM_COMMAND                      0x0111
-!define WM_COMMNOTIFY                   0x0044  # no longer suported
+!define WM_COMMNOTIFY                   0x0044  # no longer supported
 !define WM_COMPACTING                   0x0041
 !define WM_COMPAREITEM                  0x0039
 !define WM_CONTEXTMENU                  0x007B
@@ -444,7 +514,6 @@ UDM     Up-down control
 !define WM_UNICHAR                      0x0109
 !define WM_UNINITMENUPOPUP              0x0125
 !define WM_UPDATEUISTATE                0x0128
-!define WM_USER                         0x400
 !define WM_USERCHANGED                  0x0054
 !define WM_VKEYTOITEM                   0x002E
 !define WM_VSCROLL                      0x0115
@@ -544,16 +613,74 @@ UDM     Up-down control
 !define HDM_FIRST           0x1200
 
 #List view control#
-!define LVM_FIRST           0x1000
+!define LVS_SINGLESEL           4
+!define LVS_SHOWSELALWAYS       8
+!define LVS_SORTASCENDING    0x10
+!define LVS_SORTDESCENDING   0x20
+!define LVS_SHAREIMAGELISTS  0x40
+!define LVS_EDITLABELS      0x200
+!define LVS_NOSCROLL       0x2000
+!define LVS_NOCOLUMNHEADER 0x4000
+!define LVS_NOSORTHEADER   0x8000
+!define LVS_ICON      0
+!define LVS_REPORT    1
+!define LVS_SMALLICON 2
+!define LVS_LIST      3
+!define LVS_EX_CHECKBOXES         4
+!define LVS_EX_FULLROWSELECT   0x20
+!define LVS_EX_INFOTIP        0x400
+!define LVS_EX_LABELTIP      0x4000
+!define LVS_EX_DOUBLEBUFFER 0x10000
+!define LVIF_TEXT  1
+!define LVIF_IMAGE 2
+!define LVIF_PARAM 4
+!define LVIF_STATE 8
+!define LVIS_STATEIMAGEMASK 0xF000
+!define LVCF_FMT     1
+!define LVCF_WIDTH   2
+!define LVCF_TEXT    4
+!define LVCF_SUBITEM 8
+!define SYSSTRUCT_LVITEM_V1 (i,i,i,i,&i${NSIS_PTR_SIZE},t,i,i,p)
+!define SYSSTRUCT_LVITEM_V2 (i,i,i,i,&i${NSIS_PTR_SIZE},t,i,i,p,i)           ; IE3
+!define SYSSTRUCT_LVITEM_V3 (i,i,i,i,&i${NSIS_PTR_SIZE},t,i,i,p,i,i,i,i)     ; WinXP + ComCtl32 v6
+!define SYSSTRUCT_LVITEM_V4 (i,i,i,i,&i${NSIS_PTR_SIZE},t,i,i,p,i,i,i,i,i,i) ; WinVista + ComCtl32 v6
+!define LVSCW_AUTOSIZE -1
+!define LVSCW_AUTOSIZE_USEHEADER -2
+!define LVM_FIRST                          0x00001000
+!define /math LVM_GETIMAGELIST             ${LVM_FIRST} +  2
+!define /math LVM_SETIMAGELIST             ${LVM_FIRST} +  3
+!define /math LVM_GETITEMCOUNT             ${LVM_FIRST} +  4
+!define /math LVM_GETITEMA                 ${LVM_FIRST} +  5
+!define /math LVM_SETITEMA                 ${LVM_FIRST} +  6
+!define /math LVM_INSERTITEMA              ${LVM_FIRST} +  7
+!define /math LVM_DELETEITEM               ${LVM_FIRST} +  8
+!define /math LVM_DELETEALLITEMS           ${LVM_FIRST} +  9
+!define /math LVM_INSERTCOLUMNA            ${LVM_FIRST} + 27
+!define /math LVM_SETCOLUMNWIDTH           ${LVM_FIRST} + 30
+!define /math LVM_SETITEMSTATE             ${LVM_FIRST} + 43
+!define /math LVM_GETITEMSTATE             ${LVM_FIRST} + 44
+!define /math LVM_GETITEMTEXTA             ${LVM_FIRST} + 45
+!define /math LVM_SETITEMTEXTA             ${LVM_FIRST} + 46
+!define /math LVM_SETITEMCOUNT             ${LVM_FIRST} + 47
+!define /math LVM_SORTITEMS                ${LVM_FIRST} + 48
+!define /math LVM_SETEXTENDEDLISTVIEWSTYLE ${LVM_FIRST} + 54
+!define /math LVM_GETEXTENDEDLISTVIEWSTYLE ${LVM_FIRST} + 55
+!define /math LVM_GETITEMW                 ${LVM_FIRST} + 75
+!define /math LVM_SETITEMW                 ${LVM_FIRST} + 76
+!define /math LVM_INSERTITEMW              ${LVM_FIRST} + 77
+!define /math LVM_INSERTCOLUMNW            ${LVM_FIRST} + 97
+!define /math LVM_GETITEMTEXTW             ${LVM_FIRST} + 115
+!define /math LVM_SETITEMTEXTW             ${LVM_FIRST} + 116
+!define /math LVM_SETSELECTEDCOLUMN        ${LVM_FIRST} + 140
+${_NSIS_DEFAW} LVM_GETITEM
+${_NSIS_DEFAW} LVM_SETITEM
+${_NSIS_DEFAW} LVM_INSERTITEM
+${_NSIS_DEFAW} LVM_INSERTCOLUMN
+${_NSIS_DEFAW} LVM_GETITEMTEXT
+${_NSIS_DEFAW} LVM_SETITEMTEXT
 
 #Status bar window#
-!define SB_CONST_ALPHA      0x00000001
-!define SB_GRAD_RECT        0x00000010
-!define SB_GRAD_TRI         0x00000020
-!define SB_NONE             0x00000000
-!define SB_PIXEL_ALPHA      0x00000002
-!define SB_PREMULT_ALPHA    0x00000004
-!define SB_SIMPLEID         0x00ff
+!define SB_SIMPLEID 0x00ff
 
 #Scroll bar control#
 !define SBM_ENABLE_ARROWS           0x00E4  # Not in win3.1
@@ -566,27 +693,198 @@ UDM     Up-down control
 !define SBM_SETSCROLLINFO           0x00E9
 
 #Static control#
+!define STM_SETICON                 0x0170
 !define STM_GETICON                 0x0171
+!define STM_SETIMAGE                0x0172
 !define STM_GETIMAGE                0x0173
 !define STM_MSGMAX                  0x0174
-!define STM_ONLY_THIS_INTERFACE     0x00000001
-!define STM_ONLY_THIS_NAME          0x00000008
-!define STM_ONLY_THIS_PROTOCOL      0x00000002
-!define STM_ONLY_THIS_TYPE          0x00000004
-!define STM_SETICON                 0x0170
-!define STM_SETIMAGE                0x0172
 
 #Tab control#
-!define TCM_FIRST                   0x1300
+!define TCS_SCROLLOPPOSITE 0x0001
+!define TCIF_TEXT  1
+!define TCIF_PARAM 8
+!define SYSSTRUCT_TCITEM (i,i,&i${NSIS_PTR_SIZE},t,i,i,p)
+!define TCM_FIRST             0x1300
+!define /math TCM_INSERTITEMA ${TCM_FIRST} + 7
+!define /math TCM_GETCURSEL   ${TCM_FIRST} + 11
+!define /math TCM_ADJUSTRECT  ${TCM_FIRST} + 40
+!define /math TCM_INSERTITEMW ${TCM_FIRST} + 62
+!define TCN_SELCHANGE   -551
+!define TCN_SELCHANGING -552
+${_NSIS_DEFAW} TCM_INSERTITEM
 
 #Progress bar control#
-!define PBM_SETRANGE   0x0401
-!define PBM_SETPOS     0x0402
-!define PBM_DELTAPOS   0x0403
-!define PBM_SETSTEP    0x0404
-!define PBM_STEPIT     0x0405
-!define PBM_GETPOS     0x0408
-!define PBM_SETMARQUEE 0x040a
+!define PBM_SETRANGE    0x401
+!define PBM_SETPOS      0x402
+!define PBM_DELTAPOS    0x403
+!define PBM_SETSTEP     0x404
+!define PBM_STEPIT      0x405
+!define PBM_SETRANGE32  0x406 ; IE3 + ComCtl32 v4.70
+!define PBM_GETRANGE    0x407
+!define PBM_GETPOS      0x408
+!define PBM_SETBARCOLOR 0x409 ; IE4 + ComCtl32 v4.71
+!define PBM_SETBKCOLOR  ${CCM_SETBKCOLOR}
+!define PBM_SETMARQUEE  0x40A ; WinXP + ComCtl32 v6
+!define PBM_GETSTEP     0x40D ; WinVista
+!define PBM_GETBKCOLOR  0x40E
+!define PBM_GETBARCOLOR 0x40F
+!define PBM_SETSTATE    0x410
+!define PBM_GETSTATE    0x411
+
+!define PBST_NORMAL 1
+!define PBST_ERROR  2
+!define PBST_PAUSED 3
+
+#Animation control#
+!define /math ACM_OPENA ${WM_USER} + 100
+!define /math ACM_PLAY  ${WM_USER} + 101
+!define /math ACM_STOP  ${WM_USER} + 102
+!define /math ACM_OPENW ${WM_USER} + 103
+${_NSIS_DEFAW} ACM_OPEN
+
+#TrackBar control#
+!define /math TBM_GETPOS         ${WM_USER} + 0
+!define /math TBM_GETRANGEMIN    ${WM_USER} + 1
+!define /math TBM_GETRANGEMAX    ${WM_USER} + 2
+!define /math TBM_GETTIC         ${WM_USER} + 3
+!define /math TBM_SETTIC         ${WM_USER} + 4
+!define /math TBM_SETPOS         ${WM_USER} + 5
+!define /math TBM_SETRANGE       ${WM_USER} + 6
+!define /math TBM_SETRANGEMIN    ${WM_USER} + 7
+!define /math TBM_SETRANGEMAX    ${WM_USER} + 8
+!define /math TBM_CLEARTICS      ${WM_USER} + 9
+!define /math TBM_SETSEL         ${WM_USER} + 10
+!define /math TBM_SETSELSTART    ${WM_USER} + 11
+!define /math TBM_SETSELEND      ${WM_USER} + 12
+!define /math TBM_GETPTICS       ${WM_USER} + 14
+!define /math TBM_GETTICPOS      ${WM_USER} + 15
+!define /math TBM_GETNUMTICS     ${WM_USER} + 16
+!define /math TBM_GETSELSTART    ${WM_USER} + 17
+!define /math TBM_GETSELEND      ${WM_USER} + 18
+!define /math TBM_CLEARSEL       ${WM_USER} + 19
+!define /math TBM_SETTICFREQ     ${WM_USER} + 20 ; TBS_AUTOTICKS required
+!define /math TBM_SETPAGESIZE    ${WM_USER} + 21
+!define /math TBM_GETPAGESIZE    ${WM_USER} + 22
+!define /math TBM_SETLINESIZE    ${WM_USER} + 23
+!define /math TBM_GETLINESIZE    ${WM_USER} + 24
+!define /math TBM_GETTHUMBRECT   ${WM_USER} + 25
+!define /math TBM_GETCHANNELRECT ${WM_USER} + 26
+!define /math TBM_SETTHUMBLENGTH ${WM_USER} + 27
+!define /math TBM_GETTHUMBLENGTH ${WM_USER} + 28
+!define /math TBM_SETTOOLTIPS    ${WM_USER} + 29 ; IE3
+!define /math TBM_GETTOOLTIPS    ${WM_USER} + 30 ; IE3
+!define /math TBM_SETTIPSIDE     ${WM_USER} + 31 ; IE3
+!define /math TBM_SETBUDDY       ${WM_USER} + 32 ; IE3
+!define /math TBM_GETBUDDY       ${WM_USER} + 33 ; IE3
+!define TBM_SETUNICODEFORMAT     ${CCM_SETUNICODEFORMAT} ; IE4
+!define TBM_GETUNICODEFORMAT     ${CCM_GETUNICODEFORMAT} ; IE4
+!define /math TBM_SETPOSNOTIFY   ${WM_USER} + 34 ; 7?
+
+#UpDown controls#
+!define /math UDM_SETRANGE   ${WM_USER} + 101
+!define /math UDM_GETRANGE   ${WM_USER} + 102
+!define /math UDM_SETPOS     ${WM_USER} + 103
+!define /math UDM_GETPOS     ${WM_USER} + 104
+!define /math UDM_SETBUDDY   ${WM_USER} + 105
+!define /math UDM_GETBUDDY   ${WM_USER} + 106
+!define /math UDM_SETACCEL   ${WM_USER} + 107
+!define /math UDM_GETACCEL   ${WM_USER} + 108
+!define /math UDM_SETBASE    ${WM_USER} + 109
+!define /math UDM_GETBASE    ${WM_USER} + 110
+!define /math UDM_SETRANGE32 ${WM_USER} + 111 ; IE4
+!define /math UDM_GETRANGE32 ${WM_USER} + 112 ; IE4
+!define UDM_SETUNICODEFORMAT ${CCM_SETUNICODEFORMAT} ; IE4
+!define UDM_GETUNICODEFORMAT ${CCM_GETUNICODEFORMAT} ; IE4
+!define /math UDM_SETPOS32   ${WM_USER} + 113 ; IE5
+!define /math UDM_GETPOS32   ${WM_USER} + 114 ; IE5
+
+#HotKey control#
+!define /math HKM_SETHOTKEY ${WM_USER} + 1
+!define /math HKM_GETHOTKEY ${WM_USER} + 2
+!define /math HKM_SETRULES  ${WM_USER} + 3
+!define /IfNDef HOTKEYF_SHIFT   0x01
+!define /IfNDef HOTKEYF_CONTROL 0x02
+!define /IfNDef HOTKEYF_ALT     0x04
+!define /IfNDef HOTKEYF_EXT     0x08
+!define HKCOMB_NONE 0x01
+!define HKCOMB_S    0x02
+!define HKCOMB_C    0x04
+!define HKCOMB_A    0x08
+!define HKCOMB_SC   0x10
+!define HKCOMB_SA   0x20
+!define HKCOMB_CA   0x40
+!define HKCOMB_SCA  0x80
+
+#IPAddress control#
+!define /math IPM_CLEARADDRESS ${WM_USER} + 100
+!define /math IPM_SETADDRESS   ${WM_USER} + 101
+!define /math IPM_GETADDRESS   ${WM_USER} + 102
+!define /math IPM_SETRANGE     ${WM_USER} + 103
+!define /math IPM_SETFOCUS     ${WM_USER} + 104
+!define /math IPM_ISBLANK      ${WM_USER} + 105
+
+#NetworkAddress control#
+!define /math NCM_GETADDRESS ${WM_USER} + 1 ; Vista+
+!define /math NCM_SETALLOWTYPE ${WM_USER} + 2
+!define /math NCM_GETALLOWTYPE ${WM_USER} + 3
+!define /math NCM_DISPLAYERRORTIP ${WM_USER} + 4
+
+#Month calendar control#
+!define MCM_FIRST 0x1000
+!define /math MCM_GETCURSEL       ${MCM_FIRST} + 1
+!define /math MCM_SETCURSEL       ${MCM_FIRST} + 2
+!define /math MCM_GETMAXSELCOUNT  ${MCM_FIRST} + 3
+!define /math MCM_SETMAXSELCOUNT  ${MCM_FIRST} + 4
+!define /math MCM_GETSELRANGE     ${MCM_FIRST} + 5
+!define /math MCM_SETSELRANGE     ${MCM_FIRST} + 6
+!define /math MCM_GETMONTHRANGE   ${MCM_FIRST} + 7
+!define /math MCM_SETDAYSTATE     ${MCM_FIRST} + 8
+!define /math MCM_GETMINREQRECT   ${MCM_FIRST} + 9
+!define /math MCM_SETCOLOR            ${MCM_FIRST} + 10
+!define /math MCM_GETCOLOR            ${MCM_FIRST} + 11
+!define /math MCM_SETTODAY    ${MCM_FIRST} + 12
+!define /math MCM_GETTODAY    ${MCM_FIRST} + 13
+!define /math MCM_HITTEST          ${MCM_FIRST} + 14
+!define /math MCM_SETFIRSTDAYOFWEEK ${MCM_FIRST} + 15
+!define /math MCM_GETFIRSTDAYOFWEEK ${MCM_FIRST} + 16
+!define /math MCM_GETRANGE ${MCM_FIRST} + 17
+!define /math MCM_SETRANGE ${MCM_FIRST} + 18
+!define /math MCM_GETMONTHDELTA ${MCM_FIRST} + 19
+!define /math MCM_SETMONTHDELTA ${MCM_FIRST} + 20
+!define /math MCM_GETMAXTODAYWIDTH ${MCM_FIRST} + 21
+!define MCM_SETUNICODEFORMAT ${CCM_SETUNICODEFORMAT} ; IE4+
+!define MCM_GETUNICODEFORMAT ${CCM_SETUNICODEFORMAT} ; IE4+
+!define /math MCM_GETCURRENTVIEW ${MCM_FIRST} + 22 ; Vista+
+!define /math MCM_GETCALENDARCOUNT ${MCM_FIRST} + 23
+!define /math MCM_GETCALENDARGRIDINFO ${MCM_FIRST} + 24
+!define /math MCM_GETCALID ${MCM_FIRST} + 27
+!define /math MCM_SETCALID ${MCM_FIRST} + 28
+!define /math MCM_SIZERECTTOMIN ${MCM_FIRST} + 29
+!define /math MCM_SETCALENDARBORDER ${MCM_FIRST} + 30
+!define /math MCM_GETCALENDARBORDER ${MCM_FIRST} + 31
+!define /math MCM_SETCURRENTVIEW ${MCM_FIRST} + 32
+!define MCN_SELCHANGE   -749
+!define MCN_GETDAYSTATE -747
+!define MCN_SELECT      -746
+!define MCN_VIEWCHANGE  -750 ; Vista+?
+
+#DateTime control#
+!define DTM_FIRST 0x1000
+!define /math DTM_GETSYSTEMTIME ${DTM_FIRST} + 1
+!define /math DTM_SETSYSTEMTIME ${DTM_FIRST} + 2
+!define /math DTM_SETFORMATA ${DTM_FIRST} + 5
+!define /math DTM_SETFORMATW ${DTM_FIRST} + 50
+${_NSIS_DEFAW} DTM_SETFORMAT
+!define /math DTM_GETMONTHCAL ${DTM_FIRST} + 8
+!define /math DTM_SETMCFONT ${DTM_FIRST} + 9 ; IE4+?
+!define /math DTM_GETMCFONT ${DTM_FIRST} + 10 ; IE4+?
+!define /math DTM_SETMCSTYLE ${DTM_FIRST} + 11 ; Vista+?
+!define /math DTM_GETMCSTYLE ${DTM_FIRST} + 12 ; Vista+?
+!define /math DTM_CLOSEMONTHCAL ${DTM_FIRST} + 13 ; Vista+?
+!define DTN_DATETIMECHANGE -759
+!define /IfNDef GDT_ERROR -1
+!define /IfNDef GDT_VALID 0
+!define /IfNDef GDT_NONE 1
 
 !verbose pop
 !endif

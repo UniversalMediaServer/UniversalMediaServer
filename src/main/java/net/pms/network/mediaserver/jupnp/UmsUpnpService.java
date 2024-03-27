@@ -17,17 +17,17 @@
 package net.pms.network.mediaserver.jupnp;
 
 import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsLocalDevice;
 import net.pms.network.mediaserver.jupnp.registry.UmsRegistryListener;
+import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.jupnp.UpnpServiceImpl;
-import org.jupnp.model.meta.LocalDevice;
 import org.jupnp.protocol.ProtocolFactory;
 import org.jupnp.registry.Registry;
 import org.jupnp.util.SpecificationViolationReporter;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -38,22 +38,40 @@ import org.slf4j.LoggerFactory;
  */
 public class UmsUpnpService extends UpnpServiceImpl {
 
-	private static final org.slf4j.Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsUpnpService.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
-	private final LocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
+	private final UmsLocalDevice mediaServerDevice = UmsLocalDevice.createMediaServerDevice();
 
 	public UmsUpnpService(boolean serveContentDirectory) {
 		super(new UmsUpnpServiceConfiguration(serveContentDirectory));
-		//don't log org.jupnp by default to reflext Cling not log to UMS.
-		if (!LOGGER.isTraceEnabled() && !CONFIGURATION.isUpnpDebug()) {
+		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate() &&
+				UmsConfiguration.KEY_UPNP_DEBUG.equals(event.getPropertyName())) {
+				resetLoggingMode();
+			}
+		});
+		resetLoggingMode();
+	}
+
+	private static void resetLoggingMode() {
+		if (!CONFIGURATION.isUpnpDebug()) {
+			//don't log org.jupnp by default to reflext Cling not log to UMS.
 			LOGGER.debug("Upnp set in silent log mode");
 			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-			Logger rootLogger = loggerContext.getLogger("org.jupnp");
+			ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.jupnp");
 			rootLogger.setLevel(Level.OFF);
 			rootLogger = loggerContext.getLogger("org.jupnp.support");
 			rootLogger.setLevel(Level.OFF);
 			SpecificationViolationReporter.disableReporting();
+		} else {
+			LOGGER.debug("Upnp set in debug log mode");
+			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+			ch.qos.logback.classic.Logger rootLogger = loggerContext.getLogger("org.jupnp");
+			rootLogger.setLevel(Level.ALL);
+			rootLogger = loggerContext.getLogger("org.jupnp.support");
+			rootLogger.setLevel(Level.ALL);
+			SpecificationViolationReporter.enableReporting();
 		}
 	}
 
@@ -68,4 +86,5 @@ public class UmsUpnpService extends UpnpServiceImpl {
 	public void sendAlive() {
 		getProtocolFactory().createSendingNotificationAlive(mediaServerDevice).run();
 	}
+
 }

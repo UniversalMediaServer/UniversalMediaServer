@@ -21,7 +21,6 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.EConnectionState;
 import net.pms.gui.IGui;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory;
 public abstract class WebGuiServer implements IGui {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private String statusLine;
 
 	public abstract Object getServer();
 	public abstract int getPort();
@@ -39,7 +39,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void appendLog(String msg) {
-		SseApiServlet.appendLog(msg);
+		EventSourceServer.appendLog(msg);
 	}
 
 	@Override
@@ -51,8 +51,8 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void setMemoryUsage(int maxMemory, int usedMemory, int bufferMemory) {
-		SseApiServlet.setMemoryUsage(maxMemory, usedMemory, bufferMemory);
+	public void setMemoryUsage(int maxMemory, int usedMemory, int dbCacheMemory, int bufferMemory) {
+		EventSourceServer.setMemoryUsage(maxMemory, usedMemory, dbCacheMemory, bufferMemory);
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setReloadable(boolean reload) {
-		SseApiServlet.setReloadable(reload);
+		EventSourceServer.setReloadable(reload);
 	}
 
 	@Override
@@ -75,10 +75,17 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setStatusLine(String line) {
+		statusLine = line;
+		EventSourceServer.setStatusLine(statusLine);
 	}
 
 	@Override
 	public void setSecondaryStatusLine(String line) {
+		if (line == null && statusLine != null) {
+			EventSourceServer.setStatusLine(statusLine);
+		} else {
+			EventSourceServer.setStatusLine(line);
+		}
 	}
 
 	@Override
@@ -90,8 +97,8 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	@Override
-	public void setScanLibraryStatus(boolean enabled, boolean running) {
-		SseApiServlet.setScanLibraryStatus(enabled, running);
+	public void setMediaScanStatus(boolean running) {
+		EventSourceServer.setMediaScanStatus(running);
 	}
 
 	@Override
@@ -104,10 +111,11 @@ public abstract class WebGuiServer implements IGui {
 
 	@Override
 	public void setConfigurationChanged(String key) {
-		SseApiServlet.setConfigurationChanged(key);
+		EventSourceServer.setConfigurationChanged(key);
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
 		return WebGuiServerHttpServer.createServer(port);
 	}
+
 }

@@ -19,18 +19,17 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.sql.Connection;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.database.UserDatabase;
 import net.pms.iam.Account;
 import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
 import net.pms.iam.UsernamePassword;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "AuthApiServlet", urlPatterns = {"/v1/api/auth"}, displayName = "Auth Api Servlet")
 public class AuthApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AuthApiServlet.class);
 
 	@Override
@@ -62,36 +62,36 @@ public class AuthApiServlet extends GuiHttpServlet {
 							UserDatabase.close(connection);
 						} else {
 							LOGGER.error("User database not available");
-							WebGuiServletHelper.respondInternalServerError(req, resp, "User database not available");
+							respondInternalServerError(req, resp, "User database not available");
 							return;
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, jObject.toString(), 200, "application/json");
+					respond(req, resp, jObject.toString(), 200, "application/json");
 				}
 				case "/disable" -> {
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection == null) {
 						LOGGER.error("User database not available");
-						WebGuiServletHelper.respondInternalServerError(req, resp, "User database not available");
+						respondInternalServerError(req, resp, "User database not available");
 					} else {
 						if (!AccountService.hasNoAdmin(connection)) {
 							LOGGER.error("An admin user is already in database");
-							WebGuiServletHelper.respondForbidden(req, resp);
+							respondForbidden(req, resp);
 						} else {
 							AuthService.setEnabled(false);
-							WebGuiServletHelper.respond(req, resp, "", 200, "application/json");
+							respond(req, resp, "", 200, "application/json");
 						}
 					}
 				}
 				default -> {
 					LOGGER.trace("AuthApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in AuthApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respond(req, resp, null, 500, "application/json");
+			respond(req, resp, null, 500, "application/json");
 		}
 	}
 
@@ -101,7 +101,7 @@ public class AuthApiServlet extends GuiHttpServlet {
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/login" -> {
-					String loginDetails = WebGuiServletHelper.getBodyAsString(req);
+					String loginDetails = getBodyAsString(req);
 					UsernamePassword data = GSON.fromJson(loginDetails, UsernamePassword.class);
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection != null) {
@@ -110,7 +110,7 @@ public class AuthApiServlet extends GuiHttpServlet {
 							LOGGER.info("Got user from db: {}", account.getUsername());
 							AccountService.checkUserUnlock(connection, account.getUser());
 							if (AccountService.isUserLocked(account.getUser())) {
-								WebGuiServletHelper.respond(req, resp, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
+								respond(req, resp, "{\"retrycount\": \"0\", \"lockeduntil\": \"" + (account.getUser().getLoginFailedTime() + AccountService.LOGIN_FAIL_LOCK_TIME) + "\"}", 401, "application/json");
 							} else if (AccountService.validatePassword(data.getPassword(), account.getUser().getPassword())) {
 								AccountService.setUserLogged(connection, account.getUser());
 								String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
@@ -120,32 +120,32 @@ public class AuthApiServlet extends GuiHttpServlet {
 								JsonObject jAccount = jElement.getAsJsonObject();
 								jAccount.getAsJsonObject("user").remove("password");
 								jObject.add("account", jAccount);
-								WebGuiServletHelper.respond(req, resp, jObject.toString(), 200, "application/json");
+								respond(req, resp, jObject.toString(), 200, "application/json");
 							} else {
 								AccountService.setUserLoginFailed(connection, account.getUser());
-								WebGuiServletHelper.respond(req, resp, "{\"retrycount\": \"" + (AccountService.MAX_LOGIN_FAIL_BEFORE_LOCK - account.getUser().getLoginFailedCount()) + "\", \"lockeduntil\": \"0\"}", 401, "application/json");
+								respond(req, resp, "{\"retrycount\": \"" + (AccountService.MAX_LOGIN_FAIL_BEFORE_LOCK - account.getUser().getLoginFailedCount()) + "\", \"lockeduntil\": \"0\"}", 401, "application/json");
 							}
 						} else {
-							WebGuiServletHelper.respondUnauthorized(req, resp);
+							respondUnauthorized(req, resp);
 						}
 						UserDatabase.close(connection);
 					} else {
 						LOGGER.error("User database not available");
-						WebGuiServletHelper.respondInternalServerError(req, resp);
+						respondInternalServerError(req, resp);
 					}
 				}
 				case "/refresh" -> {
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account != null) {
 						String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
-						WebGuiServletHelper.respond(req, resp, "{\"token\": \"" + token + "\"}", 200, "application/json");
+						respond(req, resp, "{\"token\": \"" + token + "\"}", 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 					}
 				}
 				case "/create" -> {
 					//create the first admin user
-					String loginDetails = WebGuiServletHelper.getBodyAsString(req);
+					String loginDetails = getBodyAsString(req);
 					UsernamePassword data = GSON.fromJson(loginDetails, UsernamePassword.class);
 					Connection connection = UserDatabase.getConnectionIfAvailable();
 					if (connection != null) {
@@ -161,30 +161,30 @@ public class AuthApiServlet extends GuiHttpServlet {
 								String token = AuthService.signJwt(account.getUser().getId(), req.getRemoteAddr());
 								jObject.add("token", new JsonPrimitive(token));
 								jObject.add("account", AccountApiServlet.accountToJsonObject(account));
-								WebGuiServletHelper.respond(req, resp, jObject.toString(), 200, "application/json");
+								respond(req, resp, jObject.toString(), 200, "application/json");
 							} else {
 								LOGGER.error("Error in admin user creation");
-								WebGuiServletHelper.respondInternalServerError(req, resp);
+								respondInternalServerError(req, resp);
 							}
 						} else {
 							LOGGER.error("An admin user is already in database");
-							WebGuiServletHelper.respondForbidden(req, resp);
+							respondForbidden(req, resp);
 						}
 						UserDatabase.close(connection);
 					} else {
 						LOGGER.error("User database not available");
-						WebGuiServletHelper.respondInternalServerError(req, resp, "User database not available");
+						respondInternalServerError(req, resp, "User database not available");
 					}
 				}
 				default -> {
 					LOGGER.trace("AccountApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in AccountApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 

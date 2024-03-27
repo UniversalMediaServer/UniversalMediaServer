@@ -1,133 +1,133 @@
-;Language: Slovak (1051)
+Ôªø;Language: Slovak (1051)
 ;Translated by:
 ;  Kypec (peter.dzugas@mahe.sk)
 ;edited by:
-;  Mari·n HikanÌk (podnety@mojepreklady.net)
-;  Ivan Mas·r <helix84@centrum.sk>, 2008.
+;  Mari√°n Hikan√≠k (podnety@mojepreklady.net)
+;  Ivan Mas√°r <helix84@centrum.sk>, 2008.
 
-!insertmacro LANGFILE "Slovak" "Slovensky"
+!insertmacro LANGFILE "Slovak" = "Slovenƒçina" "Slovencina"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Vitajte v sprievodcovi inötal·ciou programu $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Tento sprievodca v·s prevedie inötal·ciou $(^NameDA).$\r$\n$\r$\nPred zaËiatkom inötal·cie sa odpor˙Ëa ukonËiù vöetky ostatnÈ programy. T˝m umoûnÌte aktualizovanie systÈmov˝ch s˙borov bez potreby reötartovania v·öho poËÌtaËa.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Vitajte v sprievodcovi in≈°tal√°ciou programu $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Tento sprievodca v√°s prevedie in≈°tal√°ciou $(^NameDA).$\r$\n$\r$\nPred zaƒçiatkom in≈°tal√°cie sa odpor√∫ƒça ukonƒçi≈• v≈°etky ostatn√© programy. T√Ωm umo≈æn√≠te aktualizovanie syst√©mov√Ωch s√∫borov bez potreby re≈°tartovania v√°≈°ho poƒç√≠taƒça.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Vitajte v sprievodcovi odinötalovanÌm programu $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Tento sprievodca v·s prevedie procesom odinötalovania programu $(^NameDA).$\r$\n$\r$\nPred spustenÌm procesu odinötalovania sa uistite, ûe program $(^NameDA) nie je pr·ve aktÌvny.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Vitajte v sprievodcovi odin≈°talovan√≠m programu $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Tento sprievodca v√°s prevedie procesom odin≈°talovania programu $(^NameDA).$\r$\n$\r$\nPred spusten√≠m procesu odin≈°talovania sa uistite, ≈æe program $(^NameDA) nie je pr√°ve akt√≠vny.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "LicenËn· zmluva"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Pred inötal·ciou $(^NameDA) si prosÌm preötudujte licenËnÈ podmienky."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ak s˙hlasÌte s podmienkami zmluvy, kliknite na tlaËidlo S˙hlasÌm a mÙûete pokraËovaù v inötal·cii. Ak chcete v inötal·cii pokraËovaù, musÌte ods˙hlasiù podmienky licenËnej zmluvy $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ak s˙hlasÌte s podmienkami zmluvy, zaökrtnite niûöie uvedenÈ polÌËko. Ak chcete v inötal·cii pokraËovaù, musÌte ods˙hlasiù podmienky licenËnej zmluvy $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ak s˙hlasÌte s podmienkami zmluvy, oznaËte prv˙ z niûöie uveden˝ch moûnostÌ. Ak chcete v inötal·cii pokraËovaù, musÌte ods˙hlasiù podmienky licenËnej zmluvy $(^NameDA)."
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Licenƒçn√° zmluva"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Pred in≈°tal√°ciou $(^NameDA) si pros√≠m pre≈°tudujte licenƒçn√© podmienky."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Ak s√∫hlas√≠te s podmienkami zmluvy, kliknite na tlaƒçidlo S√∫hlas√≠m a m√¥≈æete pokraƒçova≈• v in≈°tal√°cii. Ak chcete v in≈°tal√°cii pokraƒçova≈•, mus√≠te ods√∫hlasi≈• podmienky licenƒçnej zmluvy $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ak s√∫hlas√≠te s podmienkami zmluvy, za≈°krtnite ni≈æ≈°ie uveden√© pol√≠ƒçko. Ak chcete v in≈°tal√°cii pokraƒçova≈•, mus√≠te ods√∫hlasi≈• podmienky licenƒçnej zmluvy $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ak s√∫hlas√≠te s podmienkami zmluvy, oznaƒçte prv√∫ z ni≈æ≈°ie uveden√Ωch mo≈ænost√≠. Ak chcete v in≈°tal√°cii pokraƒçova≈•, mus√≠te ods√∫hlasi≈• podmienky licenƒçnej zmluvy $(^NameDA)."
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "LicenËn· zmluva"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Pred odinötalovanÌm programu $(^NameDA) si prosÌm preËÌtajte licenËnÈ podmienky."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ak s˙hlasÌte s podmienkami zmluvy, zvoæte S˙hlasÌm. LicenËn˙ zmluvu musÌte ods˙hlasiù, ak chcete v odinötalovanÌ programu $(^NameDA) pokraËovaù."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ak s˙hlasÌte s podmienkami zmluvy, zaökrtnite niûöie uvedenÈ polÌËko. LicenËn˙ zmluvu musÌte ods˙hlasiù, ak chcete pokraËovaù v odinötalovanÌ programu $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ak s˙hlasÌte s podmienkami licenËnej zmluvy, oznaËte prv˙ z niûöie uveden˝ch moûnostÌ. LicenËn˙ zmluvu musÌte ods˙hlasiù, ak chcete pokraËovaù v odinötalovanÌ programu $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Licenƒçn√° zmluva"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Pred odin≈°talovan√≠m programu $(^NameDA) si pros√≠m preƒç√≠tajte licenƒçn√© podmienky."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Ak s√∫hlas√≠te s podmienkami zmluvy, zvoƒæte S√∫hlas√≠m. Licenƒçn√∫ zmluvu mus√≠te ods√∫hlasi≈•, ak chcete v odin≈°talovan√≠ programu $(^NameDA) pokraƒçova≈•."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Ak s√∫hlas√≠te s podmienkami zmluvy, za≈°krtnite ni≈æ≈°ie uveden√© pol√≠ƒçko. Licenƒçn√∫ zmluvu mus√≠te ods√∫hlasi≈•, ak chcete pokraƒçova≈• v odin≈°talovan√≠ programu $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Ak s√∫hlas√≠te s podmienkami licenƒçnej zmluvy, oznaƒçte prv√∫ z ni≈æ≈°ie uveden√Ωch mo≈ænost√≠. Licenƒçn√∫ zmluvu mus√≠te ods√∫hlasi≈•, ak chcete pokraƒçova≈• v odin≈°talovan√≠ programu $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "StlaËenÌm kl·vesu Page Down posuniete text licenËnej zmluvy."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Stlaƒçen√≠m kl√°vesu Page Down posuniete text licenƒçnej zmluvy."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Voæba s˙ËastÌ programu"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Zvoæte si tie s˙Ëasti programu $(^NameDA), ktorÈ chcete nainötalovaù."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Voƒæba s√∫ƒçast√≠ programu"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Zvoƒæte si tie s√∫ƒçasti programu $(^NameDA), ktor√© chcete nain≈°talova≈•."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Voæba s˙ËastÌ"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Zvoæte s˙Ëasti programu $(^NameDA), ktorÈ chcete odinötalovaù."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Voƒæba s√∫ƒçast√≠"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Zvoƒæte s√∫ƒçasti programu $(^NameDA), ktor√© chcete odin≈°talova≈•."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Popis"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Pri prejdenÌ kurzorom myöi nad n·zvom s˙Ëasti sa zobrazÌ jej popis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Pri prejden√≠ kurzorom my≈°i nad n√°zvom s√∫ƒçasti sa zobraz√≠ jej popis."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Pri prejdenÌ kurzorom myöi nad n·zvom s˙Ëasti sa zobrazÌ jej popis."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Oznaƒçte nejak√∫ s√∫ƒças≈•, ak chcete zobrazi≈• jej podrobnej≈°√≠ popis."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Voæba umiestnenia programu"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Vyberte si prieËinok, do ktorÈho chcete nainötalovaù program $(^NameDA)."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Voƒæba umiestnenia programu"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Vyberte si prieƒçinok, do ktor√©ho chcete nain≈°talova≈• program $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Umiestenie programu pre odinötalovanie"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Vyberte si prieËinok, z ktorÈho chcete odinötalovaù program $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Umiestenie programu pre odin≈°talovanie"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Vyberte si prieƒçinok, z ktor√©ho chcete odin≈°talova≈• program $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Inötal·cia"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "PoËkajte prosÌm, k˝m prebehne inötal·cia programu $(^NameDA)."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "UkonËenie inötal·cie"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Inötal·cia bola dokonËen· ˙speöne."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Preruöenie inötal·cie"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Inötal·ciu sa nepodarilo dokonËiù."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "In≈°tal√°cia"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Poƒçkajte pros√≠m, k√Ωm prebehne in≈°tal√°cia programu $(^NameDA)."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Ukonƒçenie in≈°tal√°cie"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "In≈°tal√°cia bola dokonƒçen√° √∫spe≈°ne."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Preru≈°enie in≈°tal√°cie"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "In≈°tal√°ciu sa nepodarilo dokonƒçi≈•."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Odinötalovanie"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "»akajte prosÌm, k˝m prebehne odinötalovanie programu $(^NameDA)."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "UkonËenie odinötalovania"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odinötalovanie bolo ˙speöne dokonËenÈ."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Preruöenie odinötalovania"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Odinötalovanie sa neukonËilo ˙speöne."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Odin≈°talovanie"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "ƒåakajte pros√≠m, k√Ωm prebehne odin≈°talovanie programu $(^NameDA)."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Ukonƒçenie odin≈°talovania"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Odin≈°talovanie bolo √∫spe≈°ne dokonƒçen√©."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Preru≈°enie odin≈°talovania"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Odin≈°talovanie sa neukonƒçilo √∫spe≈°ne."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "DokonËenie inötal·cie programu $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Program $(^NameDA) bol nainötalovan˝ do v·öho poËÌtaËa.$\r$\nKliknite na tlaËidlo DokonËiù a tento sprievodca sa ukonËÌ."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Pre ˙plnÈ dokonËenie inötal·cie programu $(^NameDA) je potrebnÈ reötartovaù v·ö poËÌtaË. Chcete ho reötartovaù ihneÔ?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Dokonƒçenie in≈°tal√°cie programu $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Program $(^NameDA) bol nain≈°talovan√Ω do v√°≈°ho poƒç√≠taƒça.$\r$\nKliknite na tlaƒçidlo Dokonƒçi≈• a tento sprievodca sa ukonƒç√≠."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Pre √∫pln√© dokonƒçenie in≈°tal√°cie programu $(^NameDA) je potrebn√© re≈°tartova≈• v√°≈° poƒç√≠taƒç. Chcete ho re≈°tartova≈• ihneƒè?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "DokonËenie sprievodcu odinötalovanÌm"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Program $(^NameDA) bol odinötalovan˝ z v·öho poËÌtaËa.$\r$\n$\r$\nKliknite na tlaËidlo DokonËiù a tento sprievodca sa ukonËÌ."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Pre ˙plnÈ dokonËenie odinötalovania programu $(^NameDA) je nutnÈ reötartovaù v·ö poËÌtaË. Chcete ho reötartovaù ihneÔ?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Dokonƒçenie sprievodcu odin≈°talovan√≠m"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Program $(^NameDA) bol odin≈°talovan√Ω z v√°≈°ho poƒç√≠taƒça.$\r$\n$\r$\nKliknite na tlaƒçidlo Dokonƒçi≈• a tento sprievodca sa ukonƒç√≠."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Pre √∫pln√© dokonƒçenie odin≈°talovania programu $(^NameDA) je nutn√© re≈°tartova≈• v√°≈° poƒç√≠taƒç. Chcete ho re≈°tartova≈• ihneƒè?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Reötartovaù teraz"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Reötartovaù neskÙr (manu·lne)"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Spustiù program $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Zobraziù s˙bor s inform·ciami"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&DokonËiù"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Re≈°tartova≈• teraz"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Re≈°tartova≈• nesk√¥r (manu√°lne)"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&Spusti≈• program $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Zobrazi≈• s√∫bor s inform√°ciami"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Dokonƒçi≈•"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Voæba umiestnenia v ponuke ätart"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Vyberte si prieËinok v ponuke ätart, kam sa umiestnia odkazy na program $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vyberte si prieËinok v ponuke ätart, v ktorom chcete vytvoriù odkazy na program. Takisto mÙûete napÌsaù n·zov novÈho prieËinka."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nevytv·raù odkazy"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Voƒæba umiestnenia v ponuke ≈†tart"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Vyberte si prieƒçinok v ponuke ≈†tart, kam sa umiestnia odkazy na program $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Vyberte si prieƒçinok v ponuke ≈†tart, v ktorom chcete vytvori≈• odkazy na program. Takisto m√¥≈æete nap√≠sa≈• n√°zov nov√©ho prieƒçinka."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Nevytv√°ra≈• odkazy"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Odinötalovanie programu $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Odstr·nenie programu $(^NameDA) z v·öho poËÌtaËa."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Odin≈°talovanie programu $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Odstr√°nenie programu $(^NameDA) z v√°≈°ho poƒç√≠taƒça."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Naozaj chcete ukonËiù inötal·ciu programu $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Naozaj chcete ukonƒçi≈• in≈°tal√°ciu programu $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Naozaj chcete ukonËiù proces odinötalovania programu $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Naozaj chcete ukonƒçi≈• proces odin≈°talovania programu $(^Name)?"
 !endif
 
 !ifdef MULTIUSER_INSTALLMODEPAGE
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Vybraù pouûÌvateæov"
-  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Vyberte pre ktor˝ch pouûÌvateæov chcete nainötalovaù $(^NameDA)."
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Vyberte, Ëi chcete nainötalovaù program $(^NameDA) iba pre seba alebo pre vöetk˝ch pouûÌvateæov tohto poËÌtaËa. $(^ClickNext)"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Nainötalovaù pre vöetk˝ch pouûÌvateæov tohto poËÌtaËa"
-  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Nainötalovaù iba pre mÚa"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Vybra≈• pou≈æ√≠vateƒæov"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Vyberte pre ktor√Ωch pou≈æ√≠vateƒæov chcete nain≈°talova≈• $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Vyberte, ƒçi chcete nain≈°talova≈• program $(^NameDA) iba pre seba alebo pre v≈°etk√Ωch pou≈æ√≠vateƒæov tohto poƒç√≠taƒça. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Nain≈°talova≈• pre v≈°etk√Ωch pou≈æ√≠vateƒæov tohto poƒç√≠taƒça"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Nain≈°talova≈• iba pre m≈àa"
 !endif

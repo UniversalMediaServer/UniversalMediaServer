@@ -23,11 +23,9 @@ import java.io.IOException;
 import java.util.Locale;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.media.MediaLang;
-import static net.pms.formats.v2.SubtitleType.UNKNOWN;
-import static net.pms.util.Constants.CHARSET_UTF_8;
+import net.pms.util.Constants;
 import net.pms.util.FileUtil;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,18 +33,20 @@ import org.slf4j.LoggerFactory;
  * This class keeps track of the subtitle information for media.
  */
 public class MediaSubtitle extends MediaLang implements Cloneable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaSubtitle.class);
-	private SubtitleType type = UNKNOWN;
 
-	private String subtitlesTrackTitleFromMetadata;
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaSubtitle.class);
+
+	private SubtitleType type = SubtitleType.UNKNOWN;
+	private Integer streamOrder;
+	private Long optionalId;
+	private boolean defaultFlag;
+	private boolean forcedFlag;
+	private String title;
 
 	/** The external {@link File}, always in its "absolute" version */
 	private File externalFile;
 	private String subsCharacterSet;
-
 	private File convertedFile;
-	private boolean defaultFlag = false;
-	private boolean forcedFlag = false;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -67,6 +67,38 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	 */
 	public boolean isExternal() {
 		return !isEmbedded();
+	}
+
+	/**
+	 * @return the container stream index.
+	 */
+	public Integer getStreamOrder() {
+		return streamOrder;
+	}
+
+	/**
+	 * @param streamIndex the container stream index to set
+	 */
+	public void setStreamOrder(Integer streamIndex) {
+		this.streamOrder = streamIndex;
+	}
+
+	/**
+	 * Returns the optional id for this subtitles stream.
+	 *
+	 * @return The optional id.
+	 */
+	public Long getOptionalId() {
+		return optionalId;
+	}
+
+	/**
+	 * Sets an optional id for this subtitles stream.
+	 *
+	 * @param uid the optional id to set.
+	 */
+	public void setOptionalId(Long optionalId) {
+		this.optionalId = optionalId;
 	}
 
 	/**
@@ -105,50 +137,6 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 		this.forcedFlag = value;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder result = new StringBuilder();
-		if (isEmbedded()) {
-			result.append("Embedded, id: ").append(getId()).append(", type: ");
-		} else {
-			result.append("External, type: ");
-		}
-		result.append(type);
-
-		if (isNotBlank(subtitlesTrackTitleFromMetadata)) {
-			result.append(", subtitles track title from metadata: ");
-			result.append(subtitlesTrackTitleFromMetadata);
-		}
-
-		result.append(", lang: ");
-		result.append(getLang());
-
-		if (isExternal()) {
-			result.append(", externalFile: ");
-			result.append(externalFile);
-			result.append(", external file character set: ");
-			result.append(subsCharacterSet);
-		}
-
-		if (convertedFile != null) {
-			result.append(", convertedFile: ");
-			result.append(convertedFile.toString());
-		}
-
-		result.append(", default: ");
-		result.append(isDefault());
-
-		result.append(", forced: ");
-		result.append(isForced());
-
-		return result.toString();
-	}
-
-	@Override
-	public Object clone() throws CloneNotSupportedException {
-		return super.clone();
-	}
-
 	/**
 	 * @return the type
 	 */
@@ -169,8 +157,8 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	/**
 	 * @return The subtitles title if parsed.
 	 */
-	public String getSubtitlesTrackTitleFromMetadata() {
-		return subtitlesTrackTitleFromMetadata;
+	public String getTitle() {
+		return title;
 	}
 
 	/**
@@ -178,8 +166,8 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	 *
 	 * @param value the subtitles title.
 	 */
-	public void setSubtitlesTrackTitleFromMetadata(String value) {
-		this.subtitlesTrackTitleFromMetadata = value;
+	public void setTitle(String value) {
+		this.title = value;
 	}
 
 	/**
@@ -248,7 +236,7 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 					// Set the detected language if is isn't already set
 					if (lang == null || MediaLang.UND.equals(lang)) {
 						String tmpLanguage = match.getLanguage();
-						if (isNotBlank(tmpLanguage)) {
+						if (StringUtils.isNotBlank(tmpLanguage)) {
 							lang = tmpLanguage;
 						}
 					}
@@ -289,7 +277,7 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	 *         otherwise.
 	 */
 	public boolean isSubsUtf8() {
-		return equalsIgnoreCase(subsCharacterSet, CHARSET_UTF_8);
+		return StringUtils.equalsIgnoreCase(subsCharacterSet, Constants.CHARSET_UTF_8);
 	}
 
 	/**
@@ -339,4 +327,47 @@ public class MediaSubtitle extends MediaLang implements Cloneable {
 	public File getConvertedFile() {
 		return convertedFile;
 	}
+
+	@Override
+	public Object clone() throws CloneNotSupportedException {
+		return super.clone();
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+		if (isEmbedded()) {
+			result.append("Id: ").append(getId()).append(", Embedded");
+			if (forcedFlag) {
+				result.append(", Default");
+			}
+			if (forcedFlag) {
+				result.append(", Forced");
+			}
+		} else {
+			result.append("External");
+		}
+		if (StringUtils.isNotBlank(title)) {
+			result.append(", title: ");
+			result.append(title);
+		}
+		result.append(", lang: ");
+		result.append(getLang());
+		result.append(", type: ").append(type);
+		if (getStreamOrder() != null) {
+			result.append(", Stream Order: ").append(getStreamOrder());
+		}
+		if (isExternal()) {
+			result.append(", externalFile: ");
+			result.append(externalFile);
+			result.append(", external file character set: ");
+			result.append(subsCharacterSet);
+		}
+		if (convertedFile != null) {
+			result.append(", convertedFile: ");
+			result.append(convertedFile.toString());
+		}
+		return result.toString();
+	}
+
 }

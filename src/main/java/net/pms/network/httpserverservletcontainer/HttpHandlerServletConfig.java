@@ -17,23 +17,23 @@
 package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpContext;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.annotation.WebInitParam;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import org.apache.commons.lang3.StringUtils;
 
 public class HttpHandlerServletConfig implements ServletConfig {
+
 	private final HttpHandlerServletContext context;
 	private final String servletName;
 	private final HashMap<String, String> initParameters;
 
 	public HttpHandlerServletConfig(HttpServlet servlet, HttpContext httpContext, ClassLoader classLoader) {
-		context = new HttpHandlerServletContext(httpContext, classLoader);
 		WebServlet webServlet = servlet.getClass().getAnnotation(WebServlet.class);
 		if (StringUtils.isBlank(webServlet.name())) {
 			servletName = servlet.getClass().getSimpleName();
@@ -44,6 +44,7 @@ public class HttpHandlerServletConfig implements ServletConfig {
 		for (WebInitParam initParam : webServlet.initParams()) {
 			initParameters.put(initParam.name(), initParam.value());
 		}
+		context = new HttpHandlerServletContext(httpContext, servletName, classLoader);
 	}
 
 	@Override

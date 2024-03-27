@@ -25,9 +25,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
@@ -35,6 +38,7 @@ import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,11 +46,95 @@ import org.slf4j.LoggerFactory;
  * This class handle all renderers and devices found.
  */
 public class ConnectedRenderers {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConnectedRenderers.class);
 	private static final Map<InetAddress, Renderer> ADDRESS_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
-	private static final Map<InetAddress, String> ADDRESS_UUID_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, InetAddress> UUID_ADDRESS_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, WebGuiRenderer> REACT_CLIENT_RENDERERS = Collections.synchronizedMap(new HashMap<>());
 	private static final Map<String, Renderer> UUID_RENDERER_ASSOCIATION = Collections.synchronizedMap(new HashMap<>());
+	// Used to filter out known headers when the renderer is not recognized
+	private static final String[] KNOWN_HEADERS = {
+		"accept",
+		"accept-language",
+		"accept-encoding",
+		"callback",
+		"connection",
+		"content-length",
+		"content-type",
+		"date",
+		"host",
+		"nt",
+		"sid",
+		"timeout",
+		"user-agent"
+	};
+	/**
+	 * A lock to prevent multiple renderer creation.
+	 */
+	public static final Lock RENDERER_LOCK = new ReentrantLock();
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private ConnectedRenderers() {
+	}
+
+	/**
+	 * The handler makes a couple of attempts to recognize a renderer from its
+	 * requests.
+	 *
+	 * IP address matches from previous requests are preferred, then upnp uuid
+	 * is checked, when that fails request header matches are attempted and if
+	 * those fail as well we're stuck with the default renderer.
+	 *
+	 * @param ia
+	 * @param userAgentString
+	 * @param headers
+	 * @return
+	 */
+	public static Renderer getRenderer(InetAddress ia, String userAgentString, Collection<Map.Entry<String, String>> headers) {
+		Renderer renderer = null;
+		RENDERER_LOCK.lock();
+		try {
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = getRendererBySocketAddress(ia);
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
+			if (renderer == null || !renderer.isLoaded()) {
+				// Attempt 2: try to recognize the renderer by matching headers
+				renderer = getRendererConfigurationByHeaders(headers, ia);
+			}
+
+			// Still no media renderer recognized?
+			if (renderer == null) {
+				// Attempt 3: Not really an attempt; all other attempts to recognize
+				// the renderer have failed. The only option left is to assume the
+				// default renderer.
+				renderer = resolve(ia, null);
+				// If RendererConfiguration.resolve() didn't return the default renderer
+				// it means we know via upnp that it's not really a renderer.
+				if (renderer != null) {
+					LOGGER.debug("Using default media renderer \"{}\"", renderer.getConfName());
+					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+						// We have found an unknown renderer
+						List<String> identifiers = getIdentifiers(userAgentString, headers);
+						renderer.setIdentifiers(identifiers);
+						LOGGER.info(
+								"Media renderer was not recognized. Possible identifying HTTP headers:\n{}",
+								StringUtils.join(identifiers, "\n")
+						);
+						PMS.get().setRendererFound(renderer);
+					}
+				}
+			} else if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
+			}
+		} finally {
+			RENDERER_LOCK.unlock();
+		}
+		return renderer;
+	}
 
 	/**
 	 * Returns the list of all connected renderer devices.
@@ -63,9 +151,31 @@ public class ConnectedRenderers {
 		return renderers;
 	}
 
+	private static List<String> getIdentifiers(String userAgentString, Collection<Map.Entry<String, String>> headers) {
+		List<String> identifiers = new ArrayList<>();
+		identifiers.add("User-Agent: " + userAgentString);
+		for (Map.Entry<String, String> header : headers) {
+			boolean isKnown = false;
+
+			// Try to match known headers.
+			String headerName = header.getKey().toLowerCase();
+			for (String knownHeaderString : KNOWN_HEADERS) {
+				if (headerName.startsWith(knownHeaderString)) {
+					isKnown = true;
+					break;
+				}
+			}
+			if (!isKnown) {
+				// Truly unknown header, therefore interesting.
+				identifiers.add(header.getKey() + ": " + header.getValue());
+			}
+		}
+		return identifiers;
+	}
+
 	/**
-	 * Tries to find a matching renderer configuration based on the given collection of
-	 * request headers
+	 * Tries to find a matching renderer configuration based on the given
+	 * collection of request headers
 	 *
 	 * @param headers The headers.
 	 * @param ia The request's origin address.
@@ -80,13 +190,13 @@ public class ConnectedRenderers {
 		RendererConfiguration ref = RendererConfigurations.getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
 			boolean isNew = !ADDRESS_RENDERER_ASSOCIATION.containsKey(ia);
-			r = ConnectedRenderers.resolve(ia, ref);
+			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace(
-					"Matched {}media renderer \"{}\" based on headers {}",
-					isNew ? "new " : "",
-					r.getRendererName(),
-					sortedHeaders
+						"Matched {}media renderer \"{}\" based on headers {}",
+						isNew ? "new " : "",
+						r.getRendererName(),
+						sortedHeaders
 				);
 			}
 		}
@@ -103,7 +213,7 @@ public class ConnectedRenderers {
 
 	public static Renderer getRendererByUUID(String uuid) {
 		for (Renderer renderer : getConnectedRenderers()) {
-			if (uuid.equals(renderer.getUUID())) {
+			if (uuid.equalsIgnoreCase(renderer.getUUID())) {
 				return renderer;
 			}
 		}
@@ -164,7 +274,11 @@ public class ConnectedRenderers {
 					PMS.get().setRendererFound(renderer);
 				}
 				renderer.setActive(true);
-				if (renderer.isUpnpPostponed()) {
+				if (JUPnPDeviceHelper.getDevice(ia) == null) {
+					//UPnP device not yet discovered, device just started ?
+					LOGGER.debug("Sending UPnP search for newly created renderer: {}", renderer);
+					JUPnPDeviceHelper.searchMediaRendererDevices();
+				} else if (renderer.isUpnpPostponed()) {
 					renderer.setUpnpMode(Renderer.UPNP_ALLOW);
 				}
 			}
@@ -173,6 +287,7 @@ public class ConnectedRenderers {
 			LOGGER.trace("", e);
 		} catch (InterruptedException e) {
 			LOGGER.error("Interrupted while resolving renderer \"{}\": {}", ia, e.getMessage());
+			Thread.currentThread().interrupt();
 			return null;
 		}
 		if (!recognized) {
@@ -186,13 +301,9 @@ public class ConnectedRenderers {
 	}
 
 	public static void verify(Renderer r) {
-		// FIXME: this is a very fallible, incomplete validity test for use only until
-		// we find something better. The assumption is that renderers unable determine
-		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
-		// address association to a newer renderer at the same ip) are "invalid".
-		if (r.getUpnpMode() != Renderer.UPNP_BLOCK && r.getAddress() == null) {
+		if (!r.verify()) {
 			LOGGER.debug("Purging renderer {} as invalid", r);
-			r.delete(0);
+			delete(r, 0);
 		}
 	}
 
@@ -222,7 +333,7 @@ public class ConnectedRenderers {
 							removeUuidOf(ia);
 						}
 					}
-					// TODO: actually delete rootfolder, etc.
+					renderer.clearMediaStore();
 				}
 			}
 		};
@@ -240,14 +351,14 @@ public class ConnectedRenderers {
 
 	public static void resetAllRenderers() {
 		for (Renderer r : getConnectedRenderers()) {
-			r.setRootFolder(null);
+			r.resetMediaStore();
 		}
 	}
 
 	public static List<Renderer> getInheritors(Renderer renderer) {
 		ArrayList<Renderer> renderers = new ArrayList<>();
 		RendererConfiguration ref = renderer.getRef();
-		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+		for (Renderer connectedRenderer : getConnectedRenderers()) {
 			if (connectedRenderer.getRef() == ref) {
 				renderers.add(connectedRenderer);
 			}
@@ -279,20 +390,26 @@ public class ConnectedRenderers {
 	}
 
 	public static void addUuidAssociation(InetAddress ia, String id) {
-		if (ia != null && id.startsWith("uuid:")) {
-			// FIXME: this assumes one uuid per address
-			ADDRESS_UUID_ASSOCIATION.put(ia, id);
+		if (ia != null && id != null) {
+			UUID_ADDRESS_ASSOCIATION.put(id, ia);
 		}
 	}
 
 	public static String getUuidOf(InetAddress ia) {
-		// FIXME: this assumes one uuid per address
-		return ia != null ? ADDRESS_UUID_ASSOCIATION.get(ia) : null;
+		if (ia != null) {
+			Optional<Map.Entry<String, InetAddress>> res = UUID_ADDRESS_ASSOCIATION.entrySet().stream().filter(entry -> ia.equals(entry.getValue())).findFirst();
+			if (res.isPresent()) {
+				return res.get().getKey();
+			}
+		}
+		return null;
 	}
 
 	private static void removeUuidOf(InetAddress ia) {
 		if (ia != null) {
-			ADDRESS_UUID_ASSOCIATION.remove(ia);
+			while (UUID_ADDRESS_ASSOCIATION.values().remove(ia)) {
+				//it will end by itself
+			}
 		}
 	}
 
@@ -329,7 +446,7 @@ public class ConnectedRenderers {
 	public static void removeWebPlayerRenderer(String uuid) {
 		Renderer renderer = REACT_CLIENT_RENDERERS.remove(uuid);
 		if (renderer != null) {
-			renderer.delete(0);
+			delete(renderer, 0);
 		}
 	}
 
@@ -352,51 +469,58 @@ public class ConnectedRenderers {
 
 	/**
 	 * RendererMap was marking renderer via uuid.
+	 *
 	 * @param uuid
 	 * @return Renderer
 	 */
-	public static void markRenderer(String uuid, int property, Object value) {
+	public static void markUpnpRenderer(String uuid, int property, Object value) {
 		Renderer renderer = UUID_RENDERER_ASSOCIATION.get(uuid);
 		switch (property) {
-			case JUPnPDeviceHelper.ACTIVE -> renderer.setActive((boolean) value);
-			case JUPnPDeviceHelper.RENEW -> renderer.setRenew((boolean) value);
-			case JUPnPDeviceHelper.CONTROLS -> renderer.setControls((int) value);
+			case JUPnPDeviceHelper.ACTIVE ->
+				renderer.setActive((boolean) value);
+			case JUPnPDeviceHelper.RENEW ->
+				renderer.setRenew((boolean) value);
+			case JUPnPDeviceHelper.CONTROLS ->
+				renderer.setControls((int) value);
 			default -> {
 				//not handled
 			}
 		}
 	}
 
-	public static boolean hasUpNPRenderer(String uuid) {
+	public static boolean hasUuidRenderer(String uuid) {
 		return (UUID_RENDERER_ASSOCIATION.containsKey(uuid));
 	}
 
-	public static Renderer addUpNPRenderer(String uuid, Renderer renderer) {
+	public static Renderer addUuidRenderer(String uuid, Renderer renderer) {
 		return UUID_RENDERER_ASSOCIATION.put(uuid, renderer);
 	}
 
-	public static Renderer getUpNPRenderer(String uuid) {
+	public static Renderer getUuidRenderer(String uuid) {
 		return UUID_RENDERER_ASSOCIATION.get(uuid);
 	}
 
 	/**
 	 * RendererMap was creating renderer on the fly if not found.
+	 *
 	 * @param uuid
 	 * @return Renderer
 	 */
-	public static Renderer getOrCreateUpNPRenderer(String uuid) {
-		if (!hasUpNPRenderer(uuid)) {
+	public static Renderer getOrCreateUuidRenderer(String uuid) {
+		if (!hasUuidRenderer(uuid)) {
 			try {
-				addUpNPRenderer(uuid, new Renderer(uuid));
-			} catch (InterruptedException | ConfigurationException e) {
+				addUuidRenderer(uuid, new Renderer(uuid));
+			} catch (ConfigurationException e) {
 				LOGGER.error("Error instantiating item {}: {}", uuid, e.getMessage());
 				LOGGER.trace("", e);
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
 		}
-		return getUpNPRenderer(uuid);
+		return getUuidRenderer(uuid);
 	}
 
-	public static List<Renderer> getUpNPRenderers(int type) {
+	public static List<Renderer> getUPnPRenderers(int type) {
 		ArrayList<Renderer> renderers = new ArrayList<>();
 		for (Renderer r : UUID_RENDERER_ASSOCIATION.values()) {
 			if (r.isActive() && r.isControllable(type)) {
@@ -420,11 +544,11 @@ public class ConnectedRenderers {
 	}
 
 	public static List<Renderer> getConnectedAVTransportPlayers() {
-		return getUpNPRenderers(JUPnPDeviceHelper.AVT);
+		return getUPnPRenderers(JUPnPDeviceHelper.AVT);
 	}
 
 	public static List<Renderer> getConnectedControlPlayers() {
-		return ConnectedRenderers.getConnectedRenderers(JUPnPDeviceHelper.ANY);
+		return getConnectedRenderers(JUPnPDeviceHelper.ANY);
 	}
 
 	public static boolean hasConnectedControlPlayers() {

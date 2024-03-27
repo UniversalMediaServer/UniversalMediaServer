@@ -1,110 +1,90 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
 <head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>VPatch 3</title>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
 <style type="text/css">
 /*<![CDATA[*/
+:root { color-scheme: light dark; }
+html, body { font-family: Verdana, Arial, Helvetica, sans-serif; color: #050505; background-color: #fefefe; }
+html { font-size: 0.84em; }
+body { font-size: 1em; font-size: 1rem; }
+pre, code { font-family: Courier New, Courier, monospace,serif; font-size: 100%; }
+h1 { font-size: 170%; }
+h2 { font-size: 150%; }
+h3 { font-size: 130%; }
+h4 { font-size: 120%; }
+h5 { font-size: 115%; }
+h6 { font-size: 110%; }
 
 body
         {
-        padding: 10px;
-        background-color: #F0F0F0;
+        padding:1.5em 0; margin:0;
         font-family: Verdana, Arial, Helvetica, sans-serif;
-        font-size: 13px;
         font-weight: normal;
         text-align: left;
         }
 
-p, li
-        {
-        font-size: 13px;
-        }
-
-.center
-        {
-        text-align: center;
-        }
-
+p, li { font-size: 1em; }
 table
         {
         margin: auto;
-        font-size: 13px;
-        background-color: #FFFFFF;
+        font-size: 1em;
         }
-
-.maintable
-        {
-        border: 2px solid #376EAB;
-        }
-
-.parameter
-        {
-        font-weight: bold;
-        color: #6586AC;
-        }
-
-
 h1
         {
-        font-size: 30px;
+        font-size: 250%;
         color: #333333;
         font-weight: normal;
         text-align: center;
-        margin-top: 20px;
         }
 
 h2
         {
-        font-size: 20px;
+        font-size: 150%;
         color: #7A7272;
         font-weight: normal;
         }
 
 h3
         {
-        font-size: 17px;
+        font-size: 130%;
         font-weight: bold;
         color: #303030;
         }
 
-pre     {
-        font-size: 13px;
-        }
-
 div
         {
-        margin: 20px;
+        margin: 1.5em;
         }
 
-a:link, a:visited, a:active
-        {
-        color: #294F75;
-        text-decoration: none;
-        }
+a:link, a:visited, a:active { color: #294F75; text-decoration: none; }
+a:hover { color: #182634; text-decoration: underline; }
 
-a:hover
-        {
-        color: #182634;
-        text-decoration: underline;
-        }
+.T tr:nth-child(odd) { background-color: #fafafa; }
+.T tr, .T td { border: 1px solid #f5f5f5; border-collapse: collapse; padding: 0.2em; }
+
+@media (prefers-color-scheme: dark) {
+html, body { color: #eeeeee; background-color: #161616; }
+h1, h2, h3, h4, h5, h5 { color: inherit; }
+a, a:link, a:visited, a:active { color: #4be; } a:hover { color: #6df; }
+.T tr:nth-child(odd) { background-color: #222222; }
+.T tr, .T td { border: 1px solid #202020; border-collapse: collapse; padding: 0.2em; }
+}
 
 /*]]>*/
 </style>
 </head>
 <body>
-<table width="750" class="maintable" cellspacing="0" cellpadding="0" align="center">
-    <tr> 
-      <td> 
-        
-      <h1>VPatch 3.1</h1>
-        <div> 
+  <h1>VPatch 3.1</h1>
+          <div>
           <h2>Introduction</h2>
           <div>
           <p>VPatch allows to create a patch file to update previous versions 
-            of your software. The GenPat utility generates the patch file. The 
-            plug-in can use the patch to update a file. Using a patch, you can 
+            of your software. The GenPat utility generates the patch file.
+            The plug-in can use the patch to update a file. Using a patch, you can 
             reduce the download size of your updates because only the differences 
             between the files are included in the patch file.</p>
           </div>
@@ -116,9 +96,7 @@ a:hover
             file (version to update to). For example, DATA.DTA (currently on user 
             system) and DATA_20.DTA (version 2.0 of this data file). Now call 
             the command line tool GenPat.exe:</p>
-          <pre>
-GENPAT oldfile.txt newfile.txt patch.pat
-</pre>
+          <pre>GENPAT oldfile.txt newfile.txt patch.pat</pre>
           <p>Now, the patch will be generated, this will take some time.</p>
             <p>Using the /B=(BlockSize) parameter of the GenPat utility (put it 
               after the filenames), you can use a different block size. A smaller 
@@ -131,9 +109,7 @@ GENPAT oldfile.txt newfile.txt patch.pat
           <h3>Update the file during installation</h3>
           <div>
           <p>Use the VPatch plug-in to update a file using a patch file:</p>
-          <pre>
-vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
-</pre>
+          <pre>vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"</pre>
           <p>The result of the patch operating will be added to the stack and 
             can be one of the following texts:</p>
           <ul>
@@ -143,8 +119,9 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
             <li>Patch data is invalid or corrupt</li>
             <li>No suitable patches were found</li>
           </ul>
-            <p>Check <a href="../../Examples/VPatch/example.nsi">example.nsi</a> for an example. You 
-              should check whether the stack string starts with &quot;OK&quot; 
+            <p>Check <a href="../../Examples/VPatch/example.nsi">example.nsi</a> for an example. 
+              You 
+should check whether the stack string starts with &quot;OK&quot; 
               because then the patch has succeeded and you can rename &quot;temporary_newfile.txt&quot; 
               to &quot;oldfile.txt&quot; to replace the original, if you want.</p>
           </div>
@@ -152,9 +129,11 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
           <div>
           <p>GenPat appends a patch to the file you specified. If there is already 
             a patch for the same original file, with the same CRC/MD5, in the patch file,
+ 
             the patch will be replaced. For example, if you want to be able to upgrade
-            version 1 and 2 to version 3, you can put a 1 &gt; 3 and 2 &gt; 3 patch in 
-            one file.</p>
+ version 1 and 2 to version 3, 
+            you can put a 1 &gt; 3 and 2 &gt; 3 patch in 
+one file.</p>
           <p>You can also put patches for different files in one patch file, for 
             example, a patch from file A version 1 to file A version 2 and a patch 
             from file B version 1 to file B version 2. Just call the plug-in multiple 
@@ -167,9 +146,9 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
               the DOS period) can be returned by GenPat. GenPat will return an 
               exit code based on success of the patch generation. Here is a list 
               of the possible exit codes:</p>
-            <table width="547" border="0" cellspacing="0" cellpadding="0">
+            <table border="0" cellspacing="0" cellpadding="0" class="T">
               <tr> 
-                <td><b>Exit code</b></td>
+                <td nowrap><b>Exit code</b></td>
                 <td><b>Description</b></td>
               </tr>
               <tr> 
@@ -199,6 +178,7 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
           <h2>Source code</h2>
           <div>
           <p>Source code is available in the original package and in the SVN repository of NSIS.</p>
+
           <h3>NSIS plug-in (C++)</h3>
           <div>
           <p>The source of the NSIS plug-in that applies patches can be found 
@@ -207,17 +187,17 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
           <h3>Patch Generator (C++)</h3>
           <div>
             <p>The most interesting part of VPatch, the actual patch generation 
-              algorithm, can be found in Source\GenPat\PatchGenerator.cpp. The 
-              header of that file contains a brief explanation of the algorithm 
-              as well.</p>
+              algorithm, can be found in Source\GenPat\PatchGenerator.cpp. 
+              The 
+header of that file contains a brief explanation of the algorithm as well.
+            </p>
           </div>
           <h3>User interface (Delphi)</h3>
           <div>
           <p>A user interface is included as well, which you will have to build 
             yourself because the GUI executable was too large to include. Besides 
             Borland Delphi 6 or higher (you can use the freely available Personal 
-            edition), you will also need to install the <a href=
-"http://www.delphi-gems.com">VirtualTreeView</a> component by Mike Lischke.</p>
+            edition), you will also need to install the <a href="http://www.delphi-gems.com">VirtualTreeView</a> component by Mike Lischke.</p>
           </div>
           </div>
           <h2>Version history</h2>
@@ -300,13 +280,12 @@ vpatch::vpatchfile "patch.pat" "oldfile.txt" "temporary_newfile.txt"
           </div>
           <h2>Credits</h2>
           <div>
-          <p>Written by Koen van de Sande<br />
-            C plug-in initially by Edgewize, updated by Koen van de Sande<br />
-            New documentation and example by Joost Verburg and Koen van de Sande</p>
+          <p>Written by Koen van de Sande.<br>
+            C plug-in initially by Edgewize, updated by Koen van de Sande.<br>
+            New documentation and example by Joost Verburg and Koen van de Sande.</p>
           </div>
           <h2>License</h2>
-          <div>
-          <pre>
+          <div><pre>
 Copyright (C) 2001-2005 Koen van de Sande / Van de Sande Productions
 
 This software is provided 'as-is', without any express or implied
@@ -324,11 +303,8 @@ it freely, subject to the following restrictions:
 2. Altered versions must be plainly marked as such,
    and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any distribution.
-</pre>
-</div>
-        </div>
-      </td>
-</tr>
-</table>
+</pre></div>
+  </div>
+
 </body>
 </html>

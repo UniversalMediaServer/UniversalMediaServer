@@ -16,9 +16,9 @@
  */
 package net.pms.platform.mac.corefoundation;
 
+import com.sun.jna.Pointer;
 import java.util.Collection;
 import java.util.EnumSet;
-import com.sun.jna.Pointer;
 import net.pms.platform.jna.TerminatedIntArray;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFStringBuiltInEncodings;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFStringRef;

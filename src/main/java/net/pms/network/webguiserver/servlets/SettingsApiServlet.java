@@ -22,6 +22,9 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -31,10 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import net.pms.PMS;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.iam.Account;
@@ -43,7 +42,6 @@ import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.lang3.StringUtils;
@@ -56,11 +54,9 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
  */
 @WebServlet(name = "SettingsApiServlet", urlPatterns = {"/v1/api/settings"}, displayName = "Settings Api Servlet")
 public class SettingsApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsApiServlet.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = UmsConfiguration.getWebSettingsWithDefaults();
-
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = UmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray FFMPEG_LOGLEVEL = UmsConfiguration.getFfmpegLoglevels();
 	private static final JsonArray FULLY_PLAYED_ACTIONS = UmsConfiguration.getFullyPlayedActionsAsJsonArray();
@@ -72,16 +68,14 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = UmsConfiguration.getEnginesPurposesAsJsonArray();
 	private static final JsonArray GPU_ENCODING_H264_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray();
 	private static final JsonArray GPU_ENCODING_H265_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray();
-
 	private static final List<String> VALID_EMPTY_KEYS = List.of(
-		"alternate_thumb_folder",
-		"hostname",
-		"ip_filter",
-		"network_interface",
-		"port",
-		"renderer_default",
-		"web_gui_port",
-		"web_player_port"
+			"alternate_thumb_folder",
+			"hostname",
+			"network_interface",
+			"port",
+			"renderer_default",
+			"web_gui_port",
+			"web_player_port"
 	);
 	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method", "ffmpeg_avisynth_output_format_index_3d", "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d", "ffmpeg_avisynth_horizontal_resize_resolution");
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
@@ -94,11 +88,11 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			if (path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req.getHeader("Authorization"), req.getRemoteAddr(), req.getRemoteAddr().equals(req.getLocalAddr()));
 				if (account == null) {
-					WebGuiServletHelper.respondUnauthorized(req, resp);
+					respondUnauthorized(req, resp);
 					return;
 				}
 				if (!account.havePermission(Permissions.SETTINGS_VIEW | Permissions.SETTINGS_MODIFY)) {
-					WebGuiServletHelper.respondForbidden(req, resp);
+					respondForbidden(req, resp);
 					return;
 				}
 				JsonObject jsonResponse = new JsonObject();
@@ -141,15 +135,15 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				}
 				jsonResponse.add("userSettings", configurationAsJson);
 
-				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
 				LOGGER.trace("SettingsApiServlet request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+			respondInternalServerError(req, resp);
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doGet(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -165,15 +159,15 @@ public class SettingsApiServlet extends GuiHttpServlet {
 					Configuration configuration = CONFIGURATION.getConfiguration();
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
 					// Here we possibly received some updates to config values
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject data = getJsonObjectFromBody(req);
 					for (Entry<String, JsonElement> configurationSetting : data.entrySet()) {
 						String key = configurationSetting.getKey();
 						if (!WEB_SETTINGS_WITH_DEFAULTS.has(key)) {
@@ -186,7 +180,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 								configuration.setProperty(key, element.getAsBoolean());
 							} else if (element.isNumber()) {
 								LOGGER.trace("Saving key {} and Number value {}", key, element);
-								configuration.setProperty(key, element.getAsNumber());
+								configuration.setProperty(key, element.getAsNumber().longValue());
 							} else if (element.isString()) {
 								LOGGER.trace("Saving key {} and String value {}", key, element);
 								configuration.setProperty(key, element.getAsString());
@@ -209,36 +203,36 @@ public class SettingsApiServlet extends GuiHttpServlet {
 							LOGGER.trace("Invalid value passed from client: {}, {} of type {}", key, configurationSetting.getValue(), configurationSetting.getValue().getClass().getSimpleName());
 						}
 					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/directories" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					String directoryResponse = getDirectoryResponse(post);
 					if (directoryResponse == null) {
-						WebGuiServletHelper.respondNotFound(req, resp, "Directory does not exist");
+						respondNotFound(req, resp, "Directory does not exist");
 						return;
 					}
-					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
+					respond(req, resp, directoryResponse, 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("SettingsApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+			respondInternalServerError(req, resp);
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -275,10 +269,10 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		JsonObject jsonResponse = new JsonObject();
 		File requestedDirectoryFile = new File(path);
 		if (!requestedDirectoryFile.exists()) {
-			return null;
+			return getRootsDirectoryResponse();
 		}
 		File[] directories = requestedDirectoryFile.listFiles(
-			(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
+				(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
 		);
 		Arrays.sort(directories);
 		JsonArray jsonArray = new JsonArray();
@@ -367,14 +361,12 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	}
 
 	/**
-	 * Note: This is not guaranteed to contain ALL settings,
-	 * only the ones the user has changed from defaults. To
-	 * get the whole picture it needs to be combined with
-	 * the defaults.
+	 * Note: This is not guaranteed to contain ALL settings, only the ones the
+	 * user has changed from defaults. To get the whole picture it needs to be
+	 * combined with the defaults.
 	 *
-	 * Note: We do not save the configuration as JSON at
-	 * any point, this is just a convenience method for
-	 * our REST API.
+	 * Note: We do not save the configuration as JSON at any point, this is just
+	 * a convenience method for our REST API.
 	 *
 	 * @return the user settings as a JSON string.
 	 */

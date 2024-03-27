@@ -67,24 +67,20 @@ RefreshShellIcons
 ; ${FILEFUNC_VERBOSE} 3   # no script
 
 !ifndef FILEFUNC_INCLUDED
+
+!verbose push 3
+!define /IfNDef _FILEFUNC_VERBOSE 3
+!verbose ${_FILEFUNC_VERBOSE}
+!define FILEFUNC_VERBOSE `!insertmacro FILEFUNC_VERBOSE`
+
 !define FILEFUNC_INCLUDED
 
 !include Util.nsh
 
-!verbose push
-!verbose 3
-!ifndef _FILEFUNC_VERBOSE
-	!define _FILEFUNC_VERBOSE 3
-!endif
-!verbose ${_FILEFUNC_VERBOSE}
-!define FILEFUNC_VERBOSE `!insertmacro FILEFUNC_VERBOSE`
-!verbose pop
 
 !macro FILEFUNC_VERBOSE _VERBOSE
-	!verbose push
-	!verbose 3
-	!undef _FILEFUNC_VERBOSE
-	!define _FILEFUNC_VERBOSE ${_VERBOSE}
+	!verbose push 3
+	!define /ReDef _FILEFUNC_VERBOSE ${_VERBOSE}
 	!verbose pop
 !macroend
 
@@ -910,7 +906,7 @@ RefreshShellIcons
 	StrCpy $6 1073741824
 
 	FileFunc_DriveSpace_getspace:
-	System::Call 'kernel32::GetDiskFreeSpaceExA(t, *l, *l, *l)i(r0,.r2,.r3,.)'
+	System::Call 'kernel32::GetDiskFreeSpaceEx(t, *l, *l, *l)i(r0,.r2,.r3,.)'
 
 	StrCmp $5 T 0 +3
 	StrCpy $0 $3
@@ -968,9 +964,9 @@ RefreshShellIcons
 	Push $8
 	Push $9
 
-	System::Alloc 1024
+	System::StrAlloc 1024
 	Pop $2
-	System::Call 'kernel32::GetLogicalDriveStringsA(i,i) i(1024, r2)'
+	System::Call 'kernel32::GetLogicalDriveStrings(i,i) i(1024, r2)'
 
 	StrCmp $0 ALL FileFunc_GetDrives_drivestring
 	StrCmp $0 '' 0 FileFunc_GetDrives_typeset
@@ -1007,10 +1003,10 @@ RefreshShellIcons
 	StrCpy $3 $2
 
 	FileFunc_GetDrives_enumok:
-	System::Call 'kernel32::lstrlenA(t) i(i r3) .r4'
+	System::Call 'kernel32::lstrlen(t) i(i r3) .r4'
 	StrCmp $4$0 '0ALL' FileFunc_GetDrives_enumex
 	StrCmp $4 0 FileFunc_GetDrives_typeset
-	System::Call 'kernel32::GetDriveTypeA(t) i(i r3) .r5'
+	System::Call 'kernel32::GetDriveType(t) i(i r3) .r5'
 
 	StrCmp $0 ALL +2
 	StrCmp $5 $6 FileFunc_GetDrives_letter FileFunc_GetDrives_enumnext
@@ -1053,8 +1049,9 @@ RefreshShellIcons
 	StrCmp $9 'StopGetDrives' FileFunc_GetDrives_enumex
 
 	FileFunc_GetDrives_enumnext:
+	IntOp $4 $4 * ${NSIS_CHAR_SIZE}
 	IntOp $3 $3 + $4
-	IntOp $3 $3 + 1
+	IntOp $3 $3 + ${NSIS_CHAR_SIZE}
 	goto FileFunc_GetDrives_enumok
 
 	FileFunc_GetDrives_enumex:
@@ -1110,22 +1107,22 @@ RefreshShellIcons
 
 	FileFunc_GetTime_getfile:
 	IfFileExists $0 0 FileFunc_GetTime_error
-	System::Call '*(i,l,l,l,i,i,i,i,&t260,&t14) i .r6'
-	System::Call 'kernel32::FindFirstFileA(t,i)i(r0,r6) .r2'
+	System::Call '*(i,l,l,l,i,i,i,i,&t260,&t14) p .r6'
+	System::Call 'kernel32::FindFirstFile(t,p)p(r0,r6) .r2'
 	System::Call 'kernel32::FindClose(i)i(r2)'
 
 	FileFunc_GetTime_gettime:
-	System::Call '*(&i2,&i2,&i2,&i2,&i2,&i2,&i2,&i2) i .r7'
+	System::Call '*(&i2,&i2,&i2,&i2,&i2,&i2,&i2,&i2) p .r7'
 	StrCmp $1 'L' 0 FileFunc_GetTime_systemtime
-	System::Call 'kernel32::GetLocalTime(i)i(r7)'
+	System::Call 'kernel32::GetLocalTime(p)i(r7)'
 	goto FileFunc_GetTime_convert
 	FileFunc_GetTime_systemtime:
 	StrCmp $1 'LS' 0 FileFunc_GetTime_filetime
-	System::Call 'kernel32::GetSystemTime(i)i(r7)'
+	System::Call 'kernel32::GetSystemTime(p)i(r7)'
 	goto FileFunc_GetTime_convert
 
 	FileFunc_GetTime_filetime:
-	System::Call '*$6(i,l,l,l,i,i,i,i,&t260,&t14)i(,.r4,.r3,.r2)'
+	System::Call '*$6(i,l,l,l,i,i,i,i,&t260,&t14)p(,.r4,.r3,.r2)'
 	System::Free $6
 	StrCmp $1 'A' 0 +3
 	StrCpy $2 $3
@@ -1149,17 +1146,14 @@ RefreshShellIcons
 	System::Call 'kernel32::FileTimeToSystemTime(*l,i)i(r3,r7)'
 
 	FileFunc_GetTime_convert:
-	System::Call '*$7(&i2,&i2,&i2,&i2,&i2,&i2,&i2,&i2)i(.r5,.r6,.r4,.r0,.r3,.r2,.r1,)'
+	System::Call '*$7(&i2.r5,&i2.r6,&i2.r4,&i2.r0,&i2.r3,&i2.r2,&i2.r1,&i2)'
 	System::Free $7
 
-	IntCmp $0 9 0 0 +2
-	StrCpy $0 '0$0'
-	IntCmp $1 9 0 0 +2
-	StrCpy $1 '0$1'
-	IntCmp $2 9 0 0 +2
-	StrCpy $2 '0$2'
-	IntCmp $6 9 0 0 +2
-	StrCpy $6 '0$6'
+	IntFmt $6 "%.2u" $6 ; Month
+	IntFmt $0 "%.2u" $0 ; Day
+	IntFmt $3 "%.2u" $3 ; Hour
+	IntFmt $2 "%.2u" $2 ; Minute
+	IntFmt $1 "%.2u" $1 ; Second
 
 	StrCmp $4 0 0 +3
 	StrCpy $4 Sunday
@@ -1401,8 +1395,8 @@ RefreshShellIcons
 	Push $0
 	Push $1
 	Push $2
-	System::Call 'kernel32::GetModuleFileNameA(i 0, t .r0, i 1024)'
-	System::Call 'kernel32::GetLongPathNameA(t r0, t .r1, i 1024)i .r2'
+	System::Call 'kernel32::GetModuleFileName(p 0, t.r0, i ${NSIS_MAX_STRLEN})'
+	System::Call 'kernel32::GetLongPathName(t r0, t.r1, i ${NSIS_MAX_STRLEN})i.r2'
 	StrCmp $2 error +2
 	StrCpy $0 $1
 	Pop $2
@@ -1429,7 +1423,7 @@ RefreshShellIcons
 	Push $1
 	Push $2
 	StrCpy $0 $EXEDIR
-	System::Call 'kernel32::GetLongPathNameA(t r0, t .r1, i 1024)i .r2'
+	System::Call 'kernel32::GetLongPathName(t r0, t.r1, i ${NSIS_MAX_STRLEN})i.r2'
 	StrCmp $2 error +2
 	StrCpy $0 $1
 	Pop $2
@@ -2014,4 +2008,5 @@ RefreshShellIcons
 	!verbose pop
 !macroend
 
+!verbose pop
 !endif

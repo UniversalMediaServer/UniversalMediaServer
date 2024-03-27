@@ -1,111 +1,111 @@
-;Language: Kurdish
-;By Rêzan Tovjîn
-;Updated by Erdal Ronahî (erdal.ronahi@gmail.com)
+ï»¿;Language: Kurdish
+;By RÃªzan TovjÃ®n
+;Updated by Erdal RonahÃ® (erdal.ronahi@gmail.com)
 
-!insertmacro LANGFILE "Kurdish" "Kurdî"
+!insertmacro LANGFILE "Kurdish" = "KurdÃ®" "Kurdi"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) Tu bi xêr hatî sêrbaziya sazkirinê"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ev sêrbaz dê di dema sazkirina $(^NameDA) de rêberiya te bike.$\r$\n$\r$\nBerî tu dest bi sazkirinê bikî, em pêþniyar dikin tu hemû bernameyên vekirî bigirî. Bi vî rengî beyî tu komputera ji nû ve vekî dê hinek dosiyên pergalê bêpirsgirêk werin sazkirin.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) Tu bi xÃªr hatÃ® sÃªrbaziya sazkirinÃª"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Ev sÃªrbaz dÃª di dema sazkirina $(^NameDA) de rÃªberiya te bike.$\r$\n$\r$\nBerÃ® tu dest bi sazkirinÃª bikÃ®, em pÃªÅŸniyar dikin tu hemÃ» bernameyÃªn vekirÃ® bigirÃ®. Bi vÃ® rengÃ® beyÃ® tu komputera ji nÃ» ve vekÃ® dÃª hinek dosiyÃªn pergalÃª bÃªpirsgirÃªk werin sazkirin.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Tu bi xêr hatî sêrbaziya rakirina bernameya $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ev sêrbaz ji bo rakirina bernameya $(^NameDA) dê alîkariya te bike.$\r$\n$\r$\nBerî tu dest bi rakirina bernameyê bikî, bernameyên vekirî hemûyan bigire. Bi vî rengî dû re tu mecbûr namînî ku komputera xwe bigirî û ji nû ve veki.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Tu bi xÃªr hatÃ® sÃªrbaziya rakirina bernameya $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Ev sÃªrbaz ji bo rakirina bernameya $(^NameDA) dÃª alÃ®kariya te bike.$\r$\n$\r$\nBerÃ® tu dest bi rakirina bernameyÃª bikÃ®, bernameyÃªn vekirÃ® hemÃ»yan bigire. Bi vÃ® rengÃ® dÃ» re tu mecbÃ»r namÃ®nÃ® ku komputera xwe bigirÃ® Ã» ji nÃ» ve veki.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Peymana Lîsansê"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ji kerema xwe re berî tu bernameya $(^NameDA) saz bikî, peymana lîsansê bixwîne."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Heke tu þertên peymanê dipejirînî, 'Ez Dipejirînim'ê bitikîne. Ji bo sazkirina bernameya $(^NameDA) divê tu þertên peymanê bipejirînî."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Heke tu þertên peymanê dipejirînî, zeviya piþtrastkirinê ya jêrîn dagire. Ji bo tu bikarî bernameya $(^NameDA) saz bikî divê tu þertên peymanê bipejirînî. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Heke tu þertên peymanê dipejirînî, biþkojka erêkirinê ya jêrîn bitikîne. Ji bo sazkirina bernameya $(^NameDA) divê tu þertên peymanê bipejirînî. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Peymana LÃ®sansÃª"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Ji kerema xwe re berÃ® tu bernameya $(^NameDA) saz bikÃ®, peymana lÃ®sansÃª bixwÃ®ne."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, 'Ez DipejirÃ®nim'Ãª bitikÃ®ne. Ji bo sazkirina bernameya $(^NameDA) divÃª tu ÅŸertÃªn peymanÃª bipejirÃ®nÃ®."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, zeviya piÅŸtrastkirinÃª ya jÃªrÃ®n dagire. Ji bo tu bikarÃ® bernameya $(^NameDA) saz bikÃ® divÃª tu ÅŸertÃªn peymanÃª bipejirÃ®nÃ®. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, biÅŸkojka erÃªkirinÃª ya jÃªrÃ®n bitikÃ®ne. Ji bo sazkirina bernameya $(^NameDA) divÃª tu ÅŸertÃªn peymanÃª bipejirÃ®nÃ®. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Peymana Lîsansê"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Berî tu bernameya $(^NameDA) ji pergala xwe rakî peymanê bixwîne."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Heke tu þertên peymanê dipejirînî, 'Dipejirînim'ê bitikîne. Ji bo rakirina bernameya  $(^NameDA) divê tu þertên peymanê bipejirînî."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Heke tu þertên peymanê dipejirînî, zeviya erêkirinê ya jêrîn dagire. Ji bo tu bernameya $(^NameDA) ji pergala xwe rakî divê tu peymanê bipejirînî. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Heke tu þertên peymanê dipejirînî, biþkojka erêkirinê ya jêrîn hilbijêre. Ji bo tu bernameya  $(^NameDA) ji pergala xwe rakî divê tu þertên peymanê bipejirînî. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Peymana LÃ®sansÃª"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "BerÃ® tu bernameya $(^NameDA) ji pergala xwe rakÃ® peymanÃª bixwÃ®ne."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, 'DipejirÃ®nim'Ãª bitikÃ®ne. Ji bo rakirina bernameya  $(^NameDA) divÃª tu ÅŸertÃªn peymanÃª bipejirÃ®nÃ®."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, zeviya erÃªkirinÃª ya jÃªrÃ®n dagire. Ji bo tu bernameya $(^NameDA) ji pergala xwe rakÃ® divÃª tu peymanÃª bipejirÃ®nÃ®. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Heke tu ÅŸertÃªn peymanÃª dipejirÃ®nÃ®, biÅŸkojka erÃªkirinÃª ya jÃªrÃ®n hilbijÃªre. Ji bo tu bernameya  $(^NameDA) ji pergala xwe rakÃ® divÃª tu ÅŸertÃªn peymanÃª bipejirÃ®nÃ®. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Ji bo dûmahîka peymanê biþkojka 'page down' bitikîne."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Ji bo dÃ»mahÃ®ka peymanÃª biÅŸkojka 'page down' bitikÃ®ne."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Hilbijartina pareyan"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Ji bo sazkirina $(^NameDA) pareyên tu dixwazî hilbijêre."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Ji bo sazkirina $(^NameDA) pareyÃªn tu dixwazÃ® hilbijÃªre."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Hilbijartina Pareyan"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Pareya bernameya $(^NameDA) ku tu dixwazî rakî hilbijêre."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Pareya bernameya $(^NameDA) ku tu dixwazÃ® rakÃ® hilbijÃªre."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Dazanîn"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "DazanÃ®n"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ji bo tu der barê pareyan de agahiyan bistînî nîþanekê bibe ser pareyekê."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ji bo tu der barÃª pareyan de agahiyan bistÃ®nÃ® nÃ®ÅŸanekÃª bibe ser pareyekÃª."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ji bo tu der barê pareyan de agahiyan bistînî nîþanekê bibe ser pareyekê."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Ji bo tu der barÃª pareyan de agahiyan bistÃ®nÃ® pareyekÃª hilbijÃªre." 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Hilbijartina peldanka armanckirî"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Peldanka tu dixwazî bernameya $(^NameDA) tê de were sazkirin hilbijêre."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Hilbijartina peldanka armanckirÃ®"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Peldanka tu dixwazÃ® bernameya $(^NameDA) tÃª de were sazkirin hilbijÃªre."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Hilbijartina Peldanka Dê Were Rakirin"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Peldanka bernameya $(^NameDA) ku tudixwazî rakî hilbijêre."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Hilbijartina Peldanka DÃª Were Rakirin"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Peldanka bernameya $(^NameDA) ku tudixwazÃ® rakÃ® hilbijÃªre."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Tê sazkirin"
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "TÃª sazkirin"
   ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Ji kerema xwe re heta sazkirina $(^NameDA) biqede raweste."
   ${LangFileString} MUI_TEXT_FINISH_TITLE "Sazkirin Qediya"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Sazkirin bi serkeftinî qediya."
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Sazkirin bi serkeftinÃ® qediya."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Sazkirin hate betalkirin"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Sazkirin be tevahî qediya."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Sazkirin be tevahÃ® qediya."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Tê rakirin"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "TÃª rakirin"
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Heta bernameya $(^NameDA) ji pergala te were rakirin raweste."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Rakirina Bernameyê Biqedîne"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Rakirina bernameyê bi serkeftin pêk hat."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Rakirina bernameyê hate betalkirin"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Rakirina bernameyê neqediya."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Rakirina BernameyÃª BiqedÃ®ne"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Rakirina bernameyÃª bi serkeftin pÃªk hat."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Rakirina bernameyÃª hate betalkirin"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Rakirina bernameyÃª neqediya."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Sêrbaziya sazkirina $(^NameDA) diqede."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) li komputera te hate barkirin.$\r$\n$\r$\n'Biqedîne'yê bitikîne û sazkirinê bi dawî bîne."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Ji bo bidawîkirina sazkirina $(^NameDA) divê tu komputerê ji nû ve vekî.Tu dixwazî komputerê ji nû ve vekî?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "SÃªrbaziya sazkirina $(^NameDA) diqede."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) li komputera te hate barkirin.$\r$\n$\r$\n'BiqedÃ®ne'yÃª bitikÃ®ne Ã» sazkirinÃª bi dawÃ® bÃ®ne."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Ji bo bidawÃ®kirina sazkirina $(^NameDA) divÃª tu komputerÃª ji nÃ» ve vekÃ®.Tu dixwazÃ® komputerÃª ji nÃ» ve vekÃ®?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Sêrbaziya Rakirina Bernameya $(^NameDA) Tê Temamkirin"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Bernameya $(^NameDA) ji pergale hate rakirin.$\r$\n$\r$\nJi bo girtina sêrbaz 'biqedîne'yê bitikîne."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Ji bo rakirina bernameya $(^NameDA) biqede divê tu komputera xwe ji nû ve vekî. Tu dixwazî niha komputera te were girtin û ji nû ve dest pê bike?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "SÃªrbaziya Rakirina Bernameya $(^NameDA) TÃª Temamkirin"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Bernameya $(^NameDA) ji pergale hate rakirin.$\r$\n$\r$\nJi bo girtina sÃªrbaz 'biqedÃ®ne'yÃª bitikÃ®ne."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Ji bo rakirina bernameya $(^NameDA) biqede divÃª tu komputera xwe ji nÃ» ve vekÃ®. Tu dixwazÃ® niha komputera te were girtin Ã» ji nÃ» ve dest pÃª bike?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Ji nû ve veke"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Ezê paþê ji nû ve vekim."
-  ${LangFileString} MUI_TEXT_FINISH_RUN "Bernameya $(^NameDA) bixebitîne"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Dosiya min bixwîne/readme &nîþan bide"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Biqedîne"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Ji nÃ» ve veke"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "EzÃª paÅŸÃª ji nÃ» ve vekim."
+  ${LangFileString} MUI_TEXT_FINISH_RUN "Bernameya $(^NameDA) bixebitÃ®ne"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Dosiya min bixwÃ®ne/readme &nÃ®ÅŸan bide"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&BiqedÃ®ne"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Hilbijartina Peldanka Pêþeka Destpêkê"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Peldanka pêþeka destpêkê ya ku dê kineriya $(^NameDA) tê de were bikaranîn hilbijêre."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Peldanka pêþeka destpêkê ya ku dê kineriya bernameyê tê de were bicihkirin hilbijêre.  Tu dikarî bi navekî nû peldankeke nû ava bikî."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Bêyî çêkirina kineriyê bidomîne"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Hilbijartina Peldanka PÃªÅŸeka DestpÃªkÃª"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Peldanka pÃªÅŸeka destpÃªkÃª ya ku dÃª kineriya $(^NameDA) tÃª de were bikaranÃ®n hilbijÃªre."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Peldanka pÃªÅŸeka destpÃªkÃª ya ku dÃª kineriya bernameyÃª tÃª de were bicihkirin hilbijÃªre.  Tu dikarÃ® bi navekÃ® nÃ» peldankeke nÃ» ava bikÃ®."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "BÃªyÃ® Ã§Ãªkirina kineriyÃª bidomÃ®ne"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
@@ -114,9 +114,9 @@
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Tu bawer î ku dixwazî ji sazkirina $(^Name) derkevî?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Tu bawer Ã® ku dixwazÃ® ji sazkirina $(^Name) derkevÃ®?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Tu bawer î ku dixwazî dest ji rakirina bernameya $(^Name) berdî?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Tu bawer Ã® ku dixwazÃ® dest ji rakirina bernameya $(^Name) berdÃ®?"
 !endif

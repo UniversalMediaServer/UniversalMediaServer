@@ -23,8 +23,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.dlna.DLNAThumbnail;
-import net.pms.media.chapter.MediaChapter;
 import net.pms.media.MediaInfo;
+import net.pms.media.chapter.MediaChapter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +50,7 @@ public class MediaTableChapters extends MediaTable {
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	protected static final String COL_FILEID = "FILEID";
+	protected static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_LANG = "LANG";
 	private static final String COL_TITLE = "TITLE";
 	private static final String COL_START_TIME = "START_TIME";
@@ -123,7 +123,7 @@ public class MediaTableChapters extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + " (" +
 				COL_ID              + INTEGER                           + NOT_NULL          + COMMA +

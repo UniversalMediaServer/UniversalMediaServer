@@ -16,28 +16,22 @@
  */
 package net.pms.configuration;
 
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.StandardOpenOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.InputFile;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
-import net.pms.formats.Format;
-import net.pms.formats.Format.Identifier;
 import net.pms.io.OutputParams;
-import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
-import net.pms.parsers.MediaInfoParser;
-import net.pms.renderers.Renderer;
-import net.pms.util.AudioUtils;
+import net.pms.media.audio.MediaAudio;
+import net.pms.store.StoreItem;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -208,7 +202,7 @@ public class FormatConfiguration {
 		}
 
 		boolean isValid() {
-			if (isBlank(format)) { // required
+			if (StringUtils.isBlank(format)) { // required
 				LOGGER.error("No format specified on line \"{}\"", supportLine);
 				return false;
 			}
@@ -225,7 +219,7 @@ public class FormatConfiguration {
 				return false;
 			}
 
-			if (isNotBlank(videoCodec)) {
+			if (StringUtils.isNotBlank(videoCodec)) {
 				try {
 					pVideoCodec = Pattern.compile(videoCodec);
 				} catch (PatternSyntaxException pse) {
@@ -240,7 +234,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(audioCodec)) {
+			if (StringUtils.isNotBlank(audioCodec)) {
 				try {
 					pAudioCodec = Pattern.compile(audioCodec);
 				} catch (PatternSyntaxException pse) {
@@ -255,7 +249,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxNbChannels)) {
+			if (StringUtils.isNotBlank(maxNbChannels)) {
 				try {
 					iMaxNbChannels = Integer.parseInt(maxNbChannels);
 				} catch (NumberFormatException nfe) {
@@ -270,7 +264,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxFramerate)) {
+			if (StringUtils.isNotBlank(maxFramerate)) {
 				try {
 					iMaxFramerate = Integer.parseInt(maxFramerate);
 				} catch (NumberFormatException nfe) {
@@ -285,7 +279,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxFrequency)) {
+			if (StringUtils.isNotBlank(maxFrequency)) {
 				try {
 					iMaxFrequency = Integer.parseInt(maxFrequency);
 				} catch (NumberFormatException nfe) {
@@ -300,7 +294,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxBitrate)) {
+			if (StringUtils.isNotBlank(maxBitrate)) {
 				try {
 					iMaxBitrate = Integer.parseInt(maxBitrate);
 				} catch (NumberFormatException nfe) {
@@ -315,7 +309,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxVideoWidth)) {
+			if (StringUtils.isNotBlank(maxVideoWidth)) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
 				} catch (NumberFormatException nfe) {
@@ -330,7 +324,7 @@ public class FormatConfiguration {
 				}
 			}
 
-			if (isNotBlank(maxVideoHeight)) {
+			if (StringUtils.isNotBlank(maxVideoHeight)) {
 				try {
 					iMaxVideoHeight = Integer.parseInt(maxVideoHeight);
 				} catch (NumberFormatException nfe) {
@@ -603,44 +597,6 @@ public class FormatConfiguration {
 		}
 	}
 
-	/**
-	 * Chooses which parsing method to parse the file with.
-	 */
-	public void parse(MediaInfo media, InputFile file, Format ext, int type, Renderer renderer) {
-		if (file.getFile() != null) {
-			if (ext.getIdentifier() == Identifier.RA) {
-				// Special parsing for RealAudio 1.0 and 2.0 which isn't handled by MediaInfo or JAudioTagger
-				FileChannel channel;
-				try {
-					channel = FileChannel.open(file.getFile().toPath(), StandardOpenOption.READ);
-					if (AudioUtils.parseRealAudio(channel, media)) {
-						// If successful parsing is done, if not continue parsing the standard way
-						media.postParse(type, file);
-						return;
-					}
-				} catch (IOException e) {
-					LOGGER.warn("An error occurred when trying to open \"{}\" for reading: {}", file, e.getMessage());
-					LOGGER.trace("", e);
-				}
-			}
-
-			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
-			if (
-				renderer.isUseMediaInfo() &&
-				ext.getIdentifier() != Identifier.ADPCM &&
-				ext.getIdentifier() != Identifier.DFF &&
-				ext.getIdentifier() != Identifier.DSF &&
-				ext.getIdentifier() != Identifier.PNM
-			) {
-				MediaInfoParser.parse(media, file, type);
-			} else {
-				media.parse(file, ext, type, false);
-			}
-		} else {
-			media.parse(file, ext, type, false);
-		}
-	}
-
 	public boolean isFormatSupported(String container) {
 		return getMatchedMIMEtype(container, null, null) != null;
 	}
@@ -663,19 +619,19 @@ public class FormatConfiguration {
 	 * media is not natively supported by the renderer, which means it has
 	 * to be transcoded.
 	 *
-	 * @param dlna The DLNAResource
+	 * @param item The StoreItem
 	 * @param renderer
 	 * @return The MIME type or null if no match was found.
 	 */
-	public String getMatchedMIMEtype(DLNAResource dlna, RendererConfiguration renderer) {
-		MediaInfo media = dlna.getMedia();
+	public String getMatchedMIMEtype(StoreItem item, RendererConfiguration renderer) {
+		MediaInfo media = item.getMediaInfo();
 		if (media == null) {
 			return null;
 		}
 		int frameRate = 0;
-		if (isNotBlank(media.getFrameRate())) {
+		if (media.getFrameRate() != null) {
 			try {
-				frameRate = (int) Math.round(Double.parseDouble(media.getFrameRate()));
+				frameRate = (int) Math.round(media.getFrameRate());
 			} catch (NumberFormatException e) {
 				LOGGER.debug(
 					"Could not parse framerate \"{}\" for media {}: {}",
@@ -686,24 +642,23 @@ public class FormatConfiguration {
 				LOGGER.trace("", e);
 			}
 		}
-		if (media.getFirstAudioTrack() == null) {
+		if (media.getDefaultAudioTrack() == null) {
 			// no sound
-			return getMatchedMIMEtype(
-				media.getContainer(),
-				media.getCodecV(),
+			return getMatchedMIMEtype(media.getContainer(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				null,
 				0,
 				0,
-				media.getBitrate(),
+				media.getBitRate(),
 				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getVideoBitDepth(),
-				media.getVideoHDRFormatForRenderer(),
-				media.getVideoHDRFormatCompatibilityForRenderer(),
-				media.getExtras(),
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getBitDepth() : 0,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
@@ -719,46 +674,44 @@ public class FormatConfiguration {
 			* stream. Because of this, only compatibility for the first audio
 			* track needs to be checked.
 			*/
-			MediaAudio audio = media.getFirstAudioTrack();
-			return getMatchedMIMEtype(
-				media.getContainer(),
-				media.getCodecV(),
-				audio.getCodecA(),
-				audio.getAudioProperties().getNumberOfChannels(),
+			MediaAudio audio = media.getDefaultAudioTrack();
+			return getMatchedMIMEtype(media.getContainer(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
+				audio.getCodec(),
+				audio.getNumberOfChannels(),
 				audio.getSampleRate(),
 				audio.getBitRate(),
 				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getVideoBitDepth(),
-				media.getVideoHDRFormatForRenderer(),
-				media.getVideoHDRFormatCompatibilityForRenderer(),
-				media.getExtras(),
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getBitDepth() : 0,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 		}
 
 		String finalMimeType = null;
 
-		for (MediaAudio audio : media.getAudioTracksList()) {
-			String mimeType = getMatchedMIMEtype(
-				media.getContainer(),
-				media.getCodecV(),
-				audio.getCodecA(),
-				audio.getAudioProperties().getNumberOfChannels(),
+		for (MediaAudio audio : media.getAudioTracks()) {
+			String mimeType = getMatchedMIMEtype(media.getContainer(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
+				audio.getCodec(),
+				audio.getNumberOfChannels(),
 				audio.getSampleRate(),
-				media.getBitrate(),
+				media.getBitRate(),
 				frameRate,
 				media.getWidth(),
 				media.getHeight(),
-				media.getVideoBitDepth(),
-				media.getVideoHDRFormatForRenderer(),
-				media.getVideoHDRFormatCompatibilityForRenderer(),
-				media.getExtras(),
-				dlna.getMediaSubtitle() != null ? dlna.getMediaSubtitle().getType().toString() : null,
-				dlna.getMediaSubtitle() != null && dlna.getMediaSubtitle().isExternal(),
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getBitDepth() : 0,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
+				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getExtras() : null,
+				item.getMediaSubtitle() != null ? item.getMediaSubtitle().getType().toString() : null,
+				item.getMediaSubtitle() != null && item.getMediaSubtitle().isExternal(),
 				renderer
 			);
 			finalMimeType = mimeType;
@@ -805,17 +758,17 @@ public class FormatConfiguration {
 	public String getMatchedMIMEtype(MediaInfo media, OutputParams params) {
 		return getMatchedMIMEtype(
 			media.getContainer(),
-			media.getCodecV(),
-			params.getAid() != null ? params.getAid().getCodecA() : null,
+			media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
+			params.getAid() != null ? params.getAid().getCodec() : null,
 			0,
 			0,
 			0,
 			0,
 			0,
 			0,
-			media.getVideoBitDepth(),
-			media.getVideoHDRFormatForRenderer(),
-			media.getVideoHDRFormatCompatibilityForRenderer(),
+			media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getBitDepth() : 0,
+			media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatForRenderer() : null,
+			media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getHDRFormatCompatibilityForRenderer() : null,
 			null,
 			params.getSid().getType().name(),
 			params.getSid().isExternal(),

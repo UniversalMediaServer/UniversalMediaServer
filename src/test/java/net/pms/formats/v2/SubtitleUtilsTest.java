@@ -16,8 +16,8 @@
  */
 package net.pms.formats.v2;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
+import net.pms.TestHelper;
 import static net.pms.formats.v2.SubtitleType.VOBSUB;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.subtitle.MediaSubtitleTest;
@@ -26,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class SubtitleUtilsTest {
 	private final Class<?> CLASS = MediaSubtitleTest.class;
@@ -36,9 +35,7 @@ public class SubtitleUtilsTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		// Silence all log messages from the PMS code that are being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test

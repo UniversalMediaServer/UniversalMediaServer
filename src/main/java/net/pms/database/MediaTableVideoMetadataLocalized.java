@@ -22,8 +22,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import net.pms.media.metadata.VideoMetadataLocalized;
-import net.pms.util.APIUtils;
+import net.pms.external.tmdb.TMDB;
+import net.pms.media.video.metadata.VideoMetadataLocalized;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,15 +36,18 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 3: FILEID and TVSERIESID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_LANGUAGE = "LANGUAGE";
 	private static final String COL_ID = "ID";
-	private static final String COL_FILEID = "FILEID";
+	private static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	private static final String COL_HOMEPAGE = "HOMEPAGE";
 	private static final String COL_MODIFIED = "MODIFIED";
@@ -67,6 +70,9 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_LANGUAGE_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_LANGUAGE_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_LANGUAGE + EQUAL + PARAMETER + AND + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
+	private static final String SQL_GET_TVSERIESID_SIMPLIFIEDTITLE = SELECT + COL_TVSERIESID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + IS_NOT_NULL + AND + "REGEXP_REPLACE(LOWER(" + COL_TITLE + "), '[^a-z0-9]', '')" + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_FILEID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_TVSERIESID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
 	/**
 	 * Database column sizes
@@ -117,7 +123,11 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
 				case 1 -> {
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS " + COL_MODIFIED + " BIGINT");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MODIFIED + BIGINT);
+				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSERIESID + BIGINT);
 				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
@@ -128,13 +138,13 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID            + IDENTITY          + PRIMARY_KEY + COMMA +
 				COL_LANGUAGE      + VARCHAR_5         + NOT_NULL    + COMMA +
-				COL_TVSERIESID    + INTEGER                         + COMMA +
-				COL_FILEID        + INTEGER                         + COMMA +
+				COL_TVSERIESID    + BIGINT                          + COMMA +
+				COL_FILEID        + BIGINT                          + COMMA +
 				COL_MODIFIED      + BIGINT                          + COMMA +
 				COL_HOMEPAGE      + VARCHAR                         + COMMA +
 				COL_OVERVIEW      + CLOB                            + COMMA +
@@ -209,6 +219,27 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 	}
 
 	public static VideoMetadataLocalized getVideoMetadataLocalized(
+		final Long id,
+		final boolean fromTvSeries,
+		final String language,
+		final String imdbId,
+		final String mediaType,
+		final Long tmdbId,
+		final Integer season,
+		final String episode
+	) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection != null) {
+				return getVideoMetadataLocalized(connection, id, fromTvSeries, language, imdbId, mediaType, tmdbId, season, episode);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error while getting metadata for web interface");
+			LOGGER.debug("", e);
+		}
+		return null;
+	}
+
+	public static VideoMetadataLocalized getVideoMetadataLocalized(
 		final Connection connection,
 		final Long id,
 		final boolean fromTvSeries,
@@ -216,7 +247,7 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 		final String imdbId,
 		final String mediaType,
 		final Long tmdbId,
-		final String season,
+		final Integer season,
 		final String episode
 	) {
 		if (connection == null || id == null || id < 0 || StringUtils.isBlank(language)) {
@@ -241,8 +272,64 @@ public final class MediaTableVideoMetadataLocalized extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		//here we now we do not have the language in db, let search it.
-		VideoMetadataLocalized result = APIUtils.getVideoMetadataLocalizedFromImdb(language, mediaType, imdbId, tmdbId, season, episode);
+		LOGGER.trace("Looking for localized metadata for \"{}\": {}", mediaType, id);
+		VideoMetadataLocalized result = TMDB.getVideoMetadataLocalized(language, mediaType, imdbId, tmdbId, season, episode);
+		//remove not translated fields from base data
+		if (result != null) {
+			VideoMetadataLocalized baseData;
+			if (fromTvSeries) {
+				baseData = MediaTableTVSeries.getTvSeriesMetadataUnLocalized(connection, id);
+			} else {
+				baseData = MediaTableVideoMetadata.getVideoMetadataUnLocalized(connection, id);
+			}
+			if (baseData != null) {
+				if (result.getHomepage() != null && result.getHomepage().equals(baseData.getHomepage())) {
+					result.setHomepage(null);
+				}
+				if (result.getOverview() != null && result.getOverview().equals(baseData.getOverview())) {
+					result.setOverview(null);
+				}
+				if (result.getTagline() != null && result.getTagline().equals(baseData.getTagline())) {
+					result.setTagline(null);
+				}
+				if (result.getTitle() != null && result.getTitle().equals(baseData.getTitle())) {
+					result.setTitle(null);
+				}
+			}
+		}
 		set(connection, id, fromTvSeries, result, language);
 		return result;
 	}
+
+	public static void clearVideoMetadataLocalized(final Connection connection, final Long id, final boolean fromTvSeries) {
+		if (connection == null || id == null || id < 0) {
+			return;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(fromTvSeries ? SQL_DELETE_TVSERIESID : SQL_DELETE_FILEID)) {
+			ps.setLong(1, id);
+			ps.execute();
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for deleting \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	protected static Long getTvSeriesIdFromTitle(final Connection connection, final String titleSimplified) {
+		if (connection == null || StringUtils.isBlank(titleSimplified)) {
+			return null;
+		}
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_TVSERIESID_SIMPLIFIEDTITLE)) {
+			ps.setString(1, titleSimplified);
+			try (ResultSet rs = ps.executeQuery()) {
+				if (rs.first()) {
+					return toLong(rs, COL_TVSERIESID);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", titleSimplified, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
 }

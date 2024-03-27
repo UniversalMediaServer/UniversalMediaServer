@@ -19,6 +19,10 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -27,27 +31,21 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
-import javax.servlet.AsyncContext;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.gui.GuiManager;
 import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
+import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import net.pms.util.DbgPacker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "LogsApiServlet", urlPatterns = {"/v1/api/logs"}, displayName = "Logs Api Servlet")
 public class LogsApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(LogsApiServlet.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private static DbgPacker dbgPacker = null;
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -55,11 +53,11 @@ public class LogsApiServlet extends GuiHttpServlet {
 		//or remove them from log then we can serve users with config read only
 		Account account = AuthService.getAccountLoggedIn(req);
 		if (account == null) {
-			WebGuiServletHelper.respondUnauthorized(req, resp);
+			respondUnauthorized(req, resp);
 			return;
 		}
 		if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-			WebGuiServletHelper.respondForbidden(req, resp);
+			respondForbidden(req, resp);
 			return;
 		}
 		try {
@@ -78,30 +76,27 @@ public class LogsApiServlet extends GuiHttpServlet {
 						result.add("logs", new JsonArray());
 					}
 					//do not log the logs !!!
-					WebGuiServletHelper.respond(req, resp, result.toString(), 200, "application/json", false);
+					respond(req, resp, result.toString(), 200, "application/json", false);
 				}
 				case "/packer" -> {
-					if (dbgPacker == null) {
-						dbgPacker = new DbgPacker();
-					}
 					JsonArray itemsArray = new JsonArray();
-					for (File file : dbgPacker.getItems()) {
+					for (File file : PMS.get().debugPacker().getFiles()) {
 						JsonObject fileObject = new JsonObject();
 						fileObject.addProperty("name", file.getName());
 						fileObject.addProperty("path", file.getAbsolutePath());
 						fileObject.addProperty("exists", file.exists());
 						itemsArray.add(fileObject);
 					}
-					WebGuiServletHelper.respond(req, resp, itemsArray.toString(), 200, "application/json", false);
+					respond(req, resp, itemsArray.toString(), 200, "application/json", false);
 				}
 				default -> {
 					LOGGER.trace("LogsApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in LogsApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
@@ -111,24 +106,20 @@ public class LogsApiServlet extends GuiHttpServlet {
 		//or remove them from log then we can serve users with config read only
 		Account account = AuthService.getAccountLoggedIn(req);
 		if (account == null) {
-			WebGuiServletHelper.respondUnauthorized(req, resp);
+			respondUnauthorized(req, resp);
 			return;
 		}
 		if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-			WebGuiServletHelper.respondForbidden(req, resp);
+			respondForbidden(req, resp);
 			return;
 		}
 		try {
 			var path = req.getPathInfo();
 			switch (path) {
 				case "/packer" -> {
-					if (dbgPacker == null) {
-						WebGuiServletHelper.respondInternalServerError(req, resp);
-						return;
-					}
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject data = getJsonObjectFromBody(req);
 					if (!data.has("items")) {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 						return;
 					}
 					List<String> items = new ArrayList<>();
@@ -138,7 +129,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 
 					//check the file exists in the dbgPacker items to prevent hack (get other file from disk)
 					List<File> files = new ArrayList<>();
-					for (File file : dbgPacker.getItems()) {
+					for (File file : PMS.get().debugPacker().getFiles()) {
 						if (items.contains(file.getAbsolutePath())) {
 							files.add(file);
 						}
@@ -146,7 +137,7 @@ public class LogsApiServlet extends GuiHttpServlet {
 					if (!files.isEmpty()) {
 						resp.setContentType("application/zip");
 						resp.setHeader("Accept-Ranges", "bytes");
-						resp.setHeader("Server", PMS.get().getServerName());
+						resp.setHeader("Server", MediaServer.getServerName());
 						resp.setHeader("Connection", "keep-alive");
 						resp.setHeader("Transfer-Encoding", "chunked");
 						DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-HH-mm");
@@ -162,23 +153,23 @@ public class LogsApiServlet extends GuiHttpServlet {
 						}
 						async.complete();
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				default -> {
 					LOGGER.trace("LogsApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.error("RuntimeException in LogsApiServlet: {}", e.getMessage());
-			WebGuiServletHelper.respondInternalServerError(req, resp);
+			respondInternalServerError(req, resp);
 		}
 	}
 
 	private static JsonArray getLogLines() {
 		String[] logLines = GuiManager.getLogLines();
-		return WebGuiServletHelper.getJsonArrayFromStringArray(logLines);
+		return getJsonArrayFromStringArray(logLines);
 	}
 
 }

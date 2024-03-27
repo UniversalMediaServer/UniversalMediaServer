@@ -32,7 +32,7 @@ public class UmsSubscriptionCallback extends SubscriptionCallback {
 
 	public UmsSubscriptionCallback(Service s) {
 		super(s);
-		uuid = s.getDevice().getIdentity().getUdn().toString();
+		uuid = s.getDevice().getIdentity().getUdn().getIdentifierString();
 	}
 
 	@Override

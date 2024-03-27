@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,37 +6,37 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
 # Translation v 1.0.0 by Ramon Flores <fa2ramon@usc.es>
 # ^Branding
-Sistema de Instalación Nullsoft %s
+Nullsoft Install System %s
 # ^SetupCaption
-Instalación de $(^Name)
+InstalaciÃ³n de $(^Name)
 # ^UninstallCaption
-Desinstalación de $(^Name)
+DesinstalaciÃ³n de $(^Name)
 # ^LicenseSubCaption
 : Contrato de licenza
 # ^ComponentsSubCaption
-: Opcións de instalación
+: OpciÃ³ns de instalaciÃ³n
 # ^DirSubCaption
-: Diretória de instalación
+: DiretÃ³ria de instalaciÃ³n
 # ^InstallingSubCaption
 : Instalando ficheiros
 # ^CompletedSubCaption
-: Concluído
+: ConcluÃ­do
 # ^UnComponentsSubCaption
-: Opcións de desinstalación
+: OpciÃ³ns de desinstalaciÃ³n
 # ^UnDirSubCaption
-: Cartafol de desinstalación
+: Cartafol de desinstalaciÃ³n
 # ^ConfirmSubCaption
-: Confirmación
+: ConfirmaciÃ³n
 # ^UninstallingSubCaption
 : Desinstalando
 # ^UnCompletedSubCaption
-: Concluído
+: ConcluÃ­do
 # ^BackBtn
 < &Anterior
 # ^NextBtn
@@ -62,31 +62,31 @@ Ver &Detalles
 # ^ClickNext
 Clique en 'Seguinte' para continuar.
 # ^ClickInstall
-Clique en 'Instalar' para iniciar a instalación.
+Clique en 'Instalar' para iniciar a instalaciÃ³n.
 # ^ClickUninstall
-Clique en 'Desinstalar' para iniciar a desinstalación.
+Clique en 'Desinstalar' para iniciar a desinstalaciÃ³n.
 # ^Name
 Nome
 # ^Completed
-Concluído
+ConcluÃ­do
 # ^LicenseText
 Por favor revexa o acordo de licenza antes de instalar $(^NameDA). Se concordar con todos os termos da licenza, clique em 'Aceito'.
 # ^LicenseTextCB
-Por favor reveja o acordo de licenza antes de instalar $(^NameDA). Se concordar con todos os termos da licenza, clique na caixa de selección abaixo. $_CLICK
+Por favor reveja o acordo de licenza antes de instalar $(^NameDA). Se concordar con todos os termos da licenza, clique na caixa de selecciÃ³n abaixo. $_CLICK
 # ^LicenseTextRB
-Por favor revexa o acordo de licenza antes de instalar $(^NameDA). Se concordar con todos os termos da licenza, escolla a primeira opción abaixo. $_CLICK
+Por favor revexa o acordo de licenza antes de instalar $(^NameDA). Se concordar con todos os termos da licenza, escolla a primeira opciÃ³n abaixo. $_CLICK
 # ^UnLicenseText
 Por favor revexa o acordo de licenza antes de desinstalar $(^NameDA). Se concordar con todos os termos da licenza, clique em 'Aceito'.
 # ^UnLicenseTextCB
-Por favor reveja o acordo de licenza antes de desinstalar $(^NameDA). Se concordar con todos os termos da licenza, clique na caixa de selección abaixo. $_CLICK
+Por favor reveja o acordo de licenza antes de desinstalar $(^NameDA). Se concordar con todos os termos da licenza, clique na caixa de selecciÃ³n abaixo. $_CLICK
 # ^UnLicenseTextRB
-Por favor revexa o acordo de licenza antes de desinstalar $(^NameDA). Se concordar con todos os termos da licenza, escolla a primeira opción abaixo. $_CLICK
+Por favor revexa o acordo de licenza antes de desinstalar $(^NameDA). Se concordar con todos os termos da licenza, escolla a primeira opciÃ³n abaixo. $_CLICK
 # ^Custom
 Personalizado
 # ^ComponentsText
 Marque os componentes que desexa instalar e desmarque os componentes que non desexa instalar. $_CLICK
 # ^ComponentsSubText1
-Escolla o tipo de instalación:
+Escolla o tipo de instalaciÃ³n:
 # ^ComponentsSubText2_NoInstTypes
 Escolla os componentes para instalar:
 # ^ComponentsSubText2
@@ -94,37 +94,37 @@ Ou, escolla os componentes opcionais que desexa instalar:
 # ^UnComponentsText
 Marque os componentes que queira desinstalar e vice versa. $_CLICK
 # ^UnComponentsSubText1
-Escolla o tipo de desinstalación:
+Escolla o tipo de desinstalaciÃ³n:
 # ^UnComponentsSubText2_NoInstTypes
 Escolla os componentes para desinstalar:
 # ^UnComponentsSubText2
 Ou, escolla os componentes opcionais que queira desinstalar:
 # ^DirText
-O $(^NameDA) será instalado na seguinte directória. Para instalar nunha directória diferente, clique en 'Procurar...' e escolla outra directória. $_CLICK
+O $(^NameDA) serÃ¡ instalado na seguinte directÃ³ria. Para instalar nunha directÃ³ria diferente, clique en 'Procurar...' e escolla outra directÃ³ria. $_CLICK
 # ^DirSubText
-Directória de destino
+DirectÃ³ria de destino
 # ^DirBrowseText
-Escolla unha directória para instalar o $(^NameDA):
+Escolla unha directÃ³ria para instalar o $(^NameDA):
 # ^UnDirText
-O $(^NameDA) será desinstalado da seguinte directória. Para desinstalar dunha pasta diferente, clique en 'Procurar...' e escolla outra directória. $_CLICK
+O $(^NameDA) serÃ¡ desinstalado da seguinte directÃ³ria. Para desinstalar dunha pasta diferente, clique en 'Procurar...' e escolla outra directÃ³ria. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Escolla a directória de onde vai ser desinstalado o $(^NameDA):
+Escolla a directÃ³ria de onde vai ser desinstalado o $(^NameDA):
 # ^SpaceAvailable
-"Espazo disponíbel: "
+"Espazo disponÃ­bel: "
 # ^SpaceRequired
-"Espazo necesário: "
+"Espazo necesÃ¡rio: "
 # ^UninstallingText
-$(^NameDA) vai ser desinstalado da seguinte directória. $_CLICK
+$(^NameDA) vai ser desinstalado da seguinte directÃ³ria. $_CLICK
 # ^UninstallingSubText
 Desinstalando de:
 # ^FileError
-Erro ao abrir ficheiro para escrita: \r\n\t"$0"\r\nClique en Abortar para abortar a instalación,\r\nRepetir para tentar novamente a escrita do ficheiro, ou\r\nIgnorar para ignorar este ficheiro.
+Erro ao abrir ficheiro para escrita: \r\n\t"$0"\r\nClique en Abortar para abortar a instalaciÃ³n,\r\nRepetir para tentar novamente a escrita do ficheiro, ou\r\nIgnorar para ignorar este ficheiro.
 # ^FileError_NoIgnore
-Erro ao abrir ficheiro para escrita: \r\n\t"$0"\r\nClique en Repetir para tentar novamente a gravación do ficheiro, ou\r\nCancelar para abortar a instalación.
+Erro ao abrir ficheiro para escrita: \r\n\t"$0"\r\nClique en Repetir para tentar novamente a gravaciÃ³n do ficheiro, ou\r\nCancelar para abortar a instalaciÃ³n.
 # ^CantWrite
-"Non foi posíbel escreber: "
+"Non foi posÃ­bel escreber: "
 # ^CopyFailed
 Falla ao copiar
 # ^CopyTo
@@ -134,11 +134,11 @@ Falla ao copiar
 # ^Unregistering
 "Desrexistando: "
 # ^SymbolNotFound
-"Símbolo non achado: "
+"SÃ­mbolo non achado: "
 # ^CouldNotLoad
-"Non foi posíbel carregar: "
+"Non foi posÃ­bel carregar: "
 # ^CreateFolder
-"Criando diretória: "
+"Criando diretÃ³ria: "
 # ^CreateShortcut
 "Criando atallo: "
 # ^CreatedUninstaller
@@ -164,7 +164,7 @@ Erro ao rexistar DLL
 # ^ErrorWriting
 "Extraindo: erro ao escreber ficheiro "
 # ^InvalidOpcode
-Instalador corrompido: código de operación inválido
+Instalador corrompido: cÃ³digo de operaciÃ³n invÃ¡lido
 # ^NoOLE
 "Sen OLE para: "
 # ^OutputFolder
@@ -178,14 +178,14 @@ Instalador corrompido: código de operación inválido
 # ^Skipped
 "Ignorado: "
 # ^CopyDetails
-Copiar detalles para a Área de transférencia
+Copiar detalles para a Ãrea de transfÃ©rencia
 # ^LogInstall
-Rexistar proceso de instalación
+Rexistar proceso de instalaciÃ³n
 # ^Byte
 B
 # kilo
-K
+ K
 # mega
-M
+ M
 # giga
-G
+ G

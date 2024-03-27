@@ -20,14 +20,14 @@ import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FFmpegProgramInfo;
 import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil;
 import net.pms.util.ProgramExecutableType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of paths to external programs on Linux.

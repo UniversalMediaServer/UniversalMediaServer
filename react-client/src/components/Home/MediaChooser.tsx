@@ -52,8 +52,8 @@ export default function MediaChooser(props: {
     }
     showNotification({
       color: 'red',
-      title: i18n.get['Error'],
-      message: i18n.get['NoMediaSelected'],
+      title: i18n.get('Error'),
+      message: i18n.get('NoMediaSelected'),
       autoClose: 3000,
     });
   };
@@ -69,8 +69,8 @@ export default function MediaChooser(props: {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
+          title: i18n.get('Error'),
+          message: i18n.get('DataNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -85,7 +85,7 @@ export default function MediaChooser(props: {
       size={props.size}
       label={props.label}
       disabled={props.disabled}
-      sx={{ flex: 1 }}
+      style={{ flex: 1 }}
       value={props.media ? props.media.label : ''}
       readOnly
     />
@@ -100,7 +100,7 @@ export default function MediaChooser(props: {
           title={
             <Group>
               <PictureInPictureOn />
-              {i18n.get['SelectedMedia']}
+              {i18n.get('SelectedMedia')}
             </Group>
           }
           scrollAreaComponent={ScrollArea.Autosize}
@@ -114,7 +114,7 @@ export default function MediaChooser(props: {
                     loading={isLoading}
                     onClick={() => getMedias('0')}
                     variant='default'
-                    compact
+                    size='compact-md'
                   >
                     <Home />
                   </Button>
@@ -124,7 +124,7 @@ export default function MediaChooser(props: {
                       onClick={() => getMedias(parent.value)}
                       key={'breadcrumb' + parent.label}
                       variant='default'
-                      compact
+                      size='compact-md'
                     >
                       {parent.label}
                     </Button>
@@ -132,16 +132,16 @@ export default function MediaChooser(props: {
                 </Breadcrumbs>
               </Group>
             </Paper>
-            <Stack spacing='xs' align='flex-start' justify='flex-start' mt='sm'>
+            <Stack gap='xs' align='flex-start' justify='flex-start' mt='sm'>
               {medias.map(media => (
                 <Group key={'group' + media.label}>
                   <Button
-                    leftIcon={media.browsable ? <Folder size={18} /> : <PictureInPicture size={18} />}
+                    leftSection={media.browsable ? <Folder size={18} /> : <PictureInPicture size={18} />}
                     variant={(selectedMedia?.value === media.value) ? 'light' : 'subtle'}
                     loading={isLoading}
                     onClick={() => media.browsable ? getMedias(media.value) : setSelectedMedia(media)}
                     key={media.label}
-                    compact
+                    size='compact-md'
                   >
                     {media.label}
                   </Button>
@@ -151,7 +151,7 @@ export default function MediaChooser(props: {
                       loading={isLoading}
                       onClick={() => selectAndCloseModal()}
                       key={'select' + media.label}
-                      compact
+                      size='compact-md'
                     >
                       Select
                     </Button>
@@ -162,7 +162,7 @@ export default function MediaChooser(props: {
           </Box>
         </Modal>
 
-        {props.tooltipText ? (<Tooltip label={props.tooltipText} width={350} color={'blue'} multiline withArrow={true}>
+        {props.tooltipText ? (<Tooltip label={props.tooltipText} style={{ width: 350 }} color={'blue'} multiline withArrow={true}>
           {input()}
         </Tooltip>) : input()
         }
@@ -171,7 +171,7 @@ export default function MediaChooser(props: {
             mt={props.label ? '24px' : undefined}
             size={props.size}
             onClick={() => { getMedias(props.media ? props.media.value : '0'); setOpened(true); }}
-            leftIcon={<PictureInPictureOn size={18} />}
+            leftSection={<PictureInPictureOn size={18} />}
           >
             ...
           </Button>

@@ -23,7 +23,7 @@ public abstract class FeedContent extends SharedContentWithPath {
 	private String uri;
 
 	protected FeedContent(String parent, String name, String uri) {
-		this.parent = parent;
+		setParent(parent);
 		this.name = name;
 		this.uri = uri;
 	}
@@ -54,25 +54,21 @@ public abstract class FeedContent extends SharedContentWithPath {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof FeedContent other) {
-			return (active == other.active &&
-				((parent == null && other.parent == null) ||
-				parent != null && parent.equals(other.parent)) &&
-				((name == null && other.name == null) ||
+		if (super.equals(o) && o instanceof FeedContent other) {
+			return ((name == null && other.name == null) ||
 				name != null && name.equals(other.name)) &&
 				((uri == null && other.uri == null) ||
-				uri != null && uri.equals(other.uri)));
+				uri != null && uri.equals(other.uri));
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 83 * hash + (this.active ? 1 : 0);
-		hash = 83 * hash + (Objects.hashCode(this.parent));
+		int hash = super.hashCode();
 		hash = 83 * hash + (Objects.hashCode(this.name));
 		hash = 83 * hash + (Objects.hashCode(this.uri));
 		return hash;
 	}
+
 }

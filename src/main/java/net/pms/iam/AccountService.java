@@ -23,9 +23,12 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableFilesStatus;
 import net.pms.database.UserDatabase;
 import net.pms.database.UserTableGroups;
 import net.pms.database.UserTableUsers;
+import net.pms.image.Image;
 import static org.apache.commons.lang3.StringUtils.left;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +47,7 @@ public class AccountService {
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	private AccountService() {
+	protected AccountService() {
 	}
 
 	public static Account getAccountByUserId(final int userId) {
@@ -166,17 +169,24 @@ public class AccountService {
 		UserTableUsers.addUser(connection, left(username, 255), left(hashPassword(password), 255), left(displayName, 255), groupId);
 	}
 
-	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId) {
+	public static void updateUser(final Connection connection, final int userId, final String displayName, final int groupId, final Image avatar, final String pinCode, final boolean libraryHidden) {
 		LOGGER.info("Updating user id : {}", userId);
-		if (UserTableUsers.updateUser(connection, userId, displayName, groupId) && USERS.containsKey(userId)) {
+		if (UserTableUsers.updateUser(connection, userId, displayName, groupId, avatar, pinCode, libraryHidden) && USERS.containsKey(userId)) {
 			USERS.get(userId).setDisplayName(displayName);
 			USERS.get(userId).setGroupId(groupId);
+			USERS.get(userId).setAvatar(avatar);
+			USERS.get(userId).setPinCode(pinCode);
 		}
 	}
 
 	public static void deleteUser(final Connection connection, final int userId) {
 		LOGGER.info("Deleting user id : {}", userId);
 		UserTableUsers.deleteUser(connection, userId);
+		Connection mConnection = MediaDatabase.getConnectionIfAvailable();
+		if (mConnection != null) {
+			MediaTableFilesStatus.deleteUser(mConnection, userId);
+			MediaDatabase.close(mConnection);
+		}
 		if (USERS.containsKey(userId)) {
 			USERS.remove(userId);
 		}
@@ -243,6 +253,10 @@ public class AccountService {
 		return UserTableUsers.hasNoAdmin(connection);
 	}
 
+	public static List<User> getUsersLibraryChoice() {
+		return getAllUsers().stream().filter(User::isLibraryChoice).toList();
+	}
+
 	public static Collection<User> getAllUsers() {
 		//ensure all users are in static Map
 		Connection connection = UserDatabase.getConnectionIfAvailable();
@@ -296,6 +310,8 @@ public class AccountService {
 		account.setGroup(group);
 		User user = new User();
 		user.setId(Integer.MAX_VALUE);
+		user.setGroupId(Integer.MAX_VALUE);
+		user.setDisplayName(DEFAULT_ADMIN_USERNAME);
 		account.setUser(user);
 		return account;
 	}

@@ -14,81 +14,38 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Slider, Stack, Table, Text } from '@mantine/core';
-import { showNotification } from '@mantine/notifications';
+import { ActionIcon, Button, Card, Drawer, Grid, Group, Image, Menu, Modal, Progress, ScrollArea, Select, Slider, Stack, Table, Text } from '@mantine/core';
 import axios from 'axios';
 import _ from 'lodash';
-import { useContext, useEffect, useState } from 'react';
-import { Cast, Dots, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
+import { useEffect, useState } from 'react';
+import { Cast, DevicesPc, DevicesPcOff, Dots, Link, ListDetails, PlayerPause, PlayerPlay, PlayerSkipBack, PlayerSkipForward, PlayerStop, PlayerTrackNext, PlayerTrackPrev, ScreenShare, Settings, Volume, VolumeOff } from 'tabler-icons-react';
 
-import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
-import SessionContext from '../../contexts/session-context';
-import { havePermission, Permissions } from '../../services/accounts-service';
+import { I18nInterface } from '../../contexts/i18n-context';
 import { renderersApiUrl } from '../../utils';
+import { Renderer, User } from './Home';
 import MediaChooser, { Media } from './MediaChooser';
 
-const Renderers = () => {
-  const i18n = useContext(I18nContext);
-  const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
-  const canModify = havePermission(session, Permissions.settings_modify);
-  const canControlRenderers = havePermission(session, Permissions.devices_control);
-  const [renderers, setRenderers] = useState([] as Renderer[]);
+const Renderers = (
+  { allowed, blockedByDefault, canControlRenderers, canModify, i18n, renderers, users, setAllowed, setUserId }:
+    {
+      allowed: boolean,
+      blockedByDefault: boolean,
+      canControlRenderers: boolean,
+      canModify: boolean,
+      i18n: I18nInterface,
+      renderers: Renderer[],
+      users: User[],
+      setAllowed: (rule: string, isAllowed: boolean) => void
+      setUserId: (rule: string, userId: any) => void
+    }
+) => {
+
   const [askInfos, setAskInfos] = useState(-1);
   const [infos, setInfos] = useState(null as RendererInfos | null);
   const [controlId, setControlId] = useState(-1);
   const [controlMedia, setControlMedia] = useState<Media | null>(null);
-
-  useEffect(() => {
-    axios.get(renderersApiUrl)
-      .then(function(response: any) {
-        setRenderers(response.data.renderers);
-      })
-      .catch(function() {
-        showNotification({
-          id: 'renderers-data-loading',
-          color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['DataNotReceived'],
-          autoClose: 3000,
-        });
-      });
-  }, [i18n]);
-
-  useEffect(() => {
-    if (!sse.hasRendererAction) {
-      return;
-    }
-    const renderersTemp = _.cloneDeep(renderers);
-    while (sse.hasRendererAction) {
-      const rendererAction = sse.getRendererAction() as RendererAction;
-      if (rendererAction === null) {
-        break;
-      }
-      switch (rendererAction.action) {
-        case 'renderer_add': {
-          renderersTemp.push(rendererAction);
-          break;
-        }
-        case 'renderer_delete': {
-          const delIndex = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
-          if (delIndex > -1) {
-            renderersTemp.splice(delIndex, 1);
-          }
-          break;
-        }
-        case 'renderer_update': {
-          const index = renderersTemp.findIndex(renderer => renderer.id === rendererAction.id);
-          if (index > -1) {
-            renderersTemp[index] = rendererAction;
-          }
-          break;
-        }
-      }
-    }
-    setRenderers(renderersTemp);
-  }, [renderers, sse]);
+  const [userChanger, setUserChanger] = useState<Renderer | null>();
+  const [userChangerValue, setUserChangerValue] = useState<string | null>(null);
 
   useEffect(() => {
     if (askInfos < 0) {
@@ -104,60 +61,13 @@ const Renderers = () => {
       });
   }, [askInfos]);
 
-  const renderersCards = renderers.map((renderer: Renderer) => (
-    <Grid.Col span={12} xs={6} key={renderer.id}>
-      <Card shadow='sm' p='lg' radius='md' withBorder>
-        <Card.Section withBorder inheritPadding py='xs'>
-          <Group position='apart'>
-            <Text weight={500} color={!renderer.isActive ? 'dimmed' : renderer.playing ? 'green' : ''}>{renderer.name}</Text>
-            <Menu withinPortal position='bottom-end' shadow='sm'>
-              <Menu.Target>
-                <ActionIcon>
-                  <Dots size={16} />
-                </ActionIcon>
-              </Menu.Target>
-              <Menu.Dropdown>
-                <Menu.Item icon={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get['Info']}</Menu.Item>
-                {canModify && (
-                  <Menu.Item icon={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get['Settings']}</Menu.Item>
-                )}
-                {canControlRenderers && (
-                  <Menu.Item icon={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get['Controls']}</Menu.Item>
-                )}
-              </Menu.Dropdown>
-            </Menu>
-          </Group>
-        </Card.Section>
-        <Card.Section>
-          <Image
-            src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
-            height={160}
-            fit='contain'
-            sx={!renderer.isActive ? { filter: 'grayscale(95%)' } : undefined}
-            alt={renderer.name}
-          />
-        </Card.Section>
-        {renderer.address &&
-          <Text align='center' size='sm' color='dimmed'>
-            {renderer.address}
-          </Text>
-        }
-        {renderer.playing &&
-          <Progress value={renderer.progressPercent} />
-        }
-        {renderer.playing &&
-          <Text align='center' size='sm' color='dimmed'>
-            {renderer.playing}
-          </Text>
-        }
-        {renderer.time &&
-          <Text align='center' size='sm' color='dimmed'>
-            {renderer.time}
-          </Text>
-        }
-      </Card>
-    </Grid.Col>
-  ));
+  const sendRendererControl = (id: number, action: string, value?: any) => {
+    axios.post(renderersApiUrl + 'control', { 'id': id, 'action': action, 'value': value })
+  }
+
+  const getRenderer = (id: number) => {
+    return renderers.find((renderer) => renderer.id === id);
+  }
 
   const rendererDetail = (
     <Modal
@@ -169,22 +79,140 @@ const Renderers = () => {
     >
       <Table><tbody>
         {infos?.details.map((detail: RendererDetail) => (
-          <tr key={detail.key}>
-            <td>{i18n.getI18nString(detail.key)}</td>
-            <td>{detail.value}</td>
-          </tr>
+          <Table.Tr key={detail.key}>
+            <Table.Td>{i18n.getI18nString(detail.key)}</Table.Td>
+            <Table.Td>{detail.value}</Table.Td>
+          </Table.Tr>
         ))}
       </tbody></Table>
     </Modal>
   );
 
-  const sendRendererControl = (id: number, action: string, value?: any) => {
-    axios.post(renderersApiUrl + 'control', { 'id': id, 'action': action, 'value': value })
+  const getAccountNameList = () => {
+    return [{ value: '-1', label: i18n.get('NoAccountAssigned') },
+    { value: '0', label: i18n.get('DefaultAccount') }
+    ].concat(users.map(user => ({ value: user.value.toString(), label: user.label })));
   }
 
-  const getRenderer = (id: number) => {
-    return renderers.find((renderer) => renderer.id === id);
+  const rendererUserChanger = (
+    <Modal
+      centered
+      opened={userChanger != null}
+      title={userChanger?.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : userChanger?.name}
+      onClose={() => setUserChanger(null)}
+      withinPortal={false}
+      lockScroll={false}
+    >
+      <Select
+        mb={'xl'}
+        label={i18n.get('LinkRendererTo')}
+        defaultValue={userChanger?.userId.toString()}
+        onChange={(value) => { setUserChangerValue(value) }}
+        withScrollArea={false}
+        styles={{ dropdown: { maxHeight: 70, overflowY: 'auto' } }}
+        data={getAccountNameList()}
+      />
+      <Group justify='flex-end' mt='md'>
+        <Button
+          disabled={!userChangerValue || userChangerValue == userChanger?.userId.toString()}
+          onClick={() => { userChanger && setUserId(userChanger.uuid, userChangerValue); setUserChanger(null) }}
+        >
+          {i18n.get('Apply')}
+        </Button>
+      </Group>
+    </Modal>
+  );
+
+  const getAccountName = (userId: number) => {
+    switch (userId) {
+      case -1: return i18n.get('NoAccountAssigned');
+      case 0: return i18n.get('DefaultAccount');
+      default: {
+        const founded = users.find((user) => user.value === userId);
+        return founded ? founded.label : i18n.get('NonExistentUser')
+      }
+    }
   }
+
+  const getNameColor = (renderer: Renderer) => {
+    if (!renderer.isAllowed) {
+      return 'red';
+    } else if (!renderer.isActive) {
+      return 'dimmed';
+    } else if (renderer.state.playback > 0) {
+      return 'green';
+    }
+    return '';
+  }
+
+  const renderersCards = renderers.map((renderer: Renderer) => allowed == renderer.isAllowed && (
+    <Grid.Col span={{ base: 12, xs: 6 }} key={renderer.id}>
+      <Card shadow='sm' p='lg' radius='md' withBorder>
+        <Card.Section withBorder inheritPadding py='xs'>
+          <Group justify='space-between'>
+            <Text fw={500} c={getNameColor(renderer)}>{renderer.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : renderer.name}</Text>
+            <Menu withinPortal position='bottom-end' shadow='sm'>
+              <Menu.Target>
+                <ActionIcon>
+                  <Dots size={16} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Item leftSection={<ListDetails size={14} />} onClick={() => setAskInfos(renderer.id)}>{i18n.get('Info')}</Menu.Item>
+                {canModify && (<>
+                  <Menu.Item leftSection={<Settings size={14} />} color='red' disabled={true /* not implemented yet */}>{i18n.get('Settings')}</Menu.Item>
+                  {!renderer.isAuthenticated && renderer.uuid && (
+                    <Menu.Item
+                      leftSection={<Link size={14} />}
+                      onClick={() => setUserChanger(renderer)}
+                    >
+                      {getAccountName(renderer.userId)}
+                    </Menu.Item>
+                  )}
+                  {!renderer.isAuthenticated && !renderer.isAllowed && renderer.uuid && (
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(renderer.uuid, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
+                  )}
+                  {!renderer.isAuthenticated && renderer.isAllowed && renderer.uuid && (
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(renderer.uuid, false)} color='red'>{i18n.get('Block')}</Menu.Item>
+                  )}
+                </>)}
+                {canControlRenderers && (
+                  <Menu.Item leftSection={<ScreenShare size={14} />} disabled={!renderer.isActive || renderer.controls < 1} onClick={() => setControlId(renderer.id)}>{i18n.get('Controls')}</Menu.Item>
+                )}
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
+        </Card.Section>
+        <Card.Section>
+          <Image
+            src={renderersApiUrl + 'icon/' + renderer.id + '/' + renderer.icon}
+            height={160}
+            fit='contain'
+            style={!renderer.isActive ? { filter: 'grayscale(95%)' } : undefined}
+            alt={renderer.name}
+          />
+        </Card.Section>
+        {renderer.address &&
+          <Text ta='center' size='sm' c='dimmed'>
+            {renderer.address}
+          </Text>
+        }
+        {renderer.playing &&
+          <Progress value={renderer.progressPercent} />
+        }
+        {renderer.playing &&
+          <Text ta='center' size='sm' c='dimmed'>
+            {renderer.playing}
+          </Text>
+        }
+        {renderer.time &&
+          <Text ta='center' size='sm' c='dimmed'>
+            {renderer.time}
+          </Text>
+        }
+      </Card>
+    </Grid.Col>
+  ));
 
   const rendererControlled = getRenderer(controlId);
 
@@ -193,18 +221,18 @@ const Renderers = () => {
       size='full'
       opened={controlId > -1}
       onClose={() => setControlId(-1)}
-      title={rendererControlled.name}
+      title={rendererControlled.name == 'UnknownRenderer' ? i18n.get('UnknownRenderer') : rendererControlled.name}
     >
       <Stack>
         {!rendererControlled.isActive &&
-          <Text align='center' color='red'>{i18n.get['RendererNoLongerControllable']}</Text>
+          <Text ta='center' c='red'>{i18n.get('RendererNoLongerControllable')}</Text>
         }
         {rendererControlled.isActive && rendererControlled.playing && (<>
-          <Text align='center' color='blue'>{rendererControlled.playing}</Text>
-          <Text align='center'>{rendererControlled.time}</Text>
+          <Text ta='center' c='blue'>{rendererControlled.playing}</Text>
+          <Text ta='center'>{rendererControlled.time}</Text>
         </>)}
         {((rendererControlled.controls & 1) === 1) && rendererControlled.isActive &&
-          <Group spacing='xs' grow mt='md'>
+          <Group gap='xs' grow mt='md'>
             <ActionIcon style={{ flexGrow: 'unset' }} variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'mute')}>
               {rendererControlled.state.mute ?
                 <VolumeOff />
@@ -219,7 +247,7 @@ const Renderers = () => {
           </Group>
         }
         {((rendererControlled.controls & 2) === 2) && rendererControlled.isActive &&
-          <Group position='center'>
+          <Group justify='center'>
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'back')}><PlayerSkipBack /></ActionIcon>
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'prev')}><PlayerTrackPrev /></ActionIcon>
             {rendererControlled.state.playback === 1 ?
@@ -232,7 +260,7 @@ const Renderers = () => {
             <ActionIcon variant='filled' onClick={() => sendRendererControl(rendererControlled.id, 'forward')}><PlayerSkipForward /></ActionIcon>
           </Group>
         }
-        {rendererControlled.isActive && (<Group position='center'>
+        {rendererControlled.isActive && (<Group justify='center'>
           <MediaChooser
             disabled={!canModify}
             size='xs'
@@ -246,45 +274,46 @@ const Renderers = () => {
     </Drawer>
   ));
 
+  const renderersHeader = (!allowed && (
+    <Card shadow='sm' p='lg' radius='md' mb='lg' withBorder>
+      <Card.Section withBorder inheritPadding py='xs'>
+        <Group justify='space-between'>
+          <Text fw={500} c={blockedByDefault ? 'red' : 'green'}>{blockedByDefault ? i18n.get('RenderersBlockedByDefault') : i18n.get('RenderersAllowedByDefault')}</Text>
+          {canModify && (
+            <Menu withinPortal position='bottom-end' shadow='sm'>
+              <Menu.Target>
+                <ActionIcon>
+                  <Dots size={16} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <>
+                  {blockedByDefault ? (
+                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
+                  ) : (
+                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
+                  )}
+                </>
+              </Menu.Dropdown>
+            </Menu>
+          )}
+        </Group>
+      </Card.Section>
+    </Card>
+  ));
+
   return (
     <>
       {rendererDetail}
+      {rendererUserChanger}
       {rendererControls}
+      {renderersHeader}
       <Grid>
         {renderersCards}
       </Grid>
     </>
   );
 };
-
-interface RendererAction extends Renderer {
-  action: string,
-}
-
-interface RendererState {
-  mute: boolean,
-  volume: number,
-  playback: number,
-  name: string,
-  uri: string,
-  metadata: string,
-  position: string,
-  duration: string,
-  buffer: number,
-}
-
-interface Renderer {
-  id: number,
-  name: string,
-  address: string,
-  icon: string,
-  playing: string,
-  time: string,
-  progressPercent: number,
-  isActive: boolean,
-  controls: number,
-  state: RendererState,
-}
 
 interface RendererInfos {
   title: string,

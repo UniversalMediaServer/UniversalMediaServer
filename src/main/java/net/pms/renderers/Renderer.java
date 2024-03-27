@@ -20,6 +20,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,19 +31,23 @@ import java.util.concurrent.Future;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.RendererDeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.configuration.RendererDeviceConfiguration;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.gui.IRendererGuiListener;
+import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.network.SpeedStats;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.PlaybackTimer;
 import net.pms.renderers.devices.players.PlayerState;
 import net.pms.renderers.devices.players.UPNPPlayer;
+import net.pms.store.MediaStore;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.UMSUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -84,41 +89,49 @@ public class Renderer extends RendererDeviceConfiguration {
 	protected Map<String, String> details;
 	private Thread monitorThread;
 	private volatile boolean active;
+	private volatile boolean allowed;
+	private volatile int userId;
 	private volatile boolean renew;
 
 	public volatile PanasonicDmpProfiles panasonicDmpProfiles;
 	public boolean isGetPositionInfoImplemented = true;
 	public int countGetPositionRequests = 0;
 	protected BasicPlayer player;
-	private DLNAResource playingRes;
+	private StoreItem playingRes;
 	private long buffer;
 	private int maximumBitrateTotal = 0;
-
-	private volatile RootFolder rootFolder;
 	private String automaticVideoQuality;
 
+	private volatile MediaStore mediaStore;
+	private List<String> sharedPath;
+	protected Account account;
+
+	private volatile int upnpMode = UPNP_NONE;
+
 	public Renderer(String uuid) throws ConfigurationException, InterruptedException {
-		super(uuid);
-		setup();
+		this(null, null, uuid);
 	}
 
 	public Renderer(RendererConfiguration ref) throws ConfigurationException, InterruptedException {
-		super(ref);
-		setup();
+		this(ref, null, null);
 	}
 
 	public Renderer(RendererConfiguration ref, InetAddress ia) throws ConfigurationException, InterruptedException {
-		super(ref, ia);
-		setup();
+		this(ref, ia, null);
 	}
 
-	private void setup() {
-		setRootFolder(null);
+	public Renderer(RendererConfiguration ref, InetAddress ia, String uuid) throws ConfigurationException, InterruptedException {
+		super(ref, ia, uuid);
 		if (isUpnpAllowed() && uuid == null) {
 			String id = getDeviceId();
 			if (StringUtils.isNotBlank(id) && !id.contains(",")) {
 				uuid = id;
 			}
+		}
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			userId = RendererUser.getUserId(uuid);
+			account = AccountService.getAccountByUserId(userId);
 		}
 		controls = 0;
 		active = false;
@@ -131,8 +144,9 @@ public class Renderer extends RendererDeviceConfiguration {
 
 	/**
 	 * RendererName: Determines the name that is displayed in the UMS user
-	 * interface when this renderer connects. Default value is "Unknown
-	 * renderer".
+	 * interface when this renderer connects.
+	 *
+	 * Default value is "UnknownRenderer".
 	 *
 	 * @return The renderer name.
 	 */
@@ -150,9 +164,76 @@ public class Renderer extends RendererDeviceConfiguration {
 		return uuid != null ? uuid : getAddress().toString().substring(1);
 	}
 
+	/**
+	 * Used to check if the renderer use it's own auth (like webplayer).
+	 */
+	public boolean isAuthenticated() {
+		return false;
+	}
+
+	public Account getAccount() {
+		return account;
+	}
+
+	public void setUserId(int value) {
+		if (userId != value) {
+			userId = value;
+			setAccount(AccountService.getAccountByUserId(userId));
+			refreshUserIdGui(value);
+		}
+	}
+
+	public int getUserId() {
+		return userId;
+	}
+
+	public void setAccount(Account account) {
+		this.account = account;
+		resetMediaStore();
+	}
+
+	public int getAccountGroupId() {
+		return account != null && account.getGroup() != null && account.getGroup().getId() != Integer.MAX_VALUE ? account.getGroup().getId() : 0;
+	}
+
+	public int getAccountUserId() {
+		return account != null && account.getUser() != null && account.getUser().getId() != Integer.MAX_VALUE ? account.getUser().getId() : 0;
+	}
+
+	public boolean hasShareAccess(File value) {
+		return hasSameBasePath(getSharedFolders(), value.getAbsolutePath());
+	}
+
+	private synchronized void clearSharedFolders() {
+		sharedPath = null;
+	}
+
+	private synchronized List<String> getSharedFolders() {
+		if (sharedPath == null) {
+			// Lazy initialization
+			sharedPath = new ArrayList<>();
+			List<File> files = SharedContentConfiguration.getSharedFolders(getAccountGroupId());
+			for (File file : files) {
+				sharedPath.add(file.getAbsolutePath());
+			}
+		}
+		return sharedPath;
+	}
+
 	@Override
 	public void reset() {
 		super.reset();
+		resetRenderer();
+	}
+
+	private void resetRenderer() {
+		if (!isAuthenticated()) {
+			allowed = RendererFilter.isAllowed(uuid);
+			if (userId != RendererUser.getUserId(uuid)) {
+				setUserId(RendererUser.getUserId(uuid));
+			}
+		}
+		resetMediaStore();
 		// update gui
 		updateRendererGui();
 		for (Renderer renderer : ConnectedRenderers.getInheritors(this)) {
@@ -160,35 +241,45 @@ public class Renderer extends RendererDeviceConfiguration {
 		}
 	}
 
-	public void delete(int delay) {
-		ConnectedRenderers.delete(this, delay);
+	@Override
+	protected void uuidChanged() {
+		resetRenderer();
 	}
 
 	/**
-	 * Returns the RootFolder.
+	 * Returns the MediaStore.
 	 *
-	 * @return The RootFolder.
+	 * @return The MediaStore.
 	 */
-	public synchronized RootFolder getRootFolder() {
-		if (rootFolder == null) {
-			rootFolder = new RootFolder();
-			rootFolder.setDefaultRenderer(this);
-			if (umsConfiguration.getUseCache()) {
-				rootFolder.discoverChildren();
-			}
+	public synchronized MediaStore getMediaStore() {
+		if (mediaStore == null) {
+			mediaStore = new MediaStore(this);
+			mediaStore.discoverChildren();
 		}
 
-		return rootFolder;
+		return mediaStore;
 	}
 
-	public void addFolderLimit(DLNAResource res) {
-		if (rootFolder != null) {
-			rootFolder.setFolderLim(res);
+	public synchronized void clearMediaStore() {
+		clearSharedFolders();
+		if (mediaStore != null) {
+			mediaStore.clearChildren();
+			mediaStore.setDiscovered(false);
+			mediaStore.clearWeakResources();
 		}
 	}
 
-	public synchronized void setRootFolder(RootFolder r) {
-		rootFolder = r;
+	public synchronized void resetMediaStore() {
+		clearSharedFolders();
+		if (mediaStore != null) {
+			mediaStore.reset();
+		}
+	}
+
+	public synchronized void addFolderLimit(StoreResource res) {
+		if (mediaStore != null) {
+			mediaStore.setFolderLim(res);
+		}
 	}
 
 	/**
@@ -329,7 +420,7 @@ public class Renderer extends RendererDeviceConfiguration {
 		// If we have a uuid look up the UPnP device address, which is always
 		// correct even if another device has overwritten our association
 		if (uuid != null) {
-			InetAddress address = JUPnPDeviceHelper.getAddress(uuid);
+			InetAddress address = JUPnPDeviceHelper.getInetAddress(uuid);
 			if (address != null) {
 				return address;
 			}
@@ -371,15 +462,15 @@ public class Renderer extends RendererDeviceConfiguration {
 		this.player = player;
 	}
 
-	public DLNAResource getPlayingRes() {
+	public StoreItem getPlayingRes() {
 		return playingRes;
 	}
 
-	public void setPlayingRes(DLNAResource dlna) {
-		playingRes = dlna;
+	public void setPlayingRes(StoreItem resource) {
+		playingRes = resource;
 		getPlayer();
-		if (dlna != null) {
-			player.getState().setName(dlna.getDisplayName());
+		if (resource != null) {
+			player.getState().setName(resource.getDisplayName());
 			player.start();
 		} else {
 			player.reset();
@@ -430,6 +521,28 @@ public class Renderer extends RendererDeviceConfiguration {
 		try {
 			for (IRendererGuiListener gui : guiListeners) {
 				gui.setActive(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshAllowedGui(boolean b) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setAllowed(b);
+			}
+		} finally {
+			listenersLock.readLock().unlock();
+		}
+	}
+
+	public void refreshUserIdGui(int userId) {
+		listenersLock.readLock().lock();
+		try {
+			for (IRendererGuiListener gui : guiListeners) {
+				gui.setUserId(userId);
 			}
 		} finally {
 			listenersLock.readLock().unlock();
@@ -582,6 +695,15 @@ public class Renderer extends RendererDeviceConfiguration {
 		refreshActiveGui(b);
 	}
 
+	public boolean isAllowed() {
+		return allowed;
+	}
+
+	public void setAllowed(boolean b) {
+		allowed = b;
+		refreshAllowedGui(b);
+	}
+
 	public void setRenew(boolean b) {
 		renew = b;
 	}
@@ -674,7 +796,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		return file;
 	}
 
-	private volatile int upnpMode = UPNP_NONE;
 	public int getUpnpMode() {
 		if (upnpMode == UPNP_NONE) {
 			upnpMode = getUpnpMode(getUpnpAllow());
@@ -707,8 +828,16 @@ public class Renderer extends RendererDeviceConfiguration {
 		return getUpnpMode() == UPNP_POSTPONE;
 	}
 
-	public boolean isUpnpAllowed() {
+	public final boolean isUpnpAllowed() {
 		return getUpnpMode() > UPNP_NONE;
+	}
+
+	public boolean verify() {
+		// FIXME: this is a very fallible, incomplete validity test for use only until
+		// we find something better. The assumption is that renderers unable determine
+		// their own address (i.e. non-UPnP/web renderers that have lost their spot in the
+		// address association to a newer renderer at the same ip) are "invalid".
+		return getUpnpMode() == Renderer.UPNP_BLOCK || getAddress() != null;
 	}
 
 	public static int getUpnpMode(String mode) {
@@ -729,6 +858,15 @@ public class Renderer extends RendererDeviceConfiguration {
 			case UPNP_NONE -> "unknown";
 			default -> "allowed";
 		};
+	}
+
+	private static boolean hasSameBasePath(List<String> paths, String filename) {
+		for (String path : paths) {
+			if (filename.startsWith(path)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

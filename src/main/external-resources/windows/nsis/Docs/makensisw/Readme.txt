@@ -5,10 +5,8 @@ MakeNSISW - MakeNSIS Windows Wrapper
 
 About MakeNSISW
 ---------------
-MakeNSISW is a wrapper for the MakeNSIS that is distributed with
-NSIS (http://www.nullsoft.com/free/nsis/).  MakeNSISW allows you 
-to compile NSIS scripts using a Windows GUI interface.  To install
-MakeNSISW, compile the source using Visual C++ or Mingw.
+MakeNSISW is a wrapper for the NSIS compiler (MakeNSIS).
+MakeNSISW allows you to compile NSIS scripts using a Windows GUI interface.
 
 
 Requirements
@@ -31,18 +29,21 @@ For the options, please see the MakeNSIS documentation.
 
 Shortcut Keys
 -------------
-Ctrl+A: Select All text
+Ctrl+A: Select all text
 Ctrl+B: Open Script Folder
 Ctrl+C: Copy selected text
-Ctrl+D: Opens the Define Symbols dialog
-Ctrl+E: Edits the script
+Ctrl+D: Open the Define Symbols dialog
+Ctrl+E: Edit the script
 Ctrl+F: Find text
+Ctrl+K: Abort compiler
 Ctrl+L: Load a script
-Ctrl+R: Recompiles the script
-Ctrl+T: Tests the installer
-Ctrl+W: Clear Log Window
-Alt+X: Exits the application
+Ctrl+R, F7: Recompile the script
+Ctrl+T, Ctrl+F5: Test the installer
+Ctrl+W: Clear log window
+Ctrl+<+|-|0>: Zoom log window
+Alt+X: Exit the application
 F1: View Documentation
+F5: Recompile and Test
 
 
 Version History
@@ -138,7 +139,7 @@ Version History
 
 1.7
  - Added check for warnings
- - Added sound for sucessfull compilations
+ - Added sound for successful compilations
  - Update home page and documentation menu items to Sourceforge page
 
 1.8
@@ -191,11 +192,41 @@ Version History
 
 2.3.1
 - Fixed broken command line parameter handling
- 
+
+2.3.2
+- The size gripper can be used to resize the window
+
+2.3.3
+- Update check switched from JNetLib to WinInet
+- New file type icons
+
+2.3.4
+- Added Window Info/Spy feature
+- System DPI aware
+- New toolbar images
+
+2.3.5
+- Added log window colors
+- Basic AppEvents custom sound support for BuildComplete, BuildWarning and BuildError
+
+2.3.6
+- Added GUID generator tool
+
+2.4
+- Added Lookup tool
+- Use Consolas font if it exists
+
+2.4.1
+- Close button transforms to Abort when appropriate
+- Prevent user from modifying the log
+- Log zoom
+
+
 Copyright Information
 ---------------------
 Copyright (c) 2002 Robert Rainwater
-Contributors: Justin Frankel, Fritz Elfert, Amir Szekely, Sunil Kamath, Joost Verburg
+Contributors: Justin Frankel, Fritz Elfert, Amir Szekely, 
+              Sunil Kamath, Joost Verburg, Anders Kjersem.
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages

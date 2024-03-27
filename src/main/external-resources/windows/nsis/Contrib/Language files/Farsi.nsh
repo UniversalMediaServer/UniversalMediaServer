@@ -1,121 +1,121 @@
-;Language: Farsi (1065)
+๏ปฟ;Language: Farsi (1065)
 ;By FzerorubigD - FzerorubigD@gmail.com - Thanx to all people help me in forum.persiantools.com
 
-!insertmacro LANGFILE "Farsi" "Farsi"
+!insertmacro LANGFILE "Farsi" "Persian" "ูุงุฑุณÛ" "Farsi"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "ศๅ ศัไวใๅ ไีศ  $(^NameDA) ฮๆิ ยใฯํฯ."
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "วํไ ศัไวใๅ ิใว ัว ฯั ไีศ  $(^NameDA) ํวัํ ใํ฿ไฯ.$\r$\n$\r$\nสๆีํๅ ใํ฿ไํใ ฿แํๅ ศัไวใๅ ๅวํ ฯั อวแ วฬัว ัว ศศไฯํฯ. วํไ ศๅ ศัไวใๅ ไีศ วฬวาๅ ใํฯๅฯ ฿ๅ Ýวํแๅวํ แวาใ ัว ศฯๆไ ไํวา ศๅ ัวๅ วไฯวาํ ฯๆศวัๅ ฿วใํๆสั ิใว ศๅ ัๆา ฿ไฯ.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "ุจู ุจุฑูุงู…ู ูุตุจ $(^NameDA) ุฎูุด ุขู…ุฏÛุฏ."
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "ุงÛู ุจุฑูุงู…ู ุดู…ุง ุฑุง ุฏุฑ ูุตุจ $(^NameDA) ÛุงุฑÛ ู…Ûโ€ฺฉูุฏ.$\r$\n$\r$\nุชูุตÛู ู…Ûโ€ฺฉูÛู… ฺฉูÛู ุจุฑูุงู…ูโ€ูุงÛ ุฏุฑ ุญุงู ุงุฌุฑุง ุฑุง ุจุจูุฏÛุฏ. ุงÛู ุจู ุจุฑูุงู…ู ูุตุจ ุงุฌุงุฒู ู…Ûโ€ุฏูุฏ ฺฉู ูุงÛูโ€ูุงÛ ูุงุฒู… ุฑุง ุจุฏูู ูÛุงุฒ ุจู ุฑุงู ุงูุฏุงุฒÛ ุฏูุจุงุฑูโ€Û ฺฉุงู…ูพÛูุชุฑ ุดู…ุง ุจู ุฑูุฒ ฺฉูุฏ.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "ศๅ ศัไวใๅ อะÝ $(^NameDA) ฮๆิ ยใฯํฯ."
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT " วํไ ศัไวใๅ ศัวํ อะÝ $(^NameDA) ศๅ ิใว ฿ใ฿ ใํ฿ไฯ.$\r$\n$\r$\nÞศแ วา อะÝ  $(^NameDA) ใุใฦไ ิๆํฯ วํไ ศัไวใๅ ฯั อวแ วฬัว ไศวิฯ.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "ุจู ุจุฑูุงู…ู ุญุฐู $(^NameDA) ุฎูุด ุขู…ุฏÛุฏ."
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT " ุงÛู ุจุฑูุงู…ู ุจุฑุงÛ ุญุฐู $(^NameDA) ุจู ุดู…ุง ฺฉู…ฺฉ ู…Ûโ€ฺฉูุฏ.$\r$\n$\r$\nูุจู ุงุฒ ุญุฐู $(^NameDA) ู…ุทู…ุฆู ุดูÛุฏ ุงÛู ุจุฑูุงู…ู ุฏุฑ ุญุงู ุงุฌุฑุง ูุจุงุดุฏ.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "สๆวÝÞไวใๅ ไีศ"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "แุÝว ํิ วา ไีศ $(^NameDA) ใÝวฯ สๆวÝÞไวใๅ ัว ใัๆั ฿ไํฯ."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ ฯ฿ใๅ ใๆวÝÞใ ัว ศÝิวัํฯ. ศัวํ ไีศ  $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ัว Þศๆแ ฿ไํฯ."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ สํ฿ าํั ัว วไสฮวศ ฿ไํฯ. ศัวํ ไีศ  $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ัว Þศๆแ ฿ไํฯ. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ าํไๅ วๆแ ัว วไสฮวศ ฿ไํฯ. ศัวํ ไีศ  $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ัว Þศๆแ ฿ไํฯ. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "ุชูุงูููุงู…ู ูุตุจ"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "ูุทูุง ูพÛุด ุงุฒ ูุตุจ $(^NameDA) ู…ูุงุฏ ุชูุงูููุงู…ู ุฑุง ู…ุฑูุฑ ฺฉูÛุฏ."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ุฏฺฉู…ูโ€Û ู…ูุงููู… ุฑุง ุจูุดุงุฑÛุฏ. ุจุฑุงÛ ูุตุจ $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑุง ูุจูู ฺฉูÛุฏ."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ุชÛฺฉ ุฒÛุฑ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ. ุจุฑุงÛ ูุตุจ $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑุง ูุจูู ฺฉูÛุฏ. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ฺฏุฒÛูู ุงูู ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ. ุจุฑุงÛ ูุตุจ $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑุง ูุจูู ฺฉูÛุฏ. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "สๆวÝÞไวใๅ อะÝ"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "แุÝว ฿แํๅ ศไฯๅวํ วํไ สๆวÝÞไวใๅ ัว Þศแ วั อะÝ $(^NameDA) ใัๆั ฿ไํฯ."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ ฯ฿ใๅ ใๆวÝÞใ ัว ศÝิวัํฯ. ศัวํ อะÝ $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ัว Þศๆแ ฿ไํฯ."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ สํ฿ าํั ัว วไสฮวศ ฿ไํฯ. ศัวํ อะÝ $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ั Þศๆแ ฿ไํฯ. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "วั ฿แํๅ ศไฯๅวํ สๆวÝÞไวใๅ ัว Þศๆแ ฯวัํฯ าํไๅ วๆแ ัว วไสฮวศ ฿ไํฯ. ศัวํ อะÝ $(^NameDA) ิใว ศวํำส วํไ สๆวÝÞไวใๅ ั Þศๆแ ฿ไํฯ. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "ุชูุงูููุงู…ู ุญุฐู"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "ูุทูุง ฺฉูÛู ุจูุฏูุงÛ ุงÛู ุชูุงูููุงู…ู ุฑุง ูุจู ุงุฑ ุญุฐู $(^NameDA) ู…ุฑูุฑ ฺฉูÛุฏ."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ุฏฺฉู…ูโ€Û ู…ูุงููู… ุฑุง ุจูุดุงุฑÛุฏ. ุจุฑุงÛ ุญุฐู $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑุง ูุจูู ฺฉูÛุฏ."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ุชÛฺฉ ุฒÛุฑ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ. ุจุฑุงÛ ุญุฐู $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑ ูุจูู ฺฉูÛุฏ. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "ุงฺฏุฑ ฺฉูÛู ุจูุฏูุงÛ ุชูุงูููุงู…ู ุฑุง ูุจูู ุฏุงุฑÛุฏ ฺฏุฒÛูู ุงูู ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ. ุจุฑุงÛ ุญุฐู $(^NameDA) ุดู…ุง ุจุงÛุณุช ุงÛู ุชูุงูููุงู…ู ุฑ ูุจูู ฺฉูÛุฏ. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "ศัวํ ฯํฯไ ใสไ ศๅ ีๆัส ฿วใแ วา ฿แํฯ Page Down วำสÝวฯๅ ฿ไํฯ."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "ุจุฑุงÛ ุฏÛุฏู ู…ุชู ุจู ุตูุฑุช ฺฉุงู…ู ุงุฒ ฺฉูÛุฏ Page Down ุงุณุชูุงุฏู ฺฉูÛุฏ."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "วไสฮวศ วฬาวํ ศัไวใๅ "
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "วฬาวํํ วา  $(^NameDA) ฿ๅ ใํฮๆวๅํฯ ไีศ ิๆไฯ ัว วไสฮวศ ฿ไํฯ."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "ุงูุชุฎุงุจ ุงุฌุฒุงÛ ุจุฑูุงู…ู "
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "ุงุฌุฒุงÛÛ ุงุฒ $(^NameDA) ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ูุตุจ ุดููุฏ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "วไสฮวศ วฬาวํ ศัไวใๅ"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "วฬาวํํ วา $(^NameDA) ัว ฿ๅ ใํฮๆวๅํฯ อะÝ ฿ไํฯ วไสฮวศ ฿ไํฯ."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "ุงูุชุฎุงุจ ุงุฌุฒุงÛ ุจุฑูุงู…ู"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "ุงุฌุฒุงÛÛ ุงุฒ $(^NameDA) ุฑุง ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ุญุฐู ฺฉูÛุฏ ุงูุชุฎุงุจ ฺฉูÛุฏ."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "สๆึํอวส"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "ุชูุถÛุญุงุช"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "ไิวไั ใวๆำ ัว ศั ัๆํ  วฬาวํํ ฿ๅ ใํฮๆวๅํฯ ศศัํฯ สว สๆึํอวส ยไ ัว ศศํไํฯ."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "ูุดุงูฺฏุฑ ู…ุงูุณ ุฑุง ุจุฑ ุฑูÛ ุงุฌุฒุงÛÛ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ุจุจุฑÛุฏ ุชุง ุชูุถÛุญุงุช ุขู ุฑุง ุจุจÛูÛุฏ."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "ไิวไั ใวๆำ ัว ศั ัๆํ  วฬาวํํ ฿ๅ ใํฮๆวๅํฯ ศศัํฯ สว สๆึํอวส ยไ ัว ศศํไํฯ."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "ููู ุงุฒ ฺฏุฒููู ูุงู ูุตุจ ุฑุง ุงูุชุฎุงุจ ูููุฏ ุชุง ุชูุถูุญุงุช ู…ุฑุจูุท ุจู ุขู ุฑุง ุจุจูููุฏ."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "วไสฮวศ ๆิๅ ไีศ"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "ๆิๅ วํ ฿ๅ ใํฮๆวๅํฯ  $(^NameDA) ฯั ยไ ไีศ ิๆฯ ัว วไสฮวศ ฿ไํฯ."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "ุงูุชุฎุงุจ ูพูุดู ูุตุจ"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "ูพูุดูโ€ุงÛ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ $(^NameDA) ุฏุฑ ุขู ูุตุจ ุดูุฏ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "ๆิๅ อะÝ ัว วไสฮวศ ฿ไํฯ"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "ๆิๅ วํ ฿ๅ ใํฮๆวๅํฯ $(^NameDA) ัว วา ยไ อะÝ ฿ไํฯ วไสฮวศ ฿ไํฯ."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "ูพูุดู ุญุฐู ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "ูพูุดูโ€ุงÛ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ $(^NameDA) ุฑุง ุงุฒ ุขู ุญุฐู ฺฉูÛุฏ ุงูุชุฎุงุจ ฺฉูÛุฏ."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "ไีศ ศัไวใๅ"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "แุÝว ใฯส าใวไํ ฿ๅ  $(^NameDA) ฯั อวแ ไีศ วำส ัว ีศั ฿ไํฯ."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "ไีศ วํวไ ํวÝส"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "ศัไวใๅ ไีศ ศว ใๆÝÞํส วํวไ ํวÝส."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "ศัไวใๅ ไีศ แÛๆ ิฯ."
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "ศัไวใๅ ไีศ ศๅ ีๆัส ไํใๅ สใวใ วํวไ ํวÝส."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "ูุตุจ ุจุฑูุงู…ู"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "ูุทูุง ู…ุฏุช ุฒู…ุงูÛ ฺฉู $(^NameDA) ุฏุฑ ุญุงู ูุตุจ ุงุณุช ุฑุง ุตุจุฑ ฺฉูÛุฏ."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "ูุตุจ ูพุงÛุงู Ûุงูุช"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "ุจุฑูุงู…ู ูุตุจ ุจุง ู…ูููÛุช ูพุงÛุงู Ûุงูุช."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "ุจุฑูุงู…ู ูุตุจ ูุบู ุดุฏ."
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "ุจุฑูุงู…ู ูุตุจ ุจู ุตูุฑุช ูÛู…ู ุชู…ุงู… ูพุงÛุงู Ûุงูุช."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "อะÝ ศัไวใๅ"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "แุÝว ใฯส าใวไํ ฿ๅ  $(^NameDA) ฯั อวแ อะÝ วำส ัว ีศั ฿ไํฯ."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "อะÝ วํวไ ํวÝส"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "ศัไวใๅ อะÝ ศว ใๆÝÞํส วํวไ ํวÝส."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "ศัไวใๅ อะÝ แÛๆ ิฯ"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "ศัไวใๅ อะÝ ศๅ ีๆัส ไํใๅ สใวใ วํวไ ํวÝส"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "ุญุฐู ุจุฑูุงู…ู"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "ูุทูุง ู…ุฏุช ุฒู…ุงูÛ ฺฉู $(^NameDA) ุฏุฑ ุญุงู ุญุฐู ุงุณุช ุฑุง ุตุจุฑ ฺฉูÛุฏ."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "ุญุฐู ูพุงÛุงู Ûุงูุช"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "ุจุฑูุงู…ู ุญุฐู ุจุง ู…ูููÛุช ูพุงÛุงู Ûุงูุช."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "ุจุฑูุงู…ู ุญุฐู ูุบู ุดุฏ"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "ุจุฑูุงู…ู ุญุฐู ุจู ุตูุฑุช ูÛู…ู ุชู…ุงู… ูพุงÛุงู Ûุงูุช"
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "ศัไวใๅ ไีศ  $(^NameDA) วํวไ ํวÝส"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) ศั ัๆํ ฿วใํๆสั ิใว ไีศ ิฯ.$\r$\n$\r$\nศั ัๆํ ฯ฿ใๅ วํวไ ศัวํ ฮัๆฬ วา วํไ ศัไวใๅ ฿แํ฿ ฿ไํฯ."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "฿วใํๆสั ิใว ศัวํ ส฿ใํแ ไีศ $(^NameDA) ศวํำสํ ฯๆศวัๅ ัวๅ วไฯวาํ ิๆฯ. ยํว ใํฮๆวๅํฯ วํไ ฿วั ัว วแวไ วไฬวใ ฯๅํฯฟ"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "ุจุฑูุงู…ู ูุตุจ $(^NameDA) ูพุงÛุงู Ûุงูุช"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) ุจุฑ ุฑูÛ ฺฉุงู…ูพÛูุชุฑ ุดู…ุง ูุตุจ ุดุฏ.$\r$\n$\r$\nุจุฑ ุฑูÛ ุฏฺฉู…ูโ€Û ูพุงÛุงู ุจุฑุงÛ ุฎุฑูุฌ ุงุฒ ุงÛู ุจุฑูุงู…ู ฺฉูÛฺฉ ฺฉูÛุฏ."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "ฺฉุงู…ูพÛูุชุฑ ุดู…ุง ุจุฑุงÛ ุชฺฉู…Ûู ูุตุจ $(^NameDA) ุจุงÛุณุชÛ ุฏูุจุงุฑู ุฑุงู ุงูุฏุงุฒÛ ุดูุฏ. ุขÛุง ู…Ûโ€ุฎูุงูÛุฏ ุงÛู ฺฉุงุฑ ุฑุง ุงูุงู ุงูุฌุงู… ุฏูÛุฏุ"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "ศัไวใๅ อะÝ $(^NameDA) วํวไ ํวÝส"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) วา ัๆํ ฿วใํๆสั ิใว อะÝ ิฯ.$\r$\n$\r$\nศั ัๆํ ฯ฿ใๅ วํวไ ศัวํ ฮัๆฬ วา วํไ ศัไวใๅ ฿แํ฿ ฿ไํฯ."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "฿วใํๆสั ิใว ศัวํ ส฿ใํแ อะÝ$(^NameDA) ศวํำส ฯๆศวัๅ ัวๅ วไฯวาํ ิๆฯ.ยํว ใํฮๆวๅํฯ วํไ ฿วั ัว วแวไ วไฬวใ ฯๅํฯฟ"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "ุจุฑูุงู…ู ุญุฐู $(^NameDA) ูพุงÛุงู Ûุงูุช"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) ุงุฒ ุฑูÛ ฺฉุงู…ูพÛูุชุฑ ุดู…ุง ุญุฐู ุดุฏ.$\r$\n$\r$\nุจุฑ ุฑูÛ ุฏฺฉู…ูโ€Û ูพุงÛุงู ุจุฑุงÛ ุฎุฑูุฌ ุงุฒ ุงÛู ุจุฑูุงู…ู ฺฉูÛฺฉ ฺฉูÛุฏ."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "ฺฉุงู…ูพÛูุชุฑ ุดู…ุง ุจุฑุงÛ ุชฺฉู…Ûู ุญุฐู$(^NameDA) ุจุงÛุณุช ุฏูุจุงุฑู ุฑุงู ุงูุฏุงุฒÛ ุดูุฏ.ุขÛุง ู…Ûโ€ุฎูุงูÛุฏ ุงÛู ฺฉุงุฑ ุฑุง ุงูุงู ุงูุฌุงู… ุฏูÛุฏุ"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "ัวๅ วไฯวาํ ใฬฯฯ."
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "ใไ ฮๆฯใ วํไ ฿วั ัว วไฬวใ ฮๆวๅใ ฯวฯ."
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&วฬัวํ  $(^NameDA)"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&ไใวํิ Ýวํแ สๆึํอวส"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&วํวไ"  
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "ุฑุงู ุงูุฏุงุฒÛ ู…ุฌุฏุฏ."
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "ู…ู ุฎูุฏู… ุงÛู ฺฉุงุฑ ุฑุง ุงูุฌุงู… ุฎูุงูู… ุฏุงุฏ."
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&ุงุฌุฑุงÛ $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&ูู…ุงÛุด ูุงÛู ุชูุถÛุญุงุช"
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&ูพุงÛุงู"
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "วไสฮวศ ๆิๅ ฯั ใไๆํ ศัไวใๅ ๅว"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "ๆิๅ วํ ฿ๅ ใํฮๆวๅํฯ ใํวไศัๅวํ  $(^NameDA) ฯั ยไ Þัวั ศํัไฯ ัว วไสฮวศ ฿ไํฯ."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "ๆิๅ วํ ฯั ใไๆํ ศัไวใๅ ๅว ฿ๅ ใํฮๆวๅํฯ ใํวไศัๅวํ ศัไวใๅ ฯั ยไฬว วํฬวฯ ิๆไฯ ัว วไสฮวศ ฿ไํฯ. ศัวํ วํฬวฯ ํ฿ ๆิๅ ฬฯํฯ ใํสๆวไํฯ ํ฿ ไวใ สวํ ฿ไํฯ."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "ใํวไศัํ ไำวา"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "ุงูุชุฎุงุจ ูพูุดู ุฏุฑ ู…ููÛ ุจุฑูุงู…ูโ€ูุง"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "ูพูุดูโ€ุงÛ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ู…ÛุงูุจุฑูุงÛ $(^NameDA) ุฏุฑ ุขู ูุฑุงุฑ ุจฺฏÛุฑูุฏ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "ูพูุดูโ€ุงÛ ุฏุฑ ู…ููÛ ุจุฑูุงู…ูโ€ูุง ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ู…ÛุงูุจุฑูุงÛ ุจุฑูุงู…ู ุฏุฑ ุขูุฌุง ุงÛุฌุงุฏ ุดููุฏ ุฑุง ุงูุชุฎุงุจ ฺฉูÛุฏ. ุจุฑุงÛ ุงÛุฌุงุฏ Ûฺฉ ูพูุดู ุฌุฏÛุฏ ู…ÛุชูุงูÛุฏ Ûฺฉ ูุงู… ุชุงÛูพ ฺฉูÛุฏ."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "ู…ÛุงูุจุฑÛ ูุณุงุฒ"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "อะÝ $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "ว฿ ฿ัฯไ $(^NameDA) วา ัๆํ ฿วใํๆสั ิใว."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "ุญุฐู $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "ูพุงฺฉ ฺฉุฑุฏู $(^NameDA) ุงุฒ ุฑูÛ ฺฉุงู…ูพÛูุชุฑ ุดู…ุง."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "ยํว ใุใฦไํฯ ฿ๅ ใํฮๆวๅํฯ วา ศัไวใๅ ไีศ $(^Name) ฮวัฬ ิๆํฯฟ"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "ุขÛุง ู…ุทู…ุฆูÛุฏ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ุงุฒ ุจุฑูุงู…ู ูุตุจ $(^Name) ุฎุงุฑุฌ ุดูÛุฏุ"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "ยํว ใุใฦไํฯ ฿ๅ ใํฮๆวๅํฯ วา ศัไวใๅ อะÝ  $(^Name) ฮวัฬ ิๆํฯฟ"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "ุขÛุง ู…ุทู…ุฆูÛุฏ ฺฉู ู…Ûโ€ุฎูุงูÛุฏ ุงุฒ ุจุฑูุงู…ู ุญุฐู $(^Name) ุฎุงุฑุฌ ุดูÛุฏุ"
 !endif

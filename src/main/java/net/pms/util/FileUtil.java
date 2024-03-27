@@ -21,6 +21,7 @@ import com.ibm.icu.text.CharsetMatch;
 import com.sun.jna.Platform;
 import java.io.*;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
@@ -30,8 +31,6 @@ import java.nio.file.InvalidPathException;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -43,14 +42,11 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import net.pms.PMS;
-import static net.pms.PMS.getConfiguration;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.formats.FormatFactory;
-import net.pms.media.MediaInfo;
-import net.pms.media.metadata.MediaVideoMetadata;
+import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.platform.windows.WindowsProgramPaths;
+import net.pms.store.MediaInfoStore;
 import static net.pms.util.Constants.*;
 import net.pms.util.FilePermissions.FileFlag;
 import net.pms.util.StringUtil.LetterCase;
@@ -279,14 +275,26 @@ public class FileUtil {
 		return null;
 	}
 
-	public static String urlJoin(String base, String filename) {
+	public static URL urlFrom(String base, String filename) throws MalformedURLException {
 		if (isUrl(filename)) {
-			return filename;
+			return URI.create(filename).normalize().toURL();
 		}
+		if (filename == null || filename.isEmpty()) {
+			filename = "/";
+		}
+		if (base == null) {
+			base = "";
+		}
+		if (filename.charAt(0) != '/') {
+			filename = '/' + filename;
+		}
+		return URI.create(base).normalize().resolve(filename).toURL();
+	}
 
+	public static String urlJoin(String base, String filename) {
 		try {
-			return new URL(new URL(base), filename).toString();
-		} catch (MalformedURLException e) {
+			return urlFrom(base, filename).toString();
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			return filename;
 		}
 	}
@@ -401,7 +409,7 @@ public class FileUtil {
 	 */
 	@Nullable
 	public static String getExtension(@Nullable String fileName, LetterCase convertTo, Locale locale) {
-		if (isBlank(fileName)) {
+		if (fileName == null || isBlank(fileName)) {
 			return null;
 		}
 
@@ -695,7 +703,47 @@ public class FileUtil {
 	}
 
 	public static String getFileNamePrettified(String f, String absolutePath) {
-		return getFileNamePrettified(f, null, false, false, absolutePath);
+		return getFileNamePrettified(f, null, false, false, absolutePath, null);
+	}
+
+	/**
+	 * Return the Integer year value from a string.
+	 * @param s
+	 * @return
+	 */
+	public static Integer getYearFromYearString(String s) {
+		Integer year = null;
+		if (s != null) {
+			if (s.length() > 4) {
+				s = s.substring(0, 4);
+			}
+			try {
+				year = Integer.valueOf(s);
+				if (year == 0) {
+					year = null;
+				}
+			} catch (NullPointerException | NumberFormatException e) {
+				//nothing to do
+			}
+		}
+		return year;
+	}
+
+	/**
+	 * Return the Integer value from a string.
+	 * @param s
+	 * @return
+	 */
+	public static Integer getIntegerFromString(String s) {
+		Integer result = null;
+		if (s != null) {
+			try {
+				result = Integer.valueOf(s);
+			} catch (NumberFormatException e) {
+				//nothing to do
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -706,7 +754,7 @@ public class FileUtil {
 	 * standardized filename.
 	 *
 	 * @param f The filename
-	 * @param media
+	 * @param mediaVideoMetadata
 	 * @param isEpisodeWithinSeasonFolder whether this is an episode within
 	 *                                    a season folder in the Media Library
 	 * @param isEpisodeWithinTVSeriesFolder whether this is an episode within
@@ -715,79 +763,64 @@ public class FileUtil {
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNamePrettified(String f, MediaInfo media, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
+	public static String getFileNamePrettified(String f, MediaVideoMetadata mediaVideoMetadata, boolean isEpisodeWithinSeasonFolder, boolean isEpisodeWithinTVSeriesFolder, String absolutePath, String lang) {
 		String formattedName;
 
-		String title;
-		String year = "";
+		String movieOrShowName;
+		Integer year = null;
 		String extraInformation;
-		String tvSeason;
+		Integer tvSeason;
 		String tvSeasonPadded;
 		String tvEpisodeNumber;
 		String tvEpisodeName;
-		String tvSeriesStartYear = "";
-		boolean isTVEpisode = false;
+		boolean isTvEpisode;
 
-		// Attempt to get API metadata from the database if it wasn't passed via the media parameter
-		if (media == null && absolutePath != null && getConfiguration().getUseCache()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					media = MediaTableFiles.getFileMetadata(connection, absolutePath);
-				}
-			} catch (IOException | SQLException e) {
-				LOGGER.debug("Error while fetching metadata from database for prettifying: {}", e);
-			} finally {
-				MediaDatabase.close(connection);
-			}
+		// Attempt to get API metadata from the database if it wasn't passed via the mediaInfo parameter
+		MediaVideoMetadata videoMetadata = null;
+		if (mediaVideoMetadata == null && absolutePath != null) {
+			videoMetadata = MediaInfoStore.getMediaVideoMetadata(absolutePath);
+		} else if (mediaVideoMetadata != null && isNotBlank(mediaVideoMetadata.getMovieOrShowName())) {
+			videoMetadata = mediaVideoMetadata;
 		}
 
 		// Populate the variables from the data if we can, otherwise from the filename
-		if (media != null && getConfiguration().getUseCache() && media.hasVideoMetadata() && isNotBlank(media.getVideoMetadata().getMovieOrShowName())) {
-			MediaVideoMetadata videoMetadata = media.getVideoMetadata();
-			title             = videoMetadata.getMovieOrShowName();
-			year              = isNotBlank(videoMetadata.getYear())              ? videoMetadata.getYear()              : "";
-			extraInformation  = isNotBlank(videoMetadata.getExtraInformation())  ? videoMetadata.getExtraInformation()  : "";
-			tvSeason          = isNotBlank(videoMetadata.getTVSeason())          ? videoMetadata.getTVSeason()          : "";
-			tvEpisodeNumber   = isNotBlank(videoMetadata.getTVEpisodeNumber())   ? videoMetadata.getTVEpisodeNumber()   : "";
-			tvEpisodeName     = isNotBlank(videoMetadata.getTVEpisodeName())     ? videoMetadata.getTVEpisodeName()     : "";
-			isTVEpisode       = isNotBlank(videoMetadata.getTVSeason());
-			tvSeriesStartYear = isNotBlank(videoMetadata.getTVSeriesStartYear()) ? videoMetadata.getTVSeriesStartYear() : "";
+		if (videoMetadata != null) {
+			videoMetadata.ensureHavingTranslation(lang);
+			movieOrShowName   = videoMetadata.getMovieOrShowName(lang);
+			year              = videoMetadata.getYear();
+			extraInformation  = videoMetadata.getExtraInformation();
+			tvSeason          = videoMetadata.getTvSeason();
+			tvEpisodeNumber   = isNotBlank(videoMetadata.getTvEpisodeNumber())   ? videoMetadata.getTvEpisodeNumber()   : "";
+			tvEpisodeName     = isNotBlank(videoMetadata.getTvEpisodeName())     ? videoMetadata.getTvEpisodeName(lang) : "";
+			isTvEpisode       = videoMetadata.isTvEpisode();
 		} else {
-			String[] metadataFromFilename = getFileNameMetadata(f, absolutePath);
+			FileNameMetadata metadataFromFilename = getFileNameMetadata(f, absolutePath);
 
-			title            = isNotBlank(metadataFromFilename[0]) ? metadataFromFilename[0] : "";
-			extraInformation = isNotBlank(metadataFromFilename[2]) ? metadataFromFilename[2] : "";
-			tvSeason         = isNotBlank(metadataFromFilename[3]) ? metadataFromFilename[3] : "";
-			tvEpisodeNumber  = isNotBlank(metadataFromFilename[4]) ? metadataFromFilename[4] : "";
-			tvEpisodeName    = isNotBlank(metadataFromFilename[5]) ? metadataFromFilename[5] : "";
+			movieOrShowName  = metadataFromFilename.getMovieOrShowName();
+			extraInformation = metadataFromFilename.getExtraInformation();
+			tvSeason         = metadataFromFilename.getTvSeasonNumber();
+			tvEpisodeNumber  = isNotBlank(metadataFromFilename.getTvEpisodeNumber())   ? metadataFromFilename.getTvEpisodeNumber()   : "";
+			tvEpisodeName    = isNotBlank(metadataFromFilename.getTvEpisodeName())   ? metadataFromFilename.getTvEpisodeName()   : "";
+			isTvEpisode = metadataFromFilename.isTvEpisode();
 
-			if (isNotBlank(tvSeason)) {
-				isTVEpisode = true;
-				tvSeriesStartYear = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
-			} else {
-				year = isNotBlank(metadataFromFilename[1]) ? metadataFromFilename[1] : "";
+			if (!isTvEpisode) {
+				year = metadataFromFilename.getYear();
 			}
 		}
 
-		if (isBlank(title)) {
+		if (isBlank(movieOrShowName)) {
 			return basicPrettify(f);
 		}
 
 		// Build the prettified filename from the metadata
-		if (isTVEpisode) {
-			tvSeasonPadded = tvSeason;
+		if (isTvEpisode) {
 			boolean isEpisodeWithDate = false;
-			if (tvSeason.matches("(19|20)\\d{2}")) {
+			if (tvSeason > 1899 && tvSeason < 2099) {
 				// If the season is a year, anticipate a "/" for a date
-				tvSeasonPadded += "/";
+				tvSeasonPadded = tvSeason + "/";
 				isEpisodeWithDate = true;
 			} else {
-				if (tvSeason.length() == 1) {
-					tvSeasonPadded = "0" + tvSeasonPadded;
-				}
-				tvSeasonPadded = "S" + tvSeasonPadded;
+				tvSeasonPadded = "S" + String.format("%02d", tvSeason);
 			}
 
 			// Make sure the episode number has a leading zero
@@ -825,7 +858,7 @@ public class FileUtil {
 					formattedName += tvEpisodeName;
 				}
 			} else {
-				formattedName = title;
+				formattedName = movieOrShowName;
 				if (isNotBlank(tvSeasonPadded)) {
 					formattedName += " " + tvSeasonPadded;
 				}
@@ -841,11 +874,9 @@ public class FileUtil {
 				}
 			}
 		} else {
-			formattedName = title;
-			if (year != null && isNotBlank(year)) {
+			formattedName = movieOrShowName;
+			if (year != null) {
 				formattedName += " (" + year + ")";
-			} else if (isNotBlank(tvSeriesStartYear)) {
-				formattedName += " (" + tvSeriesStartYear + ")";
 			}
 		}
 
@@ -865,9 +896,9 @@ public class FileUtil {
 	 *
 	 * @return The metadata
 	 */
-	public static String[] getFileNameMetadata(String filename, String absolutePath) {
+	public static FileNameMetadata getFileNameMetadata(String filename, String absolutePath) {
 		if (filename == null) {
-			return new String[] {null, null, null, null, null, null};
+			return new FileNameMetadata();
 		}
 
 		String formattedName;
@@ -1291,7 +1322,7 @@ public class FileUtil {
 			extraInformation = edition;
 		}
 
-		return new String[] {movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName};
+		return new FileNameMetadata(movieOrShowName, year, extraInformation, tvSeason, tvEpisodeNumber, tvEpisodeName);
 	}
 
 	/**
@@ -1652,7 +1683,6 @@ public class FileUtil {
 	 *         match was found
 	 * @throws IOException
 	 */
-	@Nonnull
 	public static CharsetMatch getFileCharsetMatch(@Nonnull File file) throws IOException {
 		InputStream in = new BufferedInputStream(new FileInputStream(file));
 		CharsetDetector detector = new CharsetDetector();
@@ -2115,7 +2145,7 @@ public class FileUtil {
 
 	public static String renameForSorting(String filename, boolean isEpisodeWithinTVSeriesFolder, String absolutePath) {
 		if (PMS.getConfiguration().isPrettifyFilenames()) {
-			filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder, absolutePath);
+			filename = getFileNamePrettified(filename, null, false, isEpisodeWithinTVSeriesFolder, absolutePath, null);
 		}
 
 		if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
