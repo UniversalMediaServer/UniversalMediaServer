@@ -29,6 +29,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.network.NetworkDeviceFilter;
+import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.devices.ChromecastDevice;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +100,7 @@ public class ChromecastServiceListener implements ServiceListener {
 		for (ChromecastDevice device : chromeCasts) {
 			if (name.equals(device.getRendererName())) {
 				// Make the icon grey and delete after 5 seconds
-				device.delete(5000);
+				ConnectedRenderers.delete(device, 5000);
 				LOGGER.debug("Chromecast \"{}\" is gone.", name);
 				continue;
 			}

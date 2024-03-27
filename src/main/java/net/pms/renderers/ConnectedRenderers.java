@@ -303,7 +303,7 @@ public class ConnectedRenderers {
 	public static void verify(Renderer r) {
 		if (!r.verify()) {
 			LOGGER.debug("Purging renderer {} as invalid", r);
-			r.delete(0);
+			delete(r, 0);
 		}
 	}
 
@@ -446,7 +446,7 @@ public class ConnectedRenderers {
 	public static void removeWebPlayerRenderer(String uuid) {
 		Renderer renderer = REACT_CLIENT_RENDERERS.remove(uuid);
 		if (renderer != null) {
-			renderer.delete(0);
+			delete(renderer, 0);
 		}
 	}
 
