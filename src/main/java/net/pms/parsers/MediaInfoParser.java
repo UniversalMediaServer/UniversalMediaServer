@@ -24,6 +24,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -58,7 +59,6 @@ import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.UnknownFormatException;
 import net.pms.util.Version;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +173,7 @@ public class MediaInfoParser {
 			if (!value.isEmpty()) {
 				try {
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-						new Base64().decode(value.getBytes(StandardCharsets.US_ASCII)),
+						Base64.getDecoder().decode(value.getBytes(StandardCharsets.US_ASCII)),
 						640,
 						480,
 						ScaleType.MAX,

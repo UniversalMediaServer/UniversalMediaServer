@@ -16,7 +16,6 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -192,7 +191,7 @@ public class NettyUpnpStream extends UpnpStream {
 
 			responseSent(responseMessage);
 
-		} catch (IOException | RuntimeException | URISyntaxException t) {
+		} catch (RuntimeException | URISyntaxException t) {
 
 			// You definitely want to catch all Exceptions here, otherwise the server will
 			// simply close the socket and you get an "unexpected end of file" on the client.

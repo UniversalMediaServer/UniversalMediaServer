@@ -243,16 +243,19 @@ public abstract class HttpServletHelper extends HttpServlet {
 		return formattedContent;
 	}
 
-	protected static void copyStream(final InputStream in, final OutputStream os) {
+	protected static void copyStream(final InputStream in, final OutputStream os, final UmsAsyncListener listener) {
 		byte[] buffer = new byte[32 * 1024];
 		int bytes;
-		int sendBytes = 0;
+		long sendBytes = 0;
 
 		try {
 			while ((bytes = in.read(buffer)) != -1) {
 				os.write(buffer, 0, bytes);
 				sendBytes += bytes;
 				os.flush();
+				if (listener != null) {
+					listener.setBytesSent(sendBytes);
+				}
 			}
 			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
 		} catch (IOException e) {
@@ -273,9 +276,11 @@ public abstract class HttpServletHelper extends HttpServlet {
 	}
 
 	protected static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context) {
+		UmsAsyncListener listener = new UmsAsyncListener(System.currentTimeMillis(), 0);
 		context.setTimeout(0);
+		context.addListener(listener);
 		Runnable r = () -> {
-			copyStream(in, os);
+			copyStream(in, os, listener);
 			context.complete();
 		};
 		context.start(r);

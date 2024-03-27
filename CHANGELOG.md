@@ -6,6 +6,7 @@
 - Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
 - Remux non-AC-3 audio regardless of AC-3 setting
 - Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+- Implements Jetty 12 servlets server + client
 
 ### Dependencies
 - Bump `axios` from 1.6.4 to 1.6.7 ([#4349](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4349), [#4434](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4434))
@@ -36,6 +37,7 @@
 - Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.6.0 to 3.7.1 ([#4526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4526), [#4545](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4545))
 - Bump `follow-redirects` from 1.15.4 to 1.15.6 ([#4535](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4535))
 - Bump `@emotion/react` from 11.11.3 to 11.11.4 ([#4538](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4538))
+- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.0 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
 - Bump `webpack-dev-middleware` from 5.3.3 to 5.3.4 ([#4543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4543))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.12.1 to 3.13.0 ([#4547](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4547))
 - Bump `express` from 4.18.2 to 4.19.2 ([#4552](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4552))
