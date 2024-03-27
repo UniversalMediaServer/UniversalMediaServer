@@ -246,10 +246,6 @@ public class Renderer extends RendererDeviceConfiguration {
 		resetRenderer();
 	}
 
-	public void delete(int delay) {
-		ConnectedRenderers.delete(this, delay);
-	}
-
 	/**
 	 * Returns the MediaStore.
 	 *

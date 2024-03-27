@@ -682,20 +682,18 @@ public class MediaStore extends StoreContainer {
 		return getWeakResource(searchIds[searchIds.length - 1]);
 	}
 
-	public void fileRemoved(String filename) {
-		File file = new File(filename);
+	public void fileRemoved(File file) {
 		for (StoreResource storeResource : findSystemFileResources(file)) {
 			storeResource.getParent().removeChild(storeResource);
 			storeResource.getParent().notifyRefresh();
 		}
 	}
 
-	public void fileAdded(String filename) {
-		File file = new File(filename);
+	public void fileAdded(File file) {
 		File parentFile = file.getParentFile();
 		for (StoreResource storeResource : findSystemFileResources(parentFile)) {
 			if (storeResource instanceof VirtualFolder virtualFolder) {
-				virtualFolder.addFile(file);
+				virtualFolder.doRefreshChildren();
 			}
 		}
 	}

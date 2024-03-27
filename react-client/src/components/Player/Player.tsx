@@ -17,7 +17,7 @@
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { createElement, useContext, useEffect, useRef, useState } from 'react';
+import { createElement, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
 import { ArrowBigLeft, ArrowBigRight, Cast, Download, Edit, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, RecordMail, RecordMailOff, Tag } from 'tabler-icons-react';
@@ -32,7 +32,6 @@ import { VideoJsPlayer } from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
 
 export const Player = () => {
-  const [uuid, setUuid] = useState('');
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
@@ -42,33 +41,6 @@ export const Player = () => {
   const { req, id } = useParams();
   const [showVideoMetadataEdit, setShowVideoMetadataEdit] = useState(false);
   const computedColorScheme = useComputedColorScheme('dark', { getInitialValueInEffect: true });
-
-  const getUuid = () => {
-    if (sessionStorage.getItem('player')) {
-      setUuid(sessionStorage.getItem('player') as string);
-    } else {
-      setLoading(true);
-      axios.get(playerApiUrl)
-        .then(function(response: any) {
-          if (response.data.uuid) {
-            sessionStorage.setItem('player', response.data.uuid);
-            setUuid(response.data.uuid);
-          }
-        })
-        .catch(function() {
-          showNotification({
-            id: 'player-data-loading',
-            color: 'red',
-            title: 'Error',
-            message: 'Your player session was not received from the server.',
-            autoClose: 3000,
-          });
-        })
-        .then(function() {
-          setLoading(false);
-        });
-    }
-  };
 
   const getI18nName = (name: string | undefined) => {
     const nameData = name ? name.split('|') : [''];
@@ -80,9 +52,9 @@ export const Player = () => {
   }
 
   const refreshPage = () => {
-    if (uuid && sse.reqType) {
+    if (sse.uuid && sse.reqType) {
       setLoading(true);
-      axios.post(playerApiUrl + sse.reqType, { uuid: uuid, id: sse.reqId, lang: i18n.language })
+      axios.post(playerApiUrl + sse.reqType, { uuid: sse.uuid, id: sse.reqId, lang: i18n.language }, { headers: { 'Player': sse.uuid } })
         .then(function(response: any) {
           setData(response.data);
           const mediaTemp = response.data.goal === 'show' ? response.data.medias[0] : response.data.breadcrumbs[response.data.breadcrumbs.length - 1];
@@ -112,7 +84,7 @@ export const Player = () => {
 
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid, id, fullyPlayed })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid:sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
       .then(function() {
         refreshPage();
       })
@@ -183,7 +155,7 @@ export const Player = () => {
 
   const getVideoMetadataEditModal = () => {
     if (isVideoMetadataEditable()) {
-      return <VideoMetadataEditModal uuid={uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
+      return <VideoMetadataEditModal uuid={sse.uuid} id={sse.reqId} start={showVideoMetadataEdit} started={() => setShowVideoMetadataEdit(false)} callback={() => refreshPage()} />
     }
     return null;
   }
@@ -240,7 +212,7 @@ export const Player = () => {
   const getVideoJsMediaPlayer = (media: VideoMedia | AudioMedia) => {
     return (<Paper>
       <VideoJsPlayer
-        {...{ media: media, uuid: uuid, askPlayId: sse.askPlayId }}
+        {...{ media: media, uuid: sse.uuid, askPlayId: sse.askPlayId }}
       />
     </Paper>);
   }
@@ -253,7 +225,7 @@ export const Player = () => {
       <Paper>
         <Image
           radius='md'
-          src={playerApiUrl + 'image/' + uuid + '/' + media.id}
+          src={playerApiUrl + 'image/' + sse.uuid + '/' + media.id}
           alt={media.name}
         />
       </Paper>);
@@ -299,7 +271,7 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
-      image = <img src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} alt={media.name}
+      image = <img src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} alt={media.name}
         style={{ objectFit: 'contain', maxWidth: '100%', height: 'calc(100% - 2.4rem)' }} />;
     }
     return (
@@ -531,7 +503,7 @@ export const Player = () => {
       poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.poster} />);
     }
     if (!poster && media && media.id) {
-      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />);
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} />);
     }
     return { logo, poster };
   }
@@ -618,7 +590,7 @@ export const Player = () => {
           </Tooltip>
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get('Download')}>
-              <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
+              <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + sse.uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
@@ -667,7 +639,7 @@ export const Player = () => {
           <Grid.Col span={12}>
             <Grid columns={20} justify='center'>
               <Grid.Col span={6}>
-                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + uuid + '/' + media.id} />
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} />
               </Grid.Col>
               <Grid.Col span={12}  >
                 <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
@@ -701,12 +673,8 @@ export const Player = () => {
   }, [req, id]);
 
   useEffect(() => {
-    ((!session.authenticate || havePermission(session, Permissions.web_player_browse)) && getUuid())
-  }, [session]);
-
-  useEffect(() => {
     refreshPage();
-  }, [uuid, sse.reqType, sse.reqId, i18n.language]);
+  }, [sse.uuid, sse.reqType, sse.reqId, i18n.language]);
 
   useEffect(() => {
     const getFolderIcon = (folder: BaseMedia) => {
@@ -761,7 +729,7 @@ export const Player = () => {
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>
-      <LoadingOverlay visible={loading} overlayProps={{fixed: true}} />
+      <LoadingOverlay visible={loading} overlayProps={{ fixed: true }} />
       {getVideoMetadataEditModal()}
       {getBreadcrumbs()}
       <ScrollArea offsetScrollbars>
