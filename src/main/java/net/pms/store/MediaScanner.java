@@ -349,9 +349,10 @@ public class MediaScanner implements SharedContentListener {
 	 */
 	private static void addFileEntry(String filename) {
 		LOGGER.trace("File {} was created on the hard drive", filename);
-		if (parseFileEntry(new File(filename))) {
+		File file = new File(filename);
+		if (parseFileEntry(file)) {
 			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				connectedRenderer.getMediaStore().fileAdded(filename);
+				connectedRenderer.getMediaStore().fileAdded(file);
 			}
 		}
 	}
@@ -423,7 +424,7 @@ public class MediaScanner implements SharedContentListener {
 			return;
 		}
 		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileAdded(directory.getName());
+			connectedRenderer.getMediaStore().fileAdded(directory);
 		}
 		File[] files = directory.listFiles();
 		if (files != null) {
@@ -442,8 +443,9 @@ public class MediaScanner implements SharedContentListener {
 	private static void removeFolderEntry(String filename) {
 		LOGGER.trace("Folder {} was deleted or moved on the hard drive, removing all files within it from the database", filename);
 		//folder may be empty
+		File folder = new File(filename);
 		for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-			connectedRenderer.getMediaStore().fileRemoved(filename);
+			connectedRenderer.getMediaStore().fileRemoved(folder);
 		}
 		if (MediaInfoStore.removeMediaEntriesInFolder(filename)) {
 			MediaStoreIds.incrementSystemUpdateId();
@@ -453,8 +455,9 @@ public class MediaScanner implements SharedContentListener {
 	private static void removeFileEntry(String filename) {
 		LOGGER.info("File {} was deleted or moved on the hard drive, removing it from the database", filename);
 		if (MediaInfoStore.removeMediaEntry(filename)) {
+			File file = new File(filename);
 			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				connectedRenderer.getMediaStore().fileRemoved(filename);
+				connectedRenderer.getMediaStore().fileRemoved(file);
 			}
 			MediaStoreIds.incrementSystemUpdateId();
 		}

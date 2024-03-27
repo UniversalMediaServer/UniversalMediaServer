@@ -417,6 +417,9 @@ public class StoreContainer extends StoreResource {
 
 	public void removeChild(StoreResource child) {
 		if (children.contains(child)) {
+			if (child instanceof StoreContainer storeContainer) {
+				storeContainer.clearChildren();
+			}
 			children.remove(child);
 		}
 		renderer.getMediaStore().deleteWeakResource(child);
