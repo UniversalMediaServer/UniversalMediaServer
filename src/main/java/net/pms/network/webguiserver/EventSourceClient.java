@@ -17,6 +17,8 @@
 package net.pms.network.webguiserver;
 
 import jakarta.servlet.AsyncContext;
+import jakarta.servlet.AsyncEvent;
+import jakarta.servlet.AsyncListener;
 import jakarta.servlet.ServletOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -67,6 +69,27 @@ public class EventSourceClient implements IEventSourceClient, Runnable {
 		this.scheduler = Executors.newSingleThreadScheduledExecutor();
 		this.async = async;
 		this.output = async.getResponse().getOutputStream();
+		if (callback != null) {
+			async.addListener(new AsyncListener() {
+				@Override
+				public void onComplete(AsyncEvent event) throws IOException {
+					new Thread(callback).start();
+				}
+				@Override
+				public void onTimeout(AsyncEvent event) throws IOException {
+					new Thread(callback).start();
+				}
+				@Override
+				public void onError(AsyncEvent event) throws IOException {
+					new Thread(callback).start();
+				}
+				@Override
+				public void onStartAsync(AsyncEvent event) throws IOException {
+					//nothing to do
+				}
+			});
+		}
+		scheduleHeartBeat();
 	}
 
 	private void event(String name, String data) throws IOException {
@@ -149,7 +172,7 @@ public class EventSourceClient implements IEventSourceClient, Runnable {
 		async.complete();
 	}
 
-	public void scheduleHeartBeat() {
+	private void scheduleHeartBeat() {
 		synchronized (this) {
 			if (!closed) {
 				heartBeat = scheduler.schedule(this, heartBeatPeriod, TimeUnit.SECONDS);
