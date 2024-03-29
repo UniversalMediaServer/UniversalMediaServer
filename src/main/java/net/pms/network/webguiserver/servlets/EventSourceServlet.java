@@ -63,7 +63,6 @@ public class EventSourceServlet extends GuiHttpServlet {
 				AsyncContext async = request.startAsync();
 				async.setTimeout(0);
 				EventSourceClient client = new EventSourceClient(async, heartBeatPeriod);
-				client.scheduleHeartBeat();
 				EventSourceServer.addServerSentEventsFor(account.getUser().getId(), client, sseType);
 			} else {
 				respondForbidden(request, response);
