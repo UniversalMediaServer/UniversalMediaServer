@@ -117,11 +117,7 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
-		int engineVersion = CONFIGURATION.getServerEngine();
-		if (engineVersion == 3) {
-			return WebGuiServerJetty.createServer(port);
-		}
-		return WebGuiServerHttpServer.createServer(port);
+		return WebGuiServerJetty.createServer(port);
 	}
 
 }

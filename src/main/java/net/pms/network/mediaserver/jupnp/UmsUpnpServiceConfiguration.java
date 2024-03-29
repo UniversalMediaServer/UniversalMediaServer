@@ -29,7 +29,6 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerConfigurationImpl;
 import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerImpl;
-import net.pms.network.mediaserver.jupnp.transport.impl.JdkHttpServerStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClientConfiguration;
 import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClients;
 import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
@@ -249,12 +248,12 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	@Override
 	public StreamClient createStreamClient() {
 		int engineVersion = CONFIGURATION.getServerEngine();
-		if (engineVersion == 3) {
-			return new JettyStreamClientImpl(getStreamClientExecutorService());
+		if (engineVersion == 2 || engineVersion == 3) {
+			return new JdkStreamClients(
+					new JdkStreamClientConfiguration(getStreamClientExecutorService())
+			);
 		}
-		return new JdkStreamClients(
-				new JdkStreamClientConfiguration(getStreamClientExecutorService())
-		);
+		return new JettyStreamClientImpl(getStreamClientExecutorService());
 	}
 
 	public boolean useOwnContentDirectory() {
@@ -268,19 +267,15 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 			engineVersion = MediaServer.DEFAULT_VERSION;
 		}
 		switch (engineVersion) {
-			case 1, 5 -> {
-				return new JdkHttpServerStreamServer(
-						new UmsStreamServerConfiguration(
-								networkAddressFactory.getStreamListenPort(),
-								true
+			case 1 -> {
+				return new JakartaServletStreamServerImpl(
+						new JakartaServletStreamServerConfigurationImpl(
+								JettyServletContainer.INSTANCE,
+								networkAddressFactory.getStreamListenPort()
 						)
 				);
 			}
-			case 3 -> {
-				return new JakartaServletStreamServerImpl(
-				new JakartaServletStreamServerConfigurationImpl(JettyServletContainer.INSTANCE, networkAddressFactory.getStreamListenPort()));
-			}
-			case 2, 4 -> {
+			case 2, 3 -> {
 				return new NettyStreamServer(
 						new UmsStreamServerConfiguration(
 								networkAddressFactory.getStreamListenPort(),
@@ -289,10 +284,8 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 				);
 			}
 			default -> {
-				//non listening server
-				return new JdkHttpServerStreamServer(
-						new UmsStreamServerConfiguration()
-				);
+				return new JakartaServletStreamServerImpl(
+						new JakartaServletStreamServerConfigurationImpl(JettyServletContainer.INSTANCE, networkAddressFactory.getStreamListenPort()));
 			}
 		}
 	}
