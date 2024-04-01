@@ -70,7 +70,7 @@
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.12",
     "@types/lodash": "4.14.202",
-    "@types/node": "18.19.24",
+    "@types/node": "18.19.28",
     "@types/react": "18.2.64",
     "@types/react-color": "3.0.12",
     "@types/react-dom": "18.2.22",
