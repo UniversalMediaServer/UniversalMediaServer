@@ -2,10 +2,16 @@
 
 ## [Unreleased]
 
+## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
+
 ### General
+- Added MP4-H265-AC3 transcoding output option
 - Allow FFmpeg to mux Dolby Vision streams if the renderer supports it
+- Improved transcoding speed
+- Improved speed of parsing MP4/MOV files
 - Remux non-AC-3 audio regardless of AC-3 setting
-- Updates to INSTALL.txt (fixes #4409) (thanks, easleydp!)
+- Updates to INSTALL.txt (#4409) (thanks, easleydp!)
+- Fixed broken transcoding when scaling (#4507) (thanks, future-figs!)
 
 ### Dependencies
 - Bump `@emotion/react` from 11.11.3 to 11.11.4 ([#4538](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4538))
@@ -25,9 +31,12 @@
 - Bump `dorny/paths-filter` from 2 to 3 ([#4429](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4429))
 - Bump `eslint` from 8.56.0 to 8.57.0 ([#4503](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4503))
 - Bump `express` from 4.18.2 to 4.19.2 ([#4552](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4552))
+- Bump `FFmpeg` from 6.1 to 2024-02-22
 - Bump `follow-redirects` from 1.15.4 to 1.15.6 ([#4535](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4535))
 - Bump `ip` from 2.0.0 to 2.0.1 ([#4498](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4498))
+- Bump `JRE` from 17.0.9 to 17.0.10
 - Bump `logback-version` from 1.4.14 to 1.5.3 ([#4484](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4484), [#4525](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4525))
+- Bump `MediaInfo` from 23.10 to 24.01.1
 - Bump `org.apache.maven.plugins:maven-assembly-plugin` from 3.6.0 to 3.7.1 ([#4526](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4526), [#4545](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4545))
 - Bump `org.apache.maven.plugins:maven-compiler-plugin` from 3.12.1 to 3.13.0 ([#4547](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4547))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.2.3 to 3.2.5 ([#4371](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4371))
