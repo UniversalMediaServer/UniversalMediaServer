@@ -38,6 +38,7 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.10 to 2.0.12 ([#4364](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4364), [#4450](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4450))
 - Bump `react-movable` from 3.0.4 to 3.2.0 ([#4517](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4517))
 - Bump `react-router-dom` from 6.21.1 to 6.22.3 ([#4380](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4380), [#4408](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4408), [#4465](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4465), [#4485](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4485), [#4549](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4549))
+- Bump `videojs-contrib-quality-levels` from 4.0.0 to 4.1.0 ([#4560](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4560))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `webpack-dev-middleware` from 5.3.3 to 5.3.4 ([#4543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4543))
 
