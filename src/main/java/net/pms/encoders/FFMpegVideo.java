@@ -354,7 +354,7 @@ public class FFMpegVideo extends Engine {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
+		} else { // MP4H265AC3, MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 			final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -485,6 +485,11 @@ public class FFMpegVideo extends Engine {
 					transcodeOptions.add("mpeg2video");
 				} else if (renderer.isTranscodeToMPEGTS()) {
 					transcodeOptions.add("mpegts");
+				} else if (renderer.isTranscodeToMP4H265AC3()) {
+					transcodeOptions.add("mp4");
+
+					transcodeOptions.add("-movflags");
+					transcodeOptions.add("frag_keyframe+faststart");
 				} else {
 					transcodeOptions.add("vob");
 				}
