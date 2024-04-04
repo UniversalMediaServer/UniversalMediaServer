@@ -24,6 +24,8 @@ import net.pms.network.mediaserver.servlets.MediaServerServlet;
 import net.pms.network.mediaserver.servlets.NextcpApiServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -67,7 +69,7 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 
 	@Override
 	public synchronized int addConnector(String host, int port) throws IOException {
-		ServerConnector connector = new ServerConnector(server);
+		ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(), new HTTP2CServerConnectionFactory());
 		connector.setHost(host);
 		connector.setPort(port);
 		//let some time for pausing from media renderer (2 hours)

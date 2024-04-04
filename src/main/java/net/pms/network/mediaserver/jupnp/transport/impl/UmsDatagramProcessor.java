@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UmsDatagramProcessor extends DatagramProcessorImpl {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(UmsDatagramProcessor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatagramProcessorImpl.class);
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
 
 	/**

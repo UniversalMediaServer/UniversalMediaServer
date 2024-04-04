@@ -37,6 +37,8 @@ import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.NetworkConnector;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
@@ -59,7 +61,7 @@ public class WebGuiServerJetty extends WebGuiServer {
 		QueuedThreadPool threadPool = new QueuedThreadPool();
 		threadPool.setName("webgui-server");
 		server = new Server(threadPool);
-		ServerConnector connector = new ServerConnector(server);
+		ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(), new HTTP2CServerConnectionFactory());
 		connector.setHost("0.0.0.0");
 		connector.setPort(port);
 		//let some time for pausing from media renderer (2 hours)

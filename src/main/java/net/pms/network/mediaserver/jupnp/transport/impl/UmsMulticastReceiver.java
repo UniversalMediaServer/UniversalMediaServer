@@ -29,7 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsMulticastReceiver extends MulticastReceiverImpl {
-	private static final Logger LOGGER = LoggerFactory.getLogger(UmsMulticastReceiver.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MulticastReceiverImpl.class);
 
 	public UmsMulticastReceiver(MulticastReceiverConfigurationImpl configuration) {
 		super(configuration);
