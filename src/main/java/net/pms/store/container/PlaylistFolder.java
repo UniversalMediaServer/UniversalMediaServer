@@ -21,11 +21,20 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.BOMInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
@@ -40,10 +49,6 @@ import net.pms.store.item.WebVideoStream;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.BOMInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public final class PlaylistFolder extends StoreContainer {
 
@@ -70,7 +75,10 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	public File getPlaylistfile() {
-		return isweb ? null : new File(uri);
+		if (isweb || FileUtil.isUrl(uri)) {
+			return null;
+		}
+		return new File(uri);
 	}
 
 	@Override
@@ -110,8 +118,18 @@ public final class PlaylistFolder extends StoreContainer {
 			charset = StandardCharsets.ISO_8859_1;
 		}
 		if (FileUtil.isUrl(uri)) {
-			BOMInputStream bi = BOMInputStream.builder().setInputStream(URI.create(uri).toURL().openStream()).get();
-			return new BufferedReader(new InputStreamReader(bi, charset));
+			String body = "";
+			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(uri)).
+				headers("Content-Type", "text/plain;charset=UTF-8").GET().build();
+			try {
+				HttpResponse<String> response = HttpClient.newBuilder().
+					followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofString());
+				body = response.body();
+			} catch (IOException | InterruptedException e) {
+				LOGGER.error("cannot retrieve external url", e);
+			}
+			StringReader sr = new StringReader(body);
+			return new BufferedReader(sr);
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
@@ -157,7 +175,9 @@ public final class PlaylistFolder extends StoreContainer {
 	@Override
 	public void resolve() {
 		getChildren().clear();
-		setLastModified(getPlaylistfile().lastModified());
+		if (getPlaylistfile() != null) {
+			setLastModified(getPlaylistfile().lastModified());
+		}
 		resolveOnce();
 	}
 
