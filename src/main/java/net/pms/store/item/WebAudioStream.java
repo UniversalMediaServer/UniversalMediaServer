@@ -18,9 +18,15 @@ package net.pms.store.item;
 
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreResource;
 
 public class WebAudioStream extends WebStream {
 	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL) {
 		super(renderer, fluxName, url, thumbURL, Format.AUDIO);
+	}
+
+	@Override
+	public boolean isCodeValid(StoreResource r) {
+		return false;
 	}
 }
