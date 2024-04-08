@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.5.0 ([#4567](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4567))
+- Bump `@typescript-eslint/parser` from 7.4.0 to 7.5.0 ([#4567](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4567))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
