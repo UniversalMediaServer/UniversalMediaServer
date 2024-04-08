@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@types/lodash` from 4.14.202 to 4.17.0 ([#4569](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4569))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
