@@ -22,23 +22,24 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.net.http.HttpHeaders;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Optional;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -47,6 +48,7 @@ import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.util.FileUtil;
+import net.pms.util.HttpUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.UMSUtils;
 
@@ -119,12 +121,9 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 		if (FileUtil.isUrl(uri)) {
 			String body = "";
-			HttpRequest request = HttpRequest.newBuilder().uri(URI.create(uri)).
-				headers("Content-Type", "text/plain;charset=UTF-8").GET().build();
 			try {
-				HttpResponse<String> response = HttpClient.newBuilder().
-					followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofString());
-				body = response.body();
+				HttpUtil hu = new HttpUtil();
+				body = hu.getStringBody(uri);
 			} catch (IOException | InterruptedException e) {
 				LOGGER.error("cannot retrieve external url", e);
 			}
@@ -279,7 +278,9 @@ public final class PlaylistFolder extends StoreContainer {
 					valid = true;
 				}
 			} else {
+				String albumArtUrl = null;
 				String u = FileUtil.urlJoin(uri, entry.fileName);
+				HttpHeaders headers = null;
 				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
 					// If the filename continues past the "extension" (i.e. has
 					// a query string) it's
@@ -287,11 +288,28 @@ public final class PlaylistFolder extends StoreContainer {
 					// instance Twitch TV media urls:
 					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
+				} else {
+					// check resource type
+					HttpUtil hu = new HttpUtil();
+					try {
+						headers = hu.getHeaders(entry.fileName);
+						if (StringUtils.isAllBlank(entry.title)) {
+							entry.title = extractTitleFrom(headers);
+						}
+						albumArtUrl = getAlbumArtUrlFrom(headers);
+						type = getTypeFrom(headers, type);
+						LOGGER.trace("content type is : " + type);
+					} catch (IOException | InterruptedException e) {
+						LOGGER.error("cannot retrieve external url", e);
+					}
 				}
-				StoreResource d = type == Format.VIDEO ? new WebVideoStream(renderer, entry.title, u, null) :
-					type == Format.AUDIO ? new WebAudioStream(renderer, entry.title, u, null) :
-						type == Format.IMAGE ? new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE) :
+				StoreResource d = type == Format.VIDEO ? new WebVideoStream(renderer, entry.title, u, albumArtUrl) :
+					type == Format.AUDIO ? new WebAudioStream(renderer, entry.title, u, albumArtUrl) :
+						type == Format.IMAGE ? new FeedItem(renderer, entry.title, u, albumArtUrl, null, Format.IMAGE) :
 							type == Format.PLAYLIST ? getPlaylist(renderer, entry.title, u, 0) : null;
+				if (d instanceof WebAudioStream was) {
+					addAudioFormat(was, headers);
+				}
 				if (d != null) {
 					addChild(d);
 					valid = true;
@@ -308,6 +326,92 @@ public final class PlaylistFolder extends StoreContainer {
 		for (StoreResource r : getChildren()) {
 			r.syncResolve();
 		}
+	}
+
+	/*
+	 * Extracts audio information from ice or icecast protocol.
+	 */
+	private void addAudioFormat(WebAudioStream was, HttpHeaders headers) {
+		if (headers == null) {
+			LOGGER.trace("web audio stream without header info.");
+			return;
+		}
+		if (was.getMediaInfo() == null) {
+			was.setMediaInfo(new MediaInfo());
+		}
+		if (was.getMediaAudio() == null) {
+			was.setMediaAudio(new MediaAudio());
+			was.getMediaInfo().setAudioMetadata(new MediaAudioMetadata());
+		}
+		if (was.getMediaAudio() == null) {
+			was.setMediaAudio(new MediaAudio());
+		}
+		Optional<String> value = null;
+		value = headers.firstValue("icy-br");
+		if (value.isPresent()) {
+			was.getMediaInfo().setBitRate(parseIntValue(value) != null ? parseIntValue(value) : null);
+			was.getMediaAudio().setBitRate(parseIntValue(value) != null ? parseIntValue(value) : null);
+		}
+		value = headers.firstValue("icy-sr");
+		if (value.isPresent()) {
+			was.getMediaAudio().setSampleRate(parseIntValue(value) != null ? parseIntValue(value) : null);
+		}
+
+		value = headers.firstValue("icy-genre");
+		if (value.isPresent()) {
+			was.getMediaInfo().getAudioMetadata().setGenre(value.get());
+		}
+
+		value = headers.firstValue("content-type");
+		if (value.isPresent()) {
+			was.getMediaAudio().setCodec(value.get());
+			was.setMimeType(value.get());
+		}
+	}
+
+	private Integer parseIntValue(Optional<String> value) {
+		try {
+			return Integer.parseInt(value.get());
+		} catch (Exception e) {
+			return null;
+		}
+	}
+	private String getAlbumArtUrlFrom(HttpHeaders headers) {
+		// Icecast protocol support
+		if (headers.firstValue("icy-logo").isEmpty()) {
+			LOGGER.trace("icy-logo not set ...");
+			return null;
+		}
+		return headers.firstValue("icy-logo").get();
+	}
+
+	private int getTypeFrom(HttpHeaders headers, int currentType) {
+		if (headers.firstValue("content-type").isEmpty()) {
+			LOGGER.trace("web server has no content type set ...");
+			return currentType;
+		} else {
+			String contentType = headers.firstValue("content-type").get();
+			if (contentType.startsWith("audio")) {
+				return Format.AUDIO;
+			} else if (contentType.startsWith("video")) {
+				return Format.VIDEO;
+			} else if (contentType.startsWith("image")) {
+				return Format.IMAGE;
+			} else {
+				LOGGER.trace("web server has no content type set ...");
+				return currentType;
+			}
+		}
+	}
+
+	private String extractAlbumArtFrom(HttpHeaders headers) {
+		// Icecast protocol support
+		return headers.firstValue("icy-name").get();
+	}
+
+	private String extractTitleFrom(HttpHeaders headers) {
+		// Icecast protocol support
+		return headers.firstValue("icy-name").get();
 	}
 
 	private static class Entry {

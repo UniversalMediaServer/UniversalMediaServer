@@ -708,7 +708,7 @@ public class RequestV2 extends HTTPResource {
 						try {
 							java.net.http.HttpResponse<InputStream> extStream = HttpClient.newBuilder().
 								followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
-
+							output.headers().set("content-type", extStream.headers().firstValue("content-type"));
 							// Send the response to the client.
 							event.getChannel().write(new ChunkedStream(extStream.body(), BUFFER_SIZE));
 						} catch (IOException | InterruptedException e) {
