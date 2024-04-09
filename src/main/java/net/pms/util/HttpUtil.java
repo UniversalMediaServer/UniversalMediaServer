@@ -11,7 +11,7 @@ import java.net.http.HttpResponse.BodyHandlers;
 
 public class HttpUtil {
 
-	public HttpUtil() {
+	private HttpUtil() {
 	}
 
 	/**
@@ -22,7 +22,7 @@ public class HttpUtil {
 	 * @throws IOException
 	 * @throws InterruptedException
 	 */
-	public String getStringBody(String url) throws IOException, InterruptedException {
+	public static String getStringBody(String url) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
 			headers("Content-Type", "text/plain;charset=UTF-8").GET().build();
 
@@ -32,7 +32,7 @@ public class HttpUtil {
 		return response.body();
 	}
 
-	public HttpHeaders getHeaders(String url) throws IOException, InterruptedException {
+	public static HttpHeaders getHeaders(String url) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
 			method("HEAD", HttpRequest.BodyPublishers.noBody()).build();
 		HttpResponse<Void> response = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.ALWAYS).build().
@@ -40,7 +40,7 @@ public class HttpUtil {
 		return response.headers();
 	}
 
-	public HttpHeaders getHeadersFromInputStreamRequest(String url) throws IOException, InterruptedException {
+	public static HttpHeaders getHeadersFromInputStreamRequest(String url) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).
 			headers("Content-Type", "text/plain;charset=UTF-8").GET().build();
 
@@ -48,5 +48,12 @@ public class HttpUtil {
 				followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
 		response.body().close();
 		return response.headers();
+	}
+
+	public static InputStream getHttpResourceInputStream(String url) throws IOException, InterruptedException {
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+		java.net.http.HttpResponse<InputStream> extStream = HttpClient.newBuilder().
+			followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
+		return extStream.body();
 	}
 }

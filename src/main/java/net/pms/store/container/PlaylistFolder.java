@@ -122,8 +122,7 @@ public final class PlaylistFolder extends StoreContainer {
 		if (FileUtil.isUrl(uri)) {
 			String body = "";
 			try {
-				HttpUtil hu = new HttpUtil();
-				body = hu.getStringBody(uri);
+				body = HttpUtil.getStringBody(uri);
 			} catch (IOException | InterruptedException e) {
 				LOGGER.error("cannot retrieve external url", e);
 			}
@@ -290,9 +289,9 @@ public final class PlaylistFolder extends StoreContainer {
 					type = defaultContent;
 				} else {
 					// check resource type
-					HttpUtil hu = new HttpUtil();
 					try {
-						headers = hu.getHeaders(entry.fileName);
+						// TODO information should be stored/cached in a table for faster access
+						headers = HttpUtil.getHeaders(entry.fileName);
 						if (StringUtils.isAllBlank(entry.title)) {
 							entry.title = extractTitleFrom(headers);
 						}

@@ -62,8 +62,10 @@ import net.pms.service.StartStopListenerDelegate;
 import net.pms.service.sleep.SleepManager;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
+import net.pms.store.item.WebStream;
 import net.pms.util.ByteRange;
 import net.pms.util.FullyPlayed;
+import net.pms.util.HttpUtil;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -623,6 +625,13 @@ public class MediaServerHandler implements HttpHandler {
 
 					exchange.getResponseHeaders().set("Accept-Ranges", "bytes");
 					exchange.getResponseHeaders().set("Connection", "keep-alive");
+				}
+			}  else if (item instanceof WebStream ws) {
+				// we have a webstream ... pass through
+				try {
+					inputStream = HttpUtil.getHttpResourceInputStream(ws.getUrl());
+				} catch (IOException | InterruptedException e) {
+					LOGGER.error("cannot retrieve external url", e);
 				}
 			}
 
