@@ -121,6 +121,7 @@ public class FFMpegVideo extends Engine {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
 		ArrayList<String> scalePadFilterChain = new ArrayList<>();
+		ArrayList<String> softSubsConfig = new ArrayList<>();
 		final Renderer renderer = params.getMediaRenderer();
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		MediaVideo defaultVideoTrack = mediaInfo != null ? mediaInfo.getDefaultVideoTrack() : null;
@@ -221,6 +222,38 @@ public class FFMpegVideo extends Engine {
 					} else {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 					}
+				} else if (
+					params.getSid().isEmbedded() &&
+					renderer.isTranscodeToMP4H265AC3()
+				) {
+					if (
+						renderer.getFormatConfiguration().isFileCompatible(
+							"mp4",
+							defaultVideoTrack.getCodec(),
+							params.getAid().getCodec(),
+							params.getAid().getNumberOfChannels(),
+							params.getAid().getSampleRate(),
+							defaultVideoTrack.getBitRate(),
+							defaultVideoTrack.getFrameRate(),
+							defaultVideoTrack.getWidth(),
+							defaultVideoTrack.getHeight(),
+							defaultVideoTrack.getBitDepth(),
+							defaultVideoTrack.getHDRFormatForRenderer(),
+							defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+							defaultVideoTrack.getExtras(),
+							params.getSid().getType(),
+							true,
+							renderer
+						)
+					) {
+						softSubsConfig.add("-c:s");
+						softSubsConfig.add("mov_text");
+						softSubsConfig.add("-map");
+						softSubsConfig.add("0:s:" + params.getSid().getId());
+						isSubsManualTiming = false;
+					} else {
+						originalSubsFilename = resource.getFileName();
+					}
 				} else {
 					originalSubsFilename = resource.getFileName();
 				}
@@ -313,6 +346,8 @@ public class FFMpegVideo extends Engine {
 		if (!filterChain.isEmpty()) {
 			videoFilterOptions.add("-filter_complex");
 			videoFilterOptions.add(StringUtils.join(filterChain, ","));
+		} else if (!softSubsConfig.isEmpty()) {
+			videoFilterOptions.addAll(softSubsConfig);
 		}
 
 		return videoFilterOptions;
@@ -957,7 +992,7 @@ public class FFMpegVideo extends Engine {
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
 			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
-				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().isFileCompatible(
 					"mpegts",
 					defaultVideoTrack.getCodec(),
 					null,
@@ -974,7 +1009,7 @@ public class FFMpegVideo extends Engine {
 					null,
 					false,
 					renderer
-				) != null;
+				);
 				if (videoWouldBeCompatibleInTsContainer) {
 					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
 				}
@@ -1060,27 +1095,27 @@ public class FFMpegVideo extends Engine {
 		List<String> videoFilterOptions = getVideoFilterOptions(resource, media, params, isConvertedTo3d);
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(videoFilterOptions);
-			canMuxVideoWithFFmpeg = false;
-			LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
+			if (canMuxVideoWithFFmpeg) {
+				canMuxVideoWithFFmpeg = false;
+				LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
+			}
 		}
 
 		// Map the proper audio stream when there are multiple audio streams.
-		// For video the FFMpeg automatically chooses the stream with the highest resolution.
-		if (media.getAudioTracks().size() > 1) {
-			/**
-			 * Use the first video stream that is not an attached picture, video
-			 * thumbnail or cover art.
-			 *
-			 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
-			 * @todo find a way to automatically select proper stream when media
-			 *       includes multiple video streams
-			 */
-			cmdList.add("-map");
-			cmdList.add("0:V");
+		// For video the FFmpeg automatically chooses the stream with the highest resolution.
+		/**
+		 * Use the first video stream that is not an attached picture, video
+		 * thumbnail or cover art.
+		 *
+		 * @see https://web.archive.org/web/20160609011350/https://ffmpeg.org/ffmpeg.html#Stream-specifiers-1
+		 * @todo find a way to automatically select proper stream when media
+		 *       includes multiple video streams
+		 */
+		cmdList.add("-map");
+		cmdList.add("0:V");
 
-			cmdList.add("-map");
-			cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
-		}
+		cmdList.add("-map");
+		cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
 
 		// Now configure the output streams
 

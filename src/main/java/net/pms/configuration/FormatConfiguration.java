@@ -536,6 +536,11 @@ public class FormatConfiguration {
 						}
 					}
 				} else {
+					if (format != null && format == "mp4" && subsFormat == SubtitleType.SUBRIP) {
+						// TX3G is the equivalent of SRT inside MP4
+						format = SubtitleType.TX3G;
+					}
+
 					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						if (renderer == null || !renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
@@ -774,6 +779,44 @@ public class FormatConfiguration {
 			params.getSid().isExternal(),
 			null
 		);
+	}
+
+	public boolean isFileCompatible(
+		String container,
+		String videoCodec,
+		String audioCodec,
+		int nbAudioChannels,
+		int frequency,
+		int bitrate,
+		int framerate,
+		int videoWidth,
+		int videoHeight,
+		int videoBitDepth,
+		String videoHdrFormatInRendererFormat,
+		String videoHdrFormatCompatibilityInRendererFormat,
+		Map<String, String> extras,
+		String subsFormat,
+		boolean isInternal,
+		RendererConfiguration renderer
+	) {
+		return getMatchedMIMEtype(
+			container,
+			videoCodec,
+			audioCodec,
+			nbAudioChannels,
+			frequency,
+			bitrate,
+			framerate,
+			videoWidth,
+			videoHeight,
+			videoBitDepth,
+			videoHdrFormatInRendererFormat,
+			videoHdrFormatCompatibilityInRendererFormat,
+			extras,
+			subsFormat,
+			isInternal,
+			renderer
+		) != null;
 	}
 
 	public String getMatchedMIMEtype(
