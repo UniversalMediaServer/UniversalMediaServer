@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
+- Bump `typescript` from 5.4.3 to 5.4.4 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570))
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
 
