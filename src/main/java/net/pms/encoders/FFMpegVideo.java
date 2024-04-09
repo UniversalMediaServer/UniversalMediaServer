@@ -226,6 +226,20 @@ public class FFMpegVideo extends Engine {
 					params.getSid().isEmbedded() &&
 					renderer.isTranscodeToMP4H265AC3()
 				) {
+					int frameRate = 0;
+					if (media.getFrameRate() != null) {
+						try {
+							frameRate = (int) Math.round(media.getFrameRate());
+						} catch (NumberFormatException e) {
+							LOGGER.debug(
+								"Could not parse framerate \"{}\" for media {}: {}",
+								media.getFrameRate(),
+								media,
+								e.getMessage()
+							);
+							LOGGER.trace("", e);
+						}
+					}
 					if (
 						renderer.getFormatConfiguration().isFileCompatible(
 							"mp4",
@@ -234,7 +248,7 @@ public class FFMpegVideo extends Engine {
 							params.getAid().getNumberOfChannels(),
 							params.getAid().getSampleRate(),
 							defaultVideoTrack.getBitRate(),
-							defaultVideoTrack.getFrameRate(),
+							frameRate,
 							defaultVideoTrack.getWidth(),
 							defaultVideoTrack.getHeight(),
 							defaultVideoTrack.getBitDepth(),

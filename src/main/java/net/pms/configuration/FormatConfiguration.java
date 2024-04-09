@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.encoders.EngineFactory;
 import net.pms.encoders.TsMuxeRVideo;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
