@@ -487,13 +487,13 @@ public class FormatConfiguration {
 					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
 
 					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-					if (!StringUtils.equalsIgnoreCase(format, "mpegts") && isTsMuxeRVideoEngineActive) {
+					if (!StringUtils.equalsIgnoreCase(format, MPEGTS) && isTsMuxeRVideoEngineActive) {
 						/**
 						 * Calls this function again, with a TS container and without
 						 * HDR compatibility info, so we get either a STRICT match or none
 						 */
 						boolean wouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
-							"mpegts",
+							MPEGTS,
 							videoCodec,
 							audioCodec,
 							nbAudioChannels,
