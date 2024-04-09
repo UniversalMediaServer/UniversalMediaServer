@@ -227,14 +227,14 @@ public class FFMpegVideo extends Engine {
 					renderer.isTranscodeToMP4H265AC3()
 				) {
 					int frameRate = 0;
-					if (media.getFrameRate() != null) {
+					if (mediaInfo.getFrameRate() != null) {
 						try {
-							frameRate = (int) Math.round(media.getFrameRate());
+							frameRate = (int) Math.round(mediaInfo.getFrameRate());
 						} catch (NumberFormatException e) {
 							LOGGER.debug(
 								"Could not parse framerate \"{}\" for media {}: {}",
-								media.getFrameRate(),
-								media,
+								mediaInfo.getFrameRate(),
+								mediaInfo,
 								e.getMessage()
 							);
 							LOGGER.trace("", e);
@@ -255,9 +255,9 @@ public class FFMpegVideo extends Engine {
 							defaultVideoTrack.getHDRFormatForRenderer(),
 							defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
 							defaultVideoTrack.getExtras(),
-							params.getSid().getType(),
+							params.getSid().getType().toString(),
 							true,
-							renderer
+							renderer.getRef()
 						)
 					) {
 						softSubsConfig.add("-c:s");

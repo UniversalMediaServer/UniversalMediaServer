@@ -373,7 +373,7 @@ public class FormatConfiguration {
 		 * @param videoHeight
 		 * @param videoBitDepth
 		 * @param videoHdrFormatInRendererFormat a sanitized HDR format based on compatibility
-		 * @param videoHdrFormat the raw HDR format, not compatibility/fallback info
+		 * @param videoHdrFormatCompatibilityInRendererFormat the raw HDR format, not compatibility/fallback info
 		 * @param extras map containing 0 or more key/value pairs for:
 		 *               - qpel
 		 *               - gmc
@@ -537,9 +537,9 @@ public class FormatConfiguration {
 						}
 					}
 				} else {
-					if (format != null && format == "mp4" && subsFormat == SubtitleType.SUBRIP) {
+					if (format != null && format == MP4 && subsFormat == SubtitleType.SUBRIP.toString()) {
 						// TX3G is the equivalent of SRT inside MP4
-						format = SubtitleType.TX3G;
+						subsFormat = SubtitleType.TX3G.toString();
 					}
 
 					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
