@@ -52,8 +52,15 @@ public class HttpUtil {
 
 	public static InputStream getHttpResourceInputStream(String url) throws IOException, InterruptedException {
 		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-		java.net.http.HttpResponse<InputStream> extStream = HttpClient.newBuilder().
+		HttpResponse<InputStream> extStream = HttpClient.newBuilder().
 			followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
 		return extStream.body();
+	}
+
+	public static HttpResponse<InputStream> getHttpResponseInputStream(String url) throws IOException, InterruptedException {
+		HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+		HttpResponse<InputStream> extStream = HttpClient.newBuilder().
+			followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
+		return extStream;
 	}
 }

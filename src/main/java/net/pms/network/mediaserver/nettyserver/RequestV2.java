@@ -26,9 +26,6 @@ import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -106,6 +103,7 @@ import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.item.WebStream;
 import net.pms.util.FullyPlayed;
+import net.pms.util.HttpUtil;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -704,10 +702,8 @@ public class RequestV2 extends HTTPResource {
 						}
 					} else if (item instanceof WebStream ws) {
 						// we have a webstream ... pass through
-						HttpRequest request = HttpRequest.newBuilder().uri(URI.create(ws.getUrl())).GET().build();
 						try {
-							java.net.http.HttpResponse<InputStream> extStream = HttpClient.newBuilder().
-								followRedirects(HttpClient.Redirect.ALWAYS).build().send(request, BodyHandlers.ofInputStream());
+							java.net.http.HttpResponse<InputStream> extStream = HttpUtil.getHttpResponseInputStream(ws.getUrl());
 							output.headers().set("content-type", extStream.headers().firstValue("content-type"));
 							// Send the response to the client.
 							event.getChannel().write(new ChunkedStream(extStream.body(), BUFFER_SIZE));
