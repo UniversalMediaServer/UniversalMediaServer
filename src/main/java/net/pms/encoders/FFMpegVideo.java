@@ -28,6 +28,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import net.pms.Messages;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.encoders.AviSynthFFmpeg.AviSynthScriptGenerationResult;
 import net.pms.formats.Format;
@@ -242,7 +243,7 @@ public class FFMpegVideo extends Engine {
 					}
 					if (
 						renderer.getFormatConfiguration().isFileCompatible(
-							"mp4",
+							FormatConfiguration.MP4,
 							defaultVideoTrack.getCodec(),
 							params.getAid().getCodec(),
 							params.getAid().getNumberOfChannels(),
@@ -537,9 +538,9 @@ public class FFMpegVideo extends Engine {
 				if (dtsRemux) {
 					transcodeOptions.add("mpeg2video");
 				} else if (renderer.isTranscodeToMPEGTS()) {
-					transcodeOptions.add("mpegts");
+					transcodeOptions.add(FormatConfiguration.MPEGTS);
 				} else if (renderer.isTranscodeToMP4H265AC3()) {
-					transcodeOptions.add("mp4");
+					transcodeOptions.add(FormatConfiguration.MP4);
 
 					transcodeOptions.add("-movflags");
 					transcodeOptions.add("frag_keyframe+faststart");
@@ -1007,7 +1008,7 @@ public class FFMpegVideo extends Engine {
 			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
 				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().isFileCompatible(
-					"mpegts",
+					FormatConfiguration.MPEGTS,
 					defaultVideoTrack.getCodec(),
 					null,
 					0,
@@ -1620,7 +1621,7 @@ public class FFMpegVideo extends Engine {
 		if (needSubtitle && !needAudio && !needVideo) {
 			cmdList.add("webvtt");
 		} else {
-			cmdList.add("mpegts");
+			cmdList.add(FormatConfiguration.MPEGTS);
 			cmdList.add("-skip_estimate_duration_from_pts");
 			cmdList.add("1");
 			cmdList.add("-use_wallclock_as_timestamps");

@@ -579,7 +579,7 @@ public class MediaInfo implements Cloneable {
 	}
 
 	public boolean isMpegTS() {
-		return container != null && container.equals("mpegts");
+		return container != null && container.equals(FormatConfiguration.MPEGTS);
 	}
 
 	/**
