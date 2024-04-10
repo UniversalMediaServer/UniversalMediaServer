@@ -535,14 +535,19 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return whether to use the MPEG-TS container for transcoded video
+	 * @return the container for transcoded video
 	 */
 	public String getTranscodingContainer() {
-		String transcodingContainer = FormatConfiguration.MPEGPS;
 		if (isTranscodeToMPEGTS()) {
-			transcodingContainer = FormatConfiguration.MPEGTS;
+			return FormatConfiguration.MPEGTS;
 		}
-		return transcodingContainer;
+		if (isTranscodeToMP4H265AC3()) {
+			return FormatConfiguration.MP4;
+		}
+		if (isTranscodeToWMV()) {
+			return FormatConfiguration.WMV;
+		}
+		return FormatConfiguration.MPEGPS;
 	}
 
 	/**
