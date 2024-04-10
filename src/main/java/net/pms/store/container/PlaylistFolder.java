@@ -264,11 +264,32 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry.title == null) {
 				entry.title = new File(entry.fileName).getName();
 			}
-			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
+			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U2 " : "")) + "entry: " + entry);
 
+			int type = 0;
+			// TODO header information should be stored/cached in a table for faster access
+			HttpHeaders headHeaders = HttpUtil.getHeaders(entry.fileName);
+			HttpHeaders inputStreamHeaders = null;
+			String albumArtUrl = null;
 			String ext = "." + FileUtil.getUrlExtension(entry.fileName);
-			Format f = FormatFactory.getAssociatedFormat(ext);
-			int type = f == null ? defaultContent : f.getType();
+
+			if (FileUtil.getUrlExtension(entry.fileName) == null) {
+				// We have no file extension. Acquire type from "content-type"
+				type = getTypeFrom(headHeaders, type);
+				albumArtUrl = getAlbumArtUrlFrom(headHeaders);
+				if (type == 0) {
+					LOGGER.trace("HEAD request : NO content type set for resource {}. Trying GET request ...", entry.fileName);
+					inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(entry.fileName);
+					type = getTypeFrom(inputStreamHeaders, type);
+					albumArtUrl = updateAlbumArtIfNotExists(inputStreamHeaders, albumArtUrl);
+					if (type == 0) {
+						LOGGER.warn("couldn't determine stream content type for.", entry.fileName);
+					}
+				}
+			} else {
+				Format f = FormatFactory.getAssociatedFormat(ext);
+				type = f == null ? defaultContent : f.getType();
+			}
 
 			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
 				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
@@ -277,9 +298,7 @@ public final class PlaylistFolder extends StoreContainer {
 					valid = true;
 				}
 			} else {
-				String albumArtUrl = null;
 				String u = FileUtil.urlJoin(uri, entry.fileName);
-				HttpHeaders headers = null;
 				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
 					// If the filename continues past the "extension" (i.e. has
 					// a query string) it's
@@ -289,19 +308,14 @@ public final class PlaylistFolder extends StoreContainer {
 					type = defaultContent;
 				} else {
 					// check resource type
-					try {
-						// TODO information should be stored/cached in a table for faster access
-						headers = HttpUtil.getHeaders(entry.fileName);
-						if (StringUtils.isAllBlank(entry.title)) {
-							entry.title = extractTitleFrom(headers);
+					if (StringUtils.isAllBlank(albumArtUrl)) {
+						albumArtUrl = updateAlbumArtIfNotExists(headHeaders, albumArtUrl);
+						if (StringUtils.isAllBlank(albumArtUrl)) {
+							if (inputStreamHeaders == null) {
+								inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(entry.fileName);
+							}
+							albumArtUrl = updateAlbumArtIfNotExists(inputStreamHeaders, albumArtUrl);
 						}
-						albumArtUrl = getAlbumArtUrlFrom(headers);
-						if (FileUtil.getUrlExtension(entry.fileName) == null) {
-							type = getTypeFrom(headers, type);
-						}
-						LOGGER.trace("content type is : " + type);
-					} catch (IOException | InterruptedException e) {
-						LOGGER.error("cannot retrieve external url", e);
 					}
 				}
 				StoreResource d = type == Format.VIDEO ? new WebVideoStream(renderer, entry.title, u, albumArtUrl) :
@@ -309,7 +323,11 @@ public final class PlaylistFolder extends StoreContainer {
 						type == Format.IMAGE ? new FeedItem(renderer, entry.title, u, albumArtUrl, null, Format.IMAGE) :
 							type == Format.PLAYLIST ? getPlaylist(renderer, entry.title, u, 0) : null;
 				if (d instanceof WebAudioStream was) {
-					addAudioFormat(was, headers);
+					if (inputStreamHeaders != null) {
+						addAudioFormat(was, inputStreamHeaders);
+					} else {
+						addAudioFormat(was, headHeaders);
+					}
 				}
 				if (d != null) {
 					addChild(d);
@@ -327,6 +345,13 @@ public final class PlaylistFolder extends StoreContainer {
 		for (StoreResource r : getChildren()) {
 			r.syncResolve();
 		}
+	}
+
+	private String updateAlbumArtIfNotExists(HttpHeaders headers, String albumArtUrl) {
+		if (StringUtils.isAllBlank(albumArtUrl)) {
+			return getAlbumArtUrlFrom(headers);
+		}
+		return null;
 	}
 
 	/*
