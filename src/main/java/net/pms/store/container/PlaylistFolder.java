@@ -296,7 +296,9 @@ public final class PlaylistFolder extends StoreContainer {
 							entry.title = extractTitleFrom(headers);
 						}
 						albumArtUrl = getAlbumArtUrlFrom(headers);
-						type = getTypeFrom(headers, type);
+						if (FileUtil.getUrlExtension(entry.fileName) == null) {
+							type = getTypeFrom(headers, type);
+						}
 						LOGGER.trace("content type is : " + type);
 					} catch (IOException | InterruptedException e) {
 						LOGGER.error("cannot retrieve external url", e);

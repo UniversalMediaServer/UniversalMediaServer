@@ -43,6 +43,7 @@ public abstract class Format implements Cloneable {
 	private String matchedExtension;
 
 	public enum Identifier {
+		AACP,
 		AC3,
 		ADPCM,
 		ADTS,
