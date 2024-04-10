@@ -264,7 +264,7 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry.title == null) {
 				entry.title = new File(entry.fileName).getName();
 			}
-			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U2 " : "")) + "entry: " + entry);
+			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
 
 			int type = 0;
 			// TODO header information should be stored/cached in a table for faster access
