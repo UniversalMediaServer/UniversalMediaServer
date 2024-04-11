@@ -241,26 +241,25 @@ public class FFMpegVideo extends Engine {
 							LOGGER.trace("", e);
 						}
 					}
-					if (
-						renderer.getFormatConfiguration().isFileCompatible(
-							FormatConfiguration.MP4,
-							defaultVideoTrack.getCodec(),
-							params.getAid().getCodec(),
-							params.getAid().getNumberOfChannels(),
-							params.getAid().getSampleRate(),
-							defaultVideoTrack.getBitRate(),
-							frameRate,
-							defaultVideoTrack.getWidth(),
-							defaultVideoTrack.getHeight(),
-							defaultVideoTrack.getBitDepth(),
-							defaultVideoTrack.getHDRFormatForRenderer(),
-							defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
-							defaultVideoTrack.getExtras(),
-							params.getSid().getType().toString(),
-							true,
-							renderer.getRef()
-						)
-					) {
+					boolean rendererSupportsSoftsubs = renderer.getFormatConfiguration().isFileCompatible(
+						FormatConfiguration.MP4,
+						defaultVideoTrack.getCodec(),
+						params.getAid().getCodec(),
+						params.getAid().getNumberOfChannels(),
+						params.getAid().getSampleRate(),
+						defaultVideoTrack.getBitRate(),
+						frameRate,
+						defaultVideoTrack.getWidth(),
+						defaultVideoTrack.getHeight(),
+						defaultVideoTrack.getBitDepth(),
+						defaultVideoTrack.getHDRFormatForRenderer(),
+						defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+						defaultVideoTrack.getExtras(),
+						params.getSid().getType().toString(),
+						true,
+						renderer.getRef()
+					);
+					if (rendererSupportsSoftsubs) {
 						softSubsConfig.add("-c:s");
 						softSubsConfig.add("mov_text");
 						softSubsConfig.add("-map");
@@ -544,6 +543,10 @@ public class FFMpegVideo extends Engine {
 
 					transcodeOptions.add("-movflags");
 					transcodeOptions.add("frag_keyframe+faststart");
+
+					// this makes FFmpeg output HDR and Dolby Vision metadata
+					transcodeOptions.add("-strict");
+					transcodeOptions.add("unofficial");
 				} else {
 					transcodeOptions.add("vob");
 				}
@@ -951,11 +954,26 @@ public class FFMpegVideo extends Engine {
 			}
 		}
 
+		int frameRate = 0;
+		if (defaultVideoTrack.getFrameRate() != null) {
+			try {
+				frameRate = (int) Math.round(defaultVideoTrack.getFrameRate());
+			} catch (NumberFormatException e) {
+				LOGGER.debug(
+					"Could not parse framerate \"{}\" for media {}: {}",
+					defaultVideoTrack.getFrameRate(),
+					defaultVideoTrack,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+
 		/**
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
 		 * - The setting is enabled
-		 * - There are subtitles to transcode
+		 * - There are subtitles to hardcode because they can't be softcoded
 		 * - The file is not being played via the transcode folder
 		 * - The file is not Dolby Vision, because our MEncoder implementation can't handle that yet
 		 */
@@ -967,8 +985,31 @@ public class FFMpegVideo extends Engine {
 			configuration.isFFmpegDeferToMEncoderForProblematicSubtitles() &&
 			params.getSid().isEmbedded() &&
 			(
-				params.getSid().getType().isText() ||
-				params.getSid().getType() == SubtitleType.VOBSUB
+				(
+					params.getSid().getType().isText() ||
+					params.getSid().getType() == SubtitleType.VOBSUB
+				) &&
+				!(
+					renderer.isTranscodeToMP4H265AC3() &&
+					renderer.getFormatConfiguration().isFileCompatible(
+						FormatConfiguration.MP4,
+						defaultVideoTrack.getCodec(),
+						params.getAid().getCodec(),
+						params.getAid().getNumberOfChannels(),
+						params.getAid().getSampleRate(),
+						defaultVideoTrack.getBitRate(),
+						frameRate,
+						defaultVideoTrack.getWidth(),
+						defaultVideoTrack.getHeight(),
+						defaultVideoTrack.getBitDepth(),
+						defaultVideoTrack.getHDRFormatForRenderer(),
+						defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+						defaultVideoTrack.getExtras(),
+						params.getSid().getType().toString(),
+						true,
+						renderer.getRef()
+					)
+				)
 			) &&
 			!(defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))
 		) {
@@ -978,7 +1019,6 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
-		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
@@ -1005,30 +1045,6 @@ public class FFMpegVideo extends Engine {
 			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
-				canMuxVideoWithFFmpeg = false;
-				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().isFileCompatible(
-					FormatConfiguration.MPEGTS,
-					defaultVideoTrack.getCodec(),
-					null,
-					0,
-					0,
-					defaultVideoTrack.getBitRate(),
-					0,
-					defaultVideoTrack.getWidth(),
-					defaultVideoTrack.getHeight(),
-					defaultVideoTrack.getBitDepth(),
-					defaultVideoTrack.getHDRFormatForRenderer(),
-					defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
-					defaultVideoTrack.getExtras(),
-					null,
-					false,
-					renderer
-				);
-				if (videoWouldBeCompatibleInTsContainer) {
-					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
-				}
-				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
 
@@ -1098,11 +1114,6 @@ public class FFMpegVideo extends Engine {
 
 				return tsMuxeRVideoInstance.launchTranscode(resource, media, params);
 			}
-		}
-
-		// If we got here, we are not deferring to tsMuxeR and can mux the video
-		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
-			canMuxVideoWithFFmpeg = true;
 		}
 
 		// Apply any video filters and associated options. These should go
