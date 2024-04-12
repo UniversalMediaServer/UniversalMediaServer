@@ -18,25 +18,24 @@ package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
 
 public class AudioPlaylistVO {
 
-	private final Integer audiotrackId;
-	private final String playlistName;
+	private final String songObjectId;
+	private final String playlistObjectId;
 
-	public AudioPlaylistVO(Integer audiotrackId, String playlistName) {
-		this.audiotrackId = audiotrackId;
-		this.playlistName = playlistName;
+	public AudioPlaylistVO(String songObjectId, String playlistObjectId) {
+		this.songObjectId = songObjectId;
+		this.playlistObjectId = playlistObjectId;
 	}
 
-	public Integer getAudiotrackId() {
-		return audiotrackId;
+	public String getSongObjectId() {
+		return songObjectId;
 	}
 
-	public String getPlaylistName() {
-		return playlistName;
+	public String getPlaylistObjectId() {
+		return playlistObjectId;
 	}
 
 	@Override
 	public String toString() {
-		return "AudioPlaylistVO [audiotrackId=" + audiotrackId + ", playlistName=" + playlistName + "]";
+		return "AudioPlaylistVO [songObjectId=" + songObjectId + ", playlistObjectId=" + playlistObjectId + "]";
 	}
-
 }
