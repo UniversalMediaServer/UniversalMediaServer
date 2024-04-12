@@ -1042,6 +1042,9 @@ public class MediaInfo implements Cloneable {
 							container = line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim();
 							LOGGER.trace("Setting container to " + container + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
+						if ("matroska".equals(container)) {
+							container = FormatConfiguration.MKV;
+						}
 					} else {
 						matches = false;
 					}

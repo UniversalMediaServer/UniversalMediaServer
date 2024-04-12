@@ -155,7 +155,7 @@ public class MEncoderVideo {
 				MediaAudio audio = new MediaAudio();
 				audio.setCodecA("ac3");
 				fakemedia.setCodecV("mpeg4");
-				fakemedia.setContainer("matroska");
+				fakemedia.setContainer("mkv");
 				fakemedia.setDuration(45d * 60);
 				audio.getAudioProperties().setNumberOfChannels(2);
 				fakemedia.setWidth(1280);
