@@ -27,6 +27,25 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
+import net.pms.dlna.DidlHelper;
+import net.pms.network.mediaserver.handlers.SearchRequestHandler;
+import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
+import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.PlaylistManager;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
@@ -50,25 +69,6 @@ import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
-import net.pms.dlna.DidlHelper;
-import net.pms.network.mediaserver.handlers.SearchRequestHandler;
-import net.pms.network.mediaserver.handlers.nextcpapi.playlist.PlaylistManager;
-import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
-import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
-import net.pms.renderers.Renderer;
-import net.pms.store.DbIdMediaType;
-import net.pms.store.MediaStatusStore;
-import net.pms.store.MediaStoreIds;
-import net.pms.store.StoreContainer;
-import net.pms.store.StoreItem;
-import net.pms.store.StoreResource;
-import net.pms.store.container.MediaLibrary;
-import net.pms.store.container.PlaylistFolder;
-import net.pms.util.StringUtil;
-import net.pms.util.UMSUtils;
 
 @UpnpService(
 		serviceId =
@@ -162,8 +162,6 @@ public class UmsContentDirectoryService {
 
 	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
-
-	private final PlaylistManager playlistManager = new PlaylistManager();
 
 	@UpnpStateVariable(sendEvents = false)
 	private final CSV<String> searchCapabilities = new CSVString();
@@ -359,24 +357,57 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			Renderer renderer = getRenderer(remoteClientInfo);
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
 			if (renderer == null) {
-				LOGGER.trace("Unrecognized media renderer");
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				return null;
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
 				return null;
 			}
 
-			Parser parser = new Parser();
-			Result modelItemToAdd = parser.parse(elements);
-			Item itemToCreate = modelItemToAdd.getItems().get(0);
-			if (itemToCreate != null) {
-				if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
-					return playlistManager.createPlaylist(containerId, itemToCreate, renderer);
+			StoreResource parentContainer = renderer.getMediaStore().getResource(containerId);
+			if (parentContainer instanceof StoreContainer storeContainer) {
+				Parser parser = new Parser();
+				Result modelItemToAdd = parser.parse(elements);
+				Item itemToCreate = modelItemToAdd.getItems().get(0);
+				if (itemToCreate != null) {
+					StoreResource resource = null;
+					if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+						resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
+					} else {
+						LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
+					}
+					if (resource != null) {
+						String result;
+						if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+							result = getJUPnPDidlResults(List.of(resource));
+						} else {
+							result = DidlHelper.getDidlResults(List.of(resource));
+						}
+						if (renderer.getUmsConfiguration().isUpnpDebug()) {
+							logDidlLiteResult(result);
+						}
+						return new CreateObjectResult(result, resource.getId());
+					}
 				}
-				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "unknown upnp:class : " + itemToCreate.getUpnpClassName());
+				throw new ContentDirectoryException(712, "The specified Elements argument is not supported or is invalid.");
+			} else {
+				throw new ContentDirectoryException(710, "The specified ContainerID is invalid or identifies an object that is not a container.");
 			}
-			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "no item to create.");
 		} catch (Exception e) {
-			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("createObject failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
 		}
 	}
 
@@ -388,62 +419,95 @@ public class UmsContentDirectoryService {
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			Renderer renderer = getRenderer(remoteClientInfo);
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
 			if (renderer == null) {
-				LOGGER.trace("Unrecognized media renderer");
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				return null;
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
 				return null;
 			}
 
-			StoreResource sr = renderer.getMediaStore().getResource(containerId);
-			if (sr instanceof PlaylistFolder) {
-				return playlistManager.addSongToPlaylist(objectId, containerId, renderer);
+			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
+			StoreResource containerResource = renderer.getMediaStore().getResource(containerId);
+			if (objectResource == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			}
+			if (containerResource instanceof StoreContainer storeContainer) {
+				if (storeContainer instanceof PlaylistFolder playlistFolder) {
+					String newID = PlaylistManager.addSongToPlaylist(objectResource, playlistFolder);
+					if (newID != null) {
+						return newID;
+					}
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "song already in Playlist");
+				} else {
+					//this object create reference is not yet implemented
+					throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
+				}
 			} else {
-				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "createReference supports only playlist container id's yet.");
+				throw new ContentDirectoryException(710, "the ContainerID argument is invalid or identifies an object that is not a container.");
 			}
 		} catch (Exception e) {
-			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("createReference failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
 		}
 	}
 
-	private Renderer getRenderer(RemoteClientInfo remoteClientInfo) {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		return renderer;
-	}
-
 	@UpnpAction(name = "DestroyObject")
-	public String destroyObject(
+	public void destroyObject(
 		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
 		RemoteClientInfo remoteClientInfo
 		) throws ContentDirectoryException {
 		try {
-			Renderer renderer = getRenderer(remoteClientInfo);
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
 			if (renderer == null) {
-				LOGGER.trace("Unrecognized media renderer");
-				return null;
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				throw new ContentDirectoryException(714, "No such resource");
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				throw new ContentDirectoryException(715, "Source resource access denied");
 			}
 
-			StoreResource sr = renderer.getMediaStore().getResource(objectId);
-			if (sr.getParent() instanceof PlaylistFolder pf) {
-				LOGGER.info("removing song {} from playlist {} ...", sr.getDisplayName(), sr.getParent().getDisplayName());
-				playlistManager.removeSongFromPlaylist(objectId, renderer);
-				return "DestroyObject()";
-			} else if (sr instanceof PlaylistFolder pf) {
-				try {
-					LOGGER.info("removing playlist {} ...", sr.getDisplayName());
-					pf.getPlaylistfile().delete();
-					sr.getParent().removeChild(sr);
-					return "DestroyObject()";
-				} catch (Exception e) {
-					LOGGER.error("destroyObject failed", e);
-					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file : " + e.getMessage());
+			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
+			if (objectResource == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			} else if (objectResource.getParent() instanceof PlaylistFolder playlistFolder) {
+				LOGGER.info("removing song {} from playlist {} ...", objectResource.getDisplayName(), playlistFolder.getDisplayName());
+				if (!PlaylistManager.removeSongFromPlaylist(objectResource, playlistFolder)) {
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
+			} else if (objectResource instanceof PlaylistFolder playlistFolder) {
+				LOGGER.info("removing playlist {} ...", playlistFolder.getDisplayName());
+				if (!PlaylistManager.deletePlaylistFromDisk(playlistFolder)) {
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file");
 				}
 			} else {
-				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "destroyObject supports only playlist and contained objects (yet).");
+				//this object destroy is not yet implemented
+				throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
 			}
 		} catch (Exception e) {
-			LOGGER.error("destroyObject failed", e);
-			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("destroyObject failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
 		}
 	}
 
