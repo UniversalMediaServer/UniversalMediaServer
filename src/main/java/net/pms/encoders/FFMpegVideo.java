@@ -225,49 +225,13 @@ public class FFMpegVideo extends Engine {
 					}
 				} else if (
 					params.getSid().isEmbedded() &&
-					renderer.isTranscodeToMP4H265AC3()
+					isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)
 				) {
-					int frameRate = 0;
-					if (mediaInfo.getFrameRate() != null) {
-						try {
-							frameRate = (int) Math.round(mediaInfo.getFrameRate());
-						} catch (NumberFormatException e) {
-							LOGGER.debug(
-								"Could not parse framerate \"{}\" for media {}: {}",
-								mediaInfo.getFrameRate(),
-								mediaInfo,
-								e.getMessage()
-							);
-							LOGGER.trace("", e);
-						}
-					}
-					boolean rendererSupportsSoftsubs = renderer.getFormatConfiguration().isFileCompatible(
-						FormatConfiguration.MP4,
-						defaultVideoTrack.getCodec(),
-						params.getAid().getCodec(),
-						params.getAid().getNumberOfChannels(),
-						params.getAid().getSampleRate(),
-						defaultVideoTrack.getBitRate(),
-						frameRate,
-						defaultVideoTrack.getWidth(),
-						defaultVideoTrack.getHeight(),
-						defaultVideoTrack.getBitDepth(),
-						defaultVideoTrack.getHDRFormatForRenderer(),
-						defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
-						defaultVideoTrack.getExtras(),
-						params.getSid().getType().toString(),
-						true,
-						renderer.getRef()
-					);
-					if (rendererSupportsSoftsubs) {
-						softSubsConfig.add("-c:s");
-						softSubsConfig.add("mov_text");
-						softSubsConfig.add("-map");
-						softSubsConfig.add("0:s:" + params.getSid().getId());
-						isSubsManualTiming = false;
-					} else {
-						originalSubsFilename = resource.getFileName();
-					}
+					softSubsConfig.add("-c:s");
+					softSubsConfig.add("mov_text");
+					softSubsConfig.add("-map");
+					softSubsConfig.add("0:s:" + params.getSid().getId());
+					isSubsManualTiming = false;
 				} else {
 					originalSubsFilename = resource.getFileName();
 				}
@@ -862,13 +826,48 @@ public class FFMpegVideo extends Engine {
 		return true;
 	}
 
+	private boolean isRendererSupportsSoftSubsForThisVideo(Renderer renderer, MediaVideo defaultVideoTrack, OutputParams params) {
+		int frameRate = 0;
+		if (defaultVideoTrack.getFrameRate() != null) {
+			try {
+				frameRate = (int) Math.round(defaultVideoTrack.getFrameRate());
+			} catch (NumberFormatException e) {
+				LOGGER.debug(
+					"Could not parse framerate \"{}\" for media {}: {}",
+					defaultVideoTrack.getFrameRate(),
+					defaultVideoTrack,
+					e.getMessage()
+				);
+				LOGGER.trace("", e);
+			}
+		}
+		return renderer.isTranscodeToMP4H265AC3() &&
+			renderer.getFormatConfiguration().isFileCompatible(
+				FormatConfiguration.MP4,
+				defaultVideoTrack.getCodec(),
+				params.getAid().getCodec(),
+				params.getAid().getNumberOfChannels(),
+				params.getAid().getSampleRate(),
+				defaultVideoTrack.getBitRate(),
+				frameRate,
+				defaultVideoTrack.getWidth(),
+				defaultVideoTrack.getHeight(),
+				defaultVideoTrack.getBitDepth(),
+				defaultVideoTrack.getHDRFormatForRenderer(),
+				defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+				defaultVideoTrack.getExtras(),
+				params.getSid().getType().toString(),
+				true,
+				renderer.getRef()
+			);
+	}
+
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
 		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
-
 		if (params.isHlsConfigured()) {
 			LOGGER.trace("Switching from FFmpeg to Hls FFmpeg to transcode.");
 			return launchHlsTranscode(resource, media, params);
@@ -954,21 +953,6 @@ public class FFMpegVideo extends Engine {
 			}
 		}
 
-		int frameRate = 0;
-		if (defaultVideoTrack.getFrameRate() != null) {
-			try {
-				frameRate = (int) Math.round(defaultVideoTrack.getFrameRate());
-			} catch (NumberFormatException e) {
-				LOGGER.debug(
-					"Could not parse framerate \"{}\" for media {}: {}",
-					defaultVideoTrack.getFrameRate(),
-					defaultVideoTrack,
-					e.getMessage()
-				);
-				LOGGER.trace("", e);
-			}
-		}
-
 		/**
 		 * Defer to MEncoder for subtitles if:
 		 * - MEncoder is enabled and available
@@ -989,27 +973,7 @@ public class FFMpegVideo extends Engine {
 					params.getSid().getType().isText() ||
 					params.getSid().getType() == SubtitleType.VOBSUB
 				) &&
-				!(
-					renderer.isTranscodeToMP4H265AC3() &&
-					renderer.getFormatConfiguration().isFileCompatible(
-						FormatConfiguration.MP4,
-						defaultVideoTrack.getCodec(),
-						params.getAid().getCodec(),
-						params.getAid().getNumberOfChannels(),
-						params.getAid().getSampleRate(),
-						defaultVideoTrack.getBitRate(),
-						frameRate,
-						defaultVideoTrack.getWidth(),
-						defaultVideoTrack.getHeight(),
-						defaultVideoTrack.getBitDepth(),
-						defaultVideoTrack.getHDRFormatForRenderer(),
-						defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
-						defaultVideoTrack.getExtras(),
-						params.getSid().getType().toString(),
-						true,
-						renderer.getRef()
-					)
-				)
+				!isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)
 			) &&
 			!(defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))
 		) {
@@ -1027,7 +991,7 @@ public class FFMpegVideo extends Engine {
 			} else if (resource.isInsideTranscodeFolder()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (params.getSid() != null) {
+			} else if (params.getSid() != null && !isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we need to burn subtitles.");
 			} else if (isAviSynthEngine()) {
