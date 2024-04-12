@@ -284,6 +284,9 @@ public class FFmpegParser {
 							media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
 							LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
+						if ("matroska".equals(media.getContainer())) {
+							media.setContainer(FormatConfiguration.MKV);
+						}
 					} else {
 						matches = false;
 					}

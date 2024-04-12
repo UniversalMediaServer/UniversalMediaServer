@@ -147,7 +147,7 @@ public class MEncoderVideo {
 				MediaInfo fakemedia = new MediaInfo();
 				MediaVideo video = new MediaVideo();
 				MediaAudio audio = new MediaAudio();
-				fakemedia.setContainer("matroska");
+				fakemedia.setContainer("mkv");
 				fakemedia.setDuration(45d * 60);
 				fakemedia.setFrameRate(23.976);
 				video.setCodec("mpeg4");

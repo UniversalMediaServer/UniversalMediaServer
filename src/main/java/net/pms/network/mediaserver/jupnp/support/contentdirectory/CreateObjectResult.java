@@ -14,26 +14,24 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.nextcpapi.playlist;
+package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 
-/**
- * Represents a server playlist entry.
- */
-public class PlaylistIdentVO {
+public class CreateObjectResult {
 
-	private final String playlistName;
-	private final Integer playlistId;
+	protected String result;
+	protected String objectID;
 
-	public PlaylistIdentVO(String playlistName, Integer playlistId) {
-		this.playlistName = playlistName;
-		this.playlistId = playlistId;
+	public CreateObjectResult(String result, String objectID) {
+		this.result = result;
+		this.objectID = objectID;
 	}
 
-	public String getPlaylistName() {
-		return playlistName;
+	public String getResult() {
+		return result;
 	}
 
-	public Integer getPlaylistId() {
-		return playlistId;
+	public String getObjectID() {
+		return objectID;
 	}
+
 }

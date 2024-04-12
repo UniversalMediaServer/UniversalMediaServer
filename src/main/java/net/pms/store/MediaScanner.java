@@ -60,6 +60,7 @@ public class MediaScanner implements SharedContentListener {
 	private static final List<String> SHARED_FOLDERS = new ArrayList<>();
 	private static final Renderer RENDERER = MediaScannerDevice.getRenderer();
 	private static final MediaScanner INSTANCE = new MediaScanner();
+	private static final List<String> FILES_PARSING = Collections.synchronizedList(new ArrayList<>());
 
 	@GuardedBy("DEFAULT_FOLDERS_LOCK")
 	private static List<String> defaultFolders = null;
@@ -258,7 +259,7 @@ public class MediaScanner implements SharedContentListener {
 	 */
 	private static void internalScanFileOrFolder(String filename) {
 		if (isInSharedFolders(filename) || isInDefaultFolders(filename)) {
-			LOGGER.debug("scanning file or folder : " + filename);
+			LOGGER.debug("Scanning file or folder : " + filename);
 
 			File file = new File(filename);
 			if (!file.exists()) {
@@ -267,9 +268,9 @@ public class MediaScanner implements SharedContentListener {
 			}
 			if (file.isFile()) {
 				file = file.getParentFile();
-				LOGGER.debug("scanning folder {} for file {}", file.getAbsolutePath(), filename);
+				LOGGER.debug("Scanning folder \"{}\" for file \"{}\"", file.getAbsolutePath(), filename);
 			} else {
-				LOGGER.debug("scanning folder {}", file.getAbsolutePath());
+				LOGGER.debug("Scanning folder \"{}\"", file.getAbsolutePath());
 			}
 			List<StoreResource> systemFileResources = RENDERER.getMediaStore().findSystemFileResources(file);
 			if (systemFileResources.isEmpty()) {
@@ -292,10 +293,10 @@ public class MediaScanner implements SharedContentListener {
 					}
 				}
 			} else {
-				LOGGER.warn("given folder was not found in store : " + file.getAbsolutePath());
+				LOGGER.warn("Given folder was not found in store : " + file.getAbsolutePath());
 			}
 		} else {
-			LOGGER.warn("given file or folder doesn't share same base path as this server : " + filename);
+			LOGGER.warn("Given file or folder doesn't share same base path as this server : " + filename);
 		}
 	}
 
@@ -343,18 +344,55 @@ public class MediaScanner implements SharedContentListener {
 	}
 
 	/**
-	 * Advise RENDERER for added file.
+	 * Threaded parses a file so it gets parsed and added to the database along the way.
 	 *
-	 * @param filename the file added
+	 * @param file the file to parse
 	 */
-	private static void addFileEntry(String filename) {
-		LOGGER.trace("File {} was created on the hard drive", filename);
-		File file = new File(filename);
-		if (parseFileEntry(file)) {
-			for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
-				connectedRenderer.getMediaStore().fileAdded(file);
+	private static void parseFileEntry(File file, boolean advise) {
+		String filename = file.getAbsolutePath();
+		synchronized (FILES_PARSING) {
+			if (FILES_PARSING.contains(filename)) {
+				//parsing of this file is already in progress
+				return;
+			} else {
+				FILES_PARSING.add(filename);
 			}
 		}
+		Runnable r = () -> {
+			try {
+				if (advise) {
+					LOGGER.debug("File {} was created on the hard drive", filename);
+				}
+				long currentSize = file.length();
+				//wait 500 ms
+				Thread.sleep(500);
+				//Check if size changed (copying, downloading)
+				while (file.exists() && (currentSize != file.length() || FileUtil.isLocked(file))) {
+					//loop until file size is not changing anymore and file is unlocked.
+					LOGGER.trace("Waiting file {} is fully written", filename);
+					currentSize = file.length();
+					Thread.sleep(500);
+				}
+				//here the file should be fully written, deleted or moved.
+				synchronized (FILES_PARSING) {
+					FILES_PARSING.remove(filename);
+				}
+				if (file.exists()) {
+					LOGGER.debug("Analyzing file {}", filename);
+					if (parseFileEntry(file) && advise) {
+						//Advise renderers for added file.
+						for (Renderer connectedRenderer : ConnectedRenderers.getConnectedRenderers()) {
+							connectedRenderer.getMediaStore().fileAdded(file);
+						}
+					}
+				} else {
+					LOGGER.debug("File {} does not more exists", filename);
+				}
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+			}
+		};
+		new Thread(r, "MediaScanner File Parser").start();
 	}
 
 	/**
@@ -382,8 +420,6 @@ public class MediaScanner implements SharedContentListener {
 			LOGGER.debug("File will not be parsed because it is not in a shared folder");
 			return false;
 		}
-
-		scanFileOrFolder(file.getAbsolutePath());
 
 		StoreResource rf = RENDERER.getMediaStore().createResourceFromFile(file);
 		if (rf != null) {
@@ -482,11 +518,11 @@ public class MediaScanner implements SharedContentListener {
 				}
 			} else {
 				if (ENTRY_CREATE.equals(event)) {
-					addFileEntry(filename);
+					parseFileEntry(new File(filename), true);
 				} else if (ENTRY_DELETE.equals(event)) {
 					removeFileEntry(filename);
 				} else {
-					parseFileEntry(new File(filename));
+					parseFileEntry(new File(filename), false);
 				}
 			}
 		}
