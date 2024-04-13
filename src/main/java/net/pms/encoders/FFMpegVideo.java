@@ -229,8 +229,6 @@ public class FFMpegVideo extends Engine {
 				) {
 					softSubsConfig.add("-c:s");
 					softSubsConfig.add("mov_text");
-					softSubsConfig.add("-map");
-					softSubsConfig.add("0:s:" + params.getSid().getId());
 					isSubsManualTiming = false;
 				} else {
 					originalSubsFilename = resource.getFileName();
@@ -1083,9 +1081,10 @@ public class FFMpegVideo extends Engine {
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
 		List<String> videoFilterOptions = getVideoFilterOptions(resource, media, params, isConvertedTo3d);
+		boolean isSoftSubsBeingMuxed = videoFilterOptions.contains("-c:s");
 		if (!videoFilterOptions.isEmpty()) {
 			cmdList.addAll(videoFilterOptions);
-			if (canMuxVideoWithFFmpeg) {
+			if (!isSoftSubsBeingMuxed && canMuxVideoWithFFmpeg) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "video filters are being applied.");
 			}
@@ -1107,6 +1106,10 @@ public class FFMpegVideo extends Engine {
 		cmdList.add("-map");
 		cmdList.add("0:a:" + (media.getAudioTracks().indexOf(params.getAid())));
 
+		if (isSoftSubsBeingMuxed) {
+			cmdList.add("-map");
+			cmdList.add("0:s:" + params.getSid().getId());
+		}
 		// Now configure the output streams
 
 		// Encoder threads
