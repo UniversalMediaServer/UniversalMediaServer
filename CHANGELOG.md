@@ -4,6 +4,8 @@
 
 ### Dependencies
 - Bump `@types/lodash` from 4.14.202 to 4.17.0 ([#4569](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4569))
+- Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
+- Bump `@typescript-eslint/parser` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
 - Bump `typescript` from 5.4.3 to 5.4.4 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570))
