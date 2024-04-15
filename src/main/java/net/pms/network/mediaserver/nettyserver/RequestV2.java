@@ -704,11 +704,22 @@ public class RequestV2 extends HTTPResource {
 						// we have a webstream ... pass through
 						try {
 							java.net.http.HttpResponse<InputStream> extStream = HttpUtil.getHttpResponseInputStream(ws.getUrl());
-							output.headers().set("content-type", extStream.headers().firstValue("content-type"));
-							// Send the response to the client.
-							event.getChannel().write(new ChunkedStream(extStream.body(), BUFFER_SIZE));
+							inputStream = extStream.body();
+							if (extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).isPresent()) {
+								String contentType = extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).get();
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+							}
+							output.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, "chunked");
+							event.getChannel().write(output);
+							// Unlock before writing the stream!
+							PMS.REALTIME_LOCK.unlock();
+							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+							chunked.addListener(ChannelFutureListener.CLOSE);
+							return chunked;
 						} catch (IOException | InterruptedException e) {
 							LOGGER.error("cannot retrieve external url", e);
+						} finally {
+							PMS.REALTIME_LOCK.unlock();
 						}
 					}
 				}
