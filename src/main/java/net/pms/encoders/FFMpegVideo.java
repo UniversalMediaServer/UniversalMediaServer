@@ -825,6 +825,10 @@ public class FFMpegVideo extends Engine {
 	}
 
 	private boolean isRendererSupportsSoftSubsForThisVideo(Renderer renderer, MediaVideo defaultVideoTrack, OutputParams params) {
+		if (!params.getSid().getType().isText()) {
+			return false;
+		}
+
 		int frameRate = 0;
 		if (defaultVideoTrack.getFrameRate() != null) {
 			try {
