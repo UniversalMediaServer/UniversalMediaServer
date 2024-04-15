@@ -261,43 +261,73 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry == null) {
 				continue;
 			}
-			if (entry.title == null) {
-				entry.title = new File(entry.fileName).getName();
-			}
-			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
+			if (!FileUtil.isUrl(uri)) {
+				if (entry.title == null) {
+					entry.title = new File(entry.fileName).getName();
+				}
+				LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
 
-			int type = 0;
-			// TODO header information should be stored/cached in a table for faster access
-			HttpHeaders headHeaders = HttpUtil.getHeaders(entry.fileName);
-			HttpHeaders inputStreamHeaders = null;
-			String albumArtUrl = null;
-			String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+				String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+				Format f = FormatFactory.getAssociatedFormat(ext);
+				int type = f == null ? defaultContent : f.getType();
 
-			if (FileUtil.getUrlExtension(entry.fileName) == null) {
-				// We have no file extension. Acquire type from "content-type"
-				type = getTypeFrom(headHeaders, type);
-				albumArtUrl = getAlbumArtUrlFrom(headHeaders);
-				if (type == 0) {
-					LOGGER.trace("HEAD request : NO content type set for resource {}. Trying GET request ...", entry.fileName);
-					inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(entry.fileName);
-					type = getTypeFrom(inputStreamHeaders, type);
-					albumArtUrl = updateAlbumArtIfNotExists(inputStreamHeaders, albumArtUrl);
-					if (type == 0) {
-						LOGGER.warn("couldn't determine stream content type for.", entry.fileName);
+				if (!isweb && !FileUtil.isUrl(entry.fileName)) {
+					File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
+					if (en.exists()) {
+						addChild(type == Format.PLAYLIST ? new PlaylistFolder(renderer, en) : new RealFile(renderer, en, entry.title));
+						valid = true;
+					}
+				} else {
+					String u = FileUtil.urlJoin(uri, entry.fileName);
+					if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
+						// If the filename continues past the "extension" (i.e. has
+						// a query string) it's
+						// likely not a nested playlist but a media item, for
+						// instance Twitch TV media urls:
+						// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+						type = defaultContent;
+					}
+					StoreResource d = type == Format.VIDEO ? new WebVideoStream(renderer, entry.title, u, null) :
+						type == Format.AUDIO ? new WebAudioStream(renderer, entry.title, u, null) :
+							type == Format.IMAGE ? new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE) :
+								type == Format.PLAYLIST ? getPlaylist(renderer, entry.title, u, 0) : null;
+					if (d != null) {
+						addChild(d);
+						valid = true;
 					}
 				}
-			} else {
-				Format f = FormatFactory.getAssociatedFormat(ext);
-				type = f == null ? defaultContent : f.getType();
-			}
-
-			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
-				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
-				if (en.exists()) {
-					addChild(type == Format.PLAYLIST ? new PlaylistFolder(renderer, en) : new RealFile(renderer, en, entry.title));
-					valid = true;
+				storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
+				if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
+					Collections.shuffle(getChildren());
 				}
 			} else {
+				LOGGER.debug("entry is external link : {} ", uri);
+				int type = 0;
+				String albumArtUrl = null;
+				String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+
+				// TODO header information should be stored/cached in a table for faster access
+				HttpHeaders headHeaders = HttpUtil.getHeaders(entry.fileName);
+				HttpHeaders inputStreamHeaders = null;
+
+				if (FileUtil.getUrlExtension(entry.fileName) == null) {
+					// We have no file extension. Acquire type from "content-type"
+					type = getTypeFrom(headHeaders, type);
+					albumArtUrl = getAlbumArtUrlFrom(headHeaders);
+					if (type == 0) {
+						LOGGER.trace("HEAD request : NO content type set for resource {}. Trying GET request ...", entry.fileName);
+						inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(entry.fileName);
+						type = getTypeFrom(inputStreamHeaders, type);
+						albumArtUrl = updateAlbumArtIfNotExists(inputStreamHeaders, albumArtUrl);
+						if (type == 0) {
+							LOGGER.warn("couldn't determine stream content type for.", entry.fileName);
+						}
+					}
+				} else {
+					Format f = FormatFactory.getAssociatedFormat(ext);
+					type = f == null ? defaultContent : f.getType();
+				}
+
 				String u = FileUtil.urlJoin(uri, entry.fileName);
 				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
 					// If the filename continues past the "extension" (i.e. has
@@ -334,12 +364,6 @@ public final class PlaylistFolder extends StoreContainer {
 					valid = true;
 				}
 			}
-		}
-		if (!isweb) {
-			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
-		}
-		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
-			Collections.shuffle(getChildren());
 		}
 
 		for (StoreResource r : getChildren()) {
