@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@testing-library/react` from 14.2.1 to 15.0.2 ([#4583](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4583))
 - Bump `@types/lodash` from 4.14.202 to 4.17.0 ([#4569](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4569))
 - Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
 - Bump `@typescript-eslint/parser` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
