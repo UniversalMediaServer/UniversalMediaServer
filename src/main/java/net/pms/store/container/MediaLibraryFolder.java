@@ -636,7 +636,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					}
 				}
 			}
-			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT) {
+			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT && expectedOutput != EPISODES) {
 				StoreResourceSorter.sortResourcesByTitle(newVirtualFoldersResources);
 			}
 			for (StoreResource newResource : newVirtualFoldersResources) {
@@ -735,7 +735,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 				}
 			}
 		}
-		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED) {
+		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED && expectedOutput != EPISODES) {
 			StoreResourceSorter.sortResourcesByTitle(newFilesResources);
 		}
 		for (StoreResource newResource : newFilesResources) {
@@ -773,7 +773,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput != TEXTS_NOSORT_WITH_FILTERS &&
 			expectedOutput != TVSERIES_NOSORT &&
 			expectedOutput != FILES_NOSORT_DEDUPED &&
-			expectedOutput != SEASONS;
+			expectedOutput != SEASONS &&
+			expectedOutput != EPISODES;
 	}
 
 	public boolean isTVSeries() {
