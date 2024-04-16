@@ -56,17 +56,17 @@
   "devDependencies": {
     "@playwright/test": "^1.42.1",
     "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "14.2.1",
+    "@testing-library/react": "15.0.2",
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.12",
     "@types/lodash": "4.17.0",
     "@types/node": "18.19.28",
-    "@types/react": "18.2.64",
+    "@types/react": "18.2.78",
     "@types/react-dom": "18.2.23",
-    "@typescript-eslint/eslint-plugin": "7.4.0",
-    "@typescript-eslint/parser": "7.4.0",
+    "@typescript-eslint/eslint-plugin": "7.6.0",
+    "@typescript-eslint/parser": "7.6.0",
     "eslint": "8.57.0",
-    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react": "7.34.1",
     "react-scripts": "5.0.1"
   }
 }
