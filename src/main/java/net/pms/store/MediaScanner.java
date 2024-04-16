@@ -138,7 +138,7 @@ public class MediaScanner implements SharedContentListener {
 
 						storeContainer.discoverChildren();
 						if (child instanceof VirtualFolder virtualFolder) {
-							virtualFolder.analyzeChildren(-1, true);
+							virtualFolder.analyzeChildren();
 						}
 						storeContainer.setDiscovered(true);
 					}

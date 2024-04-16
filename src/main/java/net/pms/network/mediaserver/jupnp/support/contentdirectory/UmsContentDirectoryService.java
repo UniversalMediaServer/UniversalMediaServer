@@ -42,6 +42,7 @@ import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.StringUtil;
@@ -282,7 +283,8 @@ public class UmsContentDirectoryService {
 					objectId,
 					BrowseFlag.valueOrNullOf(browseFlag),
 					filter,
-					firstResult.getValue(), maxResults.getValue(),
+					firstResult.getValue(),
+					maxResults.getValue(),
 					orderByCriteria,
 					remoteClientInfo
 			);
@@ -344,18 +346,18 @@ public class UmsContentDirectoryService {
 	}
 
 	@UpnpAction(out = {
-			@UpnpOutputArgument(name = "Result",
-					stateVariable = "A_ARG_TYPE_Result",
-					getterName = "getResult"),
-			@UpnpOutputArgument(name = "ObjectID",
-					stateVariable = "A_ARG_TYPE_ObjectID",
-					getterName = "getObjectID"),
+		@UpnpOutputArgument(name = "Result",
+				stateVariable = "A_ARG_TYPE_Result",
+				getterName = "getResult"),
+		@UpnpOutputArgument(name = "ObjectID",
+				stateVariable = "A_ARG_TYPE_ObjectID",
+				getterName = "getObjectID")
 		})
 	public CreateObjectResult createObject(
-		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
-		@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements,
-		RemoteClientInfo remoteClientInfo
-		) throws ContentDirectoryException {
+			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+			@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
 		try {
 			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 			Renderer renderer = info.renderer;
@@ -387,7 +389,7 @@ public class UmsContentDirectoryService {
 					if (resource != null) {
 						String result;
 						if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-							result = getJUPnPDidlResults(List.of(resource));
+							result = getJUPnPDidlResults(List.of(resource), null);
 						} else {
 							result = DidlHelper.getDidlResults(List.of(resource));
 						}
@@ -412,12 +414,12 @@ public class UmsContentDirectoryService {
 	}
 
 	@UpnpAction(out =
-		@UpnpOutputArgument(name = "NewID", stateVariable = "A_ARG_TYPE_ObjectID"))
+			@UpnpOutputArgument(name = "NewID", stateVariable = "A_ARG_TYPE_ObjectID"))
 	public String createReference(
-		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
-		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
-		RemoteClientInfo remoteClientInfo
-		) throws ContentDirectoryException {
+			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+			@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
 		try {
 			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 			Renderer renderer = info.renderer;
@@ -465,9 +467,9 @@ public class UmsContentDirectoryService {
 
 	@UpnpAction(name = "DestroyObject")
 	public void destroyObject(
-		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
-		RemoteClientInfo remoteClientInfo
-		) throws ContentDirectoryException {
+			@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
 		try {
 			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 			Renderer renderer = info.renderer;
@@ -577,16 +579,14 @@ public class UmsContentDirectoryService {
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
-				browseDirectChildren,
-				(int) startingIndex,
-				(int) requestedCount,
-				null
+				browseDirectChildren
 		);
 
 		List<StoreResource> resultResources = new ArrayList<>();
 		long resourcesCount = 0;
 		long badResourceCount = 0;
 
+		//keep only compatible resources
 		if (resources != null) {
 			resourcesCount = resources.size();
 			for (StoreResource resource : resources) {
@@ -611,22 +611,11 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long count = resourcesCount - badResourceCount;
-		long totalMatches;
-		if (browseDirectChildren && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
-			// with the new parser, resources are parsed and analyzed *before*
-			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
-			// so we do not know exactly the total number of items in the DLNA folder to send
-			// (regular resources, plus the #transcode folder, maybe the #imdb one, also resources can be
-			// invalidated and hidden if format is broken or encrypted, etc.).
-			// let's send a fake total size to force the renderer to ask following items
-			totalMatches = startingIndex + requestedCount + 1L; // returns 11 when 10 asked
+		//sort
+		StoreResourceSorter.sortResources(resultResources, sortCriteria);
 
-			// If no more elements, send the startingIndex
-			if (resourcesCount - badResourceCount <= 0) {
-				totalMatches = startingIndex;
-			}
-		} else if (browseDirectChildren) {
+		long totalMatches;
+		if (browseDirectChildren) {
 			StoreContainer parentFolder;
 			if (resources != null && resourcesCount > 0) {
 				parentFolder = resources.get(0).getParent();
@@ -653,16 +642,29 @@ public class UmsContentDirectoryService {
 			totalMatches = 1;
 		}
 
+		//handle startingIndex and requestedCount
+		int fromIndex = (int) startingIndex;
+		int toIndex;
+		if (requestedCount == 0) {
+			toIndex = resultResources.size();
+		} else {
+			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
+		}
+		long count = (long) toIndex - fromIndex;
+
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+		LOGGER.trace("Creating DIDL result");
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-			result = getJUPnPDidlResults(resultResources);
+			result = getJUPnPDidlResults(resultResources.subList(fromIndex, toIndex), filter);
 		} else {
-			result = DidlHelper.getDidlResults(resultResources);
+			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
 		}
+		LOGGER.trace("DIDL result created");
 		if (renderer.getUmsConfiguration().isUpnpDebug()) {
 			logDidlLiteResult(result);
 		}
+		LOGGER.trace("Returning browse result");
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
@@ -699,15 +701,18 @@ public class UmsContentDirectoryService {
 			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+			LOGGER.trace("Creating DIDL result");
 			String result;
 			if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-				result = getJUPnPDidlResults(resultResources);
+				result = getJUPnPDidlResults(resultResources, filter);
 			} else {
 				result = DidlHelper.getDidlResults(resultResources);
 			}
+			LOGGER.trace("DIDL result created");
 			if (renderer.getUmsConfiguration().isUpnpDebug()) {
 				logDidlLiteResult(result);
 			}
+			LOGGER.trace("Returning search result");
 			return new SearchResult(result, resultResources.size(), totalMatches, containerUpdateID);
 		} catch (Exception e) {
 			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
@@ -766,16 +771,14 @@ public class UmsContentDirectoryService {
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				containerId,
-				true,
-				(int) startingIndex,
-				(int) requestedCount,
-				searchCriteria
+				true
 		);
 
 		List<StoreResource> resultResources = new ArrayList<>();
 		long resourceCount = 0;
 		long badResourceCount = 0;
 
+		//keep only compatible resources
 		if (resources != null) {
 			if (searchCriteria != null) {
 				UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
@@ -810,7 +813,6 @@ public class UmsContentDirectoryService {
 			}
 		}
 
-		long count = resourceCount - badResourceCount;
 		long totalMatches;
 		if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
 			// with the new parser, resources are parsed and analyzed *before*
@@ -849,16 +851,29 @@ public class UmsContentDirectoryService {
 			}
 		}
 
+		//handle startingIndex and requestedCount
+		int fromIndex = (int) startingIndex;
+		int toIndex;
+		if (requestedCount == 0) {
+			toIndex = resultResources.size();
+		} else {
+			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
+		}
+		long count = (long) toIndex - fromIndex;
+
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		String result;
+		LOGGER.trace("Creating DIDL result");
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-			result = getJUPnPDidlResults(resultResources);
+			result = getJUPnPDidlResults(resultResources.subList(fromIndex, toIndex), filter);
 		} else {
-			result = DidlHelper.getDidlResults(resultResources);
+			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
 		}
+		LOGGER.trace("DIDL result created");
 		if (renderer.getUmsConfiguration().isUpnpDebug()) {
 			logDidlLiteResult(result);
 		}
+		LOGGER.trace("Returning search result");
 		return new SearchResult(result, count, totalMatches, containerUpdateID);
 	}
 
@@ -869,7 +884,7 @@ public class UmsContentDirectoryService {
 				formattedResult = "DIDL-Lite result:\n";
 				formattedResult += StringUtil.prettifyXML(result, StandardCharsets.UTF_8, 4);
 			} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
-				formattedResult = "DIDL-Lite result isn't valid XML, using text formatting: " + e.getMessage()  + "\n";
+				formattedResult = "DIDL-Lite result isn't valid XML, using text formatting: " + e.getMessage() + "\n";
 				formattedResult += "    " + result.replace("\n", "\n    ");
 			}
 			LOGGER.trace(formattedResult);
@@ -967,14 +982,10 @@ public class UmsContentDirectoryService {
 		return response.toString();
 	}
 
-	private static String getJUPnPDidlResults(List<StoreResource> resultResources) {
+	private static String getJUPnPDidlResults(List<StoreResource> resultResources, String filter) {
 		Result didlResult = new Result();
 		for (StoreResource resource : resultResources) {
-			if (resource instanceof StoreContainer container) {
-				didlResult.addObject(StoreResourceHelper.getContainer(container));
-			} else if (resource instanceof StoreItem item) {
-				didlResult.addObject(StoreResourceHelper.getItem(item));
-			}
+			didlResult.addObject(StoreResourceHelper.getBaseObject(resource, filter));
 		}
 		return didlResult.toString();
 	}

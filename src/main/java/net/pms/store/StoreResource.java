@@ -956,4 +956,17 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		}
 	}
 
+	public String getGenre() {
+		if (mediaInfo != null) {
+			if (mediaInfo.isAudio()) {
+				if (mediaInfo.hasAudioMetadata()) {
+					return mediaInfo.getAudioMetadata().getGenre();
+				}
+			} else if (mediaInfo.isVideo() && mediaInfo.hasVideoMetadata() && mediaInfo.getVideoMetadata().getGenres() != null) {
+				return mediaInfo.getVideoMetadata().getGenres().get(0);
+			}
+		}
+		return null;
+	}
+
 }

@@ -55,6 +55,23 @@ public class UMSUtils {
 	}
 
 	/**
+	 * Return the first resources that SystemName match the searched systemName.
+	 *
+	 * @param resources
+	 * @param systemName
+	 */
+	public static StoreResource getFirstResourceWithSystemName(List<StoreResource> resources, String systemName) {
+		if (resources != null && systemName != null) {
+			for (StoreResource resource : resources) {
+				if (systemName.equals(resource.getSystemName())) {
+					return resource;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Filters the list of resources in-place by removing all items that do not
 	 * match or contain searchString.
 	 *

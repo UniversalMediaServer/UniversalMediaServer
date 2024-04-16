@@ -567,16 +567,26 @@ public class ContentDirectoryHandler implements HttpHandler {
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
-				browseDirectChildren,
-				startingIndex,
-				requestCount,
-				searchCriteria
+				browseDirectChildren
 		);
 
-		if (searchCriteria != null && resources != null) {
-			UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
-			if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer libraryContainer) {
-				resources = libraryContainer.getChildren();
+		if (resources != null) {
+			//handle searchCriteria
+			if (searchCriteria != null) {
+				UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
+				if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer libraryContainer) {
+					resources = libraryContainer.getChildren();
+				}
+			}
+			//handle startingIndex and requestedCount
+			if (startingIndex != 0 || requestCount != 0) {
+				int toIndex;
+				if (requestCount == 0) {
+					toIndex = resources.size();
+				} else {
+					toIndex = Math.min(startingIndex + requestCount, resources.size());
+				}
+				resources = resources.subList(startingIndex, toIndex);
 			}
 		}
 
