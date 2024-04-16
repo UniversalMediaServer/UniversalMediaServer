@@ -19,7 +19,6 @@ package net.pms.network.webguiserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -240,12 +239,9 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void playerSetMediaId(String id) {
-		try {
-			List<StoreResource> resources = renderer.getMediaStore().getResources(id, false, 0, 0);
-			if (!resources.isEmpty() && resources.get(0) instanceof StoreItem item) {
-				renderer.getPlayer().setURI(item.getMediaURL("", true), null);
-			}
-		} catch (IOException ex) {
+		List<StoreResource> resources = renderer.getMediaStore().getResources(id, false);
+		if (!resources.isEmpty() && resources.get(0) instanceof StoreItem item) {
+			renderer.getPlayer().setURI(item.getMediaURL("", true), null);
 		}
 	}
 
@@ -338,48 +334,45 @@ public class RendererItem implements IRendererGuiListener {
 
 	public static JsonObject getRemoteControlBrowse(JsonObject post) {
 		if (post != null && post.has("id") && post.has("media")) {
-			try {
-				int rId = post.get("id").getAsInt();
-				RendererItem renderer = RendererItem.getRenderer(rId);
-				if (renderer == null) {
-					return null;
-				}
-				String media = post.get("media").getAsString();
-				JsonObject result = new JsonObject();
-				JsonArray parents = new JsonArray();
-				JsonArray childrens = new JsonArray();
-				List<StoreResource> resources = renderer.renderer.getMediaStore().getResources(media, true, 0, 0);
-				if (!resources.isEmpty()) {
-					StoreResource parentFromResources = resources.get(0).getParent();
+			int rId = post.get("id").getAsInt();
+			RendererItem renderer = RendererItem.getRenderer(rId);
+			if (renderer == null) {
+				return null;
+			}
+			String media = post.get("media").getAsString();
+			JsonObject result = new JsonObject();
+			JsonArray parents = new JsonArray();
+			JsonArray childrens = new JsonArray();
+			List<StoreResource> resources = renderer.renderer.getMediaStore().getResources(media, true);
+			if (!resources.isEmpty()) {
+				StoreResource parentFromResources = resources.get(0).getParent();
+				if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
+					JsonObject parent = new JsonObject();
+					parent.addProperty("value", parentFromResources.getResourceId());
+					parent.addProperty("label", parentFromResources.getName());
+					parents.add(parent);
+					parentFromResources = parentFromResources.getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
-						JsonObject parent = new JsonObject();
+						parent = new JsonObject();
 						parent.addProperty("value", parentFromResources.getResourceId());
 						parent.addProperty("label", parentFromResources.getName());
 						parents.add(parent);
-						parentFromResources = parentFromResources.getParent();
-						if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
-							parent = new JsonObject();
-							parent.addProperty("value", parentFromResources.getResourceId());
-							parent.addProperty("label", parentFromResources.getName());
-							parents.add(parent);
-						}
-					}
-					for (StoreResource resource : resources) {
-						if (resource == null) {
-							continue;
-						}
-						JsonObject children = new JsonObject();
-						children.addProperty("value", resource.getResourceId());
-						children.addProperty("label", resource.getName());
-						children.addProperty("browsable", resource.isFolder());
-						childrens.add(children);
 					}
 				}
-				result.add("parents", parents);
-				result.add("childrens", childrens);
-				return result;
-			} catch (IOException ex) {
+				for (StoreResource resource : resources) {
+					if (resource == null) {
+						continue;
+					}
+					JsonObject children = new JsonObject();
+					children.addProperty("value", resource.getResourceId());
+					children.addProperty("label", resource.getName());
+					children.addProperty("browsable", resource.isFolder());
+					childrens.add(children);
+				}
 			}
+			result.add("parents", parents);
+			result.add("childrens", childrens);
+			return result;
 		}
 		return null;
 	}

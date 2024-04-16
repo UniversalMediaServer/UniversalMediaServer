@@ -175,7 +175,7 @@ public class PlaylistManager {
 	}
 
 	private static boolean createNewEmptyPlaylistFile(File newPlaylist) throws IOException {
-		if (!newPlaylist.createNewFile()) {
+		if (newPlaylist.createNewFile()) {
 			try (PrintWriter pw = new PrintWriter(newPlaylist)) {
 				pw.println("#EXTM3U");
 				pw.println();

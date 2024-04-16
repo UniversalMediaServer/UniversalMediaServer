@@ -18,7 +18,6 @@ package net.pms.store;
 
 import com.sun.jna.Platform;
 import java.io.File;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -484,7 +483,7 @@ public class MediaStore extends StoreContainer {
 						container.discoverChildren();
 					}
 					if (resource instanceof VirtualFolder container) {
-						container.analyzeChildren(-1);
+						container.analyzeChildren();
 					}
 				}
 			}
@@ -552,27 +551,12 @@ public class MediaStore extends StoreContainer {
 	 * If children is false, then it returns the found object as the only object
 	 * in the list.
 	 *
-	 * TODO: (botijo) This function does a lot more than this!
-	 *
 	 * @param objectId ID to search for.
-	 * @param children State if you want all the children in the returned list.
-	 * @param start
-	 * @param count
-	 * @param renderer Renderer for which to do the actions.
+	 * @param returnChildren State if you want all the children in the returned list.
 	 * @return List of LibraryResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<StoreResource> getResources(String objectId, boolean children, int start, int count) throws IOException {
-		return getResources(objectId, children, start, count, null);
-	}
-
-	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren, int start, int count,
-		String searchStr) {
-		return getResources(objectId, returnChildren, start, count, searchStr, null);
-	}
-
-	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren, int start, int count,
-			String searchStr, String lang) {
+	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
@@ -588,8 +572,7 @@ public class MediaStore extends StoreContainer {
 			// Now strip off the filename
 			objectId = StringUtils.substringBefore(objectId, "/");
 			String[] ids = objectId.split("\\.");
-			resource = search(ids, lang);
-			// resource = search(objectId, count, searchStr);
+			resource = search(ids);
 		}
 
 		if (resource != null) {
@@ -606,16 +589,17 @@ public class MediaStore extends StoreContainer {
 			if (!returnChildren) {
 				resources.add(resource);
 				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.refreshChildrenIfNeeded(searchStr, lang);
+					if (!storeContainer.isDiscovered()) {
+						storeContainer.discover(false);
+					} else {
+						storeContainer.refreshChildrenIfNeeded();
+					}
 				}
 			} else {
 				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.discover(count, true, searchStr, lang);
+					storeContainer.discover(true);
 
-					if (count == 0) {
-						count = storeContainer.getChildren().size();
-					}
-
+					int count = storeContainer.getChildren().size();
 					if (count > 0) {
 						String systemName = storeContainer.getSystemName();
 						LOGGER.trace("Start of analysis for " + systemName);
@@ -633,7 +617,7 @@ public class MediaStore extends StoreContainer {
 						if (shouldDoAudioTrackSorting(storeContainer)) {
 							sortChildrenWithAudioElements(storeContainer);
 						}
-						for (int i = start; i < start + count && i < storeContainer.getChildren().size(); i++) {
+						for (int i = 0; i < storeContainer.getChildren().size(); i++) {
 							final StoreResource child = storeContainer.getChildren().get(i);
 							if (child != null) {
 								tpe.execute(child);
@@ -660,7 +644,7 @@ public class MediaStore extends StoreContainer {
 		return resources;
 	}
 
-	private StoreResource search(String[] searchIds, String lang) {
+	private StoreResource search(String[] searchIds) {
 		StoreResource resource;
 		for (String searchId : searchIds) {
 			if (searchId.equals("0")) {
@@ -675,7 +659,7 @@ public class MediaStore extends StoreContainer {
 			}
 
 			if (resource instanceof StoreContainer storeContainer) {
-				storeContainer.discover(0, false, null, lang);
+				storeContainer.discover(false);
 			}
 		}
 

@@ -55,6 +55,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer) {
 		super(renderer, null, null);
+		isSortedByDisplayName = true;
 		this.files = new ArrayList<>();
 		this.virtualFolders = new ArrayList<>();
 		this.forcedName = null;
@@ -63,6 +64,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolderContent virtualFolder) {
 		super(renderer, virtualFolder.getName(), null);
+		isSortedByDisplayName = true;
 		this.addToMediaLibrary = virtualFolder.isAddToMediaLibrary();
 		this.files = virtualFolder.getFiles();
 		this.virtualFolders = virtualFolder.getVirtualFolders();
@@ -72,6 +74,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolder virtualFile, List<File> files, String forcedName) {
 		super(renderer, null, null);
+		isSortedByDisplayName = true;
 		this.addToMediaLibrary = virtualFile.isAddToMediaLibrary();
 		this.files = virtualFile.getFiles();
 		this.virtualFolders = new ArrayList<>();
@@ -88,7 +91,7 @@ public class VirtualFolder extends StoreContainer {
 		files.add(file);
 	}
 
-	private void manageFile(File f, boolean isAddGlobally) {
+	private void manageFile(File f) {
 		StoreResource res = renderer.getMediaStore().createResourceFromFile(f);
 		if (res != null) {
 			if (res instanceof RealFile realfile) {
@@ -105,7 +108,7 @@ public class VirtualFolder extends StoreContainer {
 					searchList.add(realFolder);
 				}
 			}
-			addChild(res, true, isAddGlobally);
+			addChild(res, true, true);
 		} else if (f.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, renderer.getUmsConfiguration())) {
 			// Keep track of the fact that we have empty folders, so when we're asked if we should refresh,
 			// we can re-scan the folders in this list to see if they contain something relevant
@@ -167,31 +170,19 @@ public class VirtualFolder extends StoreContainer {
 		return out;
 	}
 
-	public boolean analyzeChildren(int count) {
-		return analyzeChildren(count, true);
-	}
-
-	public boolean analyzeChildren(int count, boolean isAddGlobally) {
-		int currentChildrenCount = getChildren().size();
-		int vfolder = 0;
+	public boolean analyzeChildren() {
 		FileSearch fs = null;
 		if (!discoverable.isEmpty() && renderer.getUmsConfiguration().getSearchInFolder()) {
 			searchList = new ArrayList<>();
 			fs = new FileSearch(searchList);
 			addChild(new SearchFolder(renderer, fs));
 		}
-		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
-			if (vfolder < virtualFolders.size()) {
-				VirtualFolderContent virtualFolder = virtualFolders.get(vfolder);
-				StoreContainer parent = getSharedContentParent(virtualFolder.getParent());
-				parent.addChild(new VirtualFolder(renderer, virtualFolder), true, isAddGlobally);
-				++vfolder;
-			} else {
-				if (discoverable.isEmpty()) {
-					break;
-				}
-				manageFile(discoverable.remove(0), isAddGlobally);
-			}
+		for (VirtualFolderContent virtualFolder : virtualFolders) {
+			StoreContainer parent = getSharedContentParent(virtualFolder.getParent());
+			parent.addChild(new VirtualFolder(renderer, virtualFolder), true, true);
+		}
+		while (!discoverable.isEmpty()) {
+			manageFile(discoverable.remove(0));
 		}
 		if (fs != null) {
 			fs.update(searchList);
@@ -206,8 +197,6 @@ public class VirtualFolder extends StoreContainer {
 		} else {
 			return;
 		}
-
-		int sm = renderer.getUmsConfiguration().getSortMethod(getPath());
 
 		List<File> childrenFiles = getFilesListForDirectories();
 
@@ -298,24 +287,16 @@ public class VirtualFolder extends StoreContainer {
 			for (Entry<String, List<File>> entry : map.entrySet()) {
 				// loop over all letters, this avoids adding
 				// empty letters
-				UMSUtils.sortFiles(entry.getValue(), sm);
 				VirtualFolder mf = new VirtualFolder(renderer, this, entry.getValue(), entry.getKey());
 				addChild(mf, true, true);
 			}
 			return;
 		}
 
-		UMSUtils.sortFiles(childrenFiles, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
-
 		for (File f : childrenFiles) {
 			if (f.isDirectory()) {
 				discoverable.add(f);
 			}
-		}
-
-		// For random sorting, we only randomize file entries
-		if (sm == UMSUtils.SORT_RANDOM) {
-			UMSUtils.sortFiles(childrenFiles, sm);
 		}
 
 		for (File f : childrenFiles) {
@@ -372,7 +353,7 @@ public class VirtualFolder extends StoreContainer {
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
 		discoverChildren();
-		analyzeChildren(-1, true);
+		analyzeChildren();
 	}
 
 	@Override
