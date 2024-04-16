@@ -261,7 +261,7 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry == null) {
 				continue;
 			}
-			if (!FileUtil.isUrl(uri)) {
+			if (!FileUtil.isUrl(entry.fileName)) {
 				if (entry.title == null) {
 					entry.title = new File(entry.fileName).getName();
 				}
