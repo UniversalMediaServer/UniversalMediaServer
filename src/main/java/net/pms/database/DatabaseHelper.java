@@ -228,6 +228,7 @@ public abstract class DatabaseHelper {
 	 */
 	protected static final String CREATE = "CREATE ";
 	protected static final String INSERT_INTO = "INSERT INTO ";
+	protected static final String MERGE_INTO = "MERGE INTO ";
 	protected static final String SELECT = "SELECT ";
 	protected static final String UPDATE = "UPDATE ";
 	protected static final String WITH = "WITH ";
@@ -253,6 +254,7 @@ public abstract class DatabaseHelper {
 	protected static final String IS = " IS ";
 	protected static final String INDEX = "INDEX ";
 	protected static final String JOIN = " JOIN ";
+	protected static final String KEY = " KEY ";
 	protected static final String LESS_OR_EQUAL_THAN = " <= ";
 	protected static final String NOT = "NOT ";
 	protected static final String NOT_IN = " NOT" + IN;
@@ -271,6 +273,7 @@ public abstract class DatabaseHelper {
 	protected static final String SET = " SET ";
 	protected static final String TABLE = "TABLE ";
 	protected static final String UNIQUE = "UNIQUE ";
+	protected static final String VALUES = " VALUES ";
 	protected static final String WHERE = " WHERE ";
 
 	protected static final String ALTER_COLUMN = " " + ALTER + COLUMN;
@@ -642,6 +645,8 @@ public abstract class DatabaseHelper {
 				for (String sql : sqls) {
 					stmt.execute(sql);
 				}
+			} catch (Exception e) {
+				LOGGER.error("execute SQL error", e);
 			}
 		}
 	}
