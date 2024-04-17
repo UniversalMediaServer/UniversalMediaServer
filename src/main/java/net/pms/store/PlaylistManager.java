@@ -26,7 +26,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.database.MediaTableWebResource;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.utils.WebStreamMetadataCollector;
+import net.pms.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -47,7 +50,12 @@ public class PlaylistManager {
 	public static String addSongToPlaylist(StoreResource songResource, PlaylistFolder playlistFolder) throws Exception {
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToAdd = songResource.getFileName();
-		String relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
+		String relativeSongPath;
+		if (FileUtil.isUrl(filenameToAdd)) {
+			relativeSongPath = filenameToAdd;
+		} else {
+			relativeSongPath = calculateRelativeSongPath(Paths.get(filenameToAdd), playlistPath);
+		}
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 		if (isSongAlreadyInPlaylist(filenameToAdd, relativeSongPath, playlistEntries)) {
 			LOGGER.trace("song already in playlist " + relativeSongPath);
@@ -58,6 +66,9 @@ public class PlaylistManager {
 			StoreResource newPlaylistEntry = playlistFolder.getDefaultRenderer().getMediaStore().createResourceFromFile(new File(filenameToAdd));
 			playlistFolder.addChild(newPlaylistEntry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
+			if (FileUtil.isUrl(relativeSongPath)) {
+				WebStreamMetadataCollector.getInstance().collectMetadata(relativeSongPath);
+			}
 			return newPlaylistEntry.getId();
 		}
 	}
@@ -69,13 +80,25 @@ public class PlaylistManager {
 	public static boolean removeSongFromPlaylist(StoreResource songResource, PlaylistFolder playlistFolder) throws IOException {
 		Path playlistPath = getPlaylistPathFromObjectId(playlistFolder);
 		String filenameToRemove = songResource.getFileName();
-		String relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
+
+		String relativePath;
+		if (FileUtil.isUrl(filenameToRemove)) {
+			relativePath = filenameToRemove;
+		} else {
+			relativePath = calculateRelativeSongPath(Paths.get(filenameToRemove), playlistPath);
+		}
 		List<String> playlistEntries = readCurrentPlaylist(playlistPath);
 
 		if (playlistEntries.remove(filenameToRemove) || playlistEntries.remove(relativePath)) {
 			writePlaylistToDisk(playlistEntries, playlistPath);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
+			if (FileUtil.isUrl(filenameToRemove)) {
+				LOGGER.debug("deleting WebResource from database {}", filenameToRemove);
+				MediaTableWebResource.deleteByUrl(filenameToRemove);
+			}
 			return true;
+		} else {
+			LOGGER.debug("deleting failed because song resource was not found in playlist. resource URL absolute / relative : {} / {}", filenameToRemove, relativePath);
 		}
 		return false;
 	}
@@ -94,7 +117,7 @@ public class PlaylistManager {
 		return lines;
 	}
 
-	private static String calculateRelativeSongPath(Path absoluteSongPath, Path absolutePlaylistFile) {
+	protected static String calculateRelativeSongPath(Path absoluteSongPath, Path absolutePlaylistFile) {
 		StringBuilder sb = new StringBuilder();
 
 		if (isSongInSubfolderOfPlaylist(absoluteSongPath, absolutePlaylistFile)) {
@@ -140,11 +163,25 @@ public class PlaylistManager {
 	}
 
 	public static boolean deletePlaylistFromDisk(PlaylistFolder playlistFolder) throws Exception {
+		List<String> playlistEntries = readCurrentPlaylist(playlistFolder.getPlaylistfile().toPath());
+
 		playlistFolder.getParent().removeChild(playlistFolder);
 		if (playlistFolder.getPlaylistfile() != null) {
-			return playlistFolder.getPlaylistfile().delete();
+			if (playlistFolder.getPlaylistfile().delete()) {
+				for (String entry : playlistEntries) {
+					if (FileUtil.isUrl(entry)) {
+						LOGGER.debug("deleting WebResource from database {}", entry);
+						MediaTableWebResource.deleteByUrl(entry);
+					}
+				}
+				return true;
+			} else {
+				LOGGER.debug("deleting playlist failed. File permissions set? Location : {}", playlistFolder.getPlaylistfile().getAbsolutePath());
+			}
+		} else {
+			LOGGER.debug("deleting playlist failed because it was not found. Location : {}", playlistFolder.getPlaylistfile().getAbsolutePath());
 		}
-		return true;
+		return false;
 	}
 
 	public static StoreResource createPlaylist(StoreContainer storeContainer, String playlistName) throws Exception {

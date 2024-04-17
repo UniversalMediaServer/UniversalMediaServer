@@ -1,4 +1,4 @@
-package net.pms.store.item;
+package net.pms.store.utils;
 
 
 public record WebStreamMetadata(

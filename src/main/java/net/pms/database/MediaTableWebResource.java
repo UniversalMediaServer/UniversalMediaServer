@@ -9,7 +9,7 @@ import java.sql.Types;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.store.item.WebStreamMetadata;
+import net.pms.store.utils.WebStreamMetadata;
 
 public class MediaTableWebResource extends MediaTable {
 

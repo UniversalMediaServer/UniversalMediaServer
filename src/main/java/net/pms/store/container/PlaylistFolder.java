@@ -22,14 +22,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringReader;
-import java.net.http.HttpHeaders;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Optional;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
@@ -48,8 +44,9 @@ import net.pms.store.StoreResource;
 import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
-import net.pms.store.item.WebStreamMetadata;
 import net.pms.store.item.WebVideoStream;
+import net.pms.store.utils.WebStreamMetadata;
+import net.pms.store.utils.WebStreamMetadataCollector;
 import net.pms.util.FileUtil;
 import net.pms.util.HttpUtil;
 import net.pms.util.ProcessUtil;
@@ -57,12 +54,14 @@ import net.pms.util.UMSUtils;
 
 public final class PlaylistFolder extends StoreContainer {
 
-	private class StreamMeta {
-		public String logo;
-		public String genre;
-		public String contentType;
-		public Integer sample;
-		public Integer bitrate;
+	private class Entry {
+		private String fileName;
+		private String title;
+
+		@Override
+		public String toString() {
+			return "[" + fileName + "," + title + "]";
+		}
 	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
@@ -70,8 +69,6 @@ public final class PlaylistFolder extends StoreContainer {
 	private final boolean isweb;
 	private final int defaultContent;
 	private boolean valid = true;
-
-	Executor webStreamExecutor = Executors.newSingleThreadExecutor();
 
 	public PlaylistFolder(Renderer renderer, String name, String uri, int type) {
 		super(renderer, name, null);
@@ -289,7 +286,7 @@ public final class PlaylistFolder extends StoreContainer {
 					LOGGER.debug("no metadata available. Getting metadata from stream {} ", entry.fileName);
 					String ext = "." + FileUtil.getUrlExtension(entry.fileName);
 					if (FormatFactory.getAssociatedFormat(ext) == null || FormatFactory.getAssociatedFormat(ext).getType() != Format.PLAYLIST) {
-						webStreamExecutor.execute(getExecutionForUrl(entry));
+						WebStreamMetadataCollector.getInstance().collectMetadata(entry.fileName);
 					}
 					resolveEntryAsLocalFile(entry);
 				} else {
@@ -355,45 +352,6 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
-	private Runnable getExecutionForUrl(Entry entry) {
-		return new Runnable() {
-
-			@Override
-			public void run() {
-				int type = 0;
-				String ext = "." + FileUtil.getUrlExtension(entry.fileName);
-				HttpHeaders headHeaders = HttpUtil.getHeaders(entry.fileName);
-				HttpHeaders inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(entry.fileName);
-				if (FileUtil.getUrlExtension(entry.fileName) == null) {
-					LOGGER.debug("URL has no file extension. Analysing internet resource type from content-type HEADER : {}", entry.fileName);
-					type = getTypeFrom(headHeaders, type);
-					if (type == 0) {
-						type = getTypeFrom(inputStreamHeaders, type);
-						if (type == 0) {
-							LOGGER.warn("couldn't determine stream content type for {}", entry.fileName);
-						}
-					}
-				} else {
-					LOGGER.debug("analysing internet resource type from file extension of given URL.");
-					Format f = FormatFactory.getAssociatedFormat(ext);
-					type = f == null ? defaultContent : f.getType();
-				}
-
-				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-					LOGGER.debug("overwriting type from {} with default value {}.", type, defaultContent);
-					type = defaultContent;
-				}
-
-				if (type == Format.VIDEO || type == Format.AUDIO) {
-					StreamMeta sm = new StreamMeta();
-					addAudioFormat(sm, headHeaders);
-					addAudioFormat(sm, inputStreamHeaders);
-					WebStreamMetadata wsm = new WebStreamMetadata(entry.fileName, sm.logo, sm.genre, sm.contentType, sm.sample, sm.bitrate, type);
-					MediaTableWebResource.insertOrUpdateWebResource(wsm);
-				}
-			}
-		};
-	}
 
 	private void resolveEntryAsLocalFile(Entry entry) {
 		// local file entry
@@ -435,78 +393,6 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
-		}
-	}
-
-	/*
-	 * Extracts audio information from ice or icecast protocol.
-	 */
-	private void addAudioFormat(StreamMeta streamMeta, HttpHeaders headers) {
-		if (headers == null) {
-			LOGGER.trace("web audio stream without header info.");
-			return;
-		}
-		Optional<String> value = null;
-		value = headers.firstValue("icy-br");
-		if (value.isPresent()) {
-			streamMeta.bitrate = parseIntValue(value) != null ? parseIntValue(value) : null;
-		}
-		value = headers.firstValue("icy-sr");
-		if (value.isPresent()) {
-			streamMeta.sample = parseIntValue(value) != null ? parseIntValue(value) : null;
-		}
-
-		value = headers.firstValue("icy-genre");
-		if (value.isPresent()) {
-			streamMeta.genre = value.get();
-		}
-
-		value = headers.firstValue("content-type");
-		if (value.isPresent()) {
-			streamMeta.contentType = value.get();
-		}
-
-		value = headers.firstValue("icy-logo");
-		if (value.isPresent()) {
-			streamMeta.logo = value.get();
-		}
-	}
-
-	private Integer parseIntValue(Optional<String> value) {
-		try {
-			return Integer.parseInt(value.get());
-		} catch (Exception e) {
-			return null;
-		}
-	}
-
-	private int getTypeFrom(HttpHeaders headers, int currentType) {
-		if (headers.firstValue("content-type").isEmpty()) {
-			LOGGER.trace("web server has no content type set ...");
-			return currentType;
-		} else {
-			String contentType = headers.firstValue("content-type").get();
-			if (contentType.startsWith("audio")) {
-				return Format.AUDIO;
-			} else if (contentType.startsWith("video")) {
-				return Format.VIDEO;
-			} else if (contentType.startsWith("image")) {
-				return Format.IMAGE;
-			} else {
-				LOGGER.trace("web server has no content type set ...");
-				return currentType;
-			}
-		}
-	}
-
-	private static class Entry {
-
-		private String fileName;
-		private String title;
-
-		@Override
-		public String toString() {
-			return "[" + fileName + "," + title + "]";
 		}
 	}
 
