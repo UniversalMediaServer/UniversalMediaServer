@@ -17,7 +17,6 @@
 package net.pms.network.mediaserver.handlers.nextcpapi;
 
 import java.nio.charset.StandardCharsets;
-import net.pms.network.mediaserver.handlers.nextcpapi.playlist.PlaylistService;
 import net.pms.network.mediaserver.handlers.nextcpapi.starrating.StarRating;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -67,9 +66,6 @@ public abstract class AbstractNextcpApiHandler {
 			}
 			case StarRating.PATH_MATCH -> {
 				return new StarRating();
-			}
-			case PlaylistService.PATH_MATCH -> {
-				return new PlaylistService();
 			}
 			default -> throw new RuntimeException("No nextcp api Handler found");
 		}

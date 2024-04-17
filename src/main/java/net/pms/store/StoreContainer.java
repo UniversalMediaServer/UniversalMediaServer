@@ -472,14 +472,14 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void sortChildrenIfNeeded(String lang) {
+	protected void sortChildrenIfNeeded() {
 		if (isSortedByDisplayName) {
 			Collections.sort(children, (StoreResource child1, StoreResource child2) -> {
 				if (!child1.isSortableByDisplayName || !child2.isSortableByDisplayName) {
 					return 0;
 				}
-				String str1 = child1.getLocalizedDisplayName(lang);
-				String str2 = child2.getLocalizedDisplayName(lang);
+				String str1 = child1.getLocalizedDisplayName(null);
+				String str2 = child2.getLocalizedDisplayName(null);
 				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
 					str1 = str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
 					str2 = str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
@@ -491,9 +491,9 @@ public class StoreContainer extends StoreResource {
 		}
 	}
 
-	protected void refreshChildrenIfNeeded(String search, String lang) {
+	protected void refreshChildrenIfNeeded() {
 		if (isDiscovered() && isRefreshNeeded()) {
-			refreshChildren(search, lang);
+			refreshChildren();
 			notifyRefresh();
 		}
 	}
@@ -727,9 +727,10 @@ public class StoreContainer extends StoreResource {
 		discoverChildren();
 	}
 
-	protected final void discover(int count, boolean forced, String searchStr, String lang) {
+	protected synchronized final void discover(boolean forced) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
+			LOGGER.trace("Initial discovering children for container: {}", getDisplayName());
 			if (renderer.getUmsConfiguration().getFolderLimit() && depthLimit()) {
 				if (renderer.isPS3() || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
@@ -738,16 +739,12 @@ public class StoreContainer extends StoreResource {
 				renderer.addFolderLimit(this);
 			}
 
-			discoverChildren(searchStr);
-			sortChildrenIfNeeded(lang);
+			discoverChildren();
+			sortChildrenIfNeeded();
 			boolean ready;
 
 			if (this instanceof VirtualFolder virtualFolder) {
-				if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
-					ready = virtualFolder.analyzeChildren(count);
-				} else {
-					ready = virtualFolder.analyzeChildren(-1);
-				}
+				ready = virtualFolder.analyzeChildren();
 			} else {
 				ready = true;
 			}
@@ -770,19 +767,19 @@ public class StoreContainer extends StoreResource {
 				// refreshChildren calls shouldRefresh -> isRefreshNeeded ->
 				// doRefreshChildren, which is what happens below
 				// (refreshChildren is not overridden in VirtualFile)
-				if (refreshChildren(searchStr, lang)) {
+				if (refreshChildren()) {
 					notifyRefresh();
 				} else {
-					sortChildrenIfNeeded(lang);
+					sortChildrenIfNeeded();
 				}
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren
 				// pair.
 				if (isRefreshNeeded()) {
-					doRefreshChildren(searchStr, lang);
+					doRefreshChildren();
 					notifyRefresh();
 				} else {
-					sortChildrenIfNeeded(lang);
+					sortChildrenIfNeeded();
 				}
 			}
 		}
@@ -793,7 +790,7 @@ public class StoreContainer extends StoreResource {
 
 	public void doRefreshChildren(String search, String lang) {
 		doRefreshChildren();
-		sortChildrenIfNeeded(lang);
+		sortChildrenIfNeeded();
 	}
 
 	private boolean depthLimit() {
@@ -861,6 +858,10 @@ public class StoreContainer extends StoreResource {
 	 */
 	public void setDiscovered(boolean discovered) {
 		this.discovered = discovered;
+	}
+
+	public boolean isSortedByDisplayName() {
+		return isSortedByDisplayName;
 	}
 
 	@Override

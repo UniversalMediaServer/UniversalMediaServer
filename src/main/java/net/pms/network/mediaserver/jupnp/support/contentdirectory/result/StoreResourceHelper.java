@@ -87,12 +87,12 @@ public class StoreResourceHelper {
 	private StoreResourceHelper() {
 	}
 
-	public static final BaseObject getBaseObject(StoreResource resource) {
+	public static final BaseObject getBaseObject(StoreResource resource, String filter) {
 		try {
 			if (resource instanceof StoreContainer container) {
-				return getContainer(container);
+				return getContainer(container, filter);
 			} else if (resource instanceof StoreItem item) {
-				return getItem(item);
+				return getItem(item, filter);
 			}
 		} catch (Exception ex) {
 			LOGGER.debug("", ex);
@@ -100,7 +100,7 @@ public class StoreResourceHelper {
 		return null;
 	}
 
-	public static final Container getContainer(StoreContainer container) {
+	public static final Container getContainer(StoreContainer container, String filter) {
 		final Renderer renderer = container.getDefaultRenderer();
 		final MediaInfo mediaInfo = container.getMediaInfo();
 		final MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
@@ -177,7 +177,7 @@ public class StoreResourceHelper {
 		return result;
 	}
 
-	public static final Item getItem(StoreItem item) {
+	public static final Item getItem(StoreItem item, String filter) {
 		final Renderer renderer = item.getDefaultRenderer();
 		final Engine engine = item.getEngine();
 		final MediaInfo mediaInfo = item.getMediaInfo();

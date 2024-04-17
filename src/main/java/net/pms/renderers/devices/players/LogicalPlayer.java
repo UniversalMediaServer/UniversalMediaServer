@@ -209,7 +209,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 				}
 				RealFolder f = new RealFolder(player.getRenderer(), new File(folder));
 				f.discoverChildren();
-				f.analyzeChildren(-1);
+				f.analyzeChildren();
 				player.addAll(-1, f.getChildren(), -1);
 				// add a short delay here since player.add uses
 				// swing.invokelater

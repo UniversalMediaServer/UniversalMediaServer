@@ -11,7 +11,7 @@
     "@mantine/modals": "7.5.3",
     "@mantine/notifications": "7.5.3",
     "@microsoft/fetch-event-source": "2.0.1",
-    "axios": "1.6.7",
+    "axios": "1.6.8",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
     "react": "18.2.0",
@@ -20,7 +20,7 @@
     "react-movable": "3.2.0",
     "react-router-dom": "6.22.3",
     "tabler-icons-react": "1.56.0",
-    "typescript": "5.4.3",
+    "typescript": "5.4.4",
     "video.js": "8.10.0",
     "web-vitals": "3.5.2"
   },
@@ -56,17 +56,17 @@
   "devDependencies": {
     "@playwright/test": "^1.42.1",
     "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "14.2.1",
+    "@testing-library/react": "15.0.2",
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.12",
-    "@types/lodash": "4.14.202",
-    "@types/node": "18.19.24",
-    "@types/react": "18.2.64",
-    "@types/react-dom": "18.2.22",
-    "@typescript-eslint/eslint-plugin": "7.3.1",
-    "@typescript-eslint/parser": "7.3.1",
+    "@types/lodash": "4.17.0",
+    "@types/node": "18.19.28",
+    "@types/react": "18.2.78",
+    "@types/react-dom": "18.2.23",
+    "@typescript-eslint/eslint-plugin": "7.6.0",
+    "@typescript-eslint/parser": "7.6.0",
     "eslint": "8.57.0",
-    "eslint-plugin-react": "7.33.2",
+    "eslint-plugin-react": "7.34.1",
     "react-scripts": "5.0.1"
   }
 }
