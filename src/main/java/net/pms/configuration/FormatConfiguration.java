@@ -486,14 +486,13 @@ public class FormatConfiguration {
 					 */
 					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
 
-					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-					if (!StringUtils.equalsIgnoreCase(format, MPEGTS) && isTsMuxeRVideoEngineActive) {
+					if (!StringUtils.equalsIgnoreCase(format, renderer.getTranscodingContainer())) {
 						/**
-						 * Calls this function again, with a TS container and without
+						 * Calls this function again, with the transcoding container and without
 						 * HDR compatibility info, so we get either a STRICT match or none
 						 */
-						boolean wouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
-							MPEGTS,
+						boolean wouldBeCompatibleInTranscodingContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+							renderer.getTranscodingContainer(),
 							videoCodec,
 							audioCodec,
 							nbAudioChannels,
@@ -511,8 +510,8 @@ public class FormatConfiguration {
 							renderer
 						) != null;
 
-						if (wouldBeCompatibleInTsContainer) {
-							LOGGER.trace("Video HDR format value \"{}\" is compatible in TS container, but not this container \"{}\", so will report it as incompatible to allow on-the-fly remuxing with tsMuxeR {}", videoHdrFormatInRendererFormat, format, supportLine);
+						if (wouldBeCompatibleInTranscodingContainer) {
+							LOGGER.trace("Video HDR format value \"{}\" is compatible in TS container, but not this container \"{}\", so will report it as incompatible to allow on-the-fly remuxing {}", videoHdrFormatInRendererFormat, format, supportLine);
 							return false;
 						}
 					}
