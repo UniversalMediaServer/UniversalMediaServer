@@ -288,7 +288,7 @@ public final class PlaylistFolder extends StoreContainer {
 					// retrieve meta and handle entry as local resource. Always done if we have a playlist entry within this playlist.
 					LOGGER.debug("no metadata available. Getting metadata from stream {} ", entry.fileName);
 					String ext = "." + FileUtil.getUrlExtension(entry.fileName);
-					if (FormatFactory.getAssociatedFormat(ext).getType() != Format.PLAYLIST) {
+					if (FormatFactory.getAssociatedFormat(ext) == null || FormatFactory.getAssociatedFormat(ext).getType() != Format.PLAYLIST) {
 						webStreamExecutor.execute(getExecutionForUrl(entry));
 					}
 					resolveEntryAsLocalFile(entry);
