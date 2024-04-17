@@ -176,8 +176,9 @@ public final class PlaylistFolder extends StoreContainer {
 				LOGGER.trace("", e);
 			}
 			return result != null ? result : super.getThumbnailInputStream();
+		} else {
+			return super.getThumbnailInputStream();
 		}
-		return null;
 	}
 
 	@Override
