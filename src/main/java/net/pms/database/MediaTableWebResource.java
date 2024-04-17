@@ -28,6 +28,7 @@ public class MediaTableWebResource extends MediaTable {
 		COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?, ?) ";
 
 	private static final String SQL_DELETE_ALL = DELETE_FROM + TABLE_NAME;
+	private static final String SQL_DELETE_URL = DELETE_FROM + TABLE_NAME + WHERE + COL_URL + EQUAL + PARAMETER;
 
 	private static final String SQL_GET_ALL_BY_URL = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_URL + EQUAL + PARAMETER;
 
@@ -113,7 +114,21 @@ public class MediaTableWebResource extends MediaTable {
 		} catch (Exception e) {
 			LOGGER.error("cannot delete web resource entries.", e);
 		}
+	}
 
+	/**
+	 * Deletes one entry
+	 */
+	public static void deleteByUrl(String url) {
+		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_URL);
+		) {
+			updateStatment.setString(1, url);
+			updateStatment.executeUpdate();
+		} catch (Exception e) {
+			LOGGER.error("cannot delete web resource entry for given URL {} ", url, e);
+		}
 	}
 
 	public static void insertOrUpdateWebResource(WebStreamMetadata meta) {
