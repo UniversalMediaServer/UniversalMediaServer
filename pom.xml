@@ -909,7 +909,7 @@
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
-					<nodeVersion>v18.19.0</nodeVersion>
+					<nodeVersion>v20.12.2</nodeVersion>
 					<yarnVersion>v1.22.19</yarnVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
