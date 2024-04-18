@@ -912,7 +912,10 @@ public class FFMpegVideo extends Engine {
 		if (
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
-			params.getAid().isAC3() &&
+			(
+				params.getAid().isAC3() ||
+				params.getAid().isEAC3()
+			) &&
 			!isAviSynthEngine() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
@@ -1134,7 +1137,9 @@ public class FFMpegVideo extends Engine {
 		}
 
 		if (!override) {
-			cmdList.addAll(getVideoBitrateOptions(resource, media, params, dtsRemux));
+			if (!canMuxVideoWithFFmpeg) {
+				cmdList.addAll(getVideoBitrateOptions(resource, media, params, dtsRemux));
+			}
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
