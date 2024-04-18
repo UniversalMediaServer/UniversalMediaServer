@@ -107,6 +107,8 @@
 - Bump `@types/node` from 18.19.28 to 20.12.7
 - Bump `@types/react` from 18.2.78 to 18.2.79
 - Bump `@types/react-dom` from 18.2.23 to 18.2.25
+- Bump `"@typescript-eslint/eslint-plugin` from 7.6.0 to 7.7.0
+- Bump `"@typescript-eslint/parser` from 7.6.0 to 7.7.0
 - Update dependency com.github.oshi:oshi-core to v6.5.0
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
