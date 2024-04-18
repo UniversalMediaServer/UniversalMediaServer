@@ -27,7 +27,7 @@ public class MediaTableWebResource extends MediaTable {
 	private static final String SQL_MERGE_RESOURCE = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_LOGO_URL + COMMA + COL_CONTENT_TYPE +
 		COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?, ?) ";
 
-	private static final String SQL_MERGE_RESOURCE_WITHOUT_LOGO = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COMMA + COL_CONTENT_TYPE +
+	private static final String SQL_MERGE_RESOURCE_WITHOUT_LOGO = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_CONTENT_TYPE +
 		COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?) ";
 
 	private static final String SQL_DELETE_ALL = DELETE_FROM + TABLE_NAME;
