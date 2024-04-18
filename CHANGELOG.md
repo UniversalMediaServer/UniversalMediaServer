@@ -102,7 +102,18 @@
 - Bump `mantine` from 7.4.0 to 7.5.3
 - Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Update dependency com.github.oshi:oshi-core to v6.5.0
-- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.0 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
+- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
+- Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
+- Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
+- Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
+- Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.10.1 to 5.10.2
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.10.1 to 5.10.2
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2
+- Bump `com.fasterxml.jackson.core:jackson-core` from 2.16.1 to 2.17.0
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.0
+- Bump `com.fasterxml.jackson.core:jackson-annotations` from 2.16.1 to 2.17.0
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
