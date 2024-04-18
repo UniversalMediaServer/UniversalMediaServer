@@ -101,6 +101,7 @@
 - Bump `mantine` from 7.4.0 to 7.5.3
 - Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Update dependency com.github.oshi:oshi-core to v6.5.0
+- Bump `yarn` from 4.0.2 to 4.1.1
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
