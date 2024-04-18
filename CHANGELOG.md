@@ -102,6 +102,7 @@
 - Bump `mantine` from 7.4.0 to 7.5.3
 - Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Update dependency com.github.oshi:oshi-core to v6.5.0
+- Bump `yarn` from 4.0.2 to 4.1.1
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
 - Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
