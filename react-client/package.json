@@ -52,7 +52,7 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.1",
   "devDependencies": {
     "@playwright/test": "^1.42.1",
     "@testing-library/jest-dom": "6.4.2",
