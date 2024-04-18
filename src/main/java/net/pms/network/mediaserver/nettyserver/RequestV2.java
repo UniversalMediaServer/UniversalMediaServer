@@ -710,6 +710,7 @@ public class RequestV2 extends HTTPResource {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
 							}
 							output.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, "chunked");
+							output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, Long.toString(Long.MAX_VALUE));
 							event.getChannel().write(output);
 							// Unlock before writing the stream!
 							PMS.REALTIME_LOCK.unlock();
