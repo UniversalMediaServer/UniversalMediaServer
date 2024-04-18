@@ -309,6 +309,11 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 		}
 
+		// this stores also external internet playlists
+		if (!isweb) {
+			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
+		}
+
 		for (StoreResource r : getChildren()) {
 			r.syncResolve();
 		}
@@ -388,9 +393,6 @@ public final class PlaylistFolder extends StoreContainer {
 				addChild(d);
 				valid = true;
 			}
-		}
-		if (!FileUtil.isUrl(entry.fileName)) {
-			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
