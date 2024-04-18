@@ -161,8 +161,13 @@ public class UmsLocalDevice extends LocalDevice {
 		contentDirectoryService.setManager(new DefaultServiceManager<UmsContentDirectoryService>(contentDirectoryService, null) {
 
 			@Override
-			protected int getLockTimeoutMillis() {
-				return 5000;
+			protected void lock() {
+				//don't lock cds.
+			}
+
+			@Override
+			protected void unlock() {
+				//don't lock cds.
 			}
 
 			@Override

@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import net.pms.PMS;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableAudioMetadata;
 import net.pms.database.MediaTableFiles;
@@ -41,6 +40,7 @@ import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
 import net.pms.store.item.MediaLibraryTvEpisode;
 import net.pms.store.item.RealFile;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -378,10 +378,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<StoreResource> oldVirtualFolders = new ArrayList<>();
 
 		if (filesListFromDb != null) {
-			if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED) {
-				UMSUtils.sortFiles(filesListFromDb, PMS.getConfiguration().getSortMethod(null), expectedOutput == EPISODES);
-			}
-
 			getChildren().forEach(oldFiles::add);
 
 			for (File file : filesListFromDb) {
@@ -390,10 +386,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		}
 
 		if (virtualFoldersListFromDb != null) {
-			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT) {
-				UMSUtils.sortStrings(virtualFoldersListFromDb, PMS.getConfiguration().getSortMethod(null));
-			}
-
 			getChildren().forEach(oldVirtualFolders::add);
 
 			for (String f : virtualFoldersListFromDb) {
@@ -502,6 +494,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 		// Skip adding season folders if there is only one season
 		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
+			List<StoreResource> newVirtualFoldersResources = new ArrayList<>();
 			for (String virtualFolderName : newVirtualFolders) {
 				if (isTextOutputExpected(expectedOutput)) {
 					String[] sqls2 = new String[sqls.length - 1];
@@ -521,7 +514,6 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						if (virtualFolderName.length() != 4) {
 							i18nName = "SeasonX";
-							//nameToDisplay = Messages.getString("Season") + " " + virtualFolderName;
 						}
 					}
 
@@ -611,7 +603,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					if (isExpectedTVSeries) {
 						try {
 							Long tvSeriesId = Long.valueOf(virtualFolderName);
-							addChild(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
+							newVirtualFoldersResources.add(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
 						} catch (NumberFormatException e) {
 							//we need a long, other values are null (wrong db value check)
 						}
@@ -630,7 +622,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								if (filename != null) {
 									File file = new File(filename);
 									if (file.exists() && renderer.hasShareAccess(file)) {
-										addChild(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
+										newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
 									}
 								}
 							}
@@ -638,11 +630,17 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 							//we need a long, other values are null (wrong db value check)
 						}
 					} else if (i18nName != null) {
-						addChild(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
+						newVirtualFoldersResources.add(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
 					} else {
-						addChild(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null));
+						newVirtualFoldersResources.add(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null));
 					}
 				}
+			}
+			if (expectedOutput != TEXTS_NOSORT && expectedOutput != TEXTS_NOSORT_WITH_FILTERS && expectedOutput != TVSERIES_NOSORT && expectedOutput != EPISODES) {
+				StoreResourceSorter.sortResourcesByTitle(newVirtualFoldersResources);
+			}
+			for (StoreResource newResource : newVirtualFoldersResources) {
+				addChild(newResource);
 			}
 		}
 
@@ -722,21 +720,27 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			}
 		}
 
+		List<StoreResource> newFilesResources = new ArrayList<>();
 		for (File file : newFiles) {
 			if (renderer.hasShareAccess(file)) {
 				switch (expectedOutput) {
-					case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> addChild(new RealFile(renderer, file));
-					case EPISODES -> addChild(new MediaLibraryTvEpisode(renderer, file, false));
-					case EPISODES_WITHIN_SEASON -> addChild(new MediaLibraryTvEpisode(renderer, file, true));
-					case PLAYLISTS -> addChild(new PlaylistFolder(renderer, file));
-					case ISOS, ISOS_WITH_FILTERS -> addChild(new DVDISOFile(renderer, file));
+					case FILES, FILES_NOSORT, FILES_NOSORT_DEDUPED, FILES_WITH_FILTERS -> newFilesResources.add(new RealFile(renderer, file));
+					case EPISODES -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, false));
+					case EPISODES_WITHIN_SEASON -> newFilesResources.add(new MediaLibraryTvEpisode(renderer, file, true));
+					case PLAYLISTS -> newFilesResources.add(new PlaylistFolder(renderer, file));
+					case ISOS, ISOS_WITH_FILTERS -> newFilesResources.add(new DVDISOFile(renderer, file));
 					default -> {
 						// nothing to do
 					}
 				}
 			}
 		}
-
+		if (expectedOutput != FILES_NOSORT && expectedOutput != FILES_NOSORT_DEDUPED && expectedOutput != EPISODES) {
+			StoreResourceSorter.sortResourcesByTitle(newFilesResources);
+		}
+		for (StoreResource newResource : newFilesResources) {
+			addChild(newResource);
+		}
 		if (isDiscovered()) {
 			MediaStoreIds.incrementUpdateId(getLongId());
 		}
@@ -769,7 +773,8 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput != TEXTS_NOSORT_WITH_FILTERS &&
 			expectedOutput != TVSERIES_NOSORT &&
 			expectedOutput != FILES_NOSORT_DEDUPED &&
-			expectedOutput != SEASONS;
+			expectedOutput != SEASONS &&
+			expectedOutput != EPISODES;
 	}
 
 	public boolean isTVSeries() {

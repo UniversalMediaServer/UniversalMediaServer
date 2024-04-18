@@ -174,9 +174,9 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
 			//check inetAddress isAllowed
-			InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
-			if (!NetworkDeviceFilter.isAllowed(remoteAddress.getAddress())) {
-				LOGGER.trace("Ip Filtering denying address: {}", remoteAddress.getAddress().getHostAddress());
+			InetSocketAddress remoteSocket = (InetSocketAddress) event.getChannel().getRemoteAddress();
+			if (!NetworkDeviceFilter.isAllowed(remoteSocket.getAddress())) {
+				LOGGER.trace("Ip Filtering denying address: {}", remoteSocket.getAddress().getHostAddress());
 				event.getChannel().close();
 				return;
 			}
@@ -205,7 +205,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			// We pass control to the service, which will (hopefully) start a new thread immediately so we can
 			// continue the receiving thread ASAP
 
-			LOGGER.debug("Received MessageEvent event: {} {}", ((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri());
+			LOGGER.debug("Received MessageEvent event from {}: {} {}", remoteSocket.toString(), ((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri());
 			router.received(
 				new NettyUpnpStream(router.getProtocolFactory(), event)
 			);
