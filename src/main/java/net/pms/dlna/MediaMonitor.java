@@ -246,6 +246,15 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			LOGGER.trace("final decision: fully played");
+			if (fileDuration == 0) {
+				LOGGER.trace("because fileDuration == 0");
+			}
+			if (elapsed > configuration.getMinimumWatchedPlayTimeSeconds()) {
+				LOGGER.trace("because elapsed > configuration.getMinimumWatchedPlayTimeSeconds()");
+			}
+			if (elapsed >= (fileDuration * configuration.getResumeBackFactor())) {
+				LOGGER.trace("because elapsed >= (fileDuration * configuration.getResumeBackFactor())");
+			}
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent == null) {
 				LOGGER.trace("fileParent is null for {}", fullPathToFile);
