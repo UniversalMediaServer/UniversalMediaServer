@@ -13,7 +13,7 @@
 - Bump `org.apache.commons:commons-text` from 1.11.0 to 1.12.0 ([#4600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4600))
 - Bump `org.slf4j:slf4j-api` from 2.0.12 to 2.0.13 ([#4586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4586))
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
-- Bump `typescript` from 5.4.3 to 5.4.4 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570))
+- Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
 
