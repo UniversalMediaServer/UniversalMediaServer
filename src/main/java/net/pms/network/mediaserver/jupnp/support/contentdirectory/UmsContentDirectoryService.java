@@ -656,6 +656,7 @@ public class UmsContentDirectoryService {
 			resultResources.clear();
 			fromIndex = 0;
 			toIndex = 0;
+			count = 0;			
 		}
 
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
