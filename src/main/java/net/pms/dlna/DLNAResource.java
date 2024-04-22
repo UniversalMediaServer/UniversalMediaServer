@@ -3167,15 +3167,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets the most recently requested time offset in seconds.
-	 *
-	 * @param startPosition the time offset in seconds
-	 */
-	public void setLastStartPosition(long startPosition) {
-		lastStartPosition = startPosition;
-	}
-
-	/**
 	 * Returns an InputStream of this DLNAResource that starts at a given time,
 	 * if possible.
 	 * Very useful if video chapters are being used.

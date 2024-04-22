@@ -217,11 +217,11 @@ public class MediaMonitor extends VirtualFolder {
 		 * accurate.
 		 */
 		double elapsed;
-		if (realFile.getLastStartPosition() == 0) {
-			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
-		} else {
+		if (realFile.getLastStartPosition() > 0.0) {
 			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTimeUser()) / 1000;
 			elapsed += realFile.getLastStartPosition();
+		} else {
+			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
 		}
 
 		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
@@ -250,10 +250,11 @@ public class MediaMonitor extends VirtualFolder {
 				LOGGER.trace("because fileDuration == 0");
 			}
 			if (elapsed > configuration.getMinimumWatchedPlayTimeSeconds()) {
-				LOGGER.trace("because elapsed > configuration.getMinimumWatchedPlayTimeSeconds()");
+				LOGGER.trace("because elapsed > configuration.getMinimumWatchedPlayTimeSeconds(): {} vs {}", elapsed, configuration.getMinimumWatchedPlayTimeSeconds());
 			}
 			if (elapsed >= (fileDuration * configuration.getResumeBackFactor())) {
-				LOGGER.trace("because elapsed >= (fileDuration * configuration.getResumeBackFactor())");
+				LOGGER.trace("because elapsed >= (fileDuration * configuration.getResumeBackFactor()): {} vs {}", elapsed, (fileDuration * configuration.getResumeBackFactor()));
+				LOGGER.trace("fileDuration: {} vs {}", elapsed, (fileDuration * configuration.getResumeBackFactor()));
 			}
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent == null) {
