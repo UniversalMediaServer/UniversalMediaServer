@@ -350,7 +350,7 @@ public final class PlaylistFolder extends StoreContainer {
 			if (meta.BITRATE() != null) {
 				was.getMediaAudio().setBitRate(meta.BITRATE());
 			}
-			if (meta.SAMPLE_RATE() != null) {
+			if (meta.SAMPLE_RATE() != null && meta.SAMPLE_RATE() > 0) {
 				was.getMediaAudio().setSampleRate(meta.SAMPLE_RATE());
 			}
 		} catch (Exception e) {
