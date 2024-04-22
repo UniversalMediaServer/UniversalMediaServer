@@ -121,6 +121,7 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final int BUFFER_STREAM = 128 * 1024;
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
 	private static final String HTTPSERVER_RESPONSE_END = "================================== HTTPSERVER RESPONSE END ======================================";
 
@@ -714,7 +715,7 @@ public class RequestV2 extends HTTPResource {
 							event.getChannel().write(output);
 							// Unlock before writing the stream!
 							PMS.REALTIME_LOCK.unlock();
-							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
+							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_STREAM));
 							chunked.addListener(ChannelFutureListener.CLOSE);
 							return chunked;
 						} catch (IOException | InterruptedException e) {
