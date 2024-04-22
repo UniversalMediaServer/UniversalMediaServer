@@ -2,10 +2,8 @@ name: PullRequestConflicting
 
 on:
   push:
-    branches: [ main ]
   pull_request:
     types: [ synchronize ]
-    branches: [ main ]
 
 jobs:
   build:
@@ -16,7 +14,7 @@ jobs:
       run: echo 'aa${{ github.event.pull_request.user.login }}aa'
     - name: check if prs are dirty
       if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
-      uses: eps1lon/actions-label-merge-conflict@releases/2.x
+      uses: eps1lon/actions-label-merge-conflict@v3
       id: check
       with:
         dirtyLabel: "conflicting"
