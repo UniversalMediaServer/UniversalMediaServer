@@ -217,13 +217,12 @@ public class MediaMonitor extends VirtualFolder {
 		 * accurate.
 		 */
 		double elapsed;
-		if (realFile.getLastStartPosition() > 0.0) {
+		if (realFile.getLastStartPosition() > 0.0 && realFile.getLastStartSystemTimeUser() > 0) {
 			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTimeUser()) / 1000;
 			elapsed += realFile.getLastStartPosition();
 			LOGGER.trace("elapsed logging 1: {} and {}", System.currentTimeMillis(), realFile.getLastStartSystemTimeUser());
 		} else {
 			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
-			LOGGER.trace("elapsed logging 2: {} and {}", System.currentTimeMillis(), realFile.getStartTime());
 		}
 
 		FullyPlayedAction fullyPlayedAction = configuration.getFullyPlayedAction();
