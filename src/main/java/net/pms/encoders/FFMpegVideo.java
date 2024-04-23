@@ -866,7 +866,10 @@ public class FFMpegVideo extends Engine {
 		if (
 			configuration.isAudioRemuxAC3() &&
 			params.getAid() != null &&
-			params.getAid().isAC3() &&
+			(
+				params.getAid().isAC3() ||
+				params.getAid().isEAC3()
+			) &&
 			!isAviSynthEngine() &&
 			renderer.isTranscodeToAC3() &&
 			!isXboxOneWebVideo &&
