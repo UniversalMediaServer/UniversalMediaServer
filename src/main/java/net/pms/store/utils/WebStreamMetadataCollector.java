@@ -13,6 +13,7 @@ import de.sfuhrm.radiobrowser4j.ConnectionParams;
 import de.sfuhrm.radiobrowser4j.EndpointDiscovery;
 import de.sfuhrm.radiobrowser4j.RadioBrowser;
 import de.sfuhrm.radiobrowser4j.Station;
+import net.pms.PMS;
 import net.pms.database.MediaTableWebResource;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -31,9 +32,9 @@ public class WebStreamMetadataCollector {
 	private WebStreamMetadataCollector() {
 		Optional<String> endpoint;
 		try {
-			endpoint = new EndpointDiscovery("UMS/14.0").discover();
+			endpoint = new EndpointDiscovery("UMS/" + PMS.getVersion()).discover();
 			radioBrowser = new RadioBrowser(
-				ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("UMS/14.0").timeout(5000).build());
+				ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("UMS/" + PMS.getVersion()).timeout(5000).build());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
