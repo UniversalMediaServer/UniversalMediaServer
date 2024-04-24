@@ -3119,7 +3119,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * @return The system time when the resource was last (re)started
 	 */
-	public double getLastStartSystemTime() {
+	public long getLastStartSystemTime() {
 		return lastStartSystemTime;
 	}
 
@@ -3150,7 +3150,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The system time when the resource was last (re)started
 	 *         by a user.
 	 */
-	public double getLastStartSystemTimeUser() {
+	public long getLastStartSystemTimeUser() {
 		return lastStartSystemTimeUser;
 	}
 
@@ -3166,15 +3166,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public double getLastStartPosition() {
 		return lastStartPosition;
-	}
-
-	/**
-	 * Sets the most recently requested time offset in seconds.
-	 *
-	 * @param startPosition the time offset in seconds
-	 */
-	public void setLastStartPosition(long startPosition) {
-		lastStartPosition = startPosition;
 	}
 
 	/**
