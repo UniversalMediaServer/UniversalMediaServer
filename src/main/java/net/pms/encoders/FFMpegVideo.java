@@ -227,6 +227,13 @@ public class FFMpegVideo extends Engine {
 					params.getSid().isEmbedded() &&
 					isRendererSupportsSoftSubsForThisVideo(renderer, defaultVideoTrack, params)
 				) {
+					/**
+					 * For some reason, FFmpeg loads faster if it looks for the subtitles in a
+					 * second input, even if that is the same file as the first input arg.
+					 * @see https://superuser.com/questions/1839735/is-there-a-way-to-reduce-the-initial-startup-time-for-ffmpeg-when-muxing-subtitl#comment2907753_1839735
+					 */
+					softSubsConfig.add("-i");
+					softSubsConfig.add(filename);
 					softSubsConfig.add("-c:s");
 					softSubsConfig.add("mov_text");
 					isSubsManualTiming = false;
@@ -1115,7 +1122,7 @@ public class FFMpegVideo extends Engine {
 
 		if (isSoftSubsBeingMuxed) {
 			cmdList.add("-map");
-			cmdList.add("0:s:" + params.getSid().getId());
+			cmdList.add("1:s:" + params.getSid().getId());
 		}
 		// Now configure the output streams
 
