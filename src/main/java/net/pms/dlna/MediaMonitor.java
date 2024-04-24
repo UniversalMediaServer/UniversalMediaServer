@@ -220,7 +220,6 @@ public class MediaMonitor extends VirtualFolder {
 		if (realFile.getLastStartPosition() > 0.0 && realFile.getLastStartSystemTimeUser() > 0) {
 			elapsed = (System.currentTimeMillis() - realFile.getLastStartSystemTimeUser()) / 1000;
 			elapsed += realFile.getLastStartPosition();
-			LOGGER.trace("elapsed logging 1: {} and {}", System.currentTimeMillis(), realFile.getLastStartSystemTimeUser());
 		} else {
 			elapsed = (double) (System.currentTimeMillis() - realFile.getStartTime()) / 1000;
 		}
@@ -247,16 +246,6 @@ public class MediaMonitor extends VirtualFolder {
 			elapsed >= (fileDuration * configuration.getResumeBackFactor())
 		) {
 			LOGGER.trace("final decision: fully played");
-			if (fileDuration == 0) {
-				LOGGER.trace("because fileDuration == 0");
-			}
-			if (elapsed > configuration.getMinimumWatchedPlayTimeSeconds()) {
-				LOGGER.trace("because elapsed > configuration.getMinimumWatchedPlayTimeSeconds(): {} vs {}", elapsed, configuration.getMinimumWatchedPlayTimeSeconds());
-			}
-			if (elapsed >= (fileDuration * configuration.getResumeBackFactor())) {
-				LOGGER.trace("because elapsed >= (fileDuration * configuration.getResumeBackFactor()): {} vs {}", elapsed, (fileDuration * configuration.getResumeBackFactor()));
-				LOGGER.trace("fileDuration: {} vs {}", elapsed, (fileDuration * configuration.getResumeBackFactor()));
-			}
 			DLNAResource fileParent = realFile.getParent();
 			if (fileParent == null) {
 				LOGGER.trace("fileParent is null for {}", fullPathToFile);
