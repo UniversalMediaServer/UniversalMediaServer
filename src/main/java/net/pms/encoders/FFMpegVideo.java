@@ -233,7 +233,7 @@ public class FFMpegVideo extends Engine {
 					 * @see https://superuser.com/questions/1839735/is-there-a-way-to-reduce-the-initial-startup-time-for-ffmpeg-when-muxing-subtitl#comment2907753_1839735
 					 */
 					softSubsConfig.add("-i");
-					softSubsConfig.add(filename);
+					softSubsConfig.add(resource.getFileName());
 					softSubsConfig.add("-c:s");
 					softSubsConfig.add("mov_text");
 					isSubsManualTiming = false;
