@@ -1,11 +1,18 @@
 package net.pms.store.utils;
 
+import java.io.IOException;
 import java.net.http.HttpHeaders;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import de.sfuhrm.radiobrowser4j.ConnectionParams;
+import de.sfuhrm.radiobrowser4j.EndpointDiscovery;
+import de.sfuhrm.radiobrowser4j.RadioBrowser;
+import de.sfuhrm.radiobrowser4j.Station;
 import net.pms.database.MediaTableWebResource;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -19,7 +26,19 @@ public class WebStreamMetadataCollector {
 
 	private Executor webStreamExecutor = Executors.newSingleThreadExecutor();
 
+	private RadioBrowser radioBrowser = null;
+
 	private WebStreamMetadataCollector() {
+		Optional<String> endpoint;
+		try {
+			endpoint = new EndpointDiscovery("UMS/14.0").discover();
+			radioBrowser = new RadioBrowser(
+				ConnectionParams.builder().apiUrl(endpoint.get()).userAgent("UMS/14.0").timeout(5000).build());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
 	}
 
 	public static WebStreamMetadataCollector getInstance() {
@@ -27,40 +46,63 @@ public class WebStreamMetadataCollector {
 	}
 
 	public void collectMetadata(String url) {
-		webStreamExecutor.execute(getExecutionForUrl(url));
+		webStreamExecutor.execute(getExecutionForUrl(url, null));
 	}
 
-	private Runnable getExecutionForUrl(String url) {
+	public void collectMetadata(String url, String radioBrowserUUID) {
+		webStreamExecutor.execute(getExecutionForUrl(url, radioBrowserUUID));
+	}
+
+	private Runnable getExecutionForUrl(String url, String radioBrowserUUID) {
 		return new Runnable() {
 
 			@Override
 			public void run() {
-				int type = 0;
-				String ext = "." + FileUtil.getUrlExtension(url);
-				HttpHeaders headHeaders = HttpUtil.getHeaders(url);
-				HttpHeaders inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(url);
-				if (FileUtil.getUrlExtension(url) == null) {
-					LOGGER.debug("URL has no file extension. Analysing internet resource type from content-type HEADER : {}", url);
-					type = getTypeFrom(headHeaders, type);
-					if (type == 0) {
-						type = getTypeFrom(inputStreamHeaders, type);
+				if (StringUtils.isAllBlank(radioBrowserUUID)) {
+					int type = 0;
+					String ext = "." + FileUtil.getUrlExtension(url);
+					HttpHeaders headHeaders = HttpUtil.getHeaders(url);
+					HttpHeaders inputStreamHeaders = HttpUtil.getHeadersFromInputStreamRequest(url);
+					if (FileUtil.getUrlExtension(url) == null) {
+						LOGGER.debug("URL has no file extension. Analysing internet resource type from content-type HEADER : {}", url);
+						type = getTypeFrom(headHeaders, type);
 						if (type == 0) {
-							LOGGER.warn("couldn't determine stream content type for {}", url);
+							type = getTypeFrom(inputStreamHeaders, type);
+							if (type == 0) {
+								LOGGER.warn("couldn't determine stream content type for {}", url);
+							}
 						}
+					} else {
+						LOGGER.debug("analysing internet resource type from file extension of given URL.");
+						Format f = FormatFactory.getAssociatedFormat(ext);
+						int defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
+						type = f == null ? defaultContent : f.getType();
+					}
+					if (type == Format.VIDEO || type == Format.AUDIO) {
+						StreamMeta sm = new StreamMeta();
+						addAudioFormat(sm, headHeaders);
+						addAudioFormat(sm, inputStreamHeaders);
+						WebStreamMetadata wsm = new WebStreamMetadata(url, sm.logo, sm.genre, sm.contentType, sm.sample, sm.bitrate, type);
+						MediaTableWebResource.insertOrUpdateWebResource(wsm);
 					}
 				} else {
-					LOGGER.debug("analysing internet resource type from file extension of given URL.");
-					Format f = FormatFactory.getAssociatedFormat(ext);
-					int defaultContent = (type != 0 && type != Format.UNKNOWN) ? type : Format.VIDEO;
-					type = f == null ? defaultContent : f.getType();
-				}
-
-				if (type == Format.VIDEO || type == Format.AUDIO) {
-					StreamMeta sm = new StreamMeta();
-					addAudioFormat(sm, headHeaders);
-					addAudioFormat(sm, inputStreamHeaders);
-					WebStreamMetadata wsm = new WebStreamMetadata(url, sm.logo, sm.genre, sm.contentType, sm.sample, sm.bitrate, type);
-					MediaTableWebResource.insertOrUpdateWebResource(wsm);
+					try {
+						UUID uuid = UUID.fromString(radioBrowserUUID);
+						Optional<Station> optStation = radioBrowser.getStationByUUID(uuid);
+						Station station = optStation.get();
+						Format f = FormatFactory.getAssociatedFormat("." + station.getCodec());
+						WebStreamMetadata wsm = new WebStreamMetadata(
+							url,
+							station.getFavicon(),
+							station.getTags(),
+							f != null ? f.mimeType() : null,
+							null, // sample rate not available over API
+							station.getBitrate(),
+							Format.AUDIO);
+						MediaTableWebResource.insertOrUpdateWebResource(wsm);
+					} catch (Exception e) {
+						LOGGER.debug("cannot read radio browser metadata for uuid {}", radioBrowserUUID, e);
+					}
 				}
 			}
 		};

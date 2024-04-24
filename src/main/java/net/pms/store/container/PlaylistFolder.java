@@ -57,6 +57,7 @@ public final class PlaylistFolder extends StoreContainer {
 	private class Entry {
 		private String fileName;
 		private String title;
+		private String radioBrowserUUID;
 
 		@Override
 		public String toString() {
@@ -209,58 +210,69 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 			String fileName;
 			String title = null;
-			while ((line = br.readLine()) != null) {
-				line = line.trim();
-				if (pls) {
-					if (line.length() > 0 && !line.startsWith("#")) {
-						int eq = line.indexOf('=');
-						if (eq != -1) {
-							String value = line.substring(eq + 1);
-							String valueType = line.substring(0, eq).toLowerCase();
-							fileName = null;
-							title = null;
-							int index = 0;
-							if (valueType.startsWith("file")) {
-								index = Integer.parseInt(valueType.substring(4));
-								fileName = value;
-							} else if (valueType.startsWith("title")) {
-								index = Integer.parseInt(valueType.substring(5));
-								title = value;
-							}
-							if (index > 0) {
-								while (entries.size() < index) {
-									entries.add(null);
+			String uuid = null;
+
+			if (pls) {
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (pls) {
+						if (line.length() > 0 && !line.startsWith("#")) {
+							int eq = line.indexOf('=');
+							if (eq != -1) {
+								String value = line.substring(eq + 1);
+								String valueType = line.substring(0, eq).toLowerCase();
+								fileName = null;
+								title = null;
+								int index = 0;
+								if (valueType.startsWith("file")) {
+									index = Integer.parseInt(valueType.substring(4));
+									fileName = value;
+								} else if (valueType.startsWith("title")) {
+									index = Integer.parseInt(valueType.substring(5));
+									title = value;
 								}
-								Entry entry = entries.get(index - 1);
-								if (entry == null) {
-									entry = new Entry();
-									entries.set(index - 1, entry);
-								}
-								if (fileName != null) {
-									entry.fileName = fileName;
-								}
-								if (title != null) {
-									entry.title = title;
+								if (index > 0) {
+									while (entries.size() < index) {
+										entries.add(null);
+									}
+									Entry entry = entries.get(index - 1);
+									if (entry == null) {
+										entry = new Entry();
+										entries.set(index - 1, entry);
+									}
+									if (fileName != null) {
+										entry.fileName = fileName;
+									}
+									if (title != null) {
+										entry.title = title;
+									}
 								}
 							}
 						}
 					}
-				} else if (m3u) {
+				}
+			} else {
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
 					if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
 							title = line.substring(line.indexOf(',') + 1).trim();
-						} else {
-							title = line;
 						}
+					} else if (line.startsWith("#RADIOBROWSERUUID:")) {
+						uuid = line.substring(18);
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						// Non-comment and non-empty line contains the filename
 						fileName = line;
 						Entry entry = new Entry();
 						entry.fileName = fileName;
 						entry.title = title;
+						entry.radioBrowserUUID = uuid;
 						entries.add(entry);
 						title = null;
+						uuid = null;
+					} else {
+						title = line;
 					}
 				}
 			}
@@ -287,7 +299,7 @@ public final class PlaylistFolder extends StoreContainer {
 					LOGGER.debug("no metadata available. Getting metadata from stream {} ", entry.fileName);
 					String ext = "." + FileUtil.getUrlExtension(entry.fileName);
 					if (FormatFactory.getAssociatedFormat(ext) == null || FormatFactory.getAssociatedFormat(ext).getType() != Format.PLAYLIST) {
-						WebStreamMetadataCollector.getInstance().collectMetadata(entry.fileName);
+						WebStreamMetadataCollector.getInstance().collectMetadata(entry.fileName, entry.radioBrowserUUID);
 					}
 					resolveEntryAsLocalFile(entry);
 				} else {
