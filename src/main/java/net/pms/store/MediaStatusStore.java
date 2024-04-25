@@ -166,6 +166,8 @@ public class MediaStatusStore {
 		} finally {
 			GuiManager.setStatusLine(null);
 		}
+
+		MediaStoreIds.incrementSystemUpdateId();
 	}
 
 	public static boolean removeMediaEntriesInFolder(String pathToFolder) {

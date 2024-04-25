@@ -33,6 +33,7 @@ import net.pms.database.MediaTableFilesStatus;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
 import net.pms.store.item.RealFile;
@@ -72,6 +73,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 					}
 					mm.setDiscovered(false);
 					mm.getChildren().clear();
+					MediaStoreIds.incrementSystemUpdateId();
 					return true;
 				}
 			});
