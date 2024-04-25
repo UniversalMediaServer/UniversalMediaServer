@@ -2,6 +2,7 @@ package net.pms.store.utils;
 
 import java.io.IOException;
 import java.net.http.HttpHeaders;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Executor;
@@ -95,7 +96,7 @@ public class WebStreamMetadataCollector {
 						WebStreamMetadata wsm = new WebStreamMetadata(
 							url,
 							station.getFavicon(),
-							station.getTags(),
+							getGenres(station.getTagList()),
 							f != null ? f.mimeType() : null,
 							null, // sample rate not available over API
 							station.getBitrate(),
@@ -107,6 +108,23 @@ public class WebStreamMetadataCollector {
 				}
 			}
 		};
+	}
+
+	/**
+	 * Splits tag list " / " separator.
+	 *
+	 * @param tags
+	 * @return
+	 */
+	protected String getGenres(List<String> tags) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < tags.size(); i++) {
+			sb.append(tags.get(i));
+			if (i < tags.size() - 1) {
+				sb.append(" / ");
+			}
+		}
+		return sb.toString();
 	}
 
 	/*
