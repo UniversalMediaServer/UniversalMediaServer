@@ -179,6 +179,13 @@ public class MediaMonitor extends LocalizedStoreContainer {
 
 		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
 		double triggerPlayTime = fileDuration * CONFIGURATION.getResumeBackFactor();
+		double elapsed;
+		if (startPosition > 0D && startTimeUser > 0) {
+			elapsed = (now - startTimeUser) / 1000D;
+			elapsed += startPosition;
+		} else {
+			elapsed = (now - startTime) / 1000D;
+		}
 
 		boolean logTrace = LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION);
 		if (logTrace) {
@@ -190,23 +197,6 @@ public class MediaMonitor extends LocalizedStoreContainer {
 			LOGGER.trace("   getLastStartSystemTimeUser: " + startTimeUser);
 			LOGGER.trace("   minimum play time: " + minimumPlayTime);
 			LOGGER.trace("   triggered fully played time: " + triggerPlayTime);
-		}
-
-		double elapsed;
-		if (startPosition == 0) {
-			elapsed = (now - startTime) / 1000D;
-		} else {
-			elapsed = (now - startTimeUser) / 1000D;
-			if (startTimeUser == 0 || elapsed < minimumPlayTime) {
-				if (logTrace) {
-					LOGGER.trace("   elapsed: " + elapsed);
-				}
-				LOGGER.trace("the minimum play time is not reached");
-				return;
-			}
-			elapsed += startPosition;
-		}
-		if (logTrace) {
 			LOGGER.trace("   elapsed: " + elapsed);
 		}
 

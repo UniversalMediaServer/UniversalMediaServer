@@ -458,7 +458,7 @@ public class MediaStore extends StoreContainer {
 		if (id == null) {
 			return null;
 		}
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
 				return weakResources.get(id).get();
 			} else {
@@ -478,7 +478,7 @@ public class MediaStore extends StoreContainer {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
-			synchronized(weakResources) {
+			synchronized (weakResources) {
 				for (MediaStoreId libraryId : libraryIds) {
 					if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
 						StoreResource resource = weakResources.get(libraryId.getId()).get();
@@ -506,7 +506,7 @@ public class MediaStore extends StoreContainer {
 
 	public boolean weakResourceExists(String objectId) {
 		Long id = parseIndex(objectId);
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
 		}
 	}
@@ -514,7 +514,7 @@ public class MediaStore extends StoreContainer {
 	public boolean addWeakResource(StoreResource resource) {
 		Long id = MediaStoreIds.getMediaStoreResourceId(resource);
 		if (id != null) {
-			synchronized(weakResources) {
+			synchronized (weakResources) {
 				weakResources.put(id, new WeakReference<>(resource));
 				return true;
 			}
@@ -524,7 +524,7 @@ public class MediaStore extends StoreContainer {
 
 	public void replaceWeakResource(StoreResource a, StoreResource b) {
 		Long id = parseIndex(a.getId());
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			if (id != null && weakResources.containsKey(id)) {
 				weakResources.get(id).clear();
 				weakResources.put(id, new WeakReference<>(b));
@@ -534,7 +534,7 @@ public class MediaStore extends StoreContainer {
 
 	public void deleteWeakResource(StoreResource resource) {
 		Long id = parseIndex(resource.getId());
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			if (id != null && weakResources.containsKey(id)) {
 				weakResources.get(id).clear();
 				weakResources.remove(id);
@@ -543,14 +543,14 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public void clearWeakResources() {
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			weakResources.clear();
 		}
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
 		List<StoreResource> systemFileResources = new ArrayList<>();
-		synchronized(weakResources) {
+		synchronized (weakResources) {
 			for (WeakReference<StoreResource> resource : weakResources.values()) {
 				if (resource.get() instanceof SystemFileResource systemFileResource &&
 						file.equals(systemFileResource.getSystemFile()) &&
