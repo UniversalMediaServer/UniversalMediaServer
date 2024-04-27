@@ -738,7 +738,8 @@ public class MediaInfoParser {
 			format = FormatConfiguration.QCELP;
 		} else if (
 			value.matches("(?i)(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(sdcc)|(sl25)|(sl50)|(sldv)") &&
-			!value.contains("dvhe")
+			!value.contains("dvhe") &&
+			!value.contains("dvh1")
 		) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {

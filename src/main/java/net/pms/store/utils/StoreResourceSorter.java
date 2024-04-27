@@ -85,8 +85,8 @@ public class StoreResourceSorter {
 			String str1 = resources1.getLocalizedDisplayName(lang);
 			String str2 = resources2.getLocalizedDisplayName(lang);
 			if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
-				str1 = str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
-				str2 = str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
+				str1 = str1 != null ? str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
+				str2 = str2 != null ? str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
 			}
 			return compareToNormalizedString(str1, str2, asc);
 		});
