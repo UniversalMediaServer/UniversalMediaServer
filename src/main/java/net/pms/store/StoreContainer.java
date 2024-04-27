@@ -480,6 +480,9 @@ public class StoreContainer extends StoreResource {
 				}
 				String str1 = child1.getLocalizedDisplayName(null);
 				String str2 = child2.getLocalizedDisplayName(null);
+				if (str1 == null || str2 == null) {
+					return 0;
+				}
 				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
 					str1 = str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
 					str2 = str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
