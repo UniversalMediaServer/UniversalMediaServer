@@ -438,6 +438,8 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.m3u8";
 						} else if (renderer.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
+						} else if (renderer.isTranscodeToMP4H265AC3()) {
+							transcodedExtension = "_transcoded_to.mp4";
 						} else if (renderer.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
 						} else {
