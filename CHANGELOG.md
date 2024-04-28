@@ -32,6 +32,7 @@
 - Bump `react-router-dom` from 6.22.3 to 6.23.0
 - Bump `@types/react-dom` from 18.2.23 to 18.3.0 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
 - Bump `@types/react` from 18.2.64 to 18.3.1 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
+- Bump `@playwright/test` from 1.42.1 to 1.43.1
 - Update dependency com.github.oshi:oshi-core to v6.5.0
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
