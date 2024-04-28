@@ -3,6 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "proxy": "http://localhost:9001",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview",
+    "test:runserver:macos": "cd ../;./runtestserver.sh",
+    "test:runserver:macos-arm": "cd ../;./runtestserver.sh",
+    "test:prepareserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
+    "test:prepareserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
+    "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
+    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
+  },
+  "packageManager": "yarn@4.1.1",
   "dependencies": {
     "@mantine/core": "7.8.1",
     "@mantine/dropzone": "7.8.1",
@@ -18,55 +32,23 @@
     "react-country-flag": "3.1.0",
     "react-dom": "18.3.1",
     "react-movable": "3.2.0",
-    "react-router-dom": "6.22.3",
+    "react-router-dom": "6.23.0",
     "tabler-icons-react": "1.56.0",
-    "typescript": "5.4.5",
-    "video.js": "8.12.0",
-    "web-vitals": "3.5.2"
+    "video.js": "8.13.0"
   },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "build-player": "REACT_APP_MODE=player react-scripts build",
-    "eject": "react-scripts eject",
-    "test:runserver:macos": "cd ../;./runtestserver.sh",
-    "test:runserver:macos-arm": "cd ../;./runtestserver.sh",
-    "test:prepareserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
-    "test:prepareserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
-    "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
-    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      "supports es6-module"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "packageManager": "yarn@4.1.1",
   "devDependencies": {
-    "@playwright/test": "^1.42.1",
-    "@testing-library/jest-dom": "6.4.2",
-    "@testing-library/react": "15.0.5",
-    "@testing-library/user-event": "14.5.2",
-    "@types/jest": "29.5.12",
     "@types/lodash": "4.17.0",
-    "@types/node": "20.12.7",
     "@types/react": "18.3.1",
     "@types/react-dom": "18.3.0",
     "@typescript-eslint/eslint-plugin": "7.7.1",
     "@typescript-eslint/parser": "7.7.1",
+    "@vitejs/plugin-react": "4.2.1",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.34.1",
-    "react-scripts": "5.0.1"
+    "eslint-plugin-react-hooks": "4.6.2",
+    "eslint-plugin-react-refresh": "0.4.6",
+    "typescript": "5.4.5",
+    "vite": "5.2.10",
+    "web-vitals": "3.5.2"
   }
 }
