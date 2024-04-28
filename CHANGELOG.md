@@ -1,5 +1,51 @@
 # Changelog
 
+## 14.1.0 (Unreleased) - Since 14.0.0 (Unreleased)
+
+### General
+- Implements `Jetty 12` servlets server + client
+- Stop using the deprecated tool 'Create React App'
+- Implements `Vite` as `react-scripts` replacement.
+- Jetty is the default engine, with JUPnP+ (UPnP service as well).
+- The webgui / webplayer are now served by Jetty.
+- Removed the JDK HTTP servlet server personal implementation.
+
+### Dependencies
+- Bump `node.js` from v18.19.0 to v20.12.2
+- Bump `@testing-library/react` from 15.0.2 to 15.0.5
+- Bump `@types/react-dom` from 18.2.25 to 18.3.0
+- Bump `@types/react` from 18.2.79 to 18.3.1
+- Bump `react` from 18.2.0 to 18.3.1
+- Bump `react-dom` from 18.2.0 to 18.3.1
+- Bump `react-router-dom` from 6.22.3 to 6.23.0
+- Bump `node.js` from v18.19.0 to v20.12.2
+- Bump `mantine` from 7.4.0 to 7.8.0
+- Bump `video.js` from 8.8.0 to 8.12.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `typescript` from 5.4.4 to 5.4.5
+- Bump `@types/node` from 18.19.28 to 20.12.7
+- Bump `@types/react` from 18.2.78 to 18.2.79
+- Bump `@types/react-dom` from 18.2.23 to 18.2.25
+- Bump `"@typescript-eslint/eslint-plugin` from 7.6.0 to 7.7.0
+- Bump `"@typescript-eslint/parser` from 7.6.0 to 7.7.0
+- Bump `react` from 18.2.0 to 18.3.1
+- Bump `react-dom` from 18.2.0 to 18.3.1
+- Bump `react-router-dom` from 6.22.3 to 6.23.0
+- Bump `@types/react-dom` from 18.2.23 to 18.3.0 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
+- Bump `@types/react` from 18.2.64 to 18.3.1 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
+- Update dependency com.github.oshi:oshi-core to v6.5.0
+- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
+- Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
+- Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
+- Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
+- Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.10.1 to 5.10.2
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.10.1 to 5.10.2
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2
+- Bump `com.fasterxml.jackson.core:jackson-core` from 2.16.1 to 2.17.0
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.0
+- Bump `com.fasterxml.jackson.core:jackson-annotations` from 2.16.1 to 2.17.0
+
 ## [Unreleased]
 
 ### Dependencies
@@ -17,9 +63,6 @@
 - Bump `org.slf4j:slf4j-api` from 2.0.12 to 2.0.13 ([#4586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4586))
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
 - Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
-- Bump `react` from 18.2.0 to 18.3.1
-- Bump `react-dom` from 18.2.0 to 18.3.1
-- Bump `react-router-dom` from 6.22.3 to 6.23.0
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
 
@@ -97,7 +140,6 @@
 - Reorganized some settings on the old GUI to match the new one
 - Made API metadata insertion more stable
 - Improved device discovery stability and speed
-- Implements Jetty 12 servlets server + client
 - All changes from 13.10.0
 
 ### Renderers
@@ -106,29 +148,10 @@
 - Added support for Naim Mu-So Qb wireless music system
 
 ### Dependencies
-- Bump `node.js` from v18.19.0 to v20.12.2
-- Bump `yarn` from 4.0.2 to 4.1.1
-- Bump `mantine` from 7.4.0 to 7.8.0
-- Bump `video.js` from 8.8.0 to 8.12.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
-- Bump `typescript` from 5.4.4 to 5.4.5
-- Bump `@types/node` from 18.19.28 to 20.12.7
-- Bump `@types/react` from 18.2.78 to 18.2.79
-- Bump `@types/react-dom` from 18.2.23 to 18.2.25
-- Bump `"@typescript-eslint/eslint-plugin` from 7.6.0 to 7.7.0
-- Bump `"@typescript-eslint/parser` from 7.6.0 to 7.7.0
+- Bump `mantine` from 7.4.0 to 7.5.3
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Update dependency com.github.oshi:oshi-core to v6.5.0
-- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
-- Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
-- Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
-- Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
-- Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6
-- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5
-- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.10.1 to 5.10.2
-- Bump `org.junit.jupiter:junit-jupiter-api` from 5.10.1 to 5.10.2
-- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2
-- Bump `com.fasterxml.jackson.core:jackson-core` from 2.16.1 to 2.17.0
-- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.0
-- Bump `com.fasterxml.jackson.core:jackson-annotations` from 2.16.1 to 2.17.0
+- Bump `yarn` from 4.0.2 to 4.1.1
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
