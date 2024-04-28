@@ -651,6 +651,12 @@ public class UmsContentDirectoryService {
 			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
 		}
 		long count = (long) toIndex - fromIndex;
+		if (count < 0) {
+			LOGGER.debug("requested objects out of range.");
+			fromIndex = 0;
+			toIndex = 0;
+			count = 0;
+		}
 
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		LOGGER.trace("Creating DIDL result");
@@ -860,6 +866,12 @@ public class UmsContentDirectoryService {
 			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
 		}
 		long count = (long) toIndex - fromIndex;
+		if (count < 0) {
+			LOGGER.debug("requested objects out of range.");
+			fromIndex = 0;
+			toIndex = 0;
+			count = 0;
+		}
 
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		String result;

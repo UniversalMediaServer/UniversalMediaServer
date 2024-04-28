@@ -5,14 +5,18 @@
 ### Dependencies
 - Bump `@testing-library/react` from 14.2.1 to 15.0.2 ([#4583](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4583))
 - Bump `@types/lodash` from 4.14.202 to 4.17.0 ([#4569](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4569))
-- Bump `@types/react` from 18.2.64 to 18.2.78 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582))
-- Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
-- Bump `@typescript-eslint/parser` from 7.4.0 to 7.6.0 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581))
+- Bump `@types/node` from 18.19.28 to 18.19.31 ([#4597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4597))
+- Bump `@types/react-dom` from 18.2.23 to 18.2.25 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
+- Bump `@types/react` from 18.2.64 to 18.2.79 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
+- Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.7.1 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581), [#4603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4603))
+- Bump `@typescript-eslint/parser` from 7.4.0 to 7.7.1 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581), [#4603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4603))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
-- Bump `logback-version` from 1.5.3 to 1.5.5 ([#4584](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4584))
+- Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
+- Bump `logback-version` from 1.5.3 to 1.5.6 ([#4584](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4584), [#4599](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4599))
+- Bump `org.apache.commons:commons-text` from 1.11.0 to 1.12.0 ([#4600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4600))
 - Bump `org.slf4j:slf4j-api` from 2.0.12 to 2.0.13 ([#4586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4586))
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
-- Bump `typescript` from 5.4.3 to 5.4.4 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570))
+- Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
 
 ## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
 
