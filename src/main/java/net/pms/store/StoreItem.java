@@ -757,15 +757,6 @@ public abstract class StoreItem extends StoreResource {
 		return lastStartPosition;
 	}
 
-	/**
-	 * Sets the most recently requested time offset in seconds.
-	 *
-	 * @param startPosition the time offset in seconds
-	 */
-	public void setLastStartPosition(long startPosition) {
-		lastStartPosition = startPosition;
-	}
-
 	public abstract InputStream getInputStream() throws IOException;
 
 	/**
