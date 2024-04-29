@@ -15,6 +15,7 @@
 - Bump `logback-version` from 1.5.3 to 1.5.6 ([#4584](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4584), [#4599](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4599))
 - Bump `org.apache.commons:commons-text` from 1.11.0 to 1.12.0 ([#4600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4600))
 - Bump `org.slf4j:slf4j-api` from 2.0.12 to 2.0.13 ([#4586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4586))
+- Bump `stylis` from 4.3.1 to 4.3.2 ([#4617](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4617))
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
 - Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
 
