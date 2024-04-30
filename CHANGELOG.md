@@ -1,6 +1,18 @@
 # Changelog
 
-## [Unreleased]
+## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2023-04-30)
+
+### General
+- Fixed MP4 and WMV transcoding
+- Fixed MKV detection on some renderers
+- Fixed detection of Dolby Vision hvc1 variant
+- Fixed FFmpeg not remuxing E-AC3 when supported
+- Fixed videos being incorrectly marked as fully played
+
+### Renderers
+- Improved support for MP4 files on Samsung QLED TVs
+- Improved detection of Samsung QLED TVs
+- Fixed playback of H.264 videos over level 4.2 on PS4
 
 ### Dependencies
 - Bump `@testing-library/react` from 14.2.1 to 15.0.2 ([#4583](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4583))
@@ -12,6 +24,7 @@
 - Bump `@typescript-eslint/parser` from 7.4.0 to 7.7.1 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581), [#4603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4603))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
 - Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
+- Bump `JRE` from `17.0.10` to `17.0.11`
 - Bump `logback-version` from 1.5.3 to 1.5.6 ([#4584](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4584), [#4599](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4599))
 - Bump `org.apache.commons:commons-text` from 1.11.0 to 1.12.0 ([#4600](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4600))
 - Bump `org.slf4j:slf4j-api` from 2.0.12 to 2.0.13 ([#4586](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4586))
