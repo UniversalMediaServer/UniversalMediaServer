@@ -29,7 +29,6 @@ public abstract class WebGuiServer implements IGui {
 
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private String statusLine;
 
 	private String statusLine;
 
