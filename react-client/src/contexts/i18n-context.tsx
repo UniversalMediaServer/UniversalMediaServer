@@ -14,27 +14,28 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
+import { Direction } from '@mantine/core';
 import { Context, createContext } from 'react';
 
-export const i18nContext: Context<{
-  get: { [key: string]: string };
-  getI18nString: (value: string) => string;
-  getI18nFormat: (value: string[]) => string;
-  language: string;
-  rtl: boolean;
-  languages: LanguageValue[];
-  setLanguage: (language: string) => void;
-}> = createContext({
-  get: {},
+export const I18nContext: Context<I18nInterface> = createContext({
+  get: (value: string) => { return value },
   getI18nString: (value: string) => { return value },
   getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },
   language: 'en-US',
-  rtl: false as boolean,
+  dir: 'ltr' as Direction,
   languages: [] as LanguageValue[],
-  setLanguage: (language: string) => { }
+  setLanguage: (_language: string) => { }
 });
 
-export default i18nContext;
+export interface I18nInterface {
+  get: (value: string) => string;
+  getI18nString: (value: string) => string;
+  getI18nFormat: (value: string[]) => string;
+  language: string;
+  dir: Direction;
+  languages: LanguageValue[];
+  setLanguage: (language: string) => void;
+}
 
 export interface LanguageValue {
   id: string,
@@ -43,3 +44,5 @@ export interface LanguageValue {
   country: string,
   coverage: number,
 }
+
+export default I18nContext;

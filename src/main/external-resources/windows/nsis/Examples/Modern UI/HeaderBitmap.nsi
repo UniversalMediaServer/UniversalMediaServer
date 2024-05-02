@@ -13,6 +13,7 @@
   ;Name and file
   Name "Modern UI Test"
   OutFile "HeaderBitmap.exe"
+  Unicode True
 
   ;Default installation folder
   InstallDir "$LOCALAPPDATA\Modern UI Test"

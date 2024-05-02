@@ -21,13 +21,14 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import net.pms.media.metadata.ApiStringArray;
-import org.apache.commons.lang3.StringUtils;
+import java.util.ArrayList;
+import java.util.List;
+import net.pms.media.video.metadata.ApiStringArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class MediaTableVideoMetadataGenres extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableVideoMetadataGenres.class);
 	public static final String TABLE_NAME = "VIDEO_METADATA_GENRES";
 
@@ -35,14 +36,17 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
+	 *
+	 * Version notes:
+	 * - 3: FILEID and TVSERIESID as BIGINT
 	 */
-	private static final int TABLE_VERSION = 2;
+	private static final int TABLE_VERSION = 3;
 
 	/**
 	 * COLUMNS NAMES
 	 */
 	private static final String COL_ID = "ID";
-	private static final String COL_FILEID = "FILEID";
+	private static final String COL_FILEID = MediaTableFiles.CHILD_ID;
 	private static final String COL_TVSERIESID = MediaTableTVSeries.CHILD_ID;
 	public static final String COL_GENRE = "GENRE";
 
@@ -50,24 +54,16 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * COLUMNS with table name
 	 */
 	public static final String TABLE_COL_FILEID = TABLE_NAME + "." + COL_FILEID;
-	public static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
+	protected static final String TABLE_COL_TVSERIESID = TABLE_NAME + "." + COL_TVSERIESID;
 	public static final String TABLE_COL_GENRE = TABLE_NAME + "." + COL_GENRE;
-
-	/**
-	 * SQL Jointures
-	 */
-	public static final String SQL_LEFT_JOIN_TABLE_TV_SERIES = LEFT_JOIN + MediaTableTVSeries.TABLE_NAME + " ON " + TABLE_COL_TVSERIESID + " = " + MediaTableTVSeries.TABLE_COL_ID + " ";
-	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + " ON " + TABLE_COL_FILEID + " = " + MediaTableVideoMetadata.TABLE_COL_FILEID + " ";
 
 	/**
 	 * SQL Queries
 	 */
 	private static final String SQL_GET_GENRE_FILEID = SELECT + TABLE_COL_GENRE + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
 	private static final String SQL_GET_GENRE_TVSERIESID = SELECT + TABLE_COL_GENRE + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
-	private static final String SQL_GET_TVSERIESID_EXISTS = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER + AND + TABLE_COL_GENRE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_GET_FILEID_EXISTS = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER + AND + TABLE_COL_GENRE + EQUAL + PARAMETER + LIMIT_1;
-	private static final String SQL_INSERT_TVSERIESID = INSERT_INTO + TABLE_NAME + " (" + COL_TVSERIESID + ", " + COL_GENRE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
-	private static final String SQL_INSERT_FILEID = INSERT_INTO + TABLE_NAME + " (" + COL_FILEID + ", " + COL_GENRE + ") VALUES (" + PARAMETER + ", " + PARAMETER + ")";
+	private static final String SQL_GET_ALL_FILEID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILEID + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_TVSERIESID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_TVSERIESID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -128,6 +124,10 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.TABLE_NAME + "(" + MediaTableVideoMetadata.COL_FILEID + ") ON DELETE CASCADE");
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD CONSTRAINT " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.TABLE_NAME + "(" + MediaTableTVSeries.COL_ID + ") ON DELETE CASCADE");
 				}
+				case 2 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILEID + BIGINT);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSERIESID + BIGINT);
+				}
 				default -> {
 					throw new IllegalStateException(getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION));
 				}
@@ -137,12 +137,12 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID            + IDENTITY          + PRIMARY_KEY + COMMA +
-				COL_TVSERIESID    + INTEGER                         + COMMA +
-				COL_FILEID        + INTEGER                         + COMMA +
+				COL_TVSERIESID    + BIGINT                          + COMMA +
+				COL_FILEID        + BIGINT                          + COMMA +
 				COL_GENRE         + VARCHAR_1024      + NOT_NULL    + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILEID + FK_MARKER + FOREIGN_KEY + "(" + COL_FILEID + ")" + REFERENCES + MediaTableVideoMetadata.REFERENCE_TABLE_COL_FILE_ID + ON_DELETE_CASCADE + COMMA +
 				CONSTRAINT + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TVSERIESID + FK_MARKER + FOREIGN_KEY + "(" + COL_TVSERIESID + ")" + REFERENCES + MediaTableTVSeries.REFERENCE_TABLE_COL_ID + ON_DELETE_CASCADE +
@@ -159,51 +159,50 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 	 * @param tvSeriesID
 	 */
 	public static void set(final Connection connection, final Long fileId, final ApiStringArray genres, final Long tvSeriesID) {
-		if (genres == null || genres.isEmpty()) {
+		if (genres == null) {
 			return;
 		}
 		final String sqlSelect;
-		final String sqlInsert;
-		final int id;
+		final String tableColumn;
+		final long id;
 		if (tvSeriesID != null) {
-			sqlSelect = SQL_GET_TVSERIESID_EXISTS;
-			sqlInsert = SQL_INSERT_TVSERIESID;
-			id = tvSeriesID.intValue();
+			sqlSelect = SQL_GET_ALL_TVSERIESID;
+			tableColumn = COL_TVSERIESID;
+			id = tvSeriesID;
 		} else if (fileId != null) {
-			sqlSelect = SQL_GET_FILEID_EXISTS;
-			sqlInsert = SQL_INSERT_FILEID;
-			id = fileId.intValue();
+			sqlSelect = SQL_GET_ALL_FILEID;
+			tableColumn = COL_FILEID;
+			id = fileId;
 		} else {
 			return;
 		}
 
+		List<String> newGenres = new ArrayList<>(genres);
 		try {
-			for (String genre : genres) {
-				try (PreparedStatement ps = connection.prepareStatement(sqlSelect)) {
-					ps.setInt(1, id);
-					ps.setString(2, StringUtils.left(genre, 1024));
-					try (ResultSet rs = ps.executeQuery()) {
-						if (rs.next()) {
-							LOGGER.trace("Record already exists {} {} {}", tvSeriesID, fileId, genre);
+			try (PreparedStatement ps = connection.prepareStatement(sqlSelect, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+				ps.setLong(1, id);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						String genre = rs.getString(COL_GENRE);
+						if (newGenres.contains(genre)) {
+							LOGGER.trace("Record \"{}\" already exists {} {} {}", genre, tableColumn, id);
+							newGenres.remove(genre);
 						} else {
-							try (PreparedStatement insertStatement = connection.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
-								insertStatement.clearParameters();
-								insertStatement.setInt(1, id);
-								insertStatement.setString(2, StringUtils.left(genre, 1024));
-
-								insertStatement.executeUpdate();
-								try (ResultSet rs2 = insertStatement.getGeneratedKeys()) {
-									if (rs2.next()) {
-										LOGGER.trace("Set new entry successfully in " + TABLE_NAME + " with \"{}\", \"{}\" and \"{}\"", fileId, tvSeriesID, genre);
-									}
-								}
-							}
+							LOGGER.trace("Removing record \"{}\" for {} {}", genre, tableColumn, id);
+							rs.deleteRow();
 						}
+					}
+					for (String genre : newGenres) {
+						rs.moveToInsertRow();
+						rs.updateLong(tableColumn, id);
+						rs.updateString(COL_GENRE, genre);
+						rs.insertRow();
+						LOGGER.trace("Set new entry \"{}\" successfully in " + TABLE_NAME + " with {} {}", genre, tableColumn, id);
 					}
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing genres", TABLE_NAME, fileId, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "writing", TABLE_NAME, fileId, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

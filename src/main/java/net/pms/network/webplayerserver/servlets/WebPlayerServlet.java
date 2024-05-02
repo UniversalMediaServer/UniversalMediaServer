@@ -16,43 +16,41 @@
  */
 package net.pms.network.webplayerserver.servlets;
 
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @WebServlet(name = "WebPlayerServlet", urlPatterns = {"/"}, displayName = "Player Servlet")
 public class WebPlayerServlet extends GuiHttpServlet {
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServlet.class);
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServlet.class);
 	private static final String BASE_PATH = "/";
 	private static final String ABOUT_BASE_PATH = BASE_PATH + "about";
 	private static final String PLAYER_BASE_PATH = BASE_PATH + "player";
-
 	private static final List<String> ROUTES = List.of(
-		ABOUT_BASE_PATH,
-		PLAYER_BASE_PATH
+			ABOUT_BASE_PATH,
+			PLAYER_BASE_PATH
 	);
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String uri = req.getServletPath() != null ? req.getServletPath().toLowerCase() : "/index.html";
+			String uri = req.getPathInfo() != null ? req.getPathInfo().toLowerCase() : BASE_PATH;
 			if (uri.equals(BASE_PATH) || ROUTES.contains(uri) || uri.startsWith(PLAYER_BASE_PATH)) {
 				uri = "/index.html";
 			}
 			if (uri.startsWith("/static/")) {
 				resp.setHeader("Cache-Control", "public, max-age=604800");
 			}
-			if (!WebGuiServletHelper.writeAsync(req, resp, uri.substring(1))) {
+			if (!writeAsync(req, resp, uri.substring(1))) {
 				// The resource manager can't found or send the file, we need to send a response.
 				LOGGER.trace("WebPlayerServlet request not available : {}", req.getRequestURI());
-				WebGuiServletHelper.respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
+				respond(req, resp, "<html><body>404 - File Not Found: " + req.getRequestURI() + "</body></html>", 404, "text/html");
 			}
 		} catch (IOException e) {
 			throw e;

@@ -16,16 +16,15 @@
  */
 package net.pms.media.subtitle;
 
-import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
+import net.pms.TestHelper;
 import static net.pms.formats.v2.SubtitleType.*;
 import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.LoggerFactory;
 
 public class MediaSubtitleTest {
 	private final Class<?> CLASS = MediaSubtitleTest.class;
@@ -35,9 +34,7 @@ public class MediaSubtitleTest {
 	 */
 	@BeforeEach
 	public final void setUp() {
-		// Silence all log messages from the PMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test

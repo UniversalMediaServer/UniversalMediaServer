@@ -19,25 +19,25 @@ package net.pms.network.webguiserver.servlets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.sun.jna.Platform;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.Arrays;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.Feed;
 import net.pms.iam.Account;
+import net.pms.iam.AccountService;
 import net.pms.iam.AuthService;
+import net.pms.iam.Group;
 import net.pms.iam.Permissions;
 import net.pms.network.webguiserver.GuiHttpServlet;
-import net.pms.network.webguiserver.WebGuiServletHelper;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.container.Feed;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,8 +47,8 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "SharedContentApiServlet", urlPatterns = {"/v1/api/shared"}, displayName = "Shared Content Api Servlet")
 public class SharedContentApiServlet extends GuiHttpServlet {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(SharedContentApiServlet.class);
-	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -57,27 +57,34 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 			if (path.equals("/")) {
 				Account account = AuthService.getAccountLoggedIn(req.getHeader("Authorization"), req.getRemoteAddr(), req.getRemoteAddr().equals(req.getLocalAddr()));
 				if (account == null) {
-					WebGuiServletHelper.respondUnauthorized(req, resp);
+					respondUnauthorized(req, resp);
 					return;
 				}
 				if (!account.havePermission(Permissions.SETTINGS_VIEW | Permissions.SETTINGS_MODIFY)) {
-					WebGuiServletHelper.respondForbidden(req, resp);
+					respondForbidden(req, resp);
 					return;
 				}
 				JsonObject jsonResponse = new JsonObject();
 
 				// immutable data
-				jsonResponse.addProperty("use_cache", CONFIGURATION.getUseCache());
 				jsonResponse.add("shared_content", SharedContentConfiguration.getAsJsonArray());
-				WebGuiServletHelper.respond(req, resp, jsonResponse.toString(), 200, "application/json");
+				jsonResponse.addProperty("show_itunes_library", Platform.isMac() || Platform.isWindows());
+				jsonResponse.addProperty("show_iphoto_library", Platform.isMac());
+				jsonResponse.addProperty("show_aperture_library", Platform.isMac());
+				JsonArray jGroups = new JsonArray();
+				for (Group group : AccountService.getAllGroups()) {
+					jGroups.add(groupToJsonObject(group));
+				}
+				jsonResponse.add("groups", jGroups);
+				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
 				LOGGER.trace("SharedContentApiServlet request not available : {}", path);
-				WebGuiServletHelper.respondNotFound(req, resp);
+				respondNotFound(req, resp);
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+			respondInternalServerError(req, resp);
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SharedContentApiServlet.doGet(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -92,51 +99,51 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 				case "/" -> {
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
 					// Here we possibly received some updates to shared content values
-					JsonObject data = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject data = getJsonObjectFromBody(req);
 					if (data.has("shared_content") && data.get("shared_content").isJsonArray()) {
 						SharedContentConfiguration.setFromJsonArray(data.get("shared_content").getAsJsonArray());
 					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				case "/directories" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject post = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject post = getJsonObjectFromBody(req);
 					String directoryResponse = getDirectoryResponse(post);
 					if (directoryResponse == null) {
-						WebGuiServletHelper.respondNotFound(req, resp, "Directory does not exist");
+						respondNotFound(req, resp, "Directory does not exist");
 						return;
 					}
-					WebGuiServletHelper.respond(req, resp, directoryResponse, 200, "application/json");
+					respond(req, resp, directoryResponse, 200, "application/json");
 				}
 				case "/web-content-name" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
 					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
+					JsonObject request = getJsonObjectFromBody(req);
 					if (request.has("source")) {
 						String webContentName;
 						try {
@@ -144,46 +151,49 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 						} catch (Exception e) {
 							webContentName = "";
 						}
-						WebGuiServletHelper.respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
+						respond(req, resp, "{\"name\": \"" + webContentName + "\"}", 200, "application/json");
 					} else {
-						WebGuiServletHelper.respondBadRequest(req, resp);
+						respondBadRequest(req, resp);
 					}
 				}
 				case "/mark-directory" -> {
 					//only logged users for security concerns
 					Account account = AuthService.getAccountLoggedIn(req);
 					if (account == null) {
-						WebGuiServletHelper.respondUnauthorized(req, resp);
+						respondUnauthorized(req, resp);
 						return;
 					}
-					if (!account.havePermission(Permissions.SETTINGS_MODIFY)) {
-						WebGuiServletHelper.respondForbidden(req, resp);
+					if (!account.havePermission(Permissions.SETTINGS_VIEW)) {
+						respondForbidden(req, resp);
 						return;
 					}
-					JsonObject request = WebGuiServletHelper.getJsonObjectFromBody(req);
-
+					JsonObject request = getJsonObjectFromBody(req);
 					String directory = request.get("directory").getAsString();
-					Boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					boolean isPlayed = request.get("isPlayed").getAsBoolean();
+					int userId = account.getUser().getId();
+					if (userId == Integer.MAX_VALUE) {
+						userId = 0;
+					}
 					Connection connection = null;
 					try {
 						connection = MediaDatabase.getConnectionIfAvailable();
 						if (connection != null) {
-							MediaTableFilesStatus.setDirectoryFullyPlayed(connection, directory, isPlayed);
+							MediaStatusStore.setDirectoryFullyPlayed(connection, directory, userId, isPlayed);
 						}
 					} finally {
 						MediaDatabase.close(connection);
 					}
-					WebGuiServletHelper.respond(req, resp, "{}", 200, "application/json");
+					respond(req, resp, "{}", 200, "application/json");
 				}
 				default -> {
 					LOGGER.trace("SettingsApiServlet request not available : {}", path);
-					WebGuiServletHelper.respondNotFound(req, resp);
+					respondNotFound(req, resp);
 				}
 			}
 		} catch (RuntimeException e) {
 			LOGGER.trace("", e);
-			WebGuiServletHelper.respondInternalServerError(req, resp);
-		} catch (Exception e) {
+			respondInternalServerError(req, resp);
+		} catch (IOException e) {
 			// Nothing should get here, this is just to avoid crashing the thread
 			LOGGER.error("Unexpected error in SettingsApiServlet.doPost(): {}", e.getMessage());
 			LOGGER.trace("", e);
@@ -215,7 +225,7 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 			return null;
 		}
 		File[] directories = requestedDirectoryFile.listFiles(
-			(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
+				(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
 		);
 		Arrays.sort(directories);
 		JsonArray jsonArray = new JsonArray();
@@ -266,6 +276,12 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 		jsonResponse.add("parents", new JsonArray());
 		jsonResponse.add("separator", new JsonPrimitive(File.separator));
 		return jsonResponse.toString();
+	}
+
+	private static JsonObject groupToJsonObject(Group group) {
+		JsonObject jObject = GSON.toJsonTree(group).getAsJsonObject();
+		jObject.remove("permissions");
+		return jObject;
 	}
 
 }

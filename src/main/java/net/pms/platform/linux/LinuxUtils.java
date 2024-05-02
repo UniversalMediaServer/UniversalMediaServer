@@ -62,8 +62,8 @@ public class LinuxUtils extends PlatformUtils {
 			}
 			try {
 				final String command = "id -Gn";
-				LOGGER.trace("isAdmin: Executing \"{}\"", command);
-				Process p = Runtime.getRuntime().exec(command);
+				LOGGER.trace("isAdmin: Executing \"id -Gn\"");
+				Process p = Runtime.getRuntime().exec(new String[] {"id", "-Gn"});
 				InputStream is = p.getInputStream();
 				InputStreamReader isr = new InputStreamReader(is, StandardCharsets.US_ASCII);
 				int exitValue;
@@ -75,7 +75,7 @@ public class LinuxUtils extends PlatformUtils {
 				}
 
 				if (exitValue != 0 || exitLine == null || exitLine.isEmpty()) {
-					LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", command, exitValue);
+					LOGGER.error("Could not determine root privileges, \"{}\" ended with exit code: {}", "id -Gn", exitValue);
 					isAdmin = false;
 					return false;
 				}
@@ -117,8 +117,8 @@ public class LinuxUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown -h now";
+	public String[] getShutdownCommand() {
+		return new String[] {"shutdown", "-h", "now"};
 	}
 
 	// destroy a process safely (kill -TERM on Unix)

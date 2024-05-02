@@ -18,6 +18,8 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -25,15 +27,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.StringTokenizer;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
-import net.pms.dlna.TimeRange;
-import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.chapter.MediaChapter;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.util.Range;
+import net.pms.util.TimeRange;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -47,9 +51,10 @@ import org.apache.commons.lang3.StringUtils;
  * You SHOULD NOT use HE-AAC if your audio bit rate is above 64 kbit/s.
  */
 public class HlsHelper {
-	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String NONE_CONF_NAME = "NONE";
 	private static final String COPY_CONF_NAME = "COPY";
+	private static final DateTimeFormatter CHAPTERS_TIMESTAMP_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -115,13 +120,13 @@ public class HlsHelper {
 	    You must use at least protocol version 8 if you use variable substitution.
 	*/
 
-	public static String getHLSm3u8(DLNAResource dlna, Renderer renderer, String baseUrl) {
-		if (dlna.getMedia() != null) {
+	public static String getHLSm3u8(StoreItem resource, Renderer renderer, String baseUrl) {
+		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			MediaInfo mediaVideo = dlna.getMedia();
+			MediaInfo mediaVideo = resource.getMediaInfo();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaVideo.getHeight() * 1.05);
-			String id = dlna.getResourceId();
+			String id = resource.getResourceId();
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
 			if (hlsVersion > 1) {
@@ -130,13 +135,13 @@ public class HlsHelper {
 			//add audio languages
 			List<HlsAudioConfiguration> audioGroups = new ArrayList<>();
 			MediaAudio mediaAudioDefault = null;
-			if (!mediaVideo.getAudioTracksList().isEmpty()) {
+			if (!mediaVideo.getAudioTracks().isEmpty()) {
 				//try to find the preferred language
 				mediaAudioDefault = null;
 				StringTokenizer st = new StringTokenizer(CONFIGURATION.getAudioLanguages(), ",");
 				while (st.hasMoreTokens() && mediaAudioDefault == null) {
 					String lang = st.nextToken().trim();
-					for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+					for (MediaAudio mediaAudio : mediaVideo.getAudioTracks()) {
 						if (mediaAudio.matchCode(lang)) {
 							mediaAudioDefault = mediaAudio;
 							break;
@@ -158,7 +163,7 @@ public class HlsHelper {
 			Map<String, Integer> audioNames = new HashMap<>();
 			for (HlsAudioConfiguration audioGroup : audioGroups) {
 				String groupId = audioGroup.label;
-				for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
+				for (MediaAudio mediaAudio : mediaVideo.getAudioTracks()) {
 					sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"").append(groupId).append("\",LANGUAGE=\"");
 					sb.append(mediaAudio.getLang()).append("\",NAME=\"");
 					String audioName = mediaAudio.getLangFullName();
@@ -193,8 +198,8 @@ public class HlsHelper {
 					sb.append(",DEFAULT=").append(mediaSubtitle.isDefault() ? "YES" : "NO");
 					sb.append(",FORCED=NO");
 					String subtitleName;
-					if (StringUtils.isNotBlank(mediaSubtitle.getSubtitlesTrackTitleFromMetadata())) {
-						subtitleName = mediaSubtitle.getSubtitlesTrackTitleFromMetadata();
+					if (StringUtils.isNotBlank(mediaSubtitle.getTitle())) {
+						subtitleName = mediaSubtitle.getTitle();
 					} else if (StringUtils.isNotBlank(mediaSubtitle.getName())) {
 						subtitleName = mediaSubtitle.getName();
 					} else if (StringUtils.isNotBlank(mediaSubtitle.getLangFullName())) {
@@ -233,7 +238,7 @@ public class HlsHelper {
 				for (HlsAudioConfiguration audioGroup : audioGroups) {
 					sb.append("#EXT-X-STREAM-INF:BANDWIDTH=");
 					if (videoGroup.label.equals(COPY_CONF_NAME)) {
-						sb.append(mediaVideo.getBitrate());
+						sb.append(mediaVideo.getBitRate());
 						sb.append(",RESOLUTION=").append(mediaVideo.getWidth()).append("x").append(mediaVideo.getHeight());
 						sb.append(",AUDIO=\"").append(audioGroup.label).append("\"");
 						sb.append(",CODECS=\"").append("avc1.64001e");
@@ -270,12 +275,12 @@ public class HlsHelper {
 	*/
 	public static final double DEFAULT_TARGETDURATION = 6;
 
-	public static String getHLSm3u8ForRendition(DLNAResource dlna, Renderer renderer, String baseUrl, String rendition) {
-		if (dlna.getMedia() != null) {
+	public static String getHLSm3u8ForRendition(StoreItem resource, Renderer renderer, String baseUrl, String rendition) {
+		if (resource.getMediaInfo() != null) {
 			int hlsVersion = renderer.getHlsVersion();
-			Double duration = dlna.getMedia().getDuration();
+			Double duration = resource.getMediaInfo().getDuration();
 			double partLen = duration;
-			String id = dlna.getResourceId();
+			String id = resource.getResourceId();
 			String targetDurationStr = String.valueOf(Double.valueOf(Math.ceil(DEFAULT_TARGETDURATION)).intValue());
 			String defaultDurationStr = hlsVersion > 2 ? String.format(Locale.ENGLISH, "%.6f", DEFAULT_TARGETDURATION) : targetDurationStr;
 			String filename = rendition.startsWith(NONE_CONF_NAME + "_" + NONE_CONF_NAME + "_") ? "vtt" : "ts";
@@ -309,7 +314,7 @@ public class HlsHelper {
 		return null;
 	}
 
-	public static TimeRange getTimeRange(String url) {
+	private static TimeRange getTimeRange(String url) {
 		if (!url.contains("/")) {
 			return null;
 		}
@@ -328,7 +333,7 @@ public class HlsHelper {
 		return new TimeRange(askedStart, askedStart + HlsHelper.DEFAULT_TARGETDURATION);
 	}
 
-	public static InputStream getInputStream(String url, DLNAResource resource, Renderer renderer) throws IOException {
+	public static InputStream getInputStream(String url, StoreItem resource) throws IOException {
 		if (!url.contains("/hls/")) {
 			return null;
 		}
@@ -336,61 +341,44 @@ public class HlsHelper {
 		rendition = rendition.substring(0, rendition.indexOf("/"));
 		//here we need to set rendition to renderer
 		HlsHelper.HlsConfiguration hlsConfiguration = getByKey(rendition);
-		Range timeRange = HlsHelper.getTimeRange(url);
+		Range timeRange = getTimeRange(url);
 		if (hlsConfiguration != null && timeRange != null) {
-			return resource.getInputStream(timeRange, renderer, hlsConfiguration);
+			return resource.getInputStream(timeRange, hlsConfiguration);
 		}
 		return null;
 	}
 
-	public static boolean isMediaCompatible(MediaInfo mediaVideo) {
-		if (mediaVideo.isH264() && mediaVideo.getAvcAsInt() <= 52) {
-			//can't check that, we do not store it on database
-			//profile is not saved in database...
-			//getAvcProfileId(mediaVideo.getH264Profile()) <= 100
-			if (!mediaVideo.hasAudio()) {
-				return true;
-			}
-			for (MediaAudio mediaAudio : mediaVideo.getAudioTracksList()) {
-				if (isMediaAudioCompatible(mediaAudio)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	public static boolean isMediaAudioCompatible(MediaAudio mediaAudio) {
+	private static boolean isMediaAudioCompatible(MediaAudio mediaAudio) {
 		return getAudioConfiguration(mediaAudio) != null;
 	}
 
-	public static HlsAudioConfiguration getAudioConfiguration(MediaAudio mediaAudio) {
+	private static HlsAudioConfiguration getAudioConfiguration(MediaAudio mediaAudio) {
 		if (mediaAudio.isAACLC()) {
-			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
+			if (mediaAudio.getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("AAC-LC");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("AAC-LC-6");
 			}
 		} else if (mediaAudio.isHEAAC()) {
-			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
+			if (mediaAudio.getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("HE-AAC");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("HE-AAC-6");
 			}
 		} else if (mediaAudio.isAC3()) {
-			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
+			if (mediaAudio.getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("AC3");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("AC3-6");
 			}
 		} else if (mediaAudio.isEAC3()) {
-			if (mediaAudio.getAudioProperties().getNumberOfChannels() < 3) {
+			if (mediaAudio.getNumberOfChannels() < 3) {
 				return HlsAudioConfiguration.getByKey("EAC3");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 6) {
+			} else if (mediaAudio.getNumberOfChannels() == 6) {
 				return HlsAudioConfiguration.getByKey("EAC3-6");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 8) {
+			} else if (mediaAudio.getNumberOfChannels() == 8) {
 				return HlsAudioConfiguration.getByKey("EAC3-8");
-			} else if (mediaAudio.getAudioProperties().getNumberOfChannels() == 16) {
+			} else if (mediaAudio.getNumberOfChannels() == 16) {
 				return HlsAudioConfiguration.getByKey("EAC3-16");
 			}
 		}
@@ -418,6 +406,58 @@ public class HlsHelper {
 			case "High 4:4:4 Predictive" -> 244;
 			default -> 255;
 		};
+	}
+
+	/**
+	 * Return a WebVtt from a HlsHelper.
+	 *
+	 * @param resource The resource.
+	 * @return The WebVtt representation of the chapter list.
+	 */
+	public static String getChaptersWebVtt(StoreItem resource) {
+		StringBuilder chaptersVtt = new StringBuilder();
+		chaptersVtt.append("WEBVTT\n");
+		MediaInfo mediaInfo = resource.getMediaInfo();
+		if (mediaInfo != null && mediaInfo.hasChapters()) {
+			for (MediaChapter chapter : mediaInfo.getChapters()) {
+				int chaptersNum = chapter.getId() + 1;
+				chaptersVtt.append("\nChapter ").append(chaptersNum).append("\n");
+				long nanoOfDay = (long) (chapter.getStart() * 1000_000_000D);
+				LocalTime lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER));
+				chaptersVtt.append(" --> ");
+				nanoOfDay = (long) (chapter.getEnd() * 1000_000_000D);
+				lt = LocalTime.ofNanoOfDay(nanoOfDay);
+				chaptersVtt.append(lt.format(CHAPTERS_TIMESTAMP_FORMATTER)).append("\n");
+				if (StringUtils.isNotBlank(chapter.getTitle())) {
+					chaptersVtt.append(chapter.getTitle());
+				} else {
+					chaptersVtt.append(Messages.getString("Chapter")).append(" ").append(String.format("%02d", chaptersNum));
+				}
+				chaptersVtt.append("\n");
+			}
+		}
+		return chaptersVtt.toString();
+	}
+
+	/**
+	 * Return a HLS json representation of a resource HlsHelper's chapters.
+	 *
+	 * @param resource The resource.
+	 * @return The HLS json representation of the chapter list.
+	 */
+	public static String getChaptersHls(StoreItem resource) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		MediaInfo mediaInfo = resource.getMediaInfo();
+		if (mediaInfo != null && mediaInfo.hasChapters()) {
+			for (MediaChapter chapter : mediaInfo.getChapters()) {
+				sb.append("{").append("\"start-time\": ").append(chapter.getStart()).append("},");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+		}
+		sb.append("]");
+		return sb.toString();
 	}
 
 	public static class HlsConfiguration {
@@ -552,4 +592,5 @@ public class HlsHelper {
 			this.isTranscodable = isTranscodable;
 		}
 	}
+
 }

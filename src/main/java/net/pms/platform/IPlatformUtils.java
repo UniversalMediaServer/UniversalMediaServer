@@ -26,9 +26,8 @@ import java.nio.file.Path;
 import java.util.List;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.newgui.LooksFrame;
-import net.pms.service.process.ProcessManager;
 import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.process.ProcessManager;
 import net.pms.service.sleep.AbstractSleepWorker;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -65,7 +64,7 @@ public interface IPlatformUtils {
 
 	public boolean isNetworkInterfaceLoopback(NetworkInterface ni) throws SocketException;
 
-	public void addSystemTray(final LooksFrame frame, boolean updateAvailable);
+	public abstract String getTrayIcon();
 
 	/**
 	 * Fetch the hardware address for a network interface.
@@ -173,7 +172,7 @@ public interface IPlatformUtils {
 
 	public abstract List<String> getRestartCommand(boolean hasOptions);
 
-	public abstract String getShutdownCommand();
+	public abstract String[] getShutdownCommand();
 
 	public abstract String getJvmExecutableName();
 

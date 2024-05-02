@@ -1,122 +1,122 @@
-;Language: Turkish (1055)
-;By Çagatay Dilsiz(Chagy)
+ï»¿;Language: Turkish (1055)
+;By Ã‡agatay Dilsiz(Chagy)
 ;Updated by Fatih BOY (fatih_boy@yahoo.com)
 
-!insertmacro LANGFILE "Turkish" "Türkçe"
+!insertmacro LANGFILE "Turkish" = "TÃ¼rkÃ§e" "Turkce"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) Kurulum sihirbazýna hoþ geldiniz"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) kurulumu boyunca rehberlik edecektir.$\r$\n$\r$\nKurulumu baþlatmadan önce çalýþan diðer programlari kapatmanýzý öneririz. Böylece bilgisayarýnýzý yeniden baþlatmadan bazý sistem dosyalarý sorunsuz kurulabilir.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "$(^NameDA) Kurulum sihirbazÄ±na hoÅŸ geldiniz"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) kurulumu boyunca rehberlik edecektir.$\r$\n$\r$\nKurulumu baÅŸlatmadan Ã¶nce Ã§alÄ±ÅŸan diÄŸer programlari kapatmanÄ±zÄ± Ã¶neririz. BÃ¶ylece bilgisayarÄ±nÄ±zÄ± yeniden baÅŸlatmadan bazÄ± sistem dosyalarÄ± sorunsuz kurulabilir.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "$(^NameDA) Programýný Kaldýrma Sihirbazýna Hoþ Geldiniz"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) programýnýn kadýrýlýmý boyunca rehberlik edecektir.$\r$\n$\r$\nKaldýrým iþlemeni baþlatmadan önce çalýþan diðer programlari kapatmanýzý öneririz. Böylece bilgisayarýnýzý yeniden baþlatmadan bazý sistem dosyalarý sorunsuz kaldýrýlabilir.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "$(^NameDA) ProgramÄ±nÄ± KaldÄ±rma SihirbazÄ±na HoÅŸ Geldiniz"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Bu sihirbaz size $(^NameDA) programÄ±nÄ±n kadÄ±rÄ±lÄ±mÄ± boyunca rehberlik edecektir.$\r$\n$\r$\nKaldÄ±rÄ±m iÅŸlemeni baÅŸlatmadan Ã¶nce Ã§alÄ±ÅŸan diÄŸer programlari kapatmanÄ±zÄ± Ã¶neririz. BÃ¶ylece bilgisayarÄ±nÄ±zÄ± yeniden baÅŸlatmadan bazÄ± sistem dosyalarÄ± sorunsuz kaldÄ±rÄ±labilir.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Lisans Sözleþmesi"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Lütfen $(^NameDA) programýný kurmadan önce sözleþmeyi okuyunuz."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Sözleþme koþullarýný kabul ediyorsanýz, 'Kabul Ediyorum'a basýnýz. $(^NameDA) programýný kurmak için sözleþme koþullarýný kabul etmelisiniz."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Sözleþme koþullarýný kabul ediyorsanýz, aþaðýdaki onay kutusunu doldurunuz. $(^NameDA) programýný kurmak için sözleþme koþullarýný kabul etmelisiniz. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Sözleþme koþullarýný kabul ediyorsanýz, asagidaki onay düðmesini seçiniz. $(^NameDA) programýný kurmak için sözleþme koþullarýný kabul etmelisiniz. $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Lisans SÃ¶zleÅŸmesi"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "LÃ¼tfen $(^NameDA) programÄ±nÄ± kurmadan Ã¶nce sÃ¶zleÅŸmeyi okuyunuz."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, 'Kabul Ediyorum'a basÄ±nÄ±z. $(^NameDA) programÄ±nÄ± kurmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, aÅŸaÄŸÄ±daki onay kutusunu doldurunuz. $(^NameDA) programÄ±nÄ± kurmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, asagidaki onay dÃ¼ÄŸmesini seÃ§iniz. $(^NameDA) programÄ±nÄ± kurmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Lisans Sözleþmesi"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Lütfen $(^NameDA) programýný sisteminizden kaldýrmadan önce sözleþmeyi okuyunuz."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Sözleþme koþullarýný kabul ediyorsanýz, 'Kabul Ediyorum'a basýnýz. $(^NameDA) programýný sisteminizden kaldýrmak için sözleþme koþullarýný kabul etmelisiniz."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Sözleþme koþullarýný kabul ediyorsanýz, aþaðýdaki onay kutusunu doldurunuz. $(^NameDA) programýný sisteminizden kaldýrmak için sözleþme koþullarýný kabul etmelisiniz. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Sözleþme koþullarýný kabul ediyorsanýz, asagidaki onay düðmesini seçiniz. $(^NameDA) programýný sisteminizden kaldýrmak için sözleþme koþullarýný kabul etmelisiniz. $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Lisans SÃ¶zleÅŸmesi"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "LÃ¼tfen $(^NameDA) programÄ±nÄ± sisteminizden kaldÄ±rmadan Ã¶nce sÃ¶zleÅŸmeyi okuyunuz."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, 'Kabul Ediyorum'a basÄ±nÄ±z. $(^NameDA) programÄ±nÄ± sisteminizden kaldÄ±rmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, aÅŸaÄŸÄ±daki onay kutusunu doldurunuz. $(^NameDA) programÄ±nÄ± sisteminizden kaldÄ±rmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "SÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul ediyorsanÄ±z, asagidaki onay dÃ¼ÄŸmesini seÃ§iniz. $(^NameDA) programÄ±nÄ± sisteminizden kaldÄ±rmak iÃ§in sÃ¶zleÅŸme koÅŸullarÄ±nÄ± kabul etmelisiniz. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Sözleþmenin geri kalanýný okumak için 'page down' tuþuna basabilirsiniz."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "SÃ¶zleÅŸmenin geri kalanÄ±nÄ± okumak iÃ§in 'page down' tuÅŸuna basabilirsiniz."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Bileþen seçimi"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Lütfen $(^NameDA) için kurmak istediginiz bileþenleri seçiniz."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "BileÅŸen seÃ§imi"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "LÃ¼tfen $(^NameDA) iÃ§in kurmak istediginiz bileÅŸenleri seÃ§iniz."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Bileþen Þeçimi"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Lütfen kaldýrmak istediðiniz $(^NameDA) program bileþenini seçiniz."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "BileÅŸen ÅžeÃ§imi"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "LÃ¼tfen kaldÄ±rmak istediÄŸiniz $(^NameDA) program bileÅŸenini seÃ§iniz."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Açýklama"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "AÃ§Ä±klama"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Bileþenlerin açýklamalarýný görmek için imleci bileþen üzerine götürün."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "BileÅŸenlerin aÃ§Ä±klamalarÄ±nÄ± gÃ¶rmek iÃ§in imleci bileÅŸen Ã¼zerine gÃ¶tÃ¼rÃ¼n."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Bileþenlerin açýklamalarýný görmek için imleci bileþen üzerine götürün."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Hedef dizini seçimi"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "$(^NameDA) programýný kurmak istediðiniz dizini þeçiniz."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Hedef dizini seÃ§imi"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "$(^NameDA) programÄ±nÄ± kurmak istediÄŸiniz dizini ÅŸeÃ§iniz."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Kaldýrýlýcak Dizin Seçimi"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "$(^NameDA) programýný kaldýrmak istediginiz dizini seçiniz."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "KaldÄ±rÄ±lÄ±cak Dizin SeÃ§imi"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "$(^NameDA) programÄ±nÄ± kaldÄ±rmak istediginiz dizini seÃ§iniz."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Kuruluyor"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Lütfen $(^NameDA) kurulurken bekleyiniz."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Kurulum Tamamlandý"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Kurulum baþarýyla tamamlandý."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Kurulum Ýptal Edildi"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Kurulum tam olarak tamamlanmadý."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "LÃ¼tfen $(^NameDA) kurulurken bekleyiniz."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Kurulum TamamlandÄ±"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Kurulum baÅŸarÄ±yla tamamlandÄ±."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Kurulum Ä°ptal Edildi"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "Kurulum tam olarak tamamlanmadÄ±."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Kaldýrýlýyor"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Litfen $(^NameDA) programý sisteminizden kaldýrýlýrken bekleyiniz."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Kaldýrma Ýþlemi Tamamlandýr"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Kaldýrma iþlemi baþarýyla tamamlandý."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Kaldýrma Ýþlemi Ýptal Edildi"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Kaldýrma Ýþlemi tamamlanamadý."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "KaldÄ±rÄ±lÄ±yor"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Litfen $(^NameDA) programÄ± sisteminizden kaldÄ±rÄ±lÄ±rken bekleyiniz."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "KaldÄ±rma Ä°ÅŸlemi TamamlandÄ±r"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "KaldÄ±rma iÅŸlemi baÅŸarÄ±yla tamamlandÄ±."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "KaldÄ±rma Ä°ÅŸlemi Ä°ptal Edildi"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "KaldÄ±rma Ä°ÅŸlemi tamamlanamadÄ±."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) Kurulum sihirbazý tamamlanýyor."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA)  bilgisayariniza yüklendi.$\r$\n$\r$\nLütfen 'Bitir'e basarak kurulumu sonlandýrýn."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA) kurulumunun tamamlanmasý için bilgisayarýnýzý yeniden baþlatmanýz gerekiyor.Bilgisayarýnýzý yeniden baþlatmak istiyor musunuz?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "$(^NameDA) Kurulum sihirbazÄ± tamamlanÄ±yor."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA)  bilgisayariniza yÃ¼klendi.$\r$\n$\r$\nLÃ¼tfen 'Bitir'e basarak kurulumu sonlandÄ±rÄ±n."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "$(^NameDA) kurulumunun tamamlanmasÄ± iÃ§in bilgisayarÄ±nÄ±zÄ± yeniden baÅŸlatmanÄ±z gerekiyor.BilgisayarÄ±nÄ±zÄ± yeniden baÅŸlatmak istiyor musunuz?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) Programý Kaldýrma Sihirbazý Tamamlanýyor"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) programý sisteminizden kaldýrýldý.$\r$\n$\r$\nSihirbazý kapatmak için 'bitir'e basýnýz."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) programýný kaldýrma iþleminin tamamlanmasý için bilgisayarýnýzýn yeniden baþlatýlmasý gerekiyor. Bilgisayarýnýzýn þimdi yeniden baþlatýlmasýný ister misiniz?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "$(^NameDA) ProgramÄ± KaldÄ±rma SihirbazÄ± TamamlanÄ±yor"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) programÄ± sisteminizden kaldÄ±rÄ±ldÄ±.$\r$\n$\r$\nSihirbazÄ± kapatmak iÃ§in 'bitir'e basÄ±nÄ±z."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "$(^NameDA) programÄ±nÄ± kaldÄ±rma iÅŸleminin tamamlanmasÄ± iÃ§in bilgisayarÄ±nÄ±zÄ±n yeniden baÅŸlatÄ±lmasÄ± gerekiyor. BilgisayarÄ±nÄ±zÄ±n ÅŸimdi yeniden baÅŸlatÄ±lmasÄ±nÄ± ister misiniz?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Yeniden baþlat"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Bilgisayarýmý daha sonra baþlatacaðým."
-  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) programýný çalýþtýr"
-  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "beni oku/readme dosyasýný &göster"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Yeniden baÅŸlat"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "BilgisayarÄ±mÄ± daha sonra baÅŸlatacaÄŸÄ±m."
+  ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) programÄ±nÄ± Ã§alÄ±ÅŸtÄ±r"
+  ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "beni oku/readme dosyasÄ±nÄ± &gÃ¶ster"
   ${LangFileString} MUI_BUTTONTEXT_FINISH "&Bitir"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Baþlat Menüsü Klasör Seçimi"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "$(^NameDA) kýsayollarýnýn konulacagý baþlat menüsü klasörünü seçiniz."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Programýn kýsayollarýnýn konulacaðý baþlat menüsü klasörünü seçiniz. Farklý bir isim girerek yeni bir klasör yaratabilirsiniz."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Kýsayollarý oluþturmadan devam et"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "BaÅŸlat MenÃ¼sÃ¼ KlasÃ¶r SeÃ§imi"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "$(^NameDA) kÄ±sayollarÄ±nÄ±n konulacagÄ± baÅŸlat menÃ¼sÃ¼ klasÃ¶rÃ¼nÃ¼ seÃ§iniz."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "ProgramÄ±n kÄ±sayollarÄ±nÄ±n konulacaÄŸÄ± baÅŸlat menÃ¼sÃ¼ klasÃ¶rÃ¼nÃ¼ seÃ§iniz. FarklÄ± bir isim girerek yeni bir klasÃ¶r yaratabilirsiniz."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "KÄ±sayollarÄ± oluÅŸturmadan devam et"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "$(^NameDA) Programýný Kaldýr"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) programýný sisteminizden kaldýrma."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "$(^NameDA) ProgramÄ±nÄ± KaldÄ±r"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) programÄ±nÄ± sisteminizden kaldÄ±rma."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "$(^Name) kurulumundan çýkmak istediðinize emin misiniz?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "$(^Name) kurulumundan Ã§Ä±kmak istediÄŸinize emin misiniz?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "$(^Name) Programi Kaldýrma iþleminden çýkmak istediðinize emin misiniz?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "$(^Name) Programi KaldÄ±rma iÅŸleminden Ã§Ä±kmak istediÄŸinize emin misiniz?"
 !endif

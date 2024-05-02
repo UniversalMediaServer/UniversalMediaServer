@@ -16,10 +16,9 @@
  */
 package net.pms.util;
 
+import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.Map;
-import com.google.common.base.Objects;
-
 
 /**
  * This class can be used to hold any pair of {@link Object}s and can be handy

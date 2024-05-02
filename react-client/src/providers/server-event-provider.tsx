@@ -19,7 +19,8 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
-import { serverEventContext } from '../contexts/server-event-context';
+import MainContext from '../contexts/main-context';
+import ServerEventContext from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
 import { sseApiUrl } from '../utils';
@@ -28,20 +29,21 @@ interface Props {
   children?: ReactNode
 }
 
-export const ServerEventProvider = ({ children, ...props }: Props) => {
+export const ServerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
-  const [memory, setMemory] = useState<{ max: number, used: number, buffer: number }>({ max: 0, used: 0, buffer: 0 });
+  const [memory, setMemory] = useState<{ max: number, used: number, dbcache: number, buffer: number }>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);
-  const [scanLibrary, setScanLibrary] = useState<{ enabled: boolean, running: boolean }>({ enabled: true, running: false });
+  const [mediaScan, setMediaScan] = useState<boolean>(false);
   const [hasRendererAction, setRendererAction] = useState(false);
   const [rendererActions] = useState([] as any[]);
   const [hasNewLogLine, setNewLogLine] = useState(false);
   const [newLogLines] = useState([] as string[]);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
 
   useEffect(() => {
     if (started || session.account === undefined) {
@@ -64,8 +66,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
       showNotification({
         id: 'connection-lost',
         color: 'orange',
-        title: i18n.get['Warning'],
-        message: i18n.get['UniversalMediaServerUnreachable'],
+        title: i18n.get('Warning'),
+        message: i18n.get('UniversalMediaServerUnreachable'),
         autoClose: false
       });
     }
@@ -75,6 +77,14 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else if (event.status == 401) {
+        //reload Unauthorized
+        window.location.reload();
+      } else if (event.status == 403) {
+        //stop Forbidden
+        console.log('SSE Forbidden');
+      } else {
+        throw new Error('Expected content-type to be \'text/event-stream\'');
       }
     };
 
@@ -100,8 +110,8 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
           case 'set_configuration_changed':
             setUserConfiguration(datas.value);
             break;
-          case 'set_scanlibrary_status':
-            setScanLibrary({ 'enabled': datas.enabled, 'running': datas.running });
+          case 'set_media_scan_status':
+            setMediaScan(datas.running);
             break;
           case 'renderer_add':
           case 'renderer_delete':
@@ -118,6 +128,9 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
               newLogLines.slice(0, newLogLines.length - 20);
             }
             setNewLogLine(true);
+            break;
+          case 'set_status_line':
+            main.setStatusLine(datas.value);
             break;
         }
       }
@@ -145,14 +158,14 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
         onmessage(event: EventSourceMessage) {
           onMessage(event);
         },
-        onerror(event: Response) { onError(); },
+        onerror(_event: Response) { onError(); },
         onclose() { onClose(); },
         openWhenHidden: true,
       });
     };
 
     startSse();
-  }, [started, session, i18n, rendererActions, newLogLines]);
+  }, [started, session, rendererActions, newLogLines]);
 
   const getRendererAction = () => {
     let result = null;
@@ -172,7 +185,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
     return result;
   };
 
-  const { Provider } = serverEventContext;
+  const { Provider } = ServerEventContext;
   return (
     <Provider value={{
       connectionStatus: connectionStatus,
@@ -182,7 +195,7 @@ export const ServerEventProvider = ({ children, ...props }: Props) => {
       reloadable: reloadable,
       userConfiguration: userConfiguration,
       setUserConfiguration: setUserConfiguration,
-      scanLibrary: scanLibrary,
+      mediaScan: mediaScan,
       hasRendererAction: hasRendererAction,
       getRendererAction: getRendererAction,
       hasNewLogLine: hasNewLogLine,

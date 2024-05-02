@@ -27,15 +27,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is responsible for managing the Cover Art Archive table. It
- * does everything from creating, checking and upgrading the table to
+ * This class is responsible for managing the Cover Art Archive table.
+ *
+ * It does everything from creating, checking and upgrading the table to
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
  *
  * @author Nadahar
  */
-
 public final class MediaTableCoverArtArchive extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableCoverArtArchive.class);
 	protected static final String TABLE_NAME = "COVER_ART_ARCHIVE";
 
@@ -120,14 +121,14 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 				}
 			}
 			//case 1: Alter table to version 2
-					}
+		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			CREATE_TABLE + TABLE_NAME + "(" +
+				CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID           + IDENTITY          + PRIMARY_KEY + COMMA +
 				COL_MODIFIED     + TIMESTAMP                       + COMMA +
 				COL_MBID         + VARCHAR_36                      + COMMA +
@@ -142,6 +143,7 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * lookup.
 	 */
 	public static class CoverArtArchiveResult {
+
 		private final boolean found;
 		private final Timestamp modified;
 		private final byte[] cover;
@@ -176,92 +178,123 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @param cover the cover as a {@link Blob}
 	 */
 	public static void writeMBID(final String mBID, InputStream cover) {
-		if (StringUtils.isBlank(mBID)) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			writeMBID(connection, mBID, cover);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Stores the cover {@link Blob} with the given mBID in the database
+	 *
+	 * @param mBID the MBID (releaseId) to store
+	 * @param cover the cover as a {@link Blob}
+	 */
+	public static void writeMBID(Connection connection, final String mBID, InputStream cover) {
+		if (connection == null || StringUtils.isBlank(mBID)) {
 			return;
 		}
 		boolean trace = LOGGER.isTraceEnabled();
-		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				statement.setString(1, mBID);
-				if (trace) {
-					LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", statement);
-				}
-				try (ResultSet result = statement.executeQuery()) {
-					boolean isCreatingNewRecord = !result.next();
-					if (isCreatingNewRecord) {
-						if (trace) {
-							LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
-						}
-						result.moveToInsertRow();
-						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
-						result.updateString(COL_MBID, mBID);
-						if (cover != null) {
-							result.updateBinaryStream(COL_COVER, cover);
-						}
-						result.insertRow();
-					} else if (cover != null || result.getBlob(COL_COVER) == null) {
-						if (trace) {
-							LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
-						}
-						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
-						if (cover != null) {
-							result.updateBinaryStream(COL_COVER, cover);
-						} else {
-							result.updateNull(COL_COVER);
-						}
-						result.updateRow();
-					} else if (trace) {
-						LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt(COL_ID));
+
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setString(1, mBID);
+			if (trace) {
+				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\" before update", statement);
+			}
+			try (ResultSet result = statement.executeQuery()) {
+				boolean isCreatingNewRecord = !result.next();
+				if (isCreatingNewRecord) {
+					if (trace) {
+						LOGGER.trace("Inserting new cover for MBID \"{}\"", mBID);
 					}
+					result.moveToInsertRow();
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+					result.updateString(COL_MBID, mBID);
+					if (cover != null) {
+						result.updateBinaryStream(COL_COVER, cover);
+					}
+					result.insertRow();
+				} else if (cover != null || result.getBlob(COL_COVER) == null) {
+					if (trace) {
+						LOGGER.trace("Updating cover for MBID \"{}\"", mBID);
+					}
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+					if (cover != null) {
+						result.updateBinaryStream(COL_COVER, cover);
+					} else {
+						result.updateNull(COL_COVER);
+					}
+					result.updateRow();
+				} else if (trace) {
+					LOGGER.trace("Leaving row {} alone since previous information seems better", result.getInt(COL_ID));
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				LOG_ERROR_WHILE_VAR_IN,
-				DATABASE_NAME,
-				"writing Cover Art Archive cover for MBID",
-				mBID,
-				TABLE_NAME,
-				e.getMessage()
+					LOG_ERROR_WHILE_VAR_IN,
+					DATABASE_NAME,
+					"writing Cover Art Archive cover for MBID",
+					mBID,
+					TABLE_NAME,
+					e.getMessage()
 			);
 			LOGGER.trace("", e);
 		}
 	}
 
 	/**
-	 * Looks up cover in the table based on the given MBID.
-	 * Never returns <code>null</code>
+	 * Looks up cover in the table based on the given MBID. Never returns
+	 * <code>null</code>
 	 *
 	 * @param mBID the MBID {@link String} to search with
 	 *
 	 * @return The result of the search, never <code>null</code>
 	 */
 	public static CoverArtArchiveResult findMBID(final String mBID) {
-		if (StringUtils.isBlank(mBID)) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			return findMBID(connection, mBID);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Looks up cover in the table based on the given MBID. Never returns
+	 * <code>null</code>
+	 *
+	 * @param mBID the MBID {@link String} to search with
+	 *
+	 * @return The result of the search, never <code>null</code>
+	 */
+	public static CoverArtArchiveResult findMBID(Connection connection, final String mBID) {
+		if (connection == null || StringUtils.isBlank(mBID)) {
 			return new CoverArtArchiveResult(false, null, null);
 		}
 		boolean trace = LOGGER.isTraceEnabled();
 
-		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				statement.setString(1, mBID);
-				if (trace) {
-					LOGGER.trace("Searching for Cover Art Archive cover with \"{}\"", statement);
-				}
-				try (ResultSet result = statement.executeQuery()) {
-					if (result.next()) {
-						return new CoverArtArchiveResult(true, result.getTimestamp(COL_MODIFIED), result.getBytes(COL_COVER));
-					}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setString(1, mBID);
+			if (trace) {
+				LOGGER.trace("Searching for Cover Art Archive cover with \"{}\"", statement);
+			}
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.next()) {
+					return new CoverArtArchiveResult(true, result.getTimestamp(COL_MODIFIED), result.getBytes(COL_COVER));
 				}
 			}
 		} catch (SQLException e) {
 			LOGGER.error(
-				LOG_ERROR_WHILE_VAR_IN,
-				DATABASE_NAME,
-				"looking up Cover Art Archive cover for MBID",
-				mBID,
-				TABLE_NAME,
-				e.getMessage()
+					LOG_ERROR_WHILE_VAR_IN,
+					DATABASE_NAME,
+					"looking up Cover Art Archive cover for MBID",
+					mBID,
+					TABLE_NAME,
+					e.getMessage()
 			);
 			LOGGER.trace("", e);
 		}
@@ -275,19 +308,35 @@ public final class MediaTableCoverArtArchive extends MediaTable {
 	 * @return
 	 */
 	public static boolean hasCover(String mbReleaseId) {
-		if (StringUtils.isBlank(mbReleaseId)) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			return hasCover(connection, mbReleaseId);
+		} finally {
+			MediaDatabase.close(connection);
+		}
+	}
+
+	/**
+	 * Checks if cover exists for given musicBrainz releseId.
+	 *
+	 * @param mbReleaseId
+	 * @return
+	 */
+	public static boolean hasCover(Connection connection, String mbReleaseId) {
+		if (connection == null || StringUtils.isBlank(mbReleaseId)) {
 			return false;
 		}
-		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
-			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
-				statement.setString(1, mbReleaseId);
-				try (ResultSet result = statement.executeQuery()) {
-					return result.next();
-				}
+
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_COVER_MODIFIED_BY_MBID, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setString(1, mbReleaseId);
+			try (ResultSet result = statement.executeQuery()) {
+				return result.next();
 			}
 		} catch (SQLException e) {
 			LOGGER.trace("", e);
 		}
 		return false;
 	}
+
 }

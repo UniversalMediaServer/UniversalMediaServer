@@ -16,13 +16,18 @@
  */
 package net.pms.iam;
 
+import net.pms.image.Image;
+
 public class User extends UsernamePassword {
 	private int id;
 	private String displayName;
 	private int groupId;
+	private Image avatar;
+	private String pinCode;
 	private long lastLoginTime;
 	private long loginFailedTime;
 	private int loginFailedCount;
+	private boolean libraryHidden;
 
 	public int getId() {
 		return id;
@@ -48,6 +53,22 @@ public class User extends UsernamePassword {
 		this.groupId = groupId;
 	}
 
+	public Image getAvatar() {
+		return avatar;
+	}
+
+	public void setAvatar(Image avatar) {
+		this.avatar = avatar;
+	}
+
+	public String getPinCode() {
+		return pinCode;
+	}
+
+	public void setPinCode(String pinCode) {
+		this.pinCode = pinCode;
+	}
+
 	public long getLastLoginTime() {
 		return lastLoginTime;
 	}
@@ -70,6 +91,18 @@ public class User extends UsernamePassword {
 
 	public void setLoginFailedCount(int loginFailedCount) {
 		this.loginFailedCount = loginFailedCount;
+	}
+
+	public boolean isLibraryHidden() {
+		return libraryHidden;
+	}
+
+	public boolean isLibraryChoice() {
+		return !libraryHidden;
+	}
+
+	public void setLibraryHidden(boolean libraryHidden) {
+		this.libraryHidden = libraryHidden;
 	}
 
 	@Override

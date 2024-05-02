@@ -166,6 +166,44 @@ public class FFmpegWebFilters {
 			modified = true;
 			return super.remove(key);
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (!(o instanceof ModAwareHashMap<?, ?> m)) {
+				return false;
+			}
+			if (m.size() != size()) {
+				return false;
+			}
+			if (m.modified != modified) {
+				return false;
+			}
+
+			try {
+				for (Entry<K, V> e : entrySet()) {
+					K key = e.getKey();
+					V value = e.getValue();
+					if (value == null) {
+						if (!(m.get(key) == null && m.containsKey(key))) {
+							return false;
+						}
+					} else {
+						if (!value.equals(m.get(key))) {
+							return false;
+						}
+					}
+				}
+			} catch (ClassCastException | NullPointerException unused) {
+				return false;
+			}
+
+			return true;
+		}
+
+		@Override
+		public int hashCode() {
+			return super.hashCode() + (modified ? 1 : 0);
+		}
 	}
 
 	// A self-combining map of regexes that recompiles if modified

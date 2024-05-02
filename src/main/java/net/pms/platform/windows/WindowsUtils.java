@@ -50,8 +50,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.platform.PlatformProgramPaths;
 import net.pms.platform.PlatformUtils;
-import net.pms.service.process.ProcessManager;
 import net.pms.service.process.AbstractProcessTerminator;
+import net.pms.service.process.ProcessManager;
 import net.pms.service.sleep.AbstractSleepWorker;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
@@ -316,7 +316,7 @@ public class WindowsUtils extends PlatformUtils {
 			}
 			if (OS_VERSION.isGreaterThanOrEqualTo("5.1.0")) {
 				try {
-					String command = "reg query \"HKU\\S-1-5-19\"";
+					String[] command = {"reg", "query", "\"HKU\\S-1-5-19\""};
 					Process p = Runtime.getRuntime().exec(command);
 					p.waitFor();
 					int exitValue = p.exitValue();
@@ -327,9 +327,12 @@ public class WindowsUtils extends PlatformUtils {
 					}
 
 					isAdmin = false;
-				} catch (IOException | InterruptedException e) {
+				} catch (IOException e) {
 					isAdmin = false;
 					LOGGER.error("An error prevented UMS from checking Windows permissions: {}", e.getMessage());
+				} catch (InterruptedException e) {
+					isAdmin = false;
+					Thread.currentThread().interrupt();
 				}
 			} else {
 				isAdmin = true;
@@ -391,7 +394,7 @@ public class WindowsUtils extends PlatformUtils {
 
 	@Override
 	public String getiTunesFile() throws IOException {
-		Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
+		Process process = Runtime.getRuntime().exec(new String[]{"reg", "query", "\"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\"", "/v", "\"My Music\""});
 		String location = null;
 		//TODO The encoding of the output from reg query is unclear, this must be investigated further
 		try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -488,11 +491,6 @@ public class WindowsUtils extends PlatformUtils {
 		}
 	}
 
-	@Override
-	protected String getTrayIcon() {
-		return "icon-16.png";
-	}
-
 	private void setVLCRegistryInfo() {
 		String key = "SOFTWARE\\VideoLAN\\VLC";
 		try {
@@ -511,8 +509,8 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShutdownCommand() {
-		return "shutdown.exe -s -t 0";
+	public String[] getShutdownCommand() {
+		return new String[]{"shutdown.exe", "-s", "-t", "0"};
 	}
 
 	@Override

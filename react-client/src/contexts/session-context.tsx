@@ -16,18 +16,26 @@
  */
 import { Context, createContext } from 'react';
 
-export const sessionContext: Context<UmsSession> = createContext({ noAdminFound: false, player: false } as UmsSession);
-
-export default sessionContext;
+export const SessionContext: Context<UmsSession> = createContext({
+  noAdminFound: false,
+  account: undefined,
+  authenticate: false,
+  initialized: false,
+  refresh: () => {},
+  player: false
+} as UmsSession);
 
 export interface UmsUser {
   id: number,
   username: string,
   displayName: string,
   groupId: number,
+  avatar?: string,
+  pinCode?: string,
   lastLoginTime: number,
   loginFailedTime: number,
   loginFailedCount: number,
+  libraryHidden: boolean,
 }
 
 export interface UmsGroupPermissions {
@@ -46,10 +54,12 @@ export interface UmsAccount {
 }
 
 export interface UmsSession {
-  noAdminFound: boolean,
-  account?: UmsAccount,
-  authenticate: boolean,
-  initialized: boolean,
-  refresh: () => void,
-  player: boolean,
+  noAdminFound: boolean;
+  account?: UmsAccount;
+  authenticate: boolean;
+  initialized: boolean;
+  refresh: () => void;
+  player: boolean;
 }
+
+export default SessionContext;

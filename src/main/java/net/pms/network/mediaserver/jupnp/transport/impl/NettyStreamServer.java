@@ -22,7 +22,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Executors;
-import net.pms.PMS;
+import net.pms.network.NetworkDeviceFilter;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.UmsUpnpServiceConfiguration;
 import net.pms.network.mediaserver.nettyserver.RequestHandlerV2;
@@ -173,10 +173,10 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 		// This is executed in the request receiving thread!
 		@Override
 		public void messageReceived(ChannelHandlerContext ctx, MessageEvent event) throws Exception {
-			//check inetAddress allowed
-			InetSocketAddress remoteAddress = (InetSocketAddress) event.getChannel().getRemoteAddress();
-			if (!PMS.getConfiguration().getIpFiltering().allowed(remoteAddress.getAddress())) {
-				LOGGER.trace("Ip Filtering denying address: {}", remoteAddress.getAddress().getHostAddress());
+			//check inetAddress isAllowed
+			InetSocketAddress remoteSocket = (InetSocketAddress) event.getChannel().getRemoteAddress();
+			if (!NetworkDeviceFilter.isAllowed(remoteSocket.getAddress())) {
+				LOGGER.trace("Ip Filtering denying address: {}", remoteSocket.getAddress().getHostAddress());
 				event.getChannel().close();
 				return;
 			}
@@ -196,7 +196,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 					return;
 				}
 				//lastly we want UMS to respond it's own service ContentDirectory.
-				if (!serveContentDirectory && uri.startsWith("/dev/" + PMS.get().udn()) && uri.contains("/ContentDirectory/")) {
+				if (!serveContentDirectory && uri.startsWith("/dev/" + MediaServer.getUuid()) && uri.contains("/ContentDirectory/")) {
 					requestHandlerV2.messageReceived(ctx, event);
 					return;
 				}
@@ -205,7 +205,7 @@ public class NettyStreamServer implements StreamServer<UmsStreamServerConfigurat
 			// We pass control to the service, which will (hopefully) start a new thread immediately so we can
 			// continue the receiving thread ASAP
 
-			LOGGER.debug("Received MessageEvent event: {} {}", ((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri());
+			LOGGER.debug("Received MessageEvent event from {}: {} {}", remoteSocket.toString(), ((HttpRequest) event.getMessage()).getMethod(), ((HttpRequest) event.getMessage()).getUri());
 			router.received(
 				new NettyUpnpStream(router.getProtocolFactory(), event)
 			);

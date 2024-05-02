@@ -13,8 +13,6 @@ WinCore.nsh & Win\*.nsh - Collection of common windows defines
 !verbose 3
 
 
-!define __WIN_PTRSIZE 4 ;will we ever see a 64 bit version?
-
 
 !include Win\WinDef.nsh
 !include Win\WinError.nsh
@@ -33,10 +31,10 @@ WinCore.nsh & Win\*.nsh - Collection of common windows defines
 WinBase.h
 **************************************************/
 !ifndef __WIN_NOINC_WINBASE
-!define INVALID_HANDLE_VALUE -1
-!define INVALID_FILE_SIZE 0xFFFFFFFF
-!define INVALID_SET_FILE_POINTER -1
-!define INVALID_FILE_ATTRIBUTES -1
+!define /ifndef INVALID_HANDLE_VALUE -1
+!define /ifndef INVALID_FILE_SIZE 0xFFFFFFFF
+!define /ifndef INVALID_SET_FILE_POINTER -1
+!define /ifndef INVALID_FILE_ATTRIBUTES -1
 
 !define WAIT_FAILED 0xFFFFFFFF
 !define WAIT_OBJECT_0       0 ;((STATUS_WAIT_0 ) + 0 )
@@ -169,7 +167,7 @@ ShlObj.h
 !define CSIDL_COMMON_DESKTOPDIRECTORY 0x0019 ;All Users\Desktop
 !define CSIDL_APPDATA                 0x001a ;<user name>\Application Data
 !define CSIDL_PRINTHOOD               0x001b ;<user name>\PrintHood
-!define CSIDL_LOCAL_APPDATA           0x001c ;<user name>\Local Settings\Applicaiton Data (non roaming)
+!define CSIDL_LOCAL_APPDATA           0x001c ;<user name>\Local Settings\Application Data (non roaming)
 !define CSIDL_ALTSTARTUP              0x001d ;non localized startup
 !define CSIDL_COMMON_ALTSTARTUP       0x001e ;non localized common startup
 !define CSIDL_COMMON_FAVORITES        0x001f
@@ -194,8 +192,8 @@ ShlObj.h
 !define CSIDL_COMMON_MUSIC            0x0035 ;All Users\My Music
 !define CSIDL_COMMON_PICTURES         0x0036 ;All Users\My Pictures
 !define CSIDL_COMMON_VIDEO            0x0037 ;All Users\My Video
-!define CSIDL_RESOURCES               0x0038 ;Resource Direcotry
-!define CSIDL_RESOURCES_LOCALIZED     0x0039 ;Localized Resource Direcotry
+!define CSIDL_RESOURCES               0x0038 ;Resource Directory
+!define CSIDL_RESOURCES_LOCALIZED     0x0039 ;Localized Resource Directory
 !define CSIDL_COMMON_OEM_LINKS        0x003a ;Links to All Users OEM specific apps
 !define CSIDL_CDBURN_AREA             0x003b ;USERPROFILE\Local Settings\Application Data\Microsoft\CD Burning
 !define CSIDL_COMPUTERSNEARME         0x003d ;Computers Near Me (computered from Workgroup membership)
@@ -208,6 +206,57 @@ ShlObj.h
 !endif /* __WIN_NOINC_SHLOBJ */
 
 
+
+
+
+/**************************************************
+Shobjidl.h
+**************************************************/
+!ifndef __WIN_NOINC_SHOBJIDL
+; ASSOCIATIONLEVEL
+!define AL_MACHINE 0
+!define AL_EFFECTIVE 1
+!define AL_USER 2
+
+; ASSOCIATIONTYPE
+!define AT_FILEEXTENSION 0
+!define AT_URLPROTOCOL 1
+!define AT_STARTMENUCLIENT 2
+!define AT_MIMETYPE 3
+!endif /* __WIN_NOINC_SHOBJIDL */
+
+
+
+
+
+/**************************************************
+ShlGuid.h
+**************************************************/
+!ifndef __WIN_NOINC_SHLGUID
+!define FOLDERID_Public {DFDF76A2-C82A-4D63-906A-5644AC457385} ; Vista+ Fixed=%SystemDrive%\Users\Public
+!define FOLDERID_Games {CAC52C1A-B53D-4edc-92D7-6B2E8AC19434} ; Vista+ && < 10 (1803) Virtual
+!define FOLDERID_SavedGames {4C5C32FF-BB9D-43b0-B5B4-2D72E54EAAA4} ; Vista+ PerUser=%USERPROFILE%\Saved Games
+!define FOLDERID_GameTasks {054FAE61-4DD8-4787-80B6-090220C4B700} ; Vista+ PerUser=%LOCALAPPDATA%\Microsoft\Windows\GameExplorer
+!define FOLDERID_PublicGameTasks {DEBF2536-E1A8-4c59-B6A2-414586476AEA} ; Vista+ Common=%ALLUSERSPROFILE%\Microsoft\Windows\GameExplorer
+!define FOLDERID_Contacts {56784854-C6CB-462b-8169-88E350ACB882} ; Vista+ PerUser=%USERPROFILE%\Contacts
+!define FOLDERID_Downloads {374DE290-123F-4565-9164-39C4925E467B} ; Vista+ PerUser=%USERPROFILE%\Downloads
+!define FOLDERID_PublicDownloads {3D644C9B-1FB8-4f30-9B45-F670235F79C0} ; Vista+ Common=%PUBLIC%\Downloads
+!define FOLDERID_UserProfiles {0762D272-C50A-4BB0-A382-697DCD729B80} ; Vista+ Fixed=%SystemDrive%\Users
+!define FOLDERID_UserProgramFiles {5CD7AEE2-2219-4A67-B85D-6C9CE15660CB} ; 7+ PerUser=%LOCALAPPDATA%\Programs
+!define FOLDERID_UserProgramFilesCommon {BCBD3057-CA5C-4622-B42D-BC56DB0AE516} ; 7+ PerUser=%LOCALAPPDATA%\Programs\Common
+!define FOLDERID_PublicLibraries {48DAF80B-E6CF-4F4E-B800-0E69D84EE384} ; 7+ Common=%ALLUSERSPROFILE%\Microsoft\Windows\Libraries
+!define FOLDERID_UserPinned {9E3995AB-1F9C-4F13-B827-48B24B6C7174} ; 7+ PerUser=%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned
+!define FOLDERID_ImplicitAppShortcuts {BCB5256F-79F6-4CEE-B725-DC34E402FD46} ; 7+ PerUser=%APPDATA%\Microsoft\Internet Explorer\Quick Launch\User Pinned\ImplicitAppShortcuts
+!define FOLDERID_DeviceMetadataStore {5CE4A5E9-E4EB-479D-B89F-130C02886155} ; 7+ Common=%ALLUSERSPROFILE%\Microsoft\Windows\DeviceMetadataStore
+!define FOLDERID_ApplicationShortcuts {A3918781-E5F2-4890-B3D9-A7E54332328C} ; 8.0+ PerUser=%LOCALAPPDATA%\Microsoft\Windows\Application Shortcuts
+!define FOLDERID_RoamingTiles {00BCFC5A-ED94-4e48-96A1-3F6217F21990} ; 8.0+ PerUser=%LOCALAPPDATA%\Microsoft\Windows\RoamingTiles
+!define FOLDERID_RoamedTileImages {AAA8D5A5-F1D6-4259-BAA8-78E7EF60835E} ; 8.0+ PerUser=%LOCALAPPDATA%\Microsoft\Windows\RoamedTileImages
+!define FOLDERID_PublicUserTiles {0482af6c-08f1-4c34-8c90-e17ec98b1e17} ; 8.0+ Common=%PUBLIC%\AccountPictures
+!define FOLDERID_AccountPictures {008ca0b1-55b4-4c56-b8a8-4de4b299d3be} ; 8.0+ PerUser=%APPDATA%\Microsoft\Windows\AccountPictures
+!define FOLDERID_Screenshots {b7bede81-df94-4682-a7d8-57a52620b86f} ; 8.0+ PerUser=%USERPROFILE%\Pictures\Screenshots
+!define FOLDERID_SkyDrive {A52BBA46-E9E1-435f-B3D9-28DAA648C0F6} ; 8.1+ PerUser=%USERPROFILE%\OneDrive
+!define FOLDERID_AppDataProgramData {559D40A3-A036-40FA-AF61-84CB430A4D34} ; 10 (1709)+ PerUser=%LOCALAPPDATA%\ProgramData
+!endif /* __WIN_NOINC_SHLGUID */
 
 
 !verbose pop

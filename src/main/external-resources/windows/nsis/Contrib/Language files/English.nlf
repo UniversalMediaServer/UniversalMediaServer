@@ -1,4 +1,4 @@
-# Header, don't edit
+﻿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,7 +6,7 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 -
 # RTL - anything else than RTL means LTR
 -
@@ -184,8 +184,8 @@ Log install process
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

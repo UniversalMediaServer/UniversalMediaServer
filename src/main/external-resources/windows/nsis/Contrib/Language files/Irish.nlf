@@ -1,4 +1,4 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Start editing here
 # Language ID
@@ -6,37 +6,37 @@ NLF v6
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
 # Translation by Kevin P. Scannell < scannell at slu dot edu >
 # ^Branding
-Córas Suiteála Nullsoft %s
+Nullsoft Install System %s
 # ^SetupCaption
-Socrú $(^Name)
+SocrÃº $(^Name)
 # ^UninstallCaption
-Díshuiteáil $(^Name)
+DÃ­shuiteÃ¡il $(^Name)
 # ^LicenseSubCaption
-: Comhaontú um Cheadúnas
+: ComhaontÃº um CheadÃºnas
 # ^ComponentsSubCaption
-: Roghanna Suiteála
+: Roghanna SuiteÃ¡la
 # ^DirSubCaption
-: Fillteán Suiteála
+: FillteÃ¡n SuiteÃ¡la
 # ^InstallingSubCaption
-: Suiteáil
+: SuiteÃ¡il
 # ^CompletedSubCaption
-: Críochnaithe
+: CrÃ­ochnaithe
 # ^UnComponentsSubCaption
-: Roghanna Díshuiteála
+: Roghanna DÃ­shuiteÃ¡la
 # ^UnDirSubCaption
-: Fillteán Díshuiteála
+: FillteÃ¡n DÃ­shuiteÃ¡la
 # ^ConfirmSubCaption
-: Deimhniú
+: DeimhniÃº
 # ^UninstallingSubCaption
-: Díshuiteáil
+: DÃ­shuiteÃ¡il
 # ^UnCompletedSubCaption
-: Críochnaithe
+: CrÃ­ochnaithe
 # ^BackBtn
 < Ar Ai&s
 # ^NextBtn
@@ -44,117 +44,117 @@ Ar &Aghaidh >
 # ^AgreeBtn
 Gl&acaim Leis
 # ^AcceptBtn
-Táim toilteanach &glacadh le coinníollacha an Chomhaontú um Cheadúnas
+TÃ¡im toilteanach &glacadh le coinnÃ­ollacha an ChomhaontÃº um CheadÃºnas
 # ^DontAcceptBtn
-Nílim &toilteanach glacadh le coinníollacha an Chomhaontú um Cheadúnas
+NÃ­lim &toilteanach glacadh le coinnÃ­ollacha an ChomhaontÃº um CheadÃºnas
 # ^InstallBtn
-&Suiteáil
+&SuiteÃ¡il
 # ^UninstallBtn
-&Díshuiteáil
+&DÃ­shuiteÃ¡il
 # ^CancelBtn
 Cealaigh
 # ^CloseBtn
-&Dún
+&DÃºn
 # ^BrowseBtn
-B&rabhsáil...
+B&rabhsÃ¡il...
 # ^ShowDetailsBtn
-Taispeáin &sonraí
+TaispeÃ¡in &sonraÃ­
 # ^ClickNext
-Cliceáil "Ar Aghaidh" chun leanúint ar aghaidh.
+CliceÃ¡il "Ar Aghaidh" chun leanÃºint ar aghaidh.
 # ^ClickInstall
-Cliceáil "Suiteáil" chun tosú.
+CliceÃ¡il "SuiteÃ¡il" chun tosÃº.
 # ^ClickUninstall
-Cliceáil "Díshuiteáil" chun tosú.
+CliceÃ¡il "DÃ­shuiteÃ¡il" chun tosÃº.
 # ^Name
 Ainm
 # ^Completed
-Críochnaithe
+CrÃ­ochnaithe
 # ^LicenseText
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula suiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, cliceáil "Glacaim Leis".
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula suiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, cliceÃ¡il "Glacaim Leis".
 # ^LicenseTextCB
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula suiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, cliceáil an ticbhosca thíos. $_CLICK
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula suiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, cliceÃ¡il an ticbhosca thÃ­os. $_CLICK
 # ^LicenseTextRB
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula suiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, roghnaigh an chéad rogha thíos. $_CLICK
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula suiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, roghnaigh an chÃ©ad rogha thÃ­os. $_CLICK
 # ^UnLicenseText
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula ndíshuiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, cliceáil "Glacaim Leis".
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula ndÃ­shuiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, cliceÃ¡il "Glacaim Leis".
 # ^UnLicenseTextCB
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula ndíshuiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, cliceáil an ticbhosca thíos. $_CLICK
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula ndÃ­shuiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, cliceÃ¡il an ticbhosca thÃ­os. $_CLICK
 # ^UnLicenseTextRB
-Déan iniúchadh ar an gComhaontú um Cheadúnas sula ndíshuiteálann tú $(^NameDA). Má ghlacann tú le gach coinníoll den chomhaontú, roghnaigh an chéad rogha thíos. $_CLICK
+DÃ©an iniÃºchadh ar an gComhaontÃº um CheadÃºnas sula ndÃ­shuiteÃ¡lann tÃº $(^NameDA). MÃ¡ ghlacann tÃº le gach coinnÃ­oll den chomhaontÃº, roghnaigh an chÃ©ad rogha thÃ­os. $_CLICK
 # ^Custom
 Saincheaptha
 # ^ComponentsText
-Roghnaigh na comhpháirteanna is mian leat a shuiteáil, agus díroghnaigh na comhpháirteanna nach mian leat a shuiteáil. $_CLICK
+Roghnaigh na comhphÃ¡irteanna is mian leat a shuiteÃ¡il, agus dÃ­roghnaigh na comhphÃ¡irteanna nach mian leat a shuiteÃ¡il. $_CLICK
 # ^ComponentsSubText1
-Roghnaigh cineál na suiteála:
+Roghnaigh cineÃ¡l na suiteÃ¡la:
 # ^ComponentsSubText2_NoInstTypes
-Roghnaigh na comhpháirteanna is mian leat a shuiteáil:
+Roghnaigh na comhphÃ¡irteanna is mian leat a shuiteÃ¡il:
 # ^ComponentsSubText2
-Nó, roghnaigh na comhpháirteanna roghnacha is mian leat a shuiteáil:
+NÃ³, roghnaigh na comhphÃ¡irteanna roghnacha is mian leat a shuiteÃ¡il:
 # ^UnComponentsText
-Roghnaigh na comhpháirteanna is mian leat a dhíshuiteáil, agus díroghnaigh na comhpháirteanna nach mian leat a dhíshuiteáil. $_CLICK
+Roghnaigh na comhphÃ¡irteanna is mian leat a dhÃ­shuiteÃ¡il, agus dÃ­roghnaigh na comhphÃ¡irteanna nach mian leat a dhÃ­shuiteÃ¡il. $_CLICK
 # ^UnComponentsSubText1
-Roghnaigh cineál na díshuiteála:
+Roghnaigh cineÃ¡l na dÃ­shuiteÃ¡la:
 # ^UnComponentsSubText2_NoInstTypes
-Roghnaigh comhpháirteanna le díshuiteáil:
+Roghnaigh comhphÃ¡irteanna le dÃ­shuiteÃ¡il:
 # ^UnComponentsSubText2
-Nó, roghnaigh na comhpháirteanna roghnacha is mian leat a dhíshuiteáil:
+NÃ³, roghnaigh na comhphÃ¡irteanna roghnacha is mian leat a dhÃ­shuiteÃ¡il:
 # ^DirText
-Cuirfidh an Suiteálaí $(^NameDA) san fhillteán seo a leanas. Más mian leat suiteáil i bhfillteán difriúil, cliceáil "Brabhsáil" agus roghnaigh fillteán eile. $_CLICK
+Cuirfidh an SuiteÃ¡laÃ­ $(^NameDA) san fhillteÃ¡n seo a leanas. MÃ¡s mian leat suiteÃ¡il i bhfillteÃ¡n difriÃºil, cliceÃ¡il "BrabhsÃ¡il" agus roghnaigh fillteÃ¡n eile. $_CLICK
 # ^DirSubText
-Sprioc-Fhillteán
+Sprioc-FhillteÃ¡n
 # ^DirBrowseText
-Roghnaigh an fillteán inar mian leat $(^NameDA) a shuiteáil:
+Roghnaigh an fillteÃ¡n inar mian leat $(^NameDA) a shuiteÃ¡il:
 # ^UnDirText
-Bainfidh an Suiteálaí $(^NameDA) amach as an bhfillteán seo a leanas. Más mian leat é a dhíshuiteáil ó fhillteán difriúil, cliceáil "Brabhsáil" agus roghnaigh fillteán eile. $_CLICK
+Bainfidh an SuiteÃ¡laÃ­ $(^NameDA) amach as an bhfillteÃ¡n seo a leanas. MÃ¡s mian leat Ã© a dhÃ­shuiteÃ¡il Ã³ fhillteÃ¡n difriÃºil, cliceÃ¡il "BrabhsÃ¡il" agus roghnaigh fillteÃ¡n eile. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
-Roghnaigh an fillteán ar mian leat $(^NameDA) a dhíshuiteáil as:
+Roghnaigh an fillteÃ¡n ar mian leat $(^NameDA) a dhÃ­shuiteÃ¡il as:
 # ^SpaceAvailable
-"Spás le fáil: "
+"SpÃ¡s le fÃ¡il: "
 # ^SpaceRequired
-"Spás de dhíth: "
+"SpÃ¡s de dhÃ­th: "
 # ^UninstallingText
-Díshuiteálfar $(^NameDA) ón fhillteán seo a leanas. $_CLICK
+DÃ­shuiteÃ¡lfar $(^NameDA) Ã³n fhillteÃ¡n seo a leanas. $_CLICK
 # ^UninstallingSubText
-Á dhíshuiteáil ó:
+Ã dhÃ­shuiteÃ¡il Ã³:
 # ^FileError
-Earráid agus comhad á scríobh: \r\n\r\n$0\r\n\r\nCliceáil "Abort" chun an tsuiteáil a stopadh,\r\n"Retry" chun iarracht eile a dhéanamh, nó\r\n"Ignore" chun neamhaird a dhéanamh den chomhad seo.
+EarrÃ¡id agus comhad Ã¡ scrÃ­obh: \r\n\r\n$0\r\n\r\nCliceÃ¡il "Abort" chun an tsuiteÃ¡il a stopadh,\r\n"Retry" chun iarracht eile a dhÃ©anamh, nÃ³\r\n"Ignore" chun neamhaird a dhÃ©anamh den chomhad seo.
 # ^FileError_NoIgnore
-Earráid agus comhad á scríobh: \r\n\r\n$0\r\n\r\nCliceáil "Retry" chun iarracht eile a dhéanamh, nó\r\n"Cancel" chun an tsuiteáil a stopadh.
+EarrÃ¡id agus comhad Ã¡ scrÃ­obh: \r\n\r\n$0\r\n\r\nCliceÃ¡il "Retry" chun iarracht eile a dhÃ©anamh, nÃ³\r\n"Cancel" chun an tsuiteÃ¡il a stopadh.
 # ^CantWrite
-"Ní féidir scríobh: "
+"NÃ­ fÃ©idir scrÃ­obh: "
 # ^CopyFailed
-Theip ar an gcóipeáil
+Theip ar an gcÃ³ipeÃ¡il
 # ^CopyTo
-"Cóipeáil go "
+"CÃ³ipeÃ¡il go "
 # ^Registering
-"Clárú: "
+"ClÃ¡rÃº: "
 # ^Unregistering
-"Díchlárú: "
+"DÃ­chlÃ¡rÃº: "
 # ^SymbolNotFound
-"Níorbh fhéidir siombail a aimsiú: "
+"NÃ­orbh fhÃ©idir siombail a aimsiÃº: "
 # ^CouldNotLoad
-"Níorbh fhéidir luchtú: "
+"NÃ­orbh fhÃ©idir luchtÃº: "
 # ^CreateFolder
-"Cruthaigh fillteán: "
+"Cruthaigh fillteÃ¡n: "
 # ^CreateShortcut
 "Cruthaigh aicearra: "
 # ^CreatedUninstaller
-"Cruthaíodh díshuiteálaí: "
+"CruthaÃ­odh dÃ­shuiteÃ¡laÃ­: "
 # ^Delete
 "Scrios comhad: "
 # ^DeleteOnReboot
 "Scrios ag am atosaithe: "
 # ^ErrorCreatingShortcut
-"Earráid agus aicearra á chruthú: "
+"EarrÃ¡id agus aicearra Ã¡ chruthÃº: "
 # ^ErrorCreating
-"Earráid le linn cruthaithe: "
+"EarrÃ¡id le linn cruthaithe: "
 # ^ErrorDecompressing
-Earráid agus sonraí á ndíchomhbhrú! Suiteálaí truaillithe?
+EarrÃ¡id agus sonraÃ­ Ã¡ ndÃ­chomhbhrÃº! SuiteÃ¡laÃ­ truaillithe?
 # ^ErrorRegistering
-Earráid agus DLL á chlárú
+EarrÃ¡id agus DLL Ã¡ chlÃ¡rÃº
 # ^ExecShell
 "Blaosc: "
 # ^Exec
@@ -162,30 +162,30 @@ Earráid agus DLL á chlárú
 # ^Extract
 "Bain Amach: "
 # ^ErrorWriting
-"Extract: earráid le linn scríofa "
+"Extract: earrÃ¡id le linn scrÃ­ofa "
 # ^InvalidOpcode
-Díshuiteálaí truaillithe: cód neamhbhailí oibríochta
+DÃ­shuiteÃ¡laÃ­ truaillithe: cÃ³d neamhbhailÃ­ oibrÃ­ochta
 # ^NoOLE
 "Gan OLE le haghaidh: "
 # ^OutputFolder
-"Fillteán aschurtha: "
+"FillteÃ¡n aschurtha: "
 # ^RemoveFolder
-"Bain fillteán: "
+"Bain fillteÃ¡n: "
 # ^RenameOnReboot
 "Athainmnigh ag am atosaithe: "
 # ^Rename
 "Athainmnigh: "
 # ^Skipped
-"Neamhaird déanta de: "
+"Neamhaird dÃ©anta de: "
 # ^CopyDetails
-Cóipeáil Sonraí go dtí an Ghearrthaisce
+CÃ³ipeÃ¡il SonraÃ­ go dtÃ­ an Ghearrthaisce
 # ^LogInstall
-Logáil an próiseas suiteála
+LogÃ¡il an prÃ³iseas suiteÃ¡la
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

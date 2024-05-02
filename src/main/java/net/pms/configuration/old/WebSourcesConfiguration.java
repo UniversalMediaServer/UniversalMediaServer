@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.Feed;
+import net.pms.store.container.Feed;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -43,6 +43,12 @@ public class WebSourcesConfiguration {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
 	private static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private WebSourcesConfiguration() {
+	}
 
 	/**
 	 * This parses the web config and return WebSource's List.

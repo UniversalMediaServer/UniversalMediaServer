@@ -16,11 +16,10 @@
  */
 package net.pms.platform.jna;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import com.sun.jna.NativeLong;
 import com.sun.jna.Pointer;
-
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * An abstract {@code NativeLong} implementation of {@link TerminatedArray}.

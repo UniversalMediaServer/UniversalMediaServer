@@ -24,11 +24,11 @@ import java.util.Objects;
 /**
  * Virtual folders allow you to combine real folders into virtual ones and
  * give them custom names.
- * Will be ignored if 'virtual_folders_file' is used.
+ *
  * If you add a folder here, it will be scanned and its content added to
- * the Media Library.
+ * the Media Store.
  * For each virtual folder you can decide whether you want its content scanned
- * and added to the Media Library.
+ * and added to the Media Store.
  */
 public class VirtualFolderContent extends SharedContentWithPath {
 	protected static final String TYPE = "VirtualFolder";
@@ -45,7 +45,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 	}
 
 	public VirtualFolderContent(String parent, String name, List<SharedContent> childs, boolean addToMediaLibrary) {
-		this.parent = parent;
+		setParent(parent);
 		this.name = name;
 		this.childs = childs;
 		this.addToMediaLibrary = addToMediaLibrary;
@@ -114,7 +114,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof VirtualFolderContent other) {
+		if (super.equals(o) && o instanceof VirtualFolderContent other) {
 			if (childs == null) {
 				if (other.childs != null) {
 					return false;
@@ -129,10 +129,7 @@ public class VirtualFolderContent extends SharedContentWithPath {
 					}
 				}
 			}
-			return (active == other.active &&
-				addToMediaLibrary == other.addToMediaLibrary &&
-				((parent == null && other.parent == null) ||
-				parent != null && parent.equals(other.parent)) &&
+			return (addToMediaLibrary == other.addToMediaLibrary &&
 				((name == null && other.name == null) ||
 				name != null && name.equals(other.name)));
 		}
@@ -141,12 +138,11 @@ public class VirtualFolderContent extends SharedContentWithPath {
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 83 * hash + (this.active ? 1 : 0);
+		int hash = super.hashCode();
 		hash = 83 * hash + (Objects.hashCode(this.name));
-		hash = 83 * hash + (Objects.hashCode(this.parent));
 		hash = 83 * hash + (Objects.hashCode(this.childs));
 		hash = 83 * hash + (this.addToMediaLibrary ? 1 : 0);
 		return hash;
 	}
+
 }

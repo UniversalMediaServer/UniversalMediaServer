@@ -1,7 +1,7 @@
-;Language: Basque (1069)
-;By Iñaki San Vicente
+ï»¿;Language: Basque (1069)
+;By IÃ±aki San Vicente
 
-!insertmacro LANGFILE "Basque" "Euskera"
+!insertmacro LANGFILE "Basque" = "Euskera" =
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Ongi etorri $(^NameDA) -ren instalazio programara"
@@ -30,7 +30,7 @@
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Sakatu Av Pág hitzarmenaren gainontzeko atalak ikusteko."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Sakatu Av PÃ¡g hitzarmenaren gainontzeko atalak ikusteko."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Jarri sagua osagai baten gainean dagokion azalpena ikusteko."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Jarri sagua osagai baten gainean dagokion azalpena ikusteko."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Hautatu osagai bat bere azalpena ikusteko."
   !endif
 !endif
 
@@ -118,4 +118,12 @@
 
 !ifdef MUI_UNABORTWARNING
   ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ziur zaude $(^Name)-ren ezabaketa laguntzailetik irten nahi duzula?"
+!endif
+
+!ifdef MULTIUSER_INSTALLMODEPAGE
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Hautatu Erabiltzaileak"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Hautatu zein erabiltzailerentzat ezartzea nahi duzun $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Hautatu norentzat ezartzea nahi duzun $(^NameDA) zuretzat bakarrik edo ordenagailu honetako erabiltzaile guztientzat. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Ezarri ordenagailu hau erabiltzen duen edonorentzat"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Ezarri niretzat bakarrik"
 !endif

@@ -16,21 +16,24 @@
  */
 package net.pms.database;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.sql.Timestamp;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.dlna.DLNAThumbnailFixer;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import net.pms.dlna.DLNAThumbnail;
-import org.apache.commons.codec.digest.DigestUtils;
 
 /**
- * This class is responsible for managing the Thumbnails table. It
- * does everything from creating, checking and upgrading the table to
+ * This class is responsible for managing the Thumbnails table.
+ *
+ * It does everything from creating, checking and upgrading the table to
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
  *
@@ -38,6 +41,7 @@ import org.apache.commons.codec.digest.DigestUtils;
  * @since 7.1.1
  */
 public final class MediaTableThumbnails extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableThumbnails.class);
 	public static final String TABLE_NAME = "THUMBNAILS";
 
@@ -66,9 +70,11 @@ public final class MediaTableThumbnails extends MediaTable {
 	/**
 	 * SQL Queries
 	 */
+	private static final String SQL_GET_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_MD5 = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_MD5 + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_INSERT_ID_MD5 = INSERT_INTO + TABLE_NAME + " (" + COL_THUMBNAIL + COMMA + COL_MODIFIED + COMMA + COL_MD5 + ") VALUES (" + PARAMETER + COMMA + PARAMETER + COMMA + PARAMETER + ")";
 	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_CLEANUP = DELETE_FROM + TABLE_NAME + WHERE + NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" + AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -114,11 +120,9 @@ public final class MediaTableThumbnails extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1 -> {
-					//nothing to do
-				}
-				default -> throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+				default ->
+					throw new IllegalStateException(
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 			}
 		}
@@ -126,7 +130,7 @@ public final class MediaTableThumbnails extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID                + IDENTITY                       + COMMA +
@@ -138,16 +142,13 @@ public final class MediaTableThumbnails extends MediaTable {
 	}
 
 	/**
-	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
-	 * it writes the new thumbnail to this table.
-	 * Finally, it writes the ID from this table as the THUMBID in the FILES
-	 * table.
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found, it
+	 * writes the new thumbnail to this table.
 	 *
 	 * @param thumbnail
-	 * @param fullPathToFile
-	 * @param tvSeriesID
 	 */
-	public static void setThumbnail(final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID) {
+	public static Long setThumbnail(final DLNAThumbnail thumbnail) {
+		Long result = null;
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -157,7 +158,7 @@ public final class MediaTableThumbnails extends MediaTable {
 				if (currentAutoCommit) {
 					connection.setAutoCommit(false);
 				}
-				setThumbnail(connection, thumbnail, fullPathToFile, tvSeriesID, false);
+				result = setThumbnail(connection, thumbnail, false);
 				if (currentAutoCommit) {
 					connection.commit();
 					connection.setAutoCommit(true);
@@ -168,82 +169,92 @@ public final class MediaTableThumbnails extends MediaTable {
 		} finally {
 			MediaDatabase.close(connection);
 		}
+		return result;
 	}
 
 	/**
-	 * Attempts to find a thumbnail in this table by MD5 hash. If not found,
-	 * it writes the new thumbnail to this table.
-	 * Finally, it writes the ID from this table as the THUMBID in the FILES
-	 * or TVSERIES table.
+	 * Attempts to find a thumbnail in this table by MD5 hash. If not found, it
+	 * writes the new thumbnail to this table. Finally, it writes the ID from
+	 * this table as the THUMBID in the FILES or TVSERIES table.
 	 *
 	 * @param connection the db connection
 	 * @param thumbnail
 	 * @param fullPathToFile
 	 * @param tvSeriesID
-	 * @param forceNew whether to use a new thumbnail and remove any existing match
-	 *                 introduced to fix unrecoverable serialization
+	 * @param forceNew whether to use a new thumbnail and remove any existing
+	 * match introduced to fix unrecoverable serialization
 	 */
-	public static void setThumbnail(final Connection connection, final DLNAThumbnail thumbnail, final String fullPathToFile, final long tvSeriesID, final boolean forceNew) {
-		if (fullPathToFile == null && tvSeriesID == -1) {
-			LOGGER.trace("Either fullPathToFile or tvSeriesID are required for setThumbnail, returning early");
-			return;
-		}
-
+	public static Long setThumbnail(final Connection connection, final DLNAThumbnail thumbnail, final boolean forceNew) {
 		String md5Hash = DigestUtils.md5Hex(thumbnail.getBytes(false));
 
 		try {
-			Integer existingId = null;
+			Long existingId = null;
 			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_MD5)) {
 				statement.setString(1, md5Hash);
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
-						existingId = resultSet.getInt(COL_ID);
+						existingId = resultSet.getLong(COL_ID);
 						if (!forceNew) {
-							if (fullPathToFile != null) {
-								LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the FILES table", existingId, TABLE_NAME);
-								MediaTableFiles.updateThumbnailId(connection, fullPathToFile, existingId);
-							} else {
-								LOGGER.trace("Found existing thumbnail with ID {} in {}, setting the THUMBID in the {} table", existingId, TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-								MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, existingId);
-							}
+							return existingId;
 						}
 					}
 				}
 
-				if (existingId == null || forceNew) {
-					if (existingId == null) {
-						LOGGER.trace("Thumbnail \"{}\" not found in {}", md5Hash, TABLE_NAME);
-					} else {
-						LOGGER.trace("Forcing new thumbnail \"{}\" in {}, deleting thumbnail with ID {}", md5Hash, TABLE_NAME, existingId);
-						removeById(connection, existingId);
-					}
+				if (existingId != null) {
+					LOGGER.trace("Forcing new thumbnail \"{}\" in {}, deleting thumbnail with ID {}", md5Hash, TABLE_NAME, existingId);
+					removeById(connection, existingId);
+				}
+				try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_ID_MD5, Statement.RETURN_GENERATED_KEYS)) {
+					insertStatement.setObject(1, thumbnail);
+					insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
+					insertStatement.setString(3, md5Hash);
+					insertStatement.executeUpdate();
 
-					try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_ID_MD5, Statement.RETURN_GENERATED_KEYS)) {
-						insertStatement.setObject(1, thumbnail);
-						insertStatement.setTimestamp(2, new Timestamp(System.currentTimeMillis()));
-						insertStatement.setString(3, md5Hash);
-						insertStatement.executeUpdate();
-
-						try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
-							if (generatedKeys.next()) {
-								if (fullPathToFile != null) {
-									LOGGER.trace("Inserting new thumbnail with ID {}, setting the THUMBID in the FILES table", generatedKeys.getInt(1));
-									MediaTableFiles.updateThumbnailId(connection, fullPathToFile, generatedKeys.getInt(1));
-								} else {
-									LOGGER.trace("Inserting new thumbnail with ID {} in {}, setting the THUMBID in the {} table", generatedKeys.getInt(1), TABLE_NAME, MediaTableTVSeries.TABLE_NAME);
-									MediaTableTVSeries.updateThumbnailId(connection, tvSeriesID, generatedKeys.getInt(1));
-								}
-							} else {
-								LOGGER.trace("Generated key not returned in " + TABLE_NAME);
-							}
+					try (ResultSet generatedKeys = insertStatement.getGeneratedKeys()) {
+						if (generatedKeys.next()) {
+							return generatedKeys.getLong(1);
+						} else {
+							LOGGER.trace("Generated key not returned in " + TABLE_NAME);
 						}
 					}
 				}
 			}
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN_FOR, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "writing md5", md5Hash, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
+		return null;
+	}
+
+	public static DLNAThumbnail getThumbnail(final Connection connection, final Long id) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+			statement.setLong(1, id);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					DLNAThumbnail thumbnail = null;
+					try {
+						return ((DLNAThumbnail) resultSet.getObject(COL_THUMBNAIL));
+					} catch (SQLException ex) {
+						try {
+							thumbnail = DLNAThumbnailFixer.fixDLNAThumbnail(resultSet.getBinaryStream(COL_THUMBNAIL));
+							if (thumbnail != null) {
+								//update thumbnail object
+								resultSet.updateObject(COL_THUMBNAIL, thumbnail);
+								resultSet.updateRow();
+							}
+						} catch (IOException ex1) {
+							LOGGER.error("Error in DLNAThumbnail deserialization for id \"{}\": {}", id, ex.getMessage());
+							LOGGER.info("", ex);
+						}
+					}
+					return thumbnail;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for id \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	/**
@@ -252,13 +263,31 @@ public final class MediaTableThumbnails extends MediaTable {
 	 * @param connection the db connection
 	 * @param id the ID to remove
 	 */
-	public static void removeById(final Connection connection, final Integer id) {
+	public static void removeById(final Connection connection, final Long id) {
+		if (id == null) {
+			return;
+		}
 		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_ID)) {
-			statement.setInt(1, id);
+			statement.setLong(1, id);
 			int rows = statement.executeUpdate();
 			LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for ID \"{}\"", rows, id);
 		} catch (SQLException e) {
 			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Remove entries not in FILES table or TV_SERIES table.
+	 *
+	 * @param connection
+	 */
+	public static void cleanup(final Connection connection) {
+		try (PreparedStatement statement = connection.prepareStatement(SQL_CLEANUP)) {
+			int rows = statement.executeUpdate();
+			LOGGER.trace("Removed {} entries in \"{}\"", rows, TABLE_NAME);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN, DATABASE_NAME, "removing entries", TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

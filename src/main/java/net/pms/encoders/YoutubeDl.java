@@ -21,13 +21,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
 import net.pms.platform.PlatformUtils;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,17 +65,16 @@ public class YoutubeDl extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 		// Use device-specific conf
-		UmsConfiguration prev = configuration;
-		configuration = params.getMediaRenderer().getUmsConfiguration();
-		String filename = dlna.getFileName();
-		setAudioAndSubs(dlna, params);
+		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
+		String filename = resource.getFileName();
+		setAudioAndSubs(resource, params);
 
 		// Build the command line
 		List<String> cmdList = new ArrayList<>();
@@ -139,6 +138,7 @@ public class YoutubeDl extends FFMpegVideo {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+			Thread.currentThread().interrupt();
 		}
 
 		// Launch the transcode command...
@@ -148,9 +148,9 @@ public class YoutubeDl extends FFMpegVideo {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+			Thread.currentThread().interrupt();
 		}
 
-		configuration = prev;
 		return pw;
 	}
 
@@ -163,7 +163,7 @@ public class YoutubeDl extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 

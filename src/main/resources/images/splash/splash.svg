@@ -1,0 +1,34 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	version="1.1"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="2160" height="1080">
+	<title>Universal Media Server </title>
+	<desc>UMS logo - Created by Surf@ceS</desc>
+	<defs>
+		<linearGradient id="a" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#DDD"/>
+			<stop offset="100%" stop-color="#7B7B7B"/>
+		</linearGradient>
+		<radialGradient id="b">
+			<stop offset="0%" stop-color="#DDFDFE"/>
+			<stop offset="60%" stop-color="#619DC0"/>
+			<stop offset="100%" stop-color="#4B8CB5"/>
+		</radialGradient>
+		<linearGradient id="c" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#2C546D"/>
+			<stop offset="100%" stop-color="#4B8CB5"/>
+		</linearGradient>
+		<path id="d" fill="#FFF" stroke="#4B8CB5" stroke-width="3" d="M865 525c-35-64-49-148-51-189 0-57 29-106 73-126 59-26 126-12 197 42 88 66 182 188 227 296 18 42 37 109 43 144a1 1 0 0 1-6 120c-60 0-85-94-12-117l-7-27c-58-207-263-401-388-366-23 6-49 33-56 61-9 29-22 81-12 138z" opacity="1"/>
+		<text id="e" x="1080" y="600" white-space="pre" stroke-linejoin="round" font-family="sans-serif" font-size="155" font-weight="700" text-anchor="middle">UNIVERSAL MEDIA SERVER</text>
+	</defs>
+	<circle r="35" fill="#FFF" stroke="#7B7B7B" stroke-width=".2" transform="matrix(15.2 0 0 15.2 1080 540)"/>
+	<circle r="35" fill="url(#a)" transform="matrix(15 0 0 15 1080 540)"/>
+	<circle r="35" fill="url(#b)" stroke="url(#c)" stroke-width=".2" transform="matrix(13 0 0 13 1080 540)"/>
+	<use xlink:href="#d" transform="rotate(240 1080 540)"/>
+	<use xlink:href="#d" transform="rotate(120 1080 540)"/>
+	<use xlink:href="#d"/>
+	<use xlink:href="#e" fill="url(#a)" stroke="#7B7B7B" stroke-opacity=".5" stroke-width="20"/>
+	<use xlink:href="#e" fill="url(#a)" stroke="#FFF" stroke-width="15"/>
+	<use xlink:href="#e" fill="url(#a)"/>
+</svg>

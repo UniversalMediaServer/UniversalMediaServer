@@ -32,8 +32,8 @@ import javax.annotation.Nullable;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.FormatFactory;
+import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.ProgramExecutableType;
@@ -87,6 +87,8 @@ public final class EngineFactory {
 		}
 	}
 
+	private static boolean initialized = false;
+
 	/**
 	 * Not to be instantiated.
 	 */
@@ -101,6 +103,11 @@ public final class EngineFactory {
 	 */
 	public static void initialize() throws InterruptedException {
 		registerEngines();
+		initialized = true;
+	}
+
+	public static boolean isInitialized() {
+		return initialized;
 	}
 
 	/**
@@ -403,21 +410,21 @@ public final class EngineFactory {
 
 	/**
 	 * Returns the first {@link Engine} that matches the given
-	 * {@link DLNAResource}. Each of the available {@link Engine} instances are
+	 * {@link StoreItem}. Each of the available {@link Engine} instances are
 	 * passed the provided information and the first that reports that it is
 	 * compatible will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
+	 * @param resource the {@link StoreItem} to match.
 	 * @return The {@link Engine} if a match could be found, {@code null}
 	 *         otherwise.
 	 */
-	public static Engine getEngine(final DLNAResource resource) {
+	public static Engine getEngine(final StoreItem resource) {
 		if (resource == null) {
 			LOGGER.warn("Invalid resource (null): no engine found");
 			return null;
 		}
 		LOGGER.trace("Getting engine for resource \"{}\"", resource.getName());
-		boolean isImage = resource.getMedia() != null && resource.getMedia().isImage();
+		boolean isImage = resource.getMediaInfo() != null && resource.getMediaInfo().isImage();
 
 		ENGINES_LOCK.readLock().lock();
 		try {
@@ -486,11 +493,11 @@ public final class EngineFactory {
 	 * information and each {@link Engine} that reports that it is compatible
 	 * will be returned.
 	 *
-	 * @param resource the {@link DLNAResource} to match.
+	 * @param resource the {@link StoreItem} to match.
 	 * @return A list of compatible {@link Engine}s if a match could be found,
 	 *         {@code null} otherwise.
 	 */
-	public static List<Engine> getEngines(final DLNAResource resource) {
+	public static List<Engine> getEngines(final StoreItem resource) {
 		if (resource == null) {
 			return null;
 		}

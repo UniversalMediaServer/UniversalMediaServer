@@ -22,6 +22,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
 import { Check, ExclamationMark } from 'tabler-icons-react';
+
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
@@ -29,6 +30,7 @@ import { havePermission, Permissions } from '../../services/accounts-service';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
 import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
+import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
 
 export default function Settings() {
@@ -95,8 +97,8 @@ export default function Settings() {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotReceived'] + ' ' + i18n.get['ClickHereReportBug'],
+          title: i18n.get('Error'),
+          message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -111,8 +113,8 @@ export default function Settings() {
     showNotification({
       id: 'settings-save',
       loading: true,
-      title: i18n.get['Save'],
-      message: i18n.get['SavingConfiguration'],
+      title: i18n.get('Save'),
+      message: i18n.get('SavingConfiguration'),
       autoClose: false,
       withCloseButton: false
     });
@@ -129,8 +131,10 @@ export default function Settings() {
       if (_.isEmpty(changedValues)) {
         updateNotification({
           id: 'settings-save',
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationHasNoChanges']
+          title: i18n.get('Saved'),
+          message: i18n.get('ConfigurationHasNoChanges'),
+          loading: false,
+          autoClose: 1000
         })
       } else {
         await axios.post(settingsApiUrl, changedValues)
@@ -140,9 +144,11 @@ export default function Settings() {
             updateNotification({
               id: 'settings-save',
               color: 'teal',
-              title: i18n.get['Saved'],
-              message: i18n.get['ConfigurationSaved'],
-              icon: <Check size='1rem' />
+              title: i18n.get('Saved'),
+              message: i18n.get('ConfigurationSaved'),
+              icon: <Check size='1rem' />,
+              loading: false,
+              autoClose: 1000
             })
           })
           .catch(function(error) {
@@ -150,9 +156,12 @@ export default function Settings() {
               updateNotification({
                 id: 'settings-save',
                 color: 'red',
-                title: i18n.get['Error'],
-                message: i18n.get['ConfigurationNotReceived'],
-                icon: <ExclamationMark size='1rem' />
+                title: i18n.get('Error'),
+                message: i18n.get('ConfigurationNotReceived'),
+                icon: <ExclamationMark size='1rem' />,
+                withCloseButton: true,
+                loading: false,
+                autoClose: 1000
               })
             } else {
               throw new Error(error);
@@ -163,9 +172,12 @@ export default function Settings() {
       updateNotification({
         id: 'settings-save',
         color: 'red',
-        title: i18n.get['Error'],
-        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        title: i18n.get('Error'),
+        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
+        withCloseButton: true,
+        loading: false,
+        autoClose: 2000
       })
     }
 
@@ -173,19 +185,27 @@ export default function Settings() {
   };
 
   return canView ? (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs defaultValue='GeneralSettings'>
           <Tabs.List>
-            <Tabs.Tab value='GeneralSettings'>{i18n.get['GeneralSettings']}</Tabs.Tab>
+            <Tabs.Tab value='GeneralSettings'>{i18n.get('GeneralSettings')}</Tabs.Tab>
             {advancedSettings &&
-              <Tabs.Tab value='NavigationSettings'>{i18n.get['NavigationSettings']}</Tabs.Tab>
+              <Tabs.Tab value='RenderersSettings'>{i18n.get('RenderersSettings')}</Tabs.Tab>
             }
-            <Tabs.Tab value='TranscodingSettings'>{i18n.get['TranscodingSettings']}</Tabs.Tab>
+            {advancedSettings &&
+              <Tabs.Tab value='NavigationSettings'>{i18n.get('NavigationSettings')}</Tabs.Tab>
+            }
+            <Tabs.Tab value='TranscodingSettings'>{i18n.get('TranscodingSettings')}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='GeneralSettings'>
             {GeneralSettings(form, defaultConfiguration, selectionSettings)}
           </Tabs.Panel>
+          {advancedSettings &&
+            <Tabs.Panel value='RenderersSettings'>
+              {RenderersSettings(form, selectionSettings)}
+            </Tabs.Panel>
+          }
           {advancedSettings &&
             <Tabs.Panel value='NavigationSettings'>
               {NavigationSettings(form, defaultConfiguration, selectionSettings)}
@@ -196,17 +216,17 @@ export default function Settings() {
           </Tabs.Panel>
         </Tabs>
         {canModify && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>
-              {i18n.get['Save']}
+              {i18n.get('Save')}
             </Button>
           </Group>
         )}
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
 }

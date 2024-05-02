@@ -16,9 +16,8 @@
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import net.pms.configuration.FormatConfiguration;
-
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This {@code enum} represents MPlayer's
@@ -92,7 +91,7 @@ public enum MPlayerDvdAudioStreamTypes {
 	 *         {@code null}.
 	 */
 	public static MPlayerDvdAudioStreamTypes typeOf(String mPlayerCode) {
-		if (isBlank(mPlayerCode)) {
+		if (StringUtils.isBlank(mPlayerCode)) {
 			return null;
 		}
 

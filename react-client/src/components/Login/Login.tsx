@@ -42,12 +42,12 @@ const Login = () => {
       () => {
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'pwd-error',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ErrorLoggingIn'],
+          title: i18n.get('Error'),
+          message: i18n.get('ErrorLoggingIn'),
           autoClose: 3000,
         });
       }
@@ -60,12 +60,12 @@ const Login = () => {
       () => {
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'user-creation-error',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['NewUserNotCreated'],
+          title: i18n.get('Error'),
+          message: i18n.get('NewUserNotCreated'),
           autoClose: 3000,
         });
       }
@@ -78,12 +78,12 @@ const Login = () => {
         clearJwt();
         window.location.reload();
       },
-      (error) => {
+      () => {
         showNotification({
           id: 'auth-disable-error',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['AuthenticationServiceNotDisabled'],
+          title: i18n.get('Error'),
+          message: i18n.get('AuthenticationServiceNotDisabled'),
           autoClose: 3000,
         });
       }
@@ -91,44 +91,44 @@ const Login = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 300 }} mx='auto'>
+    <Box style={{ maxWidth: 300 }} mx='auto'>
       <form onSubmit={form.onSubmit(session.noAdminFound ? handleUserCreation : handleLogin)}>
         <Text size='xl'>Universal Media Server</Text>
-        <Text size='lg'>{session.noAdminFound ? i18n.get['CreateFirstAdmin'] : i18n.get['LogIn']}</Text>
+        <Text size='lg'>{session.noAdminFound ? i18n.get('CreateFirstAdmin') : i18n.get('LogIn')}</Text>
         <Space h='md' />
         <TextInput
           required
-          label={i18n.get['Username']}
-          icon={<User size={14} />}
+          label={i18n.get('Username')}
+          leftSection={<User size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
-          label={i18n.get['Password']}
+          label={i18n.get('Password')}
           type='password'
-          icon={<Lock size={14} />}
+          leftSection={<Lock size={14} />}
           {...form.getInputProps('password')}
         />
-        <Group position='right' mt='md'>
-          <Button type='submit'>{session.noAdminFound ? i18n.get['Create'] : i18n.get['LogIn']}</Button>
+        <Group justify='flex-end' mt='md'>
+          <Button type='submit'>{session.noAdminFound ? i18n.get('Create') : i18n.get('LogIn')}</Button>
         </Group>
         {session.noAdminFound && session.authenticate && (
           <>
-            <Divider my='lg' label={i18n.get['Or']} labelPosition='center' />
+            <Divider my='lg' label={i18n.get('Or')} labelPosition='center' fz='md' c={'var(--mantine-color-text)'} />
             <Modal
               centered
               opened={opened}
               onClose={() => setOpened(false)}
-              title={i18n.get['Warning']}
+              title={i18n.get('Warning')}
             >
-              <Text>{allowHtml(i18n.get['DisablingAuthenticationReduces'])}</Text>
-              <Group position='right' mt='md'>
-                <Button onClick={() => setOpened(false)}>{i18n.get['Cancel']}</Button>
-                <Button color='red' onClick={() => handleAuthDisable()}>{i18n.get['Confirm']}</Button>
+              <Text>{allowHtml(i18n.get('DisablingAuthenticationReduces'))}</Text>
+              <Group justify='flex-end' mt='md'>
+                <Button onClick={() => setOpened(false)}>{i18n.get('Cancel')}</Button>
+                <Button color='red' onClick={() => handleAuthDisable()}>{i18n.get('Confirm')}</Button>
               </Group>
             </Modal>
-            <Group position='center' mt='md'>
-              <Button color='red' onClick={() => setOpened(true)}>{i18n.get['DisableAuthentication']}</Button>
+            <Group justify='center' mt='md'>
+              <Button color='red' onClick={() => setOpened(true)}>{i18n.get('DisableAuthentication')}</Button>
             </Group>
           </>
         )}

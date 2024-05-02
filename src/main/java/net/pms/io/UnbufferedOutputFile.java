@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * {@link BufferedOutputFileImpl}, no attempt is made to buffer the output. Instead,
  * {@link java.io.PipedOutputStream PipedOutputStream} and {@link java.io.PipedInputStream
  * PipedInputStream} are used to pump data from the transcoder to the client. The idea is
- * to have as little interference as possible in the piping process, allowing PMS to be
+ * to have as little interference as possible in the piping process, allowing UMS to be
  * agnostic of the transcoded data and focus on steering the process and handling requests
  * instead.
  * <p>
@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
  * current process should be stopped (killed) and a new process should be started.
  * This has not been implemented yet, so seeking is not an option right now.
  * <p>
- * Because of the missing feature, this class is currently not used anywhere in PMS. If
+ * Because of the missing feature, this class is currently not used anywhere in UMS. If
  * you want to experiment with it, search for "new BufferedOutputFileImpl(" and replace it
  * with "new UnbufferedOutputFile(" in the classes {@link OutputBufferConsumer} and
  * {@link WindowsNamedPipe}.

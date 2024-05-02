@@ -1,95 +1,95 @@
-;Language: Portuguese (2070)
+Ôªø;Language: Portuguese (2070)
 ;By Ramon <ramon@netcabo.pt>
 
-!insertmacro LANGFILE "Portuguese" "PortuguÍs"
+!insertmacro LANGFILE "Portuguese" = "Portugu√™s" "Portugues"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Bem vindo ao Assistente de InstalaÁ„o do $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Este assistente ajud·-lo-· durante a instalaÁ„o do $(^NameDA).$\r$\n$\r$\n… recomendado que feche todas as outras aplicaÁıes antes de iniciar a InstalaÁ„o. Isto permitir· que o Instalador actualize ficheiros relacionados com o sistema sem necessidade de reiniciar o computador.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Bem vindo ao Assistente de Instala√ß√£o do $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Este assistente ajud√°-lo-√° durante a instala√ß√£o do $(^NameDA).$\r$\n$\r$\n√â recomendado que feche todas as outras aplica√ß√µes antes de iniciar a Instala√ß√£o. Isto permitir√° que o Instalador actualize ficheiros relacionados com o sistema sem necessidade de reiniciar o computador.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Bem vindo ao Assistente de desinstalaÁ„o do $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Este assistente ajud·-lo-· durante a desinstalaÁ„o do $(^NameDA).$\r$\n$\r$\nAntes de iniciar a desinstalaÁ„o, certifique-se de que o $(^NameDA) n„o est· em execuÁ„o.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Bem vindo ao Assistente de desinstala√ß√£o do $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Este assistente ajud√°-lo-√° durante a desinstala√ß√£o do $(^NameDA).$\r$\n$\r$\nAntes de iniciar a desinstala√ß√£o, certifique-se de que o $(^NameDA) n√£o est√° em execu√ß√£o.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Contrato de LicenÁa"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Por favor, verifique os termos da licenÁa antes de instalar o $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Se aceitar os termos da licenÁa, clique em 'Aceito' para continuar. Dever· aceitar o contrato para instalar o $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se aceitar os termos da licenÁa, clique na caixa de seleÁ„o abaixo. Dever· aceitar o contrato para instalar o $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se aceitar os termos da licenÁa, selecione a primeira opÁ„o abaixo. VocÍ deve aceitar o contrato para instalar o $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Contrato de Licen√ßa"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Por favor, verifique os termos da licen√ßa antes de instalar o $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Se aceitar os termos da licen√ßa, clique em 'Aceito' para continuar. Dever√° aceitar o contrato para instalar o $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se aceitar os termos da licen√ßa, clique na caixa de sele√ß√£o abaixo. Dever√° aceitar o contrato para instalar o $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se aceitar os termos da licen√ßa, selecione a primeira op√ß√£o abaixo. Voc√™ deve aceitar o contrato para instalar o $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Contrato de LicenÁa"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Por favor, verifique os termos da licenÁa antes de desinstalar o $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Se aceitar os termos da licenÁa, clique em 'Aceito' para continuar. Dever· aceitar o contrato para desinstalar o $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se aceitar os termos da licenÁa, clique na caixa de seleÁ„o abaixo. Dever· aceitar o contrato para desinstalar o $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se aceitar os termos da licenÁa, selecione a primeira opÁ„o abaixo. VocÍ deve aceitar o contrato para desinstalar o $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Contrato de Licen√ßa"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Por favor, verifique os termos da licen√ßa antes de desinstalar o $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Se aceitar os termos da licen√ßa, clique em 'Aceito' para continuar. Dever√° aceitar o contrato para desinstalar o $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Se aceitar os termos da licen√ßa, clique na caixa de sele√ß√£o abaixo. Dever√° aceitar o contrato para desinstalar o $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Se aceitar os termos da licen√ßa, selecione a primeira op√ß√£o abaixo. Voc√™ deve aceitar o contrato para desinstalar o $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Tecle Page Down para ver o restante da licenÁa."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Tecle Page Down para ver o restante da licen√ßa."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Escolha de Componentes"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Escolha quais as caracterÌsticas do $(^NameDA) que deseja instalar."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Escolha quais as caracter√≠sticas do $(^NameDA) que deseja instalar."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Escolher Componentes"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Escolha quais as caracterÌsticas do $(^NameDA) que deseja desinstalar."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Escolha quais as caracter√≠sticas do $(^NameDA) que deseja desinstalar."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "DescriÁ„o"
+  ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_TITLE "Descri√ß√£o"
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Posicione o rato sobre um componente para ver a sua descriÁ„o."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Posicione o rato sobre um componente para ver a sua descri√ß√£o."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Posicione o rato sobre um componente para ver a sua descriÁ„o."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Seleccione um componente para ver a sua descri√ß√£o."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Escolha do Local da InstalaÁ„o"
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Escolha do Local da Instala√ß√£o"
   ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Escolha a pasta na qual deseja instalar o $(^NameDA)."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Escolha o Local de desinstalaÁ„o"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Escolha o Local de desinstala√ß√£o"
   ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Escolha a pasta de onde pretende desinstalar o $(^NameDA)."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
   ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Instalando"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Por favor, aguarde enquanto o $(^NameDA) est· sendo instalado."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "InstalaÁ„o Completa"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "A instalaÁ„o foi concluÌda com sucesso."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "InstalaÁ„o Abortada"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "A instalaÁ„o n„o foi concluÌda com sucesso."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Por favor, aguarde enquanto o $(^NameDA) est√° sendo instalado."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Instala√ß√£o Completa"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "A instala√ß√£o foi conclu√≠da com sucesso."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "Instala√ß√£o Abortada"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "A instala√ß√£o n√£o foi conclu√≠da com sucesso."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
   ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Desinstalando"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Por favor, aguarde enquanto o $(^NameDA) est· sendo desinstalado."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "DesinstalaÁ„o Completa"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "A desinstalaÁ„o foi concluÌda com sucesso."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "DesinstalaÁ„o Abortada"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "A desinstalaÁ„o n„o foi concluÌda com sucesso"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Por favor, aguarde enquanto o $(^NameDA) est√° sendo desinstalado."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Desinstala√ß√£o Completa"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "A desinstala√ß√£o foi conclu√≠da com sucesso."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Desinstala√ß√£o Abortada"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "A desinstala√ß√£o n√£o foi conclu√≠da com sucesso"
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Concluindo o Assistente de InstalaÁ„o do $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Concluindo o Assistente de Instala√ß√£o do $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) foi instalado no seu computador.$\r$\n$\r$\nClique em Terminar para fechar este assistente."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "O seu computador deve ser reiniciado para concluÌr a instalaÁ„o do $(^NameDA). Deseja reiniciar agora?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "O seu computador deve ser reiniciado para conclu√≠r a instala√ß√£o do $(^NameDA). Deseja reiniciar agora?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "ConcluÌndo o assistente de desisntalaÁ„o do $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Conclu√≠ndo o assistente de desisntala√ß√£o do $(^NameDA)"
   ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) foi removido do seu computador.$\r$\n$\r$\nClique em Terminar para fechar este assistente."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "O seu computador deve ser reiniciado para concluÌr a desinstalaÁ„o do $(^NameDA). Deseja reiniciar agora?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "O seu computador deve ser reiniciado para conclu√≠r a desinstala√ß√£o do $(^NameDA). Deseja reiniciar agora?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
@@ -103,8 +103,8 @@
 !ifdef MUI_STARTMENUPAGE
   ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Escolha uma Pasta do Menu Iniciar"
   ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Escolha uma pasta do Menu Iniciar para os atalhos do programa."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Selecione uma pasta do Menu Iniciar em que deseja criar os atalhos do programa. VocÍ pode tambÈm digitar um nome para criar uma nova pasta. "
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "N„o criar atalhos"
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Selecione uma pasta do Menu Iniciar em que deseja criar os atalhos do programa. Voc√™ pode tamb√©m digitar um nome para criar uma nova pasta. "
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "N√£o criar atalhos"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
@@ -113,9 +113,17 @@
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Deseja realmente cancelar a instalaÁ„o do $(^Name)?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Deseja realmente cancelar a instala√ß√£o do $(^Name)?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Deseja realmente cancelar a desinstalaÁ„o do $(^Name)?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Deseja realmente cancelar a desinstala√ß√£o do $(^Name)?"
+!endif
+
+!ifdef MULTIUSER_INSTALLMODEPAGE
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_TITLE "Escolha utilizadores"
+  ${LangFileString} MULTIUSER_TEXT_INSTALLMODE_SUBTITLE "Escolha para quais utilizadores deseja instalar o $(^NameDA)."
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_TOP "Escolha se deseja instalar o $(^NameDA) apenas para si ou para todos os utilizadores. $(^ClickNext)"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_ALLUSERS "Instalar para todos os utilizadores"
+  ${LangFileString} MULTIUSER_INNERTEXT_INSTALLMODE_CURRENTUSER "Instalar apenas para si"
 !endif

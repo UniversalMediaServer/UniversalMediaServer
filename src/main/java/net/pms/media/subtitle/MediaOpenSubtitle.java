@@ -22,14 +22,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import net.pms.PMS;
-import static net.pms.util.Constants.*;
+import net.pms.external.opensubtitles.OpenSubtitle;
+import net.pms.external.opensubtitles.OpenSubtitle.SubtitleItem;
+import net.pms.util.Constants;
 import net.pms.util.FileUtil;
-import net.pms.util.OpenSubtitle;
-import net.pms.util.OpenSubtitle.SubtitleItem;
 import net.pms.util.StringUtil.LetterCase;
-import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,13 +92,13 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 		synchronized (downloadLock) {
 			if (subtitleFile == null) {
 				String fileName;
-				if (isBlank(subtitleItem.getSubFileName())) {
+				if (StringUtils.isBlank(subtitleItem.getSubFileName())) {
 					// Generate temp name
 					fileName = "tempsubtitle" + System.nanoTime();
 					keepLiveSubtitle = false;
 				} else {
 					fileName = FileUtil.getFileNameWithoutExtension(subtitleItem.getSubFileName());
-					if (isNotBlank(subtitleItem.getIDSubtitleFile())) {
+					if (StringUtils.isNotBlank(subtitleItem.getIDSubtitleFile())) {
 						fileName += "_" + subtitleItem.getIDSubtitleFile();
 					} else {
 						fileName += "_" + subtitleItem.getIDSubtitle();
@@ -207,21 +205,21 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 
 	@Override
 	public boolean isExternalFileUtf8() {
-		return equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_8);
+		return StringUtils.equalsIgnoreCase(subtitleItem.getSubEncoding(), Constants.CHARSET_UTF_8);
 	}
 
 	@Override
 	public boolean isExternalFileUtf16() {
 		return
-			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16BE) ||
-			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_16LE);
+			StringUtils.equalsIgnoreCase(subtitleItem.getSubEncoding(), Constants.CHARSET_UTF_16BE) ||
+			StringUtils.equalsIgnoreCase(subtitleItem.getSubEncoding(),  Constants.CHARSET_UTF_16LE);
 	}
 
 	@Override
 	public boolean isExternalFileUtf32() {
 		return
-			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32BE) ||
-			equalsIgnoreCase(subtitleItem.getSubEncoding(), CHARSET_UTF_32LE);
+			StringUtils.equalsIgnoreCase(subtitleItem.getSubEncoding(), Constants.CHARSET_UTF_32BE) ||
+			StringUtils.equalsIgnoreCase(subtitleItem.getSubEncoding(), Constants.CHARSET_UTF_32LE);
 	}
 
 	/**
@@ -256,9 +254,9 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 	public String toString() {
 		StringBuilder result = new StringBuilder(getClass().getSimpleName());
 		result.append(" [Type: ").append(getType());
-		if (isNotBlank(getSubtitlesTrackTitleFromMetadata())) {
-			result.append(", Subtitles Track Title From Metadata: ");
-			result.append(getSubtitlesTrackTitleFromMetadata());
+		if (StringUtils.isNotBlank(getTitle())) {
+			result.append(", Title: ");
+			result.append(getTitle());
 		}
 		result.append(", Language: ").append(getLang());
 
@@ -275,7 +273,7 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 				result.append(", Filename: \"").append(subtitleItem.getSubFileName()).append("\" (not downloaded)");
 			}
 		}
-		if (isNotBlank(subtitleItem.getSubEncoding())) {
+		if (StringUtils.isNotBlank(subtitleItem.getSubEncoding())) {
 			result.append(", Character Set: ").append(subtitleItem.getSubEncoding());
 		}
 
@@ -319,12 +317,4 @@ public class MediaOpenSubtitle extends MediaOnDemandSubtitle implements AutoClos
 		deleteLiveSubtitlesFile();
 	}
 
-	@Override
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
-		}
-	}
 }

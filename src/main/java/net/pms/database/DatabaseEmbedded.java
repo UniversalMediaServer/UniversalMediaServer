@@ -117,9 +117,23 @@ public class DatabaseEmbedded {
 		String dbDir = getDbDir();
 		final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
 		final File dbDirectory = new File(dbDir);
-		if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format 2")) {
-			LOGGER.info("The database need a migration to h2 format 2");
-			migrateDatabaseVersion2(true, dbName);
+		if (se.getErrorCode() == 90048 && se.getMessage().contains("Unsupported database file version") && se.getCause() != null && se.getCause().getMessage() != null) {
+			String cause = se.getCause().getMessage();
+			if (cause.contains("is smaller than the supported format")) {
+				LOGGER.info("The database need a migration to the new h2 format");
+				if (cause.contains("format 2 is smaller")) {
+					migrateDatabase(214, true, dbName);
+					return true;
+				} else if (cause.contains("format 1 is smaller")) {
+					migrateDatabase(197, true, dbName);
+					return true;
+				}
+			}
+		}
+
+		if (se.getErrorCode() == 50000 && se.getMessage().contains("format 1 is smaller than the supported format")) {
+			LOGGER.info("The database need a migration to the new h2 format");
+			migrateDatabase(197, true, dbName);
 			return true;
 		} else if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
 			FileUtils.deleteQuietly(dbDirectory);
@@ -139,19 +153,25 @@ public class DatabaseEmbedded {
 	}
 
 	/**
-	 * Migrate the h2 database from version 1.4.197 to version 2.
+	 * Migrate the h2 database from old version to latest version.
 	 *
 	 */
-	private static void migrateDatabaseVersion2(boolean deleteBackup, String dbName) {
+	private static void migrateDatabase(int version, boolean deleteBackup, String dbName) {
 		LOGGER.info("Migrating database to v{}", Constants.VERSION);
 		GuiManager.setStatusLine("Migrating database to v" + Constants.VERSION);
 		String dbDir = getDbDir();
 		String oldUrl = Constants.START_URL + dbDir + File.separator + dbName;
 		Properties prprts = new Properties();
-		prprts.setProperty("user", getDbUser());
-		prprts.setProperty("password", getDbPassword());
+		String user = getDbUser();
+		String password = getDbPassword();
+		if (user != null) {
+			prprts.setProperty("user", user);
+		}
+		if (password != null) {
+			prprts.setProperty("password", password);
+		}
 		try {
-			Upgrade.upgrade(oldUrl, prprts, 197);
+			Upgrade.upgrade(oldUrl, prprts, version);
 			if (deleteBackup) {
 				final File dbBakFile = new File(dbDir + File.separator + dbName + ".mv.db.bak");
 				if (dbBakFile.exists()) {
@@ -293,4 +313,26 @@ public class DatabaseEmbedded {
 			LOGGER.error("Database error on memory indexes change", ex);
 		}
 	}
+
+	public static int getCacheSize(final Connection connection) {
+		try (PreparedStatement statement = connection.prepareStatement("SELECT SETTING_VALUE FROM INFORMATION_SCHEMA.SETTINGS WHERE SETTING_NAME = 'info.CACHE_SIZE'")) {
+			try (ResultSet result = statement.executeQuery()) {
+				if (result.first()) {
+					return result.getInt("SETTING_VALUE");
+				}
+			}
+		} catch (SQLException ex) {
+			LOGGER.error("Database error on getting memory cache size", ex);
+		}
+		return 0;
+	}
+
+	public static void analyzeDb(final Connection connection) {
+		try (PreparedStatement statement = connection.prepareStatement("ANALYZE SAMPLE_SIZE 0")) {
+			statement.execute();
+		} catch (SQLException ex) {
+			LOGGER.error("Database error on updating the selectivity statistics of tables", ex);
+		}
+	}
+
 }

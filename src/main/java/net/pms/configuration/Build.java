@@ -19,7 +19,7 @@ package net.pms.configuration;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 
-// a one-stop class for values and methods specific to custom PMS builds
+// a one-stop class for values and methods specific to custom UMS builds
 public class Build {
 
 	/**
@@ -34,7 +34,7 @@ public class Build {
 	private static final String REPO = "https://raw.github.com/UniversalMediaServer/UniversalMediaServer";
 
 	/**
-	 * The URL of the properties file used by the {@link AutoUpdater} to announce PMS updates.
+	 * The URL of the properties file used by the {@link AutoUpdater} to announce UMS updates.
 	 * Can be null/empty if not used. Not used if IS_UPDATABLE is set to false.
 	 */
 	private static final String UPDATE_SERVER_URL = REPO + "/main/src/main/external-resources/update/latest_version.properties";
@@ -50,7 +50,7 @@ public class Build {
 	private static final boolean IS_UPDATABLE = true;
 
 	/**
-	 * the name of the subdirectory under which PMS config files are stored for this build.
+	 * the name of the subdirectory under which UMS config files are stored for this build.
 	 * the default value is "UMS" e.g.
 	 *
 	 *     Windows:
@@ -68,7 +68,7 @@ public class Build {
 	 * a custom build can change this to avoid interfering with the config files of other
 	 * builds e.g.:
 	 *
-	 *     PROFILE_DIRECTORY_NAME = "PMS Rendr Edition";
+	 *     PROFILE_DIRECTORY_NAME = "UMS Rendr Edition";
 	 *     PROFILE_DIRECTORY_NAME = "pms-mlx";
 	 *
 	 * Note: custom Windows builds that change this value should change the corresponding "$ALLUSERSPROFILE\UMS"

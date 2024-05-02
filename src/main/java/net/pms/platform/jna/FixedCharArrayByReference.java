@@ -16,15 +16,14 @@
  */
 package net.pms.platform.jna;
 
+import com.sun.jna.Memory;
+import com.sun.jna.Pointer;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.nio.charset.CodingErrorAction;
-import com.sun.jna.Memory;
-import com.sun.jna.Pointer;
-
 
 /**
  * An implementation of a referenced fixed size 8-bit char array where the
@@ -226,7 +225,7 @@ public class FixedCharArrayByReference extends FixedArrayByReference<Byte> {
 	protected Byte[] getElements() {
 		Byte[] result = new Byte[(int) size];
 		for (int i = 0; i < size; i++) {
-			result[i] = Byte.valueOf(getPointer().getByte(i * getElementSize()));
+			result[i] = getPointer().getByte(i * getElementSize());
 		}
 		return result;
 	}
@@ -234,7 +233,7 @@ public class FixedCharArrayByReference extends FixedArrayByReference<Byte> {
 	@Override
 	protected void setElements(Byte[] array) {
 		for (int i = 0; i < size; i++) {
-			getPointer().setByte(i * getElementSize(), array[i].byteValue());
+			getPointer().setByte(i * getElementSize(), array[i]);
 		}
 	}
 

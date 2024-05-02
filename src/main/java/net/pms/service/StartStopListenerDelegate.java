@@ -16,50 +16,39 @@
  */
 package net.pms.service;
 
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
-import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 
 // a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
 public class StartStopListenerDelegate {
 	private final String rendererId;
-	private DLNAResource dlna;
+	private StoreItem resource;
 	private boolean started = false;
 	private boolean stopped = false;
-	private Renderer renderer;
 
 	public StartStopListenerDelegate(String rendererId) {
 		this.rendererId = rendererId;
-		renderer = null;
-	}
-
-	public void setRenderer(Renderer r) {
-		renderer = r;
-	}
-
-	public Renderer getRenderer() {
-		return renderer;
 	}
 
 	// technically, these don't need to be synchronized as there should be
 	// one thread per request/response, but it doesn't hurt to enforce the contract
-	public synchronized void start(DLNAResource dlna) {
-		assert this.dlna == null;
-		this.dlna = dlna;
-		Format ext = dlna.getFormat();
+	public synchronized void start(StoreItem resource) {
+		assert this.resource == null;
+		this.resource = resource;
+		Format ext = resource.getFormat();
 		// only trigger the start/stop events for audio and video
 		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
-			dlna.startPlaying(rendererId, renderer);
+			resource.startPlaying(rendererId);
 			started = true;
 			Services.sleepManager().startPlaying();
 		} else {
-			Services.sleepManager().postponeSleep();
+			Services.postponeSleep();
 		}
 	}
 
 	public synchronized void stop() {
 		if (started && !stopped) {
-			dlna.stopPlaying(rendererId, renderer);
+			resource.stopPlaying(rendererId);
 			stopped = true;
 			Services.sleepManager().stopPlaying();
 		}

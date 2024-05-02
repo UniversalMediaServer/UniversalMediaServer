@@ -37,10 +37,10 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import net.pms.util.FilePermissions;
 import net.pms.util.FileUtil.InvalidFileSystemException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.util.FilePermissions;
 
 public class FreedesktopTrash {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FreedesktopTrash.class);
@@ -326,7 +326,7 @@ public class FreedesktopTrash {
 				if (unixUID < 0) {
 					String response;
 					Process id;
-					id = Runtime.getRuntime().exec("id -u");
+					id = Runtime.getRuntime().exec(new String[] {"id", "-u"});
 					try (BufferedReader reader = new BufferedReader(new InputStreamReader(id.getInputStream(), Charset.defaultCharset()))) {
 						response = reader.readLine();
 					}

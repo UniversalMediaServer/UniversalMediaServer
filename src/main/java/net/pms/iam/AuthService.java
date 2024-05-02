@@ -17,14 +17,13 @@
 package net.pms.iam;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.*;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ public class AuthService {
 				.withClaim("id", id)
 				.sign(algorithm);
 		} catch (JWTCreationException e) {
-			LOGGER.error("Error signing JWT: {}", e.getMessage());
+			LOGGER.warn("Error signing JWT: {}", e.getMessage());
 		}
 		return null;
 	}
@@ -63,7 +62,7 @@ public class AuthService {
 		try {
 			return JWT.decode(token);
 		} catch (JWTDecodeException e) {
-			LOGGER.error("Error decoding JWT: {}", e.getMessage());
+			LOGGER.warn("Error decoding JWT: {}", e.getMessage());
 		}
 		return null;
 	}
@@ -75,7 +74,7 @@ public class AuthService {
 				return jwt.getClaim("id").asInt();
 			}
 		} catch (JWTDecodeException e) {
-			LOGGER.error("Error decoding JWT: {}", e.getMessage());
+			LOGGER.warn("Error decoding JWT: {}", e.getMessage());
 		}
 		return 0;
 	}
@@ -90,7 +89,7 @@ public class AuthService {
 			verifier.verify(token);
 			return true;
 		} catch (JWTVerificationException e) {
-			LOGGER.error("Error verifying JWT: {}", e.getMessage());
+			LOGGER.warn("Error verifying JWT: {}", e.getMessage());
 			return false;
 		}
 	}
@@ -139,7 +138,9 @@ public class AuthService {
 
 	public static Account getPlayerAccountLoggedIn(HttpServletRequest req) {
 		if (isPlayerRequest(req) && !isPlayerEnabled()) {
-			Account result = AccountService.getFakeAdminAccount();
+			Account account = new Account();
+			Group group = new Group();
+			group.setId(Integer.MAX_VALUE);
 			int permissions = Permissions.WEB_PLAYER_BROWSE;
 			if (CONFIGURATION.useWebPlayerControls()) {
 				permissions |= Permissions.DEVICES_CONTROL;
@@ -147,8 +148,13 @@ public class AuthService {
 			if (CONFIGURATION.useWebPlayerDownload()) {
 				permissions |= Permissions.WEB_PLAYER_DOWNLOAD;
 			}
-			result.getGroup().setPermissions(permissions);
-			return result;
+			group.setPermissions(permissions);
+			account.setGroup(group);
+			User user = new User();
+			user.setId(Integer.MAX_VALUE);
+			user.setGroupId(Integer.MAX_VALUE);
+			account.setUser(user);
+			return account;
 		}
 		return getAccountLoggedIn(req);
 	}

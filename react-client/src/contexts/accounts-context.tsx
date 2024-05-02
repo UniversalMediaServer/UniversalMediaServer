@@ -17,9 +17,7 @@
 import { Context, createContext } from 'react';
 import { UmsUser, UmsGroup } from '../contexts/session-context';
 
-export const accountsContext: Context<UmsAccounts> = createContext({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts);
-
-export default accountsContext;
+export const AccountsContext: Context<UmsAccounts> = createContext({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts);
 
 export interface UmsAccounts {
   users: UmsUser[],
@@ -27,3 +25,5 @@ export interface UmsAccounts {
   enabled: boolean,
   localhost: boolean,
 }
+
+export default AccountsContext;

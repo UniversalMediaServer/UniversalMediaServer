@@ -19,24 +19,28 @@ package net.pms.configuration;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
-import net.pms.formats.v2.AudioProperties;
-import net.pms.media.audio.MediaAudio;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.network.HTTPResource;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.FileWatcher;
 import net.pms.util.SortedHeaderMap;
 import net.pms.util.StringUtil;
@@ -69,11 +73,11 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String KEY_CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMEncoderMPEG2Options";
 	private static final String KEY_DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
-	protected static final String KEY_DEVICE_ID = "Device";
+	private static final String KEY_DEVICE_ID = "Device";
 	private static final String KEY_DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String KEY_DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String KEY_DLNA_ORGPN_USE = "DLNAOrgPN";
-	private static final String KEY_DLNA_PN_CHANGES = "DLNAProfileChanges";
+	private static final String KEY_DLNA_PROFILE_CHANGES = "DLNAProfileChanges";
 	private static final String KEY_DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String KEY_HALVE_BITRATE = "HalveBitrate";
 	private static final String KEY_H264_L41_LIMITED = "H264Level41Limited";
@@ -192,7 +196,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private Map<String, String> mimes;
 
 	private Map<String, String> charMap;
-	private Map<String, String> dLNAPN;
+	private Map<String, String> dlnaProfiles;
 
 	// TextWrap parameters
 	private int lineWidth;
@@ -376,19 +380,19 @@ public class RendererConfiguration extends BaseConfiguration {
 			}
 		}
 
-		dLNAPN = new HashMap<>();
-		String dLNAPNchanges = getString(KEY_DLNA_PN_CHANGES, "");
+		dlnaProfiles = new HashMap<>();
+		String dlnaProfileChanges = getString(KEY_DLNA_PROFILE_CHANGES, "");
 
-		if (StringUtils.isNotBlank(dLNAPNchanges)) {
-			LOGGER.trace("Config dLNAPNchanges: " + dLNAPNchanges);
-			StringTokenizer st = new StringTokenizer(dLNAPNchanges, "|");
+		if (StringUtils.isNotBlank(dlnaProfileChanges)) {
+			LOGGER.trace("Config dlnaProfileChanges: " + dlnaProfileChanges);
+			StringTokenizer st = new StringTokenizer(dlnaProfileChanges, "|");
 			while (st.hasMoreTokens()) {
 				String dLNAPNChange = st.nextToken().trim();
 				int equals = dLNAPNChange.indexOf('=');
 				if (equals > -1) {
 					String old = dLNAPNChange.substring(0, equals).trim().toUpperCase();
 					String nw = dLNAPNChange.substring(equals + 1).trim().toUpperCase();
-					dLNAPN.put(old, nw);
+					dlnaProfiles.put(old, nw);
 				}
 			}
 		}
@@ -420,12 +424,12 @@ public class RendererConfiguration extends BaseConfiguration {
 		loaded = false;
 	}
 
-	public String getDLNAPN(String old) {
-		if (dLNAPN.containsKey(old)) {
-			return dLNAPN.get(old);
+	public String getDlnaProfileId(String profile) {
+		if (dlnaProfiles.containsKey(profile)) {
+			return dlnaProfiles.get(profile);
 		}
 
-		return old;
+		return profile;
 	}
 
 	public boolean supportsFormat(Format f) {
@@ -608,13 +612,16 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *         resource inside the container it wants for transcoding.
 	 */
 	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media) {
+		if (media.getDefaultVideoTrack() == null) {
+			return true;
+		}
 		if (getFormatConfiguration() == null) {
 			return (
-				(isTranscodeToH264() && media.isH264()) ||
-				(isTranscodeToH265() && media.isH265())
+				(isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
+				(isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getCodecV(), null) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
 	/**
@@ -635,7 +642,7 @@ public class RendererConfiguration extends BaseConfiguration {
 				(isTranscodeToAC3() && audio.isAC3())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodecA()) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodec()) != null;
 	}
 
 	/**
@@ -647,14 +654,14 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return The renderer specific mime type  for given resource. If the generic mime
 	 * type given by resource is <code>null</code> this method returns <code>null</code>.
 	 */
-	public String getMimeType(DLNAResource resource) {
+	public String getMimeType(StoreItem resource) {
 		String mimeType = resource.mimeType();
 		if (mimeType == null) {
 			return null;
 		}
 
 		String matchedMimeType = null;
-		MediaInfo media = resource.getMedia();
+		MediaInfo mediaInfo = resource.getMediaInfo();
 
 		if (isUseMediaInfo()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
@@ -697,10 +704,10 @@ public class RendererConfiguration extends BaseConfiguration {
 							} else {
 								matchedMimeType += ";rate=48000;channels=2";
 							}
-						} else if (media != null && media.getFirstAudioTrack() != null) {
-							AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
-							if (audio.getSampleFrequency() > 0) {
-								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+						} else if (mediaInfo != null && mediaInfo.getDefaultAudioTrack() != null) {
+							MediaAudio audio = mediaInfo.getDefaultAudioTrack();
+							if (audio.getSampleRate() > 0) {
+								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
 							}
 							if (audio.getNumberOfChannels() > 0) {
 								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
@@ -740,10 +747,10 @@ public class RendererConfiguration extends BaseConfiguration {
 						} else {
 							matchedMimeType += ";rate=48000;channels=2";
 						}
-					} else if (media != null && media.getFirstAudioTrack() != null) {
-						AudioProperties audio = media.getFirstAudioTrack().getAudioProperties();
-						if (audio.getSampleFrequency() > 0) {
-							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleFrequency());
+					} else if (mediaInfo != null && mediaInfo.getDefaultAudioTrack() != null) {
+						MediaAudio audio = mediaInfo.getDefaultAudioTrack();
+						if (audio.getSampleRate() > 0) {
+							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
 						}
 						if (audio.getNumberOfChannels() > 0) {
 							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
@@ -832,11 +839,11 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	public String getConfName() {
-		return getString(KEY_RENDERER_NAME, Messages.getString("UnknownRenderer"));
+		return getString(KEY_RENDERER_NAME, "UnknownRenderer");
 	}
 
 	/**
-	 * Returns the icon to use for displaying this renderer in PMS as defined
+	 * Returns the icon to use for displaying this renderer in UMS as defined
 	 * in the renderer configurations.
 	 * Default value is UNKNOWN_ICON.
 	 *
@@ -1056,7 +1063,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the override settings for MEncoder custom options in PMS as
+	 * Returns the override settings for MEncoder custom options in UMS as
 	 * defined in the renderer configuration. The default value is "".
 	 *
 	 * @return The MEncoder custom options.
@@ -1271,30 +1278,25 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * handle a format natively, content can be streamed to the renderer. If
 	 * not, content should be transcoded before sending it to the renderer.
 	 *
-	 * @param dlna The {@link DLNAResource} information parsed from the
+	 * @param resource The {@link StoreItem} information parsed from the
 	 * 				media file.
 	 * @param format The {@link Format} to test compatibility for.
-	 * @param configuration The {@link UmsConfiguration} to use while evaluating compatibility
 	 * @return True if the renderer natively supports the format, false
 	 * 				otherwise.
 	 */
-	public boolean isCompatible(DLNAResource dlna, Format format, UmsConfiguration configuration) {
+	public boolean isCompatible(StoreItem resource, Format format) {
 		MediaInfo mediaInfo;
-		if (dlna != null) {
-			mediaInfo = dlna.getMedia();
+		if (resource != null) {
+			mediaInfo = resource.getMediaInfo();
 		} else {
 			mediaInfo = null;
 		}
 
-		if (configuration == null) {
-			configuration = umsConfiguration;
-		}
-
 		if (
-			configuration != null &&
-			(configuration.isDisableTranscoding() ||
+			umsConfiguration != null &&
+			(umsConfiguration.isDisableTranscoding() ||
 			(format != null &&
-			format.skip(configuration.getDisableTranscodeForExtensions())))
+			format.skip(umsConfiguration.getDisableTranscodeForExtensions())))
 		) {
 			return true;
 		}
@@ -1329,27 +1331,11 @@ public class RendererConfiguration extends BaseConfiguration {
 
 		// Use the configured "Supported" lines in the renderer.conf
 		// to see if any of them match the MediaInfo library
-		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null) {
+		if (isUseMediaInfo() && mediaInfo != null && getFormatConfiguration().getMatchedMIMEtype(resource, this) != null) {
 			return true;
 		}
 
 		return format != null && format.skip(getStreamedExtensions());
-	}
-
-	/**
-	 * Returns whether or not the renderer can handle the given format
-	 * natively, based on its configuration in the renderer.conf. If it can
-	 * handle a format natively, content can be streamed to the renderer. If
-	 * not, content should be transcoded before sending it to the renderer.
-	 *
-	 * @param dlna The {@link DLNAResource} information parsed from the
-	 * 				media file.
-	 * @param format The {@link Format} to test compatibility for.
-	 * @return True if the renderer natively supports the format, false
-	 * 				otherwise.
-	 */
-	public boolean isCompatible(DLNAResource dlna, Format format) {
-		return isCompatible(dlna, format, null);
 	}
 
 	public int getAutoPlayTmo() {
@@ -1440,10 +1426,10 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *
 	 * @param name Original name
 	 * @param suffix Additional media information
-	 * @param dlna The actual DLNA resource
+	 * @param resource The actual resource
 	 * @return Reformatted name
 	 */
-	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+	public String getDcTitle(String name, String suffix, StoreResource resource) {
 		// Wrap + truncate
 		int len = 0;
 		if (suffix == null) {
@@ -1456,8 +1442,8 @@ public class RendererConfiguration extends BaseConfiguration {
 				len = lineWidth - suffixLength;
 			} else {
 				// Wrap
-				int i = dlna.isFolder() ? 0 : indent;
-				String newline = "\n" + (dlna.isFolder() ? "" : inset);
+				int i = resource.isFolder() ? 0 : indent;
+				String newline = "\n" + (resource.isFolder() ? "" : inset);
 				name = name.substring(0, i + (i < name.length() && Character.isWhitespace(name.charAt(i)) ? 1 : 0)) +
 					WordUtils.wrap(name.substring(i) + suffix, lineWidth - i, newline, true);
 				len = lineWidth * lineHeight;
@@ -1479,7 +1465,7 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		// Substitute
-		for (Entry<String, String> entry : charMap.entrySet()) {
+		for (Map.Entry<String, String> entry : charMap.entrySet()) {
 			String repl = entry.getValue().replace("###e", "");
 			name = name.replaceAll(entry.getKey(), repl);
 		}
@@ -1560,19 +1546,18 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *       refactor the logic of the caller to make that function only run
 	 *       once
 	 * @param subtitle Subtitles for checking
-	 * @param dlna
+	 * @param resource
 	 * @return whether the renderer specifies support for the subtitles and
 	 * renderer supports subs streaming for the given media video.
 	 */
-	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, DLNAResource dlna) {
-		if (subtitle == null || subtitle.getType() == null || dlna == null) {
+	public boolean isExternalSubtitlesFormatSupported(MediaSubtitle subtitle, StoreItem resource) {
+		if (subtitle == null || subtitle.getType() == null || resource == null) {
 			return false;
 		}
 
 		LOGGER.trace("Checking whether the external subtitles format " + subtitle.getType().toString() + " is supported by the renderer");
-
 		return getFormatConfiguration().getMatchedMIMEtype(
-			dlna.getMedia().getContainer(),
+			resource.getMediaInfo().getContainer(),
 			null,
 			null,
 			0,
@@ -1616,16 +1601,16 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * Check if the internal subtitle type is supported by renderer.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @param dlna The dlna resource
+	 * @param resource The resource
 	 * @return whether the renderer specifies support for the subtitles
 	 */
-	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, DLNAResource dlna) {
+	public boolean isEmbeddedSubtitlesFormatSupported(MediaSubtitle subtitle, StoreItem resource) {
 		if (subtitle == null) {
 			return false;
 		}
 
 		LOGGER.trace("Checking whether the embedded subtitles format " + (subtitle.getType().toString() != null ? subtitle.getType().toString() : "null") + " is supported by the renderer");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(resource, this) != null;
 	}
 
 	public boolean isEmbeddedSubtitlesSupported() {
@@ -1774,13 +1759,13 @@ public class RendererConfiguration extends BaseConfiguration {
 	 *       the result of getMatchedMIMEtype, so it would be better to
 	 *       refactor the logic of the caller to make that function only run
 	 *       once
-	 * @param dlna the resource to check
+	 * @param resource the resource to check
 	 * @return whether the video bit depth is supported.
 	 */
-	public boolean isVideoBitDepthSupported(DLNAResource dlna) {
+	public boolean isVideoBitDepthSupported(StoreItem resource) {
 		Integer videoBitDepth = null;
-		if (dlna.getMedia() != null) {
-			videoBitDepth = dlna.getMedia().getVideoBitDepth();
+		if (resource.getMediaInfo() != null && resource.getMediaInfo().getDefaultVideoTrack() != null) {
+			videoBitDepth = resource.getMediaInfo().getDefaultVideoTrack().getBitDepth();
 		}
 
 		if (videoBitDepth != null) {
@@ -1793,7 +1778,7 @@ public class RendererConfiguration extends BaseConfiguration {
 		}
 
 		LOGGER.trace("Checking whether the video bit depth " + (videoBitDepth != null ? videoBitDepth : "null") + " matches any 'vbd' entries in the 'Supported' lines");
-		return getFormatConfiguration().getMatchedMIMEtype(dlna, this) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(resource, this) != null;
 	}
 
 	/**

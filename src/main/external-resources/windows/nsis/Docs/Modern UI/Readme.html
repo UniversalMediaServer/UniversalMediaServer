@@ -3,20 +3,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>NSIS Modern User Interface - Documentation</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=us-ascii" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style type="text/css">
-        /*<![CDATA[*/body
+        /*<![CDATA[*/
+        html, body { font-family: Verdana, Arial, Helvetica, sans-serif; color: #000000; }
+        html { font-size: 0.80em; }
+        body { font-size: 1em; font-size: 1rem; }
+        pre, code { font-family: Courier New, Courier, monospace,serif; font-size: 100%; }
+        body
         {
-            padding: 10px;
+            padding:1.5em 0; margin:0;
             background-color: #F0F0F0;
-            font-size: 13px;
             font-family: Verdana, Arial, Helvetica, sans-serif;
             font-weight: normal;
             text-align: justify;
         }
         p, li
         {
-            font-size: 13px;
+            font-size: 100%;
         }
         table
         {
@@ -26,6 +31,7 @@
         .maintable
         {
             border: 2px solid #376EAB;
+            width: 90%;
         }
         .parameter
         {
@@ -34,29 +40,25 @@
         }
         h1
         {
-            font-size: 20px;
+            font-size: 140%;
             color: #7A7272;
             font-weight: normal;
         }
         h2
         {
-            font-size: 17px;
+            font-size: 130%;
             font-weight: bold;
             color: #303030;
         }
         h3
         {
-            font-size: 14px;
+            font-size: 120%;
             font-weight: bold;
             color: #2B5885;
         }
-        pre
-        {
-            font-size: 13px;
-        }
         div
         {
-            margin: 20px;
+            margin: 1.1em;
         }
         div.settings
         {
@@ -80,7 +82,7 @@
         }
         .toggle
         {
-            display: none;
+            display: block;
         }
         .options
         {
@@ -98,33 +100,25 @@
    image_open.src = "images/open.gif";
    var image_closed = new Image();
    image_closed.src = "images/closed.gif";
-   
+
+   function GEBY(d, i) { return d.getElementById ? d.getElementById(i) : document.all ? document.all[i] : 0 }
+
    function toggle(image, section) {
-   
-      if(document.all) {
-        if(document.all[section].style.display == "block") {
-           document.all[section].style.display = "none";
-           document.all[image].src = image_closed.src;
-        }
-        else
-        {              
-           document.all[section].style.display = "block";
-           document.all[image].src = image_open.src;
-        }
-      }
-      else
+
+      if (section = GEBY(document, section))
       {
-      if(document.getElementById(section).style.display == "block") {
-         document.getElementById(section).style.display = "none";
-         document.getElementById(image).src = image_closed.src;
+         image = GEBY(document, image);
+         if (section.style.display != "none")
+         {
+            section.style.display = "none";
+            image.src = image_closed.src;
          }
-      else
-         {              
-         document.getElementById(section).style.display = "block";
-         document.getElementById(image).src = image_open.src;
+         else
+         {
+            section.style.display = "block";
+            image.src = image_open.src;
          }
       }
-   
    }
 
    function expandall() {
@@ -151,11 +145,17 @@
 
    }
 
+   function onDocLoad() {
+
+      toggle('trigger_scr', 'toggle_scr');
+      toggle('trigger_lic', 'toggle_lic');
+   }
+
 //]]>
     </script>
 
 </head>
-<body>
+<body onLoad="onDocLoad()">
     <table width="750" class="maintable" cellspacing="0" cellpadding="0" align="center">
         <tr>
             <td>
@@ -180,14 +180,12 @@
                             the setup wizard is closed (for example, whether the application should be started
                             immediately). A finish page can also be used to ask for a system restart is necessary.</p>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_scr" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_scr" src="images/open.gif"
                                 onclick="toggle('trigger_scr', 'toggle_scr');" />
                             Screenshots</h3>
                         <div class="toggle" id="toggle_scr">
-                            <p>
-                                <img src="images/screen1.png" width="503" height="393" alt="" /></p>
-                            <p>
-                                <img src="images/screen2.png" width="503" height="393" alt="" /></p>
+                            <p><img src="images/screen1.png" width="503" height="393" alt="" /></p>
+                            <p><img src="images/screen2.png" width="503" height="393" alt="" /></p>
                         </div>
                     </div>
                     <h1>
@@ -227,12 +225,12 @@
 !define MUI_INSTFILESPAGE_COLORS &quot;FFFFFF 000000&quot; ;Two colors
 </pre>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_in" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_in" src="images/open.gif"
                                             onclick="toggle('trigger_in', 'toggle_in');" />
                                         Interface settings</h3>
                                     <div class="toggle" id="toggle_in">
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_ingen" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_ingen" src="images/open.gif"
                                                 onclick="toggle('trigger_ingen', 'toggle_ingen');" />
                                             Page header</h3>
                                         <div class="toggle" id="toggle_ingen">
@@ -315,9 +313,13 @@
                                                 <strong>MUI_HEADER_TRANSPARENT_TEXT</strong><br />
                                                 Set a transparent background for the header's label controls. Useful for custom
                                                 user interfaces that set a bigger header image.</p>
+                                            <p>
+                                                <strong>MUI_TEXTCOLOR</strong> <span class="parameter">(color: RRGGBBR hexadecimal)</span><br />
+                                                Text color for the header, the Welcome page and the Finish page.<br />
+                                                <em>Default: 000000</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inres" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inres" src="images/open.gif"
                                                 onclick="toggle('trigger_inres', 'toggle_inres');" />
                                             Interface resources</h3>
                                         <div class="toggle" id="toggle_inres">
@@ -348,7 +350,7 @@
                                                 <em>Default: ${NSISDIR}\Contrib\UIs\modern_nodesc.exe</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inwf" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inwf" src="images/open.gif"
                                                 onclick="toggle('trigger_inwf', 'toggle_inwf');" />
                                             Installer welcome/finish page</h3>
                                         <div class="toggle" id="toggle_inwf">
@@ -370,7 +372,7 @@
                                                 <em>Default: ${NSISDIR}\Contrib\Modern UI\ioSpecial.ini</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inuwf" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inuwf" src="images/open.gif"
                                                 onclick="toggle('trigger_inuwf', 'toggle_inuwf');" />
                                             Uninstaller welcome/finish page</h3>
                                         <div class="toggle" id="toggle_inuwf">
@@ -392,7 +394,7 @@
                                                 <em>Default: ${NSISDIR}\Contrib\Modern UI\ioSpecial.ini</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inl" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inl" src="images/open.gif"
                                                 onclick="toggle('trigger_inl', 'toggle_inl');" />
                                             License page</h3>
                                         <div class="toggle" id="toggle_inl">
@@ -405,7 +407,7 @@
                                                 <em>Default: /windows</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inc" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inc" src="images/open.gif"
                                                 onclick="toggle('trigger_inc', 'toggle_inc');" />
                                             Components page</h3>
                                         <div class="toggle" id="toggle_inc">
@@ -422,7 +424,7 @@
                                                 No description area.</p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_ind" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_ind" src="images/open.gif"
                                                 onclick="toggle('trigger_ind', 'toggle_ind');" />
                                             Directory page</h3>
                                         <div class="toggle" id="toggle_ind">
@@ -431,7 +433,7 @@
                                                 The background color for the directory textbox.</p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_ins" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_ins" src="images/open.gif"
                                                 onclick="toggle('trigger_ins', 'toggle_ins');" />
                                             Start Menu folder page</h3>
                                         <div class="toggle" id="toggle_ins">
@@ -440,7 +442,7 @@
                                                 The background color for the startmenu directory list and textbox.</p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_ini" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_ini" src="images/open.gif"
                                                 onclick="toggle('trigger_ini', 'toggle_ini');" />
                                             Installation page</h3>
                                         <div class="toggle" id="toggle_ini">
@@ -456,7 +458,7 @@
                                                 <em>Default: smooth</em></p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inf" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inf" src="images/open.gif"
                                                 onclick="toggle('trigger_inf', 'toggle_inf');" />
                                             Installer finish page</h3>
                                         <div class="toggle" id="toggle_inf">
@@ -466,7 +468,7 @@
                                                 log.</p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_uinf" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_uinf" src="images/open.gif"
                                                 onclick="toggle('trigger_uinf', 'toggle_uinf');" />
                                             Uninstaller finish page</h3>
                                         <div class="toggle" id="toggle_uinf">
@@ -476,7 +478,7 @@
                                                 log.</p>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inaw" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inaw" src="images/open.gif"
                                                 onclick="toggle('trigger_inaw', 'toggle_inaw');" />
                                             Abort warning</h3>
                                         <div class="toggle" id="toggle_inaw">
@@ -493,7 +495,7 @@
                                             </div>
                                         </div>
                                         <h3>
-                                            <img class="trigger" alt="Open/Close section" id="trigger_inuaw" src="images/closed.gif"
+                                            <img class="trigger" alt="Open/Close section" id="trigger_inuaw" src="images/open.gif"
                                                 onclick="toggle('trigger_inuaw', 'toggle_inuaw');" />
                                             Uninstaller abort warning</h3>
                                         <div class="toggle" id="toggle_inuaw">
@@ -552,7 +554,7 @@ Var StartMenuFolder
                                 MUI_UNPAGE_INSTFILES<br />
                                 MUI_UNPAGE_FINISH</p>
                             <h3>
-                                <img class="trigger" alt="Open/Close section" id="trigger_pg" src="images/closed.gif"
+                                <img class="trigger" alt="Open/Close section" id="trigger_pg" src="images/open.gif"
                                     onclick="toggle('trigger_pg', 'toggle_pg');" />
                                 Page settings</h3>
                             <div class="toggle" id="toggle_pg">
@@ -582,7 +584,7 @@ Var PLUGINS_FOLDER
                                         In all text settings, the doublequote character (&quot;) should be escaped in the
                                         following form: $\&quot;</p>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgg" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgg" src="images/open.gif"
                                             onclick="toggle('trigger_pgg', 'toggle_pgg');" />
                                         General page settings</h3>
                                     <div class="toggle" id="toggle_pgg">
@@ -594,7 +596,7 @@ Var PLUGINS_FOLDER
                                             Subtext to display on the header of the page.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgw" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgw" src="images/open.gif"
                                             onclick="toggle('trigger_pgw', 'toggle_pgw');" />
                                         Welcome page settings</h3>
                                     <div class="toggle" id="toggle_pgw">
@@ -611,7 +613,7 @@ Var PLUGINS_FOLDER
                                             Text to display on the page.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgl" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgl" src="images/open.gif"
                                             onclick="toggle('trigger_pgl', 'toggle_pgl');" />
                                         License page settings</h3>
                                     <div class="toggle" id="toggle_pgl">
@@ -646,7 +648,7 @@ Var PLUGINS_FOLDER
                                         </div>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgc" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgc" src="images/open.gif"
                                             onclick="toggle('trigger_pgc', 'toggle_pgc');" />
                                         Components page settings</h3>
                                     <div class="toggle" id="toggle_pgc">
@@ -667,7 +669,7 @@ Var PLUGINS_FOLDER
                                             Text to display inside the description box when no section is selected.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgd" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgd" src="images/open.gif"
                                             onclick="toggle('trigger_pgd', 'toggle_pgd');" />
                                         Directory page settings</h3>
                                     <div class="toggle" id="toggle_pgd">
@@ -687,7 +689,7 @@ Var PLUGINS_FOLDER
                                             GetInstDirError in the leave function to handle an invalid folder.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgs" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgs" src="images/open.gif"
                                             onclick="toggle('trigger_pgs', 'toggle_pgs');" />
                                         Start Menu folder page settings</h3>
                                     <div class="toggle" id="toggle_pgs">
@@ -719,7 +721,7 @@ Var PLUGINS_FOLDER
 </pre>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgi" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgi" src="images/open.gif"
                                             onclick="toggle('trigger_pgi', 'toggle_pgi');" />
                                         Installation page settings</h3>
                                     <div class="toggle" id="toggle_pgi">
@@ -741,7 +743,7 @@ Var PLUGINS_FOLDER
                                             been aborted.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgf" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgf" src="images/open.gif"
                                             onclick="toggle('trigger_pgf', 'toggle_pgf');" />
                                         Finish page settings</h3>
                                     <div class="toggle" id="toggle_pgf">
@@ -835,7 +837,7 @@ Var PLUGINS_FOLDER
                                             this option to save some space if you are not using the /REBOOTOK flag or SetRebootFlag.</p>
                                     </div>
                                     <h3>
-                                        <img class="trigger" alt="Open/Close section" id="trigger_pgu" src="images/closed.gif"
+                                        <img class="trigger" alt="Open/Close section" id="trigger_pgu" src="images/open.gif"
                                             onclick="toggle('trigger_pgu', 'toggle_pgu');" />
                                         Uninstall confirm page settings</h3>
                                     <div class="toggle" id="toggle_pgu">
@@ -845,6 +847,10 @@ Var PLUGINS_FOLDER
                                         <p>
                                             <strong>MUI_UNCONFIRMPAGE_TEXT_LOCATION</strong> <span class="parameter">text</span><br />
                                             Text to display next to the uninstall location text box.</p>
+                                        <p>
+                                            <strong>MUI_UNCONFIRMPAGE_VARIABLE</strong> <span class="parameter">variable</span><br />
+                                        Variable in which to store the uninstall source folder.<br />
+                                        <em>Default: $INSTDIR</em></p>
                                     </div>
                             </div>
                         </div>
@@ -890,7 +896,7 @@ ReserveFile &quot;ioFile.ini&quot; ;Your own InstallOptions INI files
                                 descriptions, insert the MUI_COMPONENTSPAGE_NODESC interface setting.</p>
                             <p>
                                 To set a description for a section, an additional parameter needs to be added to
-                                Section commmand with a unique identifier for the section. This name can later be
+                                Section command with a unique identifier for the section. This name can later be
                                 used to set the description for this section.</p>
                             <pre>
 Section &quot;Section Name 1&quot; Section1
@@ -948,7 +954,7 @@ FunctionEnd
                         <p>
                             This macro can also be used in the un.onInit function.</p>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_lss" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_lss" src="images/open.gif"
                                 onclick="toggle('trigger_lss', 'toggle_lss');" />
                             Settings for registry storage of selected language</h3>
                         <div class="toggle" id="toggle_lss">
@@ -974,7 +980,7 @@ FunctionEnd
 </pre>
                         </div>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_lsin" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_lsin" src="images/open.gif"
                                 onclick="toggle('trigger_lsin', 'toggle_lsin');" />
                             Interface settings for selection dialog</h3>
                         <div class="toggle" id="toggle_lsin">
@@ -1022,7 +1028,7 @@ LangString PAGE_SUBTITLE ${LANG_ENGLISH} &quot;Subtitle&quot;
 Function CustomPageFunction
   !insertmacro MUI_HEADER_TEXT $(PAGE_TITLE) $(PAGE_SUBTITLE)
   !insertmacro MUI_INSTALLOPTIONS_DISPLAY &quot;ioFile.ini&quot;
-FuctionEnd
+FunctionEnd
 </pre>
                     </div>
                     <h1>
@@ -1044,7 +1050,7 @@ Function myGUIInit
 FunctionEnd
 </pre>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_cfg" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_cfg" src="images/open.gif"
                                 onclick="toggle('trigger_cfg', 'toggle_cfg');" />
                             General Custom Functions</h3>
                         <div class="toggle" id="toggle_cfg">
@@ -1063,7 +1069,7 @@ FunctionEnd
 								used, regular .onMouseOverSection and un.onMouseOverSection must be used.</p>
                         </div>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_cfpg" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_cfpg" src="images/open.gif"
                                 onclick="toggle('trigger_cfpg', 'toggle_cfpg');" />
                             Page Custom Functions</h3>
                         <div class="toggle" id="toggle_cfpg">
@@ -1083,7 +1089,7 @@ FunctionEnd
                             </ul>
                         </div>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_cfwf" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_cfwf" src="images/open.gif"
                                 onclick="toggle('trigger_cfwf', 'toggle_cfwf');" />
                             Welcome/Finish Page Custom Functions</h3>
                         <div class="toggle" id="toggle_cfwf">
@@ -1104,7 +1110,7 @@ FunctionEnd
                             Welcome/Finish page: <a href="../../Examples/Modern%20UI/WelcomeFinish.nsi">WelcomeFinish.nsi</a><br />
                             Multiple languages: <a href="../../Examples/Modern%20UI/MultiLanguage.nsi">MultiLanguage.nsi</a><br />
                             Header image: <a href="../../Examples/Modern%20UI/HeaderBitmap.nsi">HeaderBitmap.nsi</a><br />
-                            Custom pages: <a href="../../Examples/Modern%20UI/InstallOptions.nsi">InstallOptions.nsi</a><br />
+                            Custom pages: <strike><a href="../../Examples/Modern%20UI/InstallOptions.nsi">InstallOptions.nsi</a></strike><br />
                             Start Menu Folder page: <a href="../../Examples/Modern%20UI/StartMenu.nsi">StartMenu.nsi</a></p>
                     </div>
                     <h1>
@@ -1121,12 +1127,12 @@ FunctionEnd
                         <p>
                             The zlib/libpng license applies to the Modern UI.</p>
                         <h3>
-                            <img class="trigger" alt="Open/Close section" id="trigger_lic" src="images/closed.gif"
+                            <img class="trigger" alt="Open/Close section" id="trigger_lic" src="images/open.gif"
                                 onclick="toggle('trigger_lic', 'toggle_lic');" />
                             License Terms</h3>
                         <div class="toggle" id="toggle_lic">
                             <pre>
-Copyright &copy; 2002-2015 Joost Verburg
+Copyright &copy; 2002-2023 Joost Verburg
 
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages

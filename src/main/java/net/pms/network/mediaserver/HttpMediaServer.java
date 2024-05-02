@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 
 public abstract class HttpMediaServer {
+
 	protected final int port;
 
 	protected String hostname;

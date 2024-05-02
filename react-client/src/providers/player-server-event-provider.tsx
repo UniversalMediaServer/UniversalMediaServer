@@ -16,6 +16,7 @@
  */
 import { hideNotification, showNotification } from '@mantine/notifications';
 import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@microsoft/fetch-event-source';
+import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 import videojs from 'video.js';
 
@@ -29,13 +30,15 @@ interface Props {
   children?: ReactNode
 }
 
-export const PlayerEventProvider = ({ children, ...props }: Props) => {
+export const PlayerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
   const [reqId, setReqId] = useState('0');
   const [reqType, setReqType] = useState('browse');
+  const [uuid, setUuid] = useState('');
+  const [askingUuid, setAskingUuid] = useState<boolean>(false);
 
   const askReqId = (id: string, type: string) => {
     setReqType('');
@@ -93,7 +96,33 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
   }
 
   useEffect(() => {
-    if (started || !sessionStorage.getItem('player')) {
+    if (uuid || askingUuid) return;
+    setAskingUuid(true);
+    if (sessionStorage.getItem('player')) {
+      setUuid(sessionStorage.getItem('player') as string);
+    } else {
+      axios.get(playerApiUrl)
+        .then(function(response: any) {
+          if (response.data.uuid) {
+            sessionStorage.setItem('player', response.data.uuid);
+            setUuid(response.data.uuid);
+          }
+        })
+        .catch(function() {
+          showNotification({
+            id: 'player-data-loading',
+            color: 'red',
+            title: 'Error',
+            message: 'Your player session was not received from the server.',
+            autoClose: 3000,
+          });
+        });
+    }
+    setAskingUuid(false);
+  }, [session]);
+
+  useEffect(() => {
+    if (started || !uuid) {
       return;
     }
     setStarted(true);
@@ -108,8 +137,8 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
         showNotification({
           id: 'player-play',
           color: 'orange',
-          title: i18n.get['RemoteControl'],
-          message: i18n.get['RemotePlayOnlyAllowed'],
+          title: i18n.get('RemoteControl'),
+          message: i18n.get('RemotePlayOnlyAllowed'),
           autoClose: true
         });
       }
@@ -129,8 +158,8 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
       showNotification({
         id: 'connection-lost',
         color: 'orange',
-        title: i18n.get['Warning'],
-        message: i18n.get['UniversalMediaServerUnreachable'],
+        title: i18n.get('Warning'),
+        message: i18n.get('UniversalMediaServerUnreachable'),
         autoClose: false
       });
     }
@@ -140,6 +169,14 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
         hideNotification('connection-lost');
         notified = false;
         setConnectionStatus(1);
+      } else if (event.status == 401) {
+        //reload Unauthorized
+        window.location.reload();
+      } else if (event.status == 403) {
+        //stop Forbidden
+        console.log('SSE Forbidden');
+      } else {
+        throw new Error('Expected content-type to be \'text/event-stream\'');
       }
     };
 
@@ -203,9 +240,10 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
 
     const startSse = () => {
       setConnectionStatus(0);
-      fetchEventSource(playerApiUrl + 'sse/' + sessionStorage.getItem('player'), {
+      fetchEventSource(playerApiUrl + 'sse/' + uuid, {
         headers: {
-          'Authorization': 'Bearer ' + getJwt()
+          'Authorization': 'Bearer ' + getJwt(),
+          'Player': uuid
         },
         async onopen(event: Response) { onOpen(event); },
         onmessage(event: EventSourceMessage) {
@@ -218,12 +256,13 @@ export const PlayerEventProvider = ({ children, ...props }: Props) => {
     };
 
     startSse();
-  }, [started, session, i18n]);
+  }, [started, uuid]);
 
   const { Provider } = PlayerEventContext;
 
   return (
     <Provider value={{
+      uuid: uuid,
       connectionStatus: connectionStatus,
       reqId: reqId,
       reqType: reqType,

@@ -17,12 +17,12 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
@@ -53,13 +53,13 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
 		params.setTimeEnd(media.getDurationInSeconds());
 		params.setWaitBeforeStart(2500);
-		return super.launchTranscode(dlna, media, params);
+		return super.launchTranscode(resource, media, params);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);
 	}
 }

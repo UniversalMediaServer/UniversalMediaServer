@@ -1,46 +1,46 @@
-;Language: Luxembourgish (1031)
+ï»¿;Language: Luxembourgish (1031)
 ;By Snowloard, changes by Philo
 
-!insertmacro LANGFILE "Luxembourgish" "Lëtzebuergesch"
+!insertmacro LANGFILE "Luxembourgish" = "LÃ«tzebuergesch" "Letzebuergesch"
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Wëllkomm beim Installatiouns-$\r$\nAssistent vun $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Dësen Assistent wärt dech duech d'Installatioun vun $(^NameDA) begleeden.$\r$\n$\r$\nEt gëtt ugeroden alleguer d'Programmer di am Moment lafen zouzemaan, datt bestëmmt Systemdateien ouni Neistart ersat kënne ginn.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "WÃ«llkomm beim Installatiouns-$\r$\nAssistent vun $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "DÃ«sen Assistent wÃ¤rt dech duech d'Installatioun vun $(^NameDA) begleeden.$\r$\n$\r$\nEt gÃ«tt ugeroden alleguer d'Programmer di am Moment lafen zouzemaan, datt bestÃ«mmt Systemdateien ouni Neistart ersat kÃ«nne ginn.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Wëllkomm am Desinstallatiouns-$\r$\n\Assistent fir $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Desen Assistent begleet dech duech d'Desinstallatioun vun $(^NameDA).$\r$\n$\r$\nW.e.g. maach $(^NameDA) zu, ierts de mat der Desinstallatioun ufänks.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "WÃ«llkomm am Desinstallatiouns-$\r$\n\Assistent fir $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Desen Assistent begleet dech duech d'Desinstallatioun vun $(^NameDA).$\r$\n$\r$\nW.e.g. maach $(^NameDA) zu, ierts de mat der Desinstallatioun ufÃ¤nks.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
   ${LangFileString} MUI_TEXT_LICENSE_TITLE "Lizenzofkommes"
   ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "W.e.g. d'Lizenzoofkommes liesen, ierts de mat der Installatioun weiderfiers."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptéiers, klick op Unhuelen. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installéieren ze kënnen."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptéiers, aktivéier d'Këschtchen. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installéieren ze kënnen. $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptéiers, wiel ënnen di entspriechend Äntwert aus. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installéieren ze kënnen. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptÃ©iers, klick op Unhuelen. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installÃ©ieren ze kÃ«nnen."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptÃ©iers, aktivÃ©ier d'KÃ«schtchen. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installÃ©ieren ze kÃ«nnen. $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Wanns de alleguer d'Bedengungen vum Ofkommes akzeptÃ©iers, wiel Ã«nnen di entspriechend Ã„ntwert aus. Du muss alleguer d'Fuerderungen unerkennen, fir $(^NameDA) installÃ©ieren ze kÃ«nnen. $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
   ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Lizenzofkommes"
   ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "W.e.g. lies d'Lizenzofkommes duech ierts de mat der Desinstallatioun vun $(^NameDA) weiderfiers."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Wanns de d'Fuerderungen vum Ofkommes akzeptéiers, klick op unhuelen. Du muss d'Ofkommes akzeptéieren, fir $(^NameDA) kënnen ze desinstalléieren."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Wanns de d'Fuerderungen vum Ofkommes akzeptéiers, aktivéier d'Këschtchen. Du muss d'Ofkommes akzeptéieren, fir $(^NameDA) kënnen ze desinstalléieren. $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Wanns de d'Fuerderungen vum Ofkommes akzeptéiers, wiel ënnen di entspriechend Optioun. Du muss d'Oofkommes akzeptéieren, fir $(^NameDA) kennen ze desinstalléieren. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Wanns de d'Fuerderungen vum Ofkommes akzeptÃ©iers, klick op unhuelen. Du muss d'Ofkommes akzeptÃ©ieren, fir $(^NameDA) kÃ«nnen ze desinstallÃ©ieren."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Wanns de d'Fuerderungen vum Ofkommes akzeptÃ©iers, aktivÃ©ier d'KÃ«schtchen. Du muss d'Ofkommes akzeptÃ©ieren, fir $(^NameDA) kÃ«nnen ze desinstallÃ©ieren. $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Wanns de d'Fuerderungen vum Ofkommes akzeptÃ©iers, wiel Ã«nnen di entspriechend Optioun. Du muss d'Oofkommes akzeptÃ©ieren, fir $(^NameDA) kennen ze desinstallÃ©ieren. $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Dréck d'PageDown-Tast fir den Rescht vum Ofkommes ze liesen."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "DrÃ©ck d'PageDown-Tast fir den Rescht vum Ofkommes ze liesen."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
   ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Komponenten auswielen"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Wiel d'Komponenten aus, déis de wëlls installéieren."
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Wiel d'Komponenten aus, dÃ©is de wÃ«lls installÃ©ieren."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
   ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Komponenten auswielen"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Wiel eng Komponent aus, déis de desinstalléieren wëlls."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Wiel eng Komponent aus, dÃ©is de desinstallÃ©ieren wÃ«lls."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
@@ -48,74 +48,74 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Hal den Mausfeil iwwer eng Komponent, fir d'Beschreiwung dervun ze gesinn."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Hal den Mausfeil iwwer eng Komponent, fir d'Beschreiwung dervun ze gesinn."
+    #FIXME:MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO 
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
   ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Zielverzeechnes auswielen"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Wiel den Dossier aus, an deen $(^NameDA) installéiert soll ginn."
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Wiel den Dossier aus, an deen $(^NameDA) installÃ©iert soll ginn."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
   ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Dossier fir d'Desinstallatioun wielen"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Wiel den Dossier aus, aus dem $(^NameDA) desinstalléiert soll ginn."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Wiel den Dossier aus, aus dem $(^NameDA) desinstallÃ©iert soll ginn."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "Installéieren..."
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Waard w.e.g während deem $(^NameDA) installéiert gëtt."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Installatioun färdeg"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "D'Installatioun ass feelerfräi oofgeschloss ginn."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "InstallÃ©ieren..."
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Waard w.e.g wÃ¤hrend deem $(^NameDA) installÃ©iert gÃ«tt."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Installatioun fÃ¤rdeg"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "D'Installatioun ass feelerfrÃ¤i oofgeschloss ginn."
   ${LangFileString} MUI_TEXT_ABORT_TITLE "Installatioun ofgebrach"
   ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "D'Installatioun ass net komplett ofgeschloss ginn."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "Desinstalléieren..."
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "W.e.g. waard, während deems $(^NameDA) desinstalléiert gëtt."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "DesinstallÃ©ieren..."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "W.e.g. waard, wÃ¤hrend deems $(^NameDA) desinstallÃ©iert gÃ«tt."
   ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Desinstallatioun ofgeschloss"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "D'Desinstallatioun ass erfollegräich ofgeschloss ginn."
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "D'Desinstallatioun ass erfollegrÃ¤ich ofgeschloss ginn."
   ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Desinstallatioun oofbriechen"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Desinstallatioun ass net erfollegräich ofgeschloss ginn."
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "Desinstallatioun ass net erfollegrÃ¤ich ofgeschloss ginn."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "D'Installatioun vun $(^NameDA) gëtt ofgeschloss."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) ass um Computer installéiert ginn.$\r$\n$\r$\nKlick op färdeg maan, fir den Installatiouns-Assistent zou ze maan.."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Den Windows muss nei gestart ginn, fir d'Installatioun vun $(^NameDA) ofzeschléissen. Wëlls de Windows lo néi starten?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "D'Installatioun vun $(^NameDA) gÃ«tt ofgeschloss."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "$(^NameDA) ass um Computer installÃ©iert ginn.$\r$\n$\r$\nKlick op fÃ¤rdeg maan, fir den Installatiouns-Assistent zou ze maan.."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Den Windows muss nei gestart ginn, fir d'Installatioun vun $(^NameDA) ofzeschlÃ©issen. WÃ«lls de Windows lo nÃ©i starten?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Desinstallatioun vun $(^NameDA) gëtt ofgeschloss"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) ass vum Computer desinstalléiert ginn.$\r$\n$\r$\nKlick op Ofschléissen fir den Assistent zou ze maan."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Windows muss néi gestart gin, fir d'Desinstallatioun vun $(^NameDA) ze vervollstännegen. Wëlls de Windows lo néi starten?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Desinstallatioun vun $(^NameDA) gÃ«tt ofgeschloss"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "$(^NameDA) ass vum Computer desinstallÃ©iert ginn.$\r$\n$\r$\nKlick op OfschlÃ©issen fir den Assistent zou ze maan."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Windows muss nÃ©i gestart gin, fir d'Desinstallatioun vun $(^NameDA) ze vervollstÃ¤nnegen. WÃ«lls de Windows lo nÃ©i starten?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Lo néi starten"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Spéider manuell néi starten"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Lo nÃ©i starten"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "SpÃ©ider manuell nÃ©i starten"
   ${LangFileString} MUI_TEXT_FINISH_RUN "$(^NameDA) op maan"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "Liesmech op maan"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Färdeg man"  
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&FÃ¤rdeg man"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Startmenü-Dossier bestëmmen"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Bestëmm een Startmanü-Dossier an deen d'Programmofkierzungen kommen."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Bestëmm een Startmanü-Dossier an deen d'Programmofkierzungen kommen. Wanns de een néien Dossier man wells, gëff deem säin zukünftegen Numm an."
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "StartmenÃ¼-Dossier bestÃ«mmen"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "BestÃ«mm een StartmanÃ¼-Dossier an deen d'Programmofkierzungen kommen."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "BestÃ«mm een StartmanÃ¼-Dossier an deen d'Programmofkierzungen kommen. Wanns de een nÃ©ien Dossier man wells, gÃ«ff deem sÃ¤in zukÃ¼nftegen Numm an."
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Keng Ofkierzungen man"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
   ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Desinstallatioun vun $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) gett vum Computer desinstalléiert."
+  ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "$(^NameDA) gett vum Computer desinstallÃ©iert."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Bass de sécher, dass de d'Installatioun vun $(^Name) ofbriechen wëlls?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Bass de sÃ©cher, dass de d'Installatioun vun $(^Name) ofbriechen wÃ«lls?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Bass de sécher, dass de d'Desinstallatioun vun $(^Name) ofbriechen wëlls?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Bass de sÃ©cher, dass de d'Desinstallatioun vun $(^Name) ofbriechen wÃ«lls?"
 !endif

@@ -18,9 +18,9 @@ package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
 import java.io.IOException;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 
 public class HttpHandlerServlet implements HttpHandler {
 

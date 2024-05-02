@@ -18,12 +18,13 @@ package net.pms.renderers.devices.players;
 
 import java.io.File;
 import java.util.List;
-import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.container.RealFolder;
+import net.pms.store.item.VirtualVideoAction;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,9 +70,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 			} else {
 				// It's new to us, find or create the resource as required.
 				// Note: here metadata (if any) is actually the resource name
-				DLNAResource resource = DLNAResource.getValidResource(uri, metadata, renderer);
-				if (resource != null) {
-					return new PlaylistItem(resource.getURL("", true), resource.getDisplayName(renderer), resource.getDidlString(renderer));
+				StoreResource resource = renderer.getMediaStore().getValidResource(uri, metadata);
+				if (resource instanceof StoreItem storeItem) {
+					return new PlaylistItem(storeItem.getMediaURL("", true), resource.getDisplayName(), DidlHelper.getDidlString(resource));
 				}
 			}
 		}
@@ -151,10 +152,10 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 	@Override
 	public void add(int index, String uri, String name, String metadata, boolean select) {
 		if (!StringUtils.isBlank(uri)) {
-			if (addAllSiblings && DLNAResource.isResourceUrl(uri)) {
-				DLNAResource d = PMS.getGlobalRepo().get(DLNAResource.parseResourceId(uri));
+			if (addAllSiblings && StoreResource.isResourceUrl(uri)) {
+				StoreResource d = renderer.getMediaStore().getResource(StoreResource.parseResourceId(uri));
 				if (d != null && d.getParent() != null) {
-					List<DLNAResource> list = d.getParent().getChildren();
+					List<StoreResource> list = d.getParent().getChildren();
 					addAll(index, list, list.indexOf(d));
 					return;
 				}
@@ -163,14 +164,12 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 		}
 	}
 
-	public void addAll(int index, List<DLNAResource> list, int selIndex) {
+	public void addAll(int index, List<StoreResource> list, int selIndex) {
 		for (int i = 0; i < list.size(); i++) {
-			DLNAResource r = list.get(i);
-			if ((r instanceof VirtualVideoAction) || r.isFolder()) {
-				// skip these
-				continue;
+			StoreResource r = list.get(i);
+			if (r instanceof StoreItem item && !(r instanceof VirtualVideoAction) && !item.isFolder()) {
+				playlist.add(index, item.getMediaURL("", true), r.getDisplayName(), DidlHelper.getDidlString(r), i == selIndex);
 			}
-			playlist.add(index, r.getURL("", true), r.getDisplayName(), r.getDidlString(renderer), i == selIndex);
 		}
 	}
 
@@ -208,9 +207,9 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 						return;
 					}
 				}
-				RealFile f = new RealFile(new File(folder));
+				RealFolder f = new RealFolder(player.getRenderer(), new File(folder));
 				f.discoverChildren();
-				f.analyzeChildren(-1);
+				f.analyzeChildren();
 				player.addAll(-1, f.getChildren(), -1);
 				// add a short delay here since player.add uses
 				// swing.invokelater

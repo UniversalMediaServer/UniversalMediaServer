@@ -24,7 +24,7 @@ public abstract class StreamContent extends SharedContentWithPath {
 	private String thumbnail;
 
 	protected StreamContent(String parent, String name, String uri, String thumbnail) {
-		this.parent = parent;
+		setParent(parent);
 		this.name = name;
 		this.uri = uri;
 		this.thumbnail = thumbnail;
@@ -66,28 +66,24 @@ public abstract class StreamContent extends SharedContentWithPath {
 		if (o == this) {
 			return true;
 		}
-		if (o instanceof StreamContent other) {
-			return (active == other.active &&
-				((parent == null && other.parent == null) ||
-				parent != null && parent.equals(other.parent)) &&
-				((name == null && other.name == null) ||
+		if (super.equals(o) && o instanceof StreamContent other) {
+			return ((name == null && other.name == null) ||
 				name != null && name.equals(other.name)) &&
 				((uri == null && other.uri == null) ||
 				uri != null && uri.equals(other.uri)) &&
 				((thumbnail == null && other.thumbnail == null) ||
-				thumbnail != null && thumbnail.equals(other.thumbnail)));
+				thumbnail != null && thumbnail.equals(other.thumbnail));
 		}
 		return false;
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = 7;
-		hash = 83 * hash + (this.active ? 1 : 0);
-		hash = 83 * hash + (Objects.hashCode(this.parent));
+		int hash = super.hashCode();
 		hash = 83 * hash + (Objects.hashCode(this.name));
 		hash = 83 * hash + (Objects.hashCode(this.uri));
 		hash = 83 * hash + (Objects.hashCode(this.thumbnail));
 		return hash;
 	}
+
 }

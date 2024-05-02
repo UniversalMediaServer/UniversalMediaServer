@@ -17,15 +17,15 @@
 package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpExchange;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 
 public class HttpExchangeServletResponse implements HttpServletResponse, AutoCloseable {
 
@@ -144,7 +144,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 
 	@Override
 	public void addCookie(Cookie cookie) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -154,24 +154,12 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 
 	@Override
 	public String encodeURL(String url) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public String encodeRedirectURL(String url) {
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-	}
-
-	@Override
-	@Deprecated
-	public String encodeUrl(String url) {
-		return encodeURL(url);
-	}
-
-	@Override
-	@Deprecated
-	public String encodeRedirectUrl(String url) {
-		return encodeRedirectURL(url);
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -192,6 +180,9 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (name.equalsIgnoreCase("Transfer-Encoding") && value.contains("chunked")) {
 			contentLength = 0;
 		}
+		if (name.equalsIgnoreCase("Content-Type")) {
+			parseContentType();
+		}
 	}
 
 	@Override
@@ -207,15 +198,6 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 	@Override
 	public void addIntHeader(String name, int value) {
 		addHeader(name, Integer.toString(value));
-	}
-
-	@Override
-	@Deprecated
-	public void setStatus(int sc, String sm) {
-		try {
-			sendError(sc, sm);
-		} catch (IOException ex) {
-		}
 	}
 
 	@Override
@@ -253,7 +235,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (isCommitted()) {
 			throw new IllegalStateException("Response has been committed.");
 		}
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -266,7 +248,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (isCommitted()) {
 			throw new IllegalStateException("Response has been committed.");
 		}
-		throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -278,7 +260,7 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		/* TODO update charEnc
 		if (characterEncoding == null) {
 		}
-		*/
+		 */
 		setHeader("Content-Language", locale.getCountry() + "-" + locale.getLanguage());
 	}
 
@@ -298,7 +280,33 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 		if (cType == null) {
 			exchange.getResponseHeaders().remove("Content-Type");
 		} else {
-			setHeader("Content-Type", cType);
+			exchange.getResponseHeaders().set("Content-Type", cType);
+		}
+	}
+
+	private void parseContentType() {
+		String cType = getHeader("Content-Type");
+		if (cType != null) {
+			cType = cType.toLowerCase();
+			if (cType.contains(";")) {
+				String[] cTypeParts = cType.split(";");
+				for (String cTypePart : cTypeParts) {
+					if (cTypePart.trim().startsWith("charset") && cTypePart.contains("=")) {
+						cTypePart = cTypePart.substring(cTypePart.indexOf("=") + 1);
+						characterEncoding = cTypePart.trim();
+					} else {
+						contentType = cTypePart.trim();
+					}
+				}
+			} else if (cType.startsWith("charset") && cType.contains("=")) {
+				cType = cType.substring(cType.indexOf("=") + 1);
+				characterEncoding = cType.trim();
+			} else {
+				contentType = cType.trim();
+			}
+		} else {
+			contentType = null;
+			characterEncoding = null;
 		}
 	}
 
@@ -324,16 +332,6 @@ public class HttpExchangeServletResponse implements HttpServletResponse, AutoClo
 				servletOutputStream.close();
 			} catch (IOException ex) {
 			}
-		}
-	}
-
-	@Override
-	@Deprecated
-	protected void finalize() throws Throwable {
-		try {
-			close();
-		} finally {
-			super.finalize();
 		}
 	}
 

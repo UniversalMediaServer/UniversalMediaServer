@@ -1,15 +1,15 @@
-# Header, don't edit
+ï»¿# Header, don't edit
 NLF v6
 # Language ID
 1044
 # Font and size - dash (-) means default
 -
 -
-# Codepage - dash (-) means ANSI code page
+# Codepage - dash (-) means ASCII code page
 1252
 # RTL - anything else than RTL means LTR
 -
-# Translation by Jonas Lindstrøm (jonasc_88@hotmail.com). Reviewed and fixed by Jan Ivar Beddari <d0der at online.no>
+# Translation by Jonas LindstrÃ¸m (jonasc_88@hotmail.com). Reviewed and fixed by Jan Ivar Beddari <d0der at online.no>
 # ^Branding
 Nullsoft Install System %s
 # ^SetupCaption
@@ -43,9 +43,9 @@ $(^Name) avinstallasjon
 # ^AgreeBtn
 &Godta
 # ^AcceptBtn
-Jeg &godtar vilkårene i lisensavtalen
+Jeg &godtar vilkÃ¥rene i lisensavtalen
 # ^DontAcceptBtn
-Jeg godtar &ikke vilkårene i lisensavtalen
+Jeg godtar &ikke vilkÃ¥rene i lisensavtalen
 # ^InstallBtn
 &Installer
 # ^UninstallBtn
@@ -59,53 +59,53 @@ Bla &gjennom...
 # ^ShowDetailsBtn
 Vis &detaljer
 # ^ClickNext
-Trykk Neste for å fortsette.
+Trykk Neste for Ã¥ fortsette.
 # ^ClickInstall
-Trykk Installer for å starte installasjonen.
+Trykk Installer for Ã¥ starte installasjonen.
 # ^ClickUninstall
-Trykk Avinstaller for å starte avinstallasjonen.
+Trykk Avinstaller for Ã¥ starte avinstallasjonen.
 # ^Name
 Navn
 # ^Completed
 Ferdig
 # ^LicenseText
-Vennligst les gjennom lisensavtalen før du installerer $(^Name). Hvis du godtar vilkårene i avtalen, trykk på Godta.
+Vennligst les gjennom lisensavtalen fÃ¸r du installerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, trykk pÃ¥ Godta.
 # ^LicenseTextCB
-Vennligst les gjennom lisensavtalen før du installerer $(^Name). Hvis du godtar vilkårene i avtalen, merk av under. $_CLICK
+Vennligst les gjennom lisensavtalen fÃ¸r du installerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, merk av under. $_CLICK
 # ^LicenseTextRB
-Vennligst les gjennom lisensavtalen før du installerer $(^Name). Hvis du godtar vilkårene i avtalen, velg det første alternativet. $_CLICK
+Vennligst les gjennom lisensavtalen fÃ¸r du installerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, velg det fÃ¸rste alternativet. $_CLICK
 # ^UnLicenseText
-Vennligst les gjennom lisensavtalen før du avinstallerer $(^Name). Hvis du godtar vilkårene i avtalen, trykk på Godta.
+Vennligst les gjennom lisensavtalen fÃ¸r du avinstallerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, trykk pÃ¥ Godta.
 # ^UnLicenseTextCB
-Vennligst les gjennom lisensavtalen før du avinstallerer $(^Name). Hvis du godtar vilkårene i avtalen, merk av under. $_CLICK
+Vennligst les gjennom lisensavtalen fÃ¸r du avinstallerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, merk av under. $_CLICK
 # ^UnLicenseTextRB
-Vennligst les gjennom lisensavtalen før du avinstallerer $(^Name). Hvis du godtar vilkårene i avtalen, velg det første alternativet. $_CLICK
+Vennligst les gjennom lisensavtalen fÃ¸r du avinstallerer $(^Name). Hvis du godtar vilkÃ¥rene i avtalen, velg det fÃ¸rste alternativet. $_CLICK
 # ^Custom
 Egendefinert
 # ^ComponentsText
 Merk komponentene du vil installere og fjern merkingen for de du ikke vil installere. $_CLICK
 # ^ComponentsSubText1
-Velg hvilken måte du vil installere på:
+Velg hvilken mÃ¥te du vil installere pÃ¥:
 # ^ComponentsSubText2_NoInstTypes
 Merk komponenter du vil installere:
 # ^ComponentsSubText2
-Eller merk de valgfrie komponentene du ønsker å installere:
+Eller merk de valgfrie komponentene du Ã¸nsker Ã¥ installere:
 # ^UnComponentsText
 Merk komponentene du vil avinstallere og fjern merkingen for de du vil beholde. $_CLICK
 # ^UnComponentsSubText1
-Velg hvilken måte du vil avinstallere på:
+Velg hvilken mÃ¥te du vil avinstallere pÃ¥:
 # ^UnComponentsSubText2_NoInstTypes
 Merk komponenter du vil avinstallere:
 # ^UnComponentsSubText2
-Eller merk de valgfrie komponentene du ønsker å avinstallere:
+Eller merk de valgfrie komponentene du Ã¸nsker Ã¥ avinstallere:
 # ^DirText
-$(^Name) vil bli installert i følgende mappe. For å velge en annen mappe, trykk Bla gjennom. $_CLICK
+$(^Name) vil bli installert i fÃ¸lgende mappe. For Ã¥ velge en annen mappe, trykk Bla gjennom. $_CLICK
 # ^DirSubText
-Målmappe
+MÃ¥lmappe
 # ^DirBrowseText
 Velg mappe du vil installere $(^Name) i:
 # ^UnDirText
-$(^Name) i følgende mappe vil bli avinstallert. For å velge en annen mappe, trykk Bla gjennom. $_CLICK
+$(^Name) i fÃ¸lgende mappe vil bli avinstallert. For Ã¥ velge en annen mappe, trykk Bla gjennom. $_CLICK
 # ^UnDirSubText
 ""
 # ^UnDirBrowseText
@@ -113,15 +113,15 @@ Velg mappe du vil avinstallere $(^Name) fra:
 # ^SpaceAvailable
 "Ledig plass: "
 # ^SpaceRequired
-"Nødvendig plass: "
+"NÃ¸dvendig plass: "
 # ^UninstallingText
 Denne veiviseren vil avinstallere $(^Name) fra din datamaskin. $_CLICK
 # ^UninstallingSubText
 Avinstallerer fra:
 # ^FileError
-Feil under åpning av fil for skriving: \r\n\t\"$0\"\r\nTrykk Avbryt for å avbryte installasjonen,\r\nPrøv igjen for å prøve igjen, eller\r\nIgnorer for å hoppe over denne filen
+Feil under Ã¥pning av fil for skriving: \r\n\t\"$0\"\r\nTrykk Avbryt for Ã¥ avbryte installasjonen,\r\nPrÃ¸v igjen for Ã¥ prÃ¸ve igjen, eller\r\nIgnorer for Ã¥ hoppe over denne filen
 # ^FileError_NoIgnore
-Feil under åpning av fil for skriving: \r\n\t\"$0\"\r\nTrykk Prøv igjen for å prøve igjen, or\r\neller Avbryt for å avbryte installasjonen
+Feil under Ã¥pning av fil for skriving: \r\n\t\"$0\"\r\nTrykk PrÃ¸v igjen for Ã¥ prÃ¸ve igjen, or\r\neller Avbryt for Ã¥ avbryte installasjonen
 # ^CantWrite
 "Kan ikke skrive: "
 # ^CopyFailed
@@ -151,13 +151,13 @@ Kopiering mislyktes
 # ^ErrorCreating
 "Feil under opprettelse av: "
 # ^ErrorDecompressing
-Feil under utpakking av data! Installasjonsprogrammet kan være skadet.
+Feil under utpakking av data! Installasjonsprogrammet kan vÃ¦re skadet.
 # ^ErrorRegistering
 Feil under registrering av DLL
 # ^ExecShell
 "ExecShell: "
 # ^Exec
-"Kjøre: "
+"KjÃ¸re: "
 # ^Extract
 "Pakk ut: "
 # ^ErrorWriting
@@ -179,12 +179,12 @@ Installasjonsprogrammet er skadet: ukjent kode
 # ^CopyDetails
 Kopier detaljer til utklippstavlen
 # ^LogInstall
-Loggfør installasjonsprosessen
+LoggfÃ¸r installasjonsprosessen
 # ^Byte
 B
 # ^Kilo
-K
+ K
 # ^Mega
-M
+ M
 # ^Giga
-G
+ G

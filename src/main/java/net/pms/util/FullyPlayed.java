@@ -20,97 +20,35 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.MediaMonitor;
-import net.pms.media.MediaType;
 import net.pms.formats.Format;
 import net.pms.image.BufferedImageFilter;
 import net.pms.image.NonGeometricBufferedImageOp;
+import net.pms.media.MediaType;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * An utility class for handling "fully played" functionality.
  */
 public class FullyPlayed {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FullyPlayed.class);
-	private static UmsConfiguration configuration = PMS.getConfiguration();
-	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/icon-fullyplayed.png";
+	private static final String THUMBNAIL_OVERLAY_RESOURCE_PATH = "/resources/images/store/fullyplayed-overlay.png";
 	private static final Color THUMBNAIL_OVERLAY_BACKGROUND_COLOR = new Color(0.0f, 0.0f, 0.0f, 0.5f);
 	private static final int BLANK_IMAGE_RESOLUTION = 256;
 
 	/** A static cache of the fully played overlay as a {@link BufferedImage} */
-	public static final BufferedImage THUMBNAIL_OVERLAY_IMAGE;
+	private static final BufferedImage THUMBNAIL_OVERLAY_IMAGE = getThumbnailOverlayImage();
 
 	/** A static cache of the fully played overlay {@link BufferedImageFilter} */
-	public static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(DLNAResource.THUMBNAIL_HINTS);
-
-	static {
-		BufferedImage tmpThumbnailOverlayImage = null;
-		try {
-			tmpThumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream(THUMBNAIL_OVERLAY_RESOURCE_PATH));
-		} catch (IOException e) {
-			LOGGER.error("Error reading fully played overlay image \"{}\": {}", THUMBNAIL_OVERLAY_RESOURCE_PATH, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		THUMBNAIL_OVERLAY_IMAGE = tmpThumbnailOverlayImage;
-	}
+	private static final FullyPlayerOverlayFilter OVERLAY_FILTER_INSTANCE = new FullyPlayerOverlayFilter(StoreResource.THUMBNAIL_HINTS);
 
 	// Hide the constructor
 	private FullyPlayed() {
-	}
-
-	/**
-	 * @param file the file representing this media
-	 * @return whether the media should be marked as "fully played" either with
-	 * text or a "fully played" overlay.
-	 */
-	public static boolean isFullyPlayedFileMark(File file) {
-		return
-			file != null &&
-			(
-				configuration.getFullyPlayedAction() == FullyPlayedAction.MARK ||
-				configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-			) &&
-			MediaMonitor.isFullyPlayed(file.getAbsolutePath(), true);
-	}
-
-	/**
-	 * @param title the TV series title
-	 * @return whether the TV series should be marked as "fully played" either with
-	 * text or a "fully played" overlay.
-	 */
-	public static boolean isFullyPlayedTVSeriesMark(String title) {
-		return
-			title != null &&
-			(
-				configuration.getFullyPlayedAction() == FullyPlayedAction.MARK ||
-				configuration.getFullyPlayedAction() == FullyPlayedAction.MOVE_FOLDER_AND_MARK
-			) &&
-			MediaMonitor.isFullyPlayed(title, false);
-	}
-
-	/**
-	 * Determines if the media should be hidden when browsing. Currently only
-	 * video files are hidden.
-	 *
-	 * @param resource the resource the be evaluated
-	 * @return The result
-	 */
-	public static boolean isHideFullyPlayed(DLNAResource resource) {
-		return
-			resource != null &&
-			configuration.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
-			resource.getMedia() != null &&
-			resource.getMedia().isVideo() &&
-			MediaMonitor.isFullyPlayed(resource.getSystemName(), true);
 	}
 
 	/**
@@ -124,43 +62,39 @@ public class FullyPlayed {
 	 * Prefixes the specified string with a "fully played" text.
 	 *
 	 * @param displayName the {@link String} to prefix.
-	 * @param resource the {@link DLNAResource} representing the media.
+	 * @param resource the {@link StoreResource} representing the media.
 	 * @return The prefixed {@link String}.
 	 */
-	public static String addFullyPlayedNamePrefix(String displayName, DLNAResource resource) {
+	public static String addFullyPlayedNamePrefix(String displayName, StoreResource resource) {
 		MediaType mediaType;
-		if (resource.getMedia() != null) {
-			mediaType = resource.getMedia().getMediaType();
-		} else if (resource.getFormat() != null) {
-			switch (resource.getFormat().getType()) {
-				case Format.AUDIO:
-					mediaType = MediaType.AUDIO;
-					break;
-				case Format.IMAGE:
-					mediaType = MediaType.IMAGE;
-					break;
-				case Format.VIDEO:
-					mediaType = MediaType.VIDEO;
-					break;
-				case Format.UNKNOWN:
-				default:
-					mediaType = MediaType.UNKNOWN;
-					break;
-			}
+		if (resource.getMediaInfo() != null) {
+			mediaType = resource.getMediaInfo().getMediaType();
+		} else if (resource instanceof StoreItem item && item.getFormat() != null) {
+			mediaType = switch (item.getFormat().getType()) {
+				case Format.AUDIO -> MediaType.AUDIO;
+				case Format.IMAGE -> MediaType.IMAGE;
+				case Format.VIDEO -> MediaType.VIDEO;
+				default -> MediaType.UNKNOWN;
+			};
 		} else {
 			mediaType = MediaType.UNKNOWN;
 		}
-		switch (mediaType) {
-			case IMAGE:
-				return String.format("[%s] %s", Messages.getString("DLNAResource.6"), displayName);
-			case VIDEO:
-				return String.format("[%s] %s", Messages.getString("Watched"), displayName);
-			case AUDIO:
-			case UNKNOWN:
-			default:
-				return String.format("[%s] %s", Messages.getString("Played"), displayName);
+		return switch (mediaType) {
+			case IMAGE -> String.format("[%s] %s", Messages.getString("Viewed"), displayName);
+			case VIDEO -> String.format("[%s] %s", Messages.getString("Watched"), displayName);
+			default -> String.format("[%s] %s", Messages.getString("Played"), displayName);
+		};
+	}
 
+	private static BufferedImage getThumbnailOverlayImage() {
+		BufferedImage tmpThumbnailOverlayImage = null;
+		try {
+			tmpThumbnailOverlayImage = ImageIO.read(FullyPlayed.class.getResourceAsStream(THUMBNAIL_OVERLAY_RESOURCE_PATH));
+		} catch (IOException e) {
+			LOGGER.error("Error reading fully played overlay image \"{}\": {}", THUMBNAIL_OVERLAY_RESOURCE_PATH, e.getMessage());
+			LOGGER.trace("", e);
 		}
+		return tmpThumbnailOverlayImage;
 	}
 
 	/**
@@ -254,4 +188,5 @@ public class FullyPlayed {
 			return new BufferedImageFilterResult(destination, true, sameInstance);
 		}
 	}
+
 }

@@ -119,7 +119,7 @@ public class MediaTableRegexpRules extends MediaTable {
 			INSERT_INTO + TABLE_NAME + " VALUES ( '###', '(?i)^\\W.+', 0 )",
 			INSERT_INTO + TABLE_NAME + " VALUES ( '0-9', '(?i)^\\d.+', 1 )"
 		);
-		String[] chars = Messages.getString("Alphabet").split(",");
+		String[] chars = Messages.getConfigurationString("Alphabet").split(",");
 		for (int i = 0; i < chars.length; i++) {
 			// Create regexp rules for characters with a sort order based on the property value
 			executeUpdate(connection, INSERT_INTO + TABLE_NAME + " VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");

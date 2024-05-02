@@ -16,7 +16,6 @@
  */
 package net.pms.formats.v2;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import static net.pms.formats.v2.SubtitleType.*;
@@ -24,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
 public class SubtitleTypeTest {
+
 	@Test
 	public void testValueOfFileExtension_matchingExtensions() throws Exception {
 		assertEquals(valueOfFileExtension("srt"), SUBRIP);

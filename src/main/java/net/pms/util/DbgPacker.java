@@ -33,10 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DbgPacker {
-	protected static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
 
-	protected final LinkedHashMap<File, Object> items;
-	protected String defaultLogFile;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DbgPacker.class);
+
+	private final LinkedHashMap<File, Object> items;
+	private String defaultLogFile;
 
 	public DbgPacker() {
 		items = new LinkedHashMap<>();
@@ -52,7 +53,7 @@ public class DbgPacker {
 		}
 	}
 
-	protected void poll() {
+	public void poll() {
 		// call the client callbacks
 		UmsConfiguration configuration = PMS.getConfiguration();
 
@@ -100,9 +101,13 @@ public class DbgPacker {
 		}
 	}
 
-	public Set<File> getItems() {
+	public Set<File> getFiles() {
 		poll();
 		return items.keySet();
+	}
+
+	public Map<File, Object> getItems() {
+		return items;
 	}
 
 	public static void writeToZip(ZipOutputStream out, File f) throws Exception {

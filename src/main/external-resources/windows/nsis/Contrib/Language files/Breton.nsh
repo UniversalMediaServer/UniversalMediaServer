@@ -1,46 +1,46 @@
-;Language: Breton (1150)
-;By KAD-Korvigelloù An Drouizig
+ï»¿;Language: Breton (1150)
+;By KAD-KorvigelloÃ¹ An Drouizig
 
-!insertmacro LANGFILE "Breton" "Brezhoneg"
+!insertmacro LANGFILE "Breton" = "Brezhoneg" =
 
 !ifdef MUI_WELCOMEPAGE
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Degemer mat e skoazeller staliañ $(^NameDA)"
-  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Sturiet e viot gant ar skoazeller-mañ evit staliañ $(^NameDA).$\r$\n$\r$\nGwelloc'h eo serriñ pep arload oberiant er reizhiad a-raok mont pelloc'h gant ar skoazeller-mañ. Evel-se e c'heller nevesaat ar restroù reizhiad hep rankout adloc'hañ hoc'h urzhiataer.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Degemer mat e skoazeller staliaÃ± $(^NameDA)"
+  ${LangFileString} MUI_TEXT_WELCOME_INFO_TEXT "Sturiet e viot gant ar skoazeller-maÃ± evit staliaÃ± $(^NameDA).$\r$\n$\r$\nGwelloc'h eo serriÃ± pep arload oberiant er reizhiad a-raok mont pelloc'h gant ar skoazeller-maÃ±. Evel-se e c'heller nevesaat ar restroÃ¹ reizhiad hep rankout adloc'haÃ± hoc'h urzhiataer.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_UNWELCOMEPAGE
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Degemer mat er skoazeller distaliañ $(^NameDA)"
-  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Sturiet e viot gant ar skoazeller-mañ a-benn distaliañ $(^NameDA).$\r$\n$\r$\nEn em asurit n'eo ket lañset $(^NameDA) a-raok mont pelloc'h gant an distaliañ.$\r$\n$\r$\n$_CLICK"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TITLE "Degemer mat er skoazeller distaliaÃ± $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_WELCOME_INFO_TEXT "Sturiet e viot gant ar skoazeller-maÃ± a-benn distaliaÃ± $(^NameDA).$\r$\n$\r$\nEn em asurit n'eo ket laÃ±set $(^NameDA) a-raok mont pelloc'h gant an distaliaÃ±.$\r$\n$\r$\n$_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE
-  ${LangFileString} MUI_TEXT_LICENSE_TITLE "Lañvaz emglev"
-  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Bezit aketus en ur lenn pep term eus al lañvaz a-raok staliañ $(^NameDA), mar plij."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Mar degemerit pep term eus al lañvaz, klikit war « War-lerc'h ». Ret eo deoc'h degemer al lañvaz evit staliañ $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Mar degemerit pep term eus al lañvaz, klikit war al log a-zindan. Ret eo deoc'h degemer al lañvaz a-benn staliañ $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Mar degemerit pep term eus al lañvaz, diuzit an dibab kentañ a-zindan. Ret eo deoc'h degemer al lañvaz a-benn staliañ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_TEXT_LICENSE_TITLE "LaÃ±vaz emglev"
+  ${LangFileString} MUI_TEXT_LICENSE_SUBTITLE "Bezit aketus en ur lenn pep term eus al laÃ±vaz a-raok staliaÃ± $(^NameDA), mar plij."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM "Mar degemerit pep term eus al laÃ±vaz, klikit war Â« War-lerc'h Â». Ret eo deoc'h degemer al laÃ±vaz evit staliaÃ± $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_CHECKBOX "Mar degemerit pep term eus al laÃ±vaz, klikit war al log a-zindan. Ret eo deoc'h degemer al laÃ±vaz a-benn staliaÃ± $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_INNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Mar degemerit pep term eus al laÃ±vaz, diuzit an dibab kentaÃ± a-zindan. Ret eo deoc'h degemer al laÃ±vaz a-benn staliaÃ± $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "Lañvaz emglev"
-  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Trugarez da lenn al lañvaz a-raok distaliañ $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Mar degemerit pep term eus al lañvaz, klikit war « A-du emaon » evit kenderc'hel. Ret eo deoc'h degemer al lañvaz evit distaliañ $(^NameDA)."
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Mar degemerit pep term eus al lañvaz, klikit war al log a-zindan. Ret eo deoc'h degemer al lañvaz evit distaliañ $(^NameDA). $_CLICK"
-  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Mar degemerit pep term eus al lañvaz, dizuit an dibab kentañ a-zindan. Ret eo deoc'h degemer al lañvaz evit distaliañ $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNTEXT_LICENSE_TITLE "LaÃ±vaz emglev"
+  ${LangFileString} MUI_UNTEXT_LICENSE_SUBTITLE "Trugarez da lenn al laÃ±vaz a-raok distaliaÃ± $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM "Mar degemerit pep term eus al laÃ±vaz, klikit war Â« A-du emaon Â» evit kenderc'hel. Ret eo deoc'h degemer al laÃ±vaz evit distaliaÃ± $(^NameDA)."
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_CHECKBOX "Mar degemerit pep term eus al laÃ±vaz, klikit war al log a-zindan. Ret eo deoc'h degemer al laÃ±vaz evit distaliaÃ± $(^NameDA). $_CLICK"
+  ${LangFileString} MUI_UNINNERTEXT_LICENSE_BOTTOM_RADIOBUTTONS "Mar degemerit pep term eus al laÃ±vaz, dizuit an dibab kentaÃ± a-zindan. Ret eo deoc'h degemer al laÃ±vaz evit distaliaÃ± $(^NameDA). $_CLICK"
 !endif
 
 !ifdef MUI_LICENSEPAGE | MUI_UNLICENSEPAGE
-  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Pouezit war « Pajenn a-raok » evit lenn ar pajennoù eus al lañvaz da-heul."
+  ${LangFileString} MUI_INNERTEXT_LICENSE_TOP "Pouezit war Â« Pajenn a-raok Â» evit lenn ar pajennoÃ¹ eus al laÃ±vaz da-heul."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE
-  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Dibab elfennoù"
-  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Dibabit pe elfenn(où) $(^NameDA) a fell deoc'h staliañ."
+  ${LangFileString} MUI_TEXT_COMPONENTS_TITLE "Dibab elfennoÃ¹"
+  ${LangFileString} MUI_TEXT_COMPONENTS_SUBTITLE "Dibabit pe elfenn(oÃ¹) $(^NameDA) a fell deoc'h staliaÃ±."
 !endif
 
 !ifdef MUI_UNCOMPONENTSPAGE
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Dibabit elfennoù"
-  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Dibabit pe elfenn(où) $(^NameDA) a fell deoc'h distaliañ."
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_TITLE "Dibabit elfennoÃ¹"
+  ${LangFileString} MUI_UNTEXT_COMPONENTS_SUBTITLE "Dibabit pe elfenn(oÃ¹) $(^NameDA) a fell deoc'h distaliaÃ±."
 !endif
 
 !ifdef MUI_COMPONENTSPAGE | MUI_UNCOMPONENTSPAGE
@@ -48,74 +48,74 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Lakait ho logodenn a-zioc'h an elfenn evit gwelout he deskrivadenn."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Lakait ho logodenn a-zioc'h an elfenn evit gwelout he deskrivadenn."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Diuzuit an elfenn evit gwelout he deskrivadenn."
   !endif
 !endif
 
 !ifdef MUI_DIRECTORYPAGE
-  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Dibabit al lec'hiadur staliañ"
-  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Dibabit ar c'havlec'h ma vo lakaet $(^NameDA) ennañ."
+  ${LangFileString} MUI_TEXT_DIRECTORY_TITLE "Dibabit al lec'hiadur staliaÃ±"
+  ${LangFileString} MUI_TEXT_DIRECTORY_SUBTITLE "Dibabit ar c'havlec'h ma vo lakaet $(^NameDA) ennaÃ±."
 !endif
 
 !ifdef MUI_UNDIRECTORYPAGE
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Dibabit al lec'hiadur distaliañ"
-  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Dibabit ar c'havlec'h e vo dilamet $(^NameDA) dioutañ."
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_TITLE "Dibabit al lec'hiadur distaliaÃ±"
+  ${LangFileString} MUI_UNTEXT_DIRECTORY_SUBTITLE "Dibabit ar c'havlec'h e vo dilamet $(^NameDA) dioutaÃ±."
 !endif
 
 !ifdef MUI_INSTFILESPAGE
-  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "O staliañ"
-  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Gortozit mar plij, emañ $(^NameDA) o vezañ staliet."
-  ${LangFileString} MUI_TEXT_FINISH_TITLE "Echu eo gant ar staliañ"
-  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Kaset eo bet da benn mat ar staliañ."
-  ${LangFileString} MUI_TEXT_ABORT_TITLE "Staliañ paouezet"
-  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "N'eo ket bet kaset da benn mat ar staliañ."
+  ${LangFileString} MUI_TEXT_INSTALLING_TITLE "O staliaÃ±"
+  ${LangFileString} MUI_TEXT_INSTALLING_SUBTITLE "Gortozit mar plij, emaÃ± $(^NameDA) o vezaÃ± staliet."
+  ${LangFileString} MUI_TEXT_FINISH_TITLE "Echu eo gant ar staliaÃ±"
+  ${LangFileString} MUI_TEXT_FINISH_SUBTITLE "Kaset eo bet da benn mat ar staliaÃ±."
+  ${LangFileString} MUI_TEXT_ABORT_TITLE "StaliaÃ± paouezet"
+  ${LangFileString} MUI_TEXT_ABORT_SUBTITLE "N'eo ket bet kaset da benn mat ar staliaÃ±."
 !endif
 
 !ifdef MUI_UNINSTFILESPAGE
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "O tistaliañ"
-  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Gortozit mar plij, emañ $(^NameDA) o vezañ distaliet."
-  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Echu eo gant an distaliañ"
-  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Gant berzh eo bet kaset da benn an distaliañ."
-  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "Distaliañ paouezet"
-  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "N'eo ket bet kaset da benn mat an distaliañ."
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_TITLE "O tistaliaÃ±"
+  ${LangFileString} MUI_UNTEXT_UNINSTALLING_SUBTITLE "Gortozit mar plij, emaÃ± $(^NameDA) o vezaÃ± distaliet."
+  ${LangFileString} MUI_UNTEXT_FINISH_TITLE "Echu eo gant an distaliaÃ±"
+  ${LangFileString} MUI_UNTEXT_FINISH_SUBTITLE "Gant berzh eo bet kaset da benn an distaliaÃ±."
+  ${LangFileString} MUI_UNTEXT_ABORT_TITLE "DistaliaÃ± paouezet"
+  ${LangFileString} MUI_UNTEXT_ABORT_SUBTITLE "N'eo ket bet kaset da benn mat an distaliaÃ±."
 !endif
 
 !ifdef MUI_FINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Oc'h echuiñ staliañ $(^NameDA) gant ar skoazeller"
-  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Staliet eo bet $(^NameDA) war hoc'h urzhiataer.$\r$\n$\r$\nKlikit war « Echuiñ » evit serriñ ar skoazeller-mañ."
-  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Ret eo hoc'h urzhiataer bezañ adloc'het evit ma vez kaset da benn staliañ $(^NameDA). Ha fellout a ra deoc'h adloc'hañ diouzhtu ?"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TITLE "Oc'h echuiÃ± staliaÃ± $(^NameDA) gant ar skoazeller"
+  ${LangFileString} MUI_TEXT_FINISH_INFO_TEXT "Staliet eo bet $(^NameDA) war hoc'h urzhiataer.$\r$\n$\r$\nKlikit war Â« EchuiÃ± Â» evit serriÃ± ar skoazeller-maÃ±."
+  ${LangFileString} MUI_TEXT_FINISH_INFO_REBOOT "Ret eo hoc'h urzhiataer bezaÃ± adloc'het evit ma vez kaset da benn staliaÃ± $(^NameDA). Ha fellout a ra deoc'h adloc'haÃ± diouzhtu ?"
 !endif
 
 !ifdef MUI_UNFINISHPAGE
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Oc'h echuiñ distaliañ $(^NameDA) gant ar skoazeller"
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Distaliet eo bet $(^NameDA) diouzh hoc'h urzhiataer.$\r$\n$\r$\nKlikit war « Echuiñ » evit serriñ ar skoazeller-mañ."
-  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Ret eo hoc'h urzhiataer bezañ adloc'het evit ma vez kaset da benn distaliañ $(^NameDA). Ha fellout a ra deoc'h adloc'hañ diouzhtu ?"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TITLE "Oc'h echuiÃ± distaliaÃ± $(^NameDA) gant ar skoazeller"
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_TEXT "Distaliet eo bet $(^NameDA) diouzh hoc'h urzhiataer.$\r$\n$\r$\nKlikit war Â« EchuiÃ± Â» evit serriÃ± ar skoazeller-maÃ±."
+  ${LangFileString} MUI_UNTEXT_FINISH_INFO_REBOOT "Ret eo hoc'h urzhiataer bezaÃ± adloc'het evit ma vez kaset da benn distaliaÃ± $(^NameDA). Ha fellout a ra deoc'h adloc'haÃ± diouzhtu ?"
 !endif
 
 !ifdef MUI_FINISHPAGE | MUI_UNFINISHPAGE
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Adloc'hañ diouzhtu"
-  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Fellout a ra din adloc'hañ diwezatoc'h dre zorn"
-  ${LangFileString} MUI_TEXT_FINISH_RUN "&Lañsañ $(^NameDA)"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTNOW "Adloc'haÃ± diouzhtu"
+  ${LangFileString} MUI_TEXT_FINISH_REBOOTLATER "Fellout a ra din adloc'haÃ± diwezatoc'h dre zorn"
+  ${LangFileString} MUI_TEXT_FINISH_RUN "&LaÃ±saÃ± $(^NameDA)"
   ${LangFileString} MUI_TEXT_FINISH_SHOWREADME "&Diskouez ar restr Malennit"
-  ${LangFileString} MUI_BUTTONTEXT_FINISH "&Echuiñ"  
+  ${LangFileString} MUI_BUTTONTEXT_FINISH "&EchuiÃ±"  
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Diskouez kavlec'h al Lañser loc'hañ"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Dibabit ur c'havlec'h Lañser loc'hañ evit berradennoù $(^NameDA)."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Diuzit ar c'havlec'h Lañser loc'hañ e vo savet ennañ berradennoù ar goulevioù. Gallout a rit ingal reiñ un anv evit sevel ur c'havlec'h nevez."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Chom hep sevel berradennoù"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Diskouez kavlec'h al LaÃ±ser loc'haÃ±"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Dibabit ur c'havlec'h LaÃ±ser loc'haÃ± evit berradennoÃ¹ $(^NameDA)."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "Diuzit ar c'havlec'h LaÃ±ser loc'haÃ± e vo savet ennaÃ± berradennoÃ¹ ar goulevioÃ¹. Gallout a rit ingal reiÃ± un anv evit sevel ur c'havlec'h nevez."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Chom hep sevel berradennoÃ¹"
 !endif
 
 !ifdef MUI_UNCONFIRMPAGE
-  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "Distaliañ $(^NameDA)"
+  ${LangFileString} MUI_UNTEXT_CONFIRM_TITLE "DistaliaÃ± $(^NameDA)"
   ${LangFileString} MUI_UNTEXT_CONFIRM_SUBTITLE "Dilemel $(^NameDA) adalek hoc'h urzhiataer."
 !endif
 
 !ifdef MUI_ABORTWARNING
-  ${LangFileString} MUI_TEXT_ABORTWARNING "Ha sur oc'h e fell deoc'h kuitaat staliañ $(^Name) ?"
+  ${LangFileString} MUI_TEXT_ABORTWARNING "Ha sur oc'h e fell deoc'h kuitaat staliaÃ± $(^Name) ?"
 !endif
 
 !ifdef MUI_UNABORTWARNING
-  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ha sur oc'h e fell deoc'h kuitaat distaliañ $(^Name) ?"
+  ${LangFileString} MUI_UNTEXT_ABORTWARNING "Ha sur oc'h e fell deoc'h kuitaat distaliaÃ± $(^Name) ?"
 !endif

@@ -51,8 +51,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NettyUpnpStream extends UpnpStream {
-	//base the logger inside org.jupnp.transport.spi.UpnpStream to reflect old behavior
-	private static final Logger LOGGER = LoggerFactory.getLogger(UpnpStream.class);
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(NettyUpnpStream.class);
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
 
 	private final MessageEvent event;

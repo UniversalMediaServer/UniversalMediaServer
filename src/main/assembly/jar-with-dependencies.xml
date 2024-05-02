@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.0.0 http://maven.apache.org/xsd/assembly-2.0.0.xsd">
 	
 	<!--
-		This assembly takes care of putting together the pms.jar including 
+		This assembly takes care of putting together the ums.jar including 
 		all dependencies as it was in v1.25.1.
 	-->
 
@@ -14,28 +14,19 @@
 	</formats>
 	<includeBaseDirectory>false</includeBaseDirectory>
 
+	<containerDescriptorHandlers>
+		<containerDescriptorHandler>
+			<handlerName>metaInf-services</handlerName>
+		</containerDescriptorHandler>
+	</containerDescriptorHandlers>
+
 	<dependencySets>
 		<dependencySet>
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
 			<unpack>true</unpack>
-			<unpackOptions>
-				<excludes>
-					<exclude>META-INF/services/javax.imageio.spi.ImageReaderSpi</exclude>
-					<exclude>META-INF/services/javax.imageio.spi.ImageWriterSpi</exclude>
-				</excludes>
-			</unpackOptions>
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>
-	<files>
-		<file>
-			<source>${project.basedir}/src/main/external-resources/META-INF/services/javax.imageio.spi.ImageReaderSpi</source>
-			<outputDirectory>META-INF/services</outputDirectory>
-		</file>
-		<file>
-			<source>${project.basedir}/src/main/external-resources/META-INF/services/javax.imageio.spi.ImageWriterSpi</source>
-			<outputDirectory>META-INF/services</outputDirectory>
-		</file>
-	</files>
+
 </assembly>

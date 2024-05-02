@@ -16,11 +16,11 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.model.Protocol;
 
 /**
@@ -73,7 +73,7 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 	@Override
 	public String getAttributeString() {
 		String result = getValue();
-		return isBlank(result) ? "" : NAME + "=" + result;
+		return StringUtils.isBlank(result) ? "" : NAME + "=" + result;
 	}
 
 	/**
@@ -158,7 +158,7 @@ public abstract class DLNAOrgOperations implements ProtocolInfoAttribute {
 			if (protocol == null) {
 				return null;
 			}
-			if (isBlank(value)) {
+			if (StringUtils.isBlank(value)) {
 				return getOperations(protocol, false, false);
 			}
 			Matcher matcher = STRING_PATTERN.matcher(value);

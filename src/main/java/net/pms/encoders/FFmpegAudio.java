@@ -20,13 +20,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
+import net.pms.renderers.Renderer;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,14 +86,13 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		DLNAResource dlna,
+		StoreItem resource,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
-		UmsConfiguration prev = configuration;
-		// Use device-specific pms conf
-		configuration = params.getMediaRenderer().getUmsConfiguration();
-		final String filename = dlna.getFileName();
+		Renderer renderer = params.getMediaRenderer();
+		UmsConfiguration configuration = renderer.getUmsConfiguration();
+		final String filename = resource.getFileName();
 		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
 		params.setWaitBeforeStart(2000);
 		params.manageFastStart();
@@ -161,12 +161,12 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + params.getTimeEnd());
 		}
 
-		if (params.getMediaRenderer().isTranscodeToMP3()) {
+		if (renderer.isTranscodeToMP3()) {
 			cmdList.add("-f");
 			cmdList.add("mp3");
 			cmdList.add("-ab");
 			cmdList.add("320000");
-		} else if (params.getMediaRenderer().isTranscodeToWAV()) {
+		} else if (renderer.isTranscodeToWAV()) {
 			cmdList.add("-f");
 			cmdList.add("wav");
 		} else { // default: LPCM
@@ -175,7 +175,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		}
 
 		if (configuration.isAudioResample()) {
-			if (params.getMediaRenderer().isTranscodeAudioTo441()) {
+			if (renderer.isTranscodeAudioTo441()) {
 				cmdList.add("-ar");
 				cmdList.add("44100");
 				cmdList.add("-ac");
@@ -196,12 +196,11 @@ public class FFmpegAudio extends FFMpegVideo {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
-		configuration = prev;
 		return pw;
 	}
 
 	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(StoreItem resource) {
 		// XXX Matching on file format isn't really enough, codec should also be evaluated
 		return (
 			PlayerUtil.isAudio(resource, Format.Identifier.AC3) ||

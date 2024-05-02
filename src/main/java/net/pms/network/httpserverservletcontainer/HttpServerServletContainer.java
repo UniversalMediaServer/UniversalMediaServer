@@ -18,24 +18,30 @@ package net.pms.network.httpserverservletcontainer;
 
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpServer;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A small servlet container interface for com.sun.net.httpserver.HttpServer
- * Implement only members that we needs
+ * A small servlet container interface for com.sun.net.httpserver.HttpServer.
+ *
+ * Implement only members that we needs.
+ *
+ * @author Surf@ceS
  */
 public class HttpServerServletContainer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(HttpServerServletContainer.class);
+
 	private final URLClassLoader classLoader;
 	private final HttpServer server;
 
@@ -44,16 +50,26 @@ public class HttpServerServletContainer {
 		ArrayList<URL> cleanedUrls = new ArrayList<>();
 		try {
 			for (String url : urls) {
-				URL currentUrl = new URL(url);
-				cleanedUrls.add(currentUrl);
+				if (url != null) {
+					URL currentUrl = URI.create(url).toURL();
+					cleanedUrls.add(currentUrl);
+				}
 			}
-		} catch (MalformedURLException e) {
+		} catch (IllegalArgumentException | MalformedURLException e) {
 			LOGGER.debug("Error adding resource url: " + e);
 		}
 		classLoader = new URLClassLoader(cleanedUrls.toArray(URL[]::new), null);
 	}
 
 	public <T extends HttpServlet> void createServlet(Class<T> clazz) throws ServletException {
+		createServlet(clazz, (Class<?>[]) null, null);
+	}
+
+	public <T extends HttpServlet> void createServlet(Class<T> clazz, Class<?> parameterType, Object initarg) throws ServletException {
+		createServlet(clazz, new Class<?>[]{parameterType}, new Object[]{initarg});
+	}
+
+	public <T extends HttpServlet> void createServlet(Class<T> clazz, Class<?>[] parameterTypes, Object[] initargs) throws ServletException {
 		WebServlet webServlet = clazz.getAnnotation(WebServlet.class);
 		String[] urlPatterns = webServlet.urlPatterns();
 		if (urlPatterns.length == 0) {
@@ -61,9 +77,9 @@ public class HttpServerServletContainer {
 		}
 		if (urlPatterns.length > 0) {
 			try {
-				Constructor<?> cons = clazz.getConstructor();
+				Constructor<?> cons = clazz.getConstructor(parameterTypes);
 				for (String urlPattern : urlPatterns) {
-					HttpServlet servlet = (HttpServlet) cons.newInstance();
+					HttpServlet servlet = (HttpServlet) cons.newInstance(initargs);
 					HttpContext httpContext = server.createContext(urlPattern);
 					HttpHandlerServletConfig config = new HttpHandlerServletConfig(servlet, httpContext, classLoader);
 					servlet.init(config);

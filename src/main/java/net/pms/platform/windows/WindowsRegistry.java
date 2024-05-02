@@ -35,7 +35,7 @@ public class WindowsRegistry {
 	public static String readRegistry(String location, String key) {
 		try {
 			// Run reg query, then read output with StreamReader (internal class)
-			String query = "reg query " + '"' + location + "\" /v \"" + key + '"';
+			String[] query = {"reg", "query", '"' + location + '"', "/v", '"' + key + '"'};
 			Process process = Runtime.getRuntime().exec(query);
 
 			StreamReader reader = new StreamReader(process.getInputStream(), System.getProperty("file.encoding"));
@@ -51,8 +51,11 @@ public class WindowsRegistry {
 					return parsed;
 				}
 			}
-		} catch (IOException | InterruptedException e) {}
-
+		} catch (IOException e) {
+			//ignore
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
 		return null;
 	}
 

@@ -112,6 +112,22 @@ public class Messages {
 		}
 	}
 
+	/**
+	 * Returns the locale-specific GUI string associated with the key.
+	 */
+	@Nonnull
+	public static String getGuiString(String key) {
+		return getString(key);
+	}
+
+	/**
+	 * Returns the locale-specific setting string associated with the key.
+	 */
+	@Nonnull
+	public static String getConfigurationString(String key) {
+		return getString(key);
+	}
+
 	public static String getStringsAsJson() {
 		resourceBundleLock.readLock().lock();
 		try {
@@ -168,7 +184,6 @@ public class Messages {
 		}
 		return getString(key, rb);
 	}
-
 
 	/**
 	 * Returns the string from the root language file (messages.properties)

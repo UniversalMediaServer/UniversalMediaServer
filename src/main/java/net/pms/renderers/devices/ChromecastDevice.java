@@ -20,8 +20,10 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.renderers.Renderer;
-import net.pms.renderers.devices.players.ChromecastPlayer;
+import net.pms.renderers.RendererFilter;
+import net.pms.renderers.RendererUser;
 import net.pms.renderers.devices.players.BasicPlayer;
+import net.pms.renderers.devices.players.ChromecastPlayer;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -39,7 +41,9 @@ public final class ChromecastDevice extends Renderer {
 	) throws ConfigurationException, InterruptedException {
 		super(rendererConf, inetAddress);
 		this.chromeCast = chromeCast;
-		uuid = chromeCast.getAddress();
+		uuid = chromeCast.getName();
+		setAllowed(RendererFilter.isAllowed(uuid));
+		setUserId(RendererUser.getUserId(uuid));
 		setControls(PLAYCONTROL | VOLUMECONTROL);
 		setActive(true);
 		associateIP(inetAddress);

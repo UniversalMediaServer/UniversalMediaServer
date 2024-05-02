@@ -1,7 +1,7 @@
-;Language: Uzbek (1091)
+Ôªø;Language: Uzbek (1091)
 ;Translation updated by Emil Garipov [emil.garipov@gmail.com] 
 
-!insertmacro LANGFILE "Uzbek" "Uzbek"
+!insertmacro LANGFILE "Uzbek" = "O‚Äòzbek" "O'zbek"
 
 !ifdef MUI_WELCOMEPAGE
   ${LangFileString} MUI_TEXT_WELCOME_INFO_TITLE "Sizni o'rnatish dastur tabriklaydi $(^NameDA)"
@@ -48,7 +48,7 @@
   !ifndef NSIS_CONFIG_COMPONENTPAGE_ALTERNATIVE
     ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Sichqonchaning kursorini komponent tasvirini o'qish uchun ustiga quying."
   !else
-    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Sichqonchaning kursorini komponent tasvirini o'qish uchun ustiga quying."
+    ${LangFileString} MUI_INNERTEXT_COMPONENTS_DESCRIPTION_INFO "Tasvirini o'qish o'chun, komponentni tanlang."
   !endif
 !endif
 
@@ -101,9 +101,9 @@
 !endif
 
 !ifdef MUI_STARTMENUPAGE
-  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Papka $\"œÛÒÍ$\" menyusida"
-  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Dastur belgilarini joylashtirish uchun $\"œÛÒÍ$\" menyusidan papka tanlang."
-  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "$\"œÛÒÍ$\" menyusidan dastur belgilari joylashadigan papka tanlang. Siz papkaning boshqa ismini kiritishingiz mumkin"
+  ${LangFileString} MUI_TEXT_STARTMENU_TITLE "Papka $\"√è√≥√±√™$\" menyusida"
+  ${LangFileString} MUI_TEXT_STARTMENU_SUBTITLE "Dastur belgilarini joylashtirish uchun $\"√è√≥√±√™$\" menyusidan papka tanlang."
+  ${LangFileString} MUI_INNERTEXT_STARTMENU_TOP "$\"√è√≥√±√™$\" menyusidan dastur belgilari joylashadigan papka tanlang. Siz papkaning boshqa ismini kiritishingiz mumkin"
   ${LangFileString} MUI_INNERTEXT_STARTMENU_CHECKBOX "Belgilar yaratilmasin"
 !endif
 

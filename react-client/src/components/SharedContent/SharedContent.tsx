@@ -68,8 +68,8 @@ export default function SharedContent() {
         showNotification({
           id: 'data-loading',
           color: 'red',
-          title: i18n.get['Error'],
-          message: i18n.get['ConfigurationNotReceived'] + ' ' + i18n.get['ClickHereReportBug'],
+          title: i18n.get('Error'),
+          message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
           onClick: () => { openGitHubNewIssue(); },
           autoClose: 3000,
         });
@@ -93,23 +93,23 @@ export default function SharedContent() {
 
       if (_.isEmpty(changedValues)) {
         showNotification({
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationHasNoChanges'],
+          title: i18n.get('Saved'),
+          message: i18n.get('ConfigurationHasNoChanges'),
         })
       } else {
         await axios.post(sharedApiUrl, changedValues);
         setConfiguration(values);
         setLoading(false);
         showNotification({
-          title: i18n.get['Saved'],
-          message: i18n.get['ConfigurationSaved'],
+          title: i18n.get('Saved'),
+          message: i18n.get('ConfigurationSaved'),
         })
       }
     } catch (err) {
       showNotification({
         color: 'red',
-        title: i18n.get['Error'],
-        message: i18n.get['ConfigurationNotSaved'] + ' ' + i18n.get['ClickHereReportBug'],
+        title: i18n.get('Error'),
+        message: i18n.get('ConfigurationNotSaved') + ' ' + i18n.get('ClickHereReportBug'),
         onClick: () => { openGitHubNewIssue(); },
       })
     }
@@ -118,28 +118,28 @@ export default function SharedContent() {
   };
 
   return canView ? (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Tabs defaultValue='SharedContent'>
           <Tabs.List>
-            <Tabs.Tab value='SharedContent'>{i18n.get['SharedContent']}</Tabs.Tab>
+            <Tabs.Tab value='SharedContent'>{i18n.get('SharedContent')}</Tabs.Tab>
           </Tabs.List>
           <Tabs.Panel value='SharedContent'>
             {SharedContentSettings(form, configuration)}
           </Tabs.Panel>
         </Tabs>
         {canModify && (
-          <Group position='right' mt='md'>
+          <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>
-              {i18n.get['Save']}
+              {i18n.get('Save')}
             </Button>
           </Group>
         )}
       </form>
     </Box>
   ) : (
-    <Box sx={{ maxWidth: 1024 }} mx='auto'>
-      <Text color='red'>{i18n.get['YouDontHaveAccessArea']}</Text>
+    <Box style={{ maxWidth: 1024 }} mx='auto'>
+      <Text c='red'>{i18n.get('YouDontHaveAccessArea')}</Text>
     </Box>
   );
 }

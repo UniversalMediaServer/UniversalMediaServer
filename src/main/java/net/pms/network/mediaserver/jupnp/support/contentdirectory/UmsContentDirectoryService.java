@@ -19,17 +19,33 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 import java.beans.PropertyChangeSupport;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Connection;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFilesStatus;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.PlaylistFolder;
-import net.pms.network.mediaserver.HTTPXMLHelper;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.xpath.XPathExpressionException;
+import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.renderers.Renderer;
+import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaStatusStore;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.PlaylistManager;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import net.pms.store.utils.StoreResourceSorter;
+import net.pms.store.container.MediaLibrary;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
@@ -49,13 +65,17 @@ import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.jupnp.support.model.BrowseFlag;
 import org.jupnp.support.model.BrowseResult;
+import org.jupnp.support.model.SearchResult;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 @UpnpService(
-		serviceId = @UpnpServiceId("ContentDirectory"),
-		serviceType = @UpnpServiceType(value = "ContentDirectory", version = 1)
+		serviceId =
+		@UpnpServiceId("ContentDirectory"),
+		serviceType =
+		@UpnpServiceType(value = "ContentDirectory", version = 1)
 )
 
 @UpnpStateVariables({
@@ -65,6 +85,10 @@ import org.slf4j.LoggerFactory;
 			datatype = "string"),
 	@UpnpStateVariable(
 			name = "A_ARG_TYPE_Result",
+			sendEvents = false,
+			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_SearchCriteria",
 			sendEvents = false,
 			datatype = "string"),
 	@UpnpStateVariable(
@@ -93,13 +117,30 @@ import org.slf4j.LoggerFactory;
 			sendEvents = false,
 			datatype = "ui4"),
 	@UpnpStateVariable(
-			name = "A_ARG_TYPE_URI",
+			name = "A_ARG_Type_TransferID",
 			sendEvents = false,
 			datatype = "uri"),
 	@UpnpStateVariable(
-			name = "A_ARG_TYPE_SearchCriteria",
+			name = "A_ARG_Type_TransferStatus",
+			sendEvents = false,
+			datatype = "string",
+			allowedValuesEnum = TransferStatus.class),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_TransferLength",
 			sendEvents = false,
 			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_TransferTotal",
+			sendEvents = false,
+			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_TagValueList",
+			sendEvents = false,
+			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_URI",
+			sendEvents = false,
+			datatype = "uri"),
 	@UpnpStateVariable(
 			name = "A_ARG_TYPE_PosSecond",
 			sendEvents = false,
@@ -114,10 +155,14 @@ import org.slf4j.LoggerFactory;
 			datatype = "string")
 })
 public class UmsContentDirectoryService {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
 	private static final List<String> CAPS_SEARCH = List.of();
 	private static final List<String> CAPS_SORT = List.of("upnp:class", "dc:title", "dc:creator", "upnp:artist", "upnp:album", "upnp:genre");
 	private static final String CRLF = "\r\n";
+
+	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
+	private final TimerTask systemUpdateIdTask;
 
 	@UpnpStateVariable(sendEvents = false)
 	private final CSV<String> searchCapabilities = new CSVString();
@@ -128,55 +173,79 @@ public class UmsContentDirectoryService {
 	@UpnpStateVariable(
 			sendEvents = true,
 			defaultValue = "0",
+			datatype = "ui4",
 			eventMaximumRateMilliseconds = 200
 	)
-	private final UnsignedIntegerFourBytes systemUpdateID = new UnsignedIntegerFourBytes(0);
+	private UnsignedIntegerFourBytes systemUpdateID;
 
 	protected final PropertyChangeSupport propertyChangeSupport;
 
 	public UmsContentDirectoryService() {
+		this.systemUpdateIdTask = new TimerTask() {
+			@Override
+			public void run() {
+				systemUpdateIdChanged();
+			}
+		};
 		this.searchCapabilities.addAll(CAPS_SEARCH);
 		this.sortCapabilities.addAll(CAPS_SORT);
+		/**
+		 * Bump the SystemUpdateID state variable because now we will have
+		 * different resource IDs than last time UMS ran. It also populates our
+		 * in-memory value with the database value if the database is enabled.
+		 */
+		//Todo : this may not be necessary if we follow the upnp rules.
+		MediaStoreIds.incrementSystemUpdateId();
+		systemUpdateID = new UnsignedIntegerFourBytes(MediaStoreIds.getSystemUpdateId().getValue());
 		propertyChangeSupport = new PropertyChangeSupport(this);
+		systemUpdateIdTimer.schedule(systemUpdateIdTask, 0, 200);
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "SearchCaps"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "SearchCaps")
+	)
 	public CSV<String> getSearchCapabilities() {
 		return searchCapabilities;
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "SortCaps"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "SortCaps")
+	)
 	public CSV<String> getSortCapabilities() {
 		return sortCapabilities;
 	}
 
-	@UpnpAction(out = @UpnpOutputArgument(name = "Id"))
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "Id")
+	)
 	public synchronized UnsignedIntegerFourBytes getSystemUpdateID() {
-		//maybe use the provided systemUpdateID ?
-		return new UnsignedIntegerFourBytes(DLNAResource.getSystemUpdateId());
+		return MediaStoreIds.getSystemUpdateId();
 	}
 
 	public PropertyChangeSupport getPropertyChangeSupport() {
 		return propertyChangeSupport;
 	}
 
-	/**
-	 * Call this method after making changes to your content directory.
-	 * <p>
-	 * This will notify clients that their view of the content directory is
-	 * potentially outdated and has to be refreshed.
-	 * </p>
-	 */
-	protected synchronized void changeSystemUpdateID() {
-		Long oldUpdateID = getSystemUpdateID().getValue();
-		systemUpdateID.increment(true);
-		getPropertyChangeSupport().firePropertyChange(
-				"SystemUpdateID",
-				oldUpdateID,
-				getSystemUpdateID().getValue()
-		);
+	private void systemUpdateIdChanged() {
+		long oldValue = systemUpdateID.getValue();
+		long newValue = MediaStoreIds.getSystemUpdateId().getValue();
+		if (oldValue != newValue) {
+			getPropertyChangeSupport().firePropertyChange(
+					"SystemUpdateID",
+					oldValue,
+					newValue
+			);
+			systemUpdateID = new UnsignedIntegerFourBytes(newValue);
+			LOGGER.trace("Send event \"SystemUpdateID\" update from {} to {}", oldValue, newValue);
+		}
 	}
 
+	/**
+	 * This required action enables the caller to incrementally browse the
+	 * native hierarchy of the ContentDirectory service objects exposed by the
+	 * ContentDirectory service, including information listing the classes of
+	 * objects available in any particular object container.
+	 */
 	@UpnpAction(out = {
 		@UpnpOutputArgument(name = "Result",
 				stateVariable = "A_ARG_TYPE_Result",
@@ -192,19 +261,20 @@ public class UmsContentDirectoryService {
 				getterName = "getContainerUpdateID")
 	})
 	public BrowseResult browse(
-		@UpnpInputArgument(name = "ObjectID", aliases = "ContainerID") String objectId,
-		@UpnpInputArgument(name = "BrowseFlag") String browseFlag,
-		@UpnpInputArgument(name = "Filter") String filter,
-		@UpnpInputArgument(name = "StartingIndex", stateVariable = "A_ARG_TYPE_Index") UnsignedIntegerFourBytes firstResult,
-		@UpnpInputArgument(name = "RequestedCount", stateVariable = "A_ARG_TYPE_Count") UnsignedIntegerFourBytes maxResults,
-		@UpnpInputArgument(name = "SortCriteria") String orderBy,
-		RemoteClientInfo remoteClientInfo
+			@UpnpInputArgument(name = "ObjectID", aliases = "ContainerID") String objectId,
+			@UpnpInputArgument(name = "BrowseFlag") String browseFlag,
+			@UpnpInputArgument(name = "Filter") String filter,
+			@UpnpInputArgument(name = "StartingIndex", stateVariable = "A_ARG_TYPE_Index") UnsignedIntegerFourBytes firstResult,
+			@UpnpInputArgument(name = "RequestedCount", stateVariable = "A_ARG_TYPE_Count") UnsignedIntegerFourBytes maxResults,
+			@UpnpInputArgument(name = "SortCriteria") String orderBy,
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 
 		SortCriterion[] orderByCriteria;
 		try {
 			orderByCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a browse action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -213,13 +283,15 @@ public class UmsContentDirectoryService {
 					objectId,
 					BrowseFlag.valueOrNullOf(browseFlag),
 					filter,
-					firstResult.getValue(), maxResults.getValue(),
+					firstResult.getValue(),
+					maxResults.getValue(),
 					orderByCriteria,
 					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
 			throw ex;
 		} catch (Exception ex) {
+			LOGGER.error("Exception in result creation \"{}\"", ex.getMessage(), ex);
 			throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, ex.toString());
 		}
 	}
@@ -238,20 +310,21 @@ public class UmsContentDirectoryService {
 				stateVariable = "A_ARG_TYPE_UpdateID",
 				getterName = "getContainerUpdateID")
 	})
-	public BrowseResult search(
-		@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
-		@UpnpInputArgument(name = "SearchCriteria") String searchCriteria,
-		@UpnpInputArgument(name = "Filter") String filter,
-		@UpnpInputArgument(name = "StartingIndex", stateVariable = "A_ARG_TYPE_Index") UnsignedIntegerFourBytes startingIndex,
-		@UpnpInputArgument(name = "RequestedCount", stateVariable = "A_ARG_TYPE_Count") UnsignedIntegerFourBytes requestedCount,
-		@UpnpInputArgument(name = "SortCriteria") String orderBy,
-		RemoteClientInfo remoteClientInfo
+	public SearchResult search(
+			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+			@UpnpInputArgument(name = "SearchCriteria") String searchCriteria,
+			@UpnpInputArgument(name = "Filter") String filter,
+			@UpnpInputArgument(name = "StartingIndex", stateVariable = "A_ARG_TYPE_Index") UnsignedIntegerFourBytes startingIndex,
+			@UpnpInputArgument(name = "RequestedCount", stateVariable = "A_ARG_TYPE_Count") UnsignedIntegerFourBytes requestedCount,
+			@UpnpInputArgument(name = "SortCriteria") String orderBy,
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 
 		SortCriterion[] sortCriteria;
 		try {
 			sortCriteria = SortCriterion.valueOf(orderBy);
 		} catch (Exception ex) {
+			LOGGER.debug("Trying to sort on a search action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
 
@@ -272,21 +345,189 @@ public class UmsContentDirectoryService {
 		}
 	}
 
+	@UpnpAction(out = {
+		@UpnpOutputArgument(name = "Result",
+				stateVariable = "A_ARG_TYPE_Result",
+				getterName = "getResult"),
+		@UpnpOutputArgument(name = "ObjectID",
+				stateVariable = "A_ARG_TYPE_ObjectID",
+				getterName = "getObjectID")
+		})
+	public CreateObjectResult createObject(
+			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+			@UpnpInputArgument(name = "Elements", stateVariable = "A_ARG_TYPE_Result") String elements,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
+		try {
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
+			if (renderer == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				return null;
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				return null;
+			}
+
+			StoreResource parentContainer = renderer.getMediaStore().getResource(containerId);
+			if (parentContainer instanceof StoreContainer storeContainer) {
+				Parser parser = new Parser();
+				Result modelItemToAdd = parser.parse(elements);
+				Item itemToCreate = modelItemToAdd.getItems().get(0);
+				if (itemToCreate != null) {
+					StoreResource resource = null;
+					if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+						resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
+					} else {
+						LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
+					}
+					if (resource != null) {
+						String result;
+						if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+							result = getJUPnPDidlResults(List.of(resource), null);
+						} else {
+							result = DidlHelper.getDidlResults(List.of(resource));
+						}
+						if (renderer.getUmsConfiguration().isUpnpDebug()) {
+							logDidlLiteResult(result);
+						}
+						return new CreateObjectResult(result, resource.getId());
+					}
+				}
+				throw new ContentDirectoryException(712, "The specified Elements argument is not supported or is invalid.");
+			} else {
+				throw new ContentDirectoryException(710, "The specified ContainerID is invalid or identifies an object that is not a container.");
+			}
+		} catch (Exception e) {
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("createObject failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
+		}
+	}
+
+	@UpnpAction(out =
+			@UpnpOutputArgument(name = "NewID", stateVariable = "A_ARG_TYPE_ObjectID"))
+	public String createReference(
+			@UpnpInputArgument(name = "ContainerID", stateVariable = "A_ARG_TYPE_ObjectID") String containerId,
+			@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
+		try {
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
+			if (renderer == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				return null;
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				return null;
+			}
+
+			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
+			StoreResource containerResource = renderer.getMediaStore().getResource(containerId);
+			if (objectResource == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			}
+			if (containerResource instanceof StoreContainer storeContainer) {
+				if (storeContainer instanceof PlaylistFolder playlistFolder) {
+					String newID = PlaylistManager.addSongToPlaylist(objectResource, playlistFolder);
+					if (newID != null) {
+						return newID;
+					}
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "song already in Playlist");
+				} else {
+					//this object create reference is not yet implemented
+					throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
+				}
+			} else {
+				throw new ContentDirectoryException(710, "the ContainerID argument is invalid or identifies an object that is not a container.");
+			}
+		} catch (Exception e) {
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("createReference failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
+		}
+	}
+
+	@UpnpAction(name = "DestroyObject")
+	public void destroyObject(
+			@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
+		try {
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
+			if (renderer == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				throw new ContentDirectoryException(714, "No such resource");
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				throw new ContentDirectoryException(715, "Source resource access denied");
+			}
+
+			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
+			if (objectResource == null) {
+				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+			} else if (objectResource.getParent() instanceof PlaylistFolder playlistFolder) {
+				LOGGER.info("removing song {} from playlist {} ...", objectResource.getDisplayName(), playlistFolder.getDisplayName());
+				if (!PlaylistManager.removeSongFromPlaylist(objectResource, playlistFolder)) {
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
+			} else if (objectResource instanceof PlaylistFolder playlistFolder) {
+				LOGGER.info("removing playlist {} ...", playlistFolder.getDisplayName());
+				if (!PlaylistManager.deletePlaylistFromDisk(playlistFolder)) {
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file");
+				}
+			} else {
+				//this object destroy is not yet implemented
+				throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
+			}
+		} catch (Exception e) {
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("destroyObject failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
+		}
+	}
+
 	@UpnpAction(name = "X_SetBookmark")
 	public String samsungSetBookmark(
-		@UpnpInputArgument(name = "ObjectID") String objectID,
-		@UpnpInputArgument(name = "PosSecond") UnsignedIntegerFourBytes posSecond,
-		@UpnpInputArgument(name = "CategoryType") String categoryType,
-		@UpnpInputArgument(name = "RID") String rId,
-		RemoteClientInfo remoteClientInfo
+			@UpnpInputArgument(name = "ObjectID") String objectID,
+			@UpnpInputArgument(name = "PosSecond") UnsignedIntegerFourBytes posSecond,
+			@UpnpInputArgument(name = "CategoryType") String categoryType,
+			@UpnpInputArgument(name = "RID") String rId,
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
 			return samsungSetBookmark(
-				objectID,
-				posSecond.getValue(),
-				categoryType,
-				rId,
-				remoteClientInfo
+					objectID,
+					posSecond.getValue(),
+					categoryType,
+					rId,
+					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
 			throw ex;
@@ -297,11 +538,11 @@ public class UmsContentDirectoryService {
 
 	@UpnpAction(name = "X_GetFeatureList")
 	public String samsungGetFeatureList(
-		RemoteClientInfo remoteClientInfo
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		try {
 			return samsungGetFeaturesList(
-				remoteClientInfo
+					remoteClientInfo
 			);
 		} catch (ContentDirectoryException ex) {
 			throw ex;
@@ -311,144 +552,196 @@ public class UmsContentDirectoryService {
 	}
 
 	private BrowseResult browse(
-		String objectID,
-		BrowseFlag browseFlag,
-		String filter,
-		long startingIndex,
-		long requestedCount,
-		SortCriterion[] sortCriteria,
-		RemoteClientInfo remoteClientInfo
+			String objectID,
+			BrowseFlag browseFlag,
+			String filter,
+			long startingIndex,
+			long requestedCount,
+			SortCriterion[] sortCriteria,
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
 
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
-		List<DLNAResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
 				objectID,
-				browseDirectChildren,
-				(int) startingIndex,
-				(int) requestedCount,
-				renderer,
-				null
+				browseDirectChildren
 		);
 
-		long minus = 0;
-		//we may use DIDL object directly when ready
-		StringBuilder filesData = new StringBuilder();
-		filesData.append(HTTPXMLHelper.DIDL_HEADER);
-		if (files != null) {
-			for (DLNAResource uf : files) {
-				if (uf instanceof PlaylistFolder playlistFolder) {
-					File f = new File(uf.getFileName());
-					if (uf.getLastModified() < f.lastModified()) {
+		List<StoreResource> resultResources = new ArrayList<>();
+		long resourcesCount = 0;
+		long badResourceCount = 0;
+
+		//keep only compatible resources
+		if (resources != null) {
+			resourcesCount = resources.size();
+			for (StoreResource resource : resources) {
+				if (resource instanceof PlaylistFolder playlistFolder) {
+					File f = new File(resource.getFileName());
+					if (resource.getLastModified() < f.lastModified()) {
 						playlistFolder.resolve();
 					}
 				}
 
-				if (uf != null &&
-					uf.isCompatible(renderer) &&
-					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(renderer)) ||
-					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					uf != null && files.get(0).isInsideTranscodeFolder()
-				) {
-					filesData.append(uf.getDidlString(renderer));
+				if (resource instanceof StoreContainer container) {
+					resultResources.add(container);
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
+						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+						resources.get(0).isInsideTranscodeFolder())) {
+					resultResources.add(item);
 				} else {
-					minus++;
+					badResourceCount++;
 				}
 			}
 		}
-		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 
-		long filessize = 0;
-		if (files != null) {
-			filessize = files.size();
-		}
-		long count = filessize - minus;
+		//sort
+		StoreResourceSorter.sortResources(resultResources, sortCriteria);
 
 		long totalMatches;
-		if (browseDirectChildren && renderer != null && renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
-			// with the new parser, files are parsed and analyzed *before*
-			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
-			// so we do not know exactly the total number of items in the DLNA folder to send
-			// (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
-			// invalidated and hidden if format is broken or encrypted, etc.).
-			// let's send a fake total size to force the renderer to ask following items
-			totalMatches = startingIndex + requestedCount + 1L; // returns 11 when 10 asked
-
-			// If no more elements, send the startingIndex
-			if (filessize - minus <= 0) {
-				totalMatches = startingIndex;
-			}
-		} else if (browseDirectChildren) {
-			DLNAResource parentFolder;
-			if (files != null && filessize > 0) {
-				parentFolder = files.get(0).getParent();
+		if (browseDirectChildren) {
+			StoreContainer parentFolder;
+			if (resources != null && resourcesCount > 0) {
+				parentFolder = resources.get(0).getParent();
 			} else {
-				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
+				StoreResource resource = renderer.getMediaStore().getResource(objectID);
+				if (resource instanceof StoreContainer storeContainer) {
+					parentFolder = storeContainer;
+				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to browse direct children on a store item for objectID '{}' !", objectID);
+					} else {
+						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
+					}
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
 			}
 			if (parentFolder != null) {
-				totalMatches = parentFolder.childrenNumber() - minus;
+				totalMatches = parentFolder.childrenCount() - badResourceCount;
 			} else {
-				totalMatches = filessize - minus;
+				totalMatches = resourcesCount - badResourceCount;
 			}
 		} else {
 			// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
 			totalMatches = 1;
 		}
 
-		long containerUpdateID = DLNAResource.getSystemUpdateId();
-		//jupnp will escape DIDL result itself
-		//this will not be necessary when UMS will build results from DIDL objects
-		String result = StringEscapeUtils.unescapeXml(filesData.toString());
+		//handle startingIndex and requestedCount
+		int fromIndex = (int) startingIndex;
+		int toIndex;
+		if (requestedCount == 0) {
+			toIndex = resultResources.size();
+		} else {
+			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
+		}
+		long count = (long) toIndex - fromIndex;
+		if (count < 0) {
+			LOGGER.debug("requested objects out of range.");
+			fromIndex = 0;
+			toIndex = 0;
+			count = 0;
+		}
+
+		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+		LOGGER.trace("Creating DIDL result");
+		String result;
+		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+			result = getJUPnPDidlResults(resultResources.subList(fromIndex, toIndex), filter);
+		} else {
+			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
+		}
+		LOGGER.trace("DIDL result created");
+		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			logDidlLiteResult(result);
+		}
+		LOGGER.trace("Returning browse result");
 		return new BrowseResult(result, count, totalMatches, containerUpdateID);
 	}
 
-	private BrowseResult search(
-		String containerId,
-		String searchCriteria,
-		String filter,
-		long startingIndex,
-		long requestedCount,
-		SortCriterion[] orderBy,
-		RemoteClientInfo remoteClientInfo
+	private SearchResult search(
+			String containerId,
+			String searchCriteria,
+			String filter,
+			long startingIndex,
+			long requestedCount,
+			SortCriterion[] orderBy,
+			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
 		try {
-			SearchRequestHandler handler = new SearchRequestHandler();
-			return handler.createSearchResponse(
-				containerId,
-				searchCriteria,
-				filter,
-				startingIndex,
-				requestedCount,
-				orderBy,
-				renderer
-			);
+			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
+
+			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
+
+			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
+			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+
+			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+			LOGGER.trace("Creating DIDL result");
+			String result;
+			if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+				result = getJUPnPDidlResults(resultResources, filter);
+			} else {
+				result = DidlHelper.getDidlResults(resultResources);
+			}
+			LOGGER.trace("DIDL result created");
+			if (renderer.getUmsConfiguration().isUpnpDebug()) {
+				logDidlLiteResult(result);
+			}
+			LOGGER.trace("Returning search result");
+			return new SearchResult(result, resultResources.size(), totalMatches, containerUpdateID);
 		} catch (Exception e) {
 			LOGGER.trace("error transforming searchCriteria to SQL. Fallback to content browsing ...", e);
 			return searchToBrowse(
-				containerId,
-				searchCriteria,
-				filter,
-				startingIndex,
-				requestedCount,
-				orderBy,
-				renderer
+					containerId,
+					searchCriteria,
+					filter,
+					startingIndex,
+					requestedCount,
+					orderBy,
+					renderer
 			);
 		}
 	}
 
-	private BrowseResult searchToBrowse(
-		String containerId,
-		String searchCriteria,
-		String filter,
-		long startingIndex,
-		long requestedCount,
-		SortCriterion[] orderBy,
-		Renderer renderer
+	private SearchResult searchToBrowse(
+			String containerId,
+			String searchCriteria,
+			String filter,
+			long startingIndex,
+			long requestedCount,
+			SortCriterion[] orderBy,
+			Renderer renderer
 	) throws ContentDirectoryException {
 		boolean xbox360 = renderer.isXbox360();
 		String xboxId = null;
@@ -460,172 +753,154 @@ public class UmsContentDirectoryService {
 		}
 
 		// Xbox 360 virtual containers ... d'oh!
-		if (xbox360 && PMS.getConfiguration().getUseCache() && PMS.get().getLibrary().isEnabled() && xboxId != null) {
+		if (xbox360 && xboxId != null) {
 			searchCriteria = null;
-			if (xboxId.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
-				containerId = PMS.get().getLibrary().getAlbumFolder().getResourceId();
-			} else if (xboxId.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
-				containerId = PMS.get().getLibrary().getArtistFolder().getResourceId();
-			} else if (xboxId.equals("5") && PMS.get().getLibrary().getGenreFolder() != null) {
-				containerId = PMS.get().getLibrary().getGenreFolder().getResourceId();
-			} else if (xboxId.equals("F") && PMS.get().getLibrary().getPlaylistFolder() != null) {
-				containerId = PMS.get().getLibrary().getPlaylistFolder().getResourceId();
-			} else if (xboxId.equals("4") && PMS.get().getLibrary().getAllFolder() != null) {
-				containerId = PMS.get().getLibrary().getAllFolder().getResourceId();
+			MediaLibrary library = renderer.getMediaStore().getMediaLibrary();
+			if (xboxId.equals("7") && library.getAlbumFolder() != null) {
+				containerId = library.getAlbumFolder().getResourceId();
+			} else if (xboxId.equals("6") && library.getArtistFolder() != null) {
+				containerId = library.getArtistFolder().getResourceId();
+			} else if (xboxId.equals("5") && library.getGenreFolder() != null) {
+				containerId = library.getGenreFolder().getResourceId();
+			} else if (xboxId.equals("F") && library.getPlaylistFolder() != null) {
+				containerId = library.getPlaylistFolder().getResourceId();
+			} else if (xboxId.equals("4") && library.getAllFolder() != null) {
+				containerId = library.getAllFolder().getResourceId();
 			} else if (xboxId.equals("1")) {
 				String artist = getEnclosingValue(searchCriteria, "upnp:artist = &quot;", "&quot;)");
 				if (artist != null) {
-					containerId = PMS.get().getLibrary().getArtistFolder().getResourceId();
+					containerId = library.getArtistFolder().getResourceId();
 					searchCriteria = artist;
 				}
 			}
 		}
 
-		List<DLNAResource> files = PMS.get().getRootFolder(renderer).getDLNAResources(
-			containerId,
-			true,
-			(int) startingIndex,
-			(int) requestedCount,
-			renderer,
-			searchCriteria
+		List<StoreResource> resources = renderer.getMediaStore().getResources(
+				containerId,
+				true
 		);
 
-		if (searchCriteria != null && files != null) {
-			UMSUtils.filterResourcesByName(files, searchCriteria, false, false);
-			if (xbox360 && !files.isEmpty()) {
-				files = files.get(0).getChildren();
-			}
-		}
+		List<StoreResource> resultResources = new ArrayList<>();
+		long resourceCount = 0;
+		long badResourceCount = 0;
 
-		long minus = 0;
-		StringBuilder filesData = new StringBuilder();
-		filesData.append(HTTPXMLHelper.DIDL_HEADER);
-		if (files != null) {
-			for (DLNAResource uf : files) {
-				if (uf instanceof PlaylistFolder playlistFolder) {
-					File f = new File(uf.getFileName());
-					if (uf.getLastModified() < f.lastModified()) {
+		//keep only compatible resources
+		if (resources != null) {
+			if (searchCriteria != null) {
+				UMSUtils.filterResourcesByName(resources, searchCriteria, false, false);
+				if (xbox360 && !resources.isEmpty() && resources.get(0) instanceof StoreContainer storeContainer) {
+					resources = storeContainer.getChildren();
+				}
+			}
+			resourceCount = resources.size();
+			for (StoreResource resource : resources) {
+				if (resource instanceof PlaylistFolder playlistFolder) {
+					File f = new File(resource.getFileName());
+					if (resource.getLastModified() < f.lastModified()) {
 						playlistFolder.resolve();
 					}
 				}
 
-				if (xbox360 && xboxId != null && uf != null) {
-					uf.setFakeParentId(xboxId);
+				if (xbox360 && xboxId != null && resource != null) {
+					resource.setFakeParentId(xboxId);
 				}
 
-				if (
-					uf != null &&
-					(uf.isCompatible(renderer) &&
-					(uf.getEngine() == null || uf.getEngine().isEngineCompatible(renderer)) ||
-					// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-					// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-					files.get(0).isInsideTranscodeFolder())
-				) {
-					filesData.append(uf.getDidlString(renderer));
+				if (resource instanceof StoreContainer container) {
+					resultResources.add(container);
+				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
+						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
+						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
+						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
+						resources.get(0).isInsideTranscodeFolder())) {
+					resultResources.add(item);
 				} else {
-					minus++;
+					badResourceCount++;
 				}
 			}
 		}
-		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
-
-		int filessize = 0;
-		if (files != null) {
-			filessize = files.size();
-		}
-		long count = filessize - minus;
 
 		long totalMatches;
 		if (renderer.isUseMediaInfo() && renderer.isDLNATreeHack()) {
-			// with the new parser, files are parsed and analyzed *before*
+			// with the new parser, resources are parsed and analyzed *before*
 			// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 			// so we do not know exactly the total number of items in the DLNA folder to send
-			// (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
+			// (regular resources, plus the #transcode folder, maybe the #imdb one, also resources can be
 			// invalidated and hidden if format is broken or encrypted, etc.).
 			// let's send a fake total size to force the renderer to ask following items
 			totalMatches = startingIndex + requestedCount + 1; // returns 11 when 10 asked
 
 			// If no more elements, send the startingIndex
-			if (filessize - minus <= 0) {
+			if (resourceCount - badResourceCount <= 0) {
 				totalMatches = startingIndex;
 			}
 		} else {
-			DLNAResource parentFolder;
-			if (files != null && filessize > 0) {
-				parentFolder = files.get(0).getParent();
+			StoreContainer parentFolder;
+			if (resources != null && resourceCount > 0) {
+				parentFolder = resources.get(0).getParent();
 			} else {
-				parentFolder = PMS.get().getRootFolder(renderer).getDLNAResource(containerId, renderer);
+				StoreResource resource = renderer.getMediaStore().getResource(containerId);
+				if (resource instanceof StoreContainer storeContainer) {
+					parentFolder = storeContainer;
+				} else {
+					if (resource instanceof StoreItem) {
+						LOGGER.debug("Trying to search on a store item for containerId '{}' !", containerId);
+					} else {
+						LOGGER.debug("Trying to search on a null object for containerId '{}' !", containerId);
+					}
+					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
+				}
 			}
 			if (parentFolder != null) {
-				totalMatches = parentFolder.childrenNumber() - minus;
+				totalMatches = parentFolder.childrenCount() - badResourceCount;
 			} else {
-				totalMatches = filessize - minus;
+				totalMatches = resourceCount - badResourceCount;
 			}
 		}
 
-		long containerUpdateID = DLNAResource.getSystemUpdateId();
-		//jupnp will escape DIDL result itself
-		//this will not be necessary when UMS will build results from DIDL objects
-		String result = StringEscapeUtils.unescapeXml(filesData.toString());
-		return new BrowseResult(result, count, totalMatches, containerUpdateID);
-	}
-
-	private String samsungSetBookmark(
-		String objectID,
-		long posSecond,
-		String categoryType,
-		String rId,
-		RemoteClientInfo remoteClientInfo
-	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		if (posSecond == 0) {
-			// Sometimes when Samsung device is starting to play the video
-			// it sends X_SetBookmark message immediately with the position=0.
-			// No need to update database in such case.
-			LOGGER.debug("Skipping \"set bookmark\". Position=0");
+		//handle startingIndex and requestedCount
+		int fromIndex = (int) startingIndex;
+		int toIndex;
+		if (requestedCount == 0) {
+			toIndex = resultResources.size();
 		} else {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					DLNAResource dlna = PMS.get().getRootFolder(renderer).getDLNAResource(objectID, renderer);
-					File file = new File(dlna.getFileName());
-					String path = file.getCanonicalPath();
-					MediaTableFilesStatus.setBookmark(connection, path, (int) posSecond);
-				}
-			} catch (IOException e) {
-				LOGGER.error("Cannot set bookmark", e);
-			} finally {
-				MediaDatabase.close(connection);
-			}
+			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
 		}
-		return "";
+		long count = (long) toIndex - fromIndex;
+		if (count < 0) {
+			LOGGER.debug("requested objects out of range.");
+			fromIndex = 0;
+			toIndex = 0;
+			count = 0;
+		}
+
+		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
+		String result;
+		LOGGER.trace("Creating DIDL result");
+		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+			result = getJUPnPDidlResults(resultResources.subList(fromIndex, toIndex), filter);
+		} else {
+			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
+		}
+		LOGGER.trace("DIDL result created");
+		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			logDidlLiteResult(result);
+		}
+		LOGGER.trace("Returning search result");
+		return new SearchResult(result, count, totalMatches, containerUpdateID);
 	}
 
-	private String samsungGetFeaturesList(
-		RemoteClientInfo remoteClientInfo
-	) throws ContentDirectoryException {
-		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
-		Renderer renderer = info.renderer;
-		StringBuilder features = new StringBuilder();
-		String rootFolderId = PMS.get().getRootFolder(renderer).getResourceId();
-		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
-		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
-		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
-		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
-		// we may use here different container IDs in the future
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
-		features.append("<container id=\"").append(rootFolderId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
-		features.append("</Feature>").append(CRLF);
-		features.append("</Features>").append(CRLF);
-
-		StringBuilder response = new StringBuilder();
-		response.append("<FeatureList>").append(CRLF);
-		response.append(StringEscapeUtils.escapeXml10(features.toString()));
-		response.append("</FeatureList>").append(CRLF);
-		return response.toString();
+	private static void logDidlLiteResult(String result) {
+		if (LOGGER.isTraceEnabled()) {
+			String formattedResult;
+			try {
+				formattedResult = "DIDL-Lite result:\n";
+				formattedResult += StringUtil.prettifyXML(result, StandardCharsets.UTF_8, 4);
+			} catch (SAXException | ParserConfigurationException | XPathExpressionException | TransformerException e) {
+				formattedResult = "DIDL-Lite result isn't valid XML, using text formatting: " + e.getMessage() + "\n";
+				formattedResult += "    " + result.replace("\n", "\n    ");
+			}
+			LOGGER.trace(formattedResult);
+		}
 	}
 
 	private static String getEnclosingValue(String content, String leftTag, String rightTag) {
@@ -640,4 +915,91 @@ public class UmsContentDirectoryService {
 
 		return result;
 	}
+
+	private static String samsungSetBookmark(
+			String objectID,
+			long posSecond,
+			String categoryType,
+			String rId,
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
+		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
+		if (posSecond == 0) {
+			// Sometimes when Samsung device is starting to play the video
+			// it sends X_SetBookmark message immediatelly with the position=0.
+			// No need to update database in such case.
+			LOGGER.debug("Skipping \"set bookmark\". Position=0");
+		} else {
+			try {
+				StoreResource resource = renderer.getMediaStore().getResource(objectID);
+				File file = new File(resource.getFileName());
+				String path = file.getCanonicalPath();
+				MediaStatusStore.setBookmark(path, renderer.getAccountUserId(), (int) posSecond);
+			} catch (IOException e) {
+				LOGGER.error("Cannot set bookmark", e);
+			}
+		}
+		return "";
+	}
+
+	private static String samsungGetFeaturesList(
+			RemoteClientInfo remoteClientInfo
+	) throws ContentDirectoryException {
+		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+		Renderer renderer = info.renderer;
+		if (renderer == null) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Unrecognized media renderer");
+			}
+			return null;
+		}
+		if (!renderer.isAllowed()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+			}
+			return null;
+		}
+
+		StringBuilder features = new StringBuilder();
+		String mediaStoreId = renderer.getMediaStore().getResourceId();
+		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
+		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
+		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
+		features.append("<Feature name=\"samsung.com_BASICVIEW\" version=\"1\">").append(CRLF);
+		// we may use here different container IDs in the future
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.audioItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.videoItem\"/>").append(CRLF);
+		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
+		features.append("</Feature>").append(CRLF);
+		features.append("</Features>").append(CRLF);
+
+		StringBuilder response = new StringBuilder();
+		response.append("<FeatureList>").append(CRLF);
+		response.append(StringEscapeUtils.escapeXml10(features.toString()));
+		response.append("</FeatureList>").append(CRLF);
+		return response.toString();
+	}
+
+	private static String getJUPnPDidlResults(List<StoreResource> resultResources, String filter) {
+		Result didlResult = new Result();
+		for (StoreResource resource : resultResources) {
+			didlResult.addObject(StoreResourceHelper.getBaseObject(resource, filter));
+		}
+		return didlResult.toString();
+	}
+
 }

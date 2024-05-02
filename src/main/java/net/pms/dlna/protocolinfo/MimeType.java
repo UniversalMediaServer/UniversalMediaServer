@@ -16,8 +16,6 @@
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,9 +23,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.util.ParseException;
 
 /**
  * This immutable class represents a mime-type.
@@ -110,7 +109,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 *         {@link MimeType} matches anything.
 	 */
 	public boolean isAnyType() {
-		return isBlank(type) || ANY.equals(type);
+		return StringUtils.isBlank(type) || ANY.equals(type);
 	}
 
 	/**
@@ -153,30 +152,30 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			return false;
 		}
 		if (
-			(isBlank(type) || ANY.equals(type)) &&
-			isBlank(subtype) ||
-			(isBlank(other.type) || ANY.equals(other.type)) &&
-			isBlank(other.subtype)
+			(StringUtils.isBlank(type) || ANY.equals(type)) &&
+			StringUtils.isBlank(subtype) ||
+			(StringUtils.isBlank(other.type) || ANY.equals(other.type)) &&
+			StringUtils.isBlank(other.subtype)
 		) {
 			return true;
-		} else if (isBlank(type) || (isBlank(other.type))) {
+		} else if (StringUtils.isBlank(type) || (StringUtils.isBlank(other.type))) {
 			return
-				isBlank(subtype) ||
-				isBlank(other.subtype) ||
+				StringUtils.isBlank(subtype) ||
+				StringUtils.isBlank(other.subtype) ||
 				ANY.equals(subtype) ||
 				ANY.equals(other.subtype) ||
 				subtype.toLowerCase(Locale.ROOT).equals(other.subtype.toLowerCase(Locale.ROOT));
 		} else if (
 			type.toLowerCase(Locale.ROOT).equals(other.type.toLowerCase(Locale.ROOT)) &&
 			(
-				isBlank(subtype) ||
+				StringUtils.isBlank(subtype) ||
 				ANY.equals(subtype) ||
-				isBlank(other.subtype) ||
+				StringUtils.isBlank(other.subtype) ||
 				ANY.equals(other.subtype)
 			)
 		) {
 			return true;
-		} else if (isBlank(subtype) || isBlank(other.subtype)) {
+		} else if (StringUtils.isBlank(subtype) || StringUtils.isBlank(other.subtype)) {
 			return false;
 		} else {
 			return
@@ -194,7 +193,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 * @throws ParseException If {@code stringValue} isn't a valid mime-type.
 	 */
 	public static MimeType valueOf(String stringValue) throws ParseException {
-		if (isBlank(stringValue)) {
+		if (StringUtils.isBlank(stringValue)) {
 			return ANYANY;
 		}
 
@@ -205,7 +204,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		String subtype = null;
 
 		if (elements.length < 2) {
-			if (parts[0].equals(ANY) || isBlank(parts[0])) {
+			if (parts[0].equals(ANY) || StringUtils.isBlank(parts[0])) {
 				type = ANY;
 				subtype = ANY;
 			} else {
@@ -222,11 +221,11 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		if (parts.length > 1) {
 			HashMap<String, String> parameterMap = new HashMap<>();
 			for (int i = 1; i < parts.length; i++) {
-				if (isBlank(parts[i])) {
+				if (StringUtils.isBlank(parts[i])) {
 					continue;
 				}
 				String[] parameter = parts[i].trim().split("\\s*=\\s*");
-				if (parameter.length == 2 && isNotBlank(parameter[0])) {
+				if (parameter.length == 2 && StringUtils.isNotBlank(parameter[0])) {
 					parameterMap.put(parameter[0], parameter[1]);
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("MimeType: Unable to parse parameter \"{}\" - it will be ignored", parts[i]);

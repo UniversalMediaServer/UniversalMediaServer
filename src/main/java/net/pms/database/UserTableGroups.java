@@ -126,7 +126,7 @@ public final class UserTableGroups extends UserTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
 				COL_ID              + INTEGER           + PRIMARY_KEY + AUTO_INCREMENT + COMMA +
@@ -147,7 +147,7 @@ public final class UserTableGroups extends UserTable {
 			statement.setInt(2, permissions);
 			statement.executeUpdate();
 		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", sqlEscape(displayName), TABLE_NAME, e.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting value", displayName, TABLE_NAME, e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

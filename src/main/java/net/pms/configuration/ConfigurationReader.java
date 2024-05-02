@@ -77,7 +77,7 @@ public class ConfigurationReader {
 		}
 
 		// 2) now check if the value has changed
-		T oldValue = (T) logMap.get(key);
+		Object oldValue = logMap.get(key);
 
 		if (ObjectUtils.notEqual(oldValue, value)) {
 			logMap.put(key, value);

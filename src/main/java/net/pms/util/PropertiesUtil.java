@@ -27,9 +27,9 @@ public class PropertiesUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PropertiesUtil.class);
 
 	/**
-	 * General properties for the PMS project.
+	 * General properties for the UMS project.
 	 */
-	private static final PmsProperties PROJECT_PROPERTIES = new PmsProperties();
+	private static final PropertiesWrapper PROJECT_PROPERTIES = new PropertiesWrapper();
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -50,14 +50,14 @@ public class PropertiesUtil {
 	 * Returns the project properties object that is constructed from the
 	 * "project.properties" file.
 	 * <p>
-	 * Note that in the Maven "test" phase (e.g. when running PMS from Eclipse)
+	 * Note that in the Maven "test" phase (e.g. when running UMS from Eclipse)
 	 * the file "src/test/resources/project.properties" is used, whereas in
 	 * other phases, the file "src/main/resources/project.properties" (e.g. when
 	 * packaging the final build) will be used.
 	 *
 	 * @return The properties object.
 	 */
-	public static PmsProperties getProjectProperties() {
+	public static PropertiesWrapper getProjectProperties() {
 		return PROJECT_PROPERTIES;
 	}
 }

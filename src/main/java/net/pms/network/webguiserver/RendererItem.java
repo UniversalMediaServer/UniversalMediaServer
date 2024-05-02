@@ -19,7 +19,6 @@ package net.pms.network.webguiserver;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,11 +26,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DLNAResource;
 import net.pms.gui.IRendererGuiListener;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.PlayerState;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,16 +41,25 @@ public class RendererItem implements IRendererGuiListener {
 	private static final int MAX_BUFFER_SIZE = CONFIGURATION.getMaxMemoryBufferSize();
 	private static final AtomicInteger RENDERER_ID = new AtomicInteger(1);
 	private static final Gson GSON = new Gson();
+	private static final String ACTION_ADD = "renderer_add";
+	private static final String ACTION_DELETE = "renderer_delete";
+	private static final String ACTION_UPDATE = "renderer_update";
+
 	private final int id;
 	private final Renderer renderer;
+
 	private String name;
 	private String address;
+	private String uuid;
 	private String icon;
 	private String iconOverlays;
 	private String playing;
 	private String time;
 	private int progressPercent;
 	private boolean isActive;
+	private boolean isAllowed;
+	private boolean isAuthenticated;
+	private int userId;
 	private int controls;
 	private PlayerState state;
 
@@ -65,7 +73,7 @@ public class RendererItem implements IRendererGuiListener {
 	public void updateRenderer(Renderer value) {
 		//we can use renderer itself as it's a pointer to real renderer object
 		updateRendererValues();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	@Override
@@ -73,7 +81,25 @@ public class RendererItem implements IRendererGuiListener {
 		//we can use renderer itself as it's a pointer to real renderer object
 		if (isActive != renderer.isActive()) {
 			isActive = renderer.isActive();
-			sendRendererAction("renderer_update");
+			sendRendererAction(ACTION_UPDATE);
+		}
+	}
+
+	@Override
+	public void setAllowed(boolean allowed) {
+		//we can use renderer itself as it's a pointer to real renderer object
+		if (isAllowed != renderer.isAllowed()) {
+			isAllowed = renderer.isAllowed();
+			sendRendererAction(ACTION_UPDATE);
+		}
+	}
+
+	@Override
+	public void setUserId(int value) {
+		//we can use renderer itself as it's a pointer to real renderer object
+		if (userId != renderer.getUserId()) {
+			userId = renderer.getUserId();
+			sendRendererAction(ACTION_UPDATE);
 		}
 	}
 
@@ -85,7 +111,7 @@ public class RendererItem implements IRendererGuiListener {
 				RENDERERS.remove(renderer);
 			}
 		}
-		sendRendererAction("renderer_delete");
+		sendRendererAction(ACTION_DELETE);
 	}
 
 	@Override
@@ -95,7 +121,7 @@ public class RendererItem implements IRendererGuiListener {
 			UMSUtils.playedDurationStr(state.getPosition(), state.getDuration());
 		progressPercent = (int) (100 * state.getBuffer() / MAX_BUFFER_SIZE);
 		playing = (state.isStopped() || StringUtils.isBlank(state.getName())) ? " " : state.getName();
-		sendRendererAction("renderer_update");
+		sendRendererAction(ACTION_UPDATE);
 	}
 
 	public String getIcon() {
@@ -107,20 +133,30 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("title", name);
 		result.addProperty("isUpnp", renderer.isUpnp());
 		JsonArray detailsArray = new JsonArray();
+		JsonObject entryObject = new JsonObject();
+		entryObject.addProperty("key", "confname");
+		entryObject.addProperty("value", renderer.getConfName());
+		detailsArray.add(entryObject);
+		if (!renderer.isFileless() && renderer.getFile() != null) {
+			entryObject = new JsonObject();
+			entryObject.addProperty("key", "conffile");
+			entryObject.addProperty("value", renderer.getFile().getName());
+			detailsArray.add(entryObject);
+		}
 		if (renderer.isUpnp()) {
 			Map<String, String> details = renderer.getDetails();
 			for (Entry<String, String> entry : details.entrySet()) {
-				JsonObject entryObject = new JsonObject();
+				entryObject = new JsonObject();
 				entryObject.addProperty("key", entry.getKey());
 				entryObject.addProperty("value", entry.getValue());
 				detailsArray.add(entryObject);
 			}
-			JsonObject entryObject = new JsonObject();
+			entryObject = new JsonObject();
 			entryObject.addProperty("key", "Services");
 			entryObject.addProperty("value", StringUtils.join(renderer.getUpnpServices(), ", "));
 			detailsArray.add(entryObject);
 		} else {
-			JsonObject entryObject = new JsonObject();
+			entryObject = new JsonObject();
 			entryObject.addProperty("key", "i18n@Name");
 			entryObject.addProperty("value", name);
 			detailsArray.add(entryObject);
@@ -130,6 +166,14 @@ public class RendererItem implements IRendererGuiListener {
 				entryObject.addProperty("key", "i18n@Address");
 				entryObject.addProperty("value", address);
 				detailsArray.add(entryObject);
+			}
+			if (renderer.getIdentifiers() != null) {
+				for (String identifier : renderer.getIdentifiers()) {
+					entryObject = new JsonObject();
+					entryObject.addProperty("key", "");
+					entryObject.addProperty("value", identifier);
+					detailsArray.add(entryObject);
+				}
 			}
 		}
 		result.add("details", detailsArray);
@@ -141,15 +185,19 @@ public class RendererItem implements IRendererGuiListener {
 		playing = "";
 		progressPercent = 0;
 		renderer.addGuiListener(this);
-		sendRendererAction("renderer_add");
+		sendRendererAction(ACTION_ADD);
 	}
 
 	private void updateRendererValues() {
 		name = renderer.getRendererName();
 		address = (renderer.getAddress() != null) ? renderer.getAddress().getHostAddress() : "";
+		uuid = (renderer.getUUID() != null) ? renderer.getUUID() : "";
 		icon = renderer.getRendererIcon();
 		iconOverlays = renderer.getRendererIconOverlays();
 		isActive = renderer.isActive();
+		isAllowed = renderer.isAllowed();
+		isAuthenticated = renderer.isAuthenticated();
+		userId = renderer.getUserId();
 		controls = renderer.getControls();
 		state = renderer.getPlayer().getState();
 	}
@@ -191,13 +239,9 @@ public class RendererItem implements IRendererGuiListener {
 	}
 
 	private void playerSetMediaId(String id) {
-		try {
-			DLNAResource root = renderer.getRootFolder();
-			List<DLNAResource> resources = root.getDLNAResources(id, false, 0, 0, renderer);
-			if (!resources.isEmpty()) {
-				renderer.getPlayer().setURI(resources.get(0).getURL("", true), null);
-			}
-		} catch (IOException ex) {
+		List<StoreResource> resources = renderer.getMediaStore().getResources(id, false);
+		if (!resources.isEmpty() && resources.get(0) instanceof StoreItem item) {
+			renderer.getPlayer().setURI(item.getMediaURL("", true), null);
 		}
 	}
 
@@ -206,22 +250,26 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("id", id);
 		result.addProperty("name", name);
 		result.addProperty("address", address);
+		result.addProperty("uuid", uuid);
 		result.addProperty("icon", icon);
 		result.addProperty("iconOverlays", iconOverlays);
 		result.addProperty("playing", playing);
 		result.addProperty("time", time);
 		result.addProperty("progressPercent", progressPercent);
 		result.addProperty("isActive", isActive);
+		result.addProperty("isAllowed", isAllowed);
+		result.addProperty("isAuthenticated", isAuthenticated);
+		result.addProperty("userId", userId);
 		result.addProperty("controls", controls);
 		result.add("state", GSON.toJsonTree(state));
 		return result;
 	}
 
 	private void sendRendererAction(String action) {
-		if (SseApiServlet.hasHomeServerSentEvents()) {
+		if (EventSourceServer.hasHomeServerSentEvents()) {
 			JsonObject result = toJsonObject();
 			result.addProperty("action", action);
-			SseApiServlet.broadcastHomeMessage(result.toString());
+			EventSourceServer.broadcastHomeMessage(result.toString());
 		}
 	}
 
@@ -286,49 +334,45 @@ public class RendererItem implements IRendererGuiListener {
 
 	public static JsonObject getRemoteControlBrowse(JsonObject post) {
 		if (post != null && post.has("id") && post.has("media")) {
-			try {
-				int rId = post.get("id").getAsInt();
-				RendererItem renderer = RendererItem.getRenderer(rId);
-				if (renderer == null) {
-					return null;
-				}
-				String media = post.get("media").getAsString();
-				DLNAResource root = renderer.renderer.getRootFolder();
-				JsonObject result = new JsonObject();
-				JsonArray parents = new JsonArray();
-				JsonArray childrens = new JsonArray();
-				List<DLNAResource> resources = root.getDLNAResources(media, true, 0, 0, renderer.renderer);
-				if (!resources.isEmpty()) {
-					DLNAResource parentFromResources = resources.get(0).getParent();
+			int rId = post.get("id").getAsInt();
+			RendererItem renderer = RendererItem.getRenderer(rId);
+			if (renderer == null) {
+				return null;
+			}
+			String media = post.get("media").getAsString();
+			JsonObject result = new JsonObject();
+			JsonArray parents = new JsonArray();
+			JsonArray childrens = new JsonArray();
+			List<StoreResource> resources = renderer.renderer.getMediaStore().getResources(media, true);
+			if (!resources.isEmpty()) {
+				StoreResource parentFromResources = resources.get(0).getParent();
+				if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
+					JsonObject parent = new JsonObject();
+					parent.addProperty("value", parentFromResources.getResourceId());
+					parent.addProperty("label", parentFromResources.getName());
+					parents.add(parent);
+					parentFromResources = parentFromResources.getParent();
 					if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
-						JsonObject parent = new JsonObject();
+						parent = new JsonObject();
 						parent.addProperty("value", parentFromResources.getResourceId());
 						parent.addProperty("label", parentFromResources.getName());
 						parents.add(parent);
-						parentFromResources = parentFromResources.getParent();
-						if (parentFromResources != null && parentFromResources.isFolder() && !"0".equals(parentFromResources.getResourceId())) {
-							parent = new JsonObject();
-							parent.addProperty("value", parentFromResources.getResourceId());
-							parent.addProperty("label", parentFromResources.getName());
-							parents.add(parent);
-						}
-					}
-					for (DLNAResource resource : resources) {
-						if (resource == null) {
-							continue;
-						}
-						JsonObject children = new JsonObject();
-						children.addProperty("value", resource.getResourceId());
-						children.addProperty("label", resource.getName());
-						children.addProperty("browsable", resource.isFolder());
-						childrens.add(children);
 					}
 				}
-				result.add("parents", parents);
-				result.add("childrens", childrens);
-				return result;
-			} catch (IOException ex) {
+				for (StoreResource resource : resources) {
+					if (resource == null) {
+						continue;
+					}
+					JsonObject children = new JsonObject();
+					children.addProperty("value", resource.getResourceId());
+					children.addProperty("label", resource.getName());
+					children.addProperty("browsable", resource.isFolder());
+					childrens.add(children);
+				}
 			}
+			result.add("parents", parents);
+			result.add("childrens", childrens);
+			return result;
 		}
 		return null;
 	}

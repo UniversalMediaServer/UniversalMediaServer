@@ -14,16 +14,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
- 
- /*
-  * Please note:
-  * Any sizes that are to be relative to the OS base font size must be set
-  * in HelpTab.buildStyleSheet(). This is done to support OS font scaling
-  * used on example for high DPI monitors.
-  */
-  
+
+/*
+ * Please note:
+ * Any sizes that are to be relative to the OS base font size must be set
+ * in HelpTab.buildStyleSheet(). This is done to support OS font scaling
+ * used on example for high DPI monitors.
+ */
+
 body {
-	font-family: Arial;
+	font-family: Arial, sans-serif;
 	color: #000000;
 }
 
@@ -36,6 +36,7 @@ blockquote {
 	padding: 5px;
 	background-color: #cccccc;
 }
+
 pre, tt {
-	font-family: Courier New, Courier;
+	font-family: Courier New, Courier, sans-serif;
 }

@@ -18,26 +18,27 @@ package net.pms.network.webguiserver;
 
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import javax.servlet.ServletException;
 import net.pms.network.httpserverservletcontainer.HttpServerServletContainer;
 import net.pms.network.webguiserver.servlets.AboutApiServlet;
 import net.pms.network.webguiserver.servlets.AccountApiServlet;
 import net.pms.network.webguiserver.servlets.ActionsApiServlet;
 import net.pms.network.webguiserver.servlets.AuthApiServlet;
+import net.pms.network.webguiserver.servlets.EventSourceServlet;
 import net.pms.network.webguiserver.servlets.I18nApiServlet;
 import net.pms.network.webguiserver.servlets.LogsApiServlet;
 import net.pms.network.webguiserver.servlets.PlayerApiServlet;
 import net.pms.network.webguiserver.servlets.RenderersApiServlet;
 import net.pms.network.webguiserver.servlets.SettingsApiServlet;
 import net.pms.network.webguiserver.servlets.SharedContentApiServlet;
-import net.pms.network.webguiserver.servlets.SseApiServlet;
 import net.pms.network.webguiserver.servlets.WebGuiServlet;
+import net.pms.util.SimpleThreadFactory;
 
-@SuppressWarnings("restriction")
 public class WebGuiServerHttpServer extends WebGuiServer {
 
 	private HttpServer server;
@@ -75,11 +76,15 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 				container.createServlet(RenderersApiServlet.class);
 				container.createServlet(SettingsApiServlet.class);
 				container.createServlet(SharedContentApiServlet.class);
-				container.createServlet(SseApiServlet.class);
+				container.createServlet(EventSourceServlet.class);
 			} catch (ServletException ex) {
 				LOGGER.error(ex.getMessage());
 			}
-			server.setExecutor(Executors.newFixedThreadPool(threads));
+			ExecutorService executorService = Executors.newFixedThreadPool(
+				threads,
+				new SimpleThreadFactory("webgui-server")
+			);
+			server.setExecutor(executorService);
 			server.start();
 		}
 	}
@@ -127,4 +132,5 @@ public class WebGuiServerHttpServer extends WebGuiServer {
 		LOGGER.debug("Using httpserver as gui server");
 		return new WebGuiServerHttpServer(port);
 	}
+
 }
