@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
+- Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
+- Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `version` from 18.2 to 18.3</li> ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+
 ## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2024-04-30)
 
 ### General
