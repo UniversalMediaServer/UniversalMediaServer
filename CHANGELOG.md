@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Translation updates via Crowdin
+- Arabic (43%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
+- Catalan (61%) (thanks, Antoni Grau i Quellos!)
+- Czech (98%) (thanks, JustPOSPAK!)
+- Danish (61%) (thanks, g33z3r and GurliGebis!)
+- German (88%) (thanks, pipin!)
+- English (UK) (51%) (thanks, Carter Davis!)
+- Finnish (64%) (thanks, Esko Gardner and Oskari Lavinto!)
+- French (99%) (thanks, Fredo1650!)
+- Japanese (53%) (thanks, elepro!)
+- Korean (99%) (thanks, VenusGirl and yc ryu)
+- Polish (59%) (thanks, Karol Szastok!)
+- Portuguese (58%) (thanks, Hélio Guilherme and mariopinto!)
+- Portuguese (Brazilian) (70%) (thanks, Mauro.A!)
+- Russian (99%) (thanks, Олег Лойко!)
+- Spanish (60%) (thanks, AkaNix, Danilo and Darío criado Rodríguez!)
+- Swedish (49%) (thanks, Henrik Mattsson-Mårn!)
+- Turkish (99%) (thanks, Burak Yavuz!)
+- Vietnamese (12%) (thanks, VuGaCoMat!)
+
 ### Dependencies
 - Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
 - Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
