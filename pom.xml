@@ -2820,27 +2820,6 @@
 												<ignore></ignore>
 											</action>
 										</pluginExecution>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>com.universalmediaserver</groupId>
-												<artifactId>
-													crowdin-maven-plugin
-												</artifactId>
-												<versionRange>
-													[0.1,)
-												</versionRange>
-												<goals>
-													<goal>fetch</goal>
-													<goal>push</goal>
-													<goal>build</goal>
-													<goal>apply</goal>
-													<goal>pull</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<execute></execute>
-											</action>
-										</pluginExecution>
 									</pluginExecutions>
 								</lifecycleMappingMetadata>
 							</configuration>
