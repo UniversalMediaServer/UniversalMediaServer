@@ -9,7 +9,7 @@
 - Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
 - Bump `version` from 18.2 to 18.3</li> ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
 
-## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2023-04-30)
+## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2024-04-30)
 
 ### General
 - Fixed MP4 and WMV transcoding
@@ -40,7 +40,7 @@
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
 - Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
 
-## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
+## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2024-04-02)
 
 ### General
 - Added MP4-H265-AC3 transcoding output option
@@ -185,7 +185,7 @@
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
-## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
+## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2024-01-05)
 
 ### General
 - Added ability to shut down computer from web settings (thanks, wolfhaus!)
