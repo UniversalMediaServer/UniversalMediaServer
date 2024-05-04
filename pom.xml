@@ -778,16 +778,44 @@
 				<plugin>
 					<groupId>org.digitalmediaserver</groupId>
 					<artifactId>crowdin-maven-plugin</artifactId>
-					<version>0.4.1</version>
+					<version>2.0.0</version>
 					<configuration>
-						<project>${project}</project>
-						<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
-						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
-						<statusFile>${project.basedir}/src/main/resources/languages.properties</statusFile>
-						<crowdinServerId>crowdin-ums</crowdinServerId>
-						<pushFileName>messages.properties</pushFileName>
-						<pushFileTitle>Universal Media Server</pushFileTitle>
+            			<projectId>123597</projectId>
 						<projectName>Universal Media Server</projectName>
+						<downloadFolder>${project.basedir}/extras/crowdin</downloadFolder>
+						<crowdinServerId>crowdin-ums</crowdinServerId>
+						<translationFileSets>
+							<translationFileSet>
+								<title>Universal Media Server</title>
+								<type>properties</type>
+								<baseFileName>messages.properties</baseFileName>
+								<languageFilesFolder>${project.basedir}/src/main/resources/i18n</languageFilesFolder>
+								<exportPattern>messages_%locale_with_underscore%.properties</exportPattern>
+								<targetFileName>messages_%crowdin_code_with_underscore%.properties</targetFileName>
+								<updateOption>keep_translations</updateOption>
+								<conversions>
+									<conversion><from>es-ES</from><to>es</to></conversion>
+									<conversion><from>he</from><to>iw</to></conversion>
+									<conversion><from>pt-PT</from><to>pt</to></conversion>
+									<conversion><from>sv-SE</from><to>sv</to></conversion>
+									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
+									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+								</conversions>
+							</translationFileSet>
+						</translationFileSets>
+						<statusFiles>
+							<statusFile>
+								<conversions>
+									<conversion><from>es-ES</from><to>es</to></conversion>
+									<conversion><from>he</from><to>iw</to></conversion>
+									<conversion><from>pt-PT</from><to>pt</to></conversion>
+									<conversion><from>sv-SE</from><to>sv</to></conversion>
+									<conversion><from>zh-CN</from><to>zh-Hans</to></conversion>
+									<conversion><from>zh-TW</from><to>zh-Hant</to></conversion>
+								</conversions>
+								<targetFile>${project.basedir}/src/main/resources/languages.properties</targetFile>
+							</statusFile>
+						</statusFiles>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -2818,27 +2846,6 @@
 											</pluginExecutionFilter>
 											<action>
 												<ignore></ignore>
-											</action>
-										</pluginExecution>
-										<pluginExecution>
-											<pluginExecutionFilter>
-												<groupId>com.universalmediaserver</groupId>
-												<artifactId>
-													crowdin-maven-plugin
-												</artifactId>
-												<versionRange>
-													[0.1,)
-												</versionRange>
-												<goals>
-													<goal>fetch</goal>
-													<goal>push</goal>
-													<goal>build</goal>
-													<goal>apply</goal>
-													<goal>pull</goal>
-												</goals>
-											</pluginExecutionFilter>
-											<action>
-												<execute></execute>
 											</action>
 										</pluginExecution>
 									</pluginExecutions>
