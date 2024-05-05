@@ -2,6 +2,120 @@
 
 ## [Unreleased]
 
+## 14.0.0 - Unreleased (Since 13.10.1)
+
+### General
+- Added ability to block/allow renderers in web settings
+- Added ability to block/allow network devices in web settings
+- Added ability to set whether renderers or network devices are blocked or allowed by default
+- Added ability to link people to renderers for independent playback tracking
+- Added ability to restrict share content to certain groups
+- Added ability to mark TV series and files as fully played on the web interface
+- Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
+- Added broadcasting of SystemUpdateId over UPnP (GENA) for better folder change-detection on supporting renderers
+- File status is saved per-user
+- Added status line on web interface
+- Added flag for movie/tv countries
+- Added original movie/tv series title and country if not same as title
+- Added Rating bar
+- Added option to sort by rating in Media Library
+- Improved memory use bar on the web interface
+- Added ability for user accounts to have avatars
+- Improved selection of video quality on web player
+- Removed ability to disable the local cache
+- Improved drag and drop on Shared Content tab on web settings
+- Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Improved TV series matching and lookups
+- Improved database cleanup step
+- Fixed thumbnail handling bugs
+- Fixed FirstAirDate and LastAirDate for TV series
+
+### Translation updates via Crowdin
+- Arabic (43%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
+- Catalan (61%) (thanks, Antoni Grau i Quellos!)
+- Czech (98%) (thanks, JustPOSPAK!)
+- Danish (61%) (thanks, g33z3r and GurliGebis!)
+- English (UK) (51%) (thanks, Carter Davis and Pete Russell!)
+- Finnish (64%) (thanks, Esko Gardner and Oskari Lavinto!)
+- French (99%) (thanks, Fredo1650!)
+- German (88%) (thanks, pipin!)
+- Japanese (53%) (thanks, elepro!)
+- Korean (99%) (thanks, VenusGirl and yc ryu)
+- Polish (59%) (thanks, Karol Szastok!)
+- Portuguese (58%) (thanks, Hélio Guilherme and mariopinto!)
+- Portuguese (Brazilian) (70%) (thanks, Mauro.A!)
+- Russian (99%) (thanks, Олег Лойко!)
+- Spanish (60%) (thanks, AkaNix, Danilo and Darío criado Rodríguez!)
+- Swedish (49%) (thanks, Henrik Mattsson-Mårn!)
+- Turkish (99%) (thanks, Burak Yavuz!)
+- Vietnamese (12%) (thanks, VuGaCoMat!)
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+- Improved support for Samsung The Frame TVs
+- Improved transcoding support on Samsung OLED TVs
+
+### Dependencies
+- Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
+- Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `com.github.oshi:oshi-core` to v6.5.0
+- Bump `git-commit-id-maven-plugin` to 7.0.0
+- Bump `h2database` to 2.2.224
+- Bump `jakarta`.servlet-api to 6.0.0
+- Bump `jwt-decode` to v4
+- Bump `Mantine` to v7, which:
+  - Improves performance of the web interface
+  - Improves RTL language support
+  - Uses your system light/dark mode preference
+- Bump `NSIS` to v3
+- Bump `nsis-maven-plugin` to v1.0.5
+- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546))
+- Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
+- Bump `typescript` to 5.3.3
+- Bump `version` from 18.2 to 18.3 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `web-vitals` to 3.5.0
+- Bump `yarn` to v4, which improves install performance by 3x
+
+## 14.0.0 (Unreleased) - Since 14.0.0-b1
+
+### General
+- Added menu option to clear all renderer/device filter settings
+- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
+- Added status text to splash screen
+- Refresh data after device filter settings change
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Fixed TV series sometimes not being set for episodes
+- Stability improvements
+- Logging improvements
+- Refactored to remove deprecated code use
+- Updated browser logos
+- Fixed response on web player when directory has been deleted
+- Fixed scanning unshared parent directories
+- Added a warning that the offline help pages are not maintained
+- Added a link to the new maintained documentation at https://support.universalmediaserver.com
+- Added caching to translations
+- Fixed scanning ignored directories
+- Fixed broken folder browsing over time
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
+- All changes from 13.10.0 and 13.10.1
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+
 ### Translation updates via Crowdin
 - Arabic (43%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
 - Catalan (61%) (thanks, Antoni Grau i Quellos!)
@@ -25,10 +139,16 @@
 ### Dependencies
 - Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
 - Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `com.github.oshi:oshi-core` to v6.5.0
+- Bump `mantine` from 7.4.0 to 7.5.3
 - Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546))
-- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
 - Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
-- Bump `version` from 18.2 to 18.3</li> ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
+- Bump `version` from 18.2 to 18.3 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `yarn` from 4.0.2 to 4.1.1
+
+### Dependencies
 
 ## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2024-04-30)
 
@@ -109,46 +229,6 @@
 - Bump `videojs-contrib-quality-levels` from 4.0.0 to 4.1.0 ([#4560](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4560))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `webpack-dev-middleware` from 5.3.3 to 5.3.4 ([#4543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4543))
-
-## 14.0.0 (Unreleased) - Since 14.0.0-b1
-
-### General
-- Added menu option to clear all renderer/device filter settings
-- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
-- Added status text to splash screen
-- Refresh data after device filter settings change
-- Improved program icons on HiDPI and Retina screens
-- Improved Windows installer appearance on HiDPI screens
-- Fixed TV series sometimes not being set for episodes
-- Stability improvements
-- Logging improvements
-- Refactored to remove deprecated code use
-- Updated browser logos
-- Fixed response on web player when directory has been deleted
-- Fixed scanning unshared parent directories
-- Added a warning that the offline help pages are not maintained
-- Added a link to the new maintained documentation at https://support.universalmediaserver.com
-- Added caching to translations
-- Fixed scanning ignored directories
-- Fixed broken folder browsing over time
-- Toggling advanced settings on the old GUI does not need a program restart anymore
-- Changing language on the old GUI does not need a program restart anymore
-- Added DisableAllTranscoding setting to old GUI
-- Reorganized some settings on the old GUI to match the new one
-- Made API metadata insertion more stable
-- Improved device discovery stability and speed
-- All changes from 13.10.0
-
-### Renderers
-- Added support for the Linn app on iOS/Android
-- Added support for Lumin devices
-- Added support for Naim Mu-So Qb wireless music system
-
-### Dependencies
-- Bump `mantine` from 7.4.0 to 7.5.3
-- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
-- Update dependency com.github.oshi:oshi-core to v6.5.0
-- Bump `yarn` from 4.0.2 to 4.1.1
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
