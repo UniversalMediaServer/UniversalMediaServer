@@ -1,6 +1,28 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 public class Constants {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private Constants() {
+	}
+
 	public static final String CHARSET_ISO_2022_JP	= "ISO-2022-JP".intern();
 	public static final String CHARSET_ISO_2022_CN	= "ISO-2022-CN".intern();
 	public static final String CHARSET_ISO_2022_KR	= "ISO-2022-KR".intern();

@@ -1,62 +1,53 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import org.apache.commons.configuration.ConfigurationException;
+import net.pms.TestHelper;
 import static net.pms.util.StringUtil.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
-
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class StringUtilTest {
 
-	@Before
-	public void setUp() throws ConfigurationException {
-		// Silence all log messages from the UMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
+	@BeforeEach
+	public void setUp() {
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test
 	public void fillStringTest() {
-		char[] chars = { 'a', 'æ' };
-		assertEquals("fillStringCharArray", fillString(chars, 4), "aæaæaæaæ");
-		assertEquals("fillStringCharSpace", fillString(' ', 10), "          ");
-		assertEquals("fillStringCodePoint", fillString(1333 , 3), "\u0535\u0535\u0535");
-		assertEquals("fillStringUnicodeString", fillString("\u0648\u0AA7\u184A", 2), "\u0648\u0AA7\u184A\u0648\u0AA7\u184A");
-		assertEquals("fillStringEmptyString", fillString("", 100), "");
-		assertEquals("FillStringZero", fillString("foo",	0), "");
+		char[] chars = {'a', 'æ'};
+		assertEquals(fillString(chars, 4), "aæaæaæaæ", "fillStringCharArray");
+		assertEquals(fillString(' ', 10), "          ", "fillStringCharSpace");
+		assertEquals(fillString(1333, 3), "\u0535\u0535\u0535", "fillStringCodePoint");
+		assertEquals(fillString("\u0648\u0AA7\u184A", 2), "\u0648\u0AA7\u184A\u0648\u0AA7\u184A", "fillStringUnicodeString");
+		assertEquals(fillString("", 100), "", "fillStringEmptyString");
+		assertEquals(fillString("foo", 0), "", "FillStringZero");
 	}
 
-	@Test(expected=IllegalArgumentException.class)
+	@Test
 	public void stripHTMLTest() {
-		assertEquals("stripHTMLBasicBody", stripHTML("<html><sometag></sometag><someothertag/><body>Sometext</body></html>"), "Sometext");
-		assertEquals("stripHTMLBodyWithTags", stripHTML("<html><sometag></sometag><someothertag/><body>Sometext <strong>someSTRONGtext</strong></body></html>"), "Sometext someSTRONGtext");
-		assertEquals("stripHTMLWithoutBody", stripHTML("<html><header></header>Somecontent</html>"), "");
+		//(expected=IllegalArgumentException.class)
+		assertEquals(stripHTML("<html><sometag></sometag><someothertag/><body>Sometext</body></html>"), "Sometext", "stripHTMLBasicBody");
+		assertEquals(stripHTML("<html><sometag></sometag><someothertag/><body>Sometext <strong>someSTRONGtext</strong></body></html>"), "Sometext someSTRONGtext", "stripHTMLBodyWithTags");
+		assertThrows(IllegalArgumentException.class, () -> {
+			assertEquals(stripHTML("<html><header></header>Somecontent</html>"), "");
+		}, "stripHTMLWithoutBody");
 	}
 
 	@Test
@@ -171,4 +162,5 @@ public class StringUtilTest {
 		assertFalse(isEqual("FooBar", "foobar", true, false, null, 2, 5));
 		assertTrue(isEqual("FooBar", "foobar", false, true, null, -1, 5));
 	}
+
 }

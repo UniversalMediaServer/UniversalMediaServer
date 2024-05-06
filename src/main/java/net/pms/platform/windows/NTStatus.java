@@ -1,12 +1,9 @@
 /*
- * Digital Media Server, for streaming digital media to UPnP AV or DLNA
- * compatible devices based on PS3 Media Server and Universal Media Server.
- * Copyright (C) 2016 Digital Media Server developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software: you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -14,7 +11,8 @@
  * details.
  *
  * You should have received a copy of the GNU General Public License along with
- * this program. If not, see http://www.gnu.org/licenses/.
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.platform.windows;
 
@@ -6393,11 +6391,11 @@ public enum NTStatus {
 	STATUS_SXS_SECTION_NOT_FOUND(0xC0150001L, "The requested section is not present in the activation context."),
 
 	/**
-	 * Windows was unble to process the application binding information. Refer
+	 * Windows was unable to process the application binding information. Refer
 	 * to the system event log for further information.
 	 */
 	STATUS_SXS_CANT_GEN_ACTCTX(0xC0150002L,
-		"Windows was unble to process the application binding information. Refer to the system event log for further information."),
+		"Windows was unable to process the application binding information. Refer to the system event log for further information."),
 
 	/** The application binding data format is invalid. */
 	STATUS_SXS_INVALID_ACTCTXDATA_FORMAT(0xC0150003L, "The application binding data format is invalid."),

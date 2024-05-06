@@ -1,27 +1,22 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.image;
 
-import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
-import java.awt.image.ColorModel;
 import java.awt.image.RenderedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,14 +24,11 @@ import java.io.OutputStream;
 import java.util.Iterator;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReadParam;
 import javax.imageio.ImageReader;
-import javax.imageio.ImageTypeSpecifier;
 import javax.imageio.spi.IIORegistry;
 import javax.imageio.spi.ImageInputStreamSpi;
 import javax.imageio.stream.ImageInputStream;
 import net.pms.util.UnknownFormatException;
-import com.drew.metadata.Metadata;
 
 /**
  * This is a utility class for use with {@link ImageIO}, which mainly contains
@@ -48,9 +40,10 @@ public class ImageIOTools {
 
 	protected static final IIORegistry REGISTRY = IIORegistry.getDefaultInstance();
 
-	// Not to be instantiated
-	private ImageIOTools() {
-	}
+	/**
+	 * This class should not be instantiated.
+	 */
+	private ImageIOTools() {}
 
 	/**
 	 * A copy of {@link ImageIO#read(InputStream)} that calls
@@ -82,14 +75,12 @@ public class ImageIOTools {
 		} catch (RuntimeException | IOException e) {
 			try {
 				inputStream.close();
-			} catch (Exception e2) {
+			} catch (IOException e2) {
 				//Do nothing
 			}
-			if (e instanceof RuntimeException) {
+			if (e instanceof RuntimeException runtimeException) {
 				throw new ImageIORuntimeException(
-					"An error occurred while trying to read image: " + e.getMessage(),
-					(RuntimeException) e
-				);
+					"An error occurred while trying to read image: " + e.getMessage(), runtimeException);
 			}
 			throw e;
 		}
@@ -113,7 +104,7 @@ public class ImageIOTools {
 			throw new IllegalArgumentException("stream == null!");
 		}
 
-		try {
+		try (stream) {
 			Iterator<?> iter = ImageIO.getImageReaders(stream);
 			if (!iter.hasNext()) {
 				throw new UnknownFormatException("Unable to find a suitable image reader");
@@ -134,8 +125,6 @@ public class ImageIOTools {
 			return bufferedImage != null ? new ImageReaderResult(bufferedImage, inputFormat) : null;
 		} catch (RuntimeException e) {
 			throw new ImageIORuntimeException("An error occurred while trying to read image: " + e.getMessage(), e);
-		} finally {
-			stream.close();
 		}
 	}
 
@@ -173,93 +162,6 @@ public class ImageIOTools {
 	}
 
 	/**
-	 * Tries to gather the data needed to populate a {@link ImageInfo} instance
-	 * describing the input image.
-	 *
-	 * <p>
-	 * This method does not close {@code inputStream}.
-	 *
-	 * @param inputStream the image whose information to gather.
-	 * @param size the size of the image in bytes or
-	 *             {@link ImageInfo#SIZE_UNKNOWN} if it can't be determined.
-	 * @param metadata the {@link Metadata} instance to embed in the resulting
-	 *                 {@link ImageInfo} instance.
-	 * @param applyExifOrientation whether or not Exif orientation should be
-	 *            compensated for when setting width and height. This will also
-	 *            reset the Exif orientation information. <b>Changes will be
-	 *            applied to the {@code metadata} argument instance</b>.
-	 * @return An {@link ImageInfo} instance describing the input image.
-	 * @throws UnknownFormatException if the format could not be determined.
-	 * @throws IOException if an IO error occurred.
-	 */
-	public static ImageInfo readImageInfo(InputStream inputStream, long size, Metadata metadata, boolean applyExifOrientation) throws IOException {
-		if (inputStream == null) {
-			throw new IllegalArgumentException("input == null!");
-		}
-
-		try (ImageInputStream stream = createImageInputStream(inputStream)) {
-			Iterator<?> iter = ImageIO.getImageReaders(stream);
-			if (!iter.hasNext()) {
-				throw new UnknownFormatException("Unable to find a suitable image reader");
-			}
-
-			ImageReader reader = (ImageReader) iter.next();
-			try {
-				int width = -1;
-				int height = -1;
-				ImageFormat format = ImageFormat.toImageFormat(reader.getFormatName());
-				if (format == null) {
-					throw new UnknownFormatException("Unable to determine image format");
-				}
-
-				ColorModel colorModel = null;
-				try {
-					reader.setInput(stream, true, true);
-					Iterator<ImageTypeSpecifier> iterator = reader.getImageTypes(0);
-					if (iterator.hasNext()) {
-						colorModel = iterator.next().getColorModel();
-					}
-					width = reader.getWidth(0);
-					height = reader.getHeight(0);
-				} catch (RuntimeException e) {
-					throw new ImageIORuntimeException("Error reading image information: " + e.getMessage(), e);
-				}
-
-				boolean imageIOSupport;
-				if (format == ImageFormat.TIFF) {
-					// ImageIO thinks that it can read some "TIFF like" RAW formats,
-					// but fails when it actually tries, so we have to test it.
-					try {
-						ImageReadParam param = reader.getDefaultReadParam();
-						param.setSourceRegion(new Rectangle(1, 1));
-						reader.read(0, param);
-						imageIOSupport = true;
-					} catch (Exception e) {
-						// Catch anything here, we simply want to test if it fails.
-						imageIOSupport = false;
-					}
-				} else {
-					imageIOSupport = true;
-				}
-
-				ImageInfo imageInfo = ImageInfo.create(
-					width,
-					height,
-					format,
-					size,
-					colorModel,
-					metadata,
-					applyExifOrientation,
-					imageIOSupport
-				);
-				return imageInfo;
-			} finally {
-				reader.dispose();
-			}
-		}
-	}
-
-	/**
 	 * A copy of {@link ImageIO#createImageInputStream(Object)} that ignores
 	 * {@link ImageIO} configuration and never caches to disk. This is intended
 	 * used on relatively small images and caching to disk is very expensive
@@ -282,7 +184,7 @@ public class ImageIOTools {
 		}
 
 		while (iter.hasNext()) {
-			ImageInputStreamSpi spi = (ImageInputStreamSpi) iter.next();
+			ImageInputStreamSpi spi = iter.next();
 			if (spi.getInputClass().isInstance(input)) {
 				try {
 					return spi.createInputStreamInstance(input, false, null);

@@ -1,7 +1,5 @@
 /*
- * Universal Media Server, for streaming any media to DLNA compatible renderers
- * based on the http://www.ps3mediaserver.org. Copyright (C) 2012 UMS
- * developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
  * This program is a free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -36,14 +34,11 @@ public class Debouncer {
 	 * or cancels its execution if the method is called with the same key within the {@code delay} again.
 	 */
 	public void debounce(final Object key, final Runnable runnable, long delay, TimeUnit unit) {
-		final Future<?> prev = delayedMap.put(key, scheduler.schedule(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					runnable.run();
-				} finally {
-					delayedMap.remove(key);
-				}
+		final Future<?> prev = delayedMap.put(key, scheduler.schedule(() -> {
+			try {
+				runnable.run();
+			} finally {
+				delayedMap.remove(key);
 			}
 		}, delay, unit));
 		if (prev != null) {

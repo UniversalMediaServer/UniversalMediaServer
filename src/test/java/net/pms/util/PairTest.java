@@ -1,30 +1,38 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class PairTest {
-
-	@Rule
-	public ExpectedException exception = ExpectedException.none();
 
 	@Test
 	public void testPair() {
 		// Test constructor, getters
-		Pair<String, Double> pair = new Pair<>("Pair", Double.valueOf(99.9));
-		Pair<String, Double> pair2 = new Pair<>("Another pair", Double.valueOf(99.9));
-		Pair<String, Double> pair3 = new Pair<>("Pair", Double.valueOf(10d));
+		Pair<String, Double> pair = new Pair<>("Pair", 99.9d);
+		Pair<String, Double> pair2 = new Pair<>("Another pair", 99.9d);
+		Pair<String, Double> pair3 = new Pair<>("Pair", 10d);
 
 		assertEquals("Pair", pair.first);
 		assertEquals("Pair", pair.getFirst());
@@ -64,12 +72,12 @@ public class PairTest {
 		assertTrue(pair.equals(pair));
 		assertTrue(pair2.equals(pair2));
 		assertTrue(pair3.equals(pair3));
-		assertTrue(pair.equals(new Pair<String, Double>("Pair", Double.valueOf(99.9))));
-		assertFalse(pair.equals(new Pair<String, Float>("Pair", Float.valueOf(99.9f))));
+		assertTrue(pair.equals(new Pair<>("Pair", 99.9d)));
+		assertFalse(pair.equals(new Pair<>("Pair", 99.9f)));
 
 		// Test Map.Entry interface
 		Map<String, Double> map = new HashMap<>();
-		map.put("Pair", Double.valueOf(99.9));
+		map.put("Pair", 99.9d);
 		for (Entry<String, Double> entry : map.entrySet()) {
 			assertTrue(pair.equals(entry));
 			assertTrue(entry.equals(pair));
@@ -89,16 +97,17 @@ public class PairTest {
 		assertEquals("Pair[\"Pair\", 99.9]", pair.toString());
 		assertEquals("Pair[\"Another pair\", 99.9]", pair2.toString());
 		assertEquals("Pair[\"Pair\", 10.0]", pair3.toString());
-		assertEquals("Pair[null, 10.0]", new Pair<String, Double>(null, Double.valueOf(10d)).toString());
+		assertEquals("Pair[null, 10.0]", new Pair<String, Double>(null, 10d).toString());
 		assertEquals("Pair[\"Pair\", null]", new Pair<String, Double>("Pair", null).toString());
 		assertEquals("Pair[null, null]", new Pair<String, Double>(null, null).toString());
 	}
 
 	@Test
 	public void testImmutable() {
-		exception.expect(UnsupportedOperationException.class);
-		exception.expectMessage("Pair is immutable");
-		Pair<String, Double> pair = new Pair<>("Pair", Double.valueOf(99.9));
-		pair.setValue(Double.valueOf(20d));
+		UnsupportedOperationException thrown = assertThrows(UnsupportedOperationException.class, () -> {
+			Pair<String, Double> pair = new Pair<>("Pair", 99.9d);
+			pair.setValue(20d);
+		}, "IllegalArgumentException was expected");
+		assertEquals("Pair is immutable", thrown.getMessage());
 	}
 }

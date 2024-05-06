@@ -1,125 +1,315 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network.mediaserver;
 
-import java.io.IOException;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.Map.Entry;
+import java.util.UUID;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.network.mediaserver.javahttpserver.JavaHttpServer;
-import net.pms.network.mediaserver.nettyserver.NettyServer;
-import net.pms.network.mediaserver.socketchannelserver.SocketChannelServer;
-import net.pms.network.mediaserver.socketssdpserver.SocketSSDPServer;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.gui.GuiManager;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.configuration.NetworkInterfaceAssociation;
+import net.pms.network.mediaserver.jupnp.UmsUpnpService;
+import net.pms.network.mediaserver.mdns.MDNS;
+import net.pms.renderers.JUPnPDeviceHelper;
+import org.jupnp.transport.RouterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaServer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
-	protected static final PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final Map<Integer, String> VERSIONS = Stream.of(new Object[][] {
-			{1, "Sockets"},
-			{2, "Netty"},
-			{3, "Java"},
-		}).collect(Collectors.toMap(data -> (Integer) data[0], data -> (String) data[1]));
+	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	public static final Map<Integer, String> VERSIONS = Map.of(
+		1, "JUPnP+ (Java)",
+		2, "JUPnP+ (Netty)",
+		3, "JUPnP+ (Servlet)",
+		4, "JUPnP (Netty)",
+		5, "JUPnP (Java)"
+	);
+
 	public static final int DEFAULT_VERSION = 2;
 
-	private static HttpMediaServer httpMediaServer;
 	private static boolean isStarted = false;
+	private static ServerStatus status = ServerStatus.STOPPED;
+	private static int port = CONFIGURATION.getMediaServerPort();
+	private static String hostname;
+	private static InetAddress inetAddress;
+	private static NetworkInterface networkInterface;
+	/**
+	 * User friendly name for the server.
+	 */
+	private static String serverName;
+	/**
+	 * Universally Unique Identifier used in the UPnP mediaServer.
+	 */
+	private static String uuid;
+	public static UmsUpnpService upnpService;
 
-	public static void init() {
-		UPNPHelper.getInstance().init();
+	private static boolean init() {
+		//get config ip port
+		port = CONFIGURATION.getMediaServerPort();
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia != null) {
+			inetAddress = ia.getAddr();
+			hostname = inetAddress.getHostAddress();
+			networkInterface = ia.getIface();
+			return true;
+		}
+		return false;
 	}
 
-	public static boolean start() {
-		if (!isStarted) {
+	public static synchronized boolean start() {
+		while (status == ServerStatus.STOPPING) {
+			//wait while stopping
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException ex) {
+				LOGGER.info("Starting media server interrupted.");
+				Thread.currentThread().interrupt();
+				return false;
+			}
+		}
+		if (!isStarted && (status == ServerStatus.STOPPED || status == ServerStatus.WAITING)) {
+			status = ServerStatus.STARTING;
+			if (!init()) {
+				//network not available
+				LOGGER.info("Network not available with the config values.");
+				LOGGER.info("Waiting network scanner discovering.");
+				isStarted = false;
+				setWaiting();
+				return isStarted;
+			}
+			//start the http service (for upnp and others)
 			int engineVersion = CONFIGURATION.getServerEngine();
 			if (engineVersion == 0 || !VERSIONS.containsKey(engineVersion)) {
 				engineVersion = DEFAULT_VERSION;
 			}
-			//first start the http server
-			try {
-				switch (engineVersion) {
-					case 1:
-						httpMediaServer = new SocketChannelServer(CONFIGURATION.getServerPort());
-						isStarted = httpMediaServer.start();
-						break;
-					case 2:
-						httpMediaServer = new NettyServer(CONFIGURATION.getServerPort());
-						isStarted = httpMediaServer.start();
-						break;
-					case 3:
-						httpMediaServer = new JavaHttpServer(CONFIGURATION.getServerPort());
-						isStarted = httpMediaServer.start();
-						break;
+			//start the upnp service
+			if (CONFIGURATION.isUpnpEnabled()) {
+				if (upnpService == null) {
+					LOGGER.debug("Starting UPnP (JUPnP) services.");
+					switch (engineVersion) {
+						case 1, 2, 3 -> {
+							upnpService = new UmsUpnpService(true);
+							upnpService.startup();
+						}
+						case 4, 5 -> {
+							upnpService = new UmsUpnpService(false);
+							upnpService.startup();
+						}
+					}
 				}
-			} catch (IOException ex) {
-				LOGGER.error("FATAL ERROR: Unable to bind on port: " + CONFIGURATION.getServerPort() + ", because: " + ex.getMessage());
-				LOGGER.info("Maybe another process is running or the hostname is wrong.");
-				isStarted = false;
-				stop();
-			}
-			if (isStarted) {
-				//then advise upnp
-				isStarted = SocketSSDPServer.start();
-				if (!isStarted) {
-					LOGGER.error("FATAL ERROR: Unable to start ssdp service");
+				try {
+					isStarted = upnpService != null && upnpService.getRouter().isEnabled();
+				} catch (RouterException ex) {
 					isStarted = false;
+				}
+				if (!isStarted) {
+					LOGGER.error("FATAL ERROR: Unable to start upnp service");
+				} else {
+					upnpService.sendAlive();
+					JUPnPDeviceHelper.searchMediaRendererDevices();
+					LOGGER.debug("UPnP (JUPnP) services are online, listening for media renderers");
+				}
+			}
+			//start mDNS service
+			if (isStarted) {
+				isStarted = MDNS.start(inetAddress);
+				if (!isStarted) {
+					LOGGER.error("FATAL ERROR: Unable to start mDNS service");
 					stop();
 				}
 			}
+			status = isStarted ? ServerStatus.STARTED : ServerStatus.STOPPED;
 		} else {
-			LOGGER.info("try to start the media server, but it's already started");
+			LOGGER.debug("try to start the media server, but it's already started");
 		}
+		GuiManager.updateServerStatus();
 		return isStarted;
 	}
 
-	public static void stop() {
-		SocketSSDPServer.stop();
-		if (httpMediaServer != null) {
-			httpMediaServer.stop();
+	public static synchronized void stop() {
+		status = ServerStatus.STOPPING;
+		MDNS.stop();
+		if (upnpService != null) {
+			LOGGER.debug("Shutting down UPnP (JUPnP) service");
+			upnpService.shutdown();
+			upnpService = null;
+			LOGGER.debug("UPnP service stopped");
 		}
-		httpMediaServer = null;
+		status = ServerStatus.STOPPED;
 		isStarted = false;
+		GuiManager.updateServerStatus();
 	}
 
 	public static boolean isStarted() {
-		return isStarted;
+		return status == ServerStatus.STARTED;
+	}
+
+	public static void setPort(int localPort) {
+		port = localPort;
 	}
 
 	public static String getURL() {
-		return httpMediaServer != null ? httpMediaServer.getURL() : "http://" + getHost() + ":" + getPort();
+		return "http://" + getAddress();
+	}
+
+	public static String getAddress() {
+		return getHost() + ":" + getPort();
 	}
 
 	public static String getHost() {
-		return httpMediaServer != null ? httpMediaServer.getHost() : CONFIGURATION.getServerHostname();
+		if (hostname != null) {
+			return hostname;
+		} else if (CONFIGURATION.getServerHostname() != null) {
+			return CONFIGURATION.getServerHostname();
+		} else {
+			return "localhost";
+		}
 	}
 
 	public static int getPort() {
-		return httpMediaServer != null ? httpMediaServer.getPort() : CONFIGURATION.getServerPort();
+		return port;
 	}
 
 	public static NetworkInterface getNetworkInterface() {
-		return httpMediaServer != null ? httpMediaServer.getNetworkInterface() : null;
+		return networkInterface;
+	}
+
+	public static InetAddress getInetAddress() {
+		return inetAddress;
+	}
+
+	private static void setWaiting() {
+		status = ServerStatus.WAITING;
+		//check a last time if network scanner has not fire before this set.
+		startIfPossible();
+	}
+
+	public static void checkNetworkConfiguration() {
+		if (status == ServerStatus.WAITING) {
+			startIfPossible();
+		} else if (status == ServerStatus.STARTED) {
+			resetIfNeeded();
+		}
+	}
+
+	private static void startIfPossible() {
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia != null) {
+			LOGGER.info("Starting the media server as network interface association was found");
+			start();
+		}
+	}
+
+	public static void resetIfNeeded() {
+		NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+		if (ia == null || ia.getAddr() != inetAddress || ia.getIface() != networkInterface) {
+			//reset the server, network have changed
+			//ia is null will fail into WAITING
+			LOGGER.info("Restarting the media server as network configuration has changed");
+			stop();
+			start();
+		}
+	}
+
+	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
+
+	/**
+	 * @return available server engines as a JSON array
+	 */
+	public static synchronized JsonArray getServerEnginesAsJsonArray() {
+		JsonArray jsonArray = new JsonArray();
+
+		JsonObject defaultOption = new JsonObject();
+		defaultOption.addProperty("value", "0");
+		defaultOption.addProperty("label", "i18n@Default");
+		jsonArray.add(defaultOption);
+
+		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {
+			JsonObject version = new JsonObject();
+			version.addProperty("value", upnpEngineVersion.getKey().toString());
+			version.addProperty("label", upnpEngineVersion.getValue());
+			jsonArray.add(version);
+		}
+
+		return jsonArray;
+	}
+
+	/**
+	 * Returns the user friendly name of the UMS server.
+	 *
+	 * @return {@link String} with the user friendly name.
+	 */
+	public static String getServerName() {
+		if (serverName == null) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(System.getProperty("os.name").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.arch").replace(" ", "_"));
+			sb.append('-');
+			sb.append(System.getProperty("os.version").replace(" ", "_"));
+			sb.append(", UPnP/1.0 DLNADOC/1.50, UMS/").append(PMS.getVersion());
+			serverName = sb.toString();
+		}
+		return serverName;
+	}
+
+	/**
+	 * Get unique device name from {@link #uuid}.
+	 *
+	 * @return {@link String} with an unique device name.
+	 */
+	public static String getUniqueDeviceName() {
+		return "uuid:" + getUuid();
+	}
+
+	/**
+	 * Get saved server {@link #uuid} or creates a new random one.
+	 * <p>
+	 * These are used to uniquely identify the server to renderers (i.e.
+	 * renderers treat multiple servers with the same UUID as the same server).
+	 *
+	 * @return {@link String} with an Universally Unique Identifier.
+	 */
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles
+	public static synchronized String getUuid() {
+		if (uuid == null) {
+			// Retrieve UUID from configuration
+			uuid = CONFIGURATION.getUuid();
+
+			if (uuid == null) {
+				uuid = UUID.randomUUID().toString();
+				LOGGER.info("Generated new random UUID: {}", uuid);
+
+				// save the newly-generated UUID
+				CONFIGURATION.setUuid(uuid);
+				CONFIGURATION.saveConfiguration();
+			}
+
+			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
+		}
+
+		return uuid;
 	}
 
 }

@@ -1,39 +1,33 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.PreparedStatement;
 import java.util.HashSet;
 import java.util.Set;
-import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.dlna.MediaMonitor;
-import net.pms.util.FileUtil;
+import net.pms.media.MediaStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class is responsible for managing the FilesStatus table. It
@@ -53,7 +47,42 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 12;
+	private static final int TABLE_VERSION = 14;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_USERID = "USERID";
+	private static final String COL_FILENAME = "FILENAME";
+	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_BOOKMARK = "BOOKMARK";
+	private static final String COL_ISFULLYPLAYED = "ISFULLYPLAYED";
+	private static final String COL_PLAYCOUNT = "PLAYCOUNT";
+	private static final String COL_DATELASTPLAY = "DATELASTPLAY";
+	private static final String COL_LASTPLAYBACKPOSITION = "LASTPLAYBACKPOSITION";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	public static final String TABLE_COL_USERID = TABLE_NAME + "." + COL_USERID;
+	public static final String TABLE_COL_ISFULLYPLAYED = TABLE_NAME + "." + COL_ISFULLYPLAYED;
+	public static final String TABLE_COL_PLAYCOUNT = TABLE_NAME + "." + COL_PLAYCOUNT;
+	public static final String TABLE_COL_DATELASTPLAY = TABLE_NAME + "." + COL_DATELASTPLAY;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ALL = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ISFULLYPLAYED = SELECT + TABLE_COL_ISFULLYPLAYED + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_MOVED = SELECT + PARAMETER + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_USER = SELECT + TABLE_COL_FILENAME + COMMA + PARAMETER + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
+	private static final String SQL_DELETE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_DELETE_USER = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_USERID + EQUAL + PARAMETER;
+	private static final String SQL_INSERT_MOVED = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_MOVED;
+	private static final String SQL_INSERT_USERCOPY = INSERT_INTO + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + COMMA + COL_BOOKMARK + COMMA + COL_ISFULLYPLAYED + COMMA + COL_PLAYCOUNT + COMMA + COL_DATELASTPLAY + ") " + SQL_GET_USER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -99,117 +128,82 @@ public final class MediaTableFilesStatus extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					// From version 1 to 2, we stopped using FILEID and instead use FILENAME directly
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD FILENAME VARCHAR2(1024)");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD CONSTRAINT FILES_FILENAME_UNIQUE UNIQUE(FILENAME)");
-
+					if (isColumnExist(connection, TABLE_NAME, "FILEID")) {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COL_FILENAME + VARCHAR_1024);
 						Set<String> fileStatusEntries = new HashSet<>();
-						PreparedStatement stmt = connection.prepareStatement("SELECT FILES.ID AS FILES_ID, FILES.FILENAME AS FILES_FILENAME FROM FILES LEFT JOIN " + TABLE_NAME + " ON FILES.ID = " + TABLE_NAME + ".FILEID");
-						ResultSet rs = stmt.executeQuery();
-						String filename;
-						while (rs.next()) {
-							filename = rs.getString("FILES_FILENAME");
+						try (PreparedStatement stmt = connection.prepareStatement(SELECT + MediaTableFiles.TABLE_COL_ID + AS + "FILES_ID" + COMMA + TABLE_COL_FILENAME + AS + "FILES_FILENAME" + FROM + MediaTableFiles.TABLE_NAME + LEFT_JOIN + TABLE_NAME + ON + MediaTableFiles.TABLE_COL_ID + EQUAL + TABLE_NAME + ".FILEID");
+									ResultSet rs = stmt.executeQuery()) {
+							String filename;
+							while (rs.next()) {
+								filename = rs.getString("FILES_FILENAME");
 
-							// Ensure we don't attempt add the same filename twice
-							if (!fileStatusEntries.contains(filename)) {
-								fileStatusEntries.add(filename);
-								String query = "UPDATE " + TABLE_NAME + " SET FILENAME=" + sqlQuote(filename) + " WHERE FILEID=" + rs.getInt("FILES_ID");
-								Statement statement2 = connection.createStatement();
-								statement2.execute(query);
-								LOGGER.info("Updating fully played entry for " + filename);
+								// Ensure we don't attempt add the same filename twice
+								if (!fileStatusEntries.contains(filename)) {
+									fileStatusEntries.add(filename);
+									String query = UPDATE + TABLE_NAME + SET + COL_FILENAME + EQUAL + sqlQuote(filename) + WHERE + "FILEID" + EQUAL + rs.getInt("FILES_ID");
+									try (Statement statement2 = connection.createStatement()) {
+										statement2.execute(query);
+									}
+									LOGGER.info("Updating fully played entry for " + filename);
+								}
 							}
 						}
-						stmt.close();
-						rs.close();
-
-						statement.execute("DELETE FROM " + TABLE_NAME + " WHERE FILENAME IS NULL");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ALTER COLUMN FILENAME SET NOT NULL");
-						statement.execute("DROP INDEX IF EXISTS FILEID_IDX");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " DROP COLUMN FILEID");
-						statement.execute("CREATE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)");
 					}
-					version = 2;
-					break;
-				case 2:
-				case 3:
+					executeUpdate(connection, DELETE_FROM + TABLE_NAME + WHERE + COL_FILENAME + IS_NULL);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_FILENAME + SET + NOT_NULL);
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + "FILEID" + IDX_MARKER);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + "FILEID");
+					executeUpdate(connection, CREATE_UNIQUE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + ")");
+				}
+				case 2 -> {
 					// From version 2 to 3, we added an index for the ISFULLYPLAYED column
+					// see 3
+				}
+				case 3 -> {
 					// From version 3 to 4, we make sure the previous index was created correctly
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("DROP INDEX IF EXISTS ISFULLYPLAYED_IDX");
-						statement.execute("CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)");
-					}
-					version = 4;
-					break;
-				case 4:
-				case 5:
-				case 6:
-				case 7:
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + COL_ISFULLYPLAYED + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")");
+				}
+				case 4, 5, 6 -> {
+					// superseed
+				}
+				case 7 -> {
 					// From version 7 to 8, we undo our referential integrity attempt that kept going wrong
-					String sql;
-					ResultSet rs = connection.getMetaData().getTables(null, "INFORMATION_SCHEMA", "TABLE_CONSTRAINTS", null);
-					if (rs.next()) {
-						sql = "SELECT CONSTRAINT_NAME " +
-							"FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'FOREIGN KEY' OR CONSTRAINT_TYPE = 'REFERENTIAL'";
-					} else {
-						sql = "SELECT CONSTRAINT_NAME " +
-							"FROM INFORMATION_SCHEMA.CONSTRAINTS " +
-							"WHERE TABLE_NAME = '" + TABLE_NAME + "' AND CONSTRAINT_TYPE = 'REFERENTIAL'";
-					}
-
-					PreparedStatement stmt = connection.prepareStatement(sql);
-					rs = stmt.executeQuery();
-
-					while (rs.next()) {
-						try (Statement statement = connection.createStatement()) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " DROP CONSTRAINT IF EXISTS " + rs.getString("CONSTRAINT_NAME"));
-						}
-					}
-
-					stmt = connection.prepareStatement(sql);
-					rs = stmt.executeQuery();
-
-					while (rs.next()) {
+					dropReferentialsConstraint(connection, TABLE_NAME);
+					//check if was deleted or errored
+					if (dropReferentialsConstraint(connection, TABLE_NAME)) {
 						throw new SQLException("The upgrade from v7 to v8 failed to remove the old constraints");
 					}
-
-					stmt.close();
-					rs.close();
-
-					version = 8;
-					break;
-				case 8:
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD BOOKMARK INTEGER DEFAULT 0");
-					}
-					version = 9;
-					break;
-				case 9:
-					try (Statement statement = connection.createStatement()) {
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD DATELASTPLAY  DATETIME");
-						statement.execute("ALTER TABLE " + TABLE_NAME + " ADD PLAYCOUNT     INTEGER DEFAULT 0");
-					}
-					version = 10;
-					break;
-				case 10:
-				case 11:
-					try (Statement statement = connection.createStatement()) {
-						if (!isColumnExist(connection, TABLE_NAME, "LASTPLAYBACKPOSITION")) {
-							statement.execute("ALTER TABLE " + TABLE_NAME + " ADD LASTPLAYBACKPOSITION DOUBLE DEFAULT 0.0");
-						}
-					} catch (SQLException e) {
-						LOGGER.error(LOG_UPGRADING_TABLE_FAILED, DATABASE_NAME, TABLE_NAME, e.getMessage());
-						LOGGER.error("Please use the 'Reset the cache' button on the 'Navigation Settings' tab, close UMS and start it again.");
-						throw new SQLException(e);
-					}
-					version = 12;
-					break;
-				default:
-					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
-					);
+				}
+				case 8 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_BOOKMARK + INTEGER + DEFAULT_0);
+				}
+				case 9 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATELASTPLAY + TIMESTAMP);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_PLAYCOUNT + INTEGER + DEFAULT_0);
+				}
+				case 10 -> {
+					// superseed
+				}
+				case 11 -> {
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_LASTPLAYBACKPOSITION + DOUBLE_PRECISION + DEFAULT_0D);
+				}
+				case 12 -> {
+					//rename indexes COL_FILENAME + "_IDX"
+					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FILENAME + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + IDX_MARKER);
+					executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_ISFULLYPLAYED + IDX_MARKER + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER);
+				}
+				case 13 -> {
+					//add userid + index
+					dropUniqueConstraint(connection, TABLE_NAME, COL_FILENAME);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_USERID + INTEGER + DEFAULT_0);
+					executeUpdate(connection, CREATE_UNIQUE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")");
+				}
+				default -> throw new IllegalStateException(
+					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+				);
 			}
 		}
 
@@ -222,21 +216,54 @@ public final class MediaTableFilesStatus extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID                     IDENTITY              PRIMARY KEY	, " +
-				"FILENAME               VARCHAR2(1024)        NOT NULL		, " +
-				"MODIFIED               DATETIME							, " +
-				"ISFULLYPLAYED          BOOLEAN               DEFAULT false	, " +
-				"BOOKMARK               INTEGER               DEFAULT 0		, " +
-				"DATELASTPLAY           DATETIME							, " +
-				"PLAYCOUNT              INTEGER               DEFAULT 0		, " +
-				"LASTPLAYBACKPOSITION   DOUBLE                DEFAULT 0.0	  " +
+			CREATE_TABLE + TABLE_NAME + "(" +
+				COL_ID                     + IDENTITY              + PRIMARY_KEY      + COMMA +
+				COL_FILENAME               + VARCHAR_1024          + NOT_NULL         + COMMA +
+				COL_USERID                 + INTEGER               + DEFAULT_0        + COMMA +
+				COL_MODIFIED               + TIMESTAMP                                + COMMA +
+				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE  + COMMA +
+				COL_BOOKMARK               + INTEGER               + DEFAULT_0        + COMMA +
+				COL_DATELASTPLAY           + TIMESTAMP                                + COMMA +
+				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0        + COMMA +
+				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D       +
 			")",
-			"CREATE UNIQUE INDEX FILENAME_IDX ON " + TABLE_NAME + "(FILENAME)",
-			"CREATE INDEX ISFULLYPLAYED_IDX ON " + TABLE_NAME + "(ISFULLYPLAYED)"
+			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")",
+			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")"
 		);
+	}
+
+	/**
+	 * Gets a row of {@link MediaDatabase} from the database and returns it
+	 * as a {@link MediaStatus} instance.
+	 *
+	 * @param connection the db connection
+	 * @param name the full path of the media.
+	 * @return The {@link MediaStatus} instance matching {@code name}.
+	 */
+	public static MediaStatus getMediaStatus(final Connection connection, final String fullPathToFile, final int userId) {
+		try (
+			PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL);
+		) {
+			statement.setString(1, fullPathToFile);
+			statement.setInt(2, userId);
+			try (ResultSet rs = statement.executeQuery()) {
+				if (rs.next()) {
+					MediaStatus media = new MediaStatus();
+					media.setFullyPlayed(rs.getBoolean(COL_ISFULLYPLAYED));
+					media.setPlaybackCount(rs.getInt(COL_PLAYCOUNT));
+					media.setLastPlaybackTime(rs.getString(COL_DATELASTPLAY));
+					media.setLastPlaybackPosition(rs.getDouble(COL_LASTPLAYBACKPOSITION));
+					media.setBookmark(rs.getInt(COL_BOOKMARK));
+					return media;
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "getting data", TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	/**
@@ -246,49 +273,48 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param fullPathToFile
 	 * @param isFullyPlayed
 	 */
-	public static void setFullyPlayed(final Connection connection, final String fullPathToFile, final boolean isFullyPlayed) {
+	public static void setFullyPlayed(final Connection connection, final String fullPathToFile, final int userId, final boolean isFullyPlayed) {
 		boolean trace = LOGGER.isTraceEnabled();
-
 		try {
-			String query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				if (result.next()) {
-					if (result.getBoolean("ISFULLYPLAYED") == isFullyPlayed) {
-						if (trace) {
-							LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean("ISFULLYPLAYED"));
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, fullPathToFile);
+				statement.setInt(2, userId);
+				if (trace) {
+					LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setFullyPlayed", statement);
+				}
+				try (ResultSet result = statement.executeQuery()) {
+					if (result.next()) {
+						if (result.getBoolean(COL_ISFULLYPLAYED) == isFullyPlayed) {
+							if (trace) {
+								LOGGER.trace("Found file entry in " + TABLE_NAME + " and it already has ISFULLYPLAYED set to {}", result.getBoolean(COL_ISFULLYPLAYED));
+							}
+						} else {
+							if (trace) {
+								LOGGER.trace(
+									"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
+									fullPathToFile,
+									isFullyPlayed
+								);
+							}
+							result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+							result.updateBoolean(COL_ISFULLYPLAYED, isFullyPlayed);
+							result.updateRow();
 						}
 					} else {
 						if (trace) {
 							LOGGER.trace(
-								"Found file entry \"{}\" in " + TABLE_NAME + "; setting ISFULLYPLAYED to {}",
+								"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
 								fullPathToFile,
 								isFullyPlayed
 							);
 						}
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-						result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-						result.updateRow();
+						result.moveToInsertRow();
+						result.updateString(COL_FILENAME, fullPathToFile);
+						result.updateInt(COL_USERID, userId);
+						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+						result.updateBoolean(COL_ISFULLYPLAYED, isFullyPlayed);
+						result.insertRow();
 					}
-				} else {
-					if (trace) {
-						LOGGER.trace(
-							"File entry \"{}\" not found in " + TABLE_NAME + ", inserting new row with ISFULLYPLAYED set to {}",
-							fullPathToFile,
-							isFullyPlayed
-						);
-					}
-					result.moveToInsertRow();
-					result.updateString("FILENAME", fullPathToFile);
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateBoolean("ISFULLYPLAYED", isFullyPlayed);
-					result.insertRow();
 				}
 			}
 		} catch (SQLException e) {
@@ -304,43 +330,40 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * @param fullPathToFile
 	 * @param lastPlaybackPosition how many seconds were played
 	 */
-	public static void setLastPlayed(final Connection connection, final String fullPathToFile, final Double lastPlaybackPosition) {
+	public static void setLastPlayed(final Connection connection, final String fullPathToFile, final int userId, final Double lastPlaybackPosition) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String query;
-
 		try {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				int playCount = 0;
-				boolean isCreatingNewRecord = false;
-
-				if (result.next()) {
-					playCount = result.getInt("PLAYCOUNT");
-				} else {
-					isCreatingNewRecord = true;
-					result.moveToInsertRow();
-					result.updateString("FILENAME", fullPathToFile);
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, fullPathToFile);
+				statement.setInt(2, userId);
+				if (trace) {
+					LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setLastPlayed", statement);
 				}
-				playCount++;
+				try (ResultSet result = statement.executeQuery()) {
+					int playCount;
+					boolean isCreatingNewRecord = !result.next();
 
-				result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-				result.updateTimestamp("DATELASTPLAY", new Timestamp(System.currentTimeMillis()));
-				result.updateInt("PLAYCOUNT", playCount);
-				if (lastPlaybackPosition != null) {
-					result.updateDouble("LASTPLAYBACKPOSITION", lastPlaybackPosition);
-				}
+					if (isCreatingNewRecord) {
+						playCount = 1;
+						result.moveToInsertRow();
+						result.updateString(COL_FILENAME, fullPathToFile);
+						result.updateInt(COL_USERID, userId);
+					} else {
+						playCount = result.getInt(COL_PLAYCOUNT) + 1;
+					}
 
-				if (isCreatingNewRecord) {
-					result.insertRow();
-				} else {
-					result.updateRow();
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+					result.updateTimestamp(COL_DATELASTPLAY, new Timestamp(System.currentTimeMillis()));
+					result.updateInt(COL_PLAYCOUNT, playCount);
+					if (lastPlaybackPosition != null) {
+						result.updateDouble(COL_LASTPLAYBACKPOSITION, lastPlaybackPosition);
+					}
+
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
 				}
 			}
 		} catch (SQLException e) {
@@ -349,158 +372,35 @@ public final class MediaTableFilesStatus extends MediaTable {
 		}
 	}
 
-	/**
-	 * Sets whether each file within the folder is fully played.
-	 *
-	 * @param connection the db connection
-	 * @param fullPathToFolder the full path to the folder.
-	 * @param isFullyPlayed whether to mark the folder content as fully played
-	 *            or not fully played.
-	 */
-	public static void setDirectoryFullyPlayed(final Connection connection, final String fullPathToFolder, final boolean isFullyPlayed) {
+	public static void setBookmark(final Connection connection, final String fullPathToFile, final int userId, final int bookmark) {
 		boolean trace = LOGGER.isTraceEnabled();
-		String pathWithWildcard = sqlLikeEscape(FileUtil.appendPathSeparator(fullPathToFolder)) + "%";
-		String statusLineString = isFullyPlayed ? Messages.getString("FoldTab.75") : Messages.getString("FoldTab.76");
-		PMS.get().getFrame().setStatusLine(statusLineString + ": " + fullPathToFolder);
-
 		try {
-			String query = "SELECT ID, FILENAME FROM FILES WHERE FILENAME LIKE " + sqlQuote(pathWithWildcard);
-			if (trace) {
-				LOGGER.trace("Searching for file in " + TABLE_NAME + " with \"{}\" before setDirectoryFullyPlayed", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet result = statement.executeQuery(query)
-			) {
-				while (result.next()) {
-					MediaMonitor.setFullyPlayed(result.getString("FILENAME"), isFullyPlayed, null);
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ALL, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE)) {
+				statement.setString(1, fullPathToFile);
+				statement.setInt(2, userId);
+				if (trace) {
+					LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, statement);
 				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error(
-				LOG_ERROR_WHILE_VAR_IN_FOR,
-				DATABASE_NAME,
-				"writing status",
-				isFullyPlayed,
-				TABLE_NAME,
-				pathWithWildcard,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		} finally {
-			PMS.get().getFrame().setStatusLine(null);
-		}
-	}
-
-	/**
-	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
-	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see Tables#sqlLikeEscape(String)
-	 *
-	 * @param connection the db connection
-	 * @param filename the filename to remove
-	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
-	 *            operator, {@code false} if {@code =} should be used.
-	 */
-	public static void remove(final Connection connection, final String filename, boolean useLike) {
-		try {
-			String query =
-				"DELETE FROM " + TABLE_NAME + " WHERE FILENAME " +
-				(useLike ? "LIKE " : "= ") + sqlQuote(filename);
-			try (Statement statement = connection.createStatement()) {
-				int rows = statement.executeUpdate(query);
-				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
-			LOGGER.trace("", e);
-		}
-	}
-
-	public static Boolean isFullyPlayed(final Connection connection, final String fullPathToFile) {
-		boolean trace = LOGGER.isTraceEnabled();
-		Boolean result = null;
-
-		try {
-			String query = "SELECT ISFULLYPLAYED FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				if (resultSet.next()) {
-					result = resultSet.getBoolean("ISFULLYPLAYED");
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
-			LOGGER.trace("", e);
-		}
-
-		return result;
-	}
-
-	public static int getBookmark(final Connection connection, final String fullPathToFile) {
-		boolean trace = LOGGER.isTraceEnabled();
-		int result = 0;
-
-		try {
-			String query = "SELECT BOOKMARK FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				if (resultSet.next()) {
-					result = resultSet.getInt("BOOKMARK");
-				}
-			}
-		} catch (SQLException e) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file bookmark", TABLE_NAME, fullPathToFile, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return result;
-	}
-
-	public static void setBookmark(final Connection connection, final String fullPathToFile, final int bookmark) {
-		boolean trace = LOGGER.isTraceEnabled();
-		String query;
-
-		try {
-			query = "SELECT * FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(fullPathToFile) + " LIMIT 1";
-			if (trace) {
-				LOGGER.trace("Searching for file in {} with \"{}\" before setBookmark", TABLE_NAME, query);
-			}
-
-			try (
-				Statement statement = connection.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-				ResultSet result = statement.executeQuery(query)
-			) {
-				if (result.next()) {
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateInt("BOOKMARK", bookmark);
-					result.updateRow();
-					if (trace) {
-						LOGGER.trace("Updating existing bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+				try (ResultSet result = statement.executeQuery()) {
+					boolean isCreatingNewRecord = !result.next();
+					if (isCreatingNewRecord) {
+						result.moveToInsertRow();
+						result.updateString(COL_FILENAME, fullPathToFile);
+						result.updateInt(COL_USERID, userId);
+						result.updateBoolean(COL_ISFULLYPLAYED, false);
 					}
-				} else {
-					result.moveToInsertRow();
-					result.updateString("FILENAME", fullPathToFile);
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
-					result.updateBoolean("ISFULLYPLAYED", false);
-					result.updateInt("BOOKMARK", bookmark);
-					result.insertRow();
-					if (trace) {
-						LOGGER.trace("Inserting bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
+					result.updateInt(COL_BOOKMARK, bookmark);
+					if (isCreatingNewRecord) {
+						if (trace) {
+							LOGGER.trace("Inserting bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+						}
+						result.insertRow();
+					} else {
+						if (trace) {
+							LOGGER.trace("Updating existing bookmark in {}: \"{}\" ", TABLE_NAME, bookmark);
+						}
+						result.updateRow();
 					}
 				}
 			}
@@ -509,4 +409,99 @@ public final class MediaTableFilesStatus extends MediaTable {
 			LOGGER.trace("", e);
 		}
 	}
+
+	/**
+	 * Removes an entry or entries based on its FILENAME. If {@code useLike} is
+	 * {@code true}, {@code filename} must be properly escaped.
+	 *
+	 * @param connection the db connection
+	 * @param filename the filename to remove
+	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
+	 *            operator, {@code false} if {@code =} should be used.
+	 */
+	public static void remove(final Connection connection, final String filename, boolean useLike) {
+		try {
+			String sql = useLike ? SQL_DELETE_LIKE : SQL_DELETE;
+			try (PreparedStatement statement = connection.prepareStatement(sql)) {
+				statement.setString(1, filename);
+				int rows = statement.executeUpdate();
+				LOGGER.trace("Removed entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, filename);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "removing entries", TABLE_NAME, filename, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	/**
+	 * Create a copy of entries from the old filename to the new filename.
+	 *
+	 * @param connection the db connection
+	 * @param fullPathToFile the old filename
+	 * @param fullPathToNewFile the new filename
+	 */
+	public static void createCopyOnFileMoved(final Connection connection, final String fullPathToFile, final String fullPathToNewFile) {
+		try {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_MOVED)) {
+				statement.setString(1, fullPathToNewFile);
+				statement.setString(2, fullPathToFile);
+				int rows = statement.executeUpdate();
+				LOGGER.trace("Copied entries {} in " + TABLE_NAME + " for filename \"{}\"", rows, fullPathToNewFile);
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "Copying entries", TABLE_NAME, fullPathToNewFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	//used only from test class
+	protected static Boolean isFullyPlayed(final Connection connection, final String fullPathToFile, final int userId) {
+		try {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ISFULLYPLAYED)) {
+				statement.setString(1, fullPathToFile);
+				statement.setInt(2, userId);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", statement);
+				}
+				try (ResultSet result = statement.executeQuery()) {
+					if (result.next()) {
+						return result.getBoolean(COL_ISFULLYPLAYED);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "looking up file status", TABLE_NAME, fullPathToFile, e.getMessage());
+			LOGGER.trace("", e);
+		}
+
+		return null;
+	}
+
+	public static void deleteUser(final Connection connection, int userId) {
+		if (connection == null || userId < 1) {
+			return;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_USER)) {
+			statement.setInt(1, userId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Error deleteUser:{}", e.getMessage());
+		}
+	}
+
+	public static void copyUserEntries(final Connection connection, final int userId, final int userIdDest) {
+		if (connection == null || userId < 0 || userIdDest < 1) {
+			return;
+		}
+		//first ensure empty user entries (avoid duplicate)
+		deleteUser(connection, userIdDest);
+		try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT_USERCOPY)) {
+			statement.setInt(1, userIdDest);
+			statement.setInt(2, userId);
+			statement.executeUpdate();
+		} catch (SQLException e) {
+			LOGGER.error("Error copyUserEntries:{}", e.getMessage());
+		}
+	}
+
 }

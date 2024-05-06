@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.database;
 
 import java.sql.Connection;
@@ -22,6 +38,16 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 	private static final int TABLE_VERSION = 1;
 
 	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_MBID_RELEASE = "MBID_RELEASE";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_MBID_RELEASE = TABLE_NAME + "." + COL_MBID_RELEASE;
+
+	/**
 	 * Checks and creates or upgrades the table as needed.
 	 *
 	 * @param connection the {@link Connection} to use
@@ -37,7 +63,7 @@ public class MediaTableMusicBrainzReleaseLike extends MediaTable {
 
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
-		execute(connection, "CREATE TABLE " + TABLE_NAME + "(" + "MBID_RELEASE	UUID  PRIMARY KEY" + ")");
+		execute(connection, CREATE_TABLE + TABLE_NAME + "(" + COL_MBID_RELEASE + UUID_TYPE + PRIMARY_KEY + ")");
 	}
 
 }

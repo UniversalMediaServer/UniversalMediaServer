@@ -1,51 +1,43 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import net.pms.dlna.*;
-import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InvalidClassException;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.formats.Format;
-import net.pms.formats.v2.SubtitleType;
-import net.pms.image.ImageFormat;
+import net.pms.configuration.sharedcontent.SharedContentConfiguration;
+import net.pms.dlna.DLNAThumbnail;
+import net.pms.external.JavaHttpClient;
+import net.pms.gui.GuiManager;
 import net.pms.image.ImageInfo;
-import net.pms.image.ImagesUtil.ScaleType;
-import org.apache.commons.lang.StringUtils;
-import static org.apache.commons.lang3.StringUtils.*;
+import net.pms.media.MediaInfo;
+import net.pms.store.MediaStoreIds;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.ThumbnailStore;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import net.pms.util.APIUtils;
-import net.pms.util.FileUtil;
-import net.pms.util.UnknownFormatException;
-import net.pms.util.UriFileRetriever;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -56,10 +48,6 @@ import net.pms.util.UriFileRetriever;
 public class MediaTableFiles extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableFiles.class);
 	public static final String TABLE_NAME = "FILES";
-
-	public static final String NONAME = "###";
-
-	private static final UriFileRetriever URI_FILE_RETRIEVER = new UriFileRetriever();
 
 	/**
 	 * Table version must be increased every time a change is done to the table
@@ -82,28 +70,99 @@ public class MediaTableFiles extends MediaTable {
 	 *       API metadata version is saved for that file
 	 * - 25: Renamed columns to avoid reserved SQL and H2 keywords (part of
 	 *       updating H2Database to v2)
-	 * - 26-27: No db changes, improved filename parsing
+	 * - 26: No db changes, improved filename parsing
+	 * - 27: Added many columns for TMDB information
+	 * - 28: No db changes, clear database metadata to populate new columns
+	 * - 29-30: No db changes, improved filename parsing
+	 * - 31: Redo the changes from version 27 because the versioning got muddled
+	 * - 32: Added an index for the Media Library Movies folder that includes duration
+	 * - 34: Added HDRFORMAT column
+	 * - 35: Added HDRFORMATCOMPATIBILITY column
+	 * - 36: rename indexes
+	 * - 37: remove video infos
+	 * - 38: added Mime type
+	 * - 39: typo on column name
+	 * - 40: added thumbnail source
+	 * - 41: ID as BIGINT
+	 * - 42: ID as IDENTITY
 	 */
-	private static final int TABLE_VERSION = 27;
-
-	// Database column sizes
-	private static final int SIZE_CODECV = 32;
-	private static final int SIZE_FRAMERATE = 32;
-	private static final int SIZE_AVCLEVEL = 3;
-	private static final int SIZE_CONTAINER = 32;
-	private static final int SIZE_IMDBID = 16;
-	private static final int SIZE_MATRIX_COEFFICIENTS = 16;
-	private static final int SIZE_MUXINGMODE = 32;
-	private static final int SIZE_FRAMERATEMODE = 16;
-
-	private static final int SIZE_SAMPLEFREQ = 16;
-	private static final int SIZE_CODECA = 32;
-	private static final int SIZE_GENRE = 64;
-	private static final int SIZE_YEAR = 4;
-	private static final int SIZE_TVSEASON = 4;
-	private static final int SIZE_TVEPISODENUMBER = 8;
+	private static final int TABLE_VERSION = 42;
 
 	/**
+	 * COLUMNS NAMES
+	 */
+	public static final String COL_ID = "ID";
+	public static final String COL_THUMBID = "THUMBID";
+	private static final String COL_THUMB_SRC = "THUMB_SRC";
+	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
+	public static final String COL_FILENAME = "FILENAME";
+	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_PARSER = "PARSER";
+	private static final String COL_MEDIA_SIZE = "MEDIA_SIZE";
+	private static final String COL_CONTAINER = "CONTAINER";
+	private static final String COL_MIMETYPE = "MIMETYPE";
+	private static final String COL_TITLECONTAINER = "TITLECONTAINER";
+	private static final String COL_DURATION = "DURATION";
+	private static final String COL_BITRATE = "BITRATE";
+	private static final String COL_FRAMERATE = "FRAMERATE";
+
+	private static final String COL_ASPECTRATIODVD = "ASPECTRATIODVD";
+	private static final String COL_IMAGEINFO = "IMAGEINFO";
+	private static final String COL_IMAGECOUNT = "IMAGECOUNT";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_ID = TABLE_NAME + "." + COL_ID;
+	public static final String TABLE_COL_FORMAT_TYPE = TABLE_NAME + "." + COL_FORMAT_TYPE;
+	public static final String TABLE_COL_FILENAME = TABLE_NAME + "." + COL_FILENAME;
+	public static final String TABLE_COL_MODIFIED = TABLE_NAME + "." + COL_MODIFIED;
+	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
+	public static final String TABLE_COL_DURATION = TABLE_NAME + "." + COL_DURATION;
+
+	/**
+	 * SQL Jointures
+	 */
+	public static final String SQL_LEFT_JOIN_TABLE_FILES_STATUS = LEFT_JOIN + MediaTableFilesStatus.TABLE_NAME + ON + TABLE_COL_FILENAME + EQUAL + MediaTableFilesStatus.TABLE_COL_FILENAME;
+	public static final String SQL_LEFT_JOIN_TABLE_THUMBNAILS = LEFT_JOIN + MediaTableThumbnails.TABLE_NAME + ON + TABLE_COL_THUMBID + EQUAL + MediaTableThumbnails.TABLE_COL_ID;
+	public static final String SQL_LEFT_JOIN_TABLE_AUDIO_METADATA = LEFT_JOIN + MediaTableAudioMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableAudioMetadata.TABLE_COL_FILEID;
+	public static final String SQL_LEFT_JOIN_TABLE_VIDEO_METADATA = LEFT_JOIN + MediaTableVideoMetadata.TABLE_NAME + ON + TABLE_COL_ID + EQUAL + MediaTableVideoMetadata.TABLE_COL_FILEID;
+
+	/**
+	 * SQL References
+	 */
+	public static final String REFERENCE_TABLE_COL_ID = TABLE_NAME + "(" + COL_ID + ")";
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_ROW_COUNT = SELECT + "COUNT(*)" + FROM + TABLE_NAME;
+	private static final String SQL_GET_FILENAME_MODIFIED_ID = SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + COMMA + TABLE_COL_ID + FROM + TABLE_NAME;
+	private static final String SQL_GET_ALL_BY_FILENAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ALL_FILENAME_MODIFIED = SELECT_ALL + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_THUMBNAILS + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_FILENAME_BY_ID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_GET_ID_FILENAME = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_ID_FILENAME_MODIFIED = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
+	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
+
+	/**
+	 * Used by child tables
+	 */
+	public static final String CHILD_ID = "FILEID";
+
+	public static final String NONAME = "###";
+
+	/**
+	 * Database column sizes
+	 */
+	private static final int SIZE_CONTAINER = 32;
+
+	/*
 	 * Checks and creates or upgrades the table as needed.
 	 *
 	 * @param connection the {@link Connection} to use
@@ -146,21 +205,17 @@ public class MediaTableFiles extends MediaTable {
 			for (int version = currentVersion; version < TABLE_VERSION; version++) {
 				LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 				switch (version) {
-					case 23:
+					case 23 -> {
 						try (Statement statement = connection.createStatement()) {
-							StringBuilder sb = new StringBuilder();
-							sb.append("ALTER TABLE ").append(TABLE_NAME).append(" ADD VERSION VARCHAR2(").append(SIZE_MAX).append(')');
-							statement.execute(sb.toString());
-
 							/*
-							 * Since the last release, 10.12.0, we fixed some bugs with TV episode filename parsing
-							 * so here we clear any cached data for non-episodes.
-							 */
-							sb = new StringBuilder();
+							* Since the last release, 10.12.0, we fixed some bugs with TV episode filename parsing
+							* so here we clear any cached data for non-episodes.
+							*/
+							StringBuilder sb = new StringBuilder();
 							sb
-								.append("UPDATE ")
-									.append("FILES ")
-								.append("SET ")
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -169,71 +224,60 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENUMBER = NULL, ")
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
-									.append("EXTRAINFORMATION = NULL ")
-								.append("WHERE ")
-									.append("NOT ISTVEPISODE");
+									.append("EXTRAINFORMATION = NULL")
+								.append(WHERE)
+									.append(NOT).append("ISTVEPISODE");
 							statement.execute(sb.toString());
 
-							statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on " + TABLE_NAME + " (FILENAME, MODIFIED, VERSION, IMDBID)");
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-						break;
-					case 24:
+					}
+					case 24 -> {
 						//Rename sql reserved words
 						LOGGER.trace("Deleting index TYPE_ISTV");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_ISTV");
 						LOGGER.trace("Deleting index TYPE_ISTV_SIMPLENAME");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV_SIMPLENAME");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_ISTV_SIMPLENAME");
 						LOGGER.trace("Deleting index TYPE_ISTV_NAME");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV_NAME");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_ISTV_NAME");
 						LOGGER.trace("Deleting index TYPE_ISTV_NAME_SEASON");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV_NAME_SEASON");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_ISTV_NAME_SEASON");
 						LOGGER.trace("Deleting index TYPE_ISTV_YEAR_STEREOSCOPY");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_ISTV_YEAR_STEREOSCOPY");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_ISTV_YEAR_STEREOSCOPY");
 						LOGGER.trace("Deleting index TYPE_WIDTH_HEIGHT");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_WIDTH_HEIGHT");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_WIDTH_HEIGHT");
 						LOGGER.trace("Deleting index TYPE_MODIFIED");
-						executeUpdate(connection, "DROP INDEX IF EXISTS TYPE_MODIFIED");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "TYPE_MODIFIED");
 						if (isColumnExist(connection, TABLE_NAME, "TYPE")) {
 							LOGGER.trace("Renaming column name TYPE to FORMAT_TYPE");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `TYPE` RENAME TO FORMAT_TYPE");
+							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`TYPE` " + RENAME_TO + COL_FORMAT_TYPE);
 						}
 						if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 							LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`YEAR` " + RENAME_TO + "MEDIA_YEAR");
 						}
 						if (isColumnExist(connection, TABLE_NAME, "SIZE")) {
 							LOGGER.trace("Renaming column name SIZE to MEDIA_SIZE");
-							executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `SIZE` RENAME TO MEDIA_SIZE");
+							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`SIZE` " + RENAME_TO + COL_MEDIA_SIZE);
 						}
 						LOGGER.trace("Creating index FORMAT_TYPE");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
-						LOGGER.trace("Creating index FORMAT_TYPE_ISTV");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE)");
-						LOGGER.trace("Creating index FORMAT_TYPE_ISTV_SIMPLENAME");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV_SIMPLENAME on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
-						LOGGER.trace("Creating index FORMAT_TYPE_ISTV_NAME");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV_NAME on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAME)");
-						LOGGER.trace("Creating index FORMAT_TYPE_ISTV_NAME_SEASON");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV_NAME_SEASON on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
-						LOGGER.trace("Creating index FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MEDIA_YEAR, STEREOSCOPY)");
+						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
 						LOGGER.trace("Creating index FORMAT_TYPE_WIDTH_HEIGHT");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
+						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
 						LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
-						executeUpdate(connection, "CREATE INDEX FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
-						break;
-					case 25:
+						executeUpdate(connection, CREATE_INDEX + "FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
+					}
+					case 25 -> {
 						try (Statement statement = connection.createStatement()) {
 							/*
-							 * Since the last release, 10.15.0, we fixed some bugs with TV episode and sport
-							 * filename parsing so here we clear any cached data for non-episodes.
-							 */
+							* Since the last release, 10.15.0, we fixed some bugs with TV episode and sport
+							* filename parsing so here we clear any cached data for non-episodes.
+							*/
 							StringBuilder sb = new StringBuilder();
 							sb
-								.append("UPDATE ")
-									.append("FILES ")
-								.append("SET ")
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -242,24 +286,36 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENUMBER = NULL, ")
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
-									.append("EXTRAINFORMATION = NULL ")
-								.append("WHERE ")
+									.append("EXTRAINFORMATION = NULL")
+								.append(WHERE)
 									.append("NOT ISTVEPISODE");
 							statement.execute(sb.toString());
 						}
+
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-						break;
-					case 26:
+					}
+					case 26 -> {
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 27 -> {
+						// This version was for testing, left here to not break tester dbs
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 28 -> {
+						// This didn't work and was fixed in the next version
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 29 -> {
 						try (Statement statement = connection.createStatement()) {
 							/*
-							 * Since the last release, 10.21.0.1, we fixed some bugs with miniseries
-							 * filename parsing so here we clear any cached data for potential miniseries.
-							 */
+							* Since the last release, 10.21.0.1, we fixed some bugs with miniseries
+							* filename parsing so here we clear any cached data for potential miniseries.
+							*/
 							StringBuilder sb = new StringBuilder();
 							sb
-								.append("UPDATE ")
-									.append("FILES ")
-								.append("SET ")
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
 									.append("IMDBID = NULL, ")
 									.append("MEDIA_YEAR = NULL, ")
 									.append("MOVIEORSHOWNAME = NULL, ")
@@ -268,16 +324,146 @@ public class MediaTableFiles extends MediaTable {
 									.append("TVEPISODENUMBER = NULL, ")
 									.append("TVEPISODENAME = NULL, ")
 									.append("ISTVEPISODE = NULL, ")
-									.append("EXTRAINFORMATION = NULL ")
-								.append("WHERE ")
+									.append("EXTRAINFORMATION = NULL")
+								.append(WHERE)
 									.append("FILENAME REGEXP '[0-9]of[0-9]'");
 							statement.execute(sb.toString());
 						}
 						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
-						break;
-					default:
+					}
+					case 30 -> {
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 31 -> {
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY");
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 32 -> {
+						//ensure MediaTableVideoMetadatas is created
+						MediaTableVideoMetadata.checkTable(connection);
+
+						//drop all metadata indexes
+						String[] indexes = {
+							"IDX_FILENAME_MODIFIED_IMDBID",
+							"FILENAME_MODIFIED_VERSION_IMDBID",
+							"FORMAT_TYPE_ISTV",
+							"FORMAT_TYPE_ISTV_NAME",
+							"FORMAT_TYPE_ISTV_SIMPLENAME",
+							"FORMAT_TYPE_ISTV_NAME_SEASON",
+							"FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY",
+							"FORMAT_TYPE_ISTV_YEAR_DURATION_STEREOSCOPY"
+						};
+						for (String index : indexes)  {
+							executeUpdate(connection, DROP_INDEX + IF_EXISTS + "" + index);
+						}
+
+						//set old json datas to be rescanned
+						if (isColumnExist(connection, TABLE_NAME, "VERSION")) {
+							String[] badJsonColumns = {"CREDITS", "EXTERNALIDS", "PRODUCTIONCOMPANIES", "PRODUCTIONCOUNTRIES"};
+							for (String badJsonColumn : badJsonColumns) {
+								if (isColumnExist(connection, TABLE_NAME, badJsonColumn)) {
+									executeUpdate(connection, "UPDATE " + TABLE_NAME + " SET IMDBID = NULL WHERE RIGHT(" + badJsonColumn + ", 1) = ','");
+								}
+							}
+						}
+
+						//move datas
+						String[] columns = {"IMDBID", "MEDIA_YEAR", "MOVIEORSHOWNAME", "MOVIEORSHOWNAMESIMPLE", "TVSEASON", "TVEPISODENUMBER", "TVEPISODENAME", "ISTVEPISODE", "EXTRAINFORMATION", "VERSION",
+							"BUDGET", "CREDITS", "EXTERNALIDS", "HOMEPAGE", "IMAGES", "ORIGINALLANGUAGE", "ORIGINALTITLE", "PRODUCTIONCOMPANIES", "PRODUCTIONCOUNTRIES", "REVENUE"};
+						if (isColumnExist(connection, TABLE_NAME, "MOVIEORSHOWNAMESIMPLE")) {
+							StringBuilder sb = new StringBuilder();
+							StringBuilder sbselect = new StringBuilder();
+							sb.append(INSERT_INTO).append(MediaTableVideoMetadata.TABLE_NAME);
+							sb.append(" (FILEID");
+							sbselect.append(COL_ID);
+							for (String column : columns)  {
+								if (isColumnExist(connection, TABLE_NAME, column)) {
+									sb.append(", ");
+									//version was refactored
+									if ("VERSION".equals(column)) {
+										sb.append("API_VERSION");
+									} else {
+										sb.append(column);
+									}
+									sbselect.append(", ").append(column);
+								}
+							}
+							sb.append(") ");
+							sb.append(SELECT).append(sbselect.toString()).append(FROM).append(TABLE_NAME);
+							sb.append(" WHERE MOVIEORSHOWNAMESIMPLE IS NOT NULL");
+							sb.append(" AND ID NOT IN (SELECT FILEID FROM ").append(MediaTableVideoMetadata.TABLE_NAME).append(")");
+							executeUpdate(connection, sb.toString());
+						}
+
+						//delete old columns
+						for (String column : columns)  {
+							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " DROP COLUMN IF EXISTS " + column);
+						}
+
+						executeUpdate(connection, CREATE_INDEX + "IF NOT EXISTS " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + "_IDX ON " + TABLE_NAME + "(" + COL_THUMBID + ")");
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
+					}
+					case 33 -> {
+						LOGGER.trace("Adding HDRFORMAT column");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMAT VARCHAR");
+					}
+					case 34 -> {
+						LOGGER.trace("Adding HDRFORMATCOMPATIBILITY column");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + " ADD COLUMN IF NOT EXISTS HDRFORMATCOMPATIBILITY VARCHAR");
+					}
+					case 35 -> {
+						//rename indexes
+						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "IDX_FILE" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER);
+						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + COL_FORMAT_TYPE + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER);
+						executeUpdate(connection, ALTER_INDEX + IF_EXISTS + "FORMAT_TYPE_MODIFIED" + RENAME_TO + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER);
+					}
+					case 36 -> {
+						//remove indexes
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + "FORMAT_TYPE_WIDTH_HEIGHT");
+						executeUpdate(connection, DROP_INDEX + IF_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + "WIDTH" + CONSTRAINT_SEPARATOR + "HEIGHT" + IDX_MARKER);
+						String[] columns = {COL_FRAMERATE, "ASPECTRATIOCONTAINER", "ASPECTRATIOVIDEOTRACK", "REFRAMES", "AVCLEVEL", "WIDTH",
+							"HEIGHT", "CODECV", "FRAMERATEMODE", "MATRIXCOEFFICIENTS", "TITLEVIDEOTRACK", "VIDEOTRACKCOUNT", "STEREOSCOPY",
+							"BITDEPTH", "HDRFORMAT", "HDRFORMATCOMPATIBILITY", "PIXELASPECTRATIO", "SCANTYPE", "SCANORDER", "MUXINGMODE"
+						};
+						//delete old columns
+						for (String column : columns)  {
+							executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + column);
+						}
+						LOGGER.trace("Adding back FRAMERATE column");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_FRAMERATE + DOUBLE_PRECISION);
+						LOGGER.trace("Adding PARSER column");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_PARSER + VARCHAR_32);
+						//check all cascade constaints
+						ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
+						ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
+						ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);
+						ensureCascadeConstraint(connection, MediaTableSubtracks.TABLE_NAME, MediaTableSubtracks.COL_FILEID, TABLE_NAME, COL_ID);
+						ensureCascadeConstraint(connection, MediaTableVideotracks.TABLE_NAME, MediaTableVideotracks.COL_FILEID, TABLE_NAME, COL_ID);
+						ensureCascadeConstraint(connection, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.COL_FILEID, TABLE_NAME, COL_ID);
+					}
+					case 37 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_MIMETYPE + VARCHAR_32);
+					}
+					case 38 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "COL_MIMETYPE" + RENAME_TO + COL_MIMETYPE);
+					}
+					case 39 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_THUMB_SRC + VARCHAR_32);
+					}
+					case 40 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + BIGINT);
+					}
+					case 41 -> {
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + IDENTITY);
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + COL_ID + " RESTART WITH (SELECT MAX(ID) + 1 FROM FILES)");
+					}
+					default -> {
 						// Do the dumb way
 						force = true;
+					}
+				}
+				if (force) {
+					break;
 				}
 			}
 			try {
@@ -294,9 +480,21 @@ public class MediaTableFiles extends MediaTable {
 		if (force) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
+				//delete rows to cascade delete
+				LOGGER.error("Deleting data from table: {}", TABLE_NAME);
+				executeUpdate(connection, DELETE_FROM + TABLE_NAME);
+				//remove table and constraints
+				MediaDatabase.dropCascadeConstraint(connection, TABLE_NAME);
 				MediaDatabase.dropTable(connection, TABLE_NAME);
 				createTable(connection);
 				MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
+				//put back constraints
+				ensureCascadeConstraint(connection, MediaTableAudioMetadata.TABLE_NAME, MediaTableAudioMetadata.COL_FILEID, TABLE_NAME, COL_ID);
+				ensureCascadeConstraint(connection, MediaTableAudiotracks.TABLE_NAME, MediaTableAudiotracks.COL_FILEID, TABLE_NAME, COL_ID);
+				ensureCascadeConstraint(connection, MediaTableChapters.TABLE_NAME, MediaTableChapters.COL_FILEID, TABLE_NAME, COL_ID);
+				ensureCascadeConstraint(connection, MediaTableSubtracks.TABLE_NAME, MediaTableSubtracks.COL_FILEID, TABLE_NAME, COL_ID);
+				ensureCascadeConstraint(connection, MediaTableVideotracks.TABLE_NAME, MediaTableVideotracks.COL_FILEID, TABLE_NAME, COL_ID);
+				ensureCascadeConstraint(connection, MediaTableVideoMetadata.TABLE_NAME, MediaTableVideoMetadata.COL_FILEID, TABLE_NAME, COL_ID);
 			} catch (SQLException se) {
 				LOGGER.error("SQL error while (re)initializing tables: {}", se.getMessage());
 				LOGGER.trace("", se);
@@ -305,418 +503,178 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	private static void createTable(final Connection connection) throws SQLException {
-		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
-		try (Statement statement = connection.createStatement()) {
-			StringBuilder sb = new StringBuilder();
-			sb.append("CREATE TABLE " + TABLE_NAME + " (");
-			sb.append("  ID                      INT AUTO_INCREMENT PRIMARY KEY");
-			sb.append(", THUMBID                 BIGINT");
-			sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL UNIQUE");
-			sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
-			sb.append(", FORMAT_TYPE             INT");
-			sb.append(", DURATION                DOUBLE");
-			sb.append(", BITRATE                 INT");
-			sb.append(", WIDTH                   INT");
-			sb.append(", HEIGHT                  INT");
-			sb.append(", MEDIA_SIZE              NUMERIC");
-			sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(')');
-			sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(')');
-			sb.append(", ASPECTRATIODVD          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", REFRAMES                TINYINT");
-			sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVCLEVEL).append(')');
-			sb.append(", IMAGEINFO               OTHER");
-			sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(')');
-			sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(')');
-			sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATEMODE).append(')');
-			sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(')');
-			sb.append(", TITLECONTAINER          VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", TITLEVIDEOTRACK         VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", VIDEOTRACKCOUNT         INT");
-			sb.append(", IMAGECOUNT              INT");
-			sb.append(", BITDEPTH                INT");
-			sb.append(", PIXELASPECTRATIO        VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", SCANTYPE                OTHER");
-			sb.append(", SCANORDER               OTHER");
-			sb.append(", IMDBID                  VARCHAR2(").append(SIZE_IMDBID).append(')');
-			sb.append(", MEDIA_YEAR              VARCHAR2(").append(SIZE_YEAR).append(')');
-			sb.append(", MOVIEORSHOWNAME         VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", MOVIEORSHOWNAMESIMPLE   VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", TVSEASON                VARCHAR2(").append(SIZE_TVSEASON).append(')');
-			sb.append(", TVEPISODENUMBER         VARCHAR2(").append(SIZE_TVEPISODENUMBER).append(')');
-			sb.append(", TVEPISODENAME           VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", ISTVEPISODE             BOOLEAN");
-			sb.append(", EXTRAINFORMATION        VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(", VERSION                 VARCHAR2(").append(SIZE_MAX).append(')');
-			sb.append(")");
-			LOGGER.trace("Creating table FILES with:\n\n{}\n", sb.toString());
+		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
+		execute(connection,
+			CREATE_TABLE + TABLE_NAME + " (" +
+				COL_ID                      + IDENTITY                                       + COMMA +
+				COL_THUMBID                 + BIGINT                                         + COMMA +
+				COL_THUMB_SRC               + VARCHAR_32                                     + COMMA +
+				COL_FILENAME                + VARCHAR_1024    + NOT_NULL + " " + UNIQUE      + COMMA +
+				COL_MODIFIED                + TIMESTAMP       + NOT_NULL                     + COMMA +
+				COL_PARSER                  + VARCHAR_32                                     + COMMA +
+				COL_FORMAT_TYPE             + INTEGER                                        + COMMA +
+				COL_MEDIA_SIZE              + NUMERIC                                        + COMMA +
+				COL_CONTAINER               + VARCHAR_32                                     + COMMA +
+				COL_MIMETYPE                + VARCHAR_32                                     + COMMA +
+				COL_TITLECONTAINER          + VARCHAR_SIZE_MAX                               + COMMA +
+				COL_DURATION                + DOUBLE_PRECISION                               + COMMA +
+				COL_BITRATE                 + INTEGER                                        + COMMA +
+				COL_FRAMERATE               + DOUBLE_PRECISION                               + COMMA +
+				//all columns here are not file (container) related but media related
+				COL_ASPECTRATIODVD          + VARCHAR_SIZE_MAX                               + COMMA +
+				COL_IMAGECOUNT              + INTEGER                                        + COMMA +
+				COL_IMAGEINFO               + OTHER                                          +
+			")"
+		);
 
-			statement.execute(sb.toString());
+		LOGGER.trace("Creating index on " + COL_FILENAME + COMMA + COL_MODIFIED);
+		execute(connection, CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FILENAME + COMMA + COL_MODIFIED + ")");
 
-			LOGGER.trace("Creating index IDX_FILE");
-			statement.execute("CREATE UNIQUE INDEX IDX_FILE ON " + TABLE_NAME + " (FILENAME, MODIFIED)");
-			LOGGER.trace("Creating index IDX_FILENAME_MODIFIED_IMDBID");
-			statement.execute("CREATE INDEX IDX_FILENAME_MODIFIED_IMDBID ON " + TABLE_NAME + " (FILENAME, MODIFIED, IMDBID)");
+		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE);
+		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + ")");
 
-			LOGGER.trace("Creating index FILENAME_MODIFIED_VERSION_IMDBID");
-			statement.execute("CREATE INDEX FILENAME_MODIFIED_VERSION_IMDBID on " + TABLE_NAME + " (FILENAME, MODIFIED, VERSION, IMDBID)");
+		LOGGER.trace("Creating index on " + COL_FORMAT_TYPE + COMMA + COL_MODIFIED);
+		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FORMAT_TYPE + CONSTRAINT_SEPARATOR + COL_MODIFIED + IDX_MARKER + ON + TABLE_NAME + " (" + COL_FORMAT_TYPE + COMMA + COL_MODIFIED + ")");
 
-			LOGGER.trace("Creating index FORMAT_TYPE");
-			statement.execute("CREATE INDEX FORMAT_TYPE on " + TABLE_NAME + " (FORMAT_TYPE)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_SIMPLENAME");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_SIMPLENAME on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAMESIMPLE)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_NAME");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_NAME on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAME)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_NAME_SEASON");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_NAME_SEASON on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MOVIEORSHOWNAME, TVSEASON)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY");
-			statement.execute("CREATE INDEX FORMAT_TYPE_ISTV_YEAR_STEREOSCOPY on " + TABLE_NAME + " (FORMAT_TYPE, ISTVEPISODE, MEDIA_YEAR, STEREOSCOPY)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_WIDTH_HEIGHT");
-			statement.execute("CREATE INDEX FORMAT_TYPE_WIDTH_HEIGHT on " + TABLE_NAME + " (FORMAT_TYPE, WIDTH, HEIGHT)");
-
-			LOGGER.trace("Creating index FORMAT_TYPE_MODIFIED");
-			statement.execute("CREATE INDEX FORMAT_TYPE_MODIFIED on " + TABLE_NAME + " (FORMAT_TYPE, MODIFIED)");
-		}
+		LOGGER.trace("Creating index on " + COL_THUMBID);
+		execute(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")");
 	}
 
 	/**
-	 * Checks whether a row representing a {@link DLNAMediaInfo} instance for
+	 * Checks whether a row representing a {@link MediaInfo} instance for
 	 * the given media exists in the database.
 	 *
 	 * @param connection the db connection
-	 * @param name the full path of the media.
+	 * @param filename the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @return {@code true} if the data exists for this media, {@code false}
 	 *         otherwise.
 	 */
-	public static boolean isDataExists(final Connection connection, String name, long modified) {
-		boolean found = false;
-		try {
-			try (PreparedStatement statement = connection.prepareStatement("SELECT ID FROM " + TABLE_NAME + " WHERE FILENAME = ? AND MODIFIED = ? LIMIT 1")) {
-				statement.setString(1, name);
-				statement.setTimestamp(2, new Timestamp(modified));
-				try (ResultSet resultSet = statement.executeQuery()) {
-					if (resultSet.next()) {
-						found = true;
-					}
-				}
-			}
-		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, name, se.getMessage());
-			LOGGER.trace("", se);
-			return false;
-		}
-		return found;
+	public static boolean isDataExists(final Connection connection, String filename, long modified) {
+		return getFileId(connection, filename, modified) != null;
 	}
 
 	/**
-	 * Checks whether the latest data from our API has been written to the
-	 * database for this video.
-	 * If we could not fetch the latest version from the API, it will check
-	 * whether any version exists in the database.
+	 * Gets the file Id for the given media in the database.
 	 *
 	 * @param connection the db connection
-	 * @param name the full path of the video.
+	 * @param filename the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return whether the latest API metadata exists for this video.
+	 * @return the file id if the data exists for this media, -1 otherwise.
 	 */
-	public static boolean doesLatestApiMetadataExist(final Connection connection, String name, long modified) {
-		boolean found = false;
-		StringBuilder sql = new StringBuilder();
-		sql.append("SELECT ID FROM " + TABLE_NAME + " WHERE FILENAME = ? AND MODIFIED = ? ");
-		String latestVersion = null;
-		if (CONFIGURATION.getExternalNetwork()) {
-			latestVersion = APIUtils.getApiDataVideoVersion();
-			if (latestVersion != null) {
-				sql.append("AND VERSION = ? ");
-			}
-		}
-		sql.append("AND IMDBID IS NOT NULL LIMIT 1");
-
+	public static Long getFileId(final Connection connection, String filename, long modified) {
 		try {
-			try (PreparedStatement statement = connection.prepareStatement(sql.toString())) {
-				statement.setString(1, name);
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_FILENAME_MODIFIED)) {
+				statement.setString(1, filename);
 				statement.setTimestamp(2, new Timestamp(modified));
-				if (latestVersion != null) {
-					statement.setString(3, latestVersion);
-				}
 				try (ResultSet resultSet = statement.executeQuery()) {
 					if (resultSet.next()) {
-						found = true;
+						return resultSet.getLong(1);
 					}
 				}
 			}
 		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if API metadata exists for", TABLE_NAME, name, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, filename, se.getMessage());
 			LOGGER.trace("", se);
-			return false;
 		}
+		return null;
+	}
 
-		return found;
+	/**
+	 * Gets the file Id for the given media in the database.
+	 *
+	 * @param connection the db connection
+	 * @param filename the full path of the media.
+	 * @return the file id if the data exists for this media, -1 otherwise.
+	 */
+	public static Long getFileId(final Connection connection, String filename) {
+		try {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_FILENAME)) {
+				statement.setString(1, filename);
+				try (ResultSet resultSet = statement.executeQuery()) {
+					if (resultSet.next()) {
+						return resultSet.getLong(1);
+					}
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, filename, se.getMessage());
+			LOGGER.trace("", se);
+		}
+		return null;
 	}
 
 	/**
 	 * Gets a row of {@link MediaDatabase} from the database and returns it
-	 * as a {@link DLNAMediaInfo} instance, along with thumbnails, status and tracks.
+	 * as a {@link MediaInfo} instance, along with thumbnails, status and tracks.
 	 *
 	 * @param connection the db connection
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return The {@link DLNAMediaInfo} instance matching
+	 * @return The {@link MediaInfo} instance matching
 	 *         {@code name} and {@code modified}.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 * @throws IOException if an IO error occurs during the operation.
 	 */
-	public static DLNAMediaInfo getData(final Connection connection, String name, long modified) throws IOException, SQLException {
-		DLNAMediaInfo media = null;
-		ArrayList<String> externalFileReferencesToRemove = new ArrayList();
-		try {
+	public static MediaInfo getMediaInfo(final Connection connection, String filename, long modified) throws IOException, SQLException {
+		MediaInfo media = null;
+		try (
+			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_FILENAME_MODIFIED);
+		) {
+			stmt.setString(1, filename);
+			stmt.setTimestamp(2, new Timestamp(modified));
 			try (
-				PreparedStatement stmt = connection.prepareStatement(
-					"SELECT * FROM " + TABLE_NAME + " " +
-					"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID=" + MediaTableThumbnails.TABLE_NAME + ".ID " +
-					"WHERE " + TABLE_NAME + ".FILENAME = ? AND " + TABLE_NAME + ".MODIFIED = ? " +
-					"LIMIT 1"
-				);
+				ResultSet rs = stmt.executeQuery();
 			) {
-				stmt.setString(1, name);
-				stmt.setTimestamp(2, new Timestamp(modified));
-				try (
-					ResultSet rs = stmt.executeQuery();
-					PreparedStatement audios = connection.prepareStatement("SELECT * FROM " + MediaTableAudiotracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement subs = connection.prepareStatement("SELECT * FROM " + MediaTableSubtracks.TABLE_NAME + " WHERE FILEID = ?");
-					PreparedStatement status = connection.prepareStatement("SELECT * FROM " + MediaTableFilesStatus.TABLE_NAME + " WHERE FILENAME = ? LIMIT 1");
-				) {
-					if (rs.next()) {
-						media = new DLNAMediaInfo();
-						int id = rs.getInt("ID");
-						media.setDuration(toDouble(rs, "DURATION"));
-						media.setBitrate(rs.getInt("BITRATE"));
-						media.setWidth(rs.getInt("WIDTH"));
-						media.setHeight(rs.getInt("HEIGHT"));
-						media.setSize(rs.getLong("MEDIA_SIZE"));
-						media.setCodecV(rs.getString("CODECV"));
-						media.setFrameRate(rs.getString("FRAMERATE"));
-						media.setAspectRatioDvdIso(rs.getString("ASPECTRATIODVD"));
-						media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
-						media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
-						media.setReferenceFrameCount(rs.getByte("REFRAMES"));
-						media.setAvcLevel(rs.getString("AVCLEVEL"));
-						media.setImageInfo((ImageInfo) rs.getObject("IMAGEINFO"));
-						media.setThumb((DLNAThumbnail) rs.getObject("THUMBNAIL"));
-						media.setContainer(rs.getString("CONTAINER"));
-						media.setMuxingMode(rs.getString("MUXINGMODE"));
-						media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
-						media.setStereoscopy(rs.getString("STEREOSCOPY"));
-						media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
-						media.setFileTitleFromMetadata(rs.getString("TITLECONTAINER"));
-						media.setVideoTrackTitleFromMetadata(rs.getString("TITLEVIDEOTRACK"));
-						media.setVideoTrackCount(rs.getInt("VIDEOTRACKCOUNT"));
-						media.setImageCount(rs.getInt("IMAGECOUNT"));
-						media.setVideoBitDepth(rs.getInt("BITDEPTH"));
-						media.setPixelAspectRatio(rs.getString("PIXELASPECTRATIO"));
-						media.setScanType((DLNAMediaInfo.ScanType) rs.getObject("SCANTYPE"));
-						media.setScanOrder((DLNAMediaInfo.ScanOrder) rs.getObject("SCANORDER"));
-						media.setIMDbID(rs.getString("IMDBID"));
-						media.setYear(rs.getString("MEDIA_YEAR"));
-						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
-						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
+				if (rs.next()) {
+					media = new MediaInfo();
+					long fileId = rs.getLong(COL_ID);
+					media.setFileId(fileId);
+					media.setMediaParser(rs.getString(COL_PARSER));
+					media.setSize(rs.getLong(COL_MEDIA_SIZE));
+					media.setContainer(rs.getString(COL_CONTAINER));
+					media.setMimeType(rs.getString(COL_MIMETYPE));
+					media.setTitle(rs.getString(COL_TITLECONTAINER));
+					media.setDuration(toDouble(rs, COL_DURATION));
+					media.setBitRate(rs.getInt(COL_BITRATE));
+					media.setFrameRate(toDouble(rs, COL_FRAMERATE));
+					media.setThumbnailId(toLong(rs, COL_THUMBID));
+					media.setThumbnailSource(rs.getString(COL_THUMB_SRC));
+					//not media related
+					media.setAspectRatioDvdIso(rs.getString(COL_ASPECTRATIODVD));
+					media.setImageInfo((ImageInfo) rs.getObject(COL_IMAGEINFO));
+					media.setImageCount(rs.getInt(COL_IMAGECOUNT));
 
-						if (rs.getBoolean("ISTVEPISODE")) {
-							media.setTVSeason(rs.getString("TVSEASON"));
-							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-							media.setIsTVEpisode(true);
-						} else {
-							media.setIsTVEpisode(false);
-						}
-						media.setMediaparsed(true);
-						audios.setInt(1, id);
-						try (ResultSet elements = audios.executeQuery()) {
-							while (elements.next()) {
-								DLNAMediaAudio audio = new DLNAMediaAudio();
-								audio.setId(elements.getInt("ID"));
-								audio.setLang(elements.getString("LANG"));
-								audio.setAudioTrackTitleFromMetadata(elements.getString("TITLE"));
-								audio.getAudioProperties().setNumberOfChannels(elements.getInt("NRAUDIOCHANNELS"));
-								audio.setSampleFrequency(elements.getString("SAMPLEFREQ"));
-								audio.setCodecA(elements.getString("CODECA"));
-								audio.setBitsperSample(elements.getInt("BITSPERSAMPLE"));
-								audio.setAlbum(elements.getString("ALBUM"));
-								audio.setArtist(elements.getString("ARTIST"));
-								audio.setAlbumArtist(elements.getString("ALBUMARTIST"));
-								audio.setSongname(elements.getString("SONGNAME"));
-								audio.setGenre(elements.getString("GENRE"));
-								audio.setYear(elements.getInt("MEDIA_YEAR"));
-								audio.setTrack(elements.getInt("TRACK"));
-								audio.setDisc(elements.getInt("DISC"));
-								audio.getAudioProperties().setAudioDelay(elements.getInt("DELAY"));
-								audio.setMuxingModeAudio(elements.getString("MUXINGMODE"));
-								audio.setBitRate(elements.getInt("BITRATE"));
-								audio.setRating(elements.getInt("RATING"));
-								audio.setMbidRecord(elements.getString("MBID_RECORD"));
-								audio.setMbidTrack(elements.getString("MBID_TRACK"));
-								media.getAudioTracksList().add(audio);
+					media.setAudioTracks(MediaTableAudiotracks.getAudioTracks(connection, fileId));
+					media.setVideoTracks(MediaTableVideotracks.getVideoTracks(connection, fileId));
+					media.setSubtitlesTracks(MediaTableSubtracks.getSubtitleTracks(connection, fileId));
+					media.setChapters(MediaTableChapters.getChapters(connection, fileId));
+					media.setAudioMetadata(MediaTableAudioMetadata.getAudioMetadataByFileId(connection, fileId));
+					media.setVideoMetadata(MediaTableVideoMetadata.getVideoMetadataByFileId(connection, fileId));
+					//get localized thumb if thumb was not localized
+					if (media.getVideoMetadata() != null &&
+						media.getVideoMetadata().getPoster() != null &&
+						!media.getThumbnailSource().equals(ThumbnailSource.TMDB_LOC)
+						) {
+						DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(media.getVideoMetadata().getPoster());
+						if (thumbnail != null) {
+							Long thumbnailId = ThumbnailStore.getId(thumbnail);
+							if (!Objects.equals(thumbnailId, media.getThumbnailId())) {
+								media.setThumbnailId(thumbnailId);
+								MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
 							}
+							media.setThumbnailSource(ThumbnailSource.TMDB_LOC);
+							updateThumbnailId(connection, fileId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
 						}
-
-						subs.setLong(1, id);
-						try (ResultSet elements = subs.executeQuery()) {
-							while (elements.next()) {
-								String fileName = elements.getString("EXTERNALFILE");
-								File externalFile = isNotBlank(fileName) ? new File(fileName) : null;
-								if (externalFile != null && !externalFile.exists()) {
-									externalFileReferencesToRemove.add(externalFile.getPath());
-									continue;
-								}
-
-								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-								sub.setId(elements.getInt("ID"));
-								sub.setLang(elements.getString("LANG"));
-								sub.setSubtitlesTrackTitleFromMetadata(elements.getString("TITLE"));
-								sub.setType(SubtitleType.valueOfStableIndex(elements.getInt("FORMAT_TYPE")));
-								sub.setExternalFileOnly(externalFile);
-								sub.setSubCharacterSet(elements.getString("CHARSET"));
-								LOGGER.trace("Adding subtitles from the database for {}: {}", name, sub.toString());
-								media.addSubtitlesTrack(sub);
-							}
-						}
-
-						status.setString(1, name);
-						try (ResultSet elements = status.executeQuery()) {
-							if (elements.next()) {
-								media.setPlaybackCount(elements.getInt("PLAYCOUNT"));
-								media.setLastPlaybackTime(elements.getString("DATELASTPLAY"));
-								media.setLastPlaybackPosition(elements.getDouble("LASTPLAYBACKPOSITION"));
-							}
-						}
-					}
-				}
-			} finally {
-				if (!externalFileReferencesToRemove.isEmpty()) {
-					for (String externalFileReferenceToRemove : externalFileReferencesToRemove) {
-						LOGGER.trace("Deleting cached external subtitles from database because the file \"{}\" doesn't exist", externalFileReferenceToRemove);
-						deleteRowsInTable(connection, MediaTableSubtracks.TABLE_NAME, "EXTERNALFILE", externalFileReferenceToRemove, false);
-						externalFileReferencesToRemove.add(externalFileReferenceToRemove);
 					}
 				}
 			}
-		} catch (SQLException se) {
-			if (se.getCause() != null && se.getCause() instanceof IOException) {
-				if (se.getCause() instanceof InvalidClassException && se.toString().contains("net.pms.image.ExifInfo; local class incompatible")) {
-					/*
-					 * Serialization failed for ExifInfo or one of its subclasses,
-					 * this is unrecoverable so we need to remove it and allow it to
-					 * be regenerated.
-					 */
-					LOGGER.debug("Thumbnail for {} seems to be from a previous version, reparsing information", name);
-					LOGGER.trace("", se);
-
-					// Regenerate the thumbnail from a stored poster if it exists
-					String posterURL = MediaTableVideoMetadataPosters.getByFilename(connection, name);
-					if (posterURL == null) {
-						LOGGER.debug("No poster URI was found locally for {}, we need to remove and reparse the file", name);
-						removeMediaEntry(connection, name, false);
-						connection.commit();
-						return null;
-					}
-
-					try {
-						byte[] image = URI_FILE_RETRIEVER.get(posterURL);
-						DLNAThumbnail thumbnail = (DLNAThumbnail) DLNAThumbnail.toThumbnail(image, 640, 480, ScaleType.MAX, ImageFormat.JPEG, false);
-						MediaTableThumbnails.setThumbnail(connection, thumbnail, name, -1, true);
-						return getData(connection, name, modified);
-					} catch (EOFException e2) {
-						LOGGER.debug(
-							"Error reading \"{}\" thumbnail from posters table: Unexpected end of stream, probably corrupt or read error.",
-							posterURL
-						);
-					} catch (UnknownFormatException e2) {
-						LOGGER.debug("Could not read \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-					} catch (IOException e2) {
-						LOGGER.error("Error reading \"{}\" thumbnail from posters table: {}", posterURL, e2.getMessage());
-						LOGGER.trace("", e2);
-					}
-				} else {
-					throw (IOException) se.getCause();
-				}
-			}
-			throw se;
 		}
 		return media;
 	}
 
 	/**
-	 * Gets a row of {@link MediaDatabase} from the database and returns it
-	 * as a {@link DLNAMediaInfo} instance.
-	 * This is the same as getData above, but is a much smaller query because it
-	 * does not fetch thumbnails, status and tracks, and does not require a
-	 * modified value to be passed, which means we can avoid touching the filesystem
-	 * in the caller.
-	 *
-	 * @param connection the db connection
-	 * @param name the full path of the media.
-	 * @return The {@link DLNAMediaInfo} instance matching
-	 *         {@code name} and {@code modified}.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 * @throws IOException if an IO error occurs during the operation.
-	 */
-	public static DLNAMediaInfo getFileMetadata(final Connection connection, String name) throws IOException, SQLException {
-		DLNAMediaInfo media = null;
-		try {
-			try (
-				PreparedStatement stmt = connection.prepareStatement(
-					"SELECT * FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".FILENAME = ? " +
-					"LIMIT 1"
-				);
-			) {
-				stmt.setString(1, name);
-				try (
-					ResultSet rs = stmt.executeQuery();
-				) {
-					if (rs.next()) {
-						media = new DLNAMediaInfo();
-						media.setIMDbID(rs.getString("IMDBID"));
-						media.setYear(rs.getString("MEDIA_YEAR"));
-						media.setMovieOrShowName(rs.getString("MOVIEORSHOWNAME"));
-						media.setSimplifiedMovieOrShowName(rs.getString("MOVIEORSHOWNAMESIMPLE"));
-						media.setExtraInformation(rs.getString("EXTRAINFORMATION"));
-
-						if (rs.getBoolean("ISTVEPISODE")) {
-							media.setTVSeason(rs.getString("TVSEASON"));
-							media.setTVEpisodeNumber(rs.getString("TVEPISODENUMBER"));
-							media.setTVEpisodeName(rs.getString("TVEPISODENAME"));
-							media.setIsTVEpisode(true);
-						} else {
-							media.setIsTVEpisode(false);
-						}
-						media.setMediaparsed(true);
-					}
-				}
-			}
-		} catch (SQLException se) {
-			if (se.getCause() != null && se.getCause() instanceof IOException) {
-				throw (IOException) se.getCause();
-			}
-			throw se;
-		}
-		return media;
-	}
-
-	/**
-	 * Inserts or updates a database row representing an {@link DLNAMediaInfo}
+	 * Inserts or updates a database row representing an {@link MediaInfo}
 	 * instance. If the row already exists, it will be updated with the
 	 * information given in {@code media}. If it doesn't exist, a new will row
 	 * be created using the same information.
@@ -726,213 +684,62 @@ public class MediaTableFiles extends MediaTable {
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param type the integer constant from {@link Format} indicating the type
 	 *            of media.
-	 * @param media the {@link DLNAMediaInfo} row to update.
+	 * @param media the {@link MediaInfo} row to update.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, DLNAMediaInfo media) throws SQLException {
+	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
+		long fileId = -1;
 		try {
-			long fileId = -1;
-			try (PreparedStatement ps = connection.prepareStatement(
-				"SELECT " +
-					"ID, FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, FRAMERATE, " +
-					"ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, " +
-					"IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION " +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE " +
-					"FILENAME = ? " +
-				"LIMIT 1",
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_FILENAME,
 				ResultSet.TYPE_FORWARD_ONLY,
 				ResultSet.CONCUR_UPDATABLE
 			)) {
 				ps.setString(1, name);
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						fileId = rs.getLong("ID");
-						rs.updateTimestamp("MODIFIED", new Timestamp(modified));
-						rs.updateInt("FORMAT_TYPE", type);
-						if (media != null) {
-							if (media.getDuration() != null) {
-								rs.updateDouble("DURATION", media.getDurationInSeconds());
-							} else {
-								rs.updateNull("DURATION");
-							}
-
-							if (type != Format.IMAGE) {
-								if (media.getBitrate() == 0) {
-									LOGGER.debug("Could not parse the bitrate for: " + name);
-								}
-								rs.updateInt("BITRATE", media.getBitrate());
-							} else {
-								rs.updateInt("BITRATE", 0);
-							}
-							rs.updateInt("WIDTH", media.getWidth());
-							rs.updateInt("HEIGHT", media.getHeight());
-							rs.updateLong("MEDIA_SIZE", media.getSize());
-							rs.updateString("CODECV", left(media.getCodecV(), SIZE_CODECV));
-							rs.updateString("FRAMERATE", left(media.getFrameRate(), SIZE_FRAMERATE));
-							rs.updateString("ASPECTRATIODVD", left(media.getAspectRatioDvdIso(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOCONTAINER", left(media.getAspectRatioContainer(), SIZE_MAX));
-							rs.updateString("ASPECTRATIOVIDEOTRACK", left(media.getAspectRatioVideoTrack(), SIZE_MAX));
-							rs.updateByte("REFRAMES", media.getReferenceFrameCount());
-							rs.updateString("AVCLEVEL", left(media.getAvcLevel(), SIZE_AVCLEVEL));
-							updateSerialized(rs, media.getImageInfo(), "IMAGEINFO");
-							if (media.getImageInfo() != null) {
-								rs.updateObject("IMAGEINFO", media.getImageInfo());
-							} else {
-								rs.updateNull("IMAGEINFO");
-							}
-							rs.updateString("CONTAINER", left(media.getContainer(), SIZE_CONTAINER));
-							rs.updateString("MUXINGMODE", left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-							rs.updateString("FRAMERATEMODE", left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
-							rs.updateString("STEREOSCOPY", left(media.getStereoscopy(), SIZE_MAX));
-							rs.updateString("MATRIXCOEFFICIENTS", left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-							rs.updateString("TITLECONTAINER", left(media.getFileTitleFromMetadata(), SIZE_MAX));
-							rs.updateString("TITLEVIDEOTRACK", left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
-							rs.updateInt("VIDEOTRACKCOUNT", media.getVideoTrackCount());
-							rs.updateInt("IMAGECOUNT", media.getImageCount());
-							rs.updateInt("BITDEPTH", media.getVideoBitDepth());
-							rs.updateString("PIXELASPECTRATIO", left(media.getPixelAspectRatio(), SIZE_MAX));
-							updateSerialized(rs, media.getScanType(), "SCANTYPE");
-							updateSerialized(rs, media.getScanOrder(), "SCANORDER");
-							rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-							rs.updateString("MEDIA_YEAR", left(media.getYear(), SIZE_YEAR));
-							rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-							rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-							rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-							rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-							rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
-							rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-							rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-						}
-						rs.updateRow();
-					}
-				}
-			}
-
-			if (fileId < 0) {
-				// No fileId means it didn't exist
-				String columns = "FILENAME, MODIFIED, FORMAT_TYPE, DURATION, BITRATE, WIDTH, HEIGHT, MEDIA_SIZE, CODECV, " +
-					"FRAMERATE, ASPECTRATIODVD, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, IMAGEINFO, " +
-					"CONTAINER, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, TITLECONTAINER, " +
-					"TITLEVIDEOTRACK, VIDEOTRACKCOUNT, IMAGECOUNT, BITDEPTH, PIXELASPECTRATIO, SCANTYPE, SCANORDER, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, " +
-					"MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION";
-
-				try (
-					PreparedStatement ps = connection.prepareStatement(
-						"INSERT INTO " + TABLE_NAME + " (" + columns + ")" +
-						createDefaultValueForInsertStatement(columns),
-						Statement.RETURN_GENERATED_KEYS
-					)
-				) {
-					int databaseColumnIterator = 0;
-
-					ps.setString(++databaseColumnIterator, name);
-					ps.setTimestamp(++databaseColumnIterator, new Timestamp(modified));
-					ps.setInt(++databaseColumnIterator, type);
-					if (media != null) {
-						if (media.getDuration() != null) {
-							ps.setDouble(++databaseColumnIterator, media.getDurationInSeconds());
-						} else {
-							ps.setNull(++databaseColumnIterator, Types.DOUBLE);
-						}
-
-						int databaseBitrate = 0;
-						if (type != Format.IMAGE) {
-							databaseBitrate = media.getBitrate();
-							if (databaseBitrate == 0) {
-								LOGGER.debug("Could not parse the bitrate for: " + name);
-							}
-						}
-						ps.setInt(++databaseColumnIterator, databaseBitrate);
-
-						ps.setInt(++databaseColumnIterator, media.getWidth());
-						ps.setInt(++databaseColumnIterator, media.getHeight());
-						ps.setLong(++databaseColumnIterator, media.getSize());
-						ps.setString(++databaseColumnIterator, left(media.getCodecV(), SIZE_CODECV));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRate(), SIZE_FRAMERATE));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioDvdIso(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioContainer(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getAspectRatioVideoTrack(), SIZE_MAX));
-						ps.setByte(++databaseColumnIterator, media.getReferenceFrameCount());
-						ps.setString(++databaseColumnIterator, left(media.getAvcLevel(), SIZE_AVCLEVEL));
-						if (media.getImageInfo() != null) {
-							ps.setObject(++databaseColumnIterator, media.getImageInfo());
-						} else {
-							ps.setNull(++databaseColumnIterator, Types.OTHER);
-						}
-						ps.setString(++databaseColumnIterator, left(media.getContainer(), SIZE_CONTAINER));
-						ps.setString(++databaseColumnIterator, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-						ps.setString(++databaseColumnIterator, left(media.getFrameRateMode(), SIZE_FRAMERATEMODE));
-						ps.setString(++databaseColumnIterator, left(media.getStereoscopy(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
-						ps.setString(++databaseColumnIterator, left(media.getFileTitleFromMetadata(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getVideoTrackTitleFromMetadata(), SIZE_MAX));
-						ps.setInt(++databaseColumnIterator, media.getVideoTrackCount());
-						ps.setInt(++databaseColumnIterator, media.getImageCount());
-						ps.setInt(++databaseColumnIterator, media.getVideoBitDepth());
-						ps.setString(++databaseColumnIterator, left(media.getPixelAspectRatio(), SIZE_MAX));
-						insertSerialized(ps, media.getScanType(), ++databaseColumnIterator);
-						insertSerialized(ps, media.getScanOrder(), ++databaseColumnIterator);
-						ps.setString(++databaseColumnIterator, left(media.getIMDbID(), SIZE_IMDBID));
-						ps.setString(++databaseColumnIterator, left(media.getYear(), SIZE_YEAR));
-						ps.setString(++databaseColumnIterator, left(media.getMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-						ps.setString(++databaseColumnIterator, left(media.getTVSeason(), SIZE_TVSEASON));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-						ps.setString(++databaseColumnIterator, left(media.getTVEpisodeName(), SIZE_MAX));
-						ps.setBoolean(++databaseColumnIterator, media.isTVEpisode());
-						ps.setString(++databaseColumnIterator, left(media.getExtraInformation(), SIZE_MAX));
+				try (ResultSet result = ps.executeQuery()) {
+					boolean isCreatingNewRecord = !result.next();
+					if (isCreatingNewRecord) {
+						result.moveToInsertRow();
+						result.updateString(COL_FILENAME, name);
 					} else {
-						ps.setString(++databaseColumnIterator, null);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setLong(++databaseColumnIterator, 0);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setByte(++databaseColumnIterator, (byte) -1);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.OTHER);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setInt(++databaseColumnIterator, 0);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.OTHER);
-						ps.setNull(++databaseColumnIterator, Types.OTHER);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
-						ps.setBoolean(++databaseColumnIterator, false);
-						ps.setNull(++databaseColumnIterator, Types.VARCHAR);
+						fileId = result.getLong(COL_ID);
 					}
-					ps.executeUpdate();
-					try (ResultSet rs = ps.getGeneratedKeys()) {
-						if (rs.next()) {
-							fileId = rs.getLong(1);
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(modified));
+					result.updateInt(COL_FORMAT_TYPE, type);
+					if (media != null) {
+						updateString(result, COL_PARSER, media.getMediaParser(), SIZE_MAX);
+						updateLong(result, COL_THUMBID, media.getThumbnailId());
+						if (media.getThumbnailSource() != null) {
+							updateString(result, COL_THUMB_SRC, media.getThumbnailSource().toString(), 32);
 						}
+						result.updateLong(COL_MEDIA_SIZE, media.getSize());
+						updateString(result, COL_CONTAINER, media.getContainer(), SIZE_CONTAINER);
+						updateString(result, COL_MIMETYPE, media.getMimeType(), 32);
+						updateString(result, COL_TITLECONTAINER, media.getTitle(), SIZE_MAX);
+						updateDouble(result, COL_DURATION, media.getDurationInSeconds());
+						updateInteger(result, COL_BITRATE, media.getBitRate());
+						updateDouble(result, COL_FRAMERATE, media.getFrameRate());
+						//not media related
+						result.updateInt(COL_IMAGECOUNT, media.getImageCount());
+						updateString(result, COL_ASPECTRATIODVD, media.getAspectRatioDvdIso(), SIZE_MAX);
+						updateObject(result, COL_IMAGEINFO, media.getImageInfo());
+					}
+					if (isCreatingNewRecord) {
+						result.insertRow();
+						fileId = getFileId(connection, name);
+					} else {
+						result.updateRow();
 					}
 				}
 			}
 
 			if (media != null && fileId > -1) {
+				media.setFileId(fileId);
+				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
+				MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
 				MediaTableAudiotracks.insertOrUpdateAudioTracks(connection, fileId, media);
+				MediaTableAudioMetadata.insertOrUpdateAudioMetadata(connection, fileId, media);
 				MediaTableSubtracks.insertOrUpdateSubtitleTracks(connection, fileId, media);
+				MediaTableChapters.insertOrUpdateChapters(connection, fileId, media);
 			}
 		} catch (SQLException se) {
 			if (se.getErrorCode() == 23505) {
@@ -944,128 +751,10 @@ public class MediaTableFiles extends MediaTable {
 			}
 			throw se;
 		} finally {
-			if (media != null && media.getThumb() != null) {
-				MediaTableThumbnails.setThumbnail(connection, media.getThumb(), name, -1, false);
+			if (fileId > -1) {
+				//let store know that we change media metadata
+				MediaStoreIds.incrementUpdateIdForFilename(connection, name);
 			}
-		}
-	}
-
-	/**
-	 * Updates the name of a movie or TV series for existing entries in the database.
-	 *
-	 * @param connection the db connection
-	 * @param oldName the existing movie or show name.
-	 * @param newName the new movie or show name.
-	 */
-	public static void updateMovieOrShowName(final Connection connection, String oldName, String newName) {
-		try {
-			updateRowsInFilesTable(connection, oldName, newName, "MOVIEORSHOWNAME", SIZE_MAX, true);
-		} catch (SQLException e) {
-			LOGGER.error(
-				"Failed to update MOVIEORSHOWNAME from \"{}\" to \"{}\": {}",
-				oldName,
-				newName,
-				e.getMessage()
-			);
-			LOGGER.trace("", e);
-		}
-	}
-
-	/**
-	 * Updates an existing row with information either extracted from the filename
-	 * or from our API.
-	 *
-	 * @param connection the db connection
-	 * @param path the full path of the media.
-	 * @param modified the current {@code lastModified} value of the media file.
-	 * @param media the {@link DLNAMediaInfo} row to update.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 */
-	public static void insertVideoMetadata(final Connection connection, String path, long modified, DLNAMediaInfo media) throws SQLException {
-		if (StringUtils.isBlank(path)) {
-			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because the media cannot be identified", path);
-			return;
-		}
-		if (media == null) {
-			LOGGER.warn("Couldn't write metadata for \"{}\" to the database because there is no media information", path);
-			return;
-		}
-
-		try (
-			PreparedStatement ps = connection.prepareStatement(
-				"SELECT " +
-					"ID, IMDBID, MEDIA_YEAR, MOVIEORSHOWNAME, MOVIEORSHOWNAMESIMPLE, TVSEASON, TVEPISODENUMBER, TVEPISODENAME, ISTVEPISODE, EXTRAINFORMATION, VERSION " +
-				"FROM " + TABLE_NAME + " " +
-				"WHERE " +
-					"FILENAME = ? AND MODIFIED = ? " +
-				"LIMIT 1",
-				ResultSet.TYPE_FORWARD_ONLY,
-				ResultSet.CONCUR_UPDATABLE
-			)
-		) {
-			ps.setString(1, path);
-			ps.setTimestamp(2, new Timestamp(modified));
-			try (ResultSet rs = ps.executeQuery()) {
-				if (rs.next()) {
-					rs.updateString("IMDBID", left(media.getIMDbID(), SIZE_IMDBID));
-					rs.updateString("MEDIA_YEAR", left(media.getYear(), SIZE_YEAR));
-					rs.updateString("MOVIEORSHOWNAME", left(media.getMovieOrShowName(), SIZE_MAX));
-					rs.updateString("MOVIEORSHOWNAMESIMPLE", left(media.getSimplifiedMovieOrShowName(), SIZE_MAX));
-					rs.updateString("TVSEASON", left(media.getTVSeason(), SIZE_TVSEASON));
-					rs.updateString("TVEPISODENUMBER", left(media.getTVEpisodeNumber(), SIZE_TVEPISODENUMBER));
-					rs.updateString("TVEPISODENAME", left(media.getTVEpisodeName(), SIZE_MAX));
-					rs.updateBoolean("ISTVEPISODE", media.isTVEpisode());
-					rs.updateString("EXTRAINFORMATION", left(media.getExtraInformation(), SIZE_MAX));
-					rs.updateString("VERSION", left(APIUtils.getApiDataVideoVersion(), SIZE_MAX));
-					rs.updateRow();
-				} else {
-					LOGGER.trace("Couldn't find \"{}\" in the database when trying to store metadata", path);
-					return;
-				}
-			}
-		}
-	}
-
-	/**
-	 * Updates a row or rows in the FILES table.
-	 *
-	 * @param connection the db connection
-	 * @param oldValue the value to match, can be {@code null}.
-	 * @param newValue the value to store, can be {@code null}.
-	 * @param columnName the column to update.
-	 * @param size the maximum size of the data if {@code isString} is
-	 *            {@code true}.
-	 * @param isString whether or not the value is a SQL char/string and should
-	 *            be quoted and length limited.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 */
-	public static void updateRowsInFilesTable(final Connection connection, String oldValue, String newValue, String columnName, int size, boolean isString) throws SQLException {
-		if (isString && size < 1) {
-			throw new IllegalArgumentException("size must be positive");
-		}
-		if (StringUtils.isEmpty(columnName)) {
-			LOGGER.error("Couldn't update rows in " + TABLE_NAME + " table because columnName ({}) is blank", columnName);
-			return;
-		}
-
-		// Sanitize values
-		oldValue = isString ? sqlQuote(oldValue) : sqlEscape(oldValue);
-		newValue = isString ? sqlQuote(newValue) : sqlEscape(newValue);
-
-		LOGGER.trace(
-			"Updating rows in " + TABLE_NAME + " table from \"{}\" to \"{}\" in column {}",
-			oldValue,
-			newValue,
-			columnName
-		);
-		try (Statement statement = connection.createStatement()) {
-			int rows = statement.executeUpdate(
-				"UPDATE " + TABLE_NAME + " SET " +
-					columnName +  " = " + (newValue == null ? "NULL" : (isString ? left(newValue, size) : newValue)) +
-				" WHERE " +
-					columnName + (oldValue == null ? " IS NULL" : " = " + (isString ? left(oldValue, size) : oldValue))
-			);
-			LOGGER.trace("Updated {} rows in " + TABLE_NAME + " table", rows);
 		}
 	}
 
@@ -1099,7 +788,7 @@ public class MediaTableFiles extends MediaTable {
 	 */
 	public static void removeMediaEntriesInFolder(final Connection connection, String pathToFolder) {
 		try {
-			removeMedia(connection, sqlLikeEscape(pathToFolder) + "%", true, true);
+			removeMedia(connection, pathToFolder, true, true);
 		} catch (SQLException e) {
 			LOGGER.error(
 				"An error occurred while trying to remove files matching \"{}\" from the database: {}",
@@ -1113,8 +802,6 @@ public class MediaTableFiles extends MediaTable {
 	/**
 	 * Removes row(s) in our other tables representing matching media. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see TableTables#sqlLikeEscape(String)
 	 *
 	 * @param connection the db connection
 	 * @param filename the filename(s) to remove.
@@ -1133,23 +820,11 @@ public class MediaTableFiles extends MediaTable {
 		if (removeStatus) {
 			MediaTableFilesStatus.remove(connection, filename, useLike);
 		}
-		MediaTableVideoMetadataActors.remove(connection, filename, useLike);
-		MediaTableVideoMetadataAwards.remove(connection, filename, useLike);
-		MediaTableVideoMetadataCountries.remove(connection, filename, useLike);
-		MediaTableVideoMetadataDirectors.remove(connection, filename, useLike);
-		MediaTableVideoMetadataGenres.remove(connection, filename, useLike);
-		MediaTableVideoMetadataPosters.remove(connection, filename, useLike);
-		MediaTableVideoMetadataProduction.remove(connection, filename, useLike);
-		MediaTableVideoMetadataRated.remove(connection, filename, useLike);
-		MediaTableVideoMetadataRatings.remove(connection, filename, useLike);
-		MediaTableVideoMetadataReleased.remove(connection, filename, useLike);
 	}
 
 	/**
 	 * Deletes a row or rows in the FILES table. If {@code useLike} is
 	 * {@code true}, {@code filename} must be properly escaped.
-	 *
-	 * @see TableTables#sqlLikeEscape(String)
 	 *
 	 * @param connection the db connection
 	 * @param filename the filename to delete
@@ -1163,77 +838,60 @@ public class MediaTableFiles extends MediaTable {
 		}
 
 		LOGGER.trace("Deleting rows from " + TABLE_NAME + " table where the filename is \"{}\"", filename);
-		try (Statement statement = connection.createStatement()) {
-			int rows;
-			if (useLike) {
-				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE FILENAME LIKE " + sqlQuote(filename));
-			} else {
-				rows = statement.executeUpdate("DELETE FROM " + TABLE_NAME + " WHERE FILENAME = " + sqlQuote(filename));
-			}
+		try (PreparedStatement ps = connection.prepareStatement(useLike ? SQL_DELETE_BY_FILENAME_LIKE : SQL_DELETE_BY_FILENAME,
+				ResultSet.TYPE_FORWARD_ONLY,
+				ResultSet.CONCUR_UPDATABLE
+			)) {
+			ps.setString(1, filename);
+			int rows = ps.executeUpdate();
 			LOGGER.trace("Deleted {} rows from " + TABLE_NAME, rows);
 		}
 	}
 
-	/**
-	 * Deletes a row or rows in the given {@code tableName} for the given {@code condition}. If {@code useLike} is
-	 * {@code true}, the {@code condition} must be properly escaped.
-	 *
-	 * @see TableTables#sqlLikeEscape(String)
-	 *
-	 * @param connection the db connection
-	 * @param tableName the table name in which a row or rows will be deleted
-	 * @param column the column where the {@code condition} will be queried
-	 * @param condition the condition for which rows will be deleted
-	 * @param useLike {@code true} if {@code LIKE} should be used as the compare
-	 *            operator, {@code false} if {@code =} should be used.
-	 * @throws SQLException if an SQL error occurs during the operation.
-	 */
-	public static void deleteRowsInTable(final Connection connection, String tableName, String column, String condition, boolean useLike) throws SQLException {
-		if (StringUtils.isEmpty(condition)) {
-			return;
-		}
-
-		LOGGER.trace("Deleting rows from \"{}\" table for given column \"{}\" and condition \"{}\"", tableName, column, condition);
-		try (Statement statement = connection.createStatement()) {
-			int rows;
-			if (useLike) {
-				rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " LIKE " + sqlQuote(condition));
-			} else {
-				rows = statement.executeUpdate("DELETE FROM " + tableName + " WHERE " + column + " = " + sqlQuote(condition));
-			}
-			LOGGER.trace("Deleted {} rows from " + tableName, rows);
-		}
-	}
-
-	public static void updateThumbnailId(final Connection connection, String fullPathToFile, int thumbId) {
+	public static void updateThumbnailId(final Connection connection, long fileId, Long thumbId, String thumbnailSource) {
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement(
-					"UPDATE " + TABLE_NAME + " SET THUMBID = ? WHERE FILENAME = ?"
-				);
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_ID);
 			) {
-				ps.setInt(1, thumbId);
-				ps.setString(2, fullPathToFile);
+				ps.setLong(1, thumbId);
+				ps.setString(2, thumbnailSource);
+				ps.setLong(3, fileId);
 				ps.executeUpdate();
-				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fullPathToFile);
+				LOGGER.trace("THUMBID updated to {} for {}", thumbId, fileId);
 			}
-		} catch (Exception se) {
+		} catch (SQLException se) {
 			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", se.getMessage());
 			LOGGER.trace("", se);
 		}
 	}
 
-	public static ArrayList<String> getStrings(final Connection connection, String sql) {
-		ArrayList<String> list = new ArrayList<>();
-		HashSet<String> set = new HashSet<>();
+	public static void resetLocalizedThumbnail(final Connection connection) {
 		try {
 			try (
-				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + " WHERE " + sql));
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMB_SRC_LOC);
+			) {
+				ps.setString(1, ThumbnailSource.TMDB.toString());
+				ps.setString(2, ThumbnailSource.TMDB_LOC.toString());
+				ps.executeUpdate();
+				LOGGER.trace("Thumbnail source updated from {} to {}", ThumbnailSource.TMDB_LOC.toString(), ThumbnailSource.TMDB.toString());
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating thumbnail source: {}", se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
+	public static List<String> getStrings(final Connection connection, String sql) {
+		List<String> list = new ArrayList<>();
+		Set<String> set = new LinkedHashSet<>();
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement((sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with")) ? sql : ("SELECT FILENAME FROM " + TABLE_NAME + WHERE + sql));
 				ResultSet rs = ps.executeQuery()
 			) {
 				while (rs.next()) {
 					String str = rs.getString(1);
-					if (isBlank(str)) {
+					if (StringUtils.isBlank(str)) {
 						set.add(NONAME);
 					} else {
 						set.add(str);
@@ -1249,9 +907,6 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	public static synchronized void cleanup(final Connection connection) {
-		PreparedStatement ps = null;
-		ResultSet rs = null;
-
 		try {
 			/*
 			 * Cleanup of FILES table
@@ -1259,215 +914,130 @@ public class MediaTableFiles extends MediaTable {
 			 * Removes entries that are not on the hard drive anymore, and
 			 * ones that are no longer shared.
 			 */
-			ps = connection.prepareStatement("SELECT COUNT(*) FROM " + TABLE_NAME);
-			rs = ps.executeQuery();
 			int dbCount = 0;
-
-			if (rs.next()) {
-				dbCount = rs.getInt(1);
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_GET_ROW_COUNT);
+				ResultSet rs = ps.executeQuery()) {
+				if (rs.next()) {
+					dbCount = rs.getInt(1);
+				}
 			}
 
-			rs.close();
-			ps.close();
-			PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + " 0%");
-			int i = 0;
-			int oldpercent = 0;
-
 			if (dbCount > 0) {
-				ps = connection.prepareStatement("SELECT FILENAME, MODIFIED, ID FROM " + TABLE_NAME, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-				rs = ps.executeQuery();
+				GuiManager.setStatusLine(Messages.getString("CleaningUpDatabase") + " 0%");
+				try (
+					PreparedStatement ps = connection.prepareStatement(SQL_GET_FILENAME_MODIFIED_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+					ResultSet rs = ps.executeQuery()) {
+					List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
+					int oldpercent = 0;
+					int i = 0;
+					while (rs.next()) {
+						String filename = rs.getString(COL_FILENAME);
+						long modified = rs.getTimestamp(COL_MODIFIED).getTime();
+						File file = new File(filename);
+						if (!file.exists() || file.lastModified() != modified) {
+							LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
+							rs.deleteRow();
+						} else {
+							// the file exists on the hard drive, but now check if we are still sharing it
+							boolean isFileStillShared = false;
+							for (File folder : sharedFolders) {
+								if (filename.contains(folder.getAbsolutePath())) {
+									isFileStillShared = true;
+									break;
+								}
+							}
 
-				List<Path> sharedFolders = CONFIGURATION.getSharedFolders();
-				boolean isFileStillShared = false;
-
-				while (rs.next()) {
-					String filename = rs.getString("FILENAME");
-					long modified = rs.getTimestamp("MODIFIED").getTime();
-					File file = new File(filename);
-					if (!file.exists() || file.lastModified() != modified) {
-						LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
-						rs.deleteRow();
-					} else {
-						// the file exists on the hard drive, but now check if we are still sharing it
-						for (Path folder : sharedFolders) {
-							if (filename.contains(folder.toString())) {
-								isFileStillShared = true;
-								break;
+							if (!isFileStillShared) {
+								LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+								rs.deleteRow();
 							}
 						}
 
-						if (!isFileStillShared) {
-							LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
-							rs.deleteRow();
+						i++;
+						int newpercent = i * 100 / dbCount;
+						if (newpercent > oldpercent) {
+							GuiManager.setStatusLine(Messages.getString("CleaningUpDatabase") + newpercent + "%");
+							oldpercent = newpercent;
 						}
 					}
-
-					i++;
-					int newpercent = i * 100 / dbCount;
-					if (newpercent > oldpercent) {
-						PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.2") + newpercent + "%");
-						oldpercent = newpercent;
-					}
 				}
-
-				PMS.get().getFrame().setStatusLine(null);
+				GuiManager.setStatusLine(null);
 			}
-
-			/*
-			 * Cleanup of THUMBNAILS table
-			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
-			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableThumbnails.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-					"LIMIT 1" +
-				") AND NOT EXISTS (" +
-					"SELECT ID FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-					"WHERE " + MediaTableTVSeries.TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-					"LIMIT 1" +
-				");"
-			);
-			ps.execute();
 
 			/*
 			 * Cleanup of FILES_STATUS table
 			 *
 			 * Removes entries that are not referenced by any rows in the FILES table.
 			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableFilesStatus.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT ID FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".FILENAME = FILES_STATUS.FILENAME" +
-				");"
-			);
-			ps.execute();
+			try (
+				PreparedStatement ps = connection.prepareStatement(
+					DELETE_FROM + MediaTableFilesStatus.TABLE_NAME +
+					WHERE + NOT + EXISTS + "(" +
+						SELECT + TABLE_COL_ID + FROM + TABLE_NAME +
+						WHERE + TABLE_COL_FILENAME + EQUAL + MediaTableFilesStatus.TABLE_COL_FILENAME +
+					");"
+			)) {
+				ps.execute();
+			}
 
 			/*
 			 * Cleanup of TV_SERIES table
 			 *
-			 * Removes entries that are not referenced by any rows in the FILES table.
+			 * Removes entries that are not referenced by any rows in the VIDEO_METADATA table.
 			 */
-			ps = connection.prepareStatement(
-				"DELETE FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-				"WHERE NOT EXISTS (" +
-					"SELECT MOVIEORSHOWNAMESIMPLE FROM " + TABLE_NAME + " " +
-					"WHERE " + TABLE_NAME + ".MOVIEORSHOWNAMESIMPLE = " + MediaTableTVSeries.TABLE_NAME + ".SIMPLIFIEDTITLE " +
-					"LIMIT 1" +
-				");"
-			);
-			ps.execute();
+			MediaTableTVSeries.cleanup(connection);
 
 			/*
-			 * Cleanup of metadata tables
+			 * Cleanup of THUMBNAILS table
 			 *
-			 * Now that the TV_SERIES table is clean, remove metadata
-			 * that does not correspond to any TV series or files
+			 * Removes entries that are not referenced by any rows in the FILES
+			 * table or TV_SERIES table.
 			 */
-			String[] metadataTables = {
-				MediaTableVideoMetadataActors.TABLE_NAME,
-				MediaTableVideoMetadataAwards.TABLE_NAME,
-				MediaTableVideoMetadataCountries.TABLE_NAME,
-				MediaTableVideoMetadataDirectors.TABLE_NAME,
-				MediaTableVideoMetadataIMDbRating.TABLE_NAME,
-				MediaTableVideoMetadataGenres.TABLE_NAME,
-				MediaTableVideoMetadataPosters.TABLE_NAME,
-				MediaTableVideoMetadataProduction.TABLE_NAME,
-				MediaTableVideoMetadataRated.TABLE_NAME,
-				MediaTableVideoMetadataRatings.TABLE_NAME,
-				MediaTableVideoMetadataReleased.TABLE_NAME
-			};
-			for (String table : metadataTables) {
-				ps = connection.prepareStatement(
-					"DELETE FROM " + table + " " +
-					"WHERE NOT EXISTS (" +
-						"SELECT FILENAME FROM " + TABLE_NAME + " " +
-						"WHERE " + TABLE_NAME + ".FILENAME = " + table + ".FILENAME " +
-						"LIMIT 1" +
-					") AND NOT EXISTS (" +
-						"SELECT ID FROM " + MediaTableTVSeries.TABLE_NAME + " " +
-						"WHERE " + MediaTableTVSeries.TABLE_NAME + ".ID = " + table + ".TVSERIESID " +
-						"LIMIT 1" +
-					");"
-				);
-				ps.execute();
-			}
+			MediaTableThumbnails.cleanup(connection);
+
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
 		} finally {
-			close(rs);
-			close(ps);
-			PMS.get().getFrame().setStatusLine(null);
+			GuiManager.setStatusLine(null);
 		}
 	}
 
-	public static ArrayList<File> getFiles(final Connection connection, String sql) {
-		ArrayList<File> list = new ArrayList<>();
-		try {
-			try (
-				PreparedStatement ps = connection.prepareStatement(
-					sql.toLowerCase().startsWith("select") || sql.toLowerCase().startsWith("with") ? sql : ("SELECT FILENAME, MODIFIED FROM " + TABLE_NAME + " WHERE " + sql)
-				);
-				ResultSet rs = ps.executeQuery();
-			) {
-				while (rs.next()) {
-					String filename = rs.getString("FILENAME");
-					long modified = rs.getTimestamp("MODIFIED").getTime();
-					File file = new File(filename);
-					if (file.exists() && file.lastModified() == modified) {
-						list.add(file);
-					}
+	public static String getFilenameById(final Connection connection, final Long id) {
+		if (id == null) {
+			return null;
+		}
+		try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FILENAME_BY_ID)) {
+			statement.setLong(1, id);
+			try (ResultSet resultSet = statement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getString(1);
 				}
 			}
 		} catch (SQLException se) {
 			LOGGER.error(null, se);
-			return null;
 		}
-		return list;
+		return null;
 	}
 
-	/**
-	 * @param connection the db connection
-	 * @param filename
-	 * @return all data across all tables for a video file, if it has an IMDb ID stored.
-	 */
-	public static List<HashMap<String, Object>> getAPIResultsByFilenameIncludingExternalTables(final Connection connection, final String filename) {
-		boolean trace = LOGGER.isTraceEnabled();
-
-		try {
-			String query = "SELECT * " +
-				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableVideoMetadataActors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataActors.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataAwards.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataAwards.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataCountries.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataCountries.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataDirectors.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataDirectors.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataGenres.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataGenres.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataProduction.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataProduction.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataPosters.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataPosters.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataRated.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataRated.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataRatings.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataRatings.TABLE_NAME + ".FILENAME " +
-				"LEFT JOIN " + MediaTableVideoMetadataReleased.TABLE_NAME + " ON " + TABLE_NAME + ".FILENAME = " + MediaTableVideoMetadataReleased.TABLE_NAME + ".FILENAME " +
-				"WHERE " + TABLE_NAME + ".FILENAME = " + sqlQuote(filename) + " and IMDBID != ''";
-
-			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
-			}
-
-			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
-			) {
-				return convertResultSetToList(resultSet);
-			}
-		} catch (SQLException e) {
-			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", filename, e.getMessage());
-			LOGGER.trace("", e);
+	public static List<String> getFilenamesInFolder(final Connection connection, final String fullPathToFolder) {
+		List<String> result = new ArrayList<>();
+		if (StringUtils.isBlank(fullPathToFolder)) {
+			return result;
 		}
-
-		return null;
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_FILENAME_LIKE)) {
+			ps.setString(1, fullPathToFolder);
+			try (
+				ResultSet rs = ps.executeQuery();
+			) {
+				while (rs.next()) {
+					result.add(rs.getString(COL_FILENAME));
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(null, se);
+		}
+		return result;
 	}
 
 	/**
@@ -1478,26 +1048,16 @@ public class MediaTableFiles extends MediaTable {
 	public static DLNAThumbnail getThumbnailByTitle(final Connection connection, final String title) {
 		boolean trace = LOGGER.isTraceEnabled();
 
-		String simplifiedTitle = FileUtil.getSimplifiedShowName(title);
-
-		try {
-			String query = "SELECT THUMBNAIL " +
-				"FROM " + TABLE_NAME + " " +
-				"LEFT JOIN " + MediaTableThumbnails.TABLE_NAME + " ON " + TABLE_NAME + ".THUMBID = " + MediaTableThumbnails.TABLE_NAME + ".ID " +
-				"WHERE MOVIEORSHOWNAMESIMPLE = " + sqlQuote(simplifiedTitle) + " LIMIT 1";
-
+		try (PreparedStatement ps = connection.prepareStatement(SQL_GET_THUMBNAIL_BY_TITLE)) {
+			ps.setString(1, title);
 			if (trace) {
-				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", query);
+				LOGGER.trace("Searching " + TABLE_NAME + " with \"{}\"", ps);
 			}
-
 			try (
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query)
+				ResultSet rs = ps.executeQuery();
 			) {
-				LOGGER.info("executed query for " + title);
-				if (resultSet.next()) {
-					LOGGER.info("got result for " + title);
-					return (DLNAThumbnail) resultSet.getObject("THUMBNAIL");
+				if (rs.next()) {
+					return ThumbnailStore.getThumbnail(rs.getLong(TABLE_COL_THUMBID));
 				}
 			}
 		} catch (SQLException e) {
@@ -1507,4 +1067,31 @@ public class MediaTableFiles extends MediaTable {
 
 		return null;
 	}
+
+	//TODO : review this
+	public static List<File> getFiles(final Connection connection, String sql) {
+		List<File> list = new ArrayList<>();
+		String psSql = sql.toUpperCase().startsWith(SELECT) || sql.toUpperCase().startsWith(WITH) ? sql : (SELECT + TABLE_COL_FILENAME + COMMA + TABLE_COL_MODIFIED + FROM + TABLE_NAME + WHERE + sql);
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(psSql);
+				ResultSet rs = ps.executeQuery();
+			) {
+				while (rs.next()) {
+					String filename = rs.getString(COL_FILENAME);
+					long modified = rs.getTimestamp(COL_MODIFIED).getTime();
+					File file = new File(filename);
+					if (file.exists() && file.lastModified() == modified) {
+						list.add(file);
+					}
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.trace("Error get files with sql: {}", psSql);
+			LOGGER.error(null, se);
+			return list;
+		}
+		return list;
+	}
+
 }

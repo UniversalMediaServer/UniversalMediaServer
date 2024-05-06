@@ -1,20 +1,18 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.network;
 
@@ -28,31 +26,25 @@ import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.CookieHandler;
 import java.net.CookieManager;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Implements any item that can be transfered through the HTTP pipes.
- * In the PMS case, this item represents media files.
- * @see DLNAResource
- */
-public class HTTPResource {
+public abstract class HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPResource.class);
 	public static final String UNKNOWN_VIDEO_TYPEMIME = "video/mpeg";
 	public static final String UNKNOWN_IMAGE_TYPEMIME = "image/jpeg";
 	public static final String UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
 	public static final String AUDIO_TRANSCODE = "audio/transcode";
 	public static final String VIDEO_TRANSCODE = "video/transcode";
+	public static final String AUDIO_AAC_TYPEMIME = "audio/aac";
 	public static final String AUDIO_AC3_TYPEMIME = "audio/vnd.dolby.dd-raw";
 	public static final String AUDIO_ADPCM_TYPEMIME = "audio/x-adpcm";
 	public static final String AUDIO_ADTS_TYPEMIME = "audio/vnd.dlna.adts";
@@ -92,13 +84,17 @@ public class HTTPResource {
 	public static final String DIVX_TYPEMIME = "video/x-divx";
 	public static final String FLV_TYPEMIME = "video/x-flv";
 	public static final String GIF_TYPEMIME = "image/gif";
+	public static final String HLS_TYPEMIME = "application/x-mpegURL";
+	public static final String HLS_APPLE_TYPEMIME = "application/vnd.apple.mpegURL";
 	public static final String JPEG_TYPEMIME = "image/jpeg";
+	public static final String JSON_TYPEMIME = "application/json";
 	public static final String M4V_TYPEMIME = "video/x-m4v";
 	public static final String MATROSKA_TYPEMIME = "video/x-matroska";
 	public static final String MOV_TYPEMIME = "video/quicktime";
 	public static final String MP4_TYPEMIME = "video/mp4";
 	public static final String MPEG_TYPEMIME = "video/mpeg";
 	public static final String MPEGTS_TYPEMIME = "video/vnd.dlna.mpeg-tts";
+	public static final String MPEGTS_BYTESTREAM_TYPEMIME = "video/MP2T";
 	public static final String PNG_TYPEMIME = "image/png";
 	public static final String RM_TYPEMIME = "application/vnd.rn-realmedia";
 	public static final String THREEGPP_TYPEMIME = "video/3gpp";
@@ -108,11 +104,12 @@ public class HTTPResource {
 	public static final String OGG_TYPEMIME = "video/ogg";
 	public static final String WEBM_TYPEMIME = "video/webm";
 	public static final String WEBP_TYPEMIME = "image/webp";
+	public static final String WEBVTT_TYPEMIME = "text/vtt";
 
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	public HTTPResource() {
+	protected HTTPResource() {
 	}
 
 	/**
@@ -120,10 +117,10 @@ public class HTTPResource {
 	 * @param fileName TODO Absolute or relative file path.
 	 * @return If found, an InputStream associated with the fileName. null otherwise.
 	 */
-	protected InputStream getResourceInputStream(String fileName) {
+	public static InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
-		fileName = fileName.replaceAll("//", "/");
-		ClassLoader cll = this.getClass().getClassLoader();
+		fileName = fileName.replace("//", "/");
+		ClassLoader cll = HTTPResource.class.getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
 		while (is == null && cll.getParent() != null) {
@@ -141,16 +138,12 @@ public class HTTPResource {
 	 * @return Default MIME associated with the file type.
 	 */
 	public static String getDefaultMimeType(int type) {
-		switch (type) {
-			case Format.VIDEO:
-				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-			case Format.IMAGE:
-				return HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
-			case Format.AUDIO:
-				return HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
-			default:
-				return HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-		}
+		return switch (type) {
+			case Format.VIDEO -> HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+			case Format.IMAGE -> HTTPResource.UNKNOWN_IMAGE_TYPEMIME;
+			case Format.AUDIO -> HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
+			default -> HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+		};
 	}
 
 	/**
@@ -163,7 +156,10 @@ public class HTTPResource {
 	 * @see #downloadAndSendBinary(String)
 	 */
 	public static InputStream downloadAndSend(String u, boolean saveOnDisk) throws IOException {
-		URL url = new URL(u);
+		if (u == null) {
+			return null;
+		}
+		URL url = URI.create(u).toURL();
 		File f = null;
 
 		if (saveOnDisk) {
@@ -173,10 +169,8 @@ public class HTTPResource {
 			fileName = StringUtil.convertURLToFileName(fileName);
 			File hostDir = new File(PMS.getConfiguration().getTempFolder(), hostName);
 
-			if (!hostDir.isDirectory()) {
-				if (!hostDir.mkdir()) {
-					LOGGER.debug("Cannot create directory: {}", hostDir.getAbsolutePath());
-				}
+			if (!hostDir.isDirectory() && !hostDir.mkdir()) {
+				LOGGER.debug("Cannot create directory: {}", hostDir.getAbsolutePath());
 			}
 
 			f = new File(hostDir, fileName);
@@ -210,7 +204,10 @@ public class HTTPResource {
 	 * @throws IOException
 	 */
 	protected static byte[] downloadAndSendBinary(String u, boolean saveOnDisk, File f) throws IOException {
-		URL url = new URL(u);
+		if (u == null) {
+			return new byte[0];
+		}
+		URL url = URI.create(u).toURL();
 
 		// The URL may contain user authentication information
 		Authenticator.setDefault(new HTTPResourceAuthenticator());
@@ -234,185 +231,25 @@ public class HTTPResource {
 			conn.setRequestProperty("Cookie", StringUtils.join(cookieManager.getCookieStore().getCookies(), ";"));
 		}
 
-		FileOutputStream fOUT;
 		try (InputStream in = conn.getInputStream()) {
-			fOUT = null;
-			if (saveOnDisk && f != null) {
-				// fileName = convertURLToFileName(fileName);
-				fOUT = new FileOutputStream(f);
-			}
 			byte[] buf = new byte[4096];
 			int n;
-			while ((n = in.read(buf)) > -1) {
-				bytes.write(buf, 0, n);
+			if (saveOnDisk && f != null) {
+				try (FileOutputStream fOUT = new FileOutputStream(f)) {
+					while ((n = in.read(buf)) > -1) {
+						bytes.write(buf, 0, n);
+						fOUT.write(buf, 0, n);
+					}
+				}
+			} else {
 
-				if (fOUT != null) {
-					fOUT.write(buf, 0, n);
+				while ((n = in.read(buf)) > -1) {
+					bytes.write(buf, 0, n);
 				}
 			}
-		}
-
-		if (fOUT != null) {
-			fOUT.close();
 		}
 
 		return bytes.toByteArray();
 	}
 
-	/**
-	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param renderer media renderer to customize the MIME type for.
-	 * @param resource the resource
-	 * @return The MIME type
-	 */
-	public static String getRendererMimeType(RendererConfiguration renderer, DLNAResource resource) {
-		return renderer.getMimeType(resource);
-	}
-
-	public static int getDLNALocalesCount() {
-		return 3;
-	}
-
-	public static final String getMpegPsOrgPN(int index) {
-		if (index == 1 || index == 2) {
-			return "MPEG_PS_NTSC";
-		}
-
-		return "MPEG_PS_PAL";
-	}
-
-	public static final String getMpegTsMpeg2OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
-		String orgPN = "MPEG_TS_";
-		if (media != null && media.isHDVideo()) {
-			orgPN += "HD";
-		} else {
-			orgPN += "SD";
-		}
-
-		switch (index) {
-			case 1:
-				orgPN += "_NA";
-				break;
-			case 2:
-				orgPN += "_JP";
-				break;
-			default:
-				orgPN += "_EU";
-				break;
-		}
-
-		if (!isStreaming) {
-			orgPN += "_ISO";
-		}
-
-		return orgPN;
-	}
-
-	public static final String getMpegTsH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
-		String orgPN = "AVC_TS";
-
-		switch (index) {
-			case 1:
-				orgPN += "_NA";
-				break;
-			case 2:
-				orgPN += "_JP";
-				break;
-			default:
-				orgPN += "_EU";
-				break;
-		}
-
-		if (!isStreaming) {
-			orgPN += "_ISO";
-		}
-
-		return orgPN;
-	}
-
-	public static final String getMkvH264OrgPN(int index, DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
-		String orgPN = "AVC_MKV";
-
-		if (media == null || "high".equals(media.getH264Profile())) {
-			orgPN += "_HP";
-		} else {
-			orgPN += "_MP";
-		}
-
-		orgPN += "_HD";
-
-		if (media != null && media.getFirstAudioTrack() != null) {
-			if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isAACLC()
-				) || (
-					!isStreaming &&
-					mediaRenderer.isTranscodeToAAC()
-				)
-			) {
-				orgPN += "_AAC_MULT5";
-			} else if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isAC3()
-				) || (
-					!isStreaming &&
-					mediaRenderer.isTranscodeToAC3()
-				)
-			) {
-				orgPN += "_AC3";
-			} else if (
-				isStreaming &&
-				media.getFirstAudioTrack().isDTS()
-			) {
-				orgPN += "_DTS";
-			} else if (
-				isStreaming &&
-				media.getFirstAudioTrack().isEAC3()
-			) {
-				orgPN += "_EAC3";
-			} else if (
-				isStreaming &&
-				media.getFirstAudioTrack().isHEAAC()
-			) {
-				orgPN += "_HEAAC_L4";
-			}
-		}
-
-		return orgPN;
-	}
-
-	public static final String getWmvOrgPN(DLNAMediaInfo media, RendererConfiguration mediaRenderer, boolean isStreaming) {
-		String orgPN = "WMV";
-		if (media != null && media.isHDVideo()) {
-			orgPN += "HIGH";
-		} else {
-			orgPN += "MED";
-		}
-
-		if (media != null && media.getFirstAudioTrack() != null) {
-			if (
-				(
-					isStreaming &&
-					media.getFirstAudioTrack().isWMA()
-				) || (
-					!isStreaming &&
-					mediaRenderer.isTranscodeToWMV()
-				)
-			) {
-				orgPN += "_FULL";
-			} else if (
-				isStreaming &&
-				(
-					media.getFirstAudioTrack().isWMAPro() ||
-					media.getFirstAudioTrack().isWMA10()
-				)
-			) {
-				orgPN += "_PRO";
-			}
-		}
-
-		return orgPN;
-	}
 }

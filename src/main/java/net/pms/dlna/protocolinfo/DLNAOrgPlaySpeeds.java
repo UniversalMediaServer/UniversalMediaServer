@@ -1,26 +1,21 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -29,6 +24,7 @@ import java.util.TreeSet;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.Rational;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is immutable and represents {@code DLNA.ORG_PS} attributes. This
@@ -120,7 +116,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 
 	@Override
 	public String getAttributeString() {
-		return isBlank(stringValue) ? "" : NAME + "=" + stringValue;
+		return StringUtils.isBlank(stringValue) ? "" : NAME + "=" + stringValue;
 	}
 
 	@Override
@@ -179,7 +175,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 	 *
 	 * @return the calculated {@code hashCode}.
 	 */
-	protected int calculateHashCode() {
+	private int calculateHashCode() {
 		final int prime = 31;
 		int result = 1;
 		if (speeds == null) {
@@ -226,7 +222,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		public DLNAOrgPlaySpeeds getPlaySpeeds(String values) {
 
 			// Check for static instances
-			if (isBlank(values)) {
+			if (StringUtils.isBlank(values)) {
 				return NONE;
 			}
 
@@ -235,7 +231,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			String[] valueArray = values.split("\\s*,\\s*");
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
-				if (isNotBlank(value)) {
+				if (StringUtils.isNotBlank(value)) {
 					valueSet.add(Rational.valueOf(value));
 				}
 			}
@@ -259,7 +255,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			}
 
 			// Check for cached instances
-			return getPlaySpeeds(new TreeSet<Rational>(Arrays.asList(values)));
+			return getPlaySpeeds(new TreeSet<>(Arrays.asList(values)));
 		}
 
 		/**
@@ -307,7 +303,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 		public DLNAOrgPlaySpeeds createPlaySpeeds(String values) {
 
 			// Check for static instances
-			if (isBlank(values)) {
+			if (StringUtils.isBlank(values)) {
 				return NONE;
 			}
 
@@ -316,7 +312,7 @@ public class DLNAOrgPlaySpeeds implements ProtocolInfoAttribute {
 			String[] valueArray = values.split("\\s*,\\s*");
 			TreeSet<Rational> valueSet = new TreeSet<>();
 			for (String value : valueArray) {
-				if (isNotBlank(value)) {
+				if (StringUtils.isNotBlank(value)) {
 					valueSet.add(Rational.valueOf(value));
 				}
 			}

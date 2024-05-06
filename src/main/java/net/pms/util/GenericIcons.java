@@ -1,25 +1,21 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -35,19 +31,20 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
 import javax.imageio.ImageIO;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImagesUtil.ScaleType;
+import net.pms.media.MediaInfo;
+import net.pms.store.StoreItem;
+import net.pms.store.StoreResource;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -59,10 +56,10 @@ public enum GenericIcons {
 	/** The static singleton instance. */
 	INSTANCE;
 
-	private final BufferedImage genericAudioIcon = readBufferedImage("formats/audio.png");
-	private final BufferedImage genericImageIcon = readBufferedImage("formats/image.png");
-	private final BufferedImage genericVideoIcon = readBufferedImage("formats/video.png");
-	private final BufferedImage genericUnknownIcon = readBufferedImage("formats/unknown.png");
+	private final BufferedImage genericAudioIcon = readBufferedImage("store/formats/audio.png");
+	private final BufferedImage genericImageIcon = readBufferedImage("store/formats/image.png");
+	private final BufferedImage genericVideoIcon = readBufferedImage("store/formats/video.png");
+	private final BufferedImage genericUnknownIcon = readBufferedImage("store/formats/unknown.png");
 	private final DLNAThumbnail genericFolderThumbnail;
 	private final ReentrantLock cacheLock = new ReentrantLock();
 	/**
@@ -74,7 +71,7 @@ public enum GenericIcons {
 	private GenericIcons() {
 		DLNAThumbnail thumbnail;
 		try {
-			thumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("thumbnail-folder-256.png"));
+			thumbnail = DLNAThumbnail.toThumbnail(getResourceAsStream("store/folder.png"));
 		} catch (IOException e) {
 			thumbnail = null;
 		}
@@ -85,11 +82,11 @@ public enum GenericIcons {
 	 * Retrieves or creates the appropriate generic icon/thumbnail for
 	 * {@code resource}.
 	 *
-	 * @param resource the {@link DLNAResource} the return a generic icon for.
+	 * @param resource the {@link StoreResource} the return a generic icon for.
 	 * @return The appropriate {@link DLNAThumbnailInputStream} or {@code null}
 	 *         if one couldn't be generated.
 	 */
-	public DLNAThumbnailInputStream getGenericIcon(DLNAResource resource) {
+	public DLNAThumbnailInputStream getGenericIcon(StoreResource resource) {
 		/*
 		 * This should be the same format as the source images since OpenJDK
 		 * will fail to write JPEGs if the cached BufferedImage has 4 color
@@ -115,25 +112,26 @@ public enum GenericIcons {
 		}
 
 		IconType iconType = IconType.UNKNOWN;
-		if (resource.getMedia() != null) {
-			if (resource.getMedia().isAudio()) {
+		Format format = resource instanceof StoreItem item ? item.getFormat() : null;
+		if (resource.getMediaInfo() != null) {
+			if (resource.getMediaInfo().isAudio()) {
 				iconType = IconType.AUDIO;
-			} else if (resource.getMedia().isImage()) {
+			} else if (resource.getMediaInfo().isImage()) {
 				iconType = IconType.IMAGE;
-			} else if (resource.getMedia().isVideo()) {
+			} else if (resource.getMediaInfo().isVideo()) {
 				// FFmpeg parses images as video, try to rectify
-				if (resource.getFormat() != null && resource.getFormat().isImage()) {
+				if (format != null && format.isImage()) {
 					iconType = IconType.IMAGE;
 				} else {
 					iconType = IconType.VIDEO;
 				}
 			}
-		} else if (resource.getFormat() != null) {
-			if (resource.getFormat().isAudio()) {
+		} else if (format != null) {
+			if (format.isAudio()) {
 				iconType = IconType.AUDIO;
-			} else if (resource.getFormat().isImage()) {
+			} else if (format.isImage()) {
 				iconType = IconType.IMAGE;
-			} else if (resource.getFormat().isVideo()) {
+			} else if (format.isVideo()) {
 				iconType = IconType.VIDEO;
 			}
 		}
@@ -142,21 +140,21 @@ public enum GenericIcons {
 		cacheLock.lock();
 		try {
 			if (!cache.containsKey(imageFormat)) {
-				cache.put(imageFormat, new HashMap<IconType, Map<String, DLNAThumbnail>>());
+				cache.put(imageFormat, new HashMap<>());
 			}
 			Map<IconType, Map<String, DLNAThumbnail>> typeCache = cache.get(imageFormat);
 
 			if (!typeCache.containsKey(iconType)) {
-				typeCache.put(iconType, new HashMap<String, DLNAThumbnail>());
+				typeCache.put(iconType, new HashMap<>());
 			}
 			Map<String, DLNAThumbnail> imageCache = typeCache.get(iconType);
 
-			String label = getLabelFromImageFormat(resource.getMedia());
+			String label = getLabelFromImageFormat(resource.getMediaInfo());
 			if (label == null) {
-				label = getLabelFromFormat(resource.getFormat());
+				label = getLabelFromFormat(format);
 			}
 			if (label == null) {
-				label = getLabelFromContainer(resource.getMedia());
+				label = getLabelFromContainer(resource.getMediaInfo());
 			}
 			if (label != null && label.length() < 5) {
 				label = label.toUpperCase(Locale.ROOT);
@@ -164,8 +162,8 @@ public enum GenericIcons {
 				label = StringUtils.capitalize(label);
 			}
 
-			if (isBlank(label)) {
-				label = Messages.getString("Generic.Unknown");
+			if (StringUtils.isBlank(label)) {
+				label = Messages.getString("Unknown");
 			}
 
 			if (imageCache.containsKey(label)) {
@@ -215,7 +213,7 @@ public enum GenericIcons {
 		return DLNAThumbnailInputStream.toThumbnailInputStream(genericFolderThumbnail);
 	}
 
-	private static String getLabelFromImageFormat(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromImageFormat(MediaInfo mediaInfo) {
 		return
 			mediaInfo != null && mediaInfo.isImage() &&
 			mediaInfo.getImageInfo() != null &&
@@ -228,27 +226,19 @@ public enum GenericIcons {
 			return null;
 		}
 		// Replace some Identifier names with prettier ones
-		switch (format.getIdentifier()) {
-			case AUDIO_AS_VIDEO:
-				return "Audio as Video";
-			case MICRODVD:
-				return "MicroDVD";
-			case SUBRIP:
-				return "SubRip";
-			case THREEG2A:
-				return "3G2A";
-			case THREEGA:
-				return "3GA";
-			case WEBVTT:
-				return "WebVTT";
-			case ISOVOB:
-				return Messages.getString("GenericIcons.DVDVideo");
-			default:
-				return format.getIdentifier().toString();
-		}
+		return switch (format.getIdentifier()) {
+			case AUDIO_AS_VIDEO -> "Audio as Video";
+			case MICRODVD -> "MicroDVD";
+			case SUBRIP -> "SubRip";
+			case THREEG2A -> "3G2A";
+			case THREEGA -> "3GA";
+			case WEBVTT -> "WebVTT";
+			case ISOVOB -> Messages.getString("DvdVideo");
+			default -> format.getIdentifier().toString();
+		};
 	}
 
-	private static String getLabelFromContainer(DLNAMediaInfo mediaInfo) {
+	private static String getLabelFromContainer(MediaInfo mediaInfo) {
 		return mediaInfo != null ? mediaInfo.getContainer() : null;
 	}
 
@@ -267,19 +257,12 @@ public enum GenericIcons {
 	private DLNAThumbnail createGenericIcon(String label, ImageFormat imageFormat, IconType iconType) throws IOException {
 
 		BufferedImage image;
-		switch (iconType) {
-			case AUDIO:
-				image = genericAudioIcon;
-				break;
-			case IMAGE:
-				image = genericImageIcon;
-				break;
-			case VIDEO:
-				image = genericVideoIcon;
-				break;
-			default:
-				image = genericUnknownIcon;
-		}
+		image = switch (iconType) {
+			case AUDIO -> genericAudioIcon;
+			case IMAGE -> genericImageIcon;
+			case VIDEO -> genericVideoIcon;
+			default -> genericUnknownIcon;
+		};
 
 		if (image != null) {
 			// Make a copy
@@ -363,7 +346,7 @@ public enum GenericIcons {
 	/**
 	 * An {@code enum} representing the type of generic icon/thumbnail.
 	 */
-	protected static enum IconType {
+	public enum IconType {
 
 		/** Audio */
 		AUDIO,

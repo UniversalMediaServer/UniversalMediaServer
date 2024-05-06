@@ -1,0 +1,47 @@
+Java Service Wrapper Revision History.
+--------------------------------------
+3.5.43
+* Rename sh.script.in to App.sh.in in the src/bin directory.
+* Create 'App.shconf.in' in the src/bin directory. This template contains a
+  copy of all settings of the Shell Script. It is recommended to customize this
+  file rather than the Shell Script to simplify Wrapper upgrades.
+* Improve customization of the Wrapper binaries to limit failures when the
+  target executable is temporarily locked by an external process (often an
+  antivirus).
+* Fix misleading error messages during customization of the Wrapper binaries.
+* Fix bug where calls to WrapperManager.signalStarting() were overriding the
+  disabling of wrapper.startup.timeout (when its value is set to 0). This was
+  also happening with WrapperManager.signalStopping() and
+  wrapper.sthutdown.timeout=0.
+* Add new '--conf-optional' option to be used when customizing the Wrapper. It
+  allows the target executable to run without configuration file if the
+  configuration has been embedded as a binary resource. Without this option,
+  the configuration file will be required. Previously, Wrapper with embedded
+  configuration were allowed to continue without configuration file, but could
+  potentially fail at a later stage.
+* Improve logging when the configuration file fails to load, and make sure the
+  Wrapper always stops if a file was specified but could not be found.
+* Add the ability to query the status of a service by specifying its name
+  instead of the configuration file (e.g. 'wrapper -q=testwrapper',
+  'wrapper -qs=testwrapper').
+* Add new property wrapper.console.quickedit to enable or disable the QuickEdit
+  Mode of the console attached to the Wrapper process. The default value will
+  disable the QuickEdit Mode as it can cause the Java application to freeze.
+* Fix a problem running the Demo Application with the delta pack.
+* Add a new WrapperManager.generateDetailedNativeBaseName(baseName) method
+  which lets user code generate a base file name based on the current platform.
+* Fix a crash that happened when the Wrapper was handling control signals
+  during its shutdown process. It had no serious implications because the
+  Wrapper was almost stopped and already disposed, but on Windows it caused to
+  generate an empty dump file in the working directory.
+* Fix a problem where WrapperManager.stop() failed if the native library was
+  not loaded successfully.
+* Fix misleading debug messages describing the JVM and Wrapper exit codes.
+* Raise to STATUS the log level of notifications about the JVM exit whenever
+  it ends with an exit code resulting of a crash on Windows.
+* Fix 'demoapp' script file not being executable in the bin folder (UNIX).
+* Fix some malformed/corrupted messages in German.
+* Fix cases where the JVM was detected as 64-bits on 32-bit systems (for debug
+  only).
+* Fix dialog window not showing if an error occurred while controlling a
+  Windows Service with WrapperW.

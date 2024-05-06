@@ -1,27 +1,24 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * This class is immutable and represents the {@code DLNA.ORG_FLAGS} parameter.
@@ -135,18 +132,19 @@ public final class DLNAOrgConversionIndicator implements ProtocolInfoAttribute {
 		 * @throws ParseException if {@code value} can't be parsed.
 		 */
 		public DLNAOrgConversionIndicator getConversionIndicator(String value) throws ParseException {
-			if (isBlank(value)) {
+			if (StringUtils.isBlank(value)) {
 				return FALSE;
 			}
 
 			value = value.trim();
 			switch (value) {
-				case "0":
+				case "0" -> {
 					return FALSE;
-				case "1":
+				}
+				case "1" -> {
 					return TRUE;
-				default:
-					throw new ParseException("Cannot parse DLNA conversion indicator value \"" + value + "\"");
+				}
+				default -> throw new ParseException("Cannot parse DLNA conversion indicator value \"" + value + "\"");
 			}
 		}
 

@@ -1,36 +1,32 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.File;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.text.WordUtils;
 import net.pms.PMS;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
-import net.pms.dlna.VideoClassification;
+import net.pms.store.StoreResource;
+import net.pms.store.item.RealFile;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.text.WordUtils;
 
 
 /**
@@ -42,7 +38,7 @@ public class FileNamePrettifier {
 	public static final String COMMON_FILE_ENDS =
 		"[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|" +
 		"[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]2160p.*|" +
-		"[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|" +
+		"[\\s\\.]WEB-DL.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]SDTV.*|" +
 		"[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|" +
 		"[\\s\\.]BDRip.*|[\\s\\.]BRRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|" +
 		"[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|" +
@@ -108,20 +104,20 @@ public class FileNamePrettifier {
 	private String episodeName;
 
 	/**
-	 * Creates a new instance for the specified {@link DLNAResource}.
+	 * Creates a new instance for the specified {@link StoreResource}.
 	 *
-	 * @param resource the {@link DLNAResource} whose name to prettify.
+	 * @param resource the {@link StoreResource} whose name to prettify.
 	 */
-	public FileNamePrettifier(DLNAResource resource) {
+	public FileNamePrettifier(StoreResource resource) {
 		if (resource == null) {
 			throw new IllegalArgumentException("resource cannot be null");
 		}
 		String tmpName = null;
-		if (resource instanceof RealFile) {
-			tmpName = ((RealFile) resource).getFile().getName();
+		if (resource instanceof RealFile realFile) {
+			tmpName = realFile.getFile().getName();
 		}
 		if (isBlank(tmpName)) {
-			tmpName = resource.getSystemName();
+			tmpName = resource.getFileName();
 		}
 		if (isBlank(tmpName)) {
 			tmpName = resource.getName();
@@ -335,6 +331,7 @@ public class FileNamePrettifier {
 			name = convertFormattedNameToTitleCase(normalizeSpaces(removeFilenameEndMetadata(splitName[0])));
 			return;
 		}
+		// TODO: why matcher is assing twice ?
 		matcher = ANIME_SERIES_EPISODE.matcher(tmpName);
 		matcher = SERIES_DATE.matcher(tmpName);
 		if (matcher.find()) {

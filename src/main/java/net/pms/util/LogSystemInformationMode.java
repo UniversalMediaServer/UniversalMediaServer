@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.util.Locale;
@@ -32,24 +48,12 @@ public enum LogSystemInformationMode {
 			return null;
 		}
 		logMode = logMode.trim().toLowerCase(Locale.ROOT);
-		switch (logMode) {
-			case "never":
-			case "off":
-			case "none":
-			case "no":
-			case "false":
-				return NEVER;
-			case "trace":
-			case "trace only":
-			case "trace_only":
-				return TRACE_ONLY;
-			case "always":
-			case "on":
-			case "yes":
-			case "true":
-				return ALWAYS;
-			default: return null;
-		}
+		return switch (logMode) {
+			case "never", "off", "none", "no", "false" -> NEVER;
+			case "trace", "trace only", "trace_only" -> TRACE_ONLY;
+			case "always", "on", "yes", "true" -> ALWAYS;
+			default -> null;
+		};
 	}
 
 	/**
@@ -62,14 +66,16 @@ public enum LogSystemInformationMode {
 	@Override
 	public String toString() {
 		switch (this) {
-			case NEVER:
+			case NEVER -> {
 				return "Never";
-			case TRACE_ONLY:
+			}
+			case TRACE_ONLY -> {
 				return "Trace only";
-			case ALWAYS:
+			}
+			case ALWAYS -> {
 				return "Always";
-			default:
-				throw new IllegalStateException("Unimplemented enum value: " + super.toString());
+			}
+			default -> throw new IllegalStateException("Unimplemented enum value: " + super.toString());
 		}
 	}
 }
