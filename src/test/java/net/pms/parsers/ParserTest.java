@@ -90,6 +90,8 @@ public class ParserTest {
 		);
 
 		//disable MediaInfoParser
+		parser.block();
+
 		//should fallback to FFmpegParser when MediaInfoParser is not found
 		if (FFmpegParser.isValid()) {
 			assertEquals(
@@ -98,10 +100,10 @@ public class ParserTest {
 			);
 		}
 		//should fallback to JaudiotaggerParser when MediaInfoParser is not found
-//		assertEquals(
-//			JaudiotaggerParser.PARSER_NAME,
-//			getTestFileMediaInfo("audio-mp3-infos.mp3").getMediaParser()
-//		);
+		assertEquals(
+			JaudiotaggerParser.PARSER_NAME,
+			getTestFileMediaInfo("audio-mp3-infos.mp3").getMediaParser()
+		);
 	}
 
 }
