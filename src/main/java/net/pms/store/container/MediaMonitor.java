@@ -175,6 +175,15 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		long startTime = realFile.getStartTime();
 		long startTimeUser = realFile.getLastStartSystemTimeUser();
 		double startPosition = realFile.getLastStartPosition();
+
+		/**
+		 * Do not treat this as a legitimate playback attempt if the start time
+		 * was within 2 seconds of the end of the video.
+		 */
+		boolean playedByUser = true;
+		if (fileDuration < 2.0 || startPosition < (fileDuration - 2.0)) {
+			playedByUser = false;
+		}
 		int minimumPlayTime = CONFIGURATION.getMinimumWatchedPlayTimeSeconds();
 
 		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
@@ -205,9 +214,13 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		 * Only mark the file as fully played if more than 92% (default) of the
 		 * duration has elapsed since it started playing.
 		 */
-		if (fileDuration == 0 ||
-				elapsed > minimumPlayTime &&
-				elapsed >= triggerPlayTime) {
+		if (!playedByUser) {
+			LOGGER.trace("final decision: not fully played because the video was started within 2 seconds of the end, usually meaning it was an automatic parsing request");
+		} else if (
+			fileDuration == 0 ||
+			elapsed > minimumPlayTime &&
+			elapsed >= triggerPlayTime
+		) {
 			LOGGER.trace("final decision: fully played");
 			StoreResource fileParent = realFile.getParent();
 			if (fileParent == null) {
