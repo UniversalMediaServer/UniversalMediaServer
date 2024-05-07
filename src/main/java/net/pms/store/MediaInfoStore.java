@@ -22,10 +22,10 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
@@ -48,17 +48,15 @@ import org.slf4j.LoggerFactory;
 public class MediaInfoStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoStore.class);
-	private static final Map<String, WeakReference<MediaInfo>> STORE = new HashMap<>();
+	private static final Map<String, WeakReference<MediaInfo>> STORE = new ConcurrentHashMap<>();
 
 	private MediaInfoStore() {
 		//should not be instantiated
 	}
 
 	public static MediaInfo getMediaInfo(String filename) {
-		synchronized (STORE) {
-			if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-				return STORE.get(filename).get();
-			}
+		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
+			return STORE.get(filename).get();
 		}
 		Connection connection = null;
 		try {
@@ -67,9 +65,7 @@ public class MediaInfoStore {
 				File file = new File(filename);
 				MediaInfo mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
 				if (mediaInfo != null && mediaInfo.isMediaParsed() && mediaInfo.getMimeType() != null) {
-					synchronized (STORE) {
-						STORE.put(filename, new WeakReference<>(mediaInfo));
-					}
+					STORE.put(filename, new WeakReference<>(mediaInfo));
 				}
 				return mediaInfo;
 			}
@@ -83,98 +79,94 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
-		synchronized (STORE) {
-			if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-				return STORE.get(filename).get();
-			}
-			LOGGER.trace("Store do not yet contains MediaInfo for {}", filename);
-			MediaInfo mediaInfo = null;
-			Connection connection = null;
-			InputFile input = new InputFile();
-			input.setFile(file);
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null) {
-					connection.setAutoCommit(false);
-					try {
-						mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
-						if (mediaInfo != null) {
-							if (!mediaInfo.isMediaParsed()) {
-								Parser.parse(mediaInfo, input, format, type);
-								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-							}
-							//ensure we have the mime type
-							if (mediaInfo.getMimeType() == null) {
-								Parser.postParse(mediaInfo, type);
-								MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-							}
-						}
-					} catch (IOException | SQLException e) {
-						LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", filename, e.getMessage());
-						LOGGER.trace("", e);
-					}
-				}
-
-				if (mediaInfo == null) {
-					mediaInfo = new MediaInfo();
-
-					if (format != null) {
-						Parser.parse(mediaInfo, input, format, type);
-					} else {
-						// Don't think that will ever happen
-						FFmpegParser.parse(mediaInfo, input, format, type);
-					}
-
-					mediaInfo.waitMediaParsing(5);
-					if (connection != null && mediaInfo.isMediaParsed()) {
-						try {
-							MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
-						} catch (SQLException e) {
-							LOGGER.error(
-								"Database error while trying to add parsed information for \"{}\" to the cache: {}",
-								filename,
-								e.getMessage());
-							if (LOGGER.isTraceEnabled()) {
-								LOGGER.trace("SQL error code: {}", e.getErrorCode());
-								if (
-									e.getCause() instanceof SQLException &&
-									((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
-								) {
-									LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
-								}
-								LOGGER.trace("", e);
-							}
-						}
-					}
-				}
-			} catch (SQLException e) {
-				LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
-				LOGGER.trace("", e);
-			} finally {
+		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
+			return STORE.get(filename).get();
+		}
+		LOGGER.trace("Store do not yet contains MediaInfo for {}", filename);
+		MediaInfo mediaInfo = null;
+		Connection connection = null;
+		InputFile input = new InputFile();
+		input.setFile(file);
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				connection.setAutoCommit(false);
 				try {
-					if (connection != null) {
-						connection.commit();
-						connection.setAutoCommit(true);
+					mediaInfo = MediaTableFiles.getMediaInfo(connection, filename, file.lastModified());
+					if (mediaInfo != null) {
+						if (!mediaInfo.isMediaParsed()) {
+							Parser.parse(mediaInfo, input, format, type);
+							MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+						}
+						//ensure we have the mime type
+						if (mediaInfo.getMimeType() == null) {
+							Parser.postParse(mediaInfo, type);
+							MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+						}
 					}
-				} catch (SQLException e) {
-					LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
+				} catch (IOException | SQLException e) {
+					LOGGER.debug("Error while getting cached information about {}, reparsing information: {}", filename, e.getMessage());
 					LOGGER.trace("", e);
 				}
-				MediaDatabase.close(connection);
 			}
-			if (mediaInfo != null) {
-				STORE.put(filename, new WeakReference<>(mediaInfo));
+
+			if (mediaInfo == null) {
+				mediaInfo = new MediaInfo();
+
+				if (format != null) {
+					Parser.parse(mediaInfo, input, format, type);
+				} else {
+					// Don't think that will ever happen
+					FFmpegParser.parse(mediaInfo, input, format, type);
+				}
+
+				mediaInfo.waitMediaParsing(5);
+				if (connection != null && mediaInfo.isMediaParsed()) {
+					try {
+						MediaTableFiles.insertOrUpdateData(connection, filename, file.lastModified(), type, mediaInfo);
+					} catch (SQLException e) {
+						LOGGER.error(
+							"Database error while trying to add parsed information for \"{}\" to the cache: {}",
+							filename,
+							e.getMessage());
+						if (LOGGER.isTraceEnabled()) {
+							LOGGER.trace("SQL error code: {}", e.getErrorCode());
+							if (
+								e.getCause() instanceof SQLException &&
+								((SQLException) e.getCause()).getErrorCode() != e.getErrorCode()
+							) {
+								LOGGER.trace("Cause SQL error code: {}", ((SQLException) e.getCause()).getErrorCode());
+							}
+							LOGGER.trace("", e);
+						}
+					}
+				}
 			}
-			return mediaInfo;
+		} catch (SQLException e) {
+			LOGGER.error("Error in RealFile.resolve: {}", e.getMessage());
+			LOGGER.trace("", e);
+		} finally {
+			try {
+				if (connection != null) {
+					connection.commit();
+					connection.setAutoCommit(true);
+				}
+			} catch (SQLException e) {
+				LOGGER.error("Error in commit in RealFile.resolve: {}", e.getMessage());
+				LOGGER.trace("", e);
+			}
+			MediaDatabase.close(connection);
 		}
+		if (mediaInfo != null) {
+			STORE.put(filename, new WeakReference<>(mediaInfo));
+		}
+		return mediaInfo;
 	}
 
 	public static MediaVideoMetadata getMediaVideoMetadata(String filename) {
 		//check on store
-		synchronized (STORE) {
-			if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-				return STORE.get(filename).get().getVideoMetadata();
-			}
+		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
+			return STORE.get(filename).get().getVideoMetadata();
 		}
 		//parse db
 		Connection connection = null;
@@ -321,13 +313,11 @@ public class MediaInfoStore {
 			MediaDatabase.close(connection);
 		}
 		boolean removed = false;
-		synchronized (STORE) {
-			Iterator<String> filenames = STORE.keySet().iterator();
-			while (filenames.hasNext()) {
-				if (filenames.next().startsWith(pathToFolder)) {
-					filenames.remove();
-					removed = true;
-				}
+		Iterator<String> filenames = STORE.keySet().iterator();
+		while (filenames.hasNext()) {
+			if (filenames.next().startsWith(pathToFolder)) {
+				filenames.remove();
+				removed = true;
 			}
 		}
 		removed = MediaStatusStore.removeMediaEntriesInFolder(pathToFolder) || removed;
@@ -345,19 +335,15 @@ public class MediaInfoStore {
 			MediaDatabase.close(connection);
 		}
 		boolean removed = false;
-		synchronized (STORE) {
-			if (STORE.remove(filename) != null) {
-				removed = true;
-			}
+		if (STORE.remove(filename) != null) {
+			removed = true;
 		}
 		removed = MediaStatusStore.removeMediaEntry(filename) || removed;
 		return removed;
 	}
 
 	public static void clear() {
-		synchronized (STORE) {
-			STORE.clear();
-		}
+		STORE.clear();
 	}
 
 }
