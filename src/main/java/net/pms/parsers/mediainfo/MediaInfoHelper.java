@@ -27,20 +27,28 @@ import org.slf4j.LoggerFactory;
 // net.sourceforge.mediainfo
 public class MediaInfoHelper implements AutoCloseable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoHelper.class);
+	private static volatile boolean mediaInfoVersionLogged = false;
 
 	private Pointer handle;
 
 	// Constructor/Destructor
 	public MediaInfoHelper() {
 		try {
-			LOGGER.info("Loading MediaInfo library");
+			if (!mediaInfoVersionLogged) {
+				LOGGER.info("Loading MediaInfo library");
+			}
 			handle = MediaInfoLibrary.INSTANCE.New();
-			LOGGER.info("Loaded {}", optionStatic("Info_Version"));
+			if (!mediaInfoVersionLogged) {
+				LOGGER.info("Loaded {}", optionStatic("Info_Version"));
+			}
 
 			if (!Platform.isWindows()) {
-				LOGGER.debug("Setting MediaInfo library characterset to UTF-8");
+				if (!mediaInfoVersionLogged) {
+					LOGGER.debug("Setting MediaInfo library characterset to UTF-8");
+				}
 				setUTF8();
 			}
+			mediaInfoVersionLogged = true;
 		} catch (Throwable e) {
 			LOGGER.error("Error loading MediaInfo library: {}", e.getMessage());
 			LOGGER.trace("", e);

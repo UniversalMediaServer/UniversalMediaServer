@@ -57,6 +57,7 @@ import org.slf4j.LoggerFactory;
  */
 public class RendererConfiguration extends BaseConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
+	private static boolean mediaInfoParserIsValid = new MediaInfoParser().isValid();
 
 	/**
 	 * renderer configuration property keys.
@@ -1209,11 +1210,11 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether to use MediaInfo
 	 */
 	public boolean isUseMediaInfo() {
-		return getBoolean(KEY_MEDIAPARSERV2, true) && MediaInfoParser.isValid();
+		return getBoolean(KEY_MEDIAPARSERV2, true) && mediaInfoParserIsValid;
 	}
 
 	public boolean isMediaInfoThumbnailGeneration() {
-		return getBoolean(KEY_MEDIAPARSERV2_THUMB, false) && MediaInfoParser.isValid();
+		return getBoolean(KEY_MEDIAPARSERV2_THUMB, false) && mediaInfoParserIsValid;
 	}
 
 	public boolean isShowAudioMetadata() {
@@ -1253,7 +1254,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	public boolean isDLNATreeHack() {
-		return getBoolean(KEY_DLNA_TREE_HACK, false) && MediaInfoParser.isValid();
+		return getBoolean(KEY_DLNA_TREE_HACK, false) && mediaInfoParserIsValid;
 	}
 
 	/**

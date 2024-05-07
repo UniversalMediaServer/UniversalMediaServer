@@ -33,7 +33,7 @@ public class FFmpegParserTest {
 
 	@BeforeAll
 	public static void SetUPClass() {
-		ParserTest.SetUPClass();
+		ParserTest.setUPClass();
 	}
 
 	private MediaInfo getTestFileMediaInfo(String testFile) {

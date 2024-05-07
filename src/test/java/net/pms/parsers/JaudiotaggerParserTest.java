@@ -28,7 +28,7 @@ public class JaudiotaggerParserTest {
 
 	@BeforeAll
 	public static void SetUPClass() {
-		ParserTest.SetUPClass();
+		ParserTest.setUPClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {
