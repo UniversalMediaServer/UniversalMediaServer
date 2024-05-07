@@ -21,6 +21,7 @@ import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
@@ -80,7 +81,7 @@ public class MediaStore extends StoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
 
-	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
+	private final Map<Long, WeakReference<StoreResource>> weakResources = new ConcurrentHashMap<>();
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
@@ -458,13 +459,11 @@ public class MediaStore extends StoreContainer {
 		if (id == null) {
 			return null;
 		}
-		synchronized (weakResources) {
-			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-				return weakResources.get(id).get();
-			} else {
-				// object id not founded, try recreate
-				return recreateResource(id);
-			}
+		if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+			return weakResources.get(id).get();
+		} else {
+			// object id not founded, try recreate
+			return recreateResource(id);
 		}
 	}
 
@@ -478,25 +477,23 @@ public class MediaStore extends StoreContainer {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
-			synchronized (weakResources) {
-				for (MediaStoreId libraryId : libraryIds) {
-					if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
-						StoreResource resource = weakResources.get(libraryId.getId()).get();
-						if (resource instanceof StoreContainer container) {
-							container.discoverChildren();
-						}
-						if (resource instanceof VirtualFolder container) {
-							container.analyzeChildren();
-						}
+			for (MediaStoreId libraryId : libraryIds) {
+				if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
+					StoreResource resource = weakResources.get(libraryId.getId()).get();
+					if (resource instanceof StoreContainer container) {
+						container.discoverChildren();
+					}
+					if (resource instanceof VirtualFolder container) {
+						container.analyzeChildren();
 					}
 				}
-				//now that parent folders are discovered, try to get the resource
-				if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-					LOGGER.trace("resource with id '{}' recreacted succefully", id);
-					return weakResources.get(id).get();
-				} else {
-					LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
-				}
+			}
+			//now that parent folders are discovered, try to get the resource
+			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+				LOGGER.trace("resource with id '{}' recreacted succefully", id);
+				return weakResources.get(id).get();
+			} else {
+				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
 			}
 		} else {
 			LOGGER.trace("resource with id '{}' was not found in database", id);
@@ -506,57 +503,45 @@ public class MediaStore extends StoreContainer {
 
 	public boolean weakResourceExists(String objectId) {
 		Long id = parseIndex(objectId);
-		synchronized (weakResources) {
-			return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
-		}
+		return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
 	}
 
 	public boolean addWeakResource(StoreResource resource) {
 		Long id = MediaStoreIds.getMediaStoreResourceId(resource);
 		if (id != null) {
-			synchronized (weakResources) {
-				weakResources.put(id, new WeakReference<>(resource));
-				return true;
-			}
+			weakResources.put(id, new WeakReference<>(resource));
+			return true;
 		}
 		return false;
 	}
 
 	public void replaceWeakResource(StoreResource a, StoreResource b) {
 		Long id = parseIndex(a.getId());
-		synchronized (weakResources) {
-			if (id != null && weakResources.containsKey(id)) {
-				weakResources.get(id).clear();
-				weakResources.put(id, new WeakReference<>(b));
-			}
+		if (id != null && weakResources.containsKey(id)) {
+			weakResources.get(id).clear();
+			weakResources.put(id, new WeakReference<>(b));
 		}
 	}
 
 	public void deleteWeakResource(StoreResource resource) {
 		Long id = parseIndex(resource.getId());
-		synchronized (weakResources) {
-			if (id != null && weakResources.containsKey(id)) {
-				weakResources.get(id).clear();
-				weakResources.remove(id);
-			}
+		if (id != null && weakResources.containsKey(id)) {
+			weakResources.get(id).clear();
+			weakResources.remove(id);
 		}
 	}
 
 	public void clearWeakResources() {
-		synchronized (weakResources) {
-			weakResources.clear();
-		}
+		weakResources.clear();
 	}
 
 	public List<StoreResource> findSystemFileResources(File file) {
 		List<StoreResource> systemFileResources = new ArrayList<>();
-		synchronized (weakResources) {
-			for (WeakReference<StoreResource> resource : weakResources.values()) {
-				if (resource.get() instanceof SystemFileResource systemFileResource &&
-						file.equals(systemFileResource.getSystemFile()) &&
-						systemFileResource instanceof StoreResource storeResource) {
-					systemFileResources.add(storeResource);
-				}
+		for (WeakReference<StoreResource> resource : weakResources.values()) {
+			if (resource.get() instanceof SystemFileResource systemFileResource &&
+					file.equals(systemFileResource.getSystemFile()) &&
+					systemFileResource instanceof StoreResource storeResource) {
+				systemFileResources.add(storeResource);
 			}
 		}
 		return systemFileResources;
