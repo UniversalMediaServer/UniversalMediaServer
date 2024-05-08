@@ -89,17 +89,15 @@ public class ParserTest {
 			getTestFileMediaInfo("audio-realmedia.ra").getMediaParser()
 		);
 
-		//disable MediaInfoParser
-		parser.block();
+		// cannot be tested this way any more, because Parser.parse instances an new MediaInfoParser
 
 		//should fallback to FFmpegParser when MediaInfoParser is not found
-		if (FFmpegParser.isValid()) {
-			assertEquals(
-				FFmpegParser.PARSER_NAME,
-				getTestFileMediaInfo("video-h264-aac.mp4").getMediaParser()
-			);
-		}
-		// cannot be tested this way any more, because Parser.parse instances an new MediaInfoParser
+//		if (FFmpegParser.isValid()) {
+//			assertEquals(
+//				FFmpegParser.PARSER_NAME,
+//				getTestFileMediaInfo("video-h264-aac.mp4").getMediaParser()
+//			);
+//		}
 
 		//should fallback to JaudiotaggerParser when MediaInfoParser is not found
 //		assertEquals(
