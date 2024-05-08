@@ -220,8 +220,8 @@ public class StoreContainer extends StoreResource {
 						item.setEngine(transcodingEngine);
 						MediaAudio audio = item.getMediaInfo().getDefaultAudioTrack();
 						if (audio != null && audio.isAC4() && transcodingEngine instanceof FFMpegVideo) {
-							LOGGER.debug("Ignoring file \"{}\" because audio is AC-4 and engine is FFmpeg so skip it until FFmpeg"
-								+ " will support it.", item.getName());
+							LOGGER.debug("Ignoring file \"{}\" because audio is AC-4 and engine is FFmpeg so skip it until FFmpeg" +
+								" will support it.", item.getName());
 							children.remove(item);
 							return;
 						}
