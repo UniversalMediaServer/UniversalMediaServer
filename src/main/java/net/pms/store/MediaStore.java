@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.sharedcontent.ApertureContent;
@@ -79,6 +80,16 @@ import org.slf4j.LoggerFactory;
 public class MediaStore extends StoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
+	/**
+	 * An AtomicInteger to prevent heavy IO tasks from causing browsing to be less
+	 * responsive.
+	 * <p>
+	 * When a MediaStore ask for resource (needs to run in realtime), it should
+	 * increment this AtomicInteger for the duration of their operation.
+	 * When a task has a lower priority, it should use waitWorkers() to wait for
+	 * any realtime task to finish.
+	 */
+	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
 	// A temp folder for non-xmb items
@@ -415,42 +426,46 @@ public class MediaStore extends StoreContainer {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
-
-		if (objectId.startsWith("$LogIn/")) {
-			String loginstring = StringUtils.substringAfter(objectId, "/");
-			Integer userId = UserVirtualFolder.decrypt(loginstring);
-			if (userId != null) {
-				renderer.setAccount(AccountService.getAccountByUserId(userId));
-				reset();
-				discoverChildren();
+		try {
+			WORKERS.incrementAndGet();
+			if (objectId.startsWith("$LogIn/")) {
+				String loginstring = StringUtils.substringAfter(objectId, "/");
+				Integer userId = UserVirtualFolder.decrypt(loginstring);
+				if (userId != null) {
+					renderer.setAccount(AccountService.getAccountByUserId(userId));
+					reset();
+					discoverChildren();
+				}
+				return this;
 			}
-			return this;
-		}
 
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
-			return getTemp().get(objectId);
-		}
-
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		if (objectId.equals("0")) {
-			return this;
-		}
-		if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-			try {
-				// this is direct acceded resource.
-				// as we don't know what was it's parent, let find one or fail.
-				DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
-				return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
-			} catch (Exception e) {
-				LOGGER.error("", e);
+			// Get/create/reconstruct it if it's a Temp item
+			if (objectId.contains("$Temp/")) {
+				return getTemp().get(objectId);
 			}
+
+			// Now strip off the filename
+			objectId = StringUtils.substringBefore(objectId, "/");
+
+			if (objectId.equals("0")) {
+				return this;
+			}
+			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				try {
+					// this is direct acceded resource.
+					// as we don't know what was it's parent, let find one or fail.
+					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
+					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			}
+			// only allow the last one here
+			String[] ids = objectId.split("\\.");
+			return getWeakResource(ids[ids.length - 1]);
+		} finally {
+			WORKERS.decrementAndGet();
 		}
-		// only allow the last one here
-		String[] ids = objectId.split("\\.");
-		return getWeakResource(ids[ids.length - 1]);
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -573,91 +588,95 @@ public class MediaStore extends StoreContainer {
 	 * @throws IOException
 	 */
 	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
-		ArrayList<StoreResource> resources = new ArrayList<>();
+		try {
+			WORKERS.incrementAndGet();
+			ArrayList<StoreResource> resources = new ArrayList<>();
 
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
-			List<StoreResource> items = getTemp().asList(objectId);
-			return items != null ? items : resources;
-		}
-
-		StoreResource resource = getResource(objectId);
-
-		if (resource == null) {
-			// nothing in the cache do a traditional search
-			// Now strip off the filename
-			objectId = StringUtils.substringBefore(objectId, "/");
-			String[] ids = objectId.split("\\.");
-			resource = search(ids);
-		}
-
-		if (resource != null) {
-			if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
-				LOGGER.debug("code is not valid any longer");
-				return resources;
+			// Get/create/reconstruct it if it's a Temp item
+			if (objectId.contains("$Temp/")) {
+				List<StoreResource> items = getTemp().asList(objectId);
+				return items != null ? items : resources;
 			}
 
-			if (!isRendererAllowed()) {
-				LOGGER.debug("renderer does not have access to this ressource");
-				return resources;
+			StoreResource resource = getResource(objectId);
+
+			if (resource == null) {
+				// nothing in the cache do a traditional search
+				// Now strip off the filename
+				objectId = StringUtils.substringBefore(objectId, "/");
+				String[] ids = objectId.split("\\.");
+				resource = search(ids);
 			}
 
-			if (!returnChildren) {
-				resources.add(resource);
-				if (resource instanceof StoreContainer storeContainer) {
-					if (!storeContainer.isDiscovered()) {
-						storeContainer.discover(false);
-					} else {
-						storeContainer.refreshChildrenIfNeeded();
-					}
+			if (resource != null) {
+				if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
+					LOGGER.debug("code is not valid any longer");
+					return resources;
 				}
-			} else {
-				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.discover(true);
 
-					int count = storeContainer.getChildren().size();
-					if (count > 0) {
-						String systemName = storeContainer.getSystemName();
-						LOGGER.trace("Start of analysis for " + systemName);
-						ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
+				if (!isRendererAllowed()) {
+					LOGGER.debug("renderer does not have access to this ressource");
+					return resources;
+				}
 
-						int nParallelThreads = 3;
-						if (storeContainer instanceof DVDISOFile) {
-							// Some DVD drives die with 3 parallel threads
-							nParallelThreads = 1;
+				if (!returnChildren) {
+					resources.add(resource);
+					if (resource instanceof StoreContainer storeContainer) {
+						if (!storeContainer.isDiscovered()) {
+							storeContainer.discover(false);
+						} else {
+							storeContainer.refreshChildrenIfNeeded();
 						}
+					}
+				} else {
+					if (resource instanceof StoreContainer storeContainer) {
+						storeContainer.discover(true);
 
-						ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-								new SimpleThreadFactory("LibraryResource resolver thread", true));
+						int count = storeContainer.getChildren().size();
+						if (count > 0) {
+							String systemName = storeContainer.getSystemName();
+							LOGGER.trace("Start of analysis for " + systemName);
+							ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
-						if (shouldDoAudioTrackSorting(storeContainer)) {
-							sortChildrenWithAudioElements(storeContainer);
-						}
-						for (int i = 0; i < storeContainer.getChildren().size(); i++) {
-							final StoreResource child = storeContainer.getChildren().get(i);
-							if (child != null) {
-								tpe.execute(child);
-								resources.add(child);
-							} else {
-								LOGGER.warn("null child at index {} in {}", i, systemName);
+							int nParallelThreads = 3;
+							if (storeContainer instanceof DVDISOFile) {
+								// Some DVD drives die with 3 parallel threads
+								nParallelThreads = 1;
 							}
-						}
 
-						try {
-							tpe.shutdown();
-							tpe.awaitTermination(20, TimeUnit.SECONDS);
-						} catch (InterruptedException e) {
-							LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-							Thread.currentThread().interrupt();
-						}
+							ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
+									new SimpleThreadFactory("LibraryResource resolver thread", true));
 
-						LOGGER.trace("End of analysis for " + systemName);
+							if (shouldDoAudioTrackSorting(storeContainer)) {
+								sortChildrenWithAudioElements(storeContainer);
+							}
+							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
+								final StoreResource child = storeContainer.getChildren().get(i);
+								if (child != null) {
+									tpe.execute(child);
+									resources.add(child);
+								} else {
+									LOGGER.warn("null child at index {} in {}", i, systemName);
+								}
+							}
+
+							try {
+								tpe.shutdown();
+								tpe.awaitTermination(20, TimeUnit.SECONDS);
+							} catch (InterruptedException e) {
+								LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+								Thread.currentThread().interrupt();
+							}
+
+							LOGGER.trace("End of analysis for " + systemName);
+						}
 					}
 				}
 			}
+			return resources;
+		} finally {
+			WORKERS.decrementAndGet();
 		}
-
-		return resources;
 	}
 
 	private StoreResource search(String[] searchIds) {
@@ -897,6 +916,12 @@ public class MediaStore extends StoreContainer {
 			return res.getMediaInfo().getAudioMetadata().getDisc();
 		}
 		return 0;
+	}
+
+	public static void waitWorkers() throws InterruptedException {
+		while (WORKERS.get() > 0) {
+			Thread.sleep(100);
+		}
 	}
 
 }
