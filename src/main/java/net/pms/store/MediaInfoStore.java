@@ -55,8 +55,9 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getMediaInfo(String filename) {
-		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-			return STORE.get(filename).get();
+		MediaInfo mediaInfoCached = STORE.get(filename).get();
+		if (mediaInfoCached != null) {
+			return mediaInfoCached;
 		}
 		Connection connection = null;
 		try {
@@ -79,8 +80,9 @@ public class MediaInfoStore {
 	}
 
 	public static MediaInfo getMediaInfo(String filename, File file, Format format, int type) {
-		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-			return STORE.get(filename).get();
+		MediaInfo mediaInfoCached = STORE.get(filename).get();
+		if (mediaInfoCached != null) {
+			return mediaInfoCached;
 		}
 		LOGGER.trace("Store do not yet contains MediaInfo for {}", filename);
 		MediaInfo mediaInfo = null;
@@ -165,8 +167,9 @@ public class MediaInfoStore {
 
 	public static MediaVideoMetadata getMediaVideoMetadata(String filename) {
 		//check on store
-		if (STORE.containsKey(filename) && STORE.get(filename).get() != null) {
-			return STORE.get(filename).get().getVideoMetadata();
+		MediaInfo mediaInfoCached = STORE.get(filename).get();
+		if (mediaInfoCached != null) {
+			return mediaInfoCached.getVideoMetadata();
 		}
 		//parse db
 		Connection connection = null;
