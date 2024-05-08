@@ -181,7 +181,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		 * was within 2 seconds of the end of the video.
 		 */
 		boolean playedByUser = true;
-		if (fileDuration < 2.0 || startPosition < (fileDuration - 2.0)) {
+		if (fileDuration > 2.0 && startPosition > (fileDuration - 2.0)) {
 			playedByUser = false;
 		}
 		int minimumPlayTime = CONFIGURATION.getMinimumWatchedPlayTimeSeconds();
