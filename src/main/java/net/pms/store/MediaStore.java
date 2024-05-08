@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
@@ -93,7 +94,7 @@ public class MediaStore extends StoreContainer {
 	/**
 	 * List of children objects backuped when discoverChildren.
 	 */
-	private final List<StoreResource> backupChildren = new ArrayList<>();
+	private final List<StoreResource> backupChildren = new CopyOnWriteArrayList<>();
 
 	public MediaStore(Renderer renderer) {
 		super(renderer, "root", null);
@@ -412,7 +413,7 @@ public class MediaStore extends StoreContainer {
 		return tempFolder.add(uri, name);
 	}
 
-	public synchronized StoreResource getResource(String objectId) {
+	public StoreResource getResource(String objectId) {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
@@ -557,7 +558,7 @@ public class MediaStore extends StoreContainer {
 	 * @return List of LibraryResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
+	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
