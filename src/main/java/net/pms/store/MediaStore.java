@@ -83,6 +83,8 @@ public class MediaStore extends StoreContainer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new ConcurrentHashMap<>();
+	private final Map<String, Object> resolvingObject = new ConcurrentHashMap<>();
+
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
@@ -418,41 +420,53 @@ public class MediaStore extends StoreContainer {
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
 
-		if (objectId.startsWith("$LogIn/")) {
-			String loginstring = StringUtils.substringAfter(objectId, "/");
-			Integer userId = UserVirtualFolder.decrypt(loginstring);
-			if (userId != null) {
-				renderer.setAccount(AccountService.getAccountByUserId(userId));
-				reset();
-				discoverChildren();
+		// We synchronize on the same object ID. In case of a parallel ID access we wait until the first thread has collected the data.
+		Object currentSemaphore = new Object();
+		Object previousSemaphore = resolvingObject.putIfAbsent(objectId, currentSemaphore);
+		if (previousSemaphore != null) {
+			currentSemaphore = previousSemaphore;
+		}
+		try {
+			synchronized (currentSemaphore) {
+				if (objectId.startsWith("$LogIn/")) {
+					String loginstring = StringUtils.substringAfter(objectId, "/");
+					Integer userId = UserVirtualFolder.decrypt(loginstring);
+					if (userId != null) {
+						renderer.setAccount(AccountService.getAccountByUserId(userId));
+						reset();
+						discoverChildren();
+					}
+					return this;
+				}
+
+				// Get/create/reconstruct it if it's a Temp item
+				if (objectId.contains("$Temp/")) {
+					return getTemp().get(objectId);
+				}
+
+				// Now strip off the filename
+				objectId = StringUtils.substringBefore(objectId, "/");
+
+				if (objectId.equals("0")) {
+					return this;
+				}
+				if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+					try {
+						// this is direct acceded resource.
+						// as we don't know what was it's parent, let find one or fail.
+						DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
+						return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
+					} catch (Exception e) {
+						LOGGER.error("", e);
+					}
+				}
+				// only allow the last one here
+				String[] ids = objectId.split("\\.");
+				return getWeakResource(ids[ids.length - 1]);
 			}
-			return this;
+		} finally {
+			resolvingObject.remove(currentSemaphore);
 		}
-
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.contains("$Temp/")) {
-			return getTemp().get(objectId);
-		}
-
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		if (objectId.equals("0")) {
-			return this;
-		}
-		if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-			try {
-				// this is direct acceded resource.
-				// as we don't know what was it's parent, let find one or fail.
-				DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
-				return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
-			} catch (Exception e) {
-				LOGGER.error("", e);
-			}
-		}
-		// only allow the last one here
-		String[] ids = objectId.split("\\.");
-		return getWeakResource(ids[ids.length - 1]);
 	}
 
 	private StoreResource getWeakResource(String objectId) {
