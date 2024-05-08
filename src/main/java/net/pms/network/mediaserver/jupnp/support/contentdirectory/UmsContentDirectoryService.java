@@ -24,6 +24,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -42,11 +48,12 @@ import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
-import net.pms.store.utils.StoreResourceSorter;
+import net.pms.store.container.LocalizedStoreContainer;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
@@ -163,6 +170,7 @@ public class UmsContentDirectoryService {
 
 	private final Timer systemUpdateIdTimer = new Timer("jupnp-contentdirectory-service");
 	private final TimerTask systemUpdateIdTask;
+	private final static ThreadPoolExecutor BROWSE_EXECUTOR = (ThreadPoolExecutor) Executors.newFixedThreadPool(3);
 
 	@UpnpStateVariable(sendEvents = false)
 	private final CSV<String> searchCapabilities = new CSVString();
@@ -277,7 +285,6 @@ public class UmsContentDirectoryService {
 			LOGGER.debug("Trying to sort on a browse action with '{}' !", orderBy);
 			throw new ContentDirectoryException(ContentDirectoryErrorCode.UNSUPPORTED_SORT_CRITERIA, ex.toString());
 		}
-
 		try {
 			return browse(
 					objectId,
@@ -560,6 +567,10 @@ public class UmsContentDirectoryService {
 			SortCriterion[] sortCriteria,
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
+		if (StringUtils.isAllBlank(objectID)) {
+			LOGGER.warn("objectID is not provided");
+			return null;
+		}
 		UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
 		Renderer renderer = info.renderer;
 		if (renderer == null) {
@@ -575,103 +586,45 @@ public class UmsContentDirectoryService {
 			return null;
 		}
 
-		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
+		BrowseRequestCallable brc = new BrowseRequestCallable(objectID, browseFlag, filter, startingIndex, requestedCount,
+			sortCriteria, renderer);
 
-		List<StoreResource> resources = renderer.getMediaStore().getResources(
-				objectID,
-				browseDirectChildren
-		);
+		BrowseRequestCallResult broseResult;
 
-		List<StoreResource> resultResources = new ArrayList<>();
-		long resourcesCount = 0;
-		long badResourceCount = 0;
+		Future<BrowseRequestCallResult> future = BROWSE_EXECUTOR.submit(brc);
 
-		//keep only compatible resources
-		if (resources != null) {
-			resourcesCount = resources.size();
-			for (StoreResource resource : resources) {
-				if (resource instanceof PlaylistFolder playlistFolder) {
-					File f = new File(resource.getFileName());
-					if (resource.getLastModified() < f.lastModified()) {
-						playlistFolder.resolve();
-					}
-				}
-
-				if (resource instanceof StoreContainer container) {
-					resultResources.add(container);
-				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
-						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
-						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						resources.get(0).isInsideTranscodeFolder())) {
-					resultResources.add(item);
-				} else {
-					badResourceCount++;
-				}
-			}
-		}
-
-		//sort
-		StoreResourceSorter.sortResources(resultResources, sortCriteria);
-
-		long totalMatches;
-		if (browseDirectChildren) {
-			StoreContainer parentFolder;
-			if (resources != null && resourcesCount > 0) {
-				parentFolder = resources.get(0).getParent();
-			} else {
-				StoreResource resource = renderer.getMediaStore().getResource(objectID);
-				if (resource instanceof StoreContainer storeContainer) {
-					parentFolder = storeContainer;
-				} else {
-					if (resource instanceof StoreItem) {
-						LOGGER.debug("Trying to browse direct children on a store item for objectID '{}' !", objectID);
-					} else {
-						LOGGER.debug("Trying to browse direct children on a null object for objectID '{}' !", objectID);
-					}
-					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
-				}
-			}
-			if (parentFolder != null) {
-				totalMatches = parentFolder.childrenCount() - badResourceCount;
-			} else {
-				totalMatches = resourcesCount - badResourceCount;
-			}
-		} else {
-			// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
-			totalMatches = 1;
-		}
-
-		//handle startingIndex and requestedCount
-		int fromIndex = (int) startingIndex;
-		int toIndex;
-		if (requestedCount == 0) {
-			toIndex = resultResources.size();
-		} else {
-			toIndex = Math.min(fromIndex + (int) requestedCount, resultResources.size());
-		}
-		long count = (long) toIndex - fromIndex;
-		if (count < 0) {
-			LOGGER.debug("requested objects out of range.");
-			fromIndex = 0;
-			toIndex = 0;
-			count = 0;
+		try {
+			broseResult = future.get(2, TimeUnit.SECONDS);
+			LOGGER.trace("removing objectID {} from current running requests.", objectID);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			// no result yet ... give renderer human readable hint.
+			broseResult = new BrowseRequestCallResult();
+			broseResult.count = 1;
+			broseResult.fromIndex = 0;
+			broseResult.toIndex = 1;
+			broseResult.totalMatches = 0;
+			broseResult.resultList = new ArrayList<>();
+			StoreContainer sc = new LocalizedStoreContainer(renderer, "FolderScanningInProgress");
+			// TODO: check how this performs on a TV or other CP
+			sc.setFakeParentId("0");
+			sc.setId(objectID);
+			broseResult.resultList.add(sc);
 		}
 
 		long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 		LOGGER.trace("Creating DIDL result");
 		String result;
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-			result = getJUPnPDidlResults(resultResources.subList(fromIndex, toIndex), filter);
+			result = getJUPnPDidlResults(broseResult.resultList.subList((int) broseResult.fromIndex, (int) broseResult.toIndex), filter);
 		} else {
-			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
+			result = DidlHelper.getDidlResults(broseResult.resultList.subList((int) broseResult.fromIndex, (int) broseResult.toIndex));
 		}
 		LOGGER.trace("DIDL result created");
 		if (renderer.getUmsConfiguration().isUpnpDebug()) {
 			logDidlLiteResult(result);
 		}
 		LOGGER.trace("Returning browse result");
-		return new BrowseResult(result, count, totalMatches, containerUpdateID);
+		return new BrowseResult(result, broseResult.count, broseResult.totalMatches, containerUpdateID);
 	}
 
 	private SearchResult search(
