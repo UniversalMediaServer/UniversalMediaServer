@@ -62,8 +62,7 @@ public class FormatRecognitionTest {
 		UmsConfiguration configuration = new UmsConfiguration(false);
 		PMS.setConfiguration(configuration);
 		RendererConfigurations.loadRendererConfigurations();
-		MediaInfoParser parser = new MediaInfoParser();
-		mediaInfoParserIsValid = parser.isValid();
+		mediaInfoParserIsValid = MediaInfoParser.isValid();
 
 		TestHelper.SetLoggingOff();
 	}
@@ -299,8 +298,7 @@ public class FormatRecognitionTest {
 		assumeTrue(RendererConfigurations.getDefaultConf() != null);
 
 		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
-		MediaInfoParser parser = new MediaInfoParser();
-		assumeTrue(parser.isValid());
+		assumeTrue(MediaInfoParser.isValid());
 
 		RealFile resource = new RealFile(RendererConfigurations.getDefaultRenderer(), new File("test.mkv"));
 		// Construct media info exactly as VirtualVideoAction does

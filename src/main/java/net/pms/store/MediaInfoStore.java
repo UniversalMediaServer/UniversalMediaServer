@@ -171,6 +171,7 @@ public class MediaInfoStore {
 		if (mediaInfoCached != null) {
 			return mediaInfoCached.getVideoMetadata();
 		}
+
 		//parse db
 		Connection connection = null;
 		try {

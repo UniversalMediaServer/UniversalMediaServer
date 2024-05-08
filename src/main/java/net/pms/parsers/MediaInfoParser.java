@@ -64,27 +64,69 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaInfoParser {
-	private final static Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
 	// Regular expression to parse a 4 digit year number from a string
-	private final static String YEAR_REGEX = ".*([\\d]{4}).*";
-
+	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
 	// Pattern to parse the year from a string
-	private final static Pattern YEAR_PATTERN = Pattern.compile(YEAR_REGEX);
+	private static final Pattern YEAR_PATTERN = Pattern.compile(YEAR_REGEX);
+	private static final Version VERSION;
+	private static final boolean IS_VALID;
+	public static final String PARSER_NAME;
 
-	private final MediaInfoHelper mediaInfoHelper;
-	private final Version version;
+	private static boolean blocked;
 
-	public final String parserName;
-
-	private boolean blocked = false;
+	static {
+		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(true);
+		IS_VALID = mediaInfoHelper.isValid();
+		if (IS_VALID) {
+			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(mediaInfoHelper.option("Info_Version"));
+			if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
+				VERSION = new Version(matcher.group(1));
+			} else {
+				VERSION = null;
+			}
+			PARSER_NAME = "MI_" + VERSION;
+		} else {
+			VERSION = null;
+			PARSER_NAME = null;
+		}
+		try {
+			mediaInfoHelper.close();
+		} catch (Exception ex) {
+			LOGGER.warn("MediaInfoHelper error on close: ", ex);
+		}
+	}
 
 	/**
 	 * This class is not meant to be instantiated.
 	 */
-	public MediaInfoParser() {
-		mediaInfoHelper = new MediaInfoHelper();
+	private MediaInfoParser() {
+	}
 
+	public static boolean isValid() {
+		return IS_VALID && !blocked;
+	}
+
+	protected static void block() {
+		blocked = true;
+	}
+
+	protected static void unblock() {
+		blocked = false;
+	}
+
+	/**
+	 * @return The {@code LibMediaInfo} {@link Version} or {@code null} if
+	 *         unknown.
+	 */
+	@Nullable
+	public static Version getVersion() {
+		return VERSION;
+	}
+
+	private static MediaInfoHelper getMediaInfoHelper(boolean log) {
+		MediaInfoHelper mediaInfoHelper = new MediaInfoHelper(log);
 		if (mediaInfoHelper.isValid()) {
 			//by default, MediaInfo will ignore not known option, so do not check for version.
 			mediaInfoHelper.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
@@ -94,39 +136,22 @@ public class MediaInfoParser {
 			mediaInfoHelper.option("ReadByHuman", "0");
 			mediaInfoHelper.option("Cover_Data", "base64");
 			mediaInfoHelper.option("File_HighestFormat", "0");
-			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(mediaInfoHelper.option("Info_Version"));
-			if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
-				version = new Version(matcher.group(1));
-			} else {
-				version = null;
-			}
-			parserName = "MI_" + version;
-		} else {
-			version = null;
-			parserName = null;
 		}
-	}
-
-	public boolean isValid() {
-		return mediaInfoHelper.isValid() && !blocked;
-	}
-
-	/**
-	 * @return The {@code LibMediaInfo} {@link Version} or {@code null} if
-	 *         unknown.
-	 */
-	@Nullable
-	public Version getVersion() {
-		return version;
+		return mediaInfoHelper;
 	}
 
 	/**
 	 * Parse media via MediaInfoHelper.
 	 */
-	public void parse(MediaInfo media, File file, int type) {
+	public static void parse(MediaInfo media, File file, int type) {
 		media.waitMediaParsing(5);
 		media.setParsing(true);
-		if (file == null || media.isMediaParsed() || !mediaInfoHelper.isValid()) {
+		if (file == null || media.isMediaParsed()) {
+			media.setParsing(false);
+			return;
+		}
+		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(false);
+		if (!mediaInfoHelper.isValid()) {
 			media.setParsing(false);
 			return;
 		}
@@ -532,7 +557,7 @@ public class MediaInfoParser {
 			}
 
 			if (media.isAudio()) {
-				media.setAudioMetadata(parseFileForAudioMetadata(file, media));
+				media.setAudioMetadata(parseFileForAudioMetadata(mediaInfoHelper, file, media));
 			}
 
 			Parser.postParse(media, type);
@@ -545,13 +570,18 @@ public class MediaInfoParser {
 				media.setContainer(MediaLang.UND);
 			}
 			if (!media.isImage() || !media.isMediaParsed()) {
-				media.setMediaParser(parserName);
+				media.setMediaParser(PARSER_NAME);
 			}
+		}
+		try {
+			mediaInfoHelper.close();
+		} catch (Exception ex) {
+			LOGGER.warn("MediaInfoHelper on close: ", ex);
 		}
 		media.setParsing(false);
 	}
 
-	public void addVideoTrack(MediaVideo currentVideoTrack, MediaInfo media) {
+	public static void addVideoTrack(MediaVideo currentVideoTrack, MediaInfo media) {
 		if (StringUtils.isBlank(currentVideoTrack.getLang())) {
 			currentVideoTrack.setLang(MediaLang.UND);
 		}
@@ -563,7 +593,7 @@ public class MediaInfoParser {
 		media.addVideoTrack(currentVideoTrack);
 	}
 
-	public void addAudioTrack(MediaAudio currentAudioTrack, MediaInfo media) {
+	public static void addAudioTrack(MediaAudio currentAudioTrack, MediaInfo media) {
 		if (StringUtils.isBlank(currentAudioTrack.getLang())) {
 			currentAudioTrack.setLang(MediaLang.UND);
 		}
@@ -575,7 +605,7 @@ public class MediaInfoParser {
 		media.addAudioTrack(currentAudioTrack);
 	}
 
-	public void addSubtitlesTrack(MediaSubtitle currentSubTrack, MediaInfo media) {
+	public static void addSubtitlesTrack(MediaSubtitle currentSubTrack, MediaInfo media) {
 		if (currentSubTrack.getType() == SubtitleType.UNSUPPORTED) {
 			return;
 		}
@@ -605,7 +635,7 @@ public class MediaInfoParser {
 	 * @todo Split the values by streamType to make the logic more clear
 	 *       with less negative statements.
 	 */
-	protected void setFormat(StreamKind streamType, MediaInfo media, MediaVideo video, MediaAudio audio, String value, File file) {
+	protected static void setFormat(StreamKind streamType, MediaInfo media, MediaVideo video, MediaAudio audio, String value, File file) {
 		if (StringUtils.isBlank(value) || streamType == null) {
 			return;
 		}
@@ -958,7 +988,7 @@ public class MediaInfoParser {
 		}
 	}
 
-	public int getPixelValue(String value) {
+	public static int getPixelValue(String value) {
 		if (StringUtils.isBlank(value)) {
 			return 0;
 		}
@@ -986,7 +1016,7 @@ public class MediaInfoParser {
 	 * @param value {@code Format_Settings_RefFrames/String} value to parse.
 	 * @return reference frame count or {@code -1} if could not parse.
 	 */
-	public byte getReferenceFrameCount(String value) {
+	public static byte getReferenceFrameCount(String value) {
 		if (StringUtils.isBlank(value)) {
 			return -1;
 		}
@@ -1006,7 +1036,7 @@ public class MediaInfoParser {
 	 * @param value {@code Format_Profile} value to parse.
 	 * @return Array of string with Format Profile, Format Level and Format Tier.
 	 */
-	public String[] getFormatProfile(String value) {
+	public static String[] getFormatProfile(String value) {
 		String[] result = new String[3];
 		String profile = StringUtils.substringBefore(value, "@");
 		if (StringUtils.isNotBlank(profile)) {
@@ -1029,7 +1059,7 @@ public class MediaInfoParser {
 		return result;
 	}
 
-	public int getVideoBitrate(String value) {
+	public static int getVideoBitrate(String value) {
 		if (StringUtils.isBlank(value)) {
 			return 0;
 		}
@@ -1089,21 +1119,33 @@ public class MediaInfoParser {
 		}
 	}
 
-	private int getIntValue(Double value, int defaultValue) {
+	private static Double getDoubleValue(String value) {
+		if (StringUtils.isEmpty(value)) {
+			return null;
+		}
+		try {
+			return Double.valueOf(value);
+		} catch (NumberFormatException ex) {
+			LOGGER.warn("NumberFormatException during parsing double from value {}", value);
+			return null;
+		}
+	}
+
+	private static int getIntValue(Double value, int defaultValue) {
 		if (value == null) {
 			return defaultValue;
 		}
 		return value.intValue();
 	}
 
-	private int getIntValue(Long value, int defaultValue) {
+	private static int getIntValue(Long value, int defaultValue) {
 		if (value == null) {
 			return defaultValue;
 		}
 		return value.intValue();
 	}
 
-	private byte getByteValue(Long value, byte defaultValue) {
+	private static byte getByteValue(Long value, byte defaultValue) {
 		if (value == null) {
 			return defaultValue;
 		}
@@ -1132,7 +1174,7 @@ public class MediaInfoParser {
 	 *
 	 * Next we check for common naming conventions.
 	 */
-	private void parseFilenameForMultiViewLayout(File file, MediaInfo media) {
+	private static void parseFilenameForMultiViewLayout(File file, MediaInfo media) {
 		String upperCaseFileName = file.getName().toUpperCase();
 		if (upperCaseFileName.startsWith("3DSBS")) {
 			LOGGER.debug("3D format SBS detected for " + file.getName());
@@ -1168,7 +1210,7 @@ public class MediaInfoParser {
 		}
 	}
 
-	private MediaAudioMetadata parseFileForAudioMetadata(File file, MediaInfo media) {
+	private static MediaAudioMetadata parseFileForAudioMetadata(MediaInfoHelper mediaInfoHelper, File file, MediaInfo media) {
 		MediaAudioMetadata audioMetadata = new MediaAudioMetadata();
 		audioMetadata.setSongname(StreamContainer.getTrack(mediaInfoHelper, 0));
 		audioMetadata.setAlbum(StreamContainer.getAlbum(mediaInfoHelper, 0));
@@ -1214,18 +1256,6 @@ public class MediaInfoParser {
 			JaudiotaggerParser.parse(file, audioMetadata);
 		}
 		return audioMetadata;
-	}
-
-	public String getParserName() {
-		return parserName;
-	}
-
-	protected void block() {
-		blocked = true;
-	}
-
-	protected void unblock() {
-		blocked = false;
 	}
 
 }

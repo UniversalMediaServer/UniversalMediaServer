@@ -37,7 +37,7 @@ public class ParserTest {
 	private static final Class<?> CLASS = ParserTest.class;
 
 	@BeforeAll
-	public static void setUPClass() {
+	public static void SetUPClass() {
 		PMS.configureJNA();
 		TestHelper.SetLoggingOff();
 		//silent org.jaudiotagger
@@ -71,11 +71,9 @@ public class ParserTest {
 
 	@Test
 	public void testParserChoice() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
 		//should use MediaInfo parser
 		assertEquals(
-			parser.getParserName(),
+			MediaInfoParser.PARSER_NAME,
 			getTestFileMediaInfo("video-h264-aac.mp4").getMediaParser()
 		);
 		//should fallback to MetadataExtractor parser
@@ -85,25 +83,26 @@ public class ParserTest {
 		);
 		//should fallback to MediaInfo parser
 		assertEquals(
-			parser.getParserName(),
+			MediaInfoParser.PARSER_NAME,
 			getTestFileMediaInfo("audio-realmedia.ra").getMediaParser()
 		);
 
-		// cannot be tested this way any more, because Parser.parse instances an new MediaInfoParser
-
+		//disable MediaInfoParser
+		MediaInfoParser.block();
 		//should fallback to FFmpegParser when MediaInfoParser is not found
-//		if (FFmpegParser.isValid()) {
-//			assertEquals(
-//				FFmpegParser.PARSER_NAME,
-//				getTestFileMediaInfo("video-h264-aac.mp4").getMediaParser()
-//			);
-//		}
-
+		if (FFmpegParser.isValid()) {
+			assertEquals(
+				FFmpegParser.PARSER_NAME,
+				getTestFileMediaInfo("video-h264-aac.mp4").getMediaParser()
+			);
+		}
 		//should fallback to JaudiotaggerParser when MediaInfoParser is not found
-//		assertEquals(
-//			JaudiotaggerParser.PARSER_NAME,
-//			getTestFileMediaInfo("audio-mp3-infos.mp3").getMediaParser()
-//		);
+		assertEquals(
+			JaudiotaggerParser.PARSER_NAME,
+			getTestFileMediaInfo("audio-mp3-infos.mp3").getMediaParser()
+		);
+		MediaInfoParser.unblock();
+
 	}
 
 }

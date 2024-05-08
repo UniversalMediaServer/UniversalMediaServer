@@ -39,91 +39,77 @@ public class MediaInfoParserTest {
 		File file = ParserTest.getTestFile(testFile);
 		Format format = FormatFactory.getAssociatedFormat(file.getAbsolutePath());
 		MediaInfo mediaInfo = new MediaInfo();
-		MediaInfoParser parser = new MediaInfoParser();
 
-		parser.parse(mediaInfo, file, format.getType());
+		MediaInfoParser.parse(mediaInfo, file, format.getType());
 		return mediaInfo;
 	}
 
 	@Test
 	public void testGetFormatProfile() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertEquals(parser.getFormatProfile("Main 10@L5@Main")[0], "main 10");
-		assertEquals(parser.getFormatProfile("Main@L2.0")[0], "main");
-		assertEquals(parser.getFormatProfile("High@L3.0")[0], "high");
-		assertEquals(parser.getFormatProfile("high@l4.0")[0], "high");
-		assertEquals(parser.getFormatProfile("hIgH@L4.1")[0], "high");
-		assertEquals(parser.getFormatProfile("LOW@L4.1")[0], "low");
+		assertEquals(MediaInfoParser.getFormatProfile("Main 10@L5@Main")[0], "main 10");
+		assertEquals(MediaInfoParser.getFormatProfile("Main@L2.0")[0], "main");
+		assertEquals(MediaInfoParser.getFormatProfile("High@L3.0")[0], "high");
+		assertEquals(MediaInfoParser.getFormatProfile("high@l4.0")[0], "high");
+		assertEquals(MediaInfoParser.getFormatProfile("hIgH@L4.1")[0], "high");
+		assertEquals(MediaInfoParser.getFormatProfile("LOW@L4.1")[0], "low");
 	}
 
 	@Test
 	public void testGetFormatProfileInvalidInput() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertNull(parser.getFormatProfile("@L5@Main")[0]);
-		assertNull(parser.getFormatProfile("@L2.0")[0]);
-		assertNull(parser.getFormatProfile("@l2.0")[0]);
-		assertNull(parser.getFormatProfile("@2.0")[0]);
+		assertNull(MediaInfoParser.getFormatProfile("@L5@Main")[0]);
+		assertNull(MediaInfoParser.getFormatProfile("@L2.0")[0]);
+		assertNull(MediaInfoParser.getFormatProfile("@l2.0")[0]);
+		assertNull(MediaInfoParser.getFormatProfile("@2.0")[0]);
 	}
 
 	@Test
 	public void testGetFormatLevel() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertEquals(parser.getFormatProfile("Main 10@L5@Main")[1], "5");
-		assertEquals(parser.getFormatProfile("L10@5@L2.0")[1], "5");
-		assertEquals(parser.getFormatProfile("Main@L2.0")[1], "2.0");
-		assertEquals(parser.getFormatProfile("High@L3.0")[1], "3.0");
-		assertEquals(parser.getFormatProfile("hIgH@L4.1")[1], "4.1");
-		assertNull(parser.getFormatProfile("5.1")[1]);
-		assertNull(parser.getFormatProfile("level5")[1]);
+		assertEquals(MediaInfoParser.getFormatProfile("Main 10@L5@Main")[1], "5");
+		assertEquals(MediaInfoParser.getFormatProfile("L10@5@L2.0")[1], "5");
+		assertEquals(MediaInfoParser.getFormatProfile("Main@L2.0")[1], "2.0");
+		assertEquals(MediaInfoParser.getFormatProfile("High@L3.0")[1], "3.0");
+		assertEquals(MediaInfoParser.getFormatProfile("hIgH@L4.1")[1], "4.1");
+		assertNull(MediaInfoParser.getFormatProfile("5.1")[1]);
+		assertNull(MediaInfoParser.getFormatProfile("level5")[1]);
 	}
 
 	@Test
 	public void testGetFormatTier() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertEquals(parser.getFormatProfile("Main 10@L5@Main")[2], "main");
-		assertEquals(parser.getFormatProfile("10@5@maIn")[2], "main");
-		assertNull(parser.getFormatProfile("High@L3.0")[2]);
-		assertNull(parser.getFormatProfile("High@3.0")[2]);
+		assertEquals(MediaInfoParser.getFormatProfile("Main 10@L5@Main")[2], "main");
+		assertEquals(MediaInfoParser.getFormatProfile("10@5@maIn")[2], "main");
+		assertNull(MediaInfoParser.getFormatProfile("High@L3.0")[2]);
+		assertNull(MediaInfoParser.getFormatProfile("High@3.0")[2]);
 	}
 
 	@Test
 	public void testGetSpecificID() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertEquals(parser.getSpecificID("256"), 256);
-		assertEquals(parser.getSpecificID("189 (0xBD)-32 (0x80)"), 32);
-		assertEquals(parser.getSpecificID("189 (0xBD)"), 189);
-		assertEquals(parser.getSpecificID("189 (0xBD)-"), 189);
+		assertEquals(MediaInfoParser.getSpecificID("256"), 256);
+		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-32 (0x80)"), 32);
+		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)"), 189);
+		assertEquals(MediaInfoParser.getSpecificID("189 (0xBD)-"), 189);
 	}
 
 	@Test
 	public void testGetFrameRateModeValue() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
-
-		assertEquals(parser.getFrameRateModeValue("VBR"), "VBR");
-		assertEquals(parser.getFrameRateModeValue("CBR/VBR"), "CBR");
+		assertEquals(MediaInfoParser.getFrameRateModeValue("VBR"), "VBR");
+		assertEquals(MediaInfoParser.getFrameRateModeValue("CBR/VBR"), "CBR");
 	}
 
 	@Test
 	public void testSetFormat() throws Exception {
-		MediaInfoParser parser = new MediaInfoParser();
 
 		MediaInfo media = new MediaInfo();
 		MediaVideo video = new MediaVideo();
 		MediaAudio audio = new MediaAudio();
-		parser.setFormat(StreamKind.GENERAL, media, video, audio, "XVID", null);
+		MediaInfoParser.setFormat(StreamKind.GENERAL, media, video, audio, "XVID", null);
 		assertEquals(FormatConfiguration.DIVX, media.getContainer());
-		parser.setFormat(StreamKind.VIDEO, media, video, audio, "XVID", null);
+		MediaInfoParser.setFormat(StreamKind.VIDEO, media, video, audio, "XVID", null);
 		assertEquals(FormatConfiguration.DIVX, video.getCodec());
 		media.setContainer("");
-		parser.setFormat(StreamKind.GENERAL, media, video, audio, "mp42 (mp42/isom)", null);
+		MediaInfoParser.setFormat(StreamKind.GENERAL, media, video, audio, "mp42 (mp42/isom)", null);
 		assertEquals(FormatConfiguration.MP4, media.getContainer());
 		video.setCodec("");
-		parser.setFormat(StreamKind.VIDEO, media, video, audio, "DIVX", null);
+		MediaInfoParser.setFormat(StreamKind.VIDEO, media, video, audio, "DIVX", null);
 		assertEquals(FormatConfiguration.DIVX, video.getCodec());
 		// TODO this can continue with other container, video and audio formats
 	}
@@ -132,9 +118,8 @@ public class MediaInfoParserTest {
 	public void testContainerProperties() throws Exception {
 		// Check if the MediaInfo library is properly installed and initialized
 		// especially on Linux which needs users to be involved.
-		MediaInfoParser parser = new MediaInfoParser();
 		assertTrue(
-			parser.isValid(),
+			MediaInfoParser.isValid(),
 			"\r\nYou do not appear to have MediaInfo installed on your machine, please install it before running this test\r\n"
 		);
 

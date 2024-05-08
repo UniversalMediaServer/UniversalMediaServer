@@ -71,13 +71,12 @@ public class Parser {
 				return;
 			}
 			// MediaInfo can't correctly parse ADPCM, DFF, DSF or PNM
-			MediaInfoParser parser = new MediaInfoParser();
-			if (parser.isValid() &&
+			if (MediaInfoParser.isValid() &&
 					ext.getIdentifier() != Format.Identifier.ADPCM &&
 					ext.getIdentifier() != Format.Identifier.DFF &&
 					ext.getIdentifier() != Format.Identifier.DSF &&
 					ext.getIdentifier() != Format.Identifier.PNM) {
-				parser.parse(media, file.getFile(), type);
+				MediaInfoParser.parse(media, file.getFile(), type);
 			} else if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				JaudiotaggerParser.parse(media, file.getFile(), ext);
 			} else {
