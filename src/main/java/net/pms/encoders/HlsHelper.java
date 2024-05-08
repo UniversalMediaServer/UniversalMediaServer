@@ -536,9 +536,6 @@ public class HlsHelper {
 			return BY_LABEL.get(label);
 		}
 
-		public static String[] getKeys() {
-			return BY_LABEL.keySet().toArray(new String[0]);
-		}
 		public static HlsVideoConfiguration[] getValues() {
 			return BY_LABEL.values().toArray(new HlsVideoConfiguration[0]);
 		}
@@ -562,8 +559,8 @@ public class HlsHelper {
 			BY_LABEL.put("HE-AAC", new HlsAudioConfiguration("HE-AAC", "HE-AAC", "mp4a.40.5", 160000, 2, false));
 			BY_LABEL.put("HE-AAC-6", new HlsAudioConfiguration("HE-AAC-6", "HE-AAC 5.1", "mp4a.40.5", 160000, 2, false));
 			BY_LABEL.put("HE-AACv2", new HlsAudioConfiguration("HE-AACv2", "HE-AACv2", "mp4a.40.29", 160000, 2, false));
-			BY_LABEL.put("MP3", new HlsAudioConfiguration("MP3", "MPEG-1/2 Audio Layer III", "mp4a.40.34", 1200000, 2, false));
-			BY_LABEL.put("AC3", new HlsAudioConfiguration("AC3", "Dolby Digital", "ac-3", 1200000, 2, true));
+			BY_LABEL.put("MP3", new HlsAudioConfiguration("MP3", "MPEG-1/2 Audio Layer III", "mp4a.40.34", 192000, 2, false));
+			BY_LABEL.put("AC3", new HlsAudioConfiguration("AC3", "Dolby Digital", "ac-3", 384000, 2, true));
 			BY_LABEL.put("AC3-6", new HlsAudioConfiguration("AC3-6", "Dolby Digital 5.1", "ac-3", 384000, 6, false));
 			BY_LABEL.put("EAC3", new HlsAudioConfiguration("EAC3", "Dolby Digital Plus", "ec-3", 160000, 2, true));
 			BY_LABEL.put("EAC3-6", new HlsAudioConfiguration("EAC3-6", "Dolby Digital Plus 5.1", "ec-3", 192000, 6, false));
