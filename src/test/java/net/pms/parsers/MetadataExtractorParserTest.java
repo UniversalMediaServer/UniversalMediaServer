@@ -26,8 +26,8 @@ import org.junit.jupiter.api.Test;
 public class MetadataExtractorParserTest {
 
 	@BeforeAll
-	public static void SetUPClass() {
-		ParserTest.setUPClass();
+	public static void setUPClass() {
+		ParserTest.SetUPClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {

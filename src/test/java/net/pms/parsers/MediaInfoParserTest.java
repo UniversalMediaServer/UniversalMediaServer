@@ -32,7 +32,7 @@ public class MediaInfoParserTest {
 
 	@BeforeAll
 	public static void setUPClass() {
-		ParserTest.setUPClass();
+		ParserTest.SetUPClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {
