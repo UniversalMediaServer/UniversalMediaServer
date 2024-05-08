@@ -81,6 +81,7 @@ public class MediaStore extends StoreContainer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
+	private final Map<Long, Object> idLocks = new HashMap<>();
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
@@ -411,7 +412,7 @@ public class MediaStore extends StoreContainer {
 		return tempFolder.add(uri, name);
 	}
 
-	public synchronized StoreResource getResource(String objectId) {
+	public StoreResource getResource(String objectId) {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
@@ -453,14 +454,27 @@ public class MediaStore extends StoreContainer {
 		return getWeakResource(ids[ids.length - 1]);
 	}
 
+	private Object getIdLock(Long id) {
+		synchronized (idLocks) {
+			if (idLocks.containsKey(id)) {
+				return idLocks.get(id);
+			}
+			Object idLock = new Object();
+			idLocks.put(id, idLock);
+			return idLock;
+		}
+	}
+
 	private StoreResource getWeakResource(String objectId) {
 		Long id = parseIndex(objectId);
 		if (id == null) {
 			return null;
 		}
-		synchronized (weakResources) {
-			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-				return weakResources.get(id).get();
+		Object idLock = getIdLock(id);
+		synchronized (idLock) {
+			StoreResource res = getWeakResource(id);
+			if (res != null) {
+				return res;
 			} else {
 				// object id not founded, try recreate
 				return recreateResource(id);
@@ -478,25 +492,24 @@ public class MediaStore extends StoreContainer {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
-			synchronized (weakResources) {
-				for (MediaStoreId libraryId : libraryIds) {
-					if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
-						StoreResource resource = weakResources.get(libraryId.getId()).get();
-						if (resource instanceof StoreContainer container) {
-							container.discoverChildren();
-						}
-						if (resource instanceof VirtualFolder container) {
-							container.analyzeChildren();
-						}
+			for (MediaStoreId libraryId : libraryIds) {
+				StoreResource parent = getWeakResource(libraryId.getId());
+				if (parent != null) {
+					if (parent instanceof StoreContainer container) {
+						container.discoverChildren();
+					}
+					if (parent instanceof VirtualFolder container) {
+						container.analyzeChildren();
 					}
 				}
-				//now that parent folders are discovered, try to get the resource
-				if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-					LOGGER.trace("resource with id '{}' recreacted succefully", id);
-					return weakResources.get(id).get();
-				} else {
-					LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
-				}
+			}
+			//now that parent folders are discovered, try to get the resource
+			StoreResource resource = getWeakResource(id);
+			if (resource != null) {
+				LOGGER.trace("resource with id '{}' recreacted succefully", id);
+				return resource;
+			} else {
+				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
 			}
 		} else {
 			LOGGER.trace("resource with id '{}' was not found in database", id);
@@ -506,20 +519,31 @@ public class MediaStore extends StoreContainer {
 
 	public boolean weakResourceExists(String objectId) {
 		Long id = parseIndex(objectId);
+		return getWeakResource(id) != null;
+	}
+
+	private StoreResource getWeakResource(Long id) {
 		synchronized (weakResources) {
-			return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
+			if (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+				return weakResources.get(id).get();
+			}
 		}
+		return null;
+	}
+
+	private boolean addWeakResource(Long id, StoreResource resource) {
+		if (id != null) {
+			synchronized (weakResources) {
+				weakResources.put(id, new WeakReference<>(resource));
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean addWeakResource(StoreResource resource) {
 		Long id = MediaStoreIds.getMediaStoreResourceId(resource);
-		if (id != null) {
-			synchronized (weakResources) {
-				weakResources.put(id, new WeakReference<>(resource));
-				return true;
-			}
-		}
-		return false;
+		return addWeakResource(id, resource);
 	}
 
 	public void replaceWeakResource(StoreResource a, StoreResource b) {
@@ -572,7 +596,7 @@ public class MediaStore extends StoreContainer {
 	 * @return List of LibraryResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
+	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
 		ArrayList<StoreResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
