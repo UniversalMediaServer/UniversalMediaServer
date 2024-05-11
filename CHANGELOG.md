@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## 14.0.0 - Unreleased (Since 13.10.1)
+## [14.0.0 - Since 13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.1...14.0.0) (2024-05-11)
 
 ### General
 - Added ability to block/allow renderers in web settings
@@ -19,18 +19,36 @@
 - Added original movie/tv series title and country if not same as title
 - Added Rating bar
 - Added option to sort by rating in Media Library
-- Improved memory use bar on the web interface
+- Added a warning that the offline help pages are not maintained with a link to the maintained https://support.universalmediaserver.com
+- Added caching to translations
+- Added status text to splash screen
+- Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
 - Added ability for user accounts to have avatars
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Updated browser logos
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
+- Improved memory use bar on the web interface
 - Improved selection of video quality on web player
 - Removed ability to disable the local cache
 - Improved drag and drop on Shared Content tab on web settings
-- Added ability to select and edit multiple shared contents
-- Added more control over user permissions in the web settings
-- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
 - Improved TV series matching and lookups
 - Improved database cleanup step
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Fixed TV series sometimes not being set for episodes
 - Fixed thumbnail handling bugs
 - Fixed FirstAirDate and LastAirDate for TV series
+- Fixed unplayed videos being marked as fully played while browsing via some renderers
+- Fixed wrong HLS audio bitrate
+- Fixed MusicBrainz lookup errors
+- Fixed dates in the changelog (thanks, @Martinius79!)
+- Refactored to remove deprecated code use
 
 ### Translation updates via Crowdin
 - Arabic (42%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
@@ -73,7 +91,7 @@
   - Uses your system light/dark mode preference
 - Bump `NSIS` to v3
 - Bump `nsis-maven-plugin` to v1.0.5
-- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546))
+- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546)) (thanks, @Nadahar!)
 - Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
 - Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
 - Bump `typescript` to 5.3.3
@@ -82,7 +100,7 @@
 - Bump `web-vitals` to 3.5.0
 - Bump `yarn` to v4, which improves install performance by 3x
 
-## 14.0.0 (Unreleased) - Since 14.0.0-b1
+## [14.0.0 - Since 14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0-b1...14.0.0) (2024-05-11)
 
 ### General
 - Added menu option to clear all renderer/device filter settings
@@ -92,8 +110,6 @@
 - Improved program icons on HiDPI and Retina screens
 - Improved Windows installer appearance on HiDPI screens
 - Fixed TV series sometimes not being set for episodes
-- Stability improvements
-- Logging improvements
 - Refactored to remove deprecated code use
 - Updated browser logos
 - Fixed response on web player when directory has been deleted
@@ -109,6 +125,11 @@
 - Reorganized some settings on the old GUI to match the new one
 - Made API metadata insertion more stable
 - Improved device discovery stability and speed
+- Fixed unplayed videos being marked as fully played while browsing via some renderers
+- Fixed wrong HLS audio bitrate
+- Fixed MusicBrainz lookup errors
+- Stability improvements
+- Logging improvements
 - All changes from 13.10.0 and 13.10.1
 
 ### Renderers
