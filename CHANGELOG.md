@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+
+- Bump `version` from 18.2 to 18.3</li> ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 ## [14.0.0 - Since 13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.1...14.0.0) (2024-05-11)
 
 ### General
