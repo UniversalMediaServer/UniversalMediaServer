@@ -67,3 +67,13 @@ There are a number of manual steps involved in a new version release. This list 
 1. Add `-SNAPSHOT` to the `<version>` in `pom.xml` to show you are now ahead of the version you just released to Patreon.
 
 1. Commit the changes as `Post-release` and push.
+
+1. Update the website config.php and upload to the web server (this is done manually for now, should be automated). When the file is uploaded there will be up to a 1-hour delay until it is visible on the website, because of a 60-minute cache on the front page.
+
+1. Post about the release
+
+     - Twitter/X: https://twitter.com/UMS16
+     - Facebook: https://www.facebook.com/UniversalMediaServer
+     - Our forum: https://www.universalmediaserver.com/forum/viewforum.php?f=3
+
+     Follow the conventions for the previous posts. The forum announcement will automatically add an entry to the front page and the News section of our website.
