@@ -9,6 +9,7 @@
 - Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.1 ([#4627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4627))
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
+- Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `version` from 18.2 to 18.3 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 
