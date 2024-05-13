@@ -12,6 +12,7 @@
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.1 ([#4627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4627))
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.17.0 ([#4623](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4623))
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
 - Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `version` from 18.2 to 18.3 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
