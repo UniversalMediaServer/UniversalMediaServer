@@ -120,7 +120,7 @@
 		-->
 		<jna-version>5.14.0</jna-version>
 
-		<junit5.version>5.10.1</junit5.version>
+		<junit5.version>5.10.2</junit5.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
