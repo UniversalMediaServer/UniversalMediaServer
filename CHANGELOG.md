@@ -6,6 +6,8 @@
 - Bump `@testing-library/jest-dom` from 6.4.2 to 6.4.5 ([#4629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4629))
 - Bump `@types/node` from 18.19.31 to 18.19.33 ([#4646](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4646))
 - Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `@typescript-eslint/eslint-plugin` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
+- Bump `@typescript-eslint/parser` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.1 ([#4627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4627))
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
