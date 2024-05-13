@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@testing-library/jest-dom` from 6.4.2 to 6.4.5 ([#4629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4629))
 - Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
