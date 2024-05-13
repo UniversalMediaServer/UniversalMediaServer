@@ -7,6 +7,8 @@
 - Bump `@types/lodash` from 4.17.0 to 4.17.1 ([#4632](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4632))
 - Bump `@types/node` from 18.19.31 to 18.19.33 ([#4646](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4646))
 - Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `@typescript-eslint/eslint-plugin` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
+- Bump `@typescript-eslint/parser` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.1 ([#4627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4627))
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
 - Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
