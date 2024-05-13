@@ -22,34 +22,208 @@
 - Bump `mantine` from 7.4.0 to 7.8.0
 - Bump `video.js` from 8.8.0 to 8.12.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Bump `typescript` from 5.4.4 to 5.4.5
-- Bump `@types/node` from 18.19.28 to 20.12.7
+- Bump `@types/node` from 18.19.33 to 20.12.7
 - Bump `@types/react` from 18.2.78 to 18.2.79
 - Bump `@types/react-dom` from 18.2.23 to 18.2.25
-- Bump `"@typescript-eslint/eslint-plugin` from 7.6.0 to 7.7.0
-- Bump `"@typescript-eslint/parser` from 7.6.0 to 7.7.0
 - Bump `react` from 18.2.0 to 18.3.1
 - Bump `react-dom` from 18.2.0 to 18.3.1
 - Bump `react-router-dom` from 6.22.3 to 6.23.0
 - Bump `@types/react-dom` from 18.2.23 to 18.3.0 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
-- Bump `@types/react` from 18.2.64 to 18.3.1 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
+- Bump `@types/react` from 18.3.0 to 18.3.1 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
 - Bump `@playwright/test` from 1.42.1 to 1.43.1
-- Update dependency com.github.oshi:oshi-core to v6.5.0
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4491](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4491))
-- Bump `commons-codec:commons-codec` from 1.16.0 to 1.16.1
 - Bump `commons-io:commons-io` from 2.16.0 to 2.16.1 ([#4585](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4585))
 - Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
 - Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5
-- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.10.1 to 5.10.2
-- Bump `org.junit.jupiter:junit-jupiter-api` from 5.10.1 to 5.10.2
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2
-- Bump `com.fasterxml.jackson.core:jackson-core` from 2.16.1 to 2.17.0
-- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.0
-- Bump `com.fasterxml.jackson.core:jackson-annotations` from 2.16.1 to 2.17.0
 
 ## [Unreleased]
 
-## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2023-04-30)
+### Dependencies
+- Bump `@testing-library/jest-dom` from 6.4.2 to 6.4.5 ([#4629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4629))
+- Bump `@types/lodash` from 4.17.0 to 4.17.1 ([#4632](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4632))
+- Bump `@types/node` from 18.19.31 to 18.19.33 ([#4646](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4646))
+- Bump `@types/react-dom` from 18.2.25 to 18.3.0 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `@typescript-eslint/eslint-plugin` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
+- Bump `@typescript-eslint/parser` from 7.7.1 to 7.8.0 ([#4628](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4628))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.16.1 to 2.17.1 ([#4627](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4627))
+- Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
+- Bump `commons-codec:commons-codec` from 1.16.0 to 1.17.0 ([#4623](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4623))
+- Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
+- Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `version` from 18.2 to 18.3 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+
+## [14.0.0 - Since 13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.1...14.0.0) (2024-05-11)
+
+### General
+- Added ability to block/allow renderers in web settings
+- Added ability to block/allow network devices in web settings
+- Added ability to set whether renderers or network devices are blocked or allowed by default
+- Added ability to link people to renderers for independent playback tracking
+- Added ability to restrict share content to certain groups
+- Added ability to mark TV series and files as fully played on the web interface
+- Added option to use TMDB directly for faster and more accurate metadata lookups using your own TMDB API key
+- Added broadcasting of SystemUpdateId over UPnP (GENA) for better folder change-detection on supporting renderers
+- File status is saved per-user
+- Added status line on web interface
+- Added flag for movie/tv countries
+- Added original movie/tv series title and country if not same as title
+- Added Rating bar
+- Added option to sort by rating in Media Library
+- Added a warning that the offline help pages are not maintained with a link to the maintained https://support.universalmediaserver.com
+- Added caching to translations
+- Added status text to splash screen
+- Added ability to select and edit multiple shared contents
+- Added more control over user permissions in the web settings
+- Added ability for user accounts to have avatars
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Updated browser logos
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
+- Improved memory use bar on the web interface
+- Improved selection of video quality on web player
+- Removed ability to disable the local cache
+- Improved drag and drop on Shared Content tab on web settings
+- Improved TV series matching and lookups
+- Improved database cleanup step
+- Fixed failed playback due to expired IDs via DLNA (files now remember their IDs)
+- Fixed TV series sometimes not being set for episodes
+- Fixed thumbnail handling bugs
+- Fixed FirstAirDate and LastAirDate for TV series
+- Fixed unplayed videos being marked as fully played while browsing via some renderers
+- Fixed wrong HLS audio bitrate
+- Fixed MusicBrainz lookup errors
+- Fixed dates in the changelog (thanks, @Martinius79!)
+- Refactored to remove deprecated code use
+
+### Translation updates via Crowdin
+- Arabic (42%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
+- Catalan (61%) (thanks, Antoni Grau i Quellos!)
+- Czech (94%) (thanks, JustPOSPAK!)
+- Danish (62%) (thanks, g33z3r and GurliGebis!)
+- English (UK) (50%) (thanks, Carter Davis and Pete Russell!)
+- Finnish (70%) (thanks, Esko Gardner and Oskari Lavinto!)
+- French (94%) (thanks, Fredo1650!)
+- German (88%) (thanks, Franz Frömel and pipin!)
+- Japanese (52%) (thanks, elepro!)
+- Korean (95%) (thanks, VenusGirl and yc ryu)
+- Polish (58%) (thanks, Karol Szastok!)
+- Portuguese (58%) (thanks, Hélio Guilherme and mariopinto!)
+- Portuguese (Brazilian) (69%) (thanks, Mauro.A!)
+- Russian (94%) (thanks, Олег Лойко!)
+- Spanish (67%) (thanks, AkaNix, Danilo and Darío criado Rodríguez!)
+- Swedish (49%) (thanks, Henrik Mattsson-Mårn!)
+- Turkish (94%) (thanks, Burak Yavuz!)
+- Vietnamese (11%) (thanks, VuGaCoMat!)
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+- Improved support for Samsung The Frame TVs
+- Improved transcoding support on Samsung OLED TVs
+
+### Dependencies
+- Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
+- Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `com.github.oshi:oshi-core` to v6.5.0
+- Bump `git-commit-id-maven-plugin` to 7.0.0
+- Bump `h2database` to 2.2.224
+- Bump `jakarta`.servlet-api to 6.0.0
+- Bump `jwt-decode` to v4
+- Bump `Mantine` to v7, which:
+  - Improves performance of the web interface
+  - Improves RTL language support
+  - Uses your system light/dark mode preference
+- Bump `NSIS` to v3
+- Bump `nsis-maven-plugin` to v1.0.5
+- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546)) (thanks, @Nadahar!)
+- Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
+- Bump `typescript` to 5.3.3
+- Bump `version` from 18.2 to 18.3 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `web-vitals` to 3.5.0
+- Bump `yarn` to v4, which improves install performance by 3x
+
+## [14.0.0 - Since 14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0-b1...14.0.0) (2024-05-11)
+
+### General
+- Added menu option to clear all renderer/device filter settings
+- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
+- Added status text to splash screen
+- Refresh data after device filter settings change
+- Improved program icons on HiDPI and Retina screens
+- Improved Windows installer appearance on HiDPI screens
+- Fixed TV series sometimes not being set for episodes
+- Refactored to remove deprecated code use
+- Updated browser logos
+- Fixed response on web player when directory has been deleted
+- Fixed scanning unshared parent directories
+- Added a warning that the offline help pages are not maintained
+- Added a link to the new maintained documentation at https://support.universalmediaserver.com
+- Added caching to translations
+- Fixed scanning ignored directories
+- Fixed broken folder browsing over time
+- Toggling advanced settings on the old GUI does not need a program restart anymore
+- Changing language on the old GUI does not need a program restart anymore
+- Added DisableAllTranscoding setting to old GUI
+- Reorganized some settings on the old GUI to match the new one
+- Made API metadata insertion more stable
+- Improved device discovery stability and speed
+- Fixed unplayed videos being marked as fully played while browsing via some renderers
+- Fixed wrong HLS audio bitrate
+- Fixed MusicBrainz lookup errors
+- Stability improvements
+- Logging improvements
+- All changes from 13.10.0 and 13.10.1
+
+### Renderers
+- Added support for the Linn app on iOS/Android
+- Added support for Lumin devices
+- Added support for Naim Mu-So Qb wireless music system
+
+### Translation updates via Crowdin
+- Arabic (42%) (thanks, AnethDr, Cod3 and Mustafa Saad!)
+- Catalan (61%) (thanks, Antoni Grau i Quellos!)
+- Czech (94%) (thanks, JustPOSPAK!)
+- Danish (62%) (thanks, g33z3r and GurliGebis!)
+- German (88%) (thanks, Franz Frömel and pipin!)
+- English (UK) (50%) (thanks, Carter Davis!)
+- Finnish (70%) (thanks, Esko Gardner and Oskari Lavinto!)
+- French (94%) (thanks, Fredo1650!)
+- Japanese (52%) (thanks, elepro!)
+- Korean (95%) (thanks, VenusGirl and yc ryu)
+- Polish (58%) (thanks, Karol Szastok!)
+- Portuguese (58%) (thanks, Hélio Guilherme and mariopinto!)
+- Portuguese (Brazilian) (69%) (thanks, Mauro.A!)
+- Russian (94%) (thanks, Олег Лойко!)
+- Spanish (67%) (thanks, AkaNix, Danilo and Darío criado Rodríguez!)
+- Swedish (49%) (thanks, Henrik Mattsson-Mårn!)
+- Turkish (94%) (thanks, Burak Yavuz!)
+- Vietnamese (11%) (thanks, VuGaCoMat!)
+
+### Dependencies
+- Bump `@testing-library/react` from 15.0.2 to 15.0.6 ([#4621](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4621))
+- Bump `@types/react` from 18.2.79 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `com.github.oshi:oshi-core` to v6.5.0
+- Bump `mantine` from 7.4.0 to 7.5.3
+- Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546))
+- Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
+- Bump `version` from 18.2 to 18.3 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
+- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
+- Bump `yarn` from 4.0.2 to 4.1.1
+
+### Dependencies
+
+## [13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.0...v13.10.1) (2024-04-30)
 
 ### General
 - Fixed MP4 and WMV transcoding
@@ -80,7 +254,7 @@
 - Bump `tar` from 6.2.0 to 6.2.1 ([#4575](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4575))
 - Bump `typescript` from 5.4.3 to 5.4.5 ([#4570](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4570), [#4595](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4595))
 
-## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2023-04-02)
+## [13.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.9.0...v13.10.0) (2024-04-02)
 
 ### General
 - Added MP4-H265-AC3 transcoding output option
@@ -128,46 +302,6 @@
 - Bump `videojs-contrib-quality-levels` from 4.0.0 to 4.1.0 ([#4560](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4560))
 - Bump `web-vitals` from 3.5.1 to 3.5.2 ([#4435](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4435))
 - Bump `webpack-dev-middleware` from 5.3.3 to 5.3.4 ([#4543](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4543))
-
-## 14.0.0 (Unreleased) - Since 14.0.0-b1
-
-### General
-- Added menu option to clear all renderer/device filter settings
-- Added check to prevent non-localhost from setting the device filter to "blocked by default", because they will be blocked after clicking
-- Added status text to splash screen
-- Refresh data after device filter settings change
-- Improved program icons on HiDPI and Retina screens
-- Improved Windows installer appearance on HiDPI screens
-- Fixed TV series sometimes not being set for episodes
-- Stability improvements
-- Logging improvements
-- Refactored to remove deprecated code use
-- Updated browser logos
-- Fixed response on web player when directory has been deleted
-- Fixed scanning unshared parent directories
-- Added a warning that the offline help pages are not maintained
-- Added a link to the new maintained documentation at https://support.universalmediaserver.com
-- Added caching to translations
-- Fixed scanning ignored directories
-- Fixed broken folder browsing over time
-- Toggling advanced settings on the old GUI does not need a program restart anymore
-- Changing language on the old GUI does not need a program restart anymore
-- Added DisableAllTranscoding setting to old GUI
-- Reorganized some settings on the old GUI to match the new one
-- Made API metadata insertion more stable
-- Improved device discovery stability and speed
-- All changes from 13.10.0
-
-### Renderers
-- Added support for the Linn app on iOS/Android
-- Added support for Lumin devices
-- Added support for Naim Mu-So Qb wireless music system
-
-### Dependencies
-- Bump `mantine` from 7.4.0 to 7.5.3
-- Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
-- Update dependency com.github.oshi:oshi-core to v6.5.0
-- Bump `yarn` from 4.0.2 to 4.1.1
 
 ## [14.0.0-b1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...14.0.0-b1) (2023-12-08)
 
@@ -225,7 +359,7 @@
 - Updated yarn to v4, which improves install performance by 3x
 - Updated web-vitals to 3.5.0
 
-## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2023-01-05)
+## [13.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.8.1...v13.9.0) (2024-01-05)
 
 ### General
 - Added ability to shut down computer from web settings (thanks, wolfhaus!)

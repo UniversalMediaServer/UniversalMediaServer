@@ -93,27 +93,27 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
 					try (Statement statement = connection.createStatement()) {
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ARTIST" + VARCHAR_1000
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ARTIST" + VARCHAR_1000
 						);
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "TITLE" + VARCHAR_1000
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "TITLE" + VARCHAR_1000
 						);
 						statement.executeUpdate(
-							ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "MEDIA_YEAR" + VARCHAR_20
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "MEDIA_YEAR" + VARCHAR_20
 						);
 					}
-					break;
-				case 2:
+				}
+				case 2 -> {
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`YEAR`" + RENAME_TO + "MEDIA_YEAR");
 					}
-					break;
-				case 3:
+				}
+				case 3 -> {
 					if (isColumnExist(connection, TABLE_NAME, "MBID")) {
 						LOGGER.trace("alter datatype of MBID column from VARCHAR to UUID");
 						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MBID SET DATA TYPE UUID");
@@ -125,11 +125,12 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 						executeUpdate(connection, "CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
 						executeUpdate(connection, "CREATE INDEX GENRE_IDX ON " + TABLE_NAME + "(GENRE)");
 					}
-					break;
-				default:
+				}
+				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -214,25 +215,9 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 
 		if (
 			includeAll || (
-				StringUtil.hasValue(tagInfo.trackId) && (
+				StringUtil.hasValue(tagInfo.title) && (
 					StringUtil.hasValue(tagInfo.artist) ||
 					StringUtil.hasValue(tagInfo.artistId)
-				)
-			)
-		) {
-			if (added) {
-				where.append(and);
-			}
-			where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
-			added = true;
-		}
-		if (
-			includeAll || (
-				!StringUtil.hasValue(tagInfo.trackId) && (
-					StringUtil.hasValue(tagInfo.title) && (
-						StringUtil.hasValue(tagInfo.artist) ||
-						StringUtil.hasValue(tagInfo.artistId)
-					)
 				)
 			)
 		) {
@@ -320,9 +305,6 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 					}
 					if (StringUtil.hasValue(tagInfo.artistId)) {
 						result.updateString("ARTIST_ID", tagInfo.artistId);
-					}
-					if (StringUtil.hasValue(tagInfo.trackId)) {
-						result.updateString("TRACK_ID", tagInfo.trackId);
 					}
 					result.insertRow();
 				}
