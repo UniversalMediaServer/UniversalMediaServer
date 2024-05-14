@@ -415,6 +415,9 @@ public class MediaStore extends StoreContainer {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
+		if (StringUtils.isEmpty(objectId)) {
+			return null;
+		}
 
 		if (objectId.startsWith("$LogIn/")) {
 			String loginstring = StringUtils.substringAfter(objectId, "/");
@@ -574,6 +577,9 @@ public class MediaStore extends StoreContainer {
 	 */
 	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
 		ArrayList<StoreResource> resources = new ArrayList<>();
+		if (StringUtils.isEmpty(objectId)) {
+			return resources;
+		}
 
 		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.contains("$Temp/")) {
