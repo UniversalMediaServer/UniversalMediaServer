@@ -16,14 +16,14 @@
     "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
   },
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.2",
   "dependencies": {
-    "@mantine/core": "7.8.1",
-    "@mantine/dropzone": "7.8.1",
-    "@mantine/form": "7.8.1",
-    "@mantine/hooks": "7.8.1",
-    "@mantine/modals": "7.8.1",
-    "@mantine/notifications": "7.8.1",
+    "@mantine/core": "7.9.1",
+    "@mantine/dropzone": "7.9.1",
+    "@mantine/form": "7.9.1",
+    "@mantine/hooks": "7.9.1",
+    "@mantine/modals": "7.9.1",
+    "@mantine/notifications": "7.9.1",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.6.8",
     "jwt-decode": "4.0.0",
@@ -32,24 +32,23 @@
     "react-country-flag": "3.1.0",
     "react-dom": "18.3.1",
     "react-movable": "3.2.0",
-    "react-router-dom": "6.23.0",
+    "react-router-dom": "6.23.1",
     "tabler-icons-react": "1.56.0",
-    "video.js": "8.13.0"
+    "video.js": "8.14.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.43.1",
+    "@playwright/test": "1.44.0",
     "@types/lodash": "4.17.1",
-    "@types/react": "18.3.1",
+    "@types/react": "18.3.2",
     "@types/react-dom": "18.3.0",
-    "@typescript-eslint/eslint-plugin": "7.8.0",
-    "@typescript-eslint/parser": "7.8.0",
+    "@typescript-eslint/eslint-plugin": "7.9.0",
+    "@typescript-eslint/parser": "7.9.0",
     "@vitejs/plugin-react": "4.2.1",
     "eslint": "8.57.0",
     "eslint-plugin-react": "7.34.1",
     "eslint-plugin-react-hooks": "4.6.2",
-    "eslint-plugin-react-refresh": "0.4.6",
+    "eslint-plugin-react-refresh": "0.4.7",
     "typescript": "5.4.5",
-    "vite": "5.2.10",
-    "web-vitals": "3.5.2"
+    "vite": "5.2.11"
   }
 }

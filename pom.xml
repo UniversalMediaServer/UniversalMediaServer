@@ -234,6 +234,7 @@
 			<artifactId>gson</artifactId>
 			<version>2.10.1</version>
 		</dependency>
+		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
@@ -493,7 +494,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>74.2</version>
+			<version>75.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
