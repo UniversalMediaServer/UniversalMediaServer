@@ -27,7 +27,7 @@ public class MetadataExtractorParserTest {
 
 	@BeforeAll
 	public static void setUPClass() {
-		ParserTest.SetUPClass();
+		ParserTest.setUpClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {

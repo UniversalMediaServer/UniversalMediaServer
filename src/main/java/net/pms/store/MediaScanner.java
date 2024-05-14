@@ -114,6 +114,13 @@ public class MediaScanner implements SharedContentListener {
 	private static void scan(StoreContainer resource) {
 		if (running) {
 			for (StoreResource child : resource.getChildren()) {
+				try {
+					// wait until the MediaStore workers release before starting
+					MediaStore.waitWorkers();
+				} catch (InterruptedException ex) {
+					running = false;
+					Thread.currentThread().interrupt();
+				}
 				if (running && child instanceof StoreContainer storeContainer && storeContainer.allowScan()) {
 
 					// Display and log which folder is being scanned
