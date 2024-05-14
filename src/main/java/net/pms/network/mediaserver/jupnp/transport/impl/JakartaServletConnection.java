@@ -23,12 +23,15 @@ import org.jupnp.model.message.Connection;
 
 /**
  * UPNP Connection implementation using a {@link HttpServletRequest}.
+ *
+ * @author Christian Bauer
+ * @author Surf@ceS - adapt to Jakarta
  */
-public class ServletConnection implements Connection {
+public class JakartaServletConnection implements Connection {
 
 	protected HttpServletRequest request;
 
-	public ServletConnection(HttpServletRequest request) {
+	public JakartaServletConnection(HttpServletRequest request) {
 		this.request = request;
 	}
 
@@ -45,8 +48,8 @@ public class ServletConnection implements Connection {
 	public InetAddress getRemoteAddress() {
 		try {
 			return InetAddress.getByName(getRequest().getRemoteAddr());
-		} catch (UnknownHostException ex) {
-			throw new RuntimeException(ex);
+		} catch (UnknownHostException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -54,8 +57,8 @@ public class ServletConnection implements Connection {
 	public InetAddress getLocalAddress() {
 		try {
 			return InetAddress.getByName(getRequest().getLocalAddr());
-		} catch (UnknownHostException ex) {
-			throw new RuntimeException(ex);
+		} catch (UnknownHostException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -70,5 +73,4 @@ public class ServletConnection implements Connection {
 	protected boolean isConnectionOpen(HttpServletRequest request) {
 		return true;
 	}
-
 }

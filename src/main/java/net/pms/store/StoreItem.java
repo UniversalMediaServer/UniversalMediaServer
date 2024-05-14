@@ -652,6 +652,9 @@ public abstract class StoreItem extends StoreResource {
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = () -> {
 			long start = startTime;
+			if (isLogPlayEvents()) {
+				LOGGER.trace("Stop playing {} on {} if no request under {} ms", getName(), renderer.getRendererName(), STOP_PLAYING_DELAY);
+			}
 			try {
 				Thread.sleep(STOP_PLAYING_DELAY);
 			} catch (InterruptedException e) {
@@ -665,21 +668,20 @@ public abstract class StoreItem extends StoreResource {
 				assert refCount > 0;
 				requestIdToRefcount.put(requestId, refCount - 1);
 				if (start != startTime) {
+					if (isLogPlayEvents()) {
+						LOGGER.trace("Continue playing {} on {}", getName(), renderer.getRendererName());
+					}
 					return;
 				}
 
 				Runnable r = () -> {
 					if (refCount == 1) {
 						requestIdToRefcount.put(requestId, 0);
-						String rendererName = "unknown renderer";
-						try {
-							// Reset only if another item hasn't already
-							// begun playing
-							if (renderer.getPlayingRes() == self) {
-								renderer.setPlayingRes(null);
-							}
-							rendererName = renderer.getRendererName();
-						} catch (NullPointerException e) {
+						String rendererName = renderer.getRendererName();
+						// Reset only if another item hasn't already
+						// begun playing
+						if (renderer.getPlayingRes() == self) {
+							renderer.setPlayingRes(null);
 						}
 
 						if (isLogPlayEvents()) {

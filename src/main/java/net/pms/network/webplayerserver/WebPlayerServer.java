@@ -35,6 +35,6 @@ public abstract class WebPlayerServer {
 	public abstract void stop();
 
 	public static WebPlayerServer createServer(int port) throws IOException {
-		return WebPlayerServerHttpServer.createServer(port);
+		return WebPlayerServerJetty.createServer(port);
 	}
 }

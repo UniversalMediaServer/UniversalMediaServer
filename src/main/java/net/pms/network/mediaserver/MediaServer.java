@@ -36,17 +36,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaServer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	public static final Map<Integer, String> VERSIONS = Map.of(
-		1, "JUPnP+ (Java)",
+		1, "JUPnP+ (Jetty)",
 		2, "JUPnP+ (Netty)",
-		3, "JUPnP+ (Servlet)",
-		4, "JUPnP (Netty)",
-		5, "JUPnP (Java)"
+		3, "JUPnP (Netty)"
 	);
 
-	public static final int DEFAULT_VERSION = 2;
+	public static final int DEFAULT_VERSION = 1;
 
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
@@ -108,11 +107,11 @@ public class MediaServer {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
 					switch (engineVersion) {
-						case 1, 2, 3 -> {
+						case 1, 2 -> {
 							upnpService = new UmsUpnpService(true);
 							upnpService.startup();
 						}
-						case 4, 5 -> {
+						case 3 -> {
 							upnpService = new UmsUpnpService(false);
 							upnpService.startup();
 						}

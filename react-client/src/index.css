@@ -77,13 +77,13 @@ nav button .mantine-Button-inner {
   color: var(--mantine-color-text);
 }
 
+.mantine-Breadcrumbs-root .mantine-Button-inner {
+  color: var(--mantine-color-text);
+}
+
 nav button .mantine-Button-inner:hover {
   font-weight:600;
   color: var(--mantine-color-bright);
-}
-
-.mantine-Breadcrumbs-root .mantine-Button-inner {
-  color: var(--mantine-color-text);
 }
 
 .mantine-Breadcrumbs-root .mantine-Button-inner:hover {

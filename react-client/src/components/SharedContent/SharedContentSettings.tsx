@@ -411,7 +411,6 @@ export default function SharedContentSettings(
         renderItem={
           ({ value, props, isDragged, isSelected }) => {
             // react-movable has a bug, hack this until it's solved
-            // eslint-disable-next-line
             props.style = props.style ? {...props.style, zIndex: isSelected ? 5000 : 'auto'} as CSSProperties : {} as CSSProperties;
             return (
               <Card shadow='sm' withBorder {...props}>
