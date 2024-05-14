@@ -27,7 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
@@ -115,10 +114,6 @@ public class MediaScanner implements SharedContentListener {
 	private static void scan(StoreContainer resource) {
 		if (running) {
 			for (StoreResource child : resource.getChildren()) {
-				// wait until the realtime lock is released before starting
-				PMS.REALTIME_LOCK.lock();
-				PMS.REALTIME_LOCK.unlock();
-
 				if (running && child instanceof StoreContainer storeContainer && storeContainer.allowScan()) {
 
 					// Display and log which folder is being scanned

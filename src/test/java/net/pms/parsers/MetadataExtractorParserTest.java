@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 public class MetadataExtractorParserTest {
 
 	@BeforeAll
-	public static void SetUPClass() {
+	public static void setUPClass() {
 		ParserTest.SetUPClass();
 	}
 
