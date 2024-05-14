@@ -34,7 +34,7 @@ public class RendererConfigurationTest {
 	UmsConfiguration prevConf;
 
 	@BeforeAll
-	public static void SetUPClass() {
+	public static void setUpClass() {
 		PMS.configureJNA();
 	}
 

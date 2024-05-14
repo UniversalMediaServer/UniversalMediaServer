@@ -64,33 +64,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class MediaInfoParser {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
 
+	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
 	// Regular expression to parse a 4 digit year number from a string
 	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
-
 	// Pattern to parse the year from a string
 	private static final Pattern YEAR_PATTERN = Pattern.compile(YEAR_REGEX);
-
-	private static final MediaInfoHelper MI;
 	private static final Version VERSION;
-	private static boolean blocked;
-
+	private static final boolean IS_VALID;
 	public static final String PARSER_NAME;
 
-	static {
-		MI = new MediaInfoHelper();
+	private static boolean blocked;
 
-		if (MI.isValid()) {
-			//by default, MediaInfo will ignore not known option, so do not check for version.
-			MI.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
-			MI.option("Complete", "1");
-			MI.option("Language", "en");
-			MI.option("File_TestContinuousFileNames", "0");
-			MI.option("ReadByHuman", "0");
-			MI.option("Cover_Data", "base64");
-			MI.option("File_HighestFormat", "0");
-			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(MI.option("Info_Version"));
+	static {
+		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(true);
+		IS_VALID = mediaInfoHelper.isValid();
+		if (IS_VALID) {
+			Matcher matcher = Pattern.compile("MediaInfoLib - v(\\S+)", Pattern.CASE_INSENSITIVE).matcher(mediaInfoHelper.option("Info_Version"));
 			if (matcher.find() && StringUtils.isNotBlank(matcher.group(1))) {
 				VERSION = new Version(matcher.group(1));
 			} else {
@@ -101,6 +91,11 @@ public class MediaInfoParser {
 			VERSION = null;
 			PARSER_NAME = null;
 		}
+		try {
+			mediaInfoHelper.close();
+		} catch (Exception ex) {
+			LOGGER.warn("MediaInfoHelper error on close: ", ex);
+		}
 	}
 
 	/**
@@ -110,7 +105,7 @@ public class MediaInfoParser {
 	}
 
 	public static boolean isValid() {
-		return MI.isValid() && !blocked;
+		return IS_VALID && !blocked;
 	}
 
 	protected static void block() {
@@ -130,19 +125,39 @@ public class MediaInfoParser {
 		return VERSION;
 	}
 
+	private static MediaInfoHelper getMediaInfoHelper(boolean log) {
+		MediaInfoHelper mediaInfoHelper = new MediaInfoHelper(log);
+		if (mediaInfoHelper.isValid()) {
+			//by default, MediaInfo will ignore not known option, so do not check for version.
+			mediaInfoHelper.option("Internet", "No"); // avoid MediaInfoLib to try to connect to an Internet server for availability of newer software, anonymous statistics and retrieving information about a file
+			mediaInfoHelper.option("Complete", "1");
+			mediaInfoHelper.option("Language", "en");
+			mediaInfoHelper.option("File_TestContinuousFileNames", "0");
+			mediaInfoHelper.option("ReadByHuman", "0");
+			mediaInfoHelper.option("Cover_Data", "base64");
+			mediaInfoHelper.option("File_HighestFormat", "0");
+		}
+		return mediaInfoHelper;
+	}
+
 	/**
 	 * Parse media via MediaInfoHelper.
 	 */
-	public static synchronized void parse(MediaInfo media, File file, int type) {
+	public static void parse(MediaInfo media, File file, int type) {
 		media.waitMediaParsing(5);
 		media.setParsing(true);
-		if (file == null || media.isMediaParsed() || !MI.isValid()) {
+		if (file == null || media.isMediaParsed()) {
+			media.setParsing(false);
+			return;
+		}
+		MediaInfoHelper mediaInfoHelper = getMediaInfoHelper(false);
+		if (!mediaInfoHelper.isValid()) {
 			media.setParsing(false);
 			return;
 		}
 
-		MediaInfoParseLogger parseLogger = LOGGER.isTraceEnabled() ? new MediaInfoParseLogger(MI) : null;
-		boolean fileOpened = MI.openFile(file.getAbsolutePath()) > 0;
+		MediaInfoParseLogger parseLogger = LOGGER.isTraceEnabled() ? new MediaInfoParseLogger(mediaInfoHelper) : null;
+		boolean fileOpened = mediaInfoHelper.openFile(file.getAbsolutePath()) > 0;
 		if (fileOpened) {
 			MediaAudio currentAudioTrack = new MediaAudio();
 			MediaVideo currentVideoTrack = new MediaVideo();
@@ -154,22 +169,22 @@ public class MediaInfoParser {
 			Long longValue;
 
 			// set Container
-			setFormat(StreamKind.GENERAL, media, currentVideoTrack, currentAudioTrack, StreamContainer.getFormat(MI, 0), file);
-			setFormat(StreamKind.GENERAL, media, currentVideoTrack, currentAudioTrack, StreamContainer.getCodecID(MI, 0).trim(), file);
-			doubleValue = StreamContainer.getDuration(MI, 0);
+			setFormat(StreamKind.GENERAL, media, currentVideoTrack, currentAudioTrack, StreamContainer.getFormat(mediaInfoHelper, 0), file);
+			setFormat(StreamKind.GENERAL, media, currentVideoTrack, currentAudioTrack, StreamContainer.getCodecID(mediaInfoHelper, 0).trim(), file);
+			doubleValue = StreamContainer.getDuration(mediaInfoHelper, 0);
 			if (doubleValue != null) {
 				//for some reason UMS store only seconds.
 				media.setDuration(doubleValue / 1000);
 			}
-			media.setBitRate(getIntValue(StreamContainer.getOverallBitRate(MI, 0), 0));
-			media.setTitle(StreamContainer.getTitle(MI, 0));
+			media.setBitRate(getIntValue(StreamContainer.getOverallBitRate(mediaInfoHelper, 0), 0));
+			media.setTitle(StreamContainer.getTitle(mediaInfoHelper, 0));
 
 			if (parseLogger != null) {
 				parseLogger.logGeneralColumns(file);
 			}
 
 			// set cover
-			value = StreamContainer.getCoverData(MI, 0);
+			value = StreamContainer.getCoverData(mediaInfoHelper, 0);
 			if (!value.isEmpty()) {
 				try {
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
@@ -199,16 +214,16 @@ public class MediaInfoParser {
 			}
 
 			// set Chapters
-			if (MI.countGet(StreamKind.MENU, 0) > 0) {
-				Long chaptersPosBeginLong = StreamMenu.getChaptersPosBegin(MI, 0);
-				Long chaptersPosEndLong = StreamMenu.getChaptersPosEnd(MI, 0);
+			if (mediaInfoHelper.countGet(StreamKind.MENU, 0) > 0) {
+				Long chaptersPosBeginLong = StreamMenu.getChaptersPosBegin(mediaInfoHelper, 0);
+				Long chaptersPosEndLong = StreamMenu.getChaptersPosEnd(mediaInfoHelper, 0);
 				if (chaptersPosBeginLong != null && chaptersPosEndLong != null) {
 					int chaptersPosBegin = chaptersPosBeginLong.intValue();
 					int chaptersPosEnd = chaptersPosEndLong.intValue();
 					List<MediaChapter> chapters = new ArrayList<>();
 					for (int i = chaptersPosBegin; i <= chaptersPosEnd; i++) {
-						String chapterName = MI.get(StreamKind.MENU, 0, i, InfoKind.NAME);
-						String chapterTitle = MI.get(StreamKind.MENU, 0, i, InfoKind.TEXT);
+						String chapterName = mediaInfoHelper.get(StreamKind.MENU, 0, i, InfoKind.NAME);
+						String chapterTitle = mediaInfoHelper.get(StreamKind.MENU, 0, i, InfoKind.TEXT);
 						if (!chapterName.isEmpty()) {
 							MediaChapter chapter = new MediaChapter();
 							LocalTime lt;
@@ -251,41 +266,41 @@ public class MediaInfoParser {
 			}
 
 			// set Video
-			Long videoTrackCount = StreamVideo.getStreamCount(MI, 0);
+			Long videoTrackCount = StreamVideo.getStreamCount(mediaInfoHelper, 0);
 			if (videoTrackCount != null && videoTrackCount > 0) {
 				for (int i = 0; i < videoTrackCount; i++) {
 					// check for DXSA and DXSB subtitles (subs in video format)
-					if (StreamVideo.getTitle(MI, i).startsWith("Subtitle")) {
+					if (StreamVideo.getTitle(mediaInfoHelper, i).startsWith("Subtitle")) {
 						currentSubTrack = new MediaSubtitle();
 						// First attempt to detect subtitle track format
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getFormat(MI, i)));
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getFormat(mediaInfoHelper, i)));
 						// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getCodecID(MI, i),
+						currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamVideo.getCodecID(mediaInfoHelper, i),
 							currentSubTrack.getType()
 						));
 						currentSubTrack.setId(media.getSubtitlesTracks().size());
-						longValue = StreamVideo.getStreamOrder(MI, i);
+						longValue = StreamVideo.getStreamOrder(mediaInfoHelper, i);
 						if (longValue != null) {
 							currentSubTrack.setStreamOrder(longValue.intValue());
 						}
-						currentSubTrack.setDefault("Yes".equals(StreamVideo.getDefault(MI, i)));
-						currentSubTrack.setForced("Yes".equals(StreamVideo.getForced(MI, i)));
+						currentSubTrack.setDefault("Yes".equals(StreamVideo.getDefault(mediaInfoHelper, i)));
+						currentSubTrack.setForced("Yes".equals(StreamVideo.getForced(mediaInfoHelper, i)));
 						addSubtitlesTrack(currentSubTrack, media);
 					} else {
 						currentVideoTrack = new MediaVideo();
 						currentVideoTrack.setId(i);
-						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormat(MI, i), file);
-						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormatVersion(MI, i), file);
-						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getCodecID(MI, i), file);
-						longValue = StreamVideo.getStreamOrder(MI, i);
+						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormat(mediaInfoHelper, i), file);
+						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getFormatVersion(mediaInfoHelper, i), file);
+						setFormat(StreamKind.VIDEO, media, currentVideoTrack, currentAudioTrack, StreamVideo.getCodecID(mediaInfoHelper, i), file);
+						longValue = StreamVideo.getStreamOrder(mediaInfoHelper, i);
 						if (longValue != null) {
 							currentVideoTrack.setStreamOrder(longValue.intValue());
 						}
-						currentVideoTrack.setDefault("Yes".equals(StreamVideo.getDefault(MI, i)));
-						currentVideoTrack.setForced("Yes".equals(StreamVideo.getForced(MI, i)));
-						currentVideoTrack.setWidth(StreamVideo.getWidth(MI, i).intValue());
-						currentVideoTrack.setHeight(StreamVideo.getHeight(MI, i).intValue());
-						doubleValue = StreamVideo.getDuration(MI, i);
+						currentVideoTrack.setDefault("Yes".equals(StreamVideo.getDefault(mediaInfoHelper, i)));
+						currentVideoTrack.setForced("Yes".equals(StreamVideo.getForced(mediaInfoHelper, i)));
+						currentVideoTrack.setWidth(StreamVideo.getWidth(mediaInfoHelper, i).intValue());
+						currentVideoTrack.setHeight(StreamVideo.getHeight(mediaInfoHelper, i).intValue());
+						doubleValue = StreamVideo.getDuration(mediaInfoHelper, i);
 						if (doubleValue == null) {
 							doubleValue = media.getDuration();
 						} else {
@@ -293,8 +308,8 @@ public class MediaInfoParser {
 							doubleValue = doubleValue / 1000;
 						}
 						currentVideoTrack.setDuration(doubleValue);
-						currentVideoTrack.setBitRate(getIntValue(StreamVideo.getBitRate(MI, i), 0));
-						value = StreamVideo.getFormatProfile(MI, i);
+						currentVideoTrack.setBitRate(getIntValue(StreamVideo.getBitRate(mediaInfoHelper, i), 0));
+						value = StreamVideo.getFormatProfile(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							String[] profile = getFormatProfile(value);
 							if (profile[0] != null) {
@@ -307,63 +322,63 @@ public class MediaInfoParser {
 								currentVideoTrack.setFormatTier(profile[2]);
 							}
 						}
-						currentVideoTrack.setMatrixCoefficients(StreamVideo.getmatrixcoefficients(MI, i));
-						currentVideoTrack.setMultiViewLayout(StreamVideo.getMultiViewLayout(MI, i));
-						currentVideoTrack.setPixelAspectRatio(StreamVideo.getPixelAspectRatio(MI, i));
-						currentVideoTrack.setScanType(StreamVideo.getScanType(MI, i));
-						currentVideoTrack.setScanOrder(StreamVideo.getScanOrder(MI, i));
-						currentVideoTrack.setDisplayAspectRatio(StreamVideo.getDisplayAspectRatioString(MI, i));
-						currentVideoTrack.setOriginalDisplayAspectRatio(StreamVideo.getDisplayAspectRatioOriginalString(MI, i));
-						currentVideoTrack.setFrameRate(StreamVideo.getFrameRate(MI, i));
+						currentVideoTrack.setMatrixCoefficients(StreamVideo.getmatrixcoefficients(mediaInfoHelper, i));
+						currentVideoTrack.setMultiViewLayout(StreamVideo.getMultiViewLayout(mediaInfoHelper, i));
+						currentVideoTrack.setPixelAspectRatio(StreamVideo.getPixelAspectRatio(mediaInfoHelper, i));
+						currentVideoTrack.setScanType(StreamVideo.getScanType(mediaInfoHelper, i));
+						currentVideoTrack.setScanOrder(StreamVideo.getScanOrder(mediaInfoHelper, i));
+						currentVideoTrack.setDisplayAspectRatio(StreamVideo.getDisplayAspectRatioString(mediaInfoHelper, i));
+						currentVideoTrack.setOriginalDisplayAspectRatio(StreamVideo.getDisplayAspectRatioOriginalString(mediaInfoHelper, i));
+						currentVideoTrack.setFrameRate(StreamVideo.getFrameRate(mediaInfoHelper, i));
 						// for some reason, this is not store in DB.
-						currentVideoTrack.setFrameRateModeOriginal(StreamVideo.getFrameRateModeOriginal(MI, i));
+						currentVideoTrack.setFrameRateModeOriginal(StreamVideo.getFrameRateModeOriginal(mediaInfoHelper, i));
 						// for some reason, this is not store in DB.
-						currentVideoTrack.setFrameRateMode(getFrameRateModeValue(StreamVideo.getFrameRateMode(MI, i)));
+						currentVideoTrack.setFrameRateMode(getFrameRateModeValue(StreamVideo.getFrameRateMode(mediaInfoHelper, i)));
 						// for some reason, this is not store in DB.
-						currentVideoTrack.setFrameRateModeRaw(StreamVideo.getFrameRateMode(MI, i));
-						currentVideoTrack.setReferenceFrameCount(getByteValue(StreamVideo.getFormatSettingsRefFrames(MI, i), (byte) -1));
-						currentVideoTrack.setTitle(StreamVideo.getTitle(MI, i));
+						currentVideoTrack.setFrameRateModeRaw(StreamVideo.getFrameRateMode(mediaInfoHelper, i));
+						currentVideoTrack.setReferenceFrameCount(getByteValue(StreamVideo.getFormatSettingsRefFrames(mediaInfoHelper, i), (byte) -1));
+						currentVideoTrack.setTitle(StreamVideo.getTitle(mediaInfoHelper, i));
 						// for some reason, this is not store in DB.
-						value = StreamVideo.getFormatSettingsQPel(MI, i);
+						value = StreamVideo.getFormatSettingsQPel(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							currentVideoTrack.putExtra(FormatConfiguration.MI_QPEL, value);
 						}
 						// for some reason, this is not store in DB.
-						value = StreamVideo.getFormatSettingsGMCString(MI, i);
+						value = StreamVideo.getFormatSettingsGMCString(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							currentVideoTrack.putExtra(FormatConfiguration.MI_GMC, value);
 						}
 						// for some reason, this is not store in DB.
-						value = StreamVideo.getFormatSettingsGOP(MI, i);
+						value = StreamVideo.getFormatSettingsGOP(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							currentVideoTrack.putExtra(FormatConfiguration.MI_GOP, value);
 						}
 
-						currentVideoTrack.setMuxingMode(StreamVideo.getMuxingMode(MI, i));
+						currentVideoTrack.setMuxingMode(StreamVideo.getMuxingMode(mediaInfoHelper, i));
 						// for some reason, this is not store in DB.
-						currentVideoTrack.setEncrypted("encrypted".equals(StreamVideo.getEncryption(MI, i)));
+						currentVideoTrack.setEncrypted("encrypted".equals(StreamVideo.getEncryption(mediaInfoHelper, i)));
 
-						longValue = StreamVideo.getBitDepth(MI, i);
+						longValue = StreamVideo.getBitDepth(mediaInfoHelper, i);
 						if (longValue != null) {
 							currentVideoTrack.setBitDepth(longValue.intValue());
 						}
 
-						value = StreamVideo.getHDRFormat(MI, i);
+						value = StreamVideo.getHDRFormat(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							currentVideoTrack.setHDRFormat(value);
 						}
 
-						value = StreamVideo.getHDRFormatCompatibility(MI, i);
+						value = StreamVideo.getHDRFormatCompatibility(mediaInfoHelper, i);
 						if (!value.isEmpty()) {
 							currentVideoTrack.setHDRFormatCompatibility(value);
 						}
 
-						value = StreamVideo.getLanguageString3(MI, i);
+						value = StreamVideo.getLanguageString3(mediaInfoHelper, i);
 						if (StringUtils.isNotBlank(value)) {
 							currentVideoTrack.setLang(Iso639.getISO639_2Code(value));
 						}
 
-						value = StreamVideo.getID(MI, i);
+						value = StreamVideo.getID(mediaInfoHelper, i);
 						if (StringUtils.isNotBlank(value)) {
 							currentVideoTrack.setOptionalId(getSpecificID(value));
 						}
@@ -377,46 +392,46 @@ public class MediaInfoParser {
 			}
 
 			// set Audio
-			Long audioTracks = StreamAudio.getStreamCount(MI, 0);
+			Long audioTracks = StreamAudio.getStreamCount(mediaInfoHelper, 0);
 			if (audioTracks != null && audioTracks > 0) {
 				for (int i = 0; i < audioTracks; i++) {
 					currentAudioTrack = new MediaAudio();
 					currentAudioTrack.setId(i);
-					longValue = StreamAudio.getStreamOrder(MI, i);
+					longValue = StreamAudio.getStreamOrder(mediaInfoHelper, i);
 					if (longValue != null) {
 						currentAudioTrack.setStreamOrder(longValue.intValue());
 					}
-					currentAudioTrack.setDefault("Yes".equals(StreamAudio.getDefault(MI, i)));
-					currentAudioTrack.setForced("Yes".equals(StreamAudio.getForced(MI, i)));
-					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormat(MI, i), file);
-					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormatVersion(MI, i), file);
-					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormatProfile(MI, i), file);
-					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getCodecID(MI, i), file);
-					value = StreamAudio.getCodecIDDescription(MI, i);
+					currentAudioTrack.setDefault("Yes".equals(StreamAudio.getDefault(mediaInfoHelper, i)));
+					currentAudioTrack.setForced("Yes".equals(StreamAudio.getForced(mediaInfoHelper, i)));
+					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormat(mediaInfoHelper, i), file);
+					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormatVersion(mediaInfoHelper, i), file);
+					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getFormatProfile(mediaInfoHelper, i), file);
+					setFormat(StreamKind.AUDIO, media, currentVideoTrack, currentAudioTrack, StreamAudio.getCodecID(mediaInfoHelper, i), file);
+					value = StreamAudio.getCodecIDDescription(mediaInfoHelper, i);
 					if (StringUtils.isNotBlank(value) && value.startsWith("Windows Media Audio 10")) {
 						currentAudioTrack.setCodec(FormatConfiguration.WMA10);
 					}
 
 					String languageCode = null;
-					value = StreamAudio.getLanguageString3(MI, i);
+					value = StreamAudio.getLanguageString3(mediaInfoHelper, i);
 					if (StringUtils.isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value);
 						currentAudioTrack.setLang(languageCode);
 					}
 
-					value = StreamAudio.getTitle(MI, i).trim();
+					value = StreamAudio.getTitle(mediaInfoHelper, i).trim();
 					currentAudioTrack.setTitle(value);
 					// if language code is null try to recognize the language from Title
 					if (languageCode == null && StringUtils.isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value, true);
 						currentAudioTrack.setLang(languageCode);
 					}
-					currentAudioTrack.setNumberOfChannels(getIntValue(StreamAudio.getChannels(MI, i), MediaAudio.DEFAULT_NUMBER_OF_CHANNELS));
-					currentAudioTrack.setSampleRate(getIntValue(StreamAudio.getSamplingRate(MI, i), MediaAudio.DEFAULT_SAMPLE_RATE));
-					currentAudioTrack.setBitRate(getIntValue(StreamAudio.getBitRate(MI, i), 0));
-					currentAudioTrack.setVideoDelay(getIntValue(StreamAudio.getVideoDelay(MI, i), 0));
-					currentAudioTrack.setBitDepth(getIntValue(StreamAudio.getBitDepth(MI, i), MediaAudio.DEFAULT_BIT_DEPTH));
-					value = StreamAudio.getID(MI, i);
+					currentAudioTrack.setNumberOfChannels(getIntValue(StreamAudio.getChannels(mediaInfoHelper, i), MediaAudio.DEFAULT_NUMBER_OF_CHANNELS));
+					currentAudioTrack.setSampleRate(getIntValue(StreamAudio.getSamplingRate(mediaInfoHelper, i), MediaAudio.DEFAULT_SAMPLE_RATE));
+					currentAudioTrack.setBitRate(getIntValue(StreamAudio.getBitRate(mediaInfoHelper, i), 0));
+					currentAudioTrack.setVideoDelay(getIntValue(StreamAudio.getVideoDelay(mediaInfoHelper, i), 0));
+					currentAudioTrack.setBitDepth(getIntValue(StreamAudio.getBitDepth(mediaInfoHelper, i), MediaAudio.DEFAULT_BIT_DEPTH));
+					value = StreamAudio.getID(mediaInfoHelper, i);
 					if (StringUtils.isNotBlank(value)) {
 						currentAudioTrack.setOptionalId(getSpecificID(value));
 					}
@@ -428,7 +443,7 @@ public class MediaInfoParser {
 			}
 
 			// set Image
-			Long imageCount = StreamImage.getStreamCount(MI, 0);
+			Long imageCount = StreamImage.getStreamCount(mediaInfoHelper, 0);
 			if (imageCount != null) {
 				media.setImageCount(imageCount.intValue());
 			}
@@ -451,7 +466,7 @@ public class MediaInfoParser {
 				}
 
 				if (parseByMediainfo) {
-					setFormat(StreamKind.IMAGE, media, currentVideoTrack, currentAudioTrack, StreamImage.getFormat(MI, 0), file);
+					setFormat(StreamKind.IMAGE, media, currentVideoTrack, currentAudioTrack, StreamImage.getFormat(mediaInfoHelper, 0), file);
 				}
 
 				if (parseLogger != null) {
@@ -460,22 +475,22 @@ public class MediaInfoParser {
 			}
 
 			// set Subs in text format
-			Long subTrackCount = StreamSubtitle.getStreamCount(MI, 0);
+			Long subTrackCount = StreamSubtitle.getStreamCount(mediaInfoHelper, 0);
 			if (subTrackCount != null && subTrackCount > 0) {
 				for (int i = 0; i < subTrackCount; i++) {
 					currentSubTrack = new MediaSubtitle();
-					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getCodecID(MI, i),
-						SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getFormat(MI, i))
+					currentSubTrack.setType(SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getCodecID(mediaInfoHelper, i),
+						SubtitleType.valueOfMediaInfoValue(StreamSubtitle.getFormat(mediaInfoHelper, i))
 					));
 					currentSubTrack.setId(media.getSubtitlesTracks().size());
 					String languageCode = null;
-					value = StreamSubtitle.getLanguageString3(MI, i);
+					value = StreamSubtitle.getLanguageString3(mediaInfoHelper, i);
 					if (StringUtils.isNotBlank(value)) {
 						languageCode = Iso639.getISO639_2Code(value);
 						currentSubTrack.setLang(languageCode);
 					}
 
-					value = StreamSubtitle.getTitle(MI, i).trim();
+					value = StreamSubtitle.getTitle(mediaInfoHelper, i).trim();
 					currentSubTrack.setTitle(value);
 					// if language code is null try to recognize the language from Title
 					if (languageCode == null && StringUtils.isNotBlank(value)) {
@@ -484,12 +499,12 @@ public class MediaInfoParser {
 					}
 
 					// Special check for OGM: MediaInfoHelper reports specific Audio/Subs IDs (0xn) while mencoder/FFmpeg does not
-					value = StreamSubtitle.getID(MI, i);
+					value = StreamSubtitle.getID(mediaInfoHelper, i);
 					if (StringUtils.isNotBlank(value)) {
 						currentSubTrack.setOptionalId(getSpecificID(value));
 					}
-					currentSubTrack.setDefault("Yes".equals(StreamSubtitle.getDefault(MI, i)));
-					currentSubTrack.setForced("Yes".equals(StreamSubtitle.getForced(MI, i)));
+					currentSubTrack.setDefault("Yes".equals(StreamSubtitle.getDefault(mediaInfoHelper, i)));
+					currentSubTrack.setForced("Yes".equals(StreamSubtitle.getForced(mediaInfoHelper, i)));
 
 					addSubtitlesTrack(currentSubTrack, media);
 					if (parseLogger != null) {
@@ -542,7 +557,7 @@ public class MediaInfoParser {
 			}
 
 			if (media.isAudio()) {
-				media.setAudioMetadata(parseFileForAudioMetadata(file, media));
+				media.setAudioMetadata(parseFileForAudioMetadata(mediaInfoHelper, file, media));
 			}
 
 			Parser.postParse(media, type);
@@ -550,13 +565,18 @@ public class MediaInfoParser {
 				LOGGER.trace("{}", parseLogger);
 			}
 
-			MI.closeFile();
+			mediaInfoHelper.closeFile();
 			if (media.getContainer() == null) {
 				media.setContainer(MediaLang.UND);
 			}
 			if (!media.isImage() || !media.isMediaParsed()) {
 				media.setMediaParser(PARSER_NAME);
 			}
+		}
+		try {
+			mediaInfoHelper.close();
+		} catch (Exception ex) {
+			LOGGER.warn("MediaInfoHelper on close: ", ex);
 		}
 		media.setParsing(false);
 	}
@@ -1190,29 +1210,29 @@ public class MediaInfoParser {
 		}
 	}
 
-	private static MediaAudioMetadata parseFileForAudioMetadata(File file, MediaInfo media) {
+	private static MediaAudioMetadata parseFileForAudioMetadata(MediaInfoHelper mediaInfoHelper, File file, MediaInfo media) {
 		MediaAudioMetadata audioMetadata = new MediaAudioMetadata();
-		audioMetadata.setSongname(StreamContainer.getTrack(MI, 0));
-		audioMetadata.setAlbum(StreamContainer.getAlbum(MI, 0));
-		String albumArtists = MI.get(StreamKind.GENERAL, 0, "ALBUM_ARTISTS");
+		audioMetadata.setSongname(StreamContainer.getTrack(mediaInfoHelper, 0));
+		audioMetadata.setAlbum(StreamContainer.getAlbum(mediaInfoHelper, 0));
+		String albumArtists = mediaInfoHelper.get(StreamKind.GENERAL, 0, "ALBUM_ARTISTS");
 		if (StringUtils.isAllBlank(albumArtists)) {
-			albumArtists = StreamContainer.getAlbumPerformer(MI, 0);
+			albumArtists = StreamContainer.getAlbumPerformer(mediaInfoHelper, 0);
 		}
 		audioMetadata.setAlbumArtist(albumArtists);
-		String artists = MI.get(StreamKind.GENERAL, 0, "ARTISTS");
+		String artists = mediaInfoHelper.get(StreamKind.GENERAL, 0, "ARTISTS");
 		if (StringUtils.isAllBlank(artists)) {
-			artists = StreamContainer.getPerformer(MI, 0);
+			artists = StreamContainer.getPerformer(mediaInfoHelper, 0);
 		}
 		audioMetadata.setArtist(artists);
-		audioMetadata.setGenre(StreamContainer.getGenre(MI, 0));
-		audioMetadata.setComposer(StreamContainer.getComposer(MI, 0));
-		audioMetadata.setConductor(StreamContainer.getConductor(MI, 0));
-		Long longValue = StreamContainer.getTrackPosition(MI, 0);
+		audioMetadata.setGenre(StreamContainer.getGenre(mediaInfoHelper, 0));
+		audioMetadata.setComposer(StreamContainer.getComposer(mediaInfoHelper, 0));
+		audioMetadata.setConductor(StreamContainer.getConductor(mediaInfoHelper, 0));
+		Long longValue = StreamContainer.getTrackPosition(mediaInfoHelper, 0);
 		if (longValue != null) {
 			audioMetadata.setTrack(longValue.intValue());
 		}
 
-		String value = StreamContainer.getPart(MI, 0);
+		String value = StreamContainer.getPart(mediaInfoHelper, 0);
 		if (!value.isEmpty()) {
 			try {
 				audioMetadata.setDisc(Integer.parseInt(value));
@@ -1222,7 +1242,7 @@ public class MediaInfoParser {
 		}
 
 		// Try to parse the year from the stored date
-		String recordedDate = StreamContainer.getRecordedDate(MI, 0);
+		String recordedDate = StreamContainer.getRecordedDate(mediaInfoHelper, 0);
 		Matcher matcher = YEAR_PATTERN.matcher(recordedDate);
 		if (matcher.matches()) {
 			try {

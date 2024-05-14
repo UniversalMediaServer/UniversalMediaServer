@@ -40,9 +40,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.LogManager;
 import java.util.regex.Matcher;
@@ -143,17 +141,6 @@ public class PMS {
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 	public static final String AVS_SEPARATOR = "\1";
-	/**
-	 * A lock to prevent heavy IO tasks from causing browsing to be less
-	 * responsive.
-	 * <p>
-	 * When a task has a high priority (needs to run in realtime), it should
-	 * implement this lock for the duration of their operation. When a task has
-	 * a lower priority, it should use this lock to wait for any realtime task
-	 * to finish, and then immediately unlock, to prevent blocking the next
-	 * realtime task from starting.
-	 */
-	public static final Lock REALTIME_LOCK = new ReentrantLock();
 
 	/**
 	 * Pointer to a running UMS server.

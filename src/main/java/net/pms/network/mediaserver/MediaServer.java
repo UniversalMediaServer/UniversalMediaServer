@@ -45,7 +45,7 @@ public class MediaServer {
 		3, "JUPnP (Netty)"
 	);
 
-	public static final int DEFAULT_VERSION = 1;
+	public static final int DEFAULT_VERSION = 2;
 
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
