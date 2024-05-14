@@ -1491,19 +1491,24 @@ public class FFMpegVideo extends Engine {
 				cmdList.add(String.valueOf(hlsConfiguration.video.resolutionWidth) + "x" + String.valueOf(hlsConfiguration.video.resolutionHeight));
 			}
 			cmdList.add("-c:v");
-			if (hlsConfiguration.video.videoCodec.startsWith("avc1.")) {
-				LOGGER.trace("Something wrong, falling back to h264");
+			if (!hlsConfiguration.video.videoCodec.startsWith("avc1.")) {
+				LOGGER.error("Something wrong, hls codec not handled: {}", hlsConfiguration.video.videoCodec);
+				return null;
 			}
-			cmdList.add("libx264");
+
+			String selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
+			cmdList.add(selectedTranscodeAccelerationMethod);
 			cmdList.add("-keyint_min");
 			cmdList.add("25");
-			cmdList.add("-preset");
 
-			// Let x264 optimize the bitrate more for lower resolutions
-			if (hlsConfiguration.video.resolutionWidth < 842) {
-				cmdList.add("superfast");
-			} else {
-				cmdList.add("ultrafast");
+			if (selectedTranscodeAccelerationMethod.startsWith("libx264")) {
+				// Let x264 optimize the bitrate more for lower resolutions
+				cmdList.add("-preset");
+				if (hlsConfiguration.video.resolutionWidth < 842) {
+					cmdList.add("superfast");
+				} else {
+					cmdList.add("ultrafast");
+				}
 			}
 
 			/**
@@ -1588,9 +1593,7 @@ public class FFMpegVideo extends Engine {
 			cmdList.add("frag_keyframe"); //frag_keyframe
 		}
 
-		ProcessWrapperImpl pw = runTranscodeProcess(params, cmdList);
-
-		return pw;
+		return runHlsTranscodeProcess(params, cmdList);
 	}
 
 	public static void setLogLevel(List<String> cmdList, UmsConfiguration configuration) {
@@ -1686,7 +1689,7 @@ public class FFMpegVideo extends Engine {
 		}
 	}
 
-	public static ProcessWrapperImpl runTranscodeProcess(OutputParams params, List<String> cmdList) {
+	public static ProcessWrapperImpl runHlsTranscodeProcess(OutputParams params, List<String> cmdList) {
 		// Set up the process
 		// basename of the named pipe:
 		String fifoName = String.format(
