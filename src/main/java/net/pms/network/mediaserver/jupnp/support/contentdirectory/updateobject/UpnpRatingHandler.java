@@ -36,31 +36,27 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 	@Override
 	public void handle() throws ContentDirectoryException {
 		try {
-			updateModel();
+			Integer currentValue = getNodeTextValue(getCurrentTagValue(), 0) != null ? Integer.parseInt(getNodeTextValue(getCurrentTagValue(), 0)) : null;
+			Integer newValue = getNodeTextValue(getNewTagValue(), 0) != null ? Integer.parseInt(getNodeTextValue(getNewTagValue(), 0)) : null;
+			if (!isModelValueEqual(currentValue)) {
+				throw new ContentDirectoryException(702, "UpdateObject() failed because upnp:rating value listed in " +
+					"the CurrentTagValue argument do not match the current state of the ContentDirectory service. " +
+					"The specified data is likely out of date.");
+			}
+			if (newValue > 5 || newValue < 0) {
+				throw new ContentDirectoryException(703, "UpdateObject() failed because new upnp:rating value is out of bounds. " +
+					"Value must be between 0 and 5 which is equavalent of a rating from 0 to 5 stars.");
+			}
+			getObjectResource().getMediaInfo().getAudioMetadata().setRating(newValue);
 			updateDatabase();
+
+			if (PMS.getConfiguration().isAudioUpdateTag()) {
+				String filename = getObjectResource().getFileName();
+				setRatingInFile(newValue, filename);
+			}
 		} catch (NullPointerException e) {
 			LOGGER.error("cannot handle update object request", e);
 			throw new ContentDirectoryException(712, "UpdateObject() failed because some TextContent cannot be parsed.");
-		}
-	}
-
-	private void updateModel() throws ContentDirectoryException {
-		Integer currentValue = getCurrentTagValue() != null ? Integer.parseInt(getCurrentTagValue().item(0).getTextContent()) : null;
-		Integer newValue = getNewTagValue() != null ? Integer.parseInt(getNewTagValue().item(0).getTextContent()) : null;
-		if (!isModelValueEqual(currentValue)) {
-			throw new ContentDirectoryException(702, "UpdateObject() failed because upnp:rating value listed in " +
-				"the CurrentTagValue argument do not match the current state of the ContentDirectory service. " +
-				"The specified data is likely out of date.");
-		}
-		if (newValue > 5 || newValue < 0) {
-			throw new ContentDirectoryException(703, "UpdateObject() failed because new upnp:rating value is out of bounds. " +
-				"Value must be between 0 and 5 which is equavalent of a rating from 0 to 5 stars.");
-		}
-		getObjectResource().getMediaInfo().getAudioMetadata().setRating(newValue);
-
-		if (PMS.getConfiguration().isAudioUpdateTag()) {
-			String filename = getObjectResource().getFileName();
-			setRatingInFile(newValue, filename);
 		}
 	}
 

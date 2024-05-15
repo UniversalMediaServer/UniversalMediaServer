@@ -294,31 +294,6 @@ public class MediaTableAudioMetadata extends MediaTable {
 		return audioMetadata;
 	}
 
-	public static void updateRatingByAudiotrackId(int ratingInStars, Integer audiotrackId) throws SQLException {
-		Connection connection = MediaDatabase.getConnectionIfAvailable();
-		if (connection == null || audiotrackId == null) {
-			return;
-		}
-		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_AUDIOTRACK_ID)) {
-			ps.setInt(1, ratingInStars);
-			ps.setInt(2, audiotrackId);
-			ps.executeUpdate();
-			connection.commit();
-		}
-	}
-
-	public static void updateRatingByAudiotrackId(Connection connection, int ratingInStars, Integer audiotrackId) throws SQLException {
-		if (connection == null || audiotrackId == null) {
-			return;
-		}
-		try (PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_RATING_BY_AUDIOTRACK_ID)) {
-			ps.setInt(1, ratingInStars);
-			ps.setInt(2, audiotrackId);
-			ps.executeUpdate();
-			connection.commit();
-		}
-	}
-
 	public static void updateRatingByMusicbrainzTrackId(Connection connection, int ratingInStars, String musicBrainzTrackId) throws SQLException {
 		if (connection == null || StringUtils.isEmpty(musicBrainzTrackId)) {
 			return;

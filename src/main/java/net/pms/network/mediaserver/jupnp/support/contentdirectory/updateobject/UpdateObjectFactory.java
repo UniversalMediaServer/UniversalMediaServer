@@ -32,12 +32,14 @@ public class UpdateObjectFactory {
 			throw new ContentDirectoryException(703, "UpdateObject() failed because no newTagValue was supplied");
 		}
 		if (currentTagNode != null && newTagNode != null && !getNodeName(currentTagNode).equalsIgnoreCase(getNodeName(newTagNode))) {
-			throw new ContentDirectoryException(703, "UpdateObject() failed because no newTagValue node name doesn't match currentTagValue node name");
+			throw new ContentDirectoryException(703, "UpdateObject() failed because newTagValue node name doesn't match currentTagValue node name");
 		}
 
 		if ("upnp:rating".equalsIgnoreCase(getNodeName(currentTagNode)) || "upnp:rating".equalsIgnoreCase(getNodeName(newTagNode))) {
 			return new UpnpRatingHandler(objectResource, currentTagNode, newTagNode);
 		}
+
+		LOGGER.warn("NO handler found for tag pair values : '{}' AND '{}'", currentTagValue, newTagValue);
 		return null;
 	}
 

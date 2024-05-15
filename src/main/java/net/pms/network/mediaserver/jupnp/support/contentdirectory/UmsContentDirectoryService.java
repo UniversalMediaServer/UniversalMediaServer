@@ -508,7 +508,9 @@ public class UmsContentDirectoryService {
 				String curTag = currentFragments.length > i ? currentFragments[i] : null;
 				String newTag = newFragments.length > i ? newFragments[i] : null;
 				IUpdateObjectHandler handler = UpdateObjectFactory.getUpdateObjectHandler(objectResource, curTag, newTag);
-				handler.handle();
+				if (handler != null) {
+					handler.handle();
+				}
 			}
 		} catch (Exception e) {
 			if (e instanceof ContentDirectoryException cde) {

@@ -1,5 +1,6 @@
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.w3c.dom.NodeList;
 import net.pms.store.StoreResource;
@@ -37,6 +38,24 @@ public abstract class BaseUpdateObjectHandler implements IUpdateObjectHandler {
 			deleteTag();
 		} else {
 			updateTag();
+		}
+	}
+
+	/**
+	 * Returns text content of node at index.
+	 * @param node
+	 * @param index
+	 * @return TextContent or NULL if Node is empty, blank or not existent.
+	 */
+	public String getNodeTextValue(NodeList node, int index) {
+		try {
+			String s = node.item(index).getTextContent();
+			if (StringUtils.isAllBlank(s)) {
+				return null;
+			}
+			return s;
+		} catch (Exception e) {
+			return null;
 		}
 	}
 
