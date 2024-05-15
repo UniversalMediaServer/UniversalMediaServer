@@ -19,7 +19,6 @@ package net.pms.parsers;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -187,8 +186,9 @@ public class MediaInfoParser {
 			value = StreamContainer.getCoverData(mediaInfoHelper, 0);
 			if (!value.isEmpty()) {
 				try {
+					value = value.trim();
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-						Base64.getDecoder().decode(value.getBytes(StandardCharsets.US_ASCII)),
+						Base64.getDecoder().decode(value),
 						640,
 						480,
 						ScaleType.MAX,
