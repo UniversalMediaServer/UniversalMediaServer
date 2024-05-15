@@ -167,10 +167,11 @@ public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 
 	private void updateDatabase() throws ContentDirectoryException {
 		try {
-			MediaTableAudioMetadata.insertOrUpdateAudioMetadata(
+			MediaTableAudioMetadata.updateRatingByAudiotrackId(
 				MediaDatabase.getConnectionIfAvailable(),
-				getObjectResource().getMediaInfo().getFileId(),
-				getObjectResource().getMediaInfo());
+				getObjectResource().getMediaInfo().getAudioMetadata().getRating(),
+				getObjectResource().getMediaInfo().getAudioMetadata().getAudiotrackId()
+				);
 		} catch (SQLException e) {
 			throw new ContentDirectoryException(712, "UpdateObject() failed because of SQL exception.");
 		}
