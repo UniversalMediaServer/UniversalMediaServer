@@ -187,8 +187,9 @@ public class MediaInfoParser {
 			value = StreamContainer.getCoverData(mediaInfoHelper, 0);
 			if (!value.isEmpty()) {
 				try {
+					value = value.trim();
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
-						Base64.getMimeDecoder().decode(value.getBytes(StandardCharsets.US_ASCII)),
+						Base64.getDecoder().decode(value),
 						640,
 						480,
 						ScaleType.MAX,
