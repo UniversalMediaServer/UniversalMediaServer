@@ -9,6 +9,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
@@ -17,10 +18,11 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import net.pms.store.StoreResource;
 
 public class UpdateObjectFactory {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpdateObjectFactory.class.getName());
+	private static final String QUOTED_COMMA_PLACEHOLDER = "XXX1122334455XXX";
 
 	public static IUpdateObjectHandler getUpdateObjectHandler(StoreResource objectResource, String currentTagValue, String newTagValue)
 		throws ContentDirectoryException {
@@ -83,4 +85,25 @@ public class UpdateObjectFactory {
 			return null;
 		}
 	}
+
+	/**
+	 * Split CSV list around "," while handling escaped \, comma.
+	 */
+	public static String[] getFragments(String tagValue) {
+		if (tagValue == null) {
+			//handle null string (unique add/remove)
+			return new String[]{""};
+		}
+
+		tagValue = tagValue.replaceAll("\\\\,", QUOTED_COMMA_PLACEHOLDER);
+
+		String[] fragments = tagValue.split(",", -1);
+		for (int i = 0; i < fragments.length; i++) {
+			fragments[i] = fragments[i].replaceAll(QUOTED_COMMA_PLACEHOLDER, ",");
+			fragments[i] = fragments[i].replaceAll("\\\\\\\\", "\\\\");
+			fragments[i] = StringUtils.trim(fragments[i]);
+		}
+		return fragments;
+	}
+
 }

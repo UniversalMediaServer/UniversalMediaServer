@@ -44,12 +44,11 @@ import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
-import net.pms.store.utils.StoreResourceSorter;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
@@ -496,18 +495,15 @@ public class UmsContentDirectoryService {
 				throw new ContentDirectoryException(701, "no such object");
 			}
 
-			String[] currentFragments = splitCsvList(currentTagValue);
-			String[] newFragments = splitCsvList(newTagValue);
-			if (!isNewOrDeleteOp(currentFragments, newFragments) && currentFragments.length != newFragments.length) {
+			String[] currentFragments = UpdateObjectFactory.getFragments(currentTagValue);
+			String[] newFragments = UpdateObjectFactory.getFragments(newTagValue);
+			if (currentFragments.length != newFragments.length) {
 				throw new ContentDirectoryException(706, "UpdateObject() failed because the number of entries (including empty" +
 					" entries) in the CurrentTagValue and NewTagValue arguments do not match.");
 			}
 
-			int maxEntries = Math.max(currentFragments.length, newFragments.length);
-			for (int i = 0; i < maxEntries; i++) {
-				String curTag = currentFragments.length > i ? currentFragments[i] : null;
-				String newTag = newFragments.length > i ? newFragments[i] : null;
-				IUpdateObjectHandler handler = UpdateObjectFactory.getUpdateObjectHandler(objectResource, curTag, newTag);
+			for (int i = 0; i < currentFragments.length; i++) {
+				IUpdateObjectHandler handler = UpdateObjectFactory.getUpdateObjectHandler(objectResource, currentFragments[i], newFragments[i]);
 				if (handler != null) {
 					handler.handle();
 				}
@@ -516,41 +512,10 @@ public class UmsContentDirectoryService {
 			if (e instanceof ContentDirectoryException cde) {
 				throw cde;
 			} else {
-				LOGGER.error("createReference failed", e);
+				LOGGER.error("updateObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 			}
 		}
-	}
-
-	private boolean isNewOrDeleteOp(String[] currentFragments, String[] newFragments) {
-		if (currentFragments.length == 0 && newFragments.length == 1) {
-			LOGGER.trace("ADD operation");
-			return true;
-		}
-		if (currentFragments.length == 1 && newFragments.length == 0) {
-			LOGGER.trace("delete operation");
-			return true;
-		}
-		LOGGER.trace("update operation");
-		return true;
-	}
-
-	/**
-	 * Split CSV list around "," while handling escaped \, comma.
-	 */
-	String[] splitCsvList(String csv) {
-		if (StringUtils.isAllBlank(csv)) {
-			return new String[0];
-		}
-		if (csv.endsWith(",")) {
-			csv = csv + " ";
-		}
-		csv = csv.replaceAll("\\\\,", "\u0000"); // map temporarily to unicode 0
-		String[] splittedCsv = csv.split(",");
-		for (int i = 0; i < splittedCsv.length; i++) {
-			splittedCsv[i] = splittedCsv[i].replaceAll("\u0000", ","); // unescape "\," to ","
-		}
-		return splittedCsv;
 	}
 
 	@UpnpAction(name = "DestroyObject")

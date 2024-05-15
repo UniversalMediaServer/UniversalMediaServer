@@ -3,6 +3,10 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import net.pms.PMS;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableAudioMetadata;
+import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -21,10 +25,6 @@ import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.NodeList;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
-import net.pms.store.StoreResource;
 
 public class UpnpRatingHandler extends BaseUpdateObjectHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(UpnpRatingHandler.class.getName());
