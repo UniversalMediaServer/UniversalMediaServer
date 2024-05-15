@@ -430,6 +430,9 @@ public class MediaStore extends StoreContainer {
 		// have been discovered by someone first (unless it's a Temp item)
 		try {
 			WORKERS.incrementAndGet();
+			if (StringUtils.isEmpty(objectId)) {
+				return null;
+			}
 			if (objectId.startsWith("$LogIn/")) {
 				String loginstring = StringUtils.substringAfter(objectId, "/");
 				Integer userId = UserVirtualFolder.decrypt(loginstring);
@@ -616,6 +619,9 @@ public class MediaStore extends StoreContainer {
 		try {
 			WORKERS.incrementAndGet();
 			ArrayList<StoreResource> resources = new ArrayList<>();
+			if (StringUtils.isEmpty(objectId)) {
+				return resources;
+			}
 
 			// Get/create/reconstruct it if it's a Temp item
 			if (objectId.contains("$Temp/")) {
