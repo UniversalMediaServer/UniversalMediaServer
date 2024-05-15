@@ -575,6 +575,10 @@ public class UmsContentDirectoryService {
 			return null;
 		}
 
+		if (objectID == null || objectID.length() == 0) {
+			objectID = "0";
+		}
+
 		boolean browseDirectChildren = browseFlag == BrowseFlag.DIRECT_CHILDREN;
 
 		List<StoreResource> resources = renderer.getMediaStore().getResources(
