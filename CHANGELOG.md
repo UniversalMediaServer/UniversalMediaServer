@@ -7,9 +7,14 @@
 - Stop using the deprecated tool 'Create React App'
 - Implements `Vite` as `react-scripts` replacement.
 - Use of `node.js` v20.12.2
-- Jetty is the default engine, with JUPnP+ (UPnP service as well).
+- Jetty is now a selectable media server engine, with JUPnP+.
 - The webgui / webplayer are now served by Jetty.
 - Removed the JDK HTTP servlet server personal implementation.
+- Improved concurrent MediaStore retrieval.
+- Improved concurrent global MediaInfo store retrieval.
+- Improved MediaInfo parser.
+- Improved MediaStore browsing speed.
+- Fixed issue with AccessDeniedException directory scan.
 
 ### Dependencies
 - Bump `@playwright/test` from 1.42.1 to 1.44.0
