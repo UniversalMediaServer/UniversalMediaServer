@@ -284,6 +284,8 @@ public class MediaStore extends StoreContainer {
 				realSystemFileResource = createResourceFromFile(folderContent.getFile());
 				if (realSystemFileResource != null) {
 					addChild(realSystemFileResource, true, true);
+				} else {
+					LOGGER.trace("createResourceFromFile has failed for {}", folderContent.getFile());
 				}
 			}
 			return realSystemFileResource;
