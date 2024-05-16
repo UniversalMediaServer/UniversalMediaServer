@@ -147,9 +147,18 @@ public class VirtualFolder extends StoreContainer {
 
 			if (directory.canRead()) {
 				File[] listFiles = directory.listFiles((File parentDirectory, String file) -> {
-					// Accept any directory
 					Path path = Paths.get(parentDirectory + File.separator + file);
+					// Reject any non readable
+					if (!Files.isReadable(path)) {
+						return false;
+					}
+					// Accept any directory
 					if (Files.isDirectory(path)) {
+						// Skip if ignored
+						if (!ignoredDirectoryNames.isEmpty() && ignoredDirectoryNames.contains(file)) {
+							LOGGER.debug("Ignoring {} because it is in the ignored directories list", file);
+							return false;
+						}
 						return true;
 					}
 
@@ -250,7 +259,7 @@ public class VirtualFolder extends StoreContainer {
 			 */
 			Map<String, List<File>> map = new TreeMap<>();
 			for (File f : childrenFiles) {
-				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+				if ((!f.isFile() && !f.isDirectory()) || f.isHidden() || !f.canRead()) {
 					// skip these
 					continue;
 				}
