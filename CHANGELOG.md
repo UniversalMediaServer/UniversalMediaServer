@@ -36,6 +36,7 @@
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.1 ([#4566](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4566))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `react-router-dom` from 6.23.0 to 6.23.1
+- Bump `tmdbapi` from 0.2 to 0.3 ([#4663](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4663))
 - Bump `video.js` from 8.8.0 to 8.14.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Bump `yarn` from 4.1.1 to 4.2.2
 
