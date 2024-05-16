@@ -1,15 +1,15 @@
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject;
 
+import net.pms.store.StoreResource;
 import org.apache.commons.lang3.StringUtils;
 import org.jupnp.support.contentdirectory.ContentDirectoryException;
 import org.w3c.dom.NodeList;
-import net.pms.store.StoreResource;
 
 public abstract class BaseUpdateObjectHandler implements IUpdateObjectHandler {
 
-	private StoreResource objectResource;
-	private NodeList currentTagValue;
-	private NodeList newTagValue;
+	private final StoreResource objectResource;
+	private final NodeList currentTagValue;
+	private final NodeList newTagValue;
 
 	public BaseUpdateObjectHandler(StoreResource objectResource, NodeList currentTagValue, NodeList newTagValue) {
 		super();
@@ -43,6 +43,7 @@ public abstract class BaseUpdateObjectHandler implements IUpdateObjectHandler {
 
 	/**
 	 * Returns text content of node at index.
+	 *
 	 * @param node
 	 * @param index
 	 * @return TextContent or NULL if Node is empty, blank or not existent.
