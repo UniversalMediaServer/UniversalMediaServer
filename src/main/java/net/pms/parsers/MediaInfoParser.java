@@ -187,6 +187,7 @@ public class MediaInfoParser {
 			if (!value.isEmpty()) {
 				String[] thumbs = value.split(" / ");
 				try {
+					thumbs[0] = thumbs[0].trim();
 					DLNAThumbnail thumbnail = DLNAThumbnail.toThumbnail(
 						Base64.getDecoder().decode(thumbs[0]),
 						640,
