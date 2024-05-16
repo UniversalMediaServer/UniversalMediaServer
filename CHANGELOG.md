@@ -15,6 +15,8 @@
 - Improved MediaInfo parser.
 - Improved MediaStore browsing speed.
 - Fixed issue with AccessDeniedException directory scan.
+- Implemented CDS UpdateObject base functionality
+- Moved StarRating from internal API to UpdateObject implementation
 
 ### Dependencies
 - Bump `@playwright/test` from 1.42.1 to 1.44.0
