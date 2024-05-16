@@ -758,9 +758,20 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file) {
-		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
+		if (file == null) {
+			LOGGER.trace("createResourceFromFile return null as file is null.");
+			return null;
+		} else if (file.isHidden()) {
+			LOGGER.trace("createResourceFromFile return null as {} is hidden.", file.getName());
+			return null;
+		} else if (!file.canRead()) {
+			LOGGER.trace("createResourceFromFile return null as {} is unreadable.", file.getName());
+			return null;
+		} else if (!(file.isFile() || file.isDirectory())) {
+			LOGGER.trace("createResourceFromFile return null as {} is neither a file or a directory.", file.getName());
 			return null;
 		}
+
 		String lcFilename = file.getName().toLowerCase();
 		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 			return new ZippedFile(renderer, file);
@@ -781,17 +792,20 @@ public class MediaStore extends StoreContainer {
 				lcFilename.endsWith(".cue") ||
 				lcFilename.endsWith(".ups")) {
 			StoreContainer d = PlaylistFolder.getPlaylist(renderer, file.getName(), file.getAbsolutePath(), 0);
-			if (d != null) {
-				return d;
+			if (d == null) {
+				LOGGER.trace("createResourceFromFile return null as {} is PlaylistFolder fail.", file.getName());
 			}
+			return d;
 		} else {
 			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
 			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
 				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.getName());
+				return null;
 			} else if (file.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
 				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+				return null;
 			} else {
 				// Otherwise add the file
 				if (file.isDirectory()) {
@@ -806,7 +820,6 @@ public class MediaStore extends StoreContainer {
 				}
 			}
 		}
-		return null;
 	}
 
 	@Override
