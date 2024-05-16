@@ -295,7 +295,9 @@ public class MediaStore extends StoreContainer {
 				backupChildren.remove(realSystemFileResource);
 			} else {
 				realSystemFileResource = createResourceFromFile(folderContent.getFile());
-				addChild(realSystemFileResource, true, true);
+				if (realSystemFileResource != null) {
+					addChild(realSystemFileResource, true, true);
+				}
 			}
 			return realSystemFileResource;
 		}
@@ -750,7 +752,7 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file) {
-		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
 		}
 		if (file.isDirectory()) {
@@ -787,7 +789,7 @@ public class MediaStore extends StoreContainer {
 	}
 
 	private StoreResource findResourceFromFile(List<StoreResource> resources, File file, Class<?> resourceClass) {
-		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
 		}
 		for (StoreResource resource : resources) {
@@ -799,7 +801,7 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file) {
-		if (file == null || file.isHidden() || !(file.isFile() || file.isDirectory())) {
+		if (file == null || file.isHidden() || !file.canRead() || !(file.isFile() || file.isDirectory())) {
 			return null;
 		}
 		String lcFilename = file.getName().toLowerCase();
