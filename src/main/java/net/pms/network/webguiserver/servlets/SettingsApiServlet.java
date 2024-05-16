@@ -272,7 +272,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			return getRootsDirectoryResponse();
 		}
 		File[] directories = requestedDirectoryFile.listFiles(
-				(File file) -> file.isDirectory() && !file.isHidden() && !file.getName().startsWith(".")
+				(File file) -> file.isDirectory() && !file.isHidden() && file.canRead() && !file.getName().startsWith(".")
 		);
 		Arrays.sort(directories);
 		JsonArray jsonArray = new JsonArray();
