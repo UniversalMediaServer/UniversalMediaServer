@@ -169,7 +169,7 @@ public class MediaScanner implements SharedContentListener {
 		List<SharedContent> sharedContents = SharedContentConfiguration.getSharedContentArray();
 		for (SharedContent sharedContent : sharedContents) {
 			if (sharedContent instanceof FolderContent folder && folder.getFile() != null && folder.isActive()) {
-				StoreResource realSystemFileResource = RENDERER.getMediaStore().createResourceFromFile(folder.getFile());
+				StoreResource realSystemFileResource = RENDERER.getMediaStore().createResourceFromFile(folder.getFile(), true);
 				if (realSystemFileResource != null) {
 					RENDERER.getMediaStore().addChild(realSystemFileResource);
 				} else {

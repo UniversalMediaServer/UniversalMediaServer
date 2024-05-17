@@ -281,7 +281,7 @@ public class MediaStore extends StoreContainer {
 				addChildInternal(realSystemFileResource, false);
 				backupChildren.remove(realSystemFileResource);
 			} else {
-				realSystemFileResource = createResourceFromFile(folderContent.getFile());
+				realSystemFileResource = createResourceFromFile(folderContent.getFile(), true);
 				if (realSystemFileResource != null) {
 					addChild(realSystemFileResource, true, true);
 				} else {
@@ -758,21 +758,30 @@ public class MediaStore extends StoreContainer {
 	}
 
 	public StoreResource createResourceFromFile(File file) {
+		return createResourceFromFile(file, false);
+	}
+
+	public StoreResource createResourceFromFile(File file, boolean allowHidden) {
 		if (file == null) {
 			LOGGER.trace("createResourceFromFile return null as file is null.");
 			return null;
-		} else if (file.isHidden()) {
-			LOGGER.trace("createResourceFromFile return null as {} is hidden.", file.getName());
+		} else if (!allowHidden && file.isHidden()) {
+			LOGGER.trace("createResourceFromFile return null as {} is hidden.", file.toString());
 			return null;
 		} else if (!file.canRead()) {
-			LOGGER.trace("createResourceFromFile return null as {} is unreadable.", file.getName());
+			LOGGER.trace("createResourceFromFile return null as {} is unreadable.", file.toString());
 			return null;
 		} else if (!(file.isFile() || file.isDirectory())) {
-			LOGGER.trace("createResourceFromFile return null as {} is neither a file or a directory.", file.getName());
+			LOGGER.trace("createResourceFromFile return null as {} is neither a file or a directory.", file.toString());
 			return null;
 		}
 
-		String lcFilename = file.getName().toLowerCase();
+		String lcFilename = file.getName();
+		if (lcFilename == null) {
+			lcFilename = "";
+		} else {
+			lcFilename = lcFilename.toLowerCase();
+		}
 		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 			return new ZippedFile(renderer, file);
 		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
@@ -784,7 +793,7 @@ public class MediaStore extends StoreContainer {
 			return new SevenZipFile(renderer, file);
 		} else if (lcFilename.endsWith(".iso") ||
 				lcFilename.endsWith(".img") || (file.isDirectory() &&
-				file.getName().toUpperCase(Locale.ROOT).equals("VIDEO_TS"))) {
+				lcFilename.toUpperCase(Locale.ROOT).equals("VIDEO_TS"))) {
 			return new DVDISOFile(renderer, file);
 		} else if (lcFilename.endsWith(".m3u") ||
 				lcFilename.endsWith(".m3u8") ||
@@ -793,7 +802,7 @@ public class MediaStore extends StoreContainer {
 				lcFilename.endsWith(".ups")) {
 			StoreContainer d = PlaylistFolder.getPlaylist(renderer, file.getName(), file.getAbsolutePath(), 0);
 			if (d == null) {
-				LOGGER.trace("createResourceFromFile return null as {} is PlaylistFolder fail.", file.getName());
+				LOGGER.trace("createResourceFromFile return null as {} is PlaylistFolder fail.", file.toString());
 			}
 			return d;
 		} else {
@@ -801,10 +810,10 @@ public class MediaStore extends StoreContainer {
 
 			/* Optionally ignore empty directories */
 			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
-				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.getName());
+				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.toString());
 				return null;
-			} else if (file.isDirectory() && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
-				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.getName());
+			} else if (file.isDirectory() && !"".equals(lcFilename) && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
+				LOGGER.debug("Ignoring {} because it is in the ignored folders list", file.toString());
 				return null;
 			} else {
 				// Otherwise add the file
@@ -813,7 +822,7 @@ public class MediaStore extends StoreContainer {
 				} else {
 					RealFile rf = new RealFile(renderer, file);
 					if (rf.length() == 0) {
-						LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", file.getName());
+						LOGGER.debug("Ignoring {} because it seems corrupted when the length of the file is 0", file.toString());
 						return null;
 					}
 					return rf;
