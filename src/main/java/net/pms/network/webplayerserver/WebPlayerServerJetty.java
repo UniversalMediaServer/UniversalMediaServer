@@ -29,13 +29,14 @@ import net.pms.network.webplayerserver.servlets.PlayerAuthApiServlet;
 import net.pms.network.webplayerserver.servlets.WebPlayerServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.server.Connector;
+import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NetworkConnector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
-@SuppressWarnings("restriction")
 public class WebPlayerServerJetty extends WebPlayerServer {
 
 	private Server server;
@@ -46,7 +47,7 @@ public class WebPlayerServerJetty extends WebPlayerServer {
 
 	public WebPlayerServerJetty(int port) throws IOException {
 		if (port < 0) {
-			port = CONFIGURATION.getWebGuiServerPort();
+			port = CONFIGURATION.getWebPlayerServerPort();
 		}
 
 		// Setup the socket address
@@ -54,7 +55,7 @@ public class WebPlayerServerJetty extends WebPlayerServer {
 		QueuedThreadPool threadPool = new QueuedThreadPool();
 		threadPool.setName("webplayer-server");
 		server = new Server(threadPool);
-		ServerConnector connector = new ServerConnector(server);
+		ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(), new HTTP2CServerConnectionFactory());
 		connector.setHost("0.0.0.0");
 		connector.setPort(port);
 		//let some time for pausing from media renderer (2 hours)
@@ -71,18 +72,6 @@ public class WebPlayerServerJetty extends WebPlayerServer {
 			start();
 		} catch (Exception e) {
 			LOGGER.error("Failed to start web player server ({}) : {}", address, e.getMessage());
-		}
-	}
-
-	public final synchronized void start() throws Exception {
-		if (server != null && !server.isStarted() && !server.isStarting()) {
-			LOGGER.info("Starting Jetty server {}", Server.getVersion());
-			try {
-				server.start();
-			} catch (Exception e) {
-				LOGGER.error("Couldn't start Jetty server", e);
-				throw e;
-			}
 		}
 	}
 
@@ -121,6 +110,18 @@ public class WebPlayerServerJetty extends WebPlayerServer {
 			return (protocol.startsWith("SSL-") || protocol.equals("SSL"));
 		}
 		return false;
+	}
+
+	public final synchronized void start() throws Exception {
+		if (server != null && !server.isStarted() && !server.isStarting()) {
+			LOGGER.info("Starting Jetty server {}", Server.getVersion());
+			try {
+				server.start();
+			} catch (Exception e) {
+				LOGGER.error("Couldn't start Jetty server", e);
+				throw e;
+			}
+		}
 	}
 
 	/**
