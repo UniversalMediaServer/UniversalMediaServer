@@ -266,7 +266,11 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 						for (File file : filesListFromDb) {
 							if (renderer.hasShareAccess(file)) {
 								StoreResource sr = renderer.getMediaStore().createResourceFromFile(file);
-								addChild(sr);
+								if (sr != null) {
+									addChild(sr);
+								} else {
+									LOGGER.trace("createResourceFromFile has failed for {}", file);
+								}
 							} else {
 								LOGGER.debug("renderer has no share access to resource {}", file.getAbsolutePath());
 							}

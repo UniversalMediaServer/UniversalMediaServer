@@ -86,7 +86,8 @@ public class AboutTab {
 
 		builder.addLabel(Messages.getGuiString("RelatedLinks")).at(cc.xy(2, getAndIncrementRowPosition(), "center, fill"));
 
-		final LinkMouseListener crowdinLink = new LinkMouseListener(Messages.getGuiString("XCrowdinProject"), PMS.CROWDIN_LINK);
+		final String crowdinName = (String.format(Messages.getGuiString("XCrowdinProject"), PMS.NAME));
+		final LinkMouseListener crowdinLink = new LinkMouseListener(crowdinName, PMS.CROWDIN_LINK);
 		JLabel lCrowdinLink = FormsSetup.getComponentFactoryDefault().createLabel(crowdinLink.getLabel());
 		lCrowdinLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lCrowdinLink.addMouseListener(crowdinLink);
