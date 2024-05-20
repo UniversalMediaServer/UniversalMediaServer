@@ -1243,7 +1243,7 @@
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0.5</version>
+						<version>1.0.6</version>
 						<configuration>
 							<makensisExecutable>${project.external-resources}/windows/nsis/makensis.exe</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>
