@@ -14,6 +14,7 @@
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.17.0 ([#4623](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4623))
 - Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `react-router-dom` from 6.23.0 to 6.23.1 ([#4679](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4679))
 - Bump `version` from 18.2 to 18.3 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 
 ## [14.0.0 - Since 13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.1...14.0.0) (2024-05-11)
