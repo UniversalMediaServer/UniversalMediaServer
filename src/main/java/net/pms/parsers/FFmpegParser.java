@@ -99,7 +99,7 @@ public class FFmpegParser {
 				parse(media, inputFile);
 				if (
 					file != null &&
-					"mpegts".equals(media.getContainer()) &&
+					FormatConfiguration.MPEGTS.equals(media.getContainer()) &&
 					media.getDefaultVideoTrack() != null &&
 					media.getDefaultVideoTrack().isH264() &&
 					media.getDurationInSeconds() == 0
