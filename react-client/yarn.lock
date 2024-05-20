@@ -3591,24 +3591,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:3.10.0":
-  version: 3.10.0
-  resolution: "@videojs/http-streaming@npm:3.10.0"
-  dependencies:
-    "@babel/runtime": "npm:^7.12.5"
-    "@videojs/vhs-utils": "npm:4.0.0"
-    aes-decrypter: "npm:4.0.1"
-    global: "npm:^4.4.0"
-    m3u8-parser: "npm:^7.1.0"
-    mpd-parser: "npm:^1.3.0"
-    mux.js: "npm:7.0.2"
-    video.js: "npm:^7 || ^8"
-  peerDependencies:
-    video.js: ^7 || ^8
-  checksum: 10c0/154d8cf87d29ee9fb67b85b64827dd1f8112951a52fd861fe7bf12c4262e1b2ac22183db8b57cbaf9ef4d3fec9b4d29108371a7e84f1f0668e662adbff44a735
-  languageName: node
-  linkType: hard
-
 "@videojs/http-streaming@npm:3.12.0":
   version: 3.12.0
   resolution: "@videojs/http-streaming@npm:3.12.0"
@@ -3624,6 +3606,24 @@ __metadata:
   peerDependencies:
     video.js: ^8.11.0
   checksum: 10c0/01c63cc86fe2c734fc00132938346b9dd374d52d406b5e154e1240379c4d312d4ad45cd384276f9c3fb33b01a0f0e98b613a9a34dc7828bf106088b07042a98f
+  languageName: node
+  linkType: hard
+
+"@videojs/http-streaming@npm:3.12.1":
+  version: 3.12.1
+  resolution: "@videojs/http-streaming@npm:3.12.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+    "@videojs/vhs-utils": "npm:4.0.0"
+    aes-decrypter: "npm:4.0.1"
+    global: "npm:^4.4.0"
+    m3u8-parser: "npm:^7.1.0"
+    mpd-parser: "npm:^1.3.0"
+    mux.js: "npm:7.0.3"
+    video.js: "npm:^7 || ^8"
+  peerDependencies:
+    video.js: ^8.11.0
+  checksum: 10c0/d0682da009253a178511e631307ebcedd085c5b5d85eee1bcf6c2201ffe677d7f21b15157ca0b1f136a98564079517e293bc357ee43f9a3b0de927322ab71808
   languageName: node
   linkType: hard
 
@@ -9857,18 +9857,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mux.js@npm:7.0.2":
-  version: 7.0.2
-  resolution: "mux.js@npm:7.0.2"
-  dependencies:
-    "@babel/runtime": "npm:^7.11.2"
-    global: "npm:^4.4.0"
-  bin:
-    muxjs-transmux: bin/transmux.js
-  checksum: 10c0/cdd13b3adc5efab5b9352c3d0baf48642ad002da62fe4ee2528e8cfacf52e1dc67ff07a973f4fa198fa336dc9dbaff4a73730c95a6ae927b0aab21a9b64b323c
-  languageName: node
-  linkType: hard
-
 "mux.js@npm:7.0.3, mux.js@npm:^7.0.1":
   version: 7.0.3
   resolution: "mux.js@npm:7.0.3"
@@ -13679,7 +13667,7 @@ __metadata:
     react-scripts: "npm:5.0.1"
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.4.5"
-    video.js: "npm:8.10.0"
+    video.js: "npm:8.12.0"
     web-vitals: "npm:3.5.2"
   languageName: unknown
   linkType: soft
@@ -13969,12 +13957,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.10.0":
-  version: 8.10.0
-  resolution: "video.js@npm:8.10.0"
+"video.js@npm:8.12.0":
+  version: 8.12.0
+  resolution: "video.js@npm:8.12.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
-    "@videojs/http-streaming": "npm:3.10.0"
+    "@videojs/http-streaming": "npm:3.12.1"
     "@videojs/vhs-utils": "npm:^4.0.0"
     "@videojs/xhr": "npm:2.6.0"
     aes-decrypter: "npm:^4.0.1"
@@ -13984,10 +13972,10 @@ __metadata:
     mpd-parser: "npm:^1.2.2"
     mux.js: "npm:^7.0.1"
     safe-json-parse: "npm:4.0.0"
-    videojs-contrib-quality-levels: "npm:4.0.0"
+    videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.1.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/6f126eecd2b229bc637085a26ae9bb866b30baef913c46ae54d46be8269ec7136a22a4a75b661bfb7225dd06204c2628003fe1e626eddae407973e21b6052247
+  checksum: 10c0/2732d591dc21b994ae42adc1693dfac1b6ec312e1e1e0927344ed5a12d77669e7ef0392496ca18737512152ca11ce43ee981296e558d82a98963265ea4011643
   languageName: node
   linkType: hard
 
@@ -14010,17 +13998,6 @@ __metadata:
     videojs-font: "npm:4.1.0"
     videojs-vtt.js: "npm:0.15.5"
   checksum: 10c0/1a60ef5f59872dc230391da11a6925a7dcdfa3fb3e8d4e32e12e8b94307e1cd6140b55a9174f0539ba31b69a666bfcd4f669c670f24affd30f66d590c605a322
-  languageName: node
-  linkType: hard
-
-"videojs-contrib-quality-levels@npm:4.0.0":
-  version: 4.0.0
-  resolution: "videojs-contrib-quality-levels@npm:4.0.0"
-  dependencies:
-    global: "npm:^4.4.0"
-  peerDependencies:
-    video.js: ^8
-  checksum: 10c0/20658b6bed2bbe4ddc4e55487c1c52600ced3906bc4580540bcb4bf9ea90177ffea535f5632db7821e5f2b84aa627b6b45d34b5fcf8761718216fd803bfeb936
   languageName: node
   linkType: hard
 
