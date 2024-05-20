@@ -15,6 +15,7 @@
 - Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `version` from 18.2 to 18.3 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
+- Bump `video.js` from 8.10.0 to 8.12.0 ([#4677](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4677))
 
 ## [14.0.0 - Since 13.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/13.10.1...14.0.0) (2024-05-11)
 
