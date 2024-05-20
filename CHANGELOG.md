@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@playwright/test` from 1.43.1 to 1.44.0 ([#4678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4678))
 - Bump `@testing-library/jest-dom` from 6.4.2 to 6.4.5 ([#4629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4629))
 - Bump `@types/lodash` from 4.17.0 to 4.17.1 ([#4632](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4632))
 - Bump `@types/node` from 18.19.31 to 18.19.33 ([#4646](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4646))
