@@ -755,19 +755,26 @@ public abstract class StoreResource implements Cloneable, Runnable {
 
 	// Returns whether the url appears to be ours
 	public static boolean isResourceUrl(String url) {
-		return url != null && url.startsWith(MediaServerRequest.getMediaURL().toString());
+		return url != null && url.contains(MediaServerRequest.getMediaURL().toString());
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if
 	// any or null
 	public static String parseResourceId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", MediaServerRequest.MEDIA_PATH, "/") : null;
+		if (isResourceUrl(url)) {
+			return new MediaServerRequest(url).getResourceId();
+		}
+		return null;
 	}
 
 	// Returns the url's objectId (i.e. index including trailing filename) if
 	// any or null
 	public static String parseObjectId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringAfter(url, MediaServerRequest.MEDIA_PATH) : null;
+		if (isResourceUrl(url)) {
+			MediaServerRequest request = new MediaServerRequest(url);
+			return request.getResourceId() + MediaServerRequest.PATH_SEPARATOR + request.getOptionalPath();
+		}
+		return null;
 	}
 
 	public boolean isRendererAllowed() {
