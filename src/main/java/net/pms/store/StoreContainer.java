@@ -730,7 +730,7 @@ public class StoreContainer extends StoreResource {
 		discoverChildren();
 	}
 
-	protected synchronized final void discover(boolean forced) {
+	protected final synchronized void discover(boolean forced) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			LOGGER.trace("Initial discovering children for container: {}", getDisplayName());
