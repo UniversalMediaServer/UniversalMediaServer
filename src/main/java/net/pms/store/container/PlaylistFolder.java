@@ -324,6 +324,10 @@ public final class PlaylistFolder extends StoreContainer {
 
 	@Override
 	public String getDisplayName(boolean withSuffix) {
-		return super.getDisplayNameBase().substring(0, super.getDisplayNameBase().lastIndexOf("."));
+		String displayName = super.getDisplayNameBase();
+		if (displayName.contains(".")) {
+			displayName = displayName.substring(0, displayName.lastIndexOf("."));
+		}
+		return displayName;
 	}
 }
