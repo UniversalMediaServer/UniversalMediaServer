@@ -90,6 +90,7 @@ public class MediaStore extends StoreContainer {
 	 * any realtime task to finish.
 	 */
 	private static final AtomicInteger WORKERS = new AtomicInteger(0);
+	private static final String TEMP_TAG = "$Temp$";
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
 	private final Map<Long, Object> idLocks = new HashMap<>();
@@ -109,7 +110,7 @@ public class MediaStore extends StoreContainer {
 
 	public MediaStore(Renderer renderer) {
 		super(renderer, "root", null);
-		tempFolder = new UnattachedFolder(renderer, "Temp");
+		tempFolder = new UnattachedFolder(renderer, TEMP_TAG);
 		mediaLibrary = new MediaLibrary(renderer);
 		dbIdLibrary = new DbIdLibrary(renderer);
 		setLongId(0);
@@ -419,7 +420,7 @@ public class MediaStore extends StoreContainer {
 		LOGGER.debug("Validating URI \"{}\"", uri);
 		String objectId = parseObjectId(uri);
 		if (objectId != null) {
-			if (objectId.startsWith("Temp$")) {
+			if (objectId.startsWith(TEMP_TAG)) {
 				int index = tempFolder.indexOf(objectId);
 				return index > -1 ? tempFolder.getChildren().get(index) : tempFolder.recreate(objectId, name);
 			}
@@ -449,7 +450,7 @@ public class MediaStore extends StoreContainer {
 			}
 
 			// Get/create/reconstruct it if it's a Temp item
-			if (objectId.contains("$Temp/")) {
+			if (objectId.startsWith(TEMP_TAG)) {
 				return getTemp().get(objectId);
 			}
 
@@ -628,7 +629,7 @@ public class MediaStore extends StoreContainer {
 			}
 
 			// Get/create/reconstruct it if it's a Temp item
-			if (objectId.contains("$Temp/")) {
+			if (objectId.startsWith(TEMP_TAG)) {
 				List<StoreResource> items = getTemp().asList(objectId);
 				return items != null ? items : resources;
 			}
