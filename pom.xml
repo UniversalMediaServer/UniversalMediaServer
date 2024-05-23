@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.1.0-SNAPSHOT</version>
+	<version>14.2.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -234,15 +234,6 @@
 			<artifactId>gson</artifactId>
 			<version>2.10.1</version>
 		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<!-- com.sun.xml.messaging.saaj as well -->
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.10.6.Final</version>
-			<scope>compile</scope>
-		</dependency>
-
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
 			<groupId>maven</groupId>
@@ -578,22 +569,6 @@
 			<groupId>org.eclipse.angus</groupId>
 			<artifactId>angus-activation</artifactId>
 			<version>2.0.2</version>
-		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<dependency>
-			<groupId>com.sun.xml.messaging.saaj</groupId>
-			<artifactId>saaj-impl</artifactId>
-			<version>3.0.4</version>
-			<exclusions>
-				<exclusion>
-					<groupId>jakarta.activation</groupId>
-					<artifactId>jakarta.activation-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.eclipse.angus</groupId>
-					<artifactId>angus-activation</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
