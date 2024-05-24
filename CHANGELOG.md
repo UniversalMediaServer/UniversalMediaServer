@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### General
+
+- Improve speed of HLS transcoding with hardware acceleration (#4534)
+- Fixed broken directory access on some hardware architectures and devices (#4650 and #4653)
+- Fixed broken Crowdin string on About tab (#4668)
+- Fixed broken media push-to-device feature (#4682)
+
+### Renderers
+- Fixed seeking in transcoded videos on Samsung UHD TVs (#4272) (thanks, Alexey Borzov!)
+
+### Translation updates via Crowdin
+- Danish (62%) (thanks, GurliGebis!)
+- French (100%) (thanks, Fredo1650!)
+- Hungarian (49%) (thanks, Benedek Tóth!)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (61%) (thanks, paulo santos!)
+- Portuguese (Brazilian) (75%) (thanks, Mauro.A!)
+- Russian (100%) (thanks, Олег Лойко!)
+- Turkish (100%) (thanks, Burak Yavuz!)
+
 ### Dependencies
 - Bump `@playwright/test` from 1.43.1 to 1.44.0 ([#4678](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4678))
 - Bump `@testing-library/jest-dom` from 6.4.2 to 6.4.5 ([#4629](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4629))
