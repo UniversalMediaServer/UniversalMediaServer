@@ -528,7 +528,8 @@ public abstract class StoreItem extends StoreResource {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), mediaInfo.getBitRate(),
 							maxBandwidth);
-				} else if (renderer.isH264Level41Limited() && mediaVideo.isH264()) {
+				} else if (mediaVideo.isH264()) {
+					double h264LevelLimit = renderer.getH264LevelLimit();
 					if (mediaVideo.getFormatLevel() != null) {
 						double h264Level = 4.1;
 
@@ -538,11 +539,11 @@ public abstract class StoreItem extends StoreResource {
 							LOGGER.trace("Could not convert {} to double: {}", mediaVideo.getFormatLevel(), e.getMessage());
 						}
 
-						if (h264Level > 4.1) {
+						if (h264Level > h264LevelLimit) {
 							isIncompatible = true;
-							LOGGER.debug(prependTranscodingReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+							LOGGER.debug(prependTranscodingReason + "the H.264 level ({}) is not supported by the renderer (limit: {}).", getName(), h264Level, h264LevelLimit);
 						}
-					} else {
+					} else if (h264LevelLimit < 4.2) {
 						isIncompatible = true;
 						LOGGER.debug(prependTranscodingReason + "the H.264 level is unknown.", getName());
 					}

@@ -575,7 +575,7 @@ public class FFMpegVideo extends Engine {
 			 */
 			if (!isXboxOneWebVideo && renderer.isTranscodeToH264()) {
 				if (
-					renderer.isH264Level41Limited() &&
+					renderer.getH264LevelLimit() < 4.2 &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -947,7 +947,7 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we are using AviSynth.");
-			} else if (defaultVideoTrack.isH264() && renderer.isH264Level41Limited() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+			} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if ("bt.601".equals(defaultVideoTrack.getMatrixCoefficients())) {
@@ -1010,7 +1010,7 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we are using AviSynth.");
-			} else if (defaultVideoTrack.isH264() && renderer.isH264Level41Limited() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+			} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if (!isMuxable(defaultVideoTrack, renderer)) {

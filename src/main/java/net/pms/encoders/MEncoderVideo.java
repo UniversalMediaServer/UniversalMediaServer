@@ -339,7 +339,7 @@ public class MEncoderVideo extends Engine {
 			 */
 			if ((renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
-					renderer.isH264Level41Limited() &&
+					renderer.getH264LevelLimit() < 4.2 &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
@@ -500,7 +500,7 @@ public class MEncoderVideo extends Engine {
 		} else if (isAviSynthEngine()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		} else if (defaultVideoTrack.isH264() && renderer.isH264Level41Limited() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+		} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 		} else if (!isMuxable(defaultVideoTrack, renderer)) {
@@ -1623,7 +1623,7 @@ public class MEncoderVideo extends Engine {
 			// pass 1: process expertOptions
 			for (int l = 0; l < expertOptions.length; ++l) {
 				switch (expertOptions[l]) {
-					case "-noass":
+					case "-noass" -> {
 						// remove -ass from cmdList in pass 2.
 						// -ass won't have been added in this method (getSpecificCodecOptions
 						// has been called multiple times above to check for -noass and -nomux)
@@ -1633,55 +1633,55 @@ public class MEncoderVideo extends Engine {
 						removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
 						// remove -noass from expertOptions in pass 3
 						expertOptions[l] = REMOVE_OPTION;
-						break;
-					case "-nomux":
+					}
+					case "-nomux" -> {
 						expertOptions[l] = REMOVE_OPTION;
-						break;
-					case "-mt":
+					}
+					case "-mt" -> {
 						// not an MEncoder option so remove it from exportOptions.
 						// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
 						expertOptions[l] = REMOVE_OPTION;
-						break;
-					case "-ofps":
+					}
+					case "-ofps" -> {
 						// replace the cmdList version with the expertOptions version i.e. remove the former
 						removeCmdListOption.put("-ofps", true);
 						// skip (i.e. leave unchanged) the exportOptions value
 						++l;
-						break;
-					case "-fps":
+					}
+					case "-fps" -> {
 						removeCmdListOption.put("-fps", true);
 						++l;
-						break;
-					case "-ovc":
+					}
+					case "-ovc" -> {
 						removeCmdListOption.put("-ovc", true);
 						++l;
-						break;
-					case "-channels":
+					}
+					case "-channels" -> {
 						removeCmdListOption.put("-channels", true);
 						++l;
-						break;
-					case "-oac":
+					}
+					case "-oac" -> {
 						removeCmdListOption.put("-oac", true);
 						++l;
-						break;
-					case "-quality":
+					}
+					case "-quality" -> {
 						// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
 						String lavcopts = String.format(
-							"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
-							vcodec,
-							(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
-							CodecUtil.getAC3Bitrate(configuration, params.getAid()),
-							configuration.getMencoderMaxThreads(),
-							expertOptions[l + 1]
+								"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
+								vcodec,
+								(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
+								CodecUtil.getAC3Bitrate(configuration, params.getAid()),
+								configuration.getMencoderMaxThreads(),
+								expertOptions[l + 1]
 						);
 
 						// append bitrate-limiting options if configured
 						lavcopts = addMaximumBitrateConstraints(encodeOptions,
-							lavcopts,
-							media,
-							lavcopts,
-							renderer,
-							""
+								lavcopts,
+								media,
+								lavcopts,
+								renderer,
+								""
 						);
 
 						// a string format with no placeholders, so the cmdList option value is ignored.
@@ -1692,31 +1692,32 @@ public class MEncoderVideo extends Engine {
 						expertOptions[l] = REMOVE_OPTION;
 						expertOptions[l + 1] = REMOVE_OPTION;
 						++l;
-						break;
-					case "-mpegopts":
+					}
+					case "-mpegopts" -> {
 						mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[l + 1].replace("%", "%%"));
 						// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
 						expertOptions[l] = REMOVE_OPTION;
 						expertOptions[l + 1] = REMOVE_OPTION;
 						++l;
-						break;
-					case "-vf":
+					}
+					case "-vf" -> {
 						mergeCmdListOption.put("-vf", "%s," + expertOptions[l + 1].replace("%", "%%"));
 						++l;
-						break;
-					case "-af":
+					}
+					case "-af" -> {
 						mergeCmdListOption.put("-af", "%s," + expertOptions[l + 1].replace("%", "%%"));
 						++l;
-						break;
-					case "-nosync":
+					}
+					case "-nosync" -> {
 						disableMc0AndNoskip = true;
 						expertOptions[l] = REMOVE_OPTION;
-						break;
-					case "-mc":
+					}
+					case "-mc" -> {
 						disableMc0AndNoskip = true;
-						break;
-					default:
-						break;
+					}
+					default -> {
+						//nothing to do
+					}
 				}
 			}
 
