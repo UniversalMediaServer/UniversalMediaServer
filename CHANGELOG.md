@@ -253,11 +253,11 @@
 - Fixed playback of H.264 videos over level 4.2 on PS4
 
 ### Dependencies
-- Bump `@testing-library/react` from 14.2.1 to 15.0.5 ([#4583](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4583))
+- Bump `@testing-library/react` from 14.2.1 to 15.0.2 ([#4583](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4583))
 - Bump `@types/lodash` from 4.14.202 to 4.17.0 ([#4569](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4569))
 - Bump `@types/node` from 18.19.28 to 18.19.31 ([#4597](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4597))
-- Bump `@types/react-dom` from 18.2.23 to 18.3.0 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
-- Bump `@types/react` from 18.2.64 to 18.3.1 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
+- Bump `@types/react-dom` from 18.2.23 to 18.2.25 ([#4596](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4596))
+- Bump `@types/react` from 18.2.64 to 18.2.79 ([#4582](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4582), [#4598](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4598))
 - Bump `@typescript-eslint/eslint-plugin` from 7.4.0 to 7.7.1 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581), [#4603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4603))
 - Bump `@typescript-eslint/parser` from 7.4.0 to 7.7.1 ([#4581](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4581), [#4603](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4603))
 - Bump `axios` from 1.6.7 to 1.6.8 ([#4568](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4568))
