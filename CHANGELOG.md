@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### General
+
+- Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
