@@ -21,7 +21,7 @@ export const SessionContext: Context<UmsSession> = createContext({
   account: undefined,
   authenticate: false,
   initialized: false,
-  refresh: () => {},
+  refresh: () => { },
   player: false
 } as UmsSession);
 
@@ -60,6 +60,13 @@ export interface UmsSession {
   initialized: boolean;
   refresh: () => void;
   player: boolean;
+}
+
+export interface UmsAccounts {
+  users: UmsUser[],
+  groups: UmsGroup[],
+  enabled: boolean,
+  localhost: boolean,
 }
 
 export default SessionContext;

@@ -17,8 +17,7 @@
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 
-import { UmsAccounts } from '../contexts/accounts-context';
-import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
+import { UmsAccount, UmsAccounts, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 import { accountApiUrl } from '../utils';
 import { clearJwt } from './auth-service';
 
@@ -52,19 +51,19 @@ export const havePermission = (session: UmsSession, permission: number) => {
 }
 
 export const getUserGroup = (user: UmsUser, accounts: UmsAccounts) => {
-  const group = accounts.groups && accounts.groups.find((group) => group.id === user.groupId);
+  const group = accounts.groups && accounts.groups.find((group: UmsGroup) => group.id === user.groupId);
   return group !== undefined ? group : { id: 0, displayName: '' } as UmsGroup;
 };
 
 export const getGroupName = (groupId: number, groups: UmsGroup[]) => {
-  const group = groups && groups.find((group) => group.id === groupId);
+  const group = groups && groups.find((group: UmsGroup) => group.id === groupId);
   return group !== undefined ? group.displayName : null;
 };
 
 export const getUserGroupsSelection = (groups: UmsGroup[], none?: string) => {
   const result = [];
   none && result.push({ value: '0', label: none });
-  groups && groups.forEach((group) => {
+  groups && groups.forEach((group: UmsGroup) => {
     if (group.id > 0) {
       result.push({ value: group.id.toString(), label: group.displayName });
     }

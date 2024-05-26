@@ -23,7 +23,7 @@
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5
 - Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
-- Bump `mantine` from 7.5.3 to 7.9.2
+- Bump `mantine` from 7.5.3 to 7.10.0
 - Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6 ([#4675](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4675))
 - Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.2 ([#4672](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4672))
 - Bump `tmdbapi` from 0.2 to 0.3 ([#4663](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4663))

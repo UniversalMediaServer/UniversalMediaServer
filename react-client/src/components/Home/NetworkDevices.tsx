@@ -178,7 +178,7 @@ const NetworkDevices = (
 
   useEffect(() => {
     refreshDeviceData();
-  }, [i18n]);
+  }, [canModify]);
 
   return (
     <>

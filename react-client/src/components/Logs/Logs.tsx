@@ -383,7 +383,7 @@ const Logs = () => {
           onClose={() => { setRestartOpened(false); setRestartOpened(false) }}
           title={i18n.get('StartupLogLevelNotTrace')}
         >
-          <span dangerouslySetInnerHTML={{ __html: i18n.get('ForReportingMostIssuesBest')}}></span>
+          <span dangerouslySetInnerHTML={{ __html: i18n.get('ForReportingMostIssuesBest') }}></span>
           <Group>
             <Button onClick={() => { sendAction('Process.Reboot.Trace'); setRestartOpened(false); setSettingsOpened(false) }}>{i18n.get('Yes')}</Button>
             <Button onClick={() => { setRestartOpened(false) }}>{i18n.get('No')}</Button>
