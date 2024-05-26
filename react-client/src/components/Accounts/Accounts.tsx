@@ -17,25 +17,32 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { useContext, useState } from 'react';
+import { showNotification } from '@mantine/notifications';
+import { useContext, useEffect, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
 
-import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
-import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
+import SessionContext, { UmsAccounts, UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { allowHtml } from '../../utils';
+import { accountApiUrl, allowHtml } from '../../utils';
+import ServerEventContext from '../../contexts/server-event-context';
+import axios from 'axios';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-  const accounts = useContext(AccountsContext);
+  const sse = useContext(ServerEventContext);
+  const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
   const canManageUsers = havePermission(session, Permissions.users_manage);
   const canManageGroups = havePermission(session, Permissions.groups_manage);
+  const [localhostOpened, setLocalhostOpened] = useState(false);
+  const [authOpened, setAuthOpened] = useState(false);
+  const [userOpened, setUserOpened] = useState<string | null>(null);
+  const [groupOpened, setGroupOpened] = useState<string | null>(null);
 
-  function UserAccordionLabel(user: UmsUser, group: UmsGroup) {
+  const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
     const groupDisplayName = group.displayName.length !== 0 ? ' ('.concat(group.displayName).concat(')') : '';
     const displayName = showAsUsername ? user.username : user.displayName;
@@ -56,7 +63,7 @@ const Accounts = () => {
     );
   }
 
-  function NewUserForm() {
+  const NewUserForm = () => {
     const newUserForm = useForm({ initialValues: { username: null, password: null, groupid: '0', displayname: null } });
     const handleNewUserSubmit = (values: typeof newUserForm.values) => {
       const data = { operation: 'createuser', username: values.username, password: values.password, groupid: values.groupid, displayname: values.displayname };
@@ -101,7 +108,7 @@ const Accounts = () => {
     )
   }
 
-  function UserIdentityForm(user: UmsUser) {
+  const UserIdentityForm = (user: UmsUser) => {
     const userIdentityForm = useForm({ initialValues: { id: user.id, username: user.username, password: '' } });
     const handleUserIdentitySubmit = (values: typeof userIdentityForm.values) => {
       const data = { operation: 'changelogin', userid: user.id, username: values.username, password: values.password };
@@ -132,11 +139,11 @@ const Accounts = () => {
     )
   }
 
-  function UserProfileForm(user: UmsUser) {
+  const UserProfileForm = (user: UmsUser) => {
     const [avatar, setAvatar] = useState<string>(user.avatar ? user.avatar : '');
     const userProfileForm = useForm({ initialValues: { id: user.id, displayName: user.displayName, avatar: user.avatar ? user.avatar : '', pinCode: user.pinCode ? user.pinCode : '', libraryHidden: user.libraryHidden } });
     const handleUserProfileSubmit = (values: typeof userProfileForm.values) => {
-      const data = {operation: 'modifyuser', userid: user.id, name: values.displayName } as any;
+      const data = { operation: 'modifyuser', userid: user.id, name: values.displayName } as any;
       if (userProfileForm.isDirty('displayName')) data.name = values.displayName;
       if (userProfileForm.isDirty('avatar')) data.avatar = values.avatar;
       if (userProfileForm.isDirty('pinCode')) data.pincode = values.pinCode;
@@ -154,7 +161,7 @@ const Accounts = () => {
         <Input.Wrapper label={i18n.get('Avatar')}>
           <Dropzone
             name='avatar'
-            maxSize={2 * 1024 **2}
+            maxSize={2 * 1024 ** 2}
             accept={IMAGE_MIME_TYPE}
             multiple={false}
             styles={{ inner: { pointerEvents: 'all' } }}
@@ -178,7 +185,7 @@ const Accounts = () => {
                 <PhotoX />
               </Dropzone.Reject>
               <Dropzone.Idle>
-                <div onClick={e => {e.stopPropagation()}}>
+                <div onClick={e => { e.stopPropagation() }}>
                   <HoverCard disabled={avatar === ''}>
                     <HoverCard.Target>
                       <Avatar radius='xl' size='lg' src={avatar !== '' ? avatar : null}>
@@ -187,7 +194,7 @@ const Accounts = () => {
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
                       <Button
-                        onClick={ () => {
+                        onClick={() => {
                           const newavatar = (user.avatar && avatar !== user.avatar) ? user.avatar : '';
                           setAvatar(newavatar);
                           userProfileForm.setFieldValue('avatar', newavatar);
@@ -238,7 +245,7 @@ const Accounts = () => {
     )
   }
 
-  function UserGroupForm(user: UmsUser) {
+  const UserGroupForm = (user: UmsUser) => {
     const userGroupForm = useForm({ initialValues: { id: user.id, groupId: user.groupId.toString() } });
     const handleUserGroupSubmit = (values: typeof userGroupForm.values) => {
       const data = { operation: 'modifyuser', userid: user.id, groupid: values.groupId };
@@ -265,7 +272,7 @@ const Accounts = () => {
     )
   }
 
-  function UserDeleteForm(user: UmsUser) {
+  const UserDeleteForm = (user: UmsUser) => {
     const userDeleteForm = useForm({ initialValues: { id: user.id } });
     const handleUserDeleteSubmit = () => {
       const data = { operation: 'deleteuser', userid: user.id };
@@ -297,7 +304,7 @@ const Accounts = () => {
     );
   }
 
-  function UserAccordion(user: UmsUser) {
+  const UserAccordion = (user: UmsUser) => {
     const userGroup = getUserGroup(user, accounts);
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
     const userIdentityForm = UserIdentityForm(user);
@@ -317,7 +324,7 @@ const Accounts = () => {
     )
   }
 
-  function NewUserAccordion() {
+  const NewUserAccordion = () => {
     const user = { id: 0, username: i18n.get('NewUser') } as UmsUser;
     const userGroup = { id: 0, displayName: '' } as UmsGroup;
     const userAccordionLabel = UserAccordionLabel(user, userGroup);
@@ -330,20 +337,20 @@ const Accounts = () => {
     ) : null;
   }
 
-  function UsersAccordions() {
+  const UsersAccordions = () => {
     const newUserAccordion = canManageUsers ? NewUserAccordion() : null;
     const usersAccordions = accounts.users.map((user) => {
       return UserAccordion(user);
     });
     return (
-      <Accordion defaultValue='-1'>
+      <Accordion value={userOpened} onChange={setUserOpened}>
         {newUserAccordion}
         {usersAccordions}
       </Accordion>
     );
   }
 
-  function GroupAccordionLabel(group: UmsGroup) {
+  const GroupAccordionLabel = (group: UmsGroup) => {
     return (
       <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg'>
@@ -354,7 +361,7 @@ const Accounts = () => {
     );
   }
 
-  function GroupDisplayNameForm(group: UmsGroup) {
+  const GroupDisplayNameForm = (group: UmsGroup) => {
     const groupDisplayNameForm = useForm({ initialValues: { id: group.id, displayName: group.displayName } });
     const handleGroupDisplayNameSubmit = (values: typeof groupDisplayNameForm.values) => {
       const data = { operation: 'modifygroup', groupid: group.id, name: values.displayName };
@@ -377,7 +384,7 @@ const Accounts = () => {
     )
   }
 
-  function GroupPermissionsForm(group: UmsGroup) {
+  const GroupPermissionsForm = (group: UmsGroup) => {
     const [permissions, setPermissions] = useState<number>(group.permissions ? group.permissions.value : 0);
     const addPermission = (permission: number) => {
       setPermissions(permissions | permission);
@@ -419,7 +426,7 @@ const Accounts = () => {
     )
   }
 
-  function GroupDeleteForm(group: UmsGroup) {
+  const GroupDeleteForm = (group: UmsGroup) => {
     const groupDeleteForm = useForm({ initialValues: { id: group.id } });
     const handleGroupDeleteSubmit = () => {
       const data = { operation: 'deletegroup', groupid: group.id };
@@ -451,7 +458,7 @@ const Accounts = () => {
     ) : null;
   }
 
-  function GroupAccordion(group: UmsGroup) {
+  const GroupAccordion = (group: UmsGroup) => {
     const groupAccordionLabel = GroupAccordionLabel(group);
     const groupDisplayNameForm = GroupDisplayNameForm(group);
     const groupPermissionsForm = GroupPermissionsForm(group);
@@ -469,7 +476,7 @@ const Accounts = () => {
     ) : null;
   }
 
-  function NewGroupForm() {
+  const NewGroupForm = () => {
     const newGroupForm = useForm({ initialValues: { displayName: '' } });
     const handleNewGroupSubmit = (values: typeof newGroupForm.values) => {
       const data = { operation: 'creategroup', name: values.displayName };
@@ -492,7 +499,7 @@ const Accounts = () => {
     )
   }
 
-  function NewGroupAccordion() {
+  const NewGroupAccordion = () => {
     const group = { id: 0, displayName: i18n.get('NewGroup') } as UmsGroup;
     const groupAccordionLabel = GroupAccordionLabel(group);
     const newGroupForm = NewGroupForm();
@@ -504,31 +511,31 @@ const Accounts = () => {
     );
   }
 
-  function GroupsAccordions() {
+  const GroupsAccordions = () => {
     const newGroupAccordion = NewGroupAccordion();
     const groupsAccordions = accounts.groups.map((group) => {
       return GroupAccordion(group);
     });
     return (
-      <Accordion defaultValue='-1'>
+      <Accordion value={groupOpened} onChange={setGroupOpened}>
         {newGroupAccordion}
         {groupsAccordions}
       </Accordion>
     );
   }
 
-  function AuthenticateLocalhostAdmin() {
-    const [localhostOpened, setLocalhostOpened] = useState(false);
-    const handleAuthenticateLocalhostToggle = () => {
-      const data = { operation: 'localhost', enabled: !accounts.localhost };
-      postAccountAuthAction(data, i18n.get('AuthenticationServiceNotToggled'));
-    }
+  const handleAuthenticateLocalhostToggle = () => {
+    const data = { operation: 'localhost', enabled: !accounts.localhost };
+    postAccountAuthAction(data, i18n.get('AuthenticationServiceNotToggled'));
+  }
+
+  const AuthenticateLocalhostAdmin = () => {
     return accounts.localhost ? (
       <Group justify='flex-start' mt='md'>
         <Button onClick={() => handleAuthenticateLocalhostToggle()}>{i18n.get('Disable')}</Button>
         <Text>{i18n.get('AuthenticateLocalhostAdminEnabled')}</Text>
       </Group>
-    ) : (<>
+    ) : (
       <Group justify='flex-start' mt='md'>
         <Modal
           centered
@@ -545,16 +552,16 @@ const Accounts = () => {
         <Button onClick={() => setLocalhostOpened(true)}>{i18n.get('Enable')}</Button>
         <Text>{i18n.get('AuthenticateLocalhostAdminDisabled')}</Text>
       </Group>
-    </>)
+    )
   }
 
-  function AuthenticationServiceButton() {
-    const [authOpened, setAuthOpened] = useState(false);
-    const handleAuthenticationToggle = () => {
-      const data = { operation: 'authentication', enabled: !accounts.enabled };
-      postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'));
-    }
-    return accounts.enabled ? (<>
+  const handleAuthenticationToggle = () => {
+    const data = { operation: 'authentication', enabled: !accounts.enabled };
+    postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'));
+  }
+
+  const AuthenticationServiceButton = () => {
+    return accounts.enabled ? (
       <Group justify='flex-start' mt='md'>
         <Modal
           centered
@@ -571,14 +578,42 @@ const Accounts = () => {
         <Button onClick={() => setAuthOpened(true)}>{i18n.get('Disable')}</Button>
         <Text>{i18n.get('AuthenticationServiceEnabled')}</Text>
       </Group>
-      <AuthenticateLocalhostAdmin />
-    </>) : (
+    ) : (
       <Group justify='flex-start' mt='md'>
         <Button onClick={() => handleAuthenticationToggle()}>{i18n.get('Enable')}</Button>
         <Text>{i18n.get('AuthenticationServiceDisabled')}</Text>
       </Group>
     );
   }
+
+  const AuthenticationSettings = () => {
+    return accounts.enabled ? (<>
+      <AuthenticationServiceButton />
+      <AuthenticateLocalhostAdmin />
+    </>) : (
+      <AuthenticationServiceButton />
+    );
+  }
+
+  useEffect(() => {
+    if (!sse.updateAccounts) {
+      return;
+    }
+    sse.setUpdateAccounts(false);
+    axios.get(accountApiUrl + 'accounts')
+      .then(function(response: any) {
+        setAccounts(response.data);
+      })
+      .catch(function() {
+        showNotification({
+          id: 'accounts-data-loading',
+          color: 'red',
+          title: i18n.get('Error'),
+          message: i18n.get('AccountsNotReceived'),
+          autoClose: 3000,
+        });
+      });
+  }, [sse]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
@@ -613,7 +648,7 @@ const Accounts = () => {
           )}
           {canModifySettings && (
             <Tabs.Panel value='settings'>
-              <AuthenticationServiceButton />
+              <AuthenticationSettings />
             </Tabs.Panel>
           )}
         </Tabs>

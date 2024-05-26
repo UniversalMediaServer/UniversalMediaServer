@@ -17,13 +17,12 @@
 import { Badge, Box, Breadcrumbs, Button, Card, Center, Grid, Group, Image, List, LoadingOverlay, MantineTheme, Menu, Paper, Rating, ScrollArea, Stack, Text, Title, Tooltip, useComputedColorScheme } from '@mantine/core';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
-import { createElement, useContext, useEffect, useState } from 'react';
+import { createElement, ReactNode, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
 import { ArrowBigLeft, ArrowBigRight, Cast, Download, Edit, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, RecordMail, RecordMailOff, Tag } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import MainContext from '../../contexts/main-context';
 import PlayerEventContext from '../../contexts/player-server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
@@ -31,11 +30,14 @@ import { playerApiUrl } from '../../utils';
 import { VideoJsPlayer } from './VideoJsPlayer';
 import VideoMetadataEditModal from './VideoMetadataEditModal';
 
-export const Player = () => {
+interface Props {
+  setNavbarNode: (value: ReactNode) => void
+}
+
+export const Player = ({ setNavbarNode }: Props) => {
   const [data, setData] = useState({ goal: '', folders: [], breadcrumbs: [], medias: [], useWebControl: false } as BaseBrowse);
   const [loading, setLoading] = useState(false);
   const i18n = useContext(I18nContext);
-  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(PlayerEventContext);
   const { req, id } = useParams();
@@ -84,7 +86,7 @@ export const Player = () => {
 
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid:sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
       .then(function() {
         refreshPage();
       })
@@ -723,8 +725,8 @@ export const Player = () => {
         return getFoldersButtons();
       }
     }
-    main.setNavbarValue(getNavFolders());
-  }, [data, i18n.get, main.setNavbarValue]);
+    setNavbarNode(getNavFolders());
+  }, [data, i18n.get]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (
     <Box>

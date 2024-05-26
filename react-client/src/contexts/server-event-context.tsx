@@ -33,7 +33,7 @@ export const ServerEventContext: Context<ServerEventInterface> = createContext({
 
 export interface ServerEventInterface {
   connectionStatus: number;
-  memory: { max: number, used: number, dbcache: number, buffer: number };
+  memory: UmsMemory;
   updateAccounts: boolean;
   setUpdateAccounts: (updateAccounts: boolean) => void;
   reloadable: boolean;
@@ -44,6 +44,13 @@ export interface ServerEventInterface {
   getRendererAction: () => any;
   hasNewLogLine: boolean;
   getNewLogLine: () => any;
+}
+
+export interface UmsMemory {
+  max: number,
+  used: number,
+  dbcache: number,
+  buffer: number
 }
 
 export default ServerEventContext;

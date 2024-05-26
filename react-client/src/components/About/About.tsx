@@ -22,7 +22,7 @@ import ReactCountryFlag from 'react-country-flag';
 import { Edit, EditOff } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
-import ServerEventContext from '../../contexts/server-event-context';
+import ServerEventContext, { UmsMemory } from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { aboutApiUrl } from '../../utils';
@@ -30,8 +30,10 @@ import MemoryBar from '../MemoryBar/MemoryBar';
 
 const About = () => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);
+  const [memory, setMemory] = useState<UmsMemory>();
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
+  const sse = useContext(ServerEventContext);
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
   const languagesRows = i18n.languages.map((language) => (
     <Table.Tr key={language.id}>
@@ -69,6 +71,10 @@ const About = () => {
         });
       });
   }, [i18n]);
+
+  useEffect(() => {
+    setMemory(sse.memory);
+  }, [sse.memory]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
@@ -122,10 +128,12 @@ const About = () => {
                   <Table.Td>{i18n.get('JVMMemoryMax')}</Table.Td>
                   <Table.Td>{aboutDatas.jvmMemoryMax}</Table.Td>
                 </Table.Tr>
-                <Table.Tr>
-                  <Table.Td>{i18n.get('JVMMemoryUsage')}</Table.Td>
-                  <Table.Td><ServerEventContext.Consumer>{sse => (<MemoryBar decorate={false} sse={sse} i18n={i18n} />)}</ServerEventContext.Consumer></Table.Td>
-                </Table.Tr>
+                {memory &&
+                  <Table.Tr>
+                    <Table.Td>{i18n.get('JVMMemoryUsage')}</Table.Td>
+                    <Table.Td><MemoryBar decorate={false} memory={memory} i18n={i18n} /></Table.Td>
+                  </Table.Tr>
+                }
               </Table.Tbody>
             </>}
           </Table>
