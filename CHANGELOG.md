@@ -16,6 +16,7 @@
 - Improved MediaStore browsing speed.
 - Implemented CDS UpdateObject base functionality
 - Moved StarRating from internal API to UpdateObject implementation
+- Fixed NullPointerException on RendererFrame.buildEditBar
 
 ### Dependencies
 - Bump `@types/react` from 18.3.1 to 18.3.2
