@@ -153,7 +153,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + columnName + FROM + tableName + WHERE + MediaTableTVSeries.CHILD_ID + IS_NOT_NULL + ORDER_BY + columnName + ASC);
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + LEFT_JOIN + tableName + ON + MediaTableTVSeries.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableTVSeries.CHILD_ID + WHERE + columnName + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -161,7 +161,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + columnName + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + columnName + (desc ? DESC : ASC));
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + columnName + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -169,7 +169,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + MediaTableTVSeries.FIRSTAIRDATE_FORMATED + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + MediaTableTVSeries.TABLE_COL_STARTYEAR + DESC);
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.FIRSTAIRDATE_FORMATED + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_STARTYEAR + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -675,7 +675,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + IN + "(genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
 						MediaTableTVSeries.TABLE_COL_RATED  + EQUAL + "ratedSubquery." + MediaTableTVSeries.COL_RATED +
 					ORDER_BY + MediaTableTVSeries.TABLE_COL_RATING + DESC,
-					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 				},
 				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 			);
