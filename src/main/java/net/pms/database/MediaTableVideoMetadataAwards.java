@@ -220,7 +220,7 @@ public final class MediaTableVideoMetadataAwards extends MediaTable {
 		return null;
 	}
 
-	public static String getValueForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static String getValueForTvSeries(final Connection connection, final Long tvSerieId) {
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_AWARD_TVSERIESID)) {
 				ps.setLong(1, tvSerieId);

@@ -242,7 +242,7 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		return result;
 	}
 
-	public static ApiStringArray getCountriesForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static ApiStringArray getCountriesForTvSeries(final Connection connection, final Long tvSerieId) {
 		ApiStringArray result = new ApiStringArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_COUNTRY_TVSERIESID)) {
@@ -260,7 +260,7 @@ public final class MediaTableVideoMetadataCountries extends MediaTable {
 		return result;
 	}
 
-	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static JsonArray getJsonArrayForTvSeries(final Connection connection, final Long tvSerieId) {
 		JsonArray result = new JsonArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_COUNTRY_TVSERIESID)) {

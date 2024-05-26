@@ -688,7 +688,7 @@ public class TMDB {
 		if (!StringUtils.isBlank(tvSeriesMetadata.getPoster(null))) {
 			DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(tvSeriesMetadata.getPoster(null));
 			if (thumbnail != null) {
-				Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
+				Long thumbnailId = ThumbnailStore.getIdForTvSeries(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
 				tvSeriesMetadata.setThumbnailSource(ThumbnailSource.TMDB_LOC);
 				tvSeriesMetadata.setThumbnailId(thumbnailId);
 				MediaTableTVSeries.updateThumbnailId(connection, tvSeriesId, thumbnailId, ThumbnailSource.TMDB_LOC.toString());
