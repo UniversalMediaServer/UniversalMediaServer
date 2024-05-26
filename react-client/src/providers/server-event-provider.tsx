@@ -19,17 +19,17 @@ import { EventSourceMessage, EventStreamContentType, fetchEventSource } from '@m
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
+import MainContext from '../contexts/main-context';
 import ServerEventContext, { UmsMemory } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
 import { sseApiUrl } from '../utils';
 
 interface Props {
-  children?: ReactNode,
-  setStatusLine: (value: string) => void
+  children?: ReactNode
 }
 
-export const ServerEventProvider = ({ children, setStatusLine }: Props) => {
+export const ServerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
   const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
@@ -43,6 +43,7 @@ export const ServerEventProvider = ({ children, setStatusLine }: Props) => {
   const [newLogLines] = useState([] as string[]);
   const session = useContext(SessionContext);
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
 
   useEffect(() => {
     if (started || session.account === undefined) {
@@ -129,7 +130,7 @@ export const ServerEventProvider = ({ children, setStatusLine }: Props) => {
             setNewLogLine(true);
             break;
           case 'set_status_line':
-            setStatusLine(datas.value);
+            main.setStatusLine(datas.value);
             break;
         }
       }

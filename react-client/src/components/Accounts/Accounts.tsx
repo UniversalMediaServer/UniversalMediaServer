@@ -17,22 +17,19 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { showNotification } from '@mantine/notifications';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
 
+import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
-import SessionContext, { UmsAccounts, UmsGroup, UmsUser } from '../../contexts/session-context';
+import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
-import { accountApiUrl, allowHtml } from '../../utils';
-import ServerEventContext from '../../contexts/server-event-context';
-import axios from 'axios';
+import { allowHtml } from '../../utils';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
-  const sse = useContext(ServerEventContext);
-  const [accounts, setAccounts] = useState({ users: [], groups: [], enabled: true, localhost: false } as UmsAccounts)
+  const accounts = useContext(AccountsContext);
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
   const canModifySettings = havePermission(session, Permissions.settings_modify);
   const canManageUsers = havePermission(session, Permissions.users_manage);
@@ -555,10 +552,10 @@ const Accounts = () => {
     )
   }
 
-  const handleAuthenticationToggle = () => {
-    const data = { operation: 'authentication', enabled: !accounts.enabled };
-    postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'));
-  }
+    const handleAuthenticationToggle = () => {
+      const data = { operation: 'authentication', enabled: !accounts.enabled };
+      postAccountAuthAction(data, accounts.enabled ? i18n.get('AuthenticationServiceNotDisabled') : i18n.get('AuthenticationServiceNotEnabled'));
+    }
 
   const AuthenticationServiceButton = () => {
     return accounts.enabled ? (
@@ -594,26 +591,6 @@ const Accounts = () => {
       <AuthenticationServiceButton />
     );
   }
-
-  useEffect(() => {
-    if (!sse.updateAccounts) {
-      return;
-    }
-    sse.setUpdateAccounts(false);
-    axios.get(accountApiUrl + 'accounts')
-      .then(function(response: any) {
-        setAccounts(response.data);
-      })
-      .catch(function() {
-        showNotification({
-          id: 'accounts-data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('AccountsNotReceived'),
-          autoClose: 3000,
-        });
-      });
-  }, [sse]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

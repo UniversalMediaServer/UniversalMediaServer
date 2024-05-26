@@ -62,11 +62,4 @@ export interface UmsSession {
   player: boolean;
 }
 
-export interface UmsAccounts {
-  users: UmsUser[],
-  groups: UmsGroup[],
-  enabled: boolean,
-  localhost: boolean,
-}
-
 export default SessionContext;

@@ -17,7 +17,8 @@
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 
-import { UmsAccount, UmsAccounts, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
+import { UmsAccounts } from '../contexts/accounts-context';
+import { UmsAccount, UmsGroup, UmsSession, UmsUser } from '../contexts/session-context';
 import { accountApiUrl } from '../utils';
 import { clearJwt } from './auth-service';
 
