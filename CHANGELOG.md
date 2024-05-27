@@ -6,6 +6,9 @@
 
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 
+### Dependencies
+- Bump `com.github.oshi:oshi-core` from 6.6.0 to 6.6.1 ([#4710](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4710))
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
