@@ -32,6 +32,7 @@ import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.configuration.UmsConfiguration.SubtitlesInfoLevel;
 import net.pms.database.MediaDatabase;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.swing.SwingUtil;
 import net.pms.swing.components.CustomJButton;
 import net.pms.swing.components.KeyedComboBoxModel;
@@ -41,7 +42,6 @@ import net.pms.swing.gui.JavaGui;
 import net.pms.swing.gui.UmsFormBuilder;
 import net.pms.util.CoverSupplier;
 import net.pms.util.FullyPlayedAction;
-import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -457,18 +457,14 @@ public class NavigationShareTab {
 		// File order
 		final KeyedComboBoxModel<Integer, String> kcbm = new KeyedComboBoxModel<>(
 			new Integer[]{
-				UMSUtils.SORT_LOC_SENS,  // alphabetical
-				UMSUtils.SORT_LOC_NAT,   // natural sort
-				UMSUtils.SORT_INS_ASCII, // ASCIIbetical
-				UMSUtils.SORT_MOD_NEW,   // newest first
-				UMSUtils.SORT_MOD_OLD,   // oldest first
-				UMSUtils.SORT_RANDOM,    // random
-				UMSUtils.SORT_NO_SORT    // no sorting
+				StoreResourceSorter.SORT_TITLE_ASC,     // title ascending
+				StoreResourceSorter.SORT_DATE_MOD_DESC, // modified date newest first
+				StoreResourceSorter.SORT_DATE_MOD_ASC,  // modified date oldest first
+				StoreResourceSorter.SORT_RANDOM,        // random
+				StoreResourceSorter.SORT_NO_SORT        // no sorting
 			},
 			new String[]{
-				Messages.getGuiString("AlphabeticalAZ"),
-				Messages.getGuiString("Alphanumeric"),
-				Messages.getGuiString("Asciibetical"),
+				Messages.getGuiString("ByDisplayName"),
 				Messages.getGuiString("ByDateNewestFirst"),
 				Messages.getGuiString("ByDateOldestFirst"),
 				Messages.getGuiString("Random"),
@@ -477,7 +473,7 @@ public class NavigationShareTab {
 		);
 		sortMethod = new JComboBox<>(kcbm);
 		sortMethod.setEditable(false);
-		kcbm.setSelectedKey(configuration.getSortMethod(null));
+		kcbm.setSelectedKey(configuration.getSortMethod());
 
 		sortMethod.addItemListener((ItemEvent e) -> {
 			if (e.getStateChange() == ItemEvent.SELECTED) {

@@ -32,8 +32,8 @@ import net.pms.store.StoreResource;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
 import net.pms.store.item.RealFile;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer) {
 		super(renderer, null, null);
-		isSortedByDisplayName = true;
+		isSorted = true;
 		this.files = new ArrayList<>();
 		this.virtualFolders = new ArrayList<>();
 		this.forcedName = null;
@@ -64,7 +64,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolderContent virtualFolder) {
 		super(renderer, virtualFolder.getName(), null);
-		isSortedByDisplayName = true;
+		isSorted = true;
 		this.addToMediaLibrary = virtualFolder.isAddToMediaLibrary();
 		this.files = virtualFolder.getFiles();
 		this.virtualFolders = virtualFolder.getVirtualFolders();
@@ -74,7 +74,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolder virtualFile, List<File> files, String forcedName) {
 		super(renderer, null, null);
-		isSortedByDisplayName = true;
+		isSorted = true;
 		this.addToMediaLibrary = virtualFile.isAddToMediaLibrary();
 		this.files = virtualFile.getFiles();
 		this.virtualFolders = new ArrayList<>();
@@ -352,7 +352,7 @@ public class VirtualFolder extends StoreContainer {
 			}
 		}
 		return getLastRefreshTime() < modified ||
-				renderer.getUmsConfiguration().getSortMethod(getPath()) == UMSUtils.SORT_RANDOM ||
+				renderer.getUmsConfiguration().getSortMethod(getPath()) == StoreResourceSorter.SORT_RANDOM ||
 				emptyFolderNowNotEmpty;
 	}
 

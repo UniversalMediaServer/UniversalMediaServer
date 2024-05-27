@@ -62,6 +62,7 @@ import net.pms.service.Services;
 import net.pms.service.sleep.PreventSleepMode;
 import net.pms.service.sleep.SleepManager;
 import net.pms.store.container.CodeEnter;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.CoverSupplier;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.FilePermissions;
@@ -3966,8 +3967,8 @@ public class UmsConfiguration extends BaseConfiguration {
 	public int getSortMethod(File path) {
 		int cnt = 0;
 		String raw = getString(KEY_SORT_PATHS, null);
-		if (StringUtils.isEmpty(raw)) {
-			return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
+		if (StringUtils.isBlank(raw)) {
+			return getSortMethod();
 		}
 
 		if (Platform.isWindows()) {
@@ -3995,7 +3996,11 @@ public class UmsConfiguration extends BaseConfiguration {
 			path = path.getParentFile();
 		}
 
-		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
+		return getSortMethod();
+	}
+
+	public int getSortMethod() {
+		return getInt(KEY_SORT_METHOD, StoreResourceSorter.SORT_TITLE_ASC);
 	}
 
 	/**
@@ -5494,18 +5499,14 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public static synchronized JsonArray getSortMethodsAsJsonArray() {
 		String[] values = new String[]{
-			"" + UMSUtils.SORT_LOC_SENS,  // alphabetical
-			"" + UMSUtils.SORT_LOC_NAT,   // natural sort
-			"" + UMSUtils.SORT_INS_ASCII, // ASCIIbetical
-			"" + UMSUtils.SORT_MOD_NEW,   // newest first
-			"" + UMSUtils.SORT_MOD_OLD,   // oldest first
-			"" + UMSUtils.SORT_RANDOM,    // random
-			"" + UMSUtils.SORT_NO_SORT    // no sorting
+			"" + StoreResourceSorter.SORT_TITLE_ASC,      // title asc
+			"" + StoreResourceSorter.SORT_DATE_MOD_DESC,  // newest first
+			"" + StoreResourceSorter.SORT_DATE_MOD_ASC,   // oldest first
+			"" + StoreResourceSorter.SORT_RANDOM,         // random
+			"" + StoreResourceSorter.SORT_NO_SORT         // no sorting
 		};
 		String[] labels = new String[]{
-			"i18n@AlphabeticalAZ",
-			"i18n@Alphanumeric",
-			"i18n@Asciibetical",
+			"i18n@ByDisplayName",
 			"i18n@ByDateNewestFirst",
 			"i18n@ByDateOldestFirst",
 			"i18n@Random",
@@ -5685,7 +5686,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_SHOW_SPLASH_SCREEN, true);
 		jObj.addProperty(KEY_SHOW_TRANSCODE_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_USER_CHOICE, true);
-		jObj.addProperty(KEY_SORT_METHOD, "4");
+		jObj.addProperty(KEY_SORT_METHOD, "0");
 		jObj.addProperty(KEY_SUBS_INFO_LEVEL, "basic");
 		jObj.addProperty(KEY_SUBTITLES_CODEPAGE, "");
 		jObj.addProperty(KEY_SUBTITLES_LANGUAGES, Messages.getConfigurationString("SubtitlesLanguages"));
