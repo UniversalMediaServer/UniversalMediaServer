@@ -18,6 +18,7 @@
 - Moved StarRating from internal API to UpdateObject implementation
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 - Fixed TV episodes sorting (#4694)
+- Fixed sorting by date (#4698)
 - Added Specials folder for TV Series
 
 ### Dependencies
