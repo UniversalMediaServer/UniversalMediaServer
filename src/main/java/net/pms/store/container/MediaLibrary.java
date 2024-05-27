@@ -56,7 +56,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			"TvShows",
 			new String[]{
 				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_STATUS_VIDEO_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
-				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+				SELECT_FILES_STATUS_VIDEO_TV_SERIES_WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + getUnWatchedCondition(renderer.getAccountUserId()) + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
@@ -85,7 +85,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			"TvShows",
 			new String[]{
 				SELECT_DISTINCT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC,
-				SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+				SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "'${0}'" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 			},
 			new int[]{TVSERIES_WITH_FILTERS, EPISODES}
 		);
