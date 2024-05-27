@@ -6,6 +6,9 @@
 
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 
+### Dependencies
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.2.0 to 3.3.0 ([#4709](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4709))
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
