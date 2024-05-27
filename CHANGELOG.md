@@ -6,6 +6,9 @@
 
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 
+### Dependencies
+- Bump `@testing-library/react` from 15.0.6 to 15.0.7 ([#4707](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4707))
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
