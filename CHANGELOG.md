@@ -6,6 +6,14 @@
 
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 
+### Dependencies
+- Bump `@mantine/core` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+
+- Bump `@mantine/dropzone` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+- Bump `@mantine/form` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+- Bump `@mantine/hooks` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+- Bump `@mantine/modals` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+- Bump `@mantine/notifications` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
