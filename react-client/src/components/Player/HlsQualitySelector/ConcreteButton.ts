@@ -38,7 +38,7 @@ export default class ConcreteButton extends MenuButtonComponent {
    *         The constructed menu
    */
   createMenu(): typeof MenuComponent {
-    const menu = new MenuComponent(this.player_, {menuButton: this});
+    const menu = new MenuComponent(this.player_, { menuButton: this });
     this.items = this.createItems();
 
     if (this.items) {

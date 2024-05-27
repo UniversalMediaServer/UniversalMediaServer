@@ -68,7 +68,7 @@ public class WebGuiServlet extends GuiHttpServlet {
 			throw e;
 		} catch (Exception e) {
 			// Nothing should get here, this is just to avoid crashing the thread
-			LOGGER.error("Unexpected error in ConfigurationClientHandler.handle(): {}", e.getMessage());
+			LOGGER.error("Unexpected error in WebGuiServlet: {}", e.getMessage());
 			LOGGER.trace("", e);
 		}
 	}

@@ -32,8 +32,8 @@ public class FFmpegParserTest {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegParserTest.class.getName());
 
 	@BeforeAll
-	public static void SetUPClass() {
-		ParserTest.SetUPClass();
+	public static void setUpClass() {
+		ParserTest.setUpClass();
 	}
 
 	private MediaInfo getTestFileMediaInfo(String testFile) {

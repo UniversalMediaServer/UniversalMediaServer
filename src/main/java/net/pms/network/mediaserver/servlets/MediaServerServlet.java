@@ -226,7 +226,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		// There is an input stream to send as a response.
 		resp.setHeader("Server", MediaServer.getServerName());
 		AsyncContext async = req.startAsync();
-		async.addListener(startStopListener);
+		if (startStopListener != null) {
+			async.addListener(startStopListener);
+		}
 		if (inputStream == null) {
 			// No input stream. Seems we are merely serving up headers.
 			resp.setContentLength(0);
@@ -512,7 +514,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						LOGGER.error("There is no inputstream to return for " + name);
 					}
 				} else {
-					if (!isVideoThumbnailRequest) {
+					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
 						startStopListener = new StartStopListener(req.getRemoteHost());
 						startStopListener.start(item);
 					}

@@ -37,7 +37,7 @@ public class ParserTest {
 	private static final Class<?> CLASS = ParserTest.class;
 
 	@BeforeAll
-	public static void SetUPClass() {
+	public static void setUpClass() {
 		PMS.configureJNA();
 		TestHelper.SetLoggingOff();
 		//silent org.jaudiotagger

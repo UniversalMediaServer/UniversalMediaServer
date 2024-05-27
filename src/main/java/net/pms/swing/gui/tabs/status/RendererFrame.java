@@ -21,6 +21,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.Window;
 import java.io.File;

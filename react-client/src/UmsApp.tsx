@@ -40,8 +40,8 @@ import SharedContent from './components/SharedContent/SharedContent';
 import UserMenu from './components/UserMenu/UserMenu';
 import MainContext from './contexts/main-context';
 import SessionContext from './contexts/session-context';
-import { I18nProvider } from './providers/i18n-provider';
 import { AccountsProvider } from './providers/accounts-provider';
+import { I18nProvider } from './providers/i18n-provider';
 import { MainProvider } from './providers/main-provider';
 import { PlayerEventProvider } from './providers/player-server-event-provider';
 import { ServerEventProvider } from './providers/server-event-provider';
@@ -68,11 +68,11 @@ function UmsApp() {
                 <div dir={dir} className='bodyBackgroundImageScreen'>
                   <AppShell
                     padding='md'
-                    navbar=  {main.navbarValue ?{
+                    navbar={main.navbarValue ? {
                       width: { sm: 200, lg: 300 },
                       breakpoint: 'sm',
                       collapsed: { mobile: !main.navbarOpened, desktop: false }
-                    }: undefined}
+                    } : undefined}
                     header={{ height: 50 }}
                     styles={(theme) => ({
                       main: { backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
@@ -149,9 +149,9 @@ function UmsApp() {
                             <Route path='player/:req/:id' element={<PlayerEventProvider><Player /></PlayerEventProvider>}></Route>
                             <Route path='settings' element={<ServerEventProvider><Settings /></ServerEventProvider>}></Route>
                             <Route path='shared' element={<ServerEventProvider><SharedContent /></ServerEventProvider>}></Route>
-                            { havePermission(session, Permissions.settings_view) ? 
+                            {havePermission(session, Permissions.settings_view) ?
                               <Route index element={<ServerEventProvider><Home /></ServerEventProvider>} />
-                            :
+                              :
                               <Route index element={<PlayerEventProvider><Player /></PlayerEventProvider>} />
                             }
                             <Route

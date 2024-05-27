@@ -270,7 +270,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		return result;
 	}
 
-	public static ApiRatingSourceArray getRatingsForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static ApiRatingSourceArray getRatingsForTvSeries(final Connection connection, final Long tvSerieId) {
 		ApiRatingSourceArray result = new ApiRatingSourceArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_TVSERIESID)) {
@@ -291,7 +291,7 @@ public final class MediaTableVideoMetadataRatings extends MediaTable {
 		return result;
 	}
 
-	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static JsonArray getJsonArrayForTvSeries(final Connection connection, final Long tvSerieId) {
 		JsonArray result = new JsonArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_RATING_TVSERIESID)) {

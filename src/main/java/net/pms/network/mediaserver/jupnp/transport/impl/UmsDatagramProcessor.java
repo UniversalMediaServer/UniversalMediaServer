@@ -31,7 +31,6 @@ import org.jupnp.model.message.UpnpRequest;
 import org.jupnp.model.message.UpnpResponse;
 import org.jupnp.model.message.header.UpnpHeader;
 import org.jupnp.transport.impl.DatagramProcessorImpl;
-import org.jupnp.transport.spi.DatagramProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class UmsDatagramProcessor extends DatagramProcessorImpl {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(DatagramProcessor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DatagramProcessorImpl.class);
 	private static final String SERVER_HTTP_TOKEN = new ServerClientTokens("UMS", PMS.getVersion()).getHttpToken();
 
 	/**
