@@ -75,7 +75,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		isSortedByDisplayName = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
+		isSorted = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
 	}
 
 	@Override

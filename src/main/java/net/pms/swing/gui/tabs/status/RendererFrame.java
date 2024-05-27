@@ -23,7 +23,6 @@ import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.Window;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
