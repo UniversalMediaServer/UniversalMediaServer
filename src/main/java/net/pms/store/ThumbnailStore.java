@@ -84,7 +84,7 @@ public class ThumbnailStore {
 		}
 	}
 
-	public static Long getIdForTvSerie(DLNAThumbnail thumbnail, long tvSeriesId, ThumbnailSource thumbnailSource) {
+	public static Long getIdForTvSeries(DLNAThumbnail thumbnail, long tvSeriesId, ThumbnailSource thumbnailSource) {
 		if (thumbnail == null) {
 			return null;
 		}

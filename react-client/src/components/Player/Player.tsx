@@ -84,7 +84,7 @@ export const Player = () => {
 
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid:sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
       .then(function() {
         refreshPage();
       })
@@ -724,7 +724,6 @@ export const Player = () => {
       }
     }
     main.setNavbarValue(getNavFolders());
-    // eslint-disable-next-line
   }, [data, i18n.get, main.setNavbarValue]);
 
   return (!session.authenticate || havePermission(session, Permissions.web_player_browse)) ? (

@@ -513,7 +513,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						if (virtualFolderName.length() != 4) {
-							i18nName = "SeasonX";
+							if ("0".equals(virtualFolderName)) {
+								i18nName = "SeasonSpecials";
+								virtualFolderName = null;
+							} else {
+								i18nName = "SeasonX";
+							}
 						}
 					}
 

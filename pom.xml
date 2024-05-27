@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.0.1</version>
+	<version>14.1.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.0.1</project.version.short>
+		<project.version.short>14.1.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -76,7 +76,7 @@
 
 		<exec-maven-plugin-version>3.2.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>7.0.0</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.4.1</maven-enforcer-plugin-version>
 
@@ -121,6 +121,7 @@
 		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.10.2</junit5.version>
+		<jetty.version>12.0.8</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -177,7 +178,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.2</version>
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -233,9 +234,11 @@
 			<artifactId>gson</artifactId>
 			<version>2.10.1</version>
 		</dependency>
+		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
+		<!-- com.sun.xml.messaging.saaj as well -->
 		<dependency>
 			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
+			<artifactId>netty</artifactId>
 			<version>3.10.6.Final</version>
 			<scope>compile</scope>
 		</dependency>
@@ -449,13 +452,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.jupnp</groupId>
-			<artifactId>org.jupnp</artifactId>
-			<version>2.7.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.jupnp</groupId>
 			<artifactId>org.jupnp.support</artifactId>
-			<version>2.7.1</version>
+			<version>3.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
@@ -491,7 +495,7 @@
 		<dependency>
 			<groupId>com.ibm.icu</groupId>
 			<artifactId>icu4j</artifactId>
-			<version>74.2</version>
+			<version>75.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
@@ -575,6 +579,7 @@
 			<artifactId>angus-activation</artifactId>
 			<version>2.0.2</version>
 		</dependency>
+		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
 		<dependency>
 			<groupId>com.sun.xml.messaging.saaj</groupId>
 			<artifactId>saaj-impl</artifactId>
@@ -593,7 +598,7 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>4.0.4</version>
+			<version>4.0.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
@@ -672,7 +677,40 @@
 		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
-			<version>0.2</version>
+			<version>0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.ee10</groupId>
+			<artifactId>jetty-ee10-servlet</artifactId>
+			<version>${jetty.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty.http2</groupId>
+			<artifactId>jetty-http2-server</artifactId>
+			<version>${jetty.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-client</artifactId>
+			<version>${jetty.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 	</dependencies>
 	<build>
@@ -902,7 +940,7 @@
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
-					<nodeVersion>v18.19.0</nodeVersion>
+					<nodeVersion>v20.12.2</nodeVersion>
 					<yarnVersion>v1.22.19</yarnVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
@@ -1243,7 +1281,7 @@
 					<plugin>
 						<groupId>org.digitalmediaserver</groupId>
 						<artifactId>nsis-maven-plugin</artifactId>
-						<version>1.0.5</version>
+						<version>1.0.6</version>
 						<configuration>
 							<makensisExecutable>${project.external-resources}/windows/nsis/makensis.exe</makensisExecutable>
 							<makensisExecutableLinux>makensis</makensisExecutableLinux>

@@ -21,7 +21,7 @@ export const SessionContext: Context<UmsSession> = createContext({
   account: undefined,
   authenticate: false,
   initialized: false,
-  refresh: () => {},
+  refresh: () => { },
   player: false
 } as UmsSession);
 

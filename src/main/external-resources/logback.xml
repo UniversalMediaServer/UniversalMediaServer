@@ -105,7 +105,8 @@
 	<logger name="httpclient.wire" level="WARN" />
 	<logger name="fm.last.musicbrainz.coverart" level="WARN" />
 	<logger name="oshi" level="WARN" />
-	<logger name="com.zaxxer.hikari" level="WARN" />
+	<logger name="org.eclipse.jetty" level="WARN" />
+	<logger name="com.zaxxer.hikari" level="INFO" />
 
 	<!-- Root logger defines the minimum log level for all loggers -->
 	<root level="${rootLevel}">

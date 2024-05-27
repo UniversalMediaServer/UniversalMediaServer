@@ -57,6 +57,7 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
@@ -298,9 +299,14 @@ public class APIUtils {
 			return;
 		}
 		Runnable r = () -> {
-			// wait until the realtime lock is released before starting
-			PMS.REALTIME_LOCK.lock();
-			PMS.REALTIME_LOCK.unlock();
+			try {
+				// wait until MediaStore Workers release before starting
+				MediaStore.waitWorkers();
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				return;
+			}
+
 			if (!shouldLookupAndAddMetadata()) {
 				return;
 			}
@@ -772,7 +778,7 @@ public class APIUtils {
 				if (posterFromApi != null) {
 					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
 					if (thumbnail != null) {
-						Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
+						Long thumbnailId = ThumbnailStore.getIdForTvSeries(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
 						tvSeriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
 						tvSeriesMetadata.setThumbnailId(thumbnailId);
 					}

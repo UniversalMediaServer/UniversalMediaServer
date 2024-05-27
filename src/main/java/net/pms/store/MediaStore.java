@@ -23,6 +23,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.sharedcontent.ApertureContent;
@@ -79,13 +80,25 @@ import org.slf4j.LoggerFactory;
 public class MediaStore extends StoreContainer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaStore.class);
+	/**
+	 * An AtomicInteger to prevent heavy IO tasks from causing browsing to be less
+	 * responsive.
+	 * <p>
+	 * When a MediaStore ask for resource (needs to run in realtime), it should
+	 * increment this AtomicInteger for the duration of their operation.
+	 * When a task has a lower priority, it should use waitWorkers() to wait for
+	 * any realtime task to finish.
+	 */
+	private static final AtomicInteger WORKERS = new AtomicInteger(0);
 	private static final String TEMP_TAG = "$Temp$";
 
 	private final Map<Long, WeakReference<StoreResource>> weakResources = new HashMap<>();
+	private final Map<Long, Object> idLocks = new HashMap<>();
 	// A temp folder for non-xmb items
 	private final UnattachedFolder tempFolder;
 	private final MediaLibrary mediaLibrary;
 	private final DbIdLibrary dbIdLibrary;
+
 	private DynamicPlaylist dynamicPls;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -416,49 +429,64 @@ public class MediaStore extends StoreContainer {
 		return tempFolder.add(uri, name);
 	}
 
-	public synchronized StoreResource getResource(String objectId) {
+	public StoreResource getResource(String objectId) {
 		// this method returns exactly ONE (1) LibraryResource
 		// it's used when someone requests playback of mediaInfo. The mediaInfo must
 		// have been discovered by someone first (unless it's a Temp item)
-		if (StringUtils.isEmpty(objectId)) {
-			return null;
-		}
-
-		if (objectId.startsWith("$LogIn/")) {
-			String loginstring = StringUtils.substringAfter(objectId, "/");
-			Integer userId = UserVirtualFolder.decrypt(loginstring);
-			if (userId != null) {
-				renderer.setAccount(AccountService.getAccountByUserId(userId));
-				reset();
-				discoverChildren();
+		try {
+			WORKERS.incrementAndGet();
+			if (StringUtils.isEmpty(objectId)) {
+				return null;
 			}
-			return this;
-		}
-
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.startsWith(TEMP_TAG)) {
-			return getTemp().get(objectId);
-		}
-
-		// Now strip off the filename
-		objectId = StringUtils.substringBefore(objectId, "/");
-
-		if (objectId.equals("0")) {
-			return this;
-		}
-		if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
-			try {
-				// this is direct acceded resource.
-				// as we don't know what was it's parent, let find one or fail.
-				DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
-				return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
-			} catch (Exception e) {
-				LOGGER.error("", e);
+			if (objectId.startsWith("$LogIn/")) {
+				String loginstring = StringUtils.substringAfter(objectId, "/");
+				Integer userId = UserVirtualFolder.decrypt(loginstring);
+				if (userId != null) {
+					renderer.setAccount(AccountService.getAccountByUserId(userId));
+					reset();
+					discoverChildren();
+				}
+				return this;
 			}
+
+			// Get/create/reconstruct it if it's a Temp item
+			if (objectId.startsWith(TEMP_TAG)) {
+				return getTemp().get(objectId);
+			}
+
+			// Now strip off the filename
+			objectId = StringUtils.substringBefore(objectId, "/");
+
+			if (objectId.equals("0")) {
+				return this;
+			}
+			if (objectId.startsWith(DbIdMediaType.GENERAL_PREFIX)) {
+				try {
+					// this is direct acceded resource.
+					// as we don't know what was it's parent, let find one or fail.
+					DbIdTypeAndIdent typeAndIdent = DbIdMediaType.getTypeIdentByDbid(objectId);
+					return DbIdResourceLocator.getLibraryResourceByDbTypeIdent(renderer, typeAndIdent);
+				} catch (Exception e) {
+					LOGGER.error("", e);
+				}
+			}
+			// only allow the last one here
+			String[] ids = objectId.split("\\.");
+			return getWeakResource(ids[ids.length - 1]);
+		} finally {
+			WORKERS.decrementAndGet();
 		}
-		// only allow the last one here
-		String[] ids = objectId.split("\\.");
-		return getWeakResource(ids[ids.length - 1]);
+	}
+
+	private Object getIdLock(Long id) {
+		synchronized (idLocks) {
+			if (idLocks.containsKey(id)) {
+				return idLocks.get(id);
+			}
+			Object idLock = new Object();
+			idLocks.put(id, idLock);
+			return idLock;
+		}
 	}
 
 	private StoreResource getWeakResource(String objectId) {
@@ -466,9 +494,11 @@ public class MediaStore extends StoreContainer {
 		if (id == null) {
 			return null;
 		}
-		synchronized (weakResources) {
-			if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-				return weakResources.get(id).get();
+		Object idLock = getIdLock(id);
+		synchronized (idLock) {
+			StoreResource res = getWeakResource(id);
+			if (res != null) {
+				return res;
 			} else {
 				// object id not founded, try recreate
 				return recreateResource(id);
@@ -486,25 +516,24 @@ public class MediaStore extends StoreContainer {
 		LOGGER.trace("try recreating resource with id '{}'", id);
 		List<MediaStoreId> libraryIds = MediaStoreIds.getMediaStoreResourceTree(id);
 		if (!libraryIds.isEmpty()) {
-			synchronized (weakResources) {
-				for (MediaStoreId libraryId : libraryIds) {
-					if (weakResources.containsKey(libraryId.getId()) && weakResources.get(libraryId.getId()).get() != null) {
-						StoreResource resource = weakResources.get(libraryId.getId()).get();
-						if (resource instanceof StoreContainer container) {
-							container.discoverChildren();
-						}
-						if (resource instanceof VirtualFolder container) {
-							container.analyzeChildren();
-						}
+			for (MediaStoreId libraryId : libraryIds) {
+				StoreResource parent = getWeakResource(libraryId.getId());
+				if (parent != null) {
+					if (parent instanceof StoreContainer container) {
+						container.discoverChildren();
+					}
+					if (parent instanceof VirtualFolder container) {
+						container.analyzeChildren();
 					}
 				}
-				//now that parent folders are discovered, try to get the resource
-				if (weakResources.containsKey(id) && weakResources.get(id).get() != null) {
-					LOGGER.trace("resource with id '{}' recreacted succefully", id);
-					return weakResources.get(id).get();
-				} else {
-					LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
-				}
+			}
+			//now that parent folders are discovered, try to get the resource
+			StoreResource resource = getWeakResource(id);
+			if (resource != null) {
+				LOGGER.trace("resource with id '{}' recreacted succefully", id);
+				return resource;
+			} else {
+				LOGGER.trace("resource with id '{}' is no longer available in the store tree", id);
 			}
 		} else {
 			LOGGER.trace("resource with id '{}' was not found in database", id);
@@ -514,20 +543,31 @@ public class MediaStore extends StoreContainer {
 
 	public boolean weakResourceExists(String objectId) {
 		Long id = parseIndex(objectId);
+		return getWeakResource(id) != null;
+	}
+
+	private StoreResource getWeakResource(Long id) {
 		synchronized (weakResources) {
-			return (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null);
+			if (id != null && weakResources.containsKey(id) && weakResources.get(id).get() != null) {
+				return weakResources.get(id).get();
+			}
 		}
+		return null;
+	}
+
+	private boolean addWeakResource(Long id, StoreResource resource) {
+		if (id != null) {
+			synchronized (weakResources) {
+				weakResources.put(id, new WeakReference<>(resource));
+			}
+			return true;
+		}
+		return false;
 	}
 
 	public boolean addWeakResource(StoreResource resource) {
 		Long id = MediaStoreIds.getMediaStoreResourceId(resource);
-		if (id != null) {
-			synchronized (weakResources) {
-				weakResources.put(id, new WeakReference<>(resource));
-				return true;
-			}
-		}
-		return false;
+		return addWeakResource(id, resource);
 	}
 
 	public void replaceWeakResource(StoreResource a, StoreResource b) {
@@ -580,95 +620,100 @@ public class MediaStore extends StoreContainer {
 	 * @return List of LibraryResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<StoreResource> getResources(String objectId, boolean returnChildren) {
-		ArrayList<StoreResource> resources = new ArrayList<>();
-		if (StringUtils.isEmpty(objectId)) {
-			return resources;
-		}
-
-		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.startsWith(TEMP_TAG)) {
-			List<StoreResource> items = getTemp().asList(objectId);
-			return items != null ? items : resources;
-		}
-
-		StoreResource resource = getResource(objectId);
-
-		if (resource == null) {
-			// nothing in the cache do a traditional search
-			// Now strip off the filename
-			objectId = StringUtils.substringBefore(objectId, "/");
-			String[] ids = objectId.split("\\.");
-			resource = search(ids);
-		}
-
-		if (resource != null) {
-			if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
-				LOGGER.debug("code is not valid any longer");
+	public List<StoreResource> getResources(String objectId, boolean returnChildren) {
+		try {
+			WORKERS.incrementAndGet();
+			ArrayList<StoreResource> resources = new ArrayList<>();
+			if (StringUtils.isEmpty(objectId)) {
 				return resources;
 			}
 
-			if (!isRendererAllowed()) {
-				LOGGER.debug("renderer does not have access to this ressource");
-				return resources;
+			// Get/create/reconstruct it if it's a Temp item
+			if (objectId.startsWith(TEMP_TAG)) {
+				List<StoreResource> items = getTemp().asList(objectId);
+				return items != null ? items : resources;
 			}
 
-			if (!returnChildren) {
-				resources.add(resource);
-				if (resource instanceof StoreContainer storeContainer) {
-					if (!storeContainer.isDiscovered()) {
-						storeContainer.discover(false);
-					} else {
-						storeContainer.refreshChildrenIfNeeded();
-					}
+			StoreResource resource = getResource(objectId);
+
+			if (resource == null) {
+				// nothing in the cache do a traditional search
+				// Now strip off the filename
+				objectId = StringUtils.substringBefore(objectId, "/");
+				String[] ids = objectId.split("\\.");
+				resource = search(ids);
+			}
+
+			if (resource != null) {
+				if (!(resource instanceof CodeEnter) && !isCodeValid(resource)) {
+					LOGGER.debug("code is not valid any longer");
+					return resources;
 				}
-			} else {
-				if (resource instanceof StoreContainer storeContainer) {
-					storeContainer.discover(true);
 
-					int count = storeContainer.getChildren().size();
-					if (count > 0) {
-						String systemName = storeContainer.getSystemName();
-						LOGGER.trace("Start of analysis for " + systemName);
-						ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
+				if (!isRendererAllowed()) {
+					LOGGER.debug("renderer does not have access to this ressource");
+					return resources;
+				}
 
-						int nParallelThreads = 3;
-						if (storeContainer instanceof DVDISOFile) {
-							// Some DVD drives die with 3 parallel threads
-							nParallelThreads = 1;
+				if (!returnChildren) {
+					resources.add(resource);
+					if (resource instanceof StoreContainer storeContainer) {
+						if (!storeContainer.isDiscovered()) {
+							storeContainer.discover(false);
+						} else {
+							storeContainer.refreshChildrenIfNeeded();
 						}
+					}
+				} else {
+					if (resource instanceof StoreContainer storeContainer) {
+						storeContainer.discover(true);
 
-						ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
-								new SimpleThreadFactory("LibraryResource resolver thread", true));
+						int count = storeContainer.getChildren().size();
+						if (count > 0) {
+							String systemName = storeContainer.getSystemName();
+							LOGGER.trace("Start of analysis for " + systemName);
+							ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
-						if (shouldDoAudioTrackSorting(storeContainer)) {
-							sortChildrenWithAudioElements(storeContainer);
-						}
-						for (int i = 0; i < storeContainer.getChildren().size(); i++) {
-							final StoreResource child = storeContainer.getChildren().get(i);
-							if (child != null) {
-								tpe.execute(child);
-								resources.add(child);
-							} else {
-								LOGGER.warn("null child at index {} in {}", i, systemName);
+							int nParallelThreads = 3;
+							if (storeContainer instanceof DVDISOFile) {
+								// Some DVD drives die with 3 parallel threads
+								nParallelThreads = 1;
 							}
-						}
 
-						try {
-							tpe.shutdown();
-							tpe.awaitTermination(20, TimeUnit.SECONDS);
-						} catch (InterruptedException e) {
-							LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
-							Thread.currentThread().interrupt();
-						}
+							ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, nParallelThreads), count, 20, TimeUnit.SECONDS, queue,
+									new SimpleThreadFactory("LibraryResource resolver thread", true));
 
-						LOGGER.trace("End of analysis for " + systemName);
+							if (shouldDoAudioTrackSorting(storeContainer)) {
+								sortChildrenWithAudioElements(storeContainer);
+							}
+							for (int i = 0; i < storeContainer.getChildren().size(); i++) {
+								final StoreResource child = storeContainer.getChildren().get(i);
+								if (child != null) {
+									tpe.execute(child);
+									resources.add(child);
+								} else {
+									LOGGER.warn("null child at index {} in {}", i, systemName);
+								}
+							}
+
+							try {
+								tpe.shutdown();
+								tpe.awaitTermination(20, TimeUnit.SECONDS);
+							} catch (InterruptedException e) {
+								LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+								Thread.currentThread().interrupt();
+							}
+
+							LOGGER.trace("End of analysis for " + systemName);
+						}
 					}
 				}
 			}
-		}
 
-		return resources;
+			return resources;
+		} finally {
+			WORKERS.decrementAndGet();
+		}
 	}
 
 	private StoreResource search(String[] searchIds) {
@@ -930,6 +975,12 @@ public class MediaStore extends StoreContainer {
 			return res.getMediaInfo().getAudioMetadata().getDisc();
 		}
 		return 0;
+	}
+
+	public static void waitWorkers() throws InterruptedException {
+		while (WORKERS.get() > 0) {
+			Thread.sleep(100);
+		}
 	}
 
 }

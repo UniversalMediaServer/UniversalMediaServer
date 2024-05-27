@@ -3,8 +3,35 @@
 ## [Unreleased]
 
 ### General
-
+- Implements `Jetty 12` servlets server + client
+- Stop using the deprecated tool 'Create React App'
+- Implements `Vite` as `react-scripts` replacement.
+- Use of `node.js` v20.12.2
+- Jetty is now a selectable media server engine, with JUPnP+.
+- The webgui / webplayer are now served by Jetty.
+- Removed the JDK HTTP servlet server personal implementation.
+- Improved concurrent MediaStore retrieval.
+- Improved concurrent global MediaInfo store retrieval.
+- Improved MediaInfo parser.
+- Improved MediaStore browsing speed.
+- Implemented CDS UpdateObject base functionality
+- Moved StarRating from internal API to UpdateObject implementation
+- Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 - Fixed TV episodes sorting (#4694)
+- Added Specials folder for TV Series
+
+### Dependencies
+- Bump `@types/react` from 18.3.1 to 18.3.2
+- Bump `com.ibm.icu:icu4j` from 74.2 to 75.1 ([#4673](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4673))
+- Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5 ([#4711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4711))
+- Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
+- Bump `mantine` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
+- Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6 ([#4675](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4675))
+- Bump `org.jupnp:org.jupnp.support` from 2.7.1 to 3.0.2 ([#4672](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4672))
+- Bump `tmdbapi` from 0.2 to 0.3 ([#4663](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4663))
+- Bump `video.js` from 8.12.0 to 8.14.0
+- Bump `yarn` from 4.1.1 to 4.2.2
 
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
@@ -138,7 +165,6 @@
 - Bump `org.digitalmediaserver:crowdin-maven-plugin` from 0.4.1 to 2.0.0 ([#4546](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4546)) (thanks, @Nadahar!)
 - Bump `react` from 18.2.0 to 18.3.1 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
 - Bump `react-router-dom` from 6.22.3 to 6.23.0 ([#4616](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4616))
-- Bump `typescript` to 5.3.3
 - Bump `version` from 18.2 to 18.3 ([#4618](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4618))
 - Bump `video.js` from 8.8.0 to 8.10.0 ([#4422](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4422))
 - Bump `web-vitals` to 3.5.0
