@@ -593,7 +593,7 @@
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>4.0.4</version>
+			<version>4.0.5</version>
 			<exclusions>
 				<exclusion>
 					<groupId>jakarta.activation</groupId>
