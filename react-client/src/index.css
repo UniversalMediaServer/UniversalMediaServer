@@ -28,17 +28,17 @@ body {
 }
 
 .bodyBackgroundImageScreen {
-	height: 100%;
-	width: 100%;
-	background-color: rgba(33, 33, 33, 1);
-	transition: background-color .5s ease-in-out;
-	-moz-transition: background-color .5s ease-in-out;
-	-webkit-transition: background-color .5s ease-in-out; 
-	-o-transition: background-color .5s ease-in-out; 
+  height: 100%;
+  width: 100%;
+  background-color: rgba(33, 33, 33, 1);
+  transition: background-color .5s ease-in-out;
+  -moz-transition: background-color .5s ease-in-out;
+  -webkit-transition: background-color .5s ease-in-out;
+  -o-transition: background-color .5s ease-in-out;
 }
 
 .backgroundPreloadContainer {
-	display: none;
+  display: none;
 }
 
 code {
@@ -77,13 +77,13 @@ nav button .mantine-Button-inner {
   color: var(--mantine-color-text);
 }
 
+.mantine-Breadcrumbs-root .mantine-Button-inner {
+  color: var(--mantine-color-text);
+}
+
 nav button .mantine-Button-inner:hover {
   font-weight:600;
   color: var(--mantine-color-bright);
-}
-
-.mantine-Breadcrumbs-root .mantine-Button-inner {
-  color: var(--mantine-color-text);
 }
 
 .mantine-Breadcrumbs-root .mantine-Button-inner:hover {

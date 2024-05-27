@@ -19,6 +19,7 @@ package net.pms.util;
 import com.sun.jna.Platform;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitOption;
@@ -142,8 +143,25 @@ public class FileWatcher {
 					add(w, dir);
 					return FileVisitResult.CONTINUE;
 				}
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+					if (exc instanceof AccessDeniedException) {
+						if (Files.isDirectory(file)) {
+							LOGGER.debug("Recursion for directory {} skipped: Access Denied", file);
+							return FileVisitResult.SKIP_SUBTREE;
+						} else {
+							return FileVisitResult.CONTINUE;
+						}
+					}
+					return super.visitFileFailed(file, exc);
+				}
 			});
 		} catch (IOException e) {
+			if (e instanceof AccessDeniedException && Files.isDirectory(dir)) {
+				LOGGER.debug("Recursion for directory {} skipped: Access Denied", dir);
+				return;
+			}
 			LOGGER.debug("Recursion error: " + e, e);
 		}
 	}

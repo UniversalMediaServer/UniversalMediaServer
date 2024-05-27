@@ -28,7 +28,7 @@ export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
 });
 
 export interface PlayerEventInterface {
-  uuid:string;
+  uuid: string;
   connectionStatus: number;
   reqId: string;
   reqType: string;

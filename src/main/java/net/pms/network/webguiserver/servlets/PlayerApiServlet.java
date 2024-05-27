@@ -329,211 +329,206 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lockInterruptibly();
-		try {
-			LOGGER.debug("Make browse page " + id);
-			JsonObject result = new JsonObject();
-			result.addProperty("goal", "browse");
-			JsonArray jBreadcrumbs = new JsonArray();
-			JsonArray jFolders = new JsonArray();
-			JsonArray mediaLibraryFolders = new JsonArray();
-			JsonArray jMedias = new JsonArray();
-			StoreResource rootResource = id.equals("0") ? null : renderer.getMediaStore().getResource(id);
+		LOGGER.debug("Make browse page " + id);
+		JsonObject result = new JsonObject();
+		result.addProperty("goal", "browse");
+		JsonArray jBreadcrumbs = new JsonArray();
+		JsonArray jFolders = new JsonArray();
+		JsonArray mediaLibraryFolders = new JsonArray();
+		JsonArray jMedias = new JsonArray();
+		StoreResource rootResource = id.equals("0") ? null : renderer.getMediaStore().getResource(id);
 
-			List<StoreResource> resources = renderer.getMediaStore().getResources(id, true);
-			if (!resources.isEmpty() &&
-					resources.get(0).getParent() != null &&
-					(resources.get(0).getParent() instanceof CodeEnter)) {
-				return null;
-			}
-			if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
-				UMSUtils.filterResourcesByName(resources, search, false, false);
-			}
+		List<StoreResource> resources = renderer.getMediaStore().getResources(id, true);
+		if (!resources.isEmpty() &&
+				resources.get(0).getParent() != null &&
+				(resources.get(0).getParent() instanceof CodeEnter)) {
+			return null;
+		}
+		if (StringUtils.isNotEmpty(search) && !(resources instanceof CodeEnter)) {
+			UMSUtils.filterResourcesByName(resources, search, false, false);
+		}
 
-			boolean hasFile = false;
-			if (!resources.isEmpty() &&
-					resources.get(0).getParent() != null &&
-					resources.get(0).getParent().isFolder()) {
-				StoreContainer thisResourceFromResources = resources.get(0).getParent();
-				if (thisResourceFromResources.isSortedByDisplayName()) {
-					StoreResourceSorter.sortResourcesByTitle(resources, lang);
-				}
-
-				String thisName = thisResourceFromResources.getSystemName();
-				if (thisName.equals("MediaLibrary")) {
-					for (StoreResource resource : resources) {
-						String icon = switch (resource.getSystemName()) {
-							case "Video" ->
-								"video";
-							case "Audio" ->
-								"audio";
-							case "Photo" ->
-								"image";
-							default ->
-								"folder";
-						};
-						hasFile = true;
-						JsonObject jMedia = new JsonObject();
-						jMedia.addProperty("id", resource.getResourceId());
-						jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
-						jMedia.addProperty("icon", icon);
-						jMedias.add(jMedia);
-					}
-				}
-				jBreadcrumbs = getBreadcrumbs(thisResourceFromResources, lang);
-
-				if (resources.get(0).getParent().getParent() != null) {
-					StoreResource parentFromResources = resources.get(0).getParent().getParent();
-					JsonObject jFolder = new JsonObject();
-					jFolder.addProperty("id", parentFromResources.getResourceId());
-					jFolder.addProperty("name", "..");
-					jFolder.addProperty("icon", "back");
-					jFolders.add(jFolder);
-				}
-			}
-			if (resources.isEmpty() && rootResource != null && rootResource.isFolder()) {
-				jBreadcrumbs = getBreadcrumbs(rootResource, lang);
-				if (rootResource.getParent() != null) {
-					StoreResource parentFromResources = rootResource.getParent();
-					JsonObject jFolder = new JsonObject();
-					jFolder.addProperty("id", parentFromResources.getResourceId());
-					jFolder.addProperty("name", "..");
-					jFolder.addProperty("icon", "back");
-					jFolders.add(jFolder);
-				}
+		boolean hasFile = false;
+		if (!resources.isEmpty() &&
+				resources.get(0).getParent() != null &&
+				resources.get(0).getParent().isFolder()) {
+			StoreContainer thisResourceFromResources = resources.get(0).getParent();
+			if (thisResourceFromResources.isSortedByDisplayName()) {
+				StoreResourceSorter.sortResourcesByTitle(resources, lang);
 			}
 
-			// Generate innerHtml snippets for folders and media items
-			for (StoreResource resource : resources) {
-				if (resource == null) {
-					continue;
-				}
-				if (resource instanceof VirtualVideoAction) {
-					// Let's take the VVA real early
+			String thisName = thisResourceFromResources.getSystemName();
+			if (thisName.equals("MediaLibrary")) {
+				for (StoreResource resource : resources) {
+					String icon = switch (resource.getSystemName()) {
+						case "Video" ->
+							"video";
+						case "Audio" ->
+							"audio";
+						case "Photo" ->
+							"image";
+						default ->
+							"folder";
+					};
 					hasFile = true;
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
 					jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
+					jMedia.addProperty("icon", icon);
 					jMedias.add(jMedia);
-					continue;
-				}
-
-				if (resource.isFolder()) {
-					Boolean isDisplayFoldersAsThumbnails = false;
-					/*
-					* Display folders as thumbnails instead of down the left side if:
-					* - The parent is TV Shows, or
-					* - This is a filtered metadata folder within TV shows, or
-					* - This is Recommendations
-					 */
-					if (resource.getParent().getSystemName().equals("TvShows") ||
-							resource.getParent().getSystemName().equals("Recommendations") ||
-							(resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getSystemName().equals("FilterByProgress")) ||
-							(resource.getParent().getParent() != null &&
-							resource.getParent().getParent().getParent() != null &&
-							resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation"))) {
-						isDisplayFoldersAsThumbnails = true;
-					}
-
-					if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && resource instanceof MediaLibraryFolder)) {
-						boolean addFolderToFoldersListOnLeft = true;
-
-						// Populate the front page
-						if (id.equals("0") && resource.getSystemName().equals("MediaLibrary")) {
-							List<StoreResource> mediaLibraryChildren = renderer.getMediaStore().getResources(resource.getId(), true);
-							JsonObject mediaLibraryFolder;
-							StoreResource videoFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Video");
-							if (videoFolder != null) {
-								mediaLibraryFolder = new JsonObject();
-								mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", videoFolder.getLocalizedDisplayName(lang));
-								mediaLibraryFolder.addProperty("icon", "video");
-								mediaLibraryFolders.add(mediaLibraryFolder);
-							}
-
-							StoreResource audioFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Audio");
-							if (audioFolder != null) {
-								mediaLibraryFolder = new JsonObject();
-								mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", audioFolder.getLocalizedDisplayName(lang));
-								mediaLibraryFolder.addProperty("icon", "audio");
-								mediaLibraryFolders.add(mediaLibraryFolder);
-							}
-
-							StoreResource imagesFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Photo");
-							if (imagesFolder != null) {
-								mediaLibraryFolder = new JsonObject();
-								mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
-								mediaLibraryFolder.addProperty("name", imagesFolder.getLocalizedDisplayName(lang));
-								mediaLibraryFolder.addProperty("icon", "image");
-								mediaLibraryFolders.add(mediaLibraryFolder);
-							}
-
-							if (videoFolder != null) {
-								JsonObject jMediasSelections = new JsonObject();
-								jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, "RecentlyAdded", lang));
-								jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, "RecentlyPlayed", lang));
-								jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, "InProgress", lang));
-								jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, "MostPlayed", lang));
-								result.add("mediasSelections", jMediasSelections);
-								addFolderToFoldersListOnLeft = false;
-							}
-						}
-
-						if (addFolderToFoldersListOnLeft) {
-							// The HlsHelper is a folder
-							JsonObject jFolder = new JsonObject();
-							jFolder.addProperty("id", resource.getResourceId());
-							jFolder.addProperty("name", resource.getLocalizedDisplayName(lang));
-							jFolders.add(jFolder);
-						}
-					}
-				} else {
-					// The HlsHelper is a media file
-					hasFile = true;
-					jMedias.add(getMediaJsonObject(resource, lang));
 				}
 			}
+			jBreadcrumbs = getBreadcrumbs(thisResourceFromResources, lang);
 
-			if (rootResource instanceof MediaLibraryFolder folder) {
-				if (folder.isTVSeries()) {
-					JsonObject metadata = getMetadataAsJsonObject(rootResource, renderer, lang);
-					if (metadata != null) {
-						metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
-						result.add("metadata", metadata);
-					}
-				}
-
-				// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
-				if (folder.getSystemName().equals("TvShows") ||
-						folder.getSystemName().equals("Recommendations") ||
-						(folder.getParent() != null &&
-						folder.getParent().getSystemName().equals("FilterByProgress")) ||
-						(folder.getParent() != null &&
-						folder.getParent().getParent() != null &&
-						folder.getParent().getParent().getSystemName().equals("FilterByInformation"))) {
-					for (StoreResource resource : resources) {
-						if (resource instanceof MediaLibraryFolder) {
-							hasFile = true;
-							jMedias.add(getMediaJsonObject(resource, lang));
-						}
-					}
-				}
+			if (resources.get(0).getParent().getParent() != null) {
+				StoreResource parentFromResources = resources.get(0).getParent().getParent();
+				JsonObject jFolder = new JsonObject();
+				jFolder.addProperty("id", parentFromResources.getResourceId());
+				jFolder.addProperty("name", "..");
+				jFolder.addProperty("icon", "back");
+				jFolders.add(jFolder);
 			}
-
-			result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
-			result.addProperty("name", id.equals("0") || rootResource == null ? CONFIGURATION.getServerDisplayName() : rootResource.getLocalizedDisplayName(lang));
-			result.addProperty("hasFile", hasFile);
-			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
-			result.add("breadcrumbs", jBreadcrumbs);
-			result.add("mediaLibraryFolders", mediaLibraryFolders);
-			result.add("folders", jFolders);
-			result.add("medias", jMedias);
-			return result;
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
 		}
+		if (resources.isEmpty() && rootResource != null && rootResource.isFolder()) {
+			jBreadcrumbs = getBreadcrumbs(rootResource, lang);
+			if (rootResource.getParent() != null) {
+				StoreResource parentFromResources = rootResource.getParent();
+				JsonObject jFolder = new JsonObject();
+				jFolder.addProperty("id", parentFromResources.getResourceId());
+				jFolder.addProperty("name", "..");
+				jFolder.addProperty("icon", "back");
+				jFolders.add(jFolder);
+			}
+		}
+
+		// Generate innerHtml snippets for folders and media items
+		for (StoreResource resource : resources) {
+			if (resource == null) {
+				continue;
+			}
+			if (resource instanceof VirtualVideoAction) {
+				// Let's take the VVA real early
+				hasFile = true;
+				JsonObject jMedia = new JsonObject();
+				jMedia.addProperty("id", resource.getResourceId());
+				jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
+				jMedias.add(jMedia);
+				continue;
+			}
+
+			if (resource.isFolder()) {
+				Boolean isDisplayFoldersAsThumbnails = false;
+				/*
+				* Display folders as thumbnails instead of down the left side if:
+				* - The parent is TV Shows, or
+				* - This is a filtered metadata folder within TV shows, or
+				* - This is Recommendations
+				 */
+				if (resource.getParent().getSystemName().equals("TvShows") ||
+						resource.getParent().getSystemName().equals("Recommendations") ||
+						(resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getSystemName().equals("FilterByProgress")) ||
+						(resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getParent() != null &&
+						resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation"))) {
+					isDisplayFoldersAsThumbnails = true;
+				}
+
+				if (!isDisplayFoldersAsThumbnails || !(isDisplayFoldersAsThumbnails && resource instanceof MediaLibraryFolder)) {
+					boolean addFolderToFoldersListOnLeft = true;
+
+					// Populate the front page
+					if (id.equals("0") && resource.getSystemName().equals("MediaLibrary")) {
+						List<StoreResource> mediaLibraryChildren = renderer.getMediaStore().getResources(resource.getId(), true);
+						JsonObject mediaLibraryFolder;
+						StoreResource videoFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Video");
+						if (videoFolder != null) {
+							mediaLibraryFolder = new JsonObject();
+							mediaLibraryFolder.addProperty("id", videoFolder.getResourceId());
+							mediaLibraryFolder.addProperty("name", videoFolder.getLocalizedDisplayName(lang));
+							mediaLibraryFolder.addProperty("icon", "video");
+							mediaLibraryFolders.add(mediaLibraryFolder);
+						}
+
+						StoreResource audioFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Audio");
+						if (audioFolder != null) {
+							mediaLibraryFolder = new JsonObject();
+							mediaLibraryFolder.addProperty("id", audioFolder.getResourceId());
+							mediaLibraryFolder.addProperty("name", audioFolder.getLocalizedDisplayName(lang));
+							mediaLibraryFolder.addProperty("icon", "audio");
+							mediaLibraryFolders.add(mediaLibraryFolder);
+						}
+
+						StoreResource imagesFolder = UMSUtils.getFirstResourceWithSystemName(mediaLibraryChildren, "Photo");
+						if (imagesFolder != null) {
+							mediaLibraryFolder = new JsonObject();
+							mediaLibraryFolder.addProperty("id", imagesFolder.getResourceId());
+							mediaLibraryFolder.addProperty("name", imagesFolder.getLocalizedDisplayName(lang));
+							mediaLibraryFolder.addProperty("icon", "image");
+							mediaLibraryFolders.add(mediaLibraryFolder);
+						}
+
+						if (videoFolder != null) {
+							JsonObject jMediasSelections = new JsonObject();
+							jMediasSelections.add("recentlyAdded", getMediaLibraryFolderChilds(videoFolder, renderer, "RecentlyAdded", lang));
+							jMediasSelections.add("recentlyPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, "RecentlyPlayed", lang));
+							jMediasSelections.add("inProgress", getMediaLibraryFolderChilds(videoFolder, renderer, "InProgress", lang));
+							jMediasSelections.add("mostPlayed", getMediaLibraryFolderChilds(videoFolder, renderer, "MostPlayed", lang));
+							result.add("mediasSelections", jMediasSelections);
+							addFolderToFoldersListOnLeft = false;
+						}
+					}
+
+					if (addFolderToFoldersListOnLeft) {
+						// The HlsHelper is a folder
+						JsonObject jFolder = new JsonObject();
+						jFolder.addProperty("id", resource.getResourceId());
+						jFolder.addProperty("name", resource.getLocalizedDisplayName(lang));
+						jFolders.add(jFolder);
+					}
+				}
+			} else {
+				// The HlsHelper is a media file
+				hasFile = true;
+				jMedias.add(getMediaJsonObject(resource, lang));
+			}
+		}
+
+		if (rootResource instanceof MediaLibraryFolder folder) {
+			if (folder.isTVSeries()) {
+				JsonObject metadata = getMetadataAsJsonObject(rootResource, renderer, lang);
+				if (metadata != null) {
+					metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
+					result.add("metadata", metadata);
+				}
+			}
+
+			// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
+			if (folder.getSystemName().equals("TvShows") ||
+					folder.getSystemName().equals("Recommendations") ||
+					(folder.getParent() != null &&
+					folder.getParent().getSystemName().equals("FilterByProgress")) ||
+					(folder.getParent() != null &&
+					folder.getParent().getParent() != null &&
+					folder.getParent().getParent().getSystemName().equals("FilterByInformation"))) {
+				for (StoreResource resource : resources) {
+					if (resource instanceof MediaLibraryFolder) {
+						hasFile = true;
+						jMedias.add(getMediaJsonObject(resource, lang));
+					}
+				}
+			}
+		}
+
+		result.addProperty("umsversion", PropertiesUtil.getProjectProperties().get("project.version"));
+		result.addProperty("name", id.equals("0") || rootResource == null ? CONFIGURATION.getServerDisplayName() : rootResource.getLocalizedDisplayName(lang));
+		result.addProperty("hasFile", hasFile);
+		result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
+		result.add("breadcrumbs", jBreadcrumbs);
+		result.add("mediaLibraryFolders", mediaLibraryFolders);
+		result.add("folders", jFolders);
+		result.add("medias", jMedias);
+		return result;
 	}
 
 	private static JsonObject getMediaJsonObject(StoreResource resource, String lang) {
@@ -615,202 +610,182 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	}
 
 	private static JsonObject getPlayPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lockInterruptibly();
-		try {
-			LOGGER.debug("Make play page " + id);
-			JsonObject result = new JsonObject();
-			result.addProperty("goal", "play");
-			JsonArray jFolders = new JsonArray();
-			JsonArray medias = new JsonArray();
-			JsonObject media = new JsonObject();
+		LOGGER.debug("Make play page " + id);
+		JsonObject result = new JsonObject();
+		result.addProperty("goal", "play");
+		JsonArray jFolders = new JsonArray();
+		JsonArray medias = new JsonArray();
+		JsonObject media = new JsonObject();
 
-			StoreResource resource = renderer.getMediaStore().getResource(id);
-			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			if (item == null) {
-				LOGGER.debug("Bad web play id: " + id);
-				throw new IOException("Bad Id");
-			}
-
-			if (item.getParent() != null &&
-					item.getParent().isFolder()) {
-				JsonObject jFolder = new JsonObject();
-				jFolder.addProperty("id", item.getParent().getResourceId());
-				jFolder.addProperty("name", "..");
-				jFolders.add(jFolder);
-			}
-
-			Format format = item.getFormat();
-			boolean isImage = format.isImage();
-			boolean isVideo = format.isVideo();
-			boolean isAudio = format.isAudio();
-
-			String mime = renderer.getMimeType(item);
-			media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
-			if (isVideo) {
-				JsonObject metadata = getMetadataAsJsonObject(item, renderer, lang);
-				if (metadata != null) {
-					metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
-					media.add("metadata", metadata);
-				}
-				media.addProperty("isVideoWithChapters", item.getMediaInfo() != null && item.getMediaInfo().hasChapters());
-				mime = renderer.getVideoMimeType();
-				if (item.getMediaStatus() != null && item.getMediaStatus().getLastPlaybackPosition() != null && item.getMediaStatus().getLastPlaybackPosition() > 0) {
-					media.addProperty("resumePosition", item.getMediaStatus().getLastPlaybackPosition().intValue());
-				}
-			}
-
-			// Controls whether to use the browser's native audio player
-			// Audio types that are natively supported by all major browsers:
-			if (isAudio) {
-				media.addProperty("isNativeAudio", mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME));
-			}
-
-			media.addProperty("name", item.getLocalizedResumeName(lang));
-			media.addProperty("id", id);
-			media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
-			media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
-			media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
-
-			media.add("surroundMedias", getSurroundingByType(item, lang));
-
-			if (isImage) {
-				// do this like this to simplify the code
-				// skip all player crap since img tag works well
-				int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
-				if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
-					media.addProperty("delay", delay);
-				}
-			} else {
-				media.addProperty("mime", mime);
-			}
-
-			medias.add(media);
-			result.add("medias", medias);
-			result.add("folders", jFolders);
-			result.add("breadcrumbs", getBreadcrumbs(item, lang));
-			result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
-			return result;
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+		if (item == null) {
+			LOGGER.debug("Bad web play id: " + id);
+			throw new IOException("Bad Id");
 		}
+
+		if (item.getParent() != null &&
+				item.getParent().isFolder()) {
+			JsonObject jFolder = new JsonObject();
+			jFolder.addProperty("id", item.getParent().getResourceId());
+			jFolder.addProperty("name", "..");
+			jFolders.add(jFolder);
+		}
+
+		Format format = item.getFormat();
+		boolean isImage = format.isImage();
+		boolean isVideo = format.isVideo();
+		boolean isAudio = format.isAudio();
+
+		String mime = renderer.getMimeType(item);
+		media.addProperty("mediaType", isVideo ? "video" : isAudio ? "audio" : isImage ? "image" : "");
+		if (isVideo) {
+			JsonObject metadata = getMetadataAsJsonObject(item, renderer, lang);
+			if (metadata != null) {
+				metadata.addProperty("isEditable", renderer.havePermission(Permissions.WEB_PLAYER_EDIT) && TMDB.isReady());
+				media.add("metadata", metadata);
+			}
+			media.addProperty("isVideoWithChapters", item.getMediaInfo() != null && item.getMediaInfo().hasChapters());
+			mime = renderer.getVideoMimeType();
+			if (item.getMediaStatus() != null && item.getMediaStatus().getLastPlaybackPosition() != null && item.getMediaStatus().getLastPlaybackPosition() > 0) {
+				media.addProperty("resumePosition", item.getMediaStatus().getLastPlaybackPosition().intValue());
+			}
+		}
+
+		// Controls whether to use the browser's native audio player
+		// Audio types that are natively supported by all major browsers:
+		if (isAudio) {
+			media.addProperty("isNativeAudio", mime.equals(HTTPResource.AUDIO_MP3_TYPEMIME));
+		}
+
+		media.addProperty("name", item.getLocalizedResumeName(lang));
+		media.addProperty("id", id);
+		media.addProperty("autoContinue", CONFIGURATION.getWebPlayerAutoCont(format));
+		media.addProperty("isDynamicPls", CONFIGURATION.isDynamicPls());
+		media.addProperty("isDownload", renderer.havePermission(Permissions.WEB_PLAYER_DOWNLOAD) && CONFIGURATION.useWebPlayerDownload());
+
+		media.add("surroundMedias", getSurroundingByType(item, lang));
+
+		if (isImage) {
+			// do this like this to simplify the code
+			// skip all player crap since img tag works well
+			int delay = CONFIGURATION.getWebPlayerImgSlideDelay() * 1000;
+			if (delay > 0 && CONFIGURATION.getWebPlayerAutoCont(format)) {
+				media.addProperty("delay", delay);
+			}
+		} else {
+			media.addProperty("mime", mime);
+		}
+
+		medias.add(media);
+		result.add("medias", medias);
+		result.add("folders", jFolders);
+		result.add("breadcrumbs", getBreadcrumbs(item, lang));
+		result.addProperty("useWebControl", CONFIGURATION.useWebPlayerControls());
+		return result;
 	}
 
 	private static JsonObject getEditData(WebGuiRenderer renderer, String id) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lockInterruptibly();
-		try {
-			LOGGER.debug("Make edit data " + id);
-			StoreResource resource = renderer.getMediaStore().getResource(id);
-			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
-			if (tvSeries == null && item == null) {
-				LOGGER.debug("Bad web edit id: " + id);
-				throw new IOException("Bad Id");
-			}
-			JsonObject result = new JsonObject();
-			if (item != null && item.getMediaInfo().isVideo() &&
-					item.getMediaInfo().hasVideoMetadata()) {
-				MediaVideoMetadata metadata = item.getMediaInfo().getVideoMetadata();
-				String search = metadata.getMovieOrShowName();
-				if (item instanceof RealFile realFile && realFile.getFile() != null) {
-					String filename = realFile.getFile().getName();
-					String absolutePath = realFile.getFile().getParent();
-					result.addProperty("filename", filename);
-					result.addProperty("folder", absolutePath);
-					if (StringUtils.isBlank(search)) {
-						search = FileUtil.basicPrettify(filename);
-					}
-				}
-				result.addProperty("search", search);
-				if (metadata.isTvEpisode()) {
-					result.addProperty("media_type", "tv_episode");
-					result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
-					result.addProperty("season", metadata.getTvSeason());
-					if (metadata.getSeriesMetadata() != null) {
-						result.addProperty("year", metadata.getSeriesMetadata().getStartYear());
-					}
-				} else {
-					result.addProperty("media_type", "movie");
-					result.addProperty("year", metadata.getYear());
-				}
-			} else if (tvSeries != null && tvSeries.getTvSeriesMetadata() != null) {
-				TvSeriesMetadata metadata = tvSeries.getTvSeriesMetadata();
-				result.addProperty("search", metadata.getTitle());
-				result.addProperty("year", metadata.getStartYear());
-				result.addProperty("media_type", "tv");
-			}
-			return result;
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
+		LOGGER.debug("Make edit data " + id);
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+		MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+		if (tvSeries == null && item == null) {
+			LOGGER.debug("Bad web edit id: " + id);
+			throw new IOException("Bad Id");
 		}
+		JsonObject result = new JsonObject();
+		if (item != null && item.getMediaInfo().isVideo() &&
+				item.getMediaInfo().hasVideoMetadata()) {
+			MediaVideoMetadata metadata = item.getMediaInfo().getVideoMetadata();
+			String search = metadata.getMovieOrShowName();
+			if (item instanceof RealFile realFile && realFile.getFile() != null) {
+				String filename = realFile.getFile().getName();
+				String absolutePath = realFile.getFile().getParent();
+				result.addProperty("filename", filename);
+				result.addProperty("folder", absolutePath);
+				if (StringUtils.isBlank(search)) {
+					search = FileUtil.basicPrettify(filename);
+				}
+			}
+			result.addProperty("search", search);
+			if (metadata.isTvEpisode()) {
+				result.addProperty("media_type", "tv_episode");
+				result.addProperty("episode", getLong(metadata.getTvEpisodeNumberUnpadded()));
+				result.addProperty("season", metadata.getTvSeason());
+				if (metadata.getSeriesMetadata() != null) {
+					result.addProperty("year", metadata.getSeriesMetadata().getStartYear());
+				}
+			} else {
+				result.addProperty("media_type", "movie");
+				result.addProperty("year", metadata.getYear());
+			}
+		} else if (tvSeries != null && tvSeries.getTvSeriesMetadata() != null) {
+			TvSeriesMetadata metadata = tvSeries.getTvSeriesMetadata();
+			result.addProperty("search", metadata.getTitle());
+			result.addProperty("year", metadata.getStartYear());
+			result.addProperty("media_type", "tv");
+		}
+		return result;
 	}
 
 	private static JsonArray getMetadataResults(WebGuiRenderer renderer, String id, String mediaType, String search, Integer year, String lang) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lockInterruptibly();
-		try {
-			LOGGER.debug("Make metadata results " + id);
-			StoreResource resource = renderer.getMediaStore().getResource(id);
-			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
-			if (item == null && tvSeries == null) {
-				LOGGER.debug("Bad web edit id: " + id);
-				throw new IOException("Bad Id");
-			}
-			JsonArray result = null;
-			if ("tv".equals(mediaType) || "tv_episode".equals(mediaType)) {
-				Long currentId;
-				if (item != null &&
-					item.getMediaInfo() != null &&
-					item.getMediaInfo().hasVideoMetadata() &&
-					item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
-					currentId = item.getMediaInfo().getVideoMetadata().getTmdbTvId();
-				} else if (tvSeries != null &&
-					tvSeries.getTvSeriesMetadata() != null) {
-					currentId = tvSeries.getTvSeriesMetadata().getTmdbId();
-				} else {
-					currentId = null;
-				}
-				result = TMDB.getTvShowsFromEpisode(search, year, lang, currentId);
-			} else if ("movie".equals(mediaType) && item != null) {
-				Long currentId;
-				if (item.getMediaInfo() != null &&
-					item.getMediaInfo().hasVideoMetadata() &&
-					!item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
-					currentId = item.getMediaInfo().getVideoMetadata().getTmdbId();
-				} else {
-					currentId = null;
-				}
-				result = TMDB.getMovies(search, year, lang, currentId);
-			}
-			return result;
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
+		LOGGER.debug("Make metadata results " + id);
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+		MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+		if (item == null && tvSeries == null) {
+			LOGGER.debug("Bad web edit id: " + id);
+			throw new IOException("Bad Id");
 		}
+		JsonArray result = null;
+		if ("tv".equals(mediaType) || "tv_episode".equals(mediaType)) {
+			Long currentId;
+			if (item != null &&
+				item.getMediaInfo() != null &&
+				item.getMediaInfo().hasVideoMetadata() &&
+				item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
+				currentId = item.getMediaInfo().getVideoMetadata().getTmdbTvId();
+			} else if (tvSeries != null &&
+				tvSeries.getTvSeriesMetadata() != null) {
+				currentId = tvSeries.getTvSeriesMetadata().getTmdbId();
+			} else {
+				currentId = null;
+			}
+			result = TMDB.getTvShowsFromEpisode(search, year, lang, currentId);
+		} else if ("movie".equals(mediaType) && item != null) {
+			Long currentId;
+			if (item.getMediaInfo() != null &&
+				item.getMediaInfo().hasVideoMetadata() &&
+				!item.getMediaInfo().getVideoMetadata().isTvEpisode()) {
+				currentId = item.getMediaInfo().getVideoMetadata().getTmdbId();
+			} else {
+				currentId = null;
+			}
+			result = TMDB.getMovies(search, year, lang, currentId);
+		}
+		return result;
 	}
 
 	private static boolean setMetadata(WebGuiRenderer renderer, String id, Long tmdbId, String mediaType) throws IOException, InterruptedException {
-		PMS.REALTIME_LOCK.lockInterruptibly();
-		try {
-			LOGGER.debug("Setd metadata " + id);
-			StoreResource resource = renderer.getMediaStore().getResource(id);
-			StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
-			MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
-			if ((tvSeries == null && item == null) || tmdbId == null) {
-				LOGGER.debug("Bad metadata id: " + id);
-				throw new IOException("Bad Id");
-			}
-			if (item != null && item.getMediaInfo() != null && item.getMediaInfo().getFileId() != null) {
-				if (mediaType.equals("tv_episode")) {
-					return TMDB.updateTvShowForEpisode(item.getMediaInfo(), tmdbId);
-				} else if (mediaType.equals("movie")) {
-					return TMDB.updateMovieMetadata(item.getMediaInfo(), tmdbId);
-				}
-			} else if (mediaType.equals("tv") && tvSeries != null && tvSeries.getTvSeriesMetadata() != null && tvSeries.getTvSeriesMetadata().getTvSeriesId() != null) {
-				return TMDB.updateTvShowMetadata(tvSeries.getTvSeriesMetadata().getTvSeriesId(), tmdbId);
-			}
-			return false;
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
+		LOGGER.debug("Setd metadata " + id);
+		StoreResource resource = renderer.getMediaStore().getResource(id);
+		StoreItem item = resource instanceof StoreItem libraryItem ? libraryItem : null;
+		MediaLibraryTvSeries tvSeries = resource instanceof MediaLibraryTvSeries mediaLibraryTvSeries ? mediaLibraryTvSeries : null;
+		if ((tvSeries == null && item == null) || tmdbId == null) {
+			LOGGER.debug("Bad metadata id: " + id);
+			throw new IOException("Bad Id");
 		}
+		if (item != null && item.getMediaInfo() != null && item.getMediaInfo().getFileId() != null) {
+			if (mediaType.equals("tv_episode")) {
+				return TMDB.updateTvShowForEpisode(item.getMediaInfo(), tmdbId);
+			} else if (mediaType.equals("movie")) {
+				return TMDB.updateMovieMetadata(item.getMediaInfo(), tmdbId);
+			}
+		} else if (mediaType.equals("tv") && tvSeries != null && tvSeries.getTvSeriesMetadata() != null && tvSeries.getTvSeriesMetadata().getTvSeriesId() != null) {
+			return TMDB.updateTvShowMetadata(tvSeries.getTvSeriesMetadata().getTvSeriesId(), tmdbId);
+		}
+		return false;
 	}
 
 	private static boolean setFullyPlayed(WebGuiRenderer renderer, String id, boolean fullyPlayed) throws IOException, InterruptedException {

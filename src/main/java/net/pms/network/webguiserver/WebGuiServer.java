@@ -26,8 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebGuiServer implements IGui {
+
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebGuiServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
 	private String statusLine;
 
 	public abstract Object getServer();
@@ -115,7 +117,7 @@ public abstract class WebGuiServer implements IGui {
 	}
 
 	public static WebGuiServer createServer(int port) throws IOException {
-		return WebGuiServerHttpServer.createServer(port);
+		return WebGuiServerJetty.createServer(port);
 	}
 
 }

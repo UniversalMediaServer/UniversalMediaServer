@@ -3658,16 +3658,20 @@ public class UmsConfiguration extends BaseConfiguration {
 	private boolean ignoredFolderNamesRead;
 
 	/**
+	 * List of system folder to always skip.
+	 */
+	private List<String> ignoredSystemFolderNames = List.of("$RECYCLE.BIN", "System Volume Information");
+
+	/**
 	 * @return The {@link List} of {@link Path}s of ignored folder names.
 	 */
 	@Nonnull
 	public List<String> getIgnoredFolderNames() {
 		if (!ignoredFolderNamesRead) {
-			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted");
+			String ignoredFolderNamesString = configuration.getString(KEY_FOLDER_NAMES_IGNORED, ".unwanted,$RECYCLE.BIN,System Volume Information");
 
-			List<String> folders = new ArrayList<>();
 			if (ignoredFolderNamesString == null || ignoredFolderNamesString.length() == 0) {
-				return folders;
+				return ignoredSystemFolderNames;
 			}
 
 			String[] foldersArray = ignoredFolderNamesString.trim().split("\\s*,\\s*");
@@ -3683,6 +3687,7 @@ public class UmsConfiguration extends BaseConfiguration {
 				// add the path even if there are problems so that the user can update the shared folders as required.
 				ignoredFolderNames.add(folder);
 			}
+			ignoredFolderNames.addAll(ignoredSystemFolderNames);
 
 			ignoredFolderNamesRead = true;
 		}

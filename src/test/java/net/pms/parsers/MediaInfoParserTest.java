@@ -31,14 +31,15 @@ import org.junit.jupiter.api.Test;
 public class MediaInfoParserTest {
 
 	@BeforeAll
-	public static void SetUPClass() {
-		ParserTest.SetUPClass();
+	public static void setUPClass() {
+		ParserTest.setUpClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {
 		File file = ParserTest.getTestFile(testFile);
 		Format format = FormatFactory.getAssociatedFormat(file.getAbsolutePath());
 		MediaInfo mediaInfo = new MediaInfo();
+
 		MediaInfoParser.parse(mediaInfo, file, format.getType());
 		return mediaInfo;
 	}
@@ -96,6 +97,7 @@ public class MediaInfoParserTest {
 
 	@Test
 	public void testSetFormat() throws Exception {
+
 		MediaInfo media = new MediaInfo();
 		MediaVideo video = new MediaVideo();
 		MediaAudio audio = new MediaAudio();

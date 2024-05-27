@@ -27,8 +27,8 @@ import org.junit.jupiter.api.Test;
 public class JaudiotaggerParserTest {
 
 	@BeforeAll
-	public static void SetUPClass() {
-		ParserTest.SetUPClass();
+	public static void setUpClass() {
+		ParserTest.setUpClass();
 	}
 
 	private static MediaInfo getTestFileMediaInfo(String testFile) {

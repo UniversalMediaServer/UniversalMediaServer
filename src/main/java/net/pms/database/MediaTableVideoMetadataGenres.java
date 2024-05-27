@@ -243,7 +243,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		return result;
 	}
 
-	public static ApiStringArray getGenresForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static ApiStringArray getGenresForTvSeries(final Connection connection, final Long tvSerieId) {
 		ApiStringArray result = new ApiStringArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_TVSERIESID)) {
@@ -261,7 +261,7 @@ public final class MediaTableVideoMetadataGenres extends MediaTable {
 		return result;
 	}
 
-	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static JsonArray getJsonArrayForTvSeries(final Connection connection, final Long tvSerieId) {
 		JsonArray result = new JsonArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_GENRE_TVSERIESID)) {

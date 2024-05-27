@@ -317,7 +317,6 @@ public class RequestV2 extends HTTPResource {
 			final boolean close,
 			final StartStopListenerDelegate startStopListenerDelegate
 	) throws IOException {
-		PMS.REALTIME_LOCK.lock();
 		long cLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		StoreResource resource = null;
@@ -714,14 +713,11 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, Long.toString(Long.MAX_VALUE));
 							event.getChannel().write(output);
 							// Unlock before writing the stream!
-							PMS.REALTIME_LOCK.unlock();
 							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_STREAM));
 							chunked.addListener(ChannelFutureListener.CLOSE);
 							return chunked;
 						} catch (IOException | InterruptedException e) {
 							LOGGER.error("cannot retrieve external url", e);
-						} finally {
-							PMS.REALTIME_LOCK.unlock();
 						}
 					}
 				}
@@ -869,8 +865,6 @@ public class RequestV2 extends HTTPResource {
 				// Close the channel after the response is sent.
 				future.addListener(ChannelFutureListener.CLOSE);
 			}
-		} finally {
-			PMS.REALTIME_LOCK.unlock();
 		}
 		if (LOGGER.isTraceEnabled()) {
 			// Log trace information

@@ -16,6 +16,7 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -24,12 +25,11 @@ import net.pms.network.NetworkDeviceFilter;
 import org.jupnp.model.UnsupportedDataException;
 import org.jupnp.transport.impl.MulticastReceiverConfigurationImpl;
 import org.jupnp.transport.impl.MulticastReceiverImpl;
-import org.jupnp.transport.spi.MulticastReceiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsMulticastReceiver extends MulticastReceiverImpl {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MulticastReceiver.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(MulticastReceiverImpl.class);
 
 	public UmsMulticastReceiver(MulticastReceiverConfigurationImpl configuration) {
 		super(configuration);
@@ -73,7 +73,7 @@ public class UmsMulticastReceiver extends MulticastReceiverImpl {
 				break;
 			} catch (UnsupportedDataException ex) {
 				LOGGER.info("Could not read datagram: " + ex.getMessage());
-			} catch (Exception ex) {
+			} catch (IOException | IllegalStateException ex) {
 				throw new RuntimeException(ex);
 			}
 		}
