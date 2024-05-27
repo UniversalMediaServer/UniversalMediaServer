@@ -6,6 +6,9 @@
 
 - Fixed NullPointerException on RendererFrame.buildEditBar (#4701)
 
+### Dependencies
+- Bump `com.universalmediaserver:tmdbapi` from 0.2 to 0.3 ([#4708](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4708))
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
