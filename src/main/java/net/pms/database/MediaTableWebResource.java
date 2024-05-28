@@ -22,7 +22,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import net.pms.store.utils.WebStreamMetadata;
+import net.pms.external.webstream.WebStreamMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +151,7 @@ public class MediaTableWebResource extends MediaTable {
 	}
 
 	public static void insertOrUpdateWebResource(WebStreamMetadata meta) {
-		if (StringUtils.isAllBlank(meta.LOGO_URL())) {
+		if (StringUtils.isAllBlank(meta.getLogoUrl())) {
 			insertOrUpdateWebResourceWithoutLogo(meta);
 		} else {
 			insertOrUpdateWebResourceWithLogo(meta);
@@ -169,33 +169,33 @@ public class MediaTableWebResource extends MediaTable {
 			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement mergeStatement = connection.prepareStatement(SQL_MERGE_RESOURCE, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
-			mergeStatement.setString(1, meta.URL());
-			if (meta.LOGO_URL() != null) {
-				mergeStatement.setString(2, meta.LOGO_URL());
+			mergeStatement.setString(1, meta.getUrl());
+			if (meta.getLogoUrl() != null) {
+				mergeStatement.setString(2, meta.getLogoUrl());
 			} else {
 				mergeStatement.setNull(2, Types.VARCHAR);
 			}
-			if (meta.CONTENT_TYPE() != null) {
-				mergeStatement.setString(3, meta.CONTENT_TYPE());
+			if (meta.getContentType() != null) {
+				mergeStatement.setString(3, meta.getContentType());
 			} else {
 				mergeStatement.setNull(3, Types.VARCHAR);
 			}
-			if (meta.GENRE() != null) {
-				mergeStatement.setString(4, meta.GENRE());
+			if (meta.getGenre() != null) {
+				mergeStatement.setString(4, meta.getGenre());
 			} else {
 				mergeStatement.setNull(4, Types.VARCHAR);
 			}
-			if (meta.BITRATE() != null) {
-				mergeStatement.setInt(5, meta.BITRATE());
+			if (meta.getBitrate() != null) {
+				mergeStatement.setInt(5, meta.getBitrate());
 			} else {
 				mergeStatement.setNull(5, Types.INTEGER);
 			}
-			if (meta.SAMPLE_RATE() != null) {
-				mergeStatement.setInt(6, meta.SAMPLE_RATE());
+			if (meta.getSampleRate() != null) {
+				mergeStatement.setInt(6, meta.getSampleRate());
 			} else {
 				mergeStatement.setNull(6, Types.INTEGER);
 			}
-			mergeStatement.setInt(7, meta.TYPE());
+			mergeStatement.setInt(7, meta.getType());
 			mergeStatement.executeUpdate();
 		} catch (Exception e) {
 			LOGGER.error("cannot merge web resource {} ", meta, e);
@@ -213,28 +213,28 @@ public class MediaTableWebResource extends MediaTable {
 			Connection connection = MediaDatabase.getConnectionIfAvailable();
 			PreparedStatement mergeStatement = connection.prepareStatement(SQL_MERGE_RESOURCE_WITHOUT_LOGO, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 		) {
-			mergeStatement.setString(1, meta.URL());
-			if (meta.CONTENT_TYPE() != null) {
-				mergeStatement.setString(2, meta.CONTENT_TYPE());
+			mergeStatement.setString(1, meta.getUrl());
+			if (meta.getContentType() != null) {
+				mergeStatement.setString(2, meta.getContentType());
 			} else {
 				mergeStatement.setNull(2, Types.VARCHAR);
 			}
-			if (meta.GENRE() != null) {
-				mergeStatement.setString(3, meta.GENRE());
+			if (meta.getGenre() != null) {
+				mergeStatement.setString(3, meta.getGenre());
 			} else {
 				mergeStatement.setNull(3, Types.VARCHAR);
 			}
-			if (meta.BITRATE() != null) {
-				mergeStatement.setInt(4, meta.BITRATE());
+			if (meta.getBitrate() != null) {
+				mergeStatement.setInt(4, meta.getBitrate());
 			} else {
 				mergeStatement.setNull(4, Types.INTEGER);
 			}
-			if (meta.SAMPLE_RATE() != null) {
-				mergeStatement.setInt(5, meta.SAMPLE_RATE());
+			if (meta.getSampleRate() != null) {
+				mergeStatement.setInt(5, meta.getSampleRate());
 			} else {
 				mergeStatement.setNull(5, Types.INTEGER);
 			}
-			mergeStatement.setInt(6, meta.TYPE());
+			mergeStatement.setInt(6, meta.getType());
 			mergeStatement.executeUpdate();
 		} catch (Exception e) {
 			LOGGER.error("cannot merge web resource (without logo) {} ", meta, e);
