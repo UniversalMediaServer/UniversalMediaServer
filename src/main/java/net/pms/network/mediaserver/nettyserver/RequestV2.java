@@ -84,7 +84,7 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
-import net.pms.store.item.WebStream;
+import net.pms.store.item.WebAudioStream;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
@@ -544,6 +544,25 @@ public class RequestV2 extends HTTPResource {
 						} else {
 							LOGGER.trace("Not sending external subtitles because dlna.getMediaSubtitle() returned null");
 						}
+					} else if (item instanceof WebAudioStream ws) {
+						// we have a webstream ... pass through
+						try {
+							java.net.http.HttpResponse<InputStream> extStream = JavaHttpClient.getHttpResponseInputStream(ws.getUrl());
+							inputStream = extStream.body();
+							if (extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).isPresent()) {
+								String contentType = extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).get();
+								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
+							}
+							output.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, "chunked");
+							output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, Long.toString(Long.MAX_VALUE));
+							event.getChannel().write(output);
+							// Unlock before writing the stream!
+							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_STREAM));
+							chunked.addListener(ChannelFutureListener.CLOSE);
+							return chunked;
+						} catch (IOException e) {
+							LOGGER.error("cannot retrieve external url", e);
+						}
 					} else if (item.isCodeValid(item)) {
 						// This is a request for a regular file.
 
@@ -699,25 +718,6 @@ public class RequestV2 extends HTTPResource {
 							if (HttpMethod.GET.equals(method)) {
 								output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 							}
-						}
-					} else if (item instanceof WebStream ws) {
-						// we have a webstream ... pass through
-						try {
-							java.net.http.HttpResponse<InputStream> extStream = JavaHttpClient.getHttpResponseInputStream(ws.getUrl());
-							inputStream = extStream.body();
-							if (extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).isPresent()) {
-								String contentType = extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).get();
-								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, contentType);
-							}
-							output.headers().set(HttpHeaders.Names.TRANSFER_ENCODING, "chunked");
-							output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, Long.toString(Long.MAX_VALUE));
-							event.getChannel().write(output);
-							// Unlock before writing the stream!
-							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_STREAM));
-							chunked.addListener(ChannelFutureListener.CLOSE);
-							return chunked;
-						} catch (IOException e) {
-							LOGGER.error("cannot retrieve external url", e);
 						}
 					}
 				}
