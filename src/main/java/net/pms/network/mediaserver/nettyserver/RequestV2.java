@@ -54,6 +54,7 @@ import net.pms.dlna.DidlHelper;
 import net.pms.dlna.DlnaHelper;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
+import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.image.BufferedImageFilterChain;
@@ -85,7 +86,6 @@ import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.item.WebStream;
 import net.pms.util.FullyPlayed;
-import net.pms.util.HttpUtil;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
 import net.pms.util.SubtitleUtils;
@@ -703,7 +703,7 @@ public class RequestV2 extends HTTPResource {
 					} else if (item instanceof WebStream ws) {
 						// we have a webstream ... pass through
 						try {
-							java.net.http.HttpResponse<InputStream> extStream = HttpUtil.getHttpResponseInputStream(ws.getUrl());
+							java.net.http.HttpResponse<InputStream> extStream = JavaHttpClient.getHttpResponseInputStream(ws.getUrl());
 							inputStream = extStream.body();
 							if (extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).isPresent()) {
 								String contentType = extStream.headers().firstValue(HttpHeaders.Names.CONTENT_TYPE).get();
@@ -716,7 +716,7 @@ public class RequestV2 extends HTTPResource {
 							ChannelFuture chunked = event.getChannel().write(new ChunkedStream(inputStream, BUFFER_STREAM));
 							chunked.addListener(ChannelFutureListener.CLOSE);
 							return chunked;
-						} catch (IOException | InterruptedException e) {
+						} catch (IOException e) {
 							LOGGER.error("cannot retrieve external url", e);
 						}
 					}
