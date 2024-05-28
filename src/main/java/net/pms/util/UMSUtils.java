@@ -18,15 +18,12 @@ package net.pms.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import java.io.File;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.io.OutputParams;
@@ -40,13 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 
 public class UMSUtils {
-
-	private static final Collator COLLATOR;
-
-	static {
-		COLLATOR = Collator.getInstance();
-		COLLATOR.setStrength(Collator.PRIMARY);
-	}
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -125,112 +115,6 @@ public class UMSUtils {
 			if (!keep) {
 				resources.remove(i);
 			}
-		}
-	}
-
-	// Sort constants
-	public static final int SORT_LOC_SENS = 0;
-	public static final int SORT_MOD_NEW = 1;
-	public static final int SORT_MOD_OLD = 2;
-	public static final int SORT_INS_ASCII = 3;
-	public static final int SORT_LOC_NAT = 4;
-	public static final int SORT_RANDOM = 5;
-	public static final int SORT_NO_SORT = 6;
-
-	/**
-	 * Sorts a list of files using a custom method when the files are not
-	 * episodes within TV series folders of the Media Library.
-	 *
-	 * @param files
-	 * @param method
-	 * @see #sort(java.util.ArrayList, int)
-	 */
-	public static void sortFiles(List<File> files, int method) {
-		UMSUtils.sortFiles(files, method, false);
-	}
-
-	/**
-	 * Sorts a list of files using a custom method.
-	 *
-	 * @param files
-	 * @param method
-	 * @param isEpisodeWithinTVSeriesFolder
-	 * @see #sort(java.util.ArrayList, int)
-	 */
-	public static void sortFiles(List<File> files, int method, final boolean isEpisodeWithinTVSeriesFolder) {
-		switch (method) {
-			case SORT_NO_SORT: // no sorting
-				break;
-			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(files, (File f1, File f2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-					return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
-				});
-				break;
-			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, (File f1, File f2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-				});
-				break;
-			case SORT_MOD_OLD: // Sort by modified date, oldest first
-				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()));
-				break;
-			case SORT_MOD_NEW: // Sort by modified date, newest first
-				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f2.lastModified()).compareTo(f1.lastModified()));
-				break;
-			case SORT_RANDOM: // Random
-				Collections.shuffle(files, new Random(System.currentTimeMillis()));
-				break;
-			case SORT_LOC_SENS: // Same as default
-			default: // Locale-sensitive A-Z
-				Collections.sort(files, (File f1, File f2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(f1.getName(), isEpisodeWithinTVSeriesFolder, f1.getAbsolutePath());
-					String filename2ToSort = FileUtil.renameForSorting(f2.getName(), isEpisodeWithinTVSeriesFolder, f2.getAbsolutePath());
-					return COLLATOR.compare(filename1ToSort, filename2ToSort);
-				});
-				break;
-		}
-	}
-
-	/**
-	 * Sorts a list of strings using a custom method.
-	 *
-	 * @param inputStrings
-	 * @param method
-	 * @see #sortFiles(java.util.List, int)
-	 */
-	public static void sortStrings(List<String> inputStrings, int method) {
-		switch (method) {
-			case SORT_NO_SORT: // no sorting
-				break;
-			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(inputStrings, (String s1, String s2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(s1);
-					String filename2ToSort = FileUtil.renameForSorting(s2);
-					return NaturalComparator.compareNatural(COLLATOR, filename1ToSort, filename2ToSort);
-				});
-				break;
-			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(inputStrings, (String s1, String s2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(s1);
-					String filename2ToSort = FileUtil.renameForSorting(s2);
-					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-				});
-				break;
-			case SORT_RANDOM: // Random
-				Collections.shuffle(inputStrings, new Random(System.currentTimeMillis()));
-				break;
-			case SORT_LOC_SENS: // Same as default
-			default: // Locale-sensitive A-Z
-				Collections.sort(inputStrings, (String s1, String s2) -> {
-					String filename1ToSort = FileUtil.renameForSorting(s1);
-					String filename2ToSort = FileUtil.renameForSorting(s2);
-					return COLLATOR.compare(filename1ToSort, filename2ToSort);
-				});
-				break;
 		}
 	}
 

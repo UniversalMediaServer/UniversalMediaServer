@@ -353,8 +353,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resources.get(0).getParent() != null &&
 				resources.get(0).getParent().isFolder()) {
 			StoreContainer thisResourceFromResources = resources.get(0).getParent();
-			if (thisResourceFromResources.isSortedByDisplayName()) {
-				StoreResourceSorter.sortResourcesByTitle(resources, lang);
+			if (thisResourceFromResources.isSorted()) {
+				StoreResourceSorter.sortResourcesByDefault(resources, lang);
 			}
 
 			String thisName = thisResourceFromResources.getSystemName();
