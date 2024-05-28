@@ -128,6 +128,8 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
+			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
+			<version>${slf4j-api-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
@@ -711,59 +713,11 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.ee10</groupId>
-			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>${jetty.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty.http2</groupId>
-			<artifactId>jetty-http2-server</artifactId>
-			<version>${jetty.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-client</artifactId>
-			<version>${jetty.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 		    <groupId>de.sfuhrm</groupId>
 		    <artifactId>radiobrowser4j</artifactId>
 		    <version>3.0.1</version>
-		</dependency>		
+		</dependency>
 	</dependencies>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-				<version>${slf4j-api-version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-ext</artifactId>
-				<version>${slf4j-api-version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
 
