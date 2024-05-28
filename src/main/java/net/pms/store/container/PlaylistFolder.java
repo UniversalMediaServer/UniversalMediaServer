@@ -30,6 +30,8 @@ import net.pms.PMS;
 import net.pms.database.MediaTableWebResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.external.JavaHttpClient;
+import net.pms.external.webstream.WebStreamMetadata;
+import net.pms.external.webstream.WebStreamMetadataCollector;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
@@ -43,8 +45,6 @@ import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
 import net.pms.store.utils.StoreResourceSorter;
-import net.pms.store.utils.WebStreamMetadata;
-import net.pms.store.utils.WebStreamMetadataCollector;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -305,11 +305,11 @@ public final class PlaylistFolder extends StoreContainer {
 					resolveEntryAsLocalFile(entry);
 				} else {
 					LOGGER.debug("using cached metadata for URL {} ", entry.fileName);
-					StoreResource sr = switch (meta.TYPE()) {
-						case Format.VIDEO -> new WebVideoStream(renderer, entry.title, meta.URL(), meta.LOGO_URL());
-						case Format.AUDIO -> new WebAudioStream(renderer, entry.title, meta.URL(), meta.LOGO_URL());
-						case Format.IMAGE -> new FeedItem(renderer, entry.title, meta.URL(), meta.LOGO_URL(), null, Format.IMAGE);
-						case Format.PLAYLIST -> getPlaylist(renderer, entry.title, meta.URL(), 0);
+					StoreResource sr = switch (meta.getType()) {
+						case Format.VIDEO -> new WebVideoStream(renderer, entry.title, meta.getUrl(), meta.getLogoUrl());
+						case Format.AUDIO -> new WebAudioStream(renderer, entry.title, meta.getUrl(), meta.getLogoUrl());
+						case Format.IMAGE -> new FeedItem(renderer, entry.title, meta.getUrl(), meta.getLogoUrl(), null, Format.IMAGE);
+						case Format.PLAYLIST -> getPlaylist(renderer, entry.title, meta.getUrl(), 0);
 						default -> null;
 					};
 					if (sr instanceof WebAudioStream was) {
@@ -340,7 +340,7 @@ public final class PlaylistFolder extends StoreContainer {
 			LOGGER.trace("web audio stream without meta data");
 			return;
 		}
-		was.setMimeType(meta.CONTENT_TYPE());
+		was.setMimeType(meta.getContentType());
 
 		if (was.getMediaInfo() == null) {
 			was.setMediaInfo(new MediaInfo());
@@ -354,20 +354,20 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 
 		try {
-			was.getMediaInfo().getAudioMetadata().setGenre(meta.GENRE());
-			if (meta.BITRATE() != null) {
-				was.getMediaInfo().setBitRate(meta.BITRATE());
+			was.getMediaInfo().getAudioMetadata().setGenre(meta.getGenre());
+			if (meta.getBitrate() != null) {
+				was.getMediaInfo().setBitRate(meta.getBitrate());
 			}
 		} catch (Exception e) {
 			LOGGER.debug("error setting values for mediaInfo", e);
 		}
 
 		try {
-			if (meta.BITRATE() != null) {
-				was.getMediaAudio().setBitRate(meta.BITRATE());
+			if (meta.getBitrate() != null) {
+				was.getMediaAudio().setBitRate(meta.getBitrate());
 			}
-			if (meta.SAMPLE_RATE() != null && meta.SAMPLE_RATE() > 0) {
-				was.getMediaAudio().setSampleRate(meta.SAMPLE_RATE());
+			if (meta.getSampleRate() != null && meta.getSampleRate() > 0) {
+				was.getMediaAudio().setSampleRate(meta.getSampleRate());
 			}
 		} catch (Exception e) {
 			LOGGER.debug("error setting values for mediaAudio", e);
