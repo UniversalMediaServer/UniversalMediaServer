@@ -645,8 +645,6 @@ public abstract class DatabaseHelper {
 				for (String sql : sqls) {
 					stmt.execute(sql);
 				}
-			} catch (Exception e) {
-				LOGGER.error("execute SQL error", e);
 			}
 		}
 	}
