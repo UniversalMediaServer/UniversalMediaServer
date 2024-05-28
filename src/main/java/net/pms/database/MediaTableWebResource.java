@@ -1,3 +1,19 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.database;
 
 import java.sql.Connection;
@@ -6,10 +22,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import net.pms.store.utils.WebStreamMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.store.utils.WebStreamMetadata;
 
 public class MediaTableWebResource extends MediaTable {
 
@@ -25,10 +41,10 @@ public class MediaTableWebResource extends MediaTable {
 	private static final String COL_CONTENT_TYPE = "CONTENT_TYPE";
 
 	private static final String SQL_MERGE_RESOURCE = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_LOGO_URL + COMMA + COL_CONTENT_TYPE +
-		COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?, ?) ";
+			COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?, ?) ";
 
 	private static final String SQL_MERGE_RESOURCE_WITHOUT_LOGO = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_CONTENT_TYPE +
-		COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?) ";
+			COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?) ";
 
 	private static final String SQL_DELETE_ALL = DELETE_FROM + TABLE_NAME;
 	private static final String SQL_DELETE_URL = DELETE_FROM + TABLE_NAME + WHERE + COL_URL + EQUAL + PARAMETER;
@@ -236,15 +252,14 @@ public class MediaTableWebResource extends MediaTable {
 			stmt.setString(1, url);
 			try (ResultSet rs = stmt.executeQuery()) {
 				if (rs.next()) {
-					WebStreamMetadata meta = new WebStreamMetadata(
-						rs.getString(COL_URL),
-						rs.getString(COL_LOGO_URL),
-						rs.getString(COL_GENRE),
-						rs.getString(COL_CONTENT_TYPE),
-						rs.getInt(COL_SAMPLE_RATE),
-						rs.getInt(COL_BITRATE),
-						rs.getInt(COL_TYPE));
-					return meta;
+					return new WebStreamMetadata(
+							rs.getString(COL_URL),
+							rs.getString(COL_LOGO_URL),
+							rs.getString(COL_GENRE),
+							rs.getString(COL_CONTENT_TYPE),
+							rs.getInt(COL_SAMPLE_RATE),
+							rs.getInt(COL_BITRATE),
+							rs.getInt(COL_TYPE));
 				} else {
 					LOGGER.trace("no record found for {}", url);
 				}
