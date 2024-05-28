@@ -26,13 +26,10 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.BOMInputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.database.MediaTableWebResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaInfo;
@@ -45,12 +42,15 @@ import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.store.utils.WebStreamMetadata;
 import net.pms.store.utils.WebStreamMetadataCollector;
-import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
-import net.pms.util.HttpUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.BOMInputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class PlaylistFolder extends StoreContainer {
 
@@ -133,8 +133,8 @@ public final class PlaylistFolder extends StoreContainer {
 		if (FileUtil.isUrl(uri)) {
 			String body = "";
 			try {
-				body = HttpUtil.getStringBody(uri);
-			} catch (IOException | InterruptedException e) {
+				body = JavaHttpClient.getStringBody(uri);
+			} catch (IOException e) {
 				LOGGER.error("cannot retrieve external url", e);
 			}
 			StringReader sr = new StringReader(body);
@@ -185,8 +185,9 @@ public final class PlaylistFolder extends StoreContainer {
 	@Override
 	public void resolve() {
 		getChildren().clear();
-		if (getPlaylistfile() != null) {
-			setLastModified(getPlaylistfile().lastModified());
+		File playlistFile = getPlaylistfile();
+		if (playlistFile != null) {
+			setLastModified(playlistFile.lastModified());
 		}
 		resolveOnce();
 	}
@@ -198,7 +199,7 @@ public final class PlaylistFolder extends StoreContainer {
 		boolean pls = false;
 		try (BufferedReader br = getBufferedReader()) {
 			String line;
-			while (!m3u && !pls && (line = br.readLine()) != null) {
+			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.startsWith("#EXTM3U")) {
 					m3u = true;
@@ -252,7 +253,7 @@ public final class PlaylistFolder extends StoreContainer {
 					}
 				}
 			} else {
-				while ((line = br.readLine()) != null) {
+				while (br != null && (line = br.readLine()) != null) {
 					line = line.trim();
 					if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
@@ -304,12 +305,13 @@ public final class PlaylistFolder extends StoreContainer {
 					resolveEntryAsLocalFile(entry);
 				} else {
 					LOGGER.debug("using cached metadata for URL {} ", entry.fileName);
-					StoreResource sr = meta.TYPE() == Format.VIDEO ?
-						new WebVideoStream(renderer, entry.title, meta.URL(), meta.LOGO_URL()) :
-						meta.TYPE() == Format.AUDIO ? new WebAudioStream(renderer, entry.title, meta.URL(), meta.LOGO_URL()) :
-							meta.TYPE() == Format.IMAGE ?
-								new FeedItem(renderer, entry.title, meta.URL(), meta.LOGO_URL(), null, Format.IMAGE) :
-								meta.TYPE() == Format.PLAYLIST ? getPlaylist(renderer, entry.title, meta.URL(), 0) : null;
+					StoreResource sr = switch (meta.TYPE()) {
+						case Format.VIDEO -> new WebVideoStream(renderer, entry.title, meta.URL(), meta.LOGO_URL());
+						case Format.AUDIO -> new WebAudioStream(renderer, entry.title, meta.URL(), meta.LOGO_URL());
+						case Format.IMAGE -> new FeedItem(renderer, entry.title, meta.URL(), meta.LOGO_URL(), null, Format.IMAGE);
+						case Format.PLAYLIST -> getPlaylist(renderer, entry.title, meta.URL(), 0);
+						default -> null;
+					};
 					if (sr instanceof WebAudioStream was) {
 						addAudioInfo(was, meta);
 					}
@@ -391,8 +393,7 @@ public final class PlaylistFolder extends StoreContainer {
 		} else {
 			String u = FileUtil.urlJoin(uri, entry.fileName);
 			if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-				// If the filename continues past the "extension" (i.e.
-				// has
+				// If the filename continues past the "extension" (i.e. has
 				// a query string) it's
 				// likely not a nested playlist but a media item, for
 				// instance Twitch TV media urls:
