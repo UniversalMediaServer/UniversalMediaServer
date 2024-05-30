@@ -49,7 +49,6 @@ import net.pms.store.container.PlaylistFolder;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -153,6 +152,10 @@ import org.xml.sax.SAXException;
 			datatype = "string"),
 	@UpnpStateVariable(
 			name = "A_ARG_TYPE_RID",
+			sendEvents = false,
+			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_FeatureList",
 			sendEvents = false,
 			datatype = "string")
 })
@@ -589,7 +592,9 @@ public class UmsContentDirectoryService {
 		}
 	}
 
-	@UpnpAction(name = "X_GetFeatureList")
+	@UpnpAction(name = "X_GetFeatureList",
+			out =
+			@UpnpOutputArgument(name = "FeatureList", stateVariable = "A_ARG_TYPE_FeatureList"))
 	public String samsungGetFeatureList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
@@ -1033,6 +1038,7 @@ public class UmsContentDirectoryService {
 
 		StringBuilder features = new StringBuilder();
 		String mediaStoreId = renderer.getMediaStore().getResourceId();
+		features.append(CRLF);
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
@@ -1043,12 +1049,7 @@ public class UmsContentDirectoryService {
 		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
-
-		StringBuilder response = new StringBuilder();
-		response.append("<FeatureList>").append(CRLF);
-		response.append(StringEscapeUtils.escapeXml10(features.toString()));
-		response.append("</FeatureList>").append(CRLF);
-		return response.toString();
+		return features.toString();
 	}
 
 	private static String getJUPnPDidlResults(List<StoreResource> resultResources, String filter) {
