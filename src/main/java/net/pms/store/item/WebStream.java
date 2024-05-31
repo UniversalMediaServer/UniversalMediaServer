@@ -22,20 +22,27 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.util.Map;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.StoreItem;
 import net.pms.util.FileUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebStream extends StoreItem {
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(WebStream.class);
 
 	private String url;
 	private String fluxName;
 	private String thumbURL;
+	private final Map<String, String> directives;
 
-	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type) {
+	public WebStream(Renderer renderer, String fluxName, String url, String thumbURL, int type, Map<String, String> directives) {
 		super(renderer, type);
 
 		if (url != null) {
@@ -59,6 +66,7 @@ public class WebStream extends StoreItem {
 		}
 
 		this.fluxName = fluxName;
+		this.directives = directives;
 	}
 
 	@Override
@@ -68,13 +76,16 @@ public class WebStream extends StoreItem {
 
 	@Override
 	public DLNAThumbnailInputStream getThumbnailInputStream() throws IOException {
-		if (thumbURL != null) {
-			return DLNAThumbnailInputStream.toThumbnailInputStream(
-				FileUtil.isUrl(thumbURL) ? HTTPResource.downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
-			);
-		} else {
-			return super.getThumbnailInputStream();
+		DLNAThumbnailInputStream result = null;
+		if (getMediaInfo() != null && getMediaInfo().getThumbnail() != null) {
+			result = getMediaInfo().getThumbnailInputStream();
 		}
+		if (result == null && thumbURL != null) {
+			result = DLNAThumbnailInputStream.toThumbnailInputStream(
+					FileUtil.isUrl(thumbURL) ? HTTPResource.downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL)
+			);
+		}
+		return result != null ? result : super.getThumbnailInputStream();
 	}
 
 	@Override
@@ -155,4 +166,17 @@ public class WebStream extends StoreItem {
 	public boolean isSubSelectable() {
 		return true;
 	}
+
+	@Override
+	public synchronized void resolve() {
+		if (url == null) {
+			LOGGER.error("WebStream points to a null url.");
+			return;
+		}
+
+		if (FileUtil.isUrl(url) && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
+			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, directives));
+		}
+	}
+
 }

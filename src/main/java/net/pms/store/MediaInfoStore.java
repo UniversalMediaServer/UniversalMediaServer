@@ -31,9 +31,12 @@ import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
+import net.pms.database.MediaTableWebResource;
 import net.pms.external.tmdb.TMDB;
+import net.pms.external.webstream.WebStreamMetadataCollector;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
+import net.pms.media.WebStreamMetadata;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
@@ -193,6 +196,26 @@ public class MediaInfoStore {
 			if (mediaInfo != null) {
 				storeMediaInfo(filename, mediaInfo);
 			}
+			return mediaInfo;
+		}
+	}
+
+	public static MediaInfo getWebStreamMediaInfo(String url, Map<String, String> directives) {
+		Object lock = getLock(url);
+		synchronized (lock) {
+			MediaInfo mediaInfo = getMediaInfoStored(url);
+			if (mediaInfo != null) {
+				return mediaInfo;
+			}
+			LOGGER.trace("Store do not yet contains MediaInfo for {}", url);
+			mediaInfo = new MediaInfo();
+			WebStreamMetadata meta = MediaTableWebResource.getWebStreamMetadata(url);
+			if (meta != null) {
+				meta.fillMediaInfo(mediaInfo);
+			} else {
+				WebStreamMetadataCollector.backgroundLookupAndAddMetadata(url, directives, mediaInfo);
+			}
+			storeMediaInfo(url, mediaInfo);
 			return mediaInfo;
 		}
 	}

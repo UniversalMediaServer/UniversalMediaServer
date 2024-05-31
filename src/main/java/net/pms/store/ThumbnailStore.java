@@ -24,6 +24,7 @@ import net.pms.database.MediaDatabase;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableThumbnails;
+import net.pms.database.MediaTableWebResource;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 
@@ -97,6 +98,27 @@ public class ThumbnailStore {
 				if (id != null) {
 					STORE.put(id, new WeakReference<>(thumbnail));
 					MediaTableTVSeries.updateThumbnailId(connection, tvSeriesId, id, thumbnailSource.toString());
+				}
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return id;
+	}
+
+	public static Long getIdForWebStream(DLNAThumbnail thumbnail, String url, ThumbnailSource thumbnailSource) {
+		if (thumbnail == null) {
+			return null;
+		}
+		Connection connection = null;
+		Long id = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				id = MediaTableThumbnails.setThumbnail(connection, thumbnail, false);
+				if (id != null) {
+					STORE.put(id, new WeakReference<>(thumbnail));
+					MediaTableWebResource.updateThumbnailId(connection, url, id, thumbnailSource.toString());
 				}
 			}
 		} finally {
