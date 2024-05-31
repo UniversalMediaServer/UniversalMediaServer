@@ -83,7 +83,6 @@ import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
-import net.pms.store.item.WebAudioStream;
 import net.pms.util.FullyPlayed;
 import net.pms.util.Range;
 import net.pms.util.StringUtil;
@@ -120,7 +119,6 @@ public class RequestV2 extends HTTPResource {
 	private static final Pattern DIDL_PATTERN = Pattern.compile("<Result>(&lt;DIDL-Lite.*?)</Result>");
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static final int BUFFER_SIZE = 8 * 1024;
-	private static final int BUFFER_STREAM = 128 * 1024;
 	private static final String HTTPSERVER_RESPONSE_BEGIN = "================================== HTTPSERVER RESPONSE BEGIN ====================================";
 	private static final String HTTPSERVER_RESPONSE_END = "================================== HTTPSERVER RESPONSE END ======================================";
 
