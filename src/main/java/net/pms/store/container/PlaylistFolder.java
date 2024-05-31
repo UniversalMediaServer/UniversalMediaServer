@@ -21,15 +21,22 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
+import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import net.pms.PMS;
+import net.pms.database.MediaTableWebResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.external.JavaHttpClient;
+import net.pms.external.webstream.WebStreamMetadata;
+import net.pms.external.webstream.WebStreamMetadataCollector;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -46,6 +53,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public final class PlaylistFolder extends StoreContainer {
+
+	private class Entry {
+		private String fileName;
+		private String title;
+		private String radioBrowserUUID;
+
+		@Override
+		public String toString() {
+			return "[" + fileName + "," + title + "]";
+		}
+	}
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
 	private final String uri;
@@ -70,7 +88,10 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	public File getPlaylistfile() {
-		return isweb ? null : new File(uri);
+		if (isweb || FileUtil.isUrl(uri)) {
+			return null;
+		}
+		return new File(uri);
 	}
 
 	@Override
@@ -110,8 +131,14 @@ public final class PlaylistFolder extends StoreContainer {
 			charset = StandardCharsets.ISO_8859_1;
 		}
 		if (FileUtil.isUrl(uri)) {
-			BOMInputStream bi = BOMInputStream.builder().setInputStream(URI.create(uri).toURL().openStream()).get();
-			return new BufferedReader(new InputStreamReader(bi, charset));
+			String body = "";
+			try {
+				body = JavaHttpClient.getStringBody(uri);
+			} catch (IOException e) {
+				LOGGER.error("cannot retrieve external url", e);
+			}
+			StringReader sr = new StringReader(body);
+			return new BufferedReader(sr);
 		} else {
 			File playlistfile = new File(uri);
 			if (playlistfile.length() < 10000000) {
@@ -146,18 +173,22 @@ public final class PlaylistFolder extends StoreContainer {
 				result = DLNAThumbnailInputStream.toThumbnailInputStream(new FileInputStream(thumbnailImage));
 			} catch (IOException e) {
 				LOGGER.debug("An error occurred while getting thumbnail for \"{}\", using generic thumbnail instead: {}", getName(),
-						e.getMessage());
+					e.getMessage());
 				LOGGER.trace("", e);
 			}
 			return result != null ? result : super.getThumbnailInputStream();
+		} else {
+			return super.getThumbnailInputStream();
 		}
-		return null;
 	}
 
 	@Override
 	public void resolve() {
 		getChildren().clear();
-		setLastModified(getPlaylistfile().lastModified());
+		File playlistFile = getPlaylistfile();
+		if (playlistFile != null) {
+			setLastModified(playlistFile.lastModified());
+		}
 		resolveOnce();
 	}
 
@@ -168,7 +199,7 @@ public final class PlaylistFolder extends StoreContainer {
 		boolean pls = false;
 		try (BufferedReader br = getBufferedReader()) {
 			String line;
-			while (!m3u && !pls && (line = br.readLine()) != null) {
+			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.startsWith("#EXTM3U")) {
 					m3u = true;
@@ -180,58 +211,69 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 			String fileName;
 			String title = null;
-			while ((line = br.readLine()) != null) {
-				line = line.trim();
-				if (pls) {
-					if (line.length() > 0 && !line.startsWith("#")) {
-						int eq = line.indexOf('=');
-						if (eq != -1) {
-							String value = line.substring(eq + 1);
-							String valueType = line.substring(0, eq).toLowerCase();
-							fileName = null;
-							title = null;
-							int index = 0;
-							if (valueType.startsWith("file")) {
-								index = Integer.parseInt(valueType.substring(4));
-								fileName = value;
-							} else if (valueType.startsWith("title")) {
-								index = Integer.parseInt(valueType.substring(5));
-								title = value;
-							}
-							if (index > 0) {
-								while (entries.size() < index) {
-									entries.add(null);
+			String uuid = null;
+
+			if (pls) {
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
+					if (pls) {
+						if (line.length() > 0 && !line.startsWith("#")) {
+							int eq = line.indexOf('=');
+							if (eq != -1) {
+								String value = line.substring(eq + 1);
+								String valueType = line.substring(0, eq).toLowerCase();
+								fileName = null;
+								title = null;
+								int index = 0;
+								if (valueType.startsWith("file")) {
+									index = Integer.parseInt(valueType.substring(4));
+									fileName = value;
+								} else if (valueType.startsWith("title")) {
+									index = Integer.parseInt(valueType.substring(5));
+									title = value;
 								}
-								Entry entry = entries.get(index - 1);
-								if (entry == null) {
-									entry = new Entry();
-									entries.set(index - 1, entry);
-								}
-								if (fileName != null) {
-									entry.fileName = fileName;
-								}
-								if (title != null) {
-									entry.title = title;
+								if (index > 0) {
+									while (entries.size() < index) {
+										entries.add(null);
+									}
+									Entry entry = entries.get(index - 1);
+									if (entry == null) {
+										entry = new Entry();
+										entries.set(index - 1, entry);
+									}
+									if (fileName != null) {
+										entry.fileName = fileName;
+									}
+									if (title != null) {
+										entry.title = title;
+									}
 								}
 							}
 						}
 					}
-				} else if (m3u) {
+				}
+			} else {
+				while (br != null && (line = br.readLine()) != null) {
+					line = line.trim();
 					if (line.startsWith("#EXTINF:")) {
 						line = line.substring(8).trim();
 						if (line.matches("^-?\\d+,.+")) {
 							title = line.substring(line.indexOf(',') + 1).trim();
-						} else {
-							title = line;
 						}
+					} else if (line.startsWith("#RADIOBROWSERUUID:")) {
+						uuid = line.substring(18);
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						// Non-comment and non-empty line contains the filename
 						fileName = line;
 						Entry entry = new Entry();
 						entry.fileName = fileName;
 						entry.title = title;
+						entry.radioBrowserUUID = uuid;
 						entries.add(entry);
 						title = null;
+						uuid = null;
+					} else {
+						title = line;
 					}
 				}
 			}
@@ -243,65 +285,136 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry == null) {
 				continue;
 			}
-			if (entry.title == null) {
-				entry.title = new File(entry.fileName).getName();
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
 			}
-			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
 
-			String ext = "." + FileUtil.getUrlExtension(entry.fileName);
-			Format f = FormatFactory.getAssociatedFormat(ext);
-			int type = f == null ? defaultContent : f.getType();
-
-			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
-				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
-				if (en.exists()) {
-					addChild(type == Format.PLAYLIST ? new PlaylistFolder(renderer, en) : new RealFile(renderer, en, entry.title));
-					valid = true;
-				}
+			if (!FileUtil.isUrl(entry.fileName)) {
+				resolveEntryAsLocalFile(entry);
 			} else {
-				String u = FileUtil.urlJoin(uri, entry.fileName);
-				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has
-					// a query string) it's
-					// likely not a nested playlist but a media item, for
-					// instance Twitch TV media urls:
-					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
-					type = defaultContent;
-				}
-				StoreResource d = switch (type) {
-					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null);
-					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null);
-					case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
-					case Format.PLAYLIST -> getPlaylist(renderer, entry.title, u, 0);
-					default -> null;
-				};
-
-				if (d != null) {
-					addChild(d);
-					valid = true;
+				// internet resource
+				LOGGER.debug("entry is external link : {} ", uri);
+				WebStreamMetadata meta = MediaTableWebResource.getWebStreamMetadata(entry.fileName);
+				if (meta == null) {
+					// retrieve meta and handle entry as local resource. Always done if we have a playlist entry within this playlist.
+					LOGGER.debug("no metadata available. Getting metadata from stream {} ", entry.fileName);
+					String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+					if (FormatFactory.getAssociatedFormat(ext) == null || FormatFactory.getAssociatedFormat(ext).getType() != Format.PLAYLIST) {
+						WebStreamMetadataCollector.getInstance().collectMetadata(entry.fileName, entry.radioBrowserUUID);
+					}
+					resolveEntryAsLocalFile(entry);
+				} else {
+					LOGGER.debug("using cached metadata for URL {} ", entry.fileName);
+					StoreResource sr = switch (meta.getType()) {
+						case Format.VIDEO -> new WebVideoStream(renderer, entry.title, meta.getUrl(), meta.getLogoUrl());
+						case Format.AUDIO -> new WebAudioStream(renderer, entry.title, meta.getUrl(), meta.getLogoUrl());
+						case Format.IMAGE -> new FeedItem(renderer, entry.title, meta.getUrl(), meta.getLogoUrl(), null, Format.IMAGE);
+						case Format.PLAYLIST -> getPlaylist(renderer, entry.title, meta.getUrl(), 0);
+						default -> null;
+					};
+					if (sr instanceof WebAudioStream was) {
+						addAudioInfo(was, meta);
+					}
+					if (sr != null) {
+						addChild(sr);
+						valid = true;
+					}
 				}
 			}
 		}
+
+		// this stores also external internet playlists
 		if (!isweb) {
 			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
-
 		for (StoreResource r : getChildren()) {
 			r.syncResolve();
 		}
 	}
 
-	private static class Entry {
+	private void addAudioInfo(WebAudioStream was, WebStreamMetadata meta) {
+		if (was == null) {
+			LOGGER.trace("web audio stream without meta data");
+			return;
+		}
+		was.setMimeType(meta.getContentType());
 
-		private String fileName;
-		private String title;
+		if (was.getMediaInfo() == null) {
+			was.setMediaInfo(new MediaInfo());
+		}
+		if (was.getMediaAudio() == null) {
+			was.setMediaAudio(new MediaAudio());
+			was.getMediaInfo().setAudioMetadata(new MediaAudioMetadata());
+		}
+		if (was.getMediaAudio() == null) {
+			was.setMediaAudio(new MediaAudio());
+		}
 
-		@Override
-		public String toString() {
-			return "[" + fileName + "," + title + "]";
+		try {
+			was.getMediaInfo().getAudioMetadata().setGenre(meta.getGenre());
+			if (meta.getBitrate() != null) {
+				was.getMediaInfo().setBitRate(meta.getBitrate());
+			}
+		} catch (Exception e) {
+			LOGGER.debug("error setting values for mediaInfo", e);
+		}
+
+		try {
+			if (meta.getBitrate() != null) {
+				was.getMediaAudio().setBitRate(meta.getBitrate());
+			}
+			if (meta.getSampleRate() != null && meta.getSampleRate() > 0) {
+				was.getMediaAudio().setSampleRate(meta.getSampleRate());
+			}
+		} catch (Exception e) {
+			LOGGER.debug("error setting values for mediaAudio", e);
+		}
+	}
+
+
+	private void resolveEntryAsLocalFile(Entry entry) {
+		// local file entry
+		if (entry.title == null) {
+			entry.title = new File(entry.fileName).getName();
+		}
+		String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+		Format f = FormatFactory.getAssociatedFormat(ext);
+		int type = f == null ? defaultContent : f.getType();
+
+		if (!isweb && !FileUtil.isUrl(entry.fileName)) {
+			File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
+			if (en.exists()) {
+				addChild(type == Format.PLAYLIST ? new PlaylistFolder(renderer, en) : new RealFile(renderer, en, entry.title));
+				valid = true;
+			}
+		} else {
+			String u = FileUtil.urlJoin(uri, entry.fileName);
+			if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
+				// If the filename continues past the "extension" (i.e. has
+				// a query string) it's
+				// likely not a nested playlist but a media item, for
+				// instance Twitch TV media urls:
+				// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+				type = defaultContent;
+			}
+			StoreResource d = switch (type) {
+				case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null);
+				case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null);
+				case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
+				case Format.PLAYLIST -> getPlaylist(renderer, entry.title, u, 0);
+				default -> null;
+			};
+
+			if (d != null) {
+				addChild(d);
+				valid = true;
+			}
+		}
+		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
+			Collections.shuffle(getChildren());
 		}
 	}
 
@@ -319,7 +432,7 @@ public final class PlaylistFolder extends StoreContainer {
 					return new Playlist(renderer, name, uri);
 				}
 				default -> {
-					//nothing to do
+					// nothing to do
 				}
 			}
 		}

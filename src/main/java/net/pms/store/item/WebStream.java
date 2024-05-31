@@ -107,7 +107,7 @@ public class WebStream extends StoreItem {
 	 * @return the url
 	 * @since 1.50
 	 */
-	protected String getUrl() {
+	public String getUrl() {
 		return url;
 	}
 
