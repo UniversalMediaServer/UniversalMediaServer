@@ -23,7 +23,7 @@
 
 ### Dependencies
 - Bump `@types/lodash` from 4.17.1 to 4.17.4 ([#4706](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4706))
-- Bump `@types/react` from 18.3.1 to 18.3.2
+- Bump `@types/react` from 18.3.1 to 18.3.3 ([#4720](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4720))
 - Bump `@typescript-eslint/eslint-plugin` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `@typescript-eslint/parser` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `com.ibm.icu:icu4j` from 74.2 to 75.1 ([#4673](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4673))
