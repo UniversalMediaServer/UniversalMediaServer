@@ -27,7 +27,7 @@
 - Bump `@mantine/modals` from 7.10.0 to 7.10.1 ([#4718](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4718))
 - Bump `@mantine/notifications` from 7.10.0 to 7.10.1 ([#4718](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4718))
 - Bump `@types/lodash` from 4.17.1 to 4.17.4 ([#4706](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4706))
-- Bump `@types/react` from 18.3.1 to 18.3.2
+- Bump `@types/react` from 18.3.1 to 18.3.3 ([#4720](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4720))
 - Bump `@typescript-eslint/eslint-plugin` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `@typescript-eslint/parser` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `axios` from 1.6.8 to 1.7.2 ([#4721](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4721))
