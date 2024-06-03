@@ -30,6 +30,7 @@
 - Bump `@types/react` from 18.3.1 to 18.3.2
 - Bump `@typescript-eslint/eslint-plugin` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `@typescript-eslint/parser` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
+- Bump `axios` from 1.6.8 to 1.7.2 ([#4721](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4721))
 - Bump `com.github.oshi:oshi-core` from 6.6.0 to 6.6.1 ([#4710](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4710))
 - Bump `com.ibm.icu:icu4j` from 74.2 to 75.1 ([#4673](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4673))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.12.7 to 10.17.0 ([#4723](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4723))
