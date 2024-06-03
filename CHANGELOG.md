@@ -30,6 +30,7 @@
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5 ([#4711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4711))
 - Bump `commons-logging:commons-logging` from 1.2 to 1.3.2 ([#4726](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4726))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
+- Bump `jetty.version` from 12.0.8 to 12.0.9 ([#4724](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4724))
 - Bump `mantine` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
 - Bump `Node.js` from 18.14.0 to 20.12.2
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.2.0 to 3.3.0 ([#4709](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4709))
