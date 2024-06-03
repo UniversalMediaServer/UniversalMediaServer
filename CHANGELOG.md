@@ -28,7 +28,7 @@
 - Bump `@typescript-eslint/parser` from 7.9.0 to 7.10.0 ([#4705](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4705))
 - Bump `com.ibm.icu:icu4j` from 74.2 to 75.1 ([#4673](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4673))
 - Bump `com.sun.xml.bind:jaxb-impl` from 4.0.4 to 4.0.5 ([#4711](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4711))
-- Bump `commons-logging:commons-logging` from 1.2 to 1.3.1
+- Bump `commons-logging:commons-logging` from 1.2 to 1.3.2 ([#4726](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4726))
 - Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
 - Bump `mantine` from 7.5.3 to 7.10.0 ([#4704](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4704))
 - Bump `org.digitalmediaserver:nsis-maven-plugin` from 1.0.5 to 1.0.6 ([#4675](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4675))
