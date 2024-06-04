@@ -496,7 +496,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
 			List<StoreResource> newVirtualFoldersResources = new ArrayList<>();
 			for (String virtualFolderName : newVirtualFolders) {
-				if (isTextOutputExpected(expectedOutput)) {
+				if (virtualFolderName != null && isTextOutputExpected(expectedOutput)) {
 					String[] sqls2 = new String[sqls.length - 1];
 					int[] expectedOutputs2 = new int[expectedOutputs.length - 1];
 					System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
@@ -606,33 +606,14 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
 					if (isExpectedTVSeries) {
-						try {
-							Long tvSeriesId = Long.valueOf(virtualFolderName);
+						Long tvSeriesId = getMediaLibraryTvSeriesId(virtualFolderName);
+						if (tvSeriesId != null) {
 							newVirtualFoldersResources.add(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
-						} catch (NumberFormatException e) {
-							//we need a long, other values are null (wrong db value check)
 						}
 					} else if (isExpectedMovieFolder) {
-						try {
-							Long fileId = Long.valueOf(virtualFolderName);
-							if (MediaDatabase.isAvailable()) {
-								Connection connection = null;
-								String filename = null;
-								try {
-									connection = MediaDatabase.getConnectionIfAvailable();
-									filename = MediaTableFiles.getFilenameById(connection, fileId);
-								} finally {
-									MediaDatabase.close(connection);
-								}
-								if (filename != null) {
-									File file = new File(filename);
-									if (file.exists() && renderer.hasShareAccess(file)) {
-										newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
-									}
-								}
-							}
-						} catch (NumberFormatException e) {
-							//we need a long, other values are null (wrong db value check)
+						String filename = getMediaLibraryMovieFilename(virtualFolderName);
+						if (filename != null) {
+							newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
 						}
 					} else if (i18nName != null) {
 						newVirtualFoldersResources.add(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
@@ -780,6 +761,58 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput != FILES_NOSORT_DEDUPED &&
 			expectedOutput != SEASONS &&
 			expectedOutput != EPISODES;
+	}
+
+	public Long getMediaLibraryTvSeriesId(String virtualFolderName) {
+		try {
+			Long tvSeriesId = Long.valueOf(virtualFolderName);
+			if (MediaDatabase.isAvailable()) {
+				Connection connection = null;
+				List<String> filenames = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, tvSeriesId);
+				} finally {
+					MediaDatabase.close(connection);
+				}
+				if (filenames != null && !filenames.isEmpty()) {
+					for (String filename : filenames) {
+						File file = new File(filename);
+						if (file.exists() && renderer.hasShareAccess(file)) {
+							return tvSeriesId;
+						}
+					}
+				}
+			}
+		} catch (NumberFormatException e) {
+			//we need a long, other values are null (wrong db value check)
+		}
+		return null;
+	}
+
+	public String getMediaLibraryMovieFilename(String virtualFolderName) {
+		try {
+			Long fileId = Long.valueOf(virtualFolderName);
+			if (MediaDatabase.isAvailable()) {
+				Connection connection = null;
+				String filename = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					filename = MediaTableFiles.getFilenameById(connection, fileId);
+				} finally {
+					MediaDatabase.close(connection);
+				}
+				if (filename != null) {
+					File file = new File(filename);
+					if (file.exists() && renderer.hasShareAccess(file)) {
+						return filename;
+					}
+				}
+			}
+		} catch (NumberFormatException e) {
+			//we need a long, other values are null (wrong db value check)
+		}
+		return null;
 	}
 
 	public boolean isTVSeries() {
