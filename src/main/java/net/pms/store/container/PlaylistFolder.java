@@ -29,9 +29,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
+import net.pms.database.MediaTableWebResource;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.external.webstream.WebStreamParser;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.media.WebStreamMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreResource;
@@ -256,27 +259,42 @@ public final class PlaylistFolder extends StoreContainer {
 			if (entry.title == null) {
 				entry.title = new File(entry.fileName).getName();
 			}
-			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
-
-			String ext = "." + FileUtil.getUrlExtension(entry.fileName);
-			Format f = FormatFactory.getAssociatedFormat(ext);
-			int type = f == null ? defaultContent : f.getType();
+			if (pls) {
+				LOGGER.debug("Adding PLS entry: {}", entry);
+			} else if (m3u) {
+				LOGGER.debug("Adding M3U entry: {}", entry);
+			} else {
+				LOGGER.debug("Adding entry: {}", entry);
+			}
 
 			if (!isweb && !FileUtil.isUrl(entry.fileName)) {
-				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
+				int type = defaultContent;
+				String ext = FileUtil.getUrlExtension(entry.fileName);
+				if (ext != null) {
+					ext = "." + ext;
+					Format f = FormatFactory.getAssociatedFormat(ext);
+					if (f != null) {
+						type = f.getType();
+					}
+				}
+				File en = new File(FilenameUtils.concat(new File(uri).getParent(), entry.fileName));
 				if (en.exists()) {
-					addChild(type == Format.PLAYLIST ? new PlaylistFolder(renderer, en) : new RealFile(renderer, en, entry.title));
+					if (type == Format.PLAYLIST) {
+						addChild(new PlaylistFolder(renderer, en));
+					} else {
+						addChild(new RealFile(renderer, en, entry.title));
+					}
 					valid = true;
 				}
 			} else {
+				int type = 0;
 				String u = FileUtil.urlJoin(uri, entry.fileName);
-				if (type == Format.PLAYLIST && !entry.fileName.endsWith(ext)) {
-					// If the filename continues past the "extension" (i.e. has
-					// a query string) it's
-					// likely not a nested playlist but a media item, for
-					// instance Twitch TV media urls:
-					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
-					type = defaultContent;
+				WebStreamMetadata meta = MediaTableWebResource.getWebStreamMetadata(u);
+				if (meta != null) {
+					type = meta.getType();
+				}
+				if (type == 0) {
+					type = WebStreamParser.getWebStreamType(entry.fileName, defaultContent);
 				}
 				StoreResource d = switch (type) {
 					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null, entry.directives);
