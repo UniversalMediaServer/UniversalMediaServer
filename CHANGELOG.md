@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
+
 ### General
 - Added Specials folder for TV Series
 - Jetty is now a selectable media server engine, with JUPnP+
@@ -14,6 +16,9 @@
 - Improved web interface build speed with Vite
 - General bugfixes
 - Removed the JDK HTTP servlet server personal implementation
+
+### Media players
+- Fixed support for media players (like some Samsung TVs) that rely on X_GetFeatureList (#4713) (thanks, si70so15!)
 
 ### Translation updates via Crowdin
 - Japanese (52%) (thanks, mict213!)
@@ -46,6 +51,12 @@
 - Bump `tmdbapi` from 0.2 to 0.3 ([#4663](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4663))
 - Bump `video.js` from 8.12.0 to 8.14.0
 - Bump `yarn` from 4.1.1 to 4.2.2
+
+## [14.0.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.1...14.0.2) (2024-06-05)
+
+### General
+
+- Fixed TV series folders appearing in Media Library for content that is not shared (#4715)
 
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
