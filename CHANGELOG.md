@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [14.0.2](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.1...14.0.2) (2024-06-05)
+
+### General
+
+- Fixed TV series folders appearing in Media Library for content that is not shared (#4715)
+
 ## [14.0.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.0...14.0.1) (2024-05-25)
 
 ### General
