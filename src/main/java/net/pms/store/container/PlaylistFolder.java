@@ -26,6 +26,8 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.formats.Format;
@@ -157,7 +159,10 @@ public final class PlaylistFolder extends StoreContainer {
 	@Override
 	public void resolve() {
 		getChildren().clear();
-		setLastModified(getPlaylistfile().lastModified());
+		File playlistFile = getPlaylistfile();
+		if (playlistFile != null) {
+			setLastModified(playlistFile.lastModified());
+		}
 		resolveOnce();
 	}
 
@@ -168,7 +173,7 @@ public final class PlaylistFolder extends StoreContainer {
 		boolean pls = false;
 		try (BufferedReader br = getBufferedReader()) {
 			String line;
-			while (!m3u && !pls && (line = br.readLine()) != null) {
+			while (!m3u && !pls && br != null && (line = br.readLine()) != null) {
 				line = line.trim();
 				if (line.startsWith("#EXTM3U")) {
 					m3u = true;
@@ -180,7 +185,8 @@ public final class PlaylistFolder extends StoreContainer {
 			}
 			String fileName;
 			String title = null;
-			while ((line = br.readLine()) != null) {
+			Map<String, String> directives = new HashMap<>();
+			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
 				if (pls) {
 					if (line.length() > 0 && !line.startsWith("#")) {
@@ -224,14 +230,18 @@ public final class PlaylistFolder extends StoreContainer {
 						} else {
 							title = line;
 						}
+					} else if (line.startsWith("#RADIOBROWSERUUID:")) {
+						directives.put("RADIOBROWSERUUID", line.substring(18));
 					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 						// Non-comment and non-empty line contains the filename
 						fileName = line;
 						Entry entry = new Entry();
 						entry.fileName = fileName;
 						entry.title = title;
+						entry.directives = directives;
 						entries.add(entry);
 						title = null;
+						directives = new HashMap<>();
 					}
 				}
 			}
@@ -269,8 +279,8 @@ public final class PlaylistFolder extends StoreContainer {
 					type = defaultContent;
 				}
 				StoreResource d = switch (type) {
-					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null);
-					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null);
+					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null, entry.directives);
+					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null, entry.directives);
 					case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
 					case Format.PLAYLIST -> getPlaylist(renderer, entry.title, u, 0);
 					default -> null;
@@ -298,6 +308,7 @@ public final class PlaylistFolder extends StoreContainer {
 
 		private String fileName;
 		private String title;
+		private Map<String, String> directives;
 
 		@Override
 		public String toString() {

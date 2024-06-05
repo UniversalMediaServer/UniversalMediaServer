@@ -74,7 +74,10 @@ public final class MediaTableThumbnails extends MediaTable {
 	private static final String SQL_GET_ID_MD5 = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_MD5 + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_INSERT_ID_MD5 = INSERT_INTO + TABLE_NAME + " (" + COL_THUMBNAIL + COMMA + COL_MODIFIED + COMMA + COL_MD5 + ") VALUES (" + PARAMETER + COMMA + PARAMETER + COMMA + PARAMETER + ")";
 	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
-	private static final String SQL_CLEANUP = DELETE_FROM + TABLE_NAME + WHERE + NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" + AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
+	private static final String SQL_CLEANUP = DELETE_FROM + TABLE_NAME + WHERE +
+			NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" +
+			AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" +
+			AND + NOT + EXISTS + "(" + SELECT + MediaTableWebResource.TABLE_COL_THUMBID + FROM + MediaTableWebResource.TABLE_NAME + WHERE + MediaTableWebResource.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
