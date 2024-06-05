@@ -17,33 +17,33 @@
 import { Group, Progress, Text, Tooltip } from '@mantine/core';
 
 import { I18nInterface } from '../../contexts/i18n-context';
-import { ServerEventInterface } from '../../contexts/server-event-context';
+import { UmsMemory } from '../../contexts/server-event-context';
 
-export const MemoryBar = ({ decorate, sse, i18n }: { decorate?: boolean, sse: ServerEventInterface, i18n: I18nInterface}) => {
-  const MaxMemLabel = () => { return sse.memory.max.toString(); }
-  const UsedMem = () => { return Math.max(0, sse.memory.used - sse.memory.dbcache - sse.memory.buffer); }
-  const UsedMemPercent = () => { return Math.ceil((UsedMem() / sse.memory.max) * 100); }
+export const MemoryBar = ({ decorate, memory, i18n }: { decorate?: boolean, memory: UmsMemory, i18n: I18nInterface }) => {
+  const MaxMemLabel = () => { return memory.max.toString(); }
+  const UsedMem = () => { return Math.max(0, memory.used - memory.dbcache - memory.buffer); }
+  const UsedMemPercent = () => { return Math.ceil((UsedMem() / memory.max) * 100); }
   const UsedMemLabel = () => { return UsedMemPercent().toString() + ' %'; }
-  const DbCacheMemPercent = () => { return Math.floor((sse.memory.dbcache / sse.memory.max) * 100) };
+  const DbCacheMemPercent = () => { return Math.floor((memory.dbcache / memory.max) * 100) };
   const DbCacheMemLabel = () => { return DbCacheMemPercent().toString() + ' %'; }
-  const BufferMemPercent = () => { return Math.floor((sse.memory.buffer / sse.memory.max) * 100) };
+  const BufferMemPercent = () => { return Math.floor((memory.buffer / memory.max) * 100) };
   const MemoryBarProgress =
     <Progress.Root size='xl' mt='4px'>
-      <Tooltip label={ 'UMS: ' + UsedMem() + ' ' + i18n.get('Mb') }>
+      <Tooltip label={'UMS: ' + UsedMem() + ' ' + i18n.get('Mb')}>
         <Progress.Section value={UsedMemPercent()} color='pink'>
           <Progress.Label>{UsedMemPercent() > 10 ? UsedMemLabel() : ''}</Progress.Label>
         </Progress.Section>
       </Tooltip>
-      <Tooltip label={ i18n.get('DatabaseCache') + ' ' + sse.memory.dbcache + ' ' + i18n.get('Mb') }>
+      <Tooltip label={i18n.get('DatabaseCache') + ' ' + memory.dbcache + ' ' + i18n.get('Mb')}>
         <Progress.Section value={DbCacheMemPercent()} color='grape'>
           <Progress.Label>{DbCacheMemPercent() > 10 ? DbCacheMemLabel() : ''}</Progress.Label>
         </Progress.Section>
       </Tooltip>
-      <Tooltip label={ sse.memory.buffer + ' ' + i18n.get('Mb') }>
+      <Tooltip label={memory.buffer + ' ' + i18n.get('Mb')}>
         <Progress.Section value={BufferMemPercent()} color='orange' />
       </Tooltip>
     </Progress.Root>
-  ;
+    ;
 
   return decorate ? (
     <Group justify='center' gap='xs' grow>

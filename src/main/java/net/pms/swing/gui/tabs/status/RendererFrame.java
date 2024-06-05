@@ -21,6 +21,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import java.awt.Color;
 import java.awt.Desktop;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
@@ -128,7 +129,10 @@ public class RendererFrame extends JFrame {
 			editBar.add(customized ? editButton(false) : customizeButton());
 		}
 		if (repack) {
-			SwingUtilities.getWindowAncestor(this).pack();
+			Window window = SwingUtilities.getWindowAncestor(this);
+			if (window != null) {
+				window.pack();
+			}
 		} else if (updateUI) {
 			editBar.updateUI();
 		}

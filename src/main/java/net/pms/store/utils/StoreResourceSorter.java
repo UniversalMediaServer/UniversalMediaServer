@@ -16,11 +16,15 @@
  */
 package net.pms.store.utils;
 
+import java.io.File;
 import java.text.Normalizer;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.store.StoreResource;
+import net.pms.store.item.RealFile;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +35,19 @@ import org.slf4j.LoggerFactory;
 public class StoreResourceSorter {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(StoreResourceSorter.class);
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+
+	// Sort constants
+	// Sort by title ascending, with compatibility decomposition (all accent/special char handled).
+	public static final int SORT_TITLE_ASC = 0;
+	// Sort by modified date, newest first
+	public static final int SORT_DATE_MOD_DESC = 1;
+	// Sort by modified date, oldest first
+	public static final int SORT_DATE_MOD_ASC = 2;
+	// Randomly sort
+	public static final int SORT_RANDOM = 5;
+	// No sorting
+	public static final int SORT_NO_SORT = 6;
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -72,6 +89,40 @@ public class StoreResourceSorter {
 		}
 	}
 
+	public static void sortResourcesByDefault(List<StoreResource> resources) {
+		sortResourcesByDefault(resources, null);
+	}
+
+	public static void sortResourcesByDefault(List<StoreResource> resources, String lang) {
+		int sortMethod = CONFIGURATION.getSortMethod();
+		switch (sortMethod) {
+			case SORT_TITLE_ASC -> {
+				// Default value.
+				// By title ascending, with compatibility decomposition (all accent/special char handled).
+				sortResourcesByTitle(resources, lang);
+			}
+			case SORT_NO_SORT -> {
+				// no sorting
+			}
+			case SORT_DATE_MOD_DESC -> {
+				// Sort by modified date, newest first
+				sortResourcesByModifiedDate(resources, false);
+			}
+			case SORT_DATE_MOD_ASC -> {
+				// Sort by modified date, oldest first
+				sortResourcesByModifiedDate(resources, true);
+			}
+			case SORT_RANDOM -> {
+				// Random
+				Collections.shuffle(resources, new Random(System.currentTimeMillis()));
+			}
+			default -> {
+				// default.
+				sortResourcesByTitle(resources, lang);
+			}
+		}
+	}
+
 	public static void sortResourcesByTitle(List<StoreResource> resources) {
 		sortResourcesByTitle(resources, true, null);
 	}
@@ -89,6 +140,25 @@ public class StoreResourceSorter {
 				str2 = str2 != null ? str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
 			}
 			return compareToNormalizedString(str1, str2, asc);
+		});
+	}
+
+	public static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
+		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
+			if (resources1 instanceof RealFile realFile1 && resources2 instanceof RealFile realFile2) {
+				File file1 = realFile1.getFile();
+				File file2 = realFile2.getFile();
+				if (file1 == null || file2 == null) {
+					return 0;
+				}
+				if (asc) {
+					return Long.compare(file1.lastModified(), file2.lastModified());
+				} else {
+					return Long.compare(file2.lastModified(), file1.lastModified());
+				}
+			} else {
+				return 0;
+			}
 		});
 	}
 

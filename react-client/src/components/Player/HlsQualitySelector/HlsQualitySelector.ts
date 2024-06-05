@@ -115,7 +115,7 @@ export class HlsQualitySelectorClass {
     const levelItems = [] as Array<any>;
 
     for (let i = 0; i < levels.length; ++i) {
-      const {width, height} = levels[i];
+      const { width, height } = levels[i];
       const pixels = width > height ? height : width;
 
       if (!pixels) {
@@ -177,7 +177,7 @@ export class HlsQualitySelectorClass {
       this.setButtonInnerText(quality === 'auto' ? quality : `${quality}p`);
     }
     for (let i = 0; i < qualityList.length; ++i) {
-      const {width, height} = qualityList[i];
+      const { width, height } = qualityList[i];
       const pixels = width > height ? height : width;
       try {
         qualityList[i].enabled = (pixels === quality || quality === 'auto');
