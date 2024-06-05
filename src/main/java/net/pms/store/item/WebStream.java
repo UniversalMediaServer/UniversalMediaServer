@@ -175,7 +175,7 @@ public class WebStream extends StoreItem {
 		}
 
 		if (FileUtil.isUrl(url) && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
-			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, directives));
+			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, directives, getSpecificType()));
 		}
 	}
 

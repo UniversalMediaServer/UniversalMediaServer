@@ -200,7 +200,7 @@ public class MediaInfoStore {
 		}
 	}
 
-	public static MediaInfo getWebStreamMediaInfo(String url, Map<String, String> directives) {
+	public static MediaInfo getWebStreamMediaInfo(String url, Map<String, String> directives, int defaultType) {
 		Object lock = getLock(url);
 		synchronized (lock) {
 			MediaInfo mediaInfo = getMediaInfoStored(url);
@@ -213,7 +213,7 @@ public class MediaInfoStore {
 			if (meta != null) {
 				meta.fillMediaInfo(mediaInfo);
 			} else {
-				WebStreamMetadataCollector.backgroundLookupAndAddMetadata(url, directives, mediaInfo);
+				WebStreamMetadataCollector.backgroundLookupAndAddMetadata(url, directives, mediaInfo, defaultType);
 			}
 			storeMediaInfo(url, mediaInfo);
 			return mediaInfo;
