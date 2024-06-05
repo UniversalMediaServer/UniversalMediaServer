@@ -36,32 +36,54 @@ public class WebStreamParser {
 	private WebStreamParser() {
 	}
 
-	public static WebStreamMetadata getWebStreamMetadata(String url) {
-		int type = 0;
-		String ext = "." + FileUtil.getUrlExtension(url);
+	public static WebStreamMetadata getWebStreamMetadata(String url, int defaultType) {
+		int type = getTypeFromUrl(url, defaultType);
+		if (type != Format.UNSET && type != Format.UNKNOWN && type != Format.VIDEO && type != Format.AUDIO) {
+			//this is not a media stream
+			return null;
+		}
 		HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-		HttpHeaders inputStreamHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-		if (FileUtil.getUrlExtension(url) == null) {
-			LOGGER.debug("URL has no file extension. Analysing internet resource type from content-type HEADER : {}", url);
-			type = getTypeFrom(headHeaders, type);
+		HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+		if (type == Format.UNSET || type == Format.UNKNOWN) {
+			LOGGER.debug("Analyzing internet resource type from content-type HEADER: {}", url);
+			type = getTypeFromHttpHeaders(headHeaders, type);
 			if (type == 0) {
-				type = getTypeFrom(inputStreamHeaders, type);
+				type = getTypeFromHttpHeaders(getHeaders, type);
 				if (type == 0) {
-					LOGGER.warn("couldn't determine stream content type for {}", url);
+					LOGGER.warn("Couldn't determine stream content type for {}", url);
 				}
 			}
-		} else {
-			LOGGER.debug("analysing internet resource type from file extension of given URL.");
-			Format f = FormatFactory.getAssociatedFormat(ext);
-			type = f == null ? Format.VIDEO : f.getType();
 		}
 		if (type == Format.VIDEO || type == Format.AUDIO) {
 			WebStreamMetadata wsm = new WebStreamMetadata(url, type);
 			addAudioFormat(wsm, headHeaders);
-			addAudioFormat(wsm, inputStreamHeaders);
+			addAudioFormat(wsm, getHeaders);
 			return wsm;
 		}
 		return null;
+	}
+
+	public static int getWebStreamType(String url, int defaultType) {
+		int type = getTypeFromUrl(url, defaultType);
+		if (type == 0 || type == Format.UNKNOWN) {
+			LOGGER.debug("Analyzing internet resource type from content-type HEADER : {}", url);
+			HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
+			type = getTypeFromHttpHeaders(headHeaders, 0);
+			if (type == 0) {
+				HttpHeaders inputStreamHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+				type = getTypeFromHttpHeaders(inputStreamHeaders, 0);
+			}
+			if (type == 0) {
+				LOGGER.debug("Couldn't determine stream content type from content-type HEADER for {}", url);
+			} else {
+				LOGGER.debug("Stream content type set to {} for {}", Format.getStringType(type), url);
+			}
+		}
+		if (type == 0 || type == Format.UNKNOWN) {
+			type = defaultType;
+			LOGGER.debug("Stream content type set to default {} for {}", Format.getStringType(type), url);
+		}
+		return type;
 	}
 
 	/*
@@ -105,7 +127,32 @@ public class WebStreamParser {
 		}
 	}
 
-	private static int getTypeFrom(HttpHeaders headers, int currentType) {
+	private static int getTypeFromUrl(String url, int defaultType) {
+		int type = 0;
+		String ext = FileUtil.getUrlExtension(url);
+		if (ext != null) {
+			ext = "." + ext;
+			LOGGER.debug("Analyzing internet resource type from file extension of given URL.");
+			Format f = FormatFactory.getAssociatedFormat(ext);
+			if (f != null) {
+				type = f.getType();
+				if (type == Format.PLAYLIST && !url.endsWith(ext)) {
+					// If the filename continues past the "extension" (i.e. has
+					// a query string) it's
+					// likely not a nested playlist but a media item, for
+					// instance Twitch TV media urls:
+					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+					type = defaultType;
+				}
+				LOGGER.debug("Stream content type set to {} for {}", Format.getStringType(type), url);
+			} else {
+				LOGGER.debug("Couldn't determine stream content type from file extension for {}", url);
+			}
+		}
+		return type;
+	}
+
+	private static int getTypeFromHttpHeaders(HttpHeaders headers, int currentType) {
 		String contentType = headers.firstValue("content-type").orElse("");
 		if (contentType.isEmpty()) {
 			LOGGER.trace("web server has no content type set ...");

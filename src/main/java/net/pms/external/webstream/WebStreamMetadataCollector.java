@@ -26,6 +26,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.media.MediaInfo;
 import net.pms.media.WebStreamMetadata;
+import net.pms.store.MediaStore;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
 import net.pms.util.SimpleThreadFactory;
@@ -74,7 +75,7 @@ public class WebStreamMetadataCollector {
 	 * @param uri WebStream uri
 	 * @param mediaInfo MediaInfo
 	 */
-	public static void backgroundLookupAndAddMetadata(final String uri, final Map<String, String> directives, final MediaInfo mediaInfo) {
+	public static void backgroundLookupAndAddMetadata(final String uri, final Map<String, String> directives, final MediaInfo mediaInfo, final int defaultType) {
 		if (!shouldLookupAndAddMetadata()) {
 			return;
 		}
@@ -85,9 +86,16 @@ public class WebStreamMetadataCollector {
 		}
 		mediaInfo.setLastExternalLookup(System.currentTimeMillis());
 		Runnable r = () -> {
+			try {
+				// wait until MediaStore Workers release before starting
+				MediaStore.waitWorkers();
+			} catch (InterruptedException ex) {
+				Thread.currentThread().interrupt();
+				return;
+			}
 			//get the default
-			WebStreamMetadata webStreamMetadata = WebStreamParser.getWebStreamMetadata(uri);
-			if (webStreamMetadata != null && directives.containsKey("RADIOBROWSERUUID")) {
+			WebStreamMetadata webStreamMetadata = WebStreamParser.getWebStreamMetadata(uri, defaultType);
+			if (webStreamMetadata != null && directives != null && directives.containsKey("RADIOBROWSERUUID")) {
 				WebStreamMetadata radioStreamMetadata = RadioBrowser4j.getWebStreamMetadata(uri, directives.get("RADIOBROWSERUUID"));
 				if (radioStreamMetadata != null) {
 					if (radioStreamMetadata.getGenre() != null) {

@@ -151,6 +151,7 @@ public final class WebStreamMetadata {
 		if (thumbnailId != null) {
 			mediaInfo.setThumbnailId(thumbnailId);
 		}
+		mediaInfo.setMediaParser("WEBSTREAM");
 	}
 
 	private void fillAudioMediaInfo(MediaInfo mediaInfo) {
