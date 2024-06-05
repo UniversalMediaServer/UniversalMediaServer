@@ -313,7 +313,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			return;
 		}
 		try {
-			LOGGER.info("Founded new web gui renderer with uuid: {}", uuid);
+			LOGGER.info("Found new web gui renderer with uuid: {}", uuid);
 			String userAgent = req.getHeader("User-agent");
 			String langs = getRequestLanguages(req);
 			WebGuiRenderer renderer = new WebGuiRenderer(uuid, account.getUser().getId(), userAgent, langs);
