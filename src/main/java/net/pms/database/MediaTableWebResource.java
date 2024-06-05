@@ -20,9 +20,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import net.pms.external.webstream.WebStreamMetadata;
+import net.pms.media.WebStreamMetadata;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,31 +30,38 @@ public class MediaTableWebResource extends MediaTable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableWebResource.class);
 	protected static final String TABLE_NAME = "WEB_RESOURCE";
 
-	private static final String COL_URL = "URL";
-	private static final String COL_LOGO_URL = "LOGO_URL";
-	private static final String COL_GENRE = "GENRE";
-	private static final String COL_SAMPLE_RATE = "SAMPLE_RATE";
-	private static final String COL_BITRATE = "BITRATE";
-	private static final String COL_TYPE = "TYPE";
-	private static final String COL_CONTENT_TYPE = "CONTENT_TYPE";
-
-	private static final String SQL_MERGE_RESOURCE = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_LOGO_URL + COMMA + COL_CONTENT_TYPE +
-			COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?, ?) ";
-
-	private static final String SQL_MERGE_RESOURCE_WITHOUT_LOGO = MERGE_INTO + TABLE_NAME + "(" + COL_URL + COMMA + COL_CONTENT_TYPE +
-			COMMA + COL_GENRE + COMMA + COL_BITRATE + COMMA + COL_SAMPLE_RATE + COMMA + COL_TYPE + ")" + VALUES + " ( ?, ?, ?, ?, ?, ?) ";
-
-	private static final String SQL_DELETE_ALL = DELETE_FROM + TABLE_NAME;
-	private static final String SQL_DELETE_URL = DELETE_FROM + TABLE_NAME + WHERE + COL_URL + EQUAL + PARAMETER;
-
-	private static final String SQL_GET_ALL_BY_URL = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_URL + EQUAL + PARAMETER;
-
 	/**
 	 * Table version must be increased every time a change is done to the table
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
 	private static final int TABLE_VERSION = 1;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_URL = "URL";
+	private static final String COL_LOGO_URL = "LOGO_URL";
+	private static final String COL_GENRE = "GENRE";
+	private static final String COL_SAMPLE_RATE = "SAMPLE_RATE";
+	private static final String COL_BITRATE = "BITRATE";
+	private static final String COL_FORMAT_TYPE = "FORMAT_TYPE";
+	private static final String COL_CONTENT_TYPE = "CONTENT_TYPE";
+	private static final String COL_THUMBID = "THUMBID";
+	private static final String COL_THUMB_SRC = "THUMB_SRC";
+
+	/**
+	 * COLUMNS with table name
+	 */
+	public static final String TABLE_COL_URL = TABLE_NAME + "." + COL_URL;
+	public static final String TABLE_COL_THUMBID = TABLE_NAME + "." + COL_THUMBID;
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_DELETE_URL = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_URL + EQUAL + PARAMETER;
+	private static final String SQL_GET_ALL_BY_URL = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_URL + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_THUMBID_BY_URL = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_URL + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -82,20 +87,22 @@ public class MediaTableWebResource extends MediaTable {
 		}
 	}
 
-
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			CREATE_TABLE + TABLE_NAME + " (" +
-				COL_URL                     + VARCHAR               + PRIMARY_KEY            + COMMA +
-				COL_LOGO_URL                + VARCHAR                                        + COMMA +
-				COL_CONTENT_TYPE            + VARCHAR                                        + COMMA +
-				COL_GENRE                   + VARCHAR                                        + COMMA +
-				COL_BITRATE                 + INTEGER                                        + COMMA +
-				COL_SAMPLE_RATE             + INTEGER                                        + COMMA +
-				COL_TYPE                    + INTEGER                                        +
-			")",
-			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_GENRE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_GENRE + ")"
+				CREATE_TABLE + TABLE_NAME + " (" +
+				COL_URL             + VARCHAR + PRIMARY_KEY + COMMA +
+				COL_LOGO_URL        + VARCHAR               + COMMA +
+				COL_CONTENT_TYPE    + VARCHAR               + COMMA +
+				COL_GENRE           + VARCHAR               + COMMA +
+				COL_BITRATE         + INTEGER               + COMMA +
+				COL_SAMPLE_RATE     + INTEGER               + COMMA +
+				COL_THUMBID         + BIGINT                + COMMA +
+				COL_THUMB_SRC       + VARCHAR_32            + COMMA +
+				COL_FORMAT_TYPE     + INTEGER               +
+				")",
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_GENRE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_GENRE + ")",
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_THUMBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_THUMBID + ")"
 		);
 	}
 
@@ -106,7 +113,7 @@ public class MediaTableWebResource extends MediaTable {
 			switch (version) {
 				default -> {
 					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 				}
 			}
@@ -121,28 +128,27 @@ public class MediaTableWebResource extends MediaTable {
 	}
 
 	/**
-	 * Can be used to clear the cache which means to clear all entries.
+	 * Deletes one entry
 	 */
-	public static void deleteAllEntries() {
-		try (
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			Statement stmt = connection.createStatement();
-		) {
-			LOGGER.debug("deleting all WEB_RESOURCE entries ...");
-			stmt.execute(SQL_DELETE_ALL);
+	public static void deleteByUrl(String url) {
+		if (StringUtils.isBlank(url)) {
+			return;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			deleteByUrl(connection, url);
 		} catch (Exception e) {
-			LOGGER.error("cannot delete web resource entries.", e);
+			LOGGER.error("cannot delete web resource entry for given URL {} ", url, e);
 		}
 	}
 
 	/**
 	 * Deletes one entry
 	 */
-	public static void deleteByUrl(String url) {
-		try (
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_URL);
-		) {
+	public static void deleteByUrl(final Connection connection, String url) {
+		if (connection == null || StringUtils.isBlank(url)) {
+			return;
+		}
+		try (PreparedStatement updateStatment = connection.prepareStatement(SQL_DELETE_URL)) {
 			updateStatment.setString(1, url);
 			updateStatment.executeUpdate();
 		} catch (Exception e) {
@@ -151,104 +157,80 @@ public class MediaTableWebResource extends MediaTable {
 	}
 
 	public static void insertOrUpdateWebResource(WebStreamMetadata meta) {
-		if (StringUtils.isAllBlank(meta.getLogoUrl())) {
-			insertOrUpdateWebResourceWithoutLogo(meta);
-		} else {
-			insertOrUpdateWebResourceWithLogo(meta);
+		if (meta == null) {
+			LOGGER.warn("Couldn't write WebResource metadata to the database because there is no metadata information.");
+			return;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			insertOrUpdateWebResource(connection, meta);
+		} catch (Exception e) {
+			LOGGER.error("An error occurred while trying to insert WebResource metadata to the database: {}", e.getMessage());
 		}
 	}
 
-	public static void insertOrUpdateWebResourceWithLogo(WebStreamMetadata meta) {
-		if (meta == null) {
-			LOGGER.trace("no metadata ... do not store any data.");
+	public static void insertOrUpdateWebResource(final Connection connection, final WebStreamMetadata meta) {
+		if (connection == null || meta == null) {
 			return;
 		}
-		LOGGER.trace("adding WebResourceMeta to database : {}", meta.toString());
-
-		try (
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			PreparedStatement mergeStatement = connection.prepareStatement(SQL_MERGE_RESOURCE, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-		) {
-			mergeStatement.setString(1, meta.getUrl());
-			if (meta.getLogoUrl() != null) {
-				mergeStatement.setString(2, meta.getLogoUrl());
-			} else {
-				mergeStatement.setNull(2, Types.VARCHAR);
-			}
-			if (meta.getContentType() != null) {
-				mergeStatement.setString(3, meta.getContentType());
-			} else {
-				mergeStatement.setNull(3, Types.VARCHAR);
-			}
-			if (meta.getGenre() != null) {
-				mergeStatement.setString(4, meta.getGenre());
-			} else {
-				mergeStatement.setNull(4, Types.VARCHAR);
-			}
-			if (meta.getBitrate() != null) {
-				mergeStatement.setInt(5, meta.getBitrate());
-			} else {
-				mergeStatement.setNull(5, Types.INTEGER);
-			}
-			if (meta.getSampleRate() != null) {
-				mergeStatement.setInt(6, meta.getSampleRate());
-			} else {
-				mergeStatement.setNull(6, Types.INTEGER);
-			}
-			mergeStatement.setInt(7, meta.getType());
-			mergeStatement.executeUpdate();
-		} catch (Exception e) {
-			LOGGER.error("cannot merge web resource {} ", meta, e);
-		}
-	}
-
-	public static void insertOrUpdateWebResourceWithoutLogo(WebStreamMetadata meta) {
-		if (meta == null) {
-			LOGGER.trace("no metadata ... do not store any data.");
+		String url = meta.getUrl();
+		if (StringUtils.isBlank(url)) {
+			LOGGER.warn("Couldn't write WebResource metadata to the database because there is no url.");
 			return;
 		}
-		LOGGER.trace("adding WebResourceMeta to database (without logo) : {}", meta.toString());
-
-		try (
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			PreparedStatement mergeStatement = connection.prepareStatement(SQL_MERGE_RESOURCE_WITHOUT_LOGO, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-		) {
-			mergeStatement.setString(1, meta.getUrl());
-			if (meta.getContentType() != null) {
-				mergeStatement.setString(2, meta.getContentType());
-			} else {
-				mergeStatement.setNull(2, Types.VARCHAR);
+		try {
+			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_URL, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE)) {
+				ps.setString(1, meta.getUrl());
+				try (ResultSet result = ps.executeQuery()) {
+					boolean isCreatingNewRecord = !result.next();
+					if (isCreatingNewRecord) {
+						LOGGER.trace("Inserting WebResource metadata: {}", meta.toString());
+						result.moveToInsertRow();
+						result.updateString(COL_URL, meta.getUrl());
+					} else {
+						LOGGER.trace("Updating WebResource metadata: {}", meta.toString());
+					}
+					//update only if logo url is set
+					if (meta.getLogoUrl() != null) {
+						result.updateString(COL_LOGO_URL, meta.getLogoUrl());
+						updateLong(result, COL_THUMBID, meta.getThumbnailId());
+						updateString(result, COL_THUMB_SRC, meta.getContentType(), 32);
+					}
+					updateString(result, COL_CONTENT_TYPE, meta.getContentType(), SIZE_MAX);
+					updateString(result, COL_GENRE, meta.getGenre(), SIZE_MAX);
+					updateInteger(result, COL_BITRATE, meta.getBitrate());
+					updateInteger(result, COL_SAMPLE_RATE, meta.getSampleRate());
+					updateInteger(result, COL_FORMAT_TYPE, meta.getType());
+					if (isCreatingNewRecord) {
+						result.insertRow();
+					} else {
+						result.updateRow();
+					}
+				}
 			}
-			if (meta.getGenre() != null) {
-				mergeStatement.setString(3, meta.getGenre());
-			} else {
-				mergeStatement.setNull(3, Types.VARCHAR);
-			}
-			if (meta.getBitrate() != null) {
-				mergeStatement.setInt(4, meta.getBitrate());
-			} else {
-				mergeStatement.setNull(4, Types.INTEGER);
-			}
-			if (meta.getSampleRate() != null) {
-				mergeStatement.setInt(5, meta.getSampleRate());
-			} else {
-				mergeStatement.setNull(5, Types.INTEGER);
-			}
-			mergeStatement.setInt(6, meta.getType());
-			mergeStatement.executeUpdate();
-		} catch (Exception e) {
-			LOGGER.error("cannot merge web resource (without logo) {} ", meta, e);
+		} catch (SQLException e) {
+			LOGGER.error(LOG_ERROR_WHILE_VAR_IN, DATABASE_NAME, "inserting WebResource metadata entry", url, TABLE_NAME, e.getMessage());
 		}
 	}
 
 	public static WebStreamMetadata getWebStreamMetadata(String url) {
-		if (StringUtils.isAllBlank(url)) {
-			LOGGER.trace("given URL is null");
+		if (StringUtils.isBlank(url)) {
+			LOGGER.trace("cannot get web resource metadata for empty URL");
 			return null;
 		}
-		try (
-			Connection connection = MediaDatabase.getConnectionIfAvailable();
-			PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_BY_URL)) {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			return getWebStreamMetadata(connection, url);
+		} catch (Exception e) {
+			LOGGER.error("cannot get web resource metadata for given URL {} ", url, e);
+		}
+		return null;
+	}
+
+	public static WebStreamMetadata getWebStreamMetadata(final Connection connection, String url) {
+		if (StringUtils.isAllBlank(url)) {
+			LOGGER.trace("cannot get web resource metadata for empty URL");
+			return null;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_ALL_BY_URL)) {
 			stmt.setString(1, url);
 			try (ResultSet rs = stmt.executeQuery()) {
 				if (rs.next()) {
@@ -259,7 +241,10 @@ public class MediaTableWebResource extends MediaTable {
 							rs.getString(COL_CONTENT_TYPE),
 							rs.getInt(COL_SAMPLE_RATE),
 							rs.getInt(COL_BITRATE),
-							rs.getInt(COL_TYPE));
+							rs.getLong(COL_THUMBID),
+							rs.getString(COL_THUMB_SRC),
+							rs.getInt(COL_FORMAT_TYPE)
+					);
 				} else {
 					LOGGER.trace("no record found for {}", url);
 				}
@@ -269,6 +254,23 @@ public class MediaTableWebResource extends MediaTable {
 			LOGGER.trace("", e);
 		}
 		return null;
+	}
+
+	public static void updateThumbnailId(final Connection connection, String url, Long thumbId, String thumbnailSource) {
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_THUMBID_BY_URL);
+			) {
+				ps.setLong(1, thumbId);
+				ps.setString(2, thumbnailSource);
+				ps.setString(3, url);
+				ps.executeUpdate();
+				LOGGER.trace("THUMBID updated to {} for {}", thumbId, url);
+			}
+		} catch (SQLException se) {
+			LOGGER.error("Error updating cached thumbnail for \"{}\": {}", url, se.getMessage());
+			LOGGER.trace("", se);
+		}
 	}
 
 }

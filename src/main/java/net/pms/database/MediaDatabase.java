@@ -113,6 +113,8 @@ public class MediaDatabase extends Database {
 				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
+
+				// WebResource Metadata
 				MediaTableWebResource.checkTable(connection);
 
 				MediaTableStoreIds.checkTable(connection);
@@ -163,6 +165,9 @@ public class MediaDatabase extends Database {
 
 		// Audio Metadata
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
+
+		//WebResource Metadata
+		dropTableAndConstraint(connection, MediaTableWebResource.TABLE_NAME);
 	}
 
 	/**

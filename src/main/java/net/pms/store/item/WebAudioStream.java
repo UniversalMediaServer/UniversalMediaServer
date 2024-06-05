@@ -16,39 +16,18 @@
  */
 package net.pms.store.item;
 
-import java.io.IOException;
+import java.util.Map;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebAudioStream extends WebStream {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebAudioStream.class);
-
-	private String mime = null;
-
 	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL) {
-		super(renderer, fluxName, url, thumbURL, Format.AUDIO);
-		try {
-			fetchThumbnailInputStream();
-		} catch (IOException e) {
-			LOGGER.error("cannot retrieve album art for resource {}", url, e);
-		}
+		this(renderer, fluxName, url, thumbURL, null);
 	}
 
-	public void setMimeType(String mime) {
-		this.mime = mime;
-	}
-
-	@Override
-	public String getRendererMimeType() {
-		if (StringUtils.isAllBlank(mime)) {
-			return super.getRendererMimeType();
-		} else {
-			return mime;
-		}
+	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL, Map<String, String> directives) {
+		super(renderer, fluxName, url, thumbURL, Format.AUDIO, directives);
 	}
 
 }

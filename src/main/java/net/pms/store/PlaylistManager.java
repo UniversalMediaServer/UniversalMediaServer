@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.database.MediaTableWebResource;
-import net.pms.external.webstream.WebStreamMetadataCollector;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
@@ -66,9 +65,6 @@ public class PlaylistManager {
 			StoreResource newPlaylistEntry = playlistFolder.getDefaultRenderer().getMediaStore().createResourceFromFile(new File(filenameToAdd));
 			playlistFolder.addChild(newPlaylistEntry);
 			MediaStoreIds.incrementUpdateIdForFilename(playlistPath.toString());
-			if (FileUtil.isUrl(relativeSongPath)) {
-				WebStreamMetadataCollector.getInstance().collectMetadata(relativeSongPath);
-			}
 			return newPlaylistEntry.getId();
 		}
 	}

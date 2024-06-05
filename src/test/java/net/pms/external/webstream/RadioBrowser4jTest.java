@@ -21,9 +21,9 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
-public class WebStreamMetadataCollectorTest {
+public class RadioBrowser4jTest {
 
-	public WebStreamMetadataCollectorTest() {
+	public RadioBrowser4jTest() {
 	}
 
 	@Test
@@ -34,7 +34,8 @@ public class WebStreamMetadataCollectorTest {
 		tags.add("dance");
 		tags.add("edm");
 
-		String tagsString = WebStreamMetadataCollector.getInstance().getGenres(tags);
+		String tagsString = RadioBrowser4j.getGenres(tags);
 		assertEquals("pop / dance / edm", tagsString);
 	}
+
 }
