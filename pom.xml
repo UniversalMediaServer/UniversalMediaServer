@@ -941,7 +941,7 @@
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
 					<nodeVersion>v20.12.2</nodeVersion>
-					<yarnVersion>v1.22.19</yarnVersion>
+					<yarnVersion>v1.22.22</yarnVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
