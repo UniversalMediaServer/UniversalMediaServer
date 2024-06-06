@@ -20,7 +20,7 @@ import { ReactNode, useContext, useEffect, useState } from 'react';
 
 import I18nContext from '../contexts/i18n-context';
 import MainContext from '../contexts/main-context';
-import ServerEventContext from '../contexts/server-event-context';
+import ServerEventContext, { UmsMemory } from '../contexts/server-event-context';
 import SessionContext from '../contexts/session-context';
 import { getJwt } from '../services/auth-service';
 import { sseApiUrl } from '../utils';
@@ -32,7 +32,7 @@ interface Props {
 export const ServerEventProvider = ({ children }: Props) => {
   const [started, setStarted] = useState<boolean>(false);
   const [connectionStatus, setConnectionStatus] = useState<number>(0);
-  const [memory, setMemory] = useState<{ max: number, used: number, dbcache: number, buffer: number }>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
+  const [memory, setMemory] = useState<UmsMemory>({ max: 0, used: 0, dbcache: 0, buffer: 0 });
   const [updateAccounts, setUpdateAccounts] = useState<boolean>(true);
   const [reloadable, setReloadable] = useState<boolean>(false);
   const [userConfiguration, setUserConfiguration] = useState(null);

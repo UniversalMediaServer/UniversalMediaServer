@@ -23,9 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class WebPlayerServer {
+
 	protected static final Logger LOGGER = LoggerFactory.getLogger(WebPlayerServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
+	protected static final int DEFAULT_PORT = CONFIGURATION.getWebPlayerServerPort();
 
 	public abstract Object getServer();
 	public abstract int getPort();
@@ -35,6 +36,6 @@ public abstract class WebPlayerServer {
 	public abstract void stop();
 
 	public static WebPlayerServer createServer(int port) throws IOException {
-		return WebPlayerServerHttpServer.createServer(port);
+		return WebPlayerServerJetty.createServer(port);
 	}
 }

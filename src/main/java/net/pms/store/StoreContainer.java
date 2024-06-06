@@ -17,9 +17,7 @@
 package net.pms.store;
 
 import java.io.IOException;
-import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -39,6 +37,7 @@ import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.store.item.VirtualVideoActionLocalized;
+import net.pms.store.utils.StoreResourceSorter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,7 @@ public class StoreContainer extends StoreResource {
 
 	protected String name;
 	protected String thumbnailIcon;
-	protected boolean isSortedByDisplayName = false;
+	protected boolean isSorted = false;
 
 	private boolean allChildrenAreContainers = true;
 	private boolean discovered = false;
@@ -473,24 +472,8 @@ public class StoreContainer extends StoreResource {
 	}
 
 	protected void sortChildrenIfNeeded() {
-		if (isSortedByDisplayName) {
-			Collections.sort(children, (StoreResource child1, StoreResource child2) -> {
-				if (!child1.isSortableByDisplayName || !child2.isSortableByDisplayName) {
-					return 0;
-				}
-				String str1 = child1.getLocalizedDisplayName(null);
-				String str2 = child2.getLocalizedDisplayName(null);
-				if (str1 == null || str2 == null) {
-					return 0;
-				}
-				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
-					str1 = str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
-					str2 = str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ");
-				}
-				str1 = Normalizer.normalize(str1, Normalizer.Form.NFKD);
-				str2 = Normalizer.normalize(str2, Normalizer.Form.NFKD);
-				return str1.compareToIgnoreCase(str2);
-			});
+		if (isSorted) {
+			StoreResourceSorter.sortResourcesByDefault(children);
 		}
 	}
 
@@ -730,7 +713,7 @@ public class StoreContainer extends StoreResource {
 		discoverChildren();
 	}
 
-	protected synchronized final void discover(boolean forced) {
+	protected final synchronized void discover(boolean forced) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			LOGGER.trace("Initial discovering children for container: {}", getDisplayName());
@@ -863,8 +846,8 @@ public class StoreContainer extends StoreResource {
 		this.discovered = discovered;
 	}
 
-	public boolean isSortedByDisplayName() {
-		return isSortedByDisplayName;
+	public boolean isSorted() {
+		return isSorted;
 	}
 
 	@Override

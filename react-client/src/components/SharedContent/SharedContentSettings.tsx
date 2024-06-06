@@ -171,7 +171,7 @@ export default function SharedContentSettings(
         <div>{type}</div>
         <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>}</div>
         <div><Code color='blue'>{value.uri}</Code></div>
-        { getRestrictedGroups(value) }
+        {getRestrictedGroups(value)}
       </div>
     );
   }
@@ -183,7 +183,7 @@ export default function SharedContentSettings(
         <div>{type}</div>
         <div>{getSharedContentParents(value)}<Code color='teal'>{value.name}</Code></div>
         <div><Code color='blue'>{value.uri}</Code></div>
-        { getRestrictedGroups(value) }
+        {getRestrictedGroups(value)}
       </div>
     );
   }
@@ -298,7 +298,7 @@ export default function SharedContentSettings(
           {i18n.get('MarkContentsUnplayed')}
         </Menu.Item>
       </>
-     );
+    );
   }
 
   const getSharedContentActions = (item: SharedContent) => {
@@ -411,8 +411,7 @@ export default function SharedContentSettings(
         renderItem={
           ({ value, props, isDragged, isSelected }) => {
             // react-movable has a bug, hack this until it's solved
-            // eslint-disable-next-line
-            props.style = props.style ? {...props.style, zIndex: isSelected ? 5000 : 'auto'} as CSSProperties : {} as CSSProperties;
+            props.style = props.style ? { ...props.style, zIndex: isSelected ? 5000 : 'auto' } as CSSProperties : {} as CSSProperties;
             return (
               <Card shadow='sm' withBorder {...props}>
                 <Group justify='space-between'>
@@ -484,7 +483,7 @@ export default function SharedContentSettings(
 
   const getSharedContentModifyModal = () => {
     const isNew = editingIndex < 0;
-    const data=[
+    const data = [
       { value: 'Folder', label: i18n.get('Folder') },
       { value: 'VirtualFolder', label: i18n.get('VirtualFolders') },
       { value: 'FeedAudio', label: i18n.get('Podcast') },
@@ -538,8 +537,8 @@ export default function SharedContentSettings(
             size='xs'
             path={modalForm.values['contentSource']}
             callback={(directory: string) => modalForm.setFieldValue('contentSource', directory)}
-            placeholder= {modalForm.values['contentType'] === 'iTunes' ? i18n.get('AutoDetect') : undefined}
-            withAsterisk= {modalForm.values['contentType'] === 'Folder'}
+            placeholder={modalForm.values['contentType'] === 'iTunes' ? i18n.get('AutoDetect') : undefined}
+            withAsterisk={modalForm.values['contentType'] === 'Folder'}
           ></DirectoryChooser>
         ) : modalForm.values['contentType'] !== 'VirtualFolder' && (
           <TextInput

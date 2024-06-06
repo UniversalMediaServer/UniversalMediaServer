@@ -197,14 +197,14 @@ public class OldConfigurationImporter {
 	private static boolean ensureiPhotoSettings(SharedContentArray values) {
 		boolean updated = false;
 		if (CONFIGURATION.getBoolean(KEY_SHOW_IPHOTO_LIBRARY, false)) {
-			boolean iphotoFounded = false;
+			boolean iphotoFound = false;
 			for (SharedContent value : values) {
 				if (value instanceof IPhotoContent) {
-					iphotoFounded = true;
+					iphotoFound = true;
 					break;
 				}
 			}
-			if (!iphotoFounded) {
+			if (!iphotoFound) {
 				values.add(new IPhotoContent());
 				updated = true;
 			}
@@ -216,14 +216,14 @@ public class OldConfigurationImporter {
 	private static boolean ensureApertureSettings(SharedContentArray values) {
 		boolean updated = false;
 		if (CONFIGURATION.getBoolean(KEY_SHOW_APERTURE_LIBRARY, false)) {
-			boolean apertureFounded = false;
+			boolean apertureFound = false;
 			for (SharedContent value : values) {
 				if (value instanceof ApertureContent) {
-					apertureFounded = true;
+					apertureFound = true;
 					break;
 				}
 			}
-			if (!apertureFounded) {
+			if (!apertureFound) {
 				values.add(new ApertureContent());
 				updated = true;
 			}
@@ -236,14 +236,14 @@ public class OldConfigurationImporter {
 		boolean updated = false;
 		if (CONFIGURATION.getBoolean(KEY_SHOW_ITUNES_LIBRARY, false)) {
 			String path = CONFIGURATION.getString(KEY_ITUNES_LIBRARY_PATH, "");
-			boolean itunesFounded = false;
+			boolean itunesFound = false;
 			for (SharedContent value : values) {
 				if (value instanceof ITunesContent iTunesContent && path.equals(iTunesContent.getPath())) {
-					itunesFounded = true;
+					itunesFound = true;
 					break;
 				}
 			}
-			if (!itunesFounded) {
+			if (!itunesFound) {
 				values.add(new ITunesContent(path));
 				updated = true;
 			}

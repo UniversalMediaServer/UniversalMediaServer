@@ -39,8 +39,6 @@ import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
-import net.pms.store.StoreItem;
-import net.pms.store.StoreResource;
 import net.pms.util.XmlUtils;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -724,28 +722,6 @@ public class JUPnPDeviceHelper {
 	// AVTransport Service
 	public static void play(Device dev) {
 		send(dev, AV_TRANSPORT_SERVICE, "Play", "Speed", "1");
-	}
-
-	/**
-	 * Seems not used.
-	 */
-	public static void play(String uri, String name, Renderer renderer) {
-		StoreResource d = renderer.getMediaStore().getValidResource(uri, name);
-		if (d != null) {
-			play(d, renderer);
-		}
-	}
-
-	/**
-	 * Seems not used.
-	 */
-	public static void play(StoreResource d, Renderer renderer) {
-		StoreResource resource = d.getParent() == null ? renderer.getMediaStore().getTemp().add(d) : d;
-		if (resource instanceof StoreItem item) {
-			Device dev = getDevice(renderer.getUUID());
-			setAVTransportURI(dev, item.getMediaURL(), renderer.isPushMetadata() ? DidlHelper.getDidlString(resource) : null);
-			play(dev);
-		}
 	}
 
 	public static void pause(Device dev) {

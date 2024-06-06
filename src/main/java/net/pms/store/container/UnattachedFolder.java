@@ -19,6 +19,7 @@ package net.pms.store.container;
 import java.io.File;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -39,28 +40,30 @@ import org.slf4j.LoggerFactory;
  * A general-purpose free-floating folder
  */
 public class UnattachedFolder extends StoreContainer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(UnattachedFolder.class);
+	private static final List<String> IDS = new ArrayList<>();
 
 	public UnattachedFolder(Renderer renderer, String name) {
 		super(renderer, name, null);
 		setId(name);
 	}
 
-	public StoreResource add(StoreResource d) {
-		if (d != null) {
-			addChild(d);
-			d.setId(d.getId() + "$" + getId());
-			return d;
+	private int getIdOf(String uri) {
+		synchronized (IDS) {
+			if (!IDS.contains(uri)) {
+				IDS.add(uri);
+			}
+			return IDS.indexOf(uri);
 		}
-
-		return null;
 	}
 
 	public StoreResource add(String uri, String name) {
 		StoreResource d = autoMatch(uri, name);
 		if (d != null) {
 			// Now add the item and resolve its rendering details
-			add(d);
+			d.setId(getId() + getIdOf(uri));
+			addChild(d);
 			d.syncResolve();
 		}
 
@@ -112,11 +115,18 @@ public class UnattachedFolder extends StoreContainer {
 			name = new File(StringUtils.substringBefore(uri, "?")).getName();
 		}
 
-		StoreItem resource = isweb ?
-			type == Format.VIDEO ? new WebVideoStream(renderer, name, uri, null) :
-				type == Format.AUDIO ? new WebAudioStream(renderer, name, uri, null) :
-					type == Format.IMAGE ? new FeedItem(renderer, name, uri, null, null, Format.IMAGE) : null :
-			new RealFile(renderer, new File(uri));
+		StoreItem resource;
+		if (isweb) {
+			resource = switch (type) {
+				case Format.VIDEO -> new WebVideoStream(renderer, name, uri, null);
+				case Format.AUDIO -> new WebAudioStream(renderer, name, uri, null);
+				case Format.IMAGE -> new FeedItem(renderer, name, uri, null, null, Format.IMAGE);
+				default -> null;
+			};
+		} else {
+			resource = new RealFile(renderer, new File(uri));
+		}
+
 		if (resource != null && format == null && !isweb) {
 			resource.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}

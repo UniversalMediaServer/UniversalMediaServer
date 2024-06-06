@@ -34,6 +34,8 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
 import net.pms.store.MediaStatusStore;
@@ -42,12 +44,11 @@ import net.pms.store.PlaylistManager;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
-import net.pms.store.utils.StoreResourceSorter;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.PlaylistFolder;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jupnp.binding.annotations.UpnpAction;
 import org.jupnp.binding.annotations.UpnpInputArgument;
 import org.jupnp.binding.annotations.UpnpOutputArgument;
@@ -151,6 +152,10 @@ import org.xml.sax.SAXException;
 			datatype = "string"),
 	@UpnpStateVariable(
 			name = "A_ARG_TYPE_RID",
+			sendEvents = false,
+			datatype = "string"),
+	@UpnpStateVariable(
+			name = "A_ARG_TYPE_FeatureList",
 			sendEvents = false,
 			datatype = "string")
 })
@@ -465,6 +470,57 @@ public class UmsContentDirectoryService {
 		}
 	}
 
+	@UpnpAction()
+	public void updateObject(
+		@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
+		@UpnpInputArgument(name = "CurrentTagValue", stateVariable = "A_ARG_TYPE_TagValueList") String currentTagValue,
+		@UpnpInputArgument(name = "NewTagValue", stateVariable = "A_ARG_TYPE_TagValueList") String newTagValue,
+		RemoteClientInfo remoteClientInfo
+		) throws ContentDirectoryException {
+		try {
+			UmsRemoteClientInfo info = new UmsRemoteClientInfo(remoteClientInfo);
+			Renderer renderer = info.renderer;
+			if (renderer == null) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Unrecognized media renderer");
+				}
+				return;
+			}
+			if (!renderer.isAllowed()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				return;
+			}
+
+			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
+			if (objectResource == null) {
+				throw new ContentDirectoryException(701, "no such object");
+			}
+
+			String[] currentFragments = UpdateObjectFactory.getFragments(currentTagValue);
+			String[] newFragments = UpdateObjectFactory.getFragments(newTagValue);
+			if (currentFragments.length != newFragments.length) {
+				throw new ContentDirectoryException(706, "UpdateObject() failed because the number of entries (including empty" +
+					" entries) in the CurrentTagValue and NewTagValue arguments do not match.");
+			}
+
+			for (int i = 0; i < currentFragments.length; i++) {
+				IUpdateObjectHandler handler = UpdateObjectFactory.getUpdateObjectHandler(objectResource, currentFragments[i], newFragments[i]);
+				if (handler != null) {
+					handler.handle();
+				}
+			}
+		} catch (Exception e) {
+			if (e instanceof ContentDirectoryException cde) {
+				throw cde;
+			} else {
+				LOGGER.error("updateObject failed", e);
+				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
+			}
+		}
+	}
+
 	@UpnpAction(name = "DestroyObject")
 	public void destroyObject(
 			@UpnpInputArgument(name = "ObjectID", stateVariable = "A_ARG_TYPE_ObjectID") String objectId,
@@ -536,7 +592,9 @@ public class UmsContentDirectoryService {
 		}
 	}
 
-	@UpnpAction(name = "X_GetFeatureList")
+	@UpnpAction(name = "X_GetFeatureList",
+			out =
+			@UpnpOutputArgument(name = "FeatureList", stateVariable = "A_ARG_TYPE_FeatureList"))
 	public String samsungGetFeatureList(
 			RemoteClientInfo remoteClientInfo
 	) throws ContentDirectoryException {
@@ -980,6 +1038,7 @@ public class UmsContentDirectoryService {
 
 		StringBuilder features = new StringBuilder();
 		String mediaStoreId = renderer.getMediaStore().getResourceId();
+		features.append(CRLF);
 		features.append("<Features xmlns=\"urn:schemas-upnp-org:av:avs\"");
 		features.append(" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"");
 		features.append(" xsi:schemaLocation=\"urn:schemas-upnp-org:av:avs http://www.upnp.org/schemas/av/avs.xsd\">").append(CRLF);
@@ -990,12 +1049,7 @@ public class UmsContentDirectoryService {
 		features.append("<container id=\"").append(mediaStoreId).append("\" type=\"object.item.imageItem\"/>").append(CRLF);
 		features.append("</Feature>").append(CRLF);
 		features.append("</Features>").append(CRLF);
-
-		StringBuilder response = new StringBuilder();
-		response.append("<FeatureList>").append(CRLF);
-		response.append(StringEscapeUtils.escapeXml10(features.toString()));
-		response.append("</FeatureList>").append(CRLF);
-		return response.toString();
+		return features.toString();
 	}
 
 	private static String getJUPnPDidlResults(List<StoreResource> resultResources, String filter) {
