@@ -34,7 +34,7 @@
     "react-movable": "3.2.0",
     "react-router-dom": "6.23.1",
     "tabler-icons-react": "1.56.0",
-    "video.js": "8.14.0"
+    "video.js": "8.14.1"
   },
   "devDependencies": {
     "@playwright/test": "1.44.0",
