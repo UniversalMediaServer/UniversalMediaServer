@@ -41,7 +41,7 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 		super(renderer, null, sql, expectedOutput);
 		this.name = tvSeriesId.toString();
 		this.tvSeriesId = tvSeriesId;
-		this.isSortableByDisplayName = true;
+		this.isSortable = true;
 	}
 
 	@Override

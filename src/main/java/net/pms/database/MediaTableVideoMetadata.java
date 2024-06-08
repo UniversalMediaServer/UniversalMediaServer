@@ -119,6 +119,8 @@ public class MediaTableVideoMetadata extends MediaTable {
 	public static final String TABLE_COL_TVEPISODENUMBER = TABLE_NAME + "." + COL_TVEPISODENUMBER;
 	public static final String TABLE_COL_TVSEASON = TABLE_NAME + "." + COL_TVSEASON;
 
+	public static final String TABLE_COL_FIRST_TVEPISODE = "CAST(REGEXP_SUBSTR(CONCAT('0', " + TABLE_COL_TVEPISODENUMBER + "), '\\d*') AS INTEGER)";
+
 	/**
 	 * SQL Jointures
 	 */

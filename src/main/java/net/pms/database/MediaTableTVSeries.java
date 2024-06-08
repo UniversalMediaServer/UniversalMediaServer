@@ -731,17 +731,17 @@ public final class MediaTableTVSeries extends MediaTable {
 		Long tvSeriesId = resultSet.getLong(COL_ID);
 		TvSeriesMetadata metadata = new TvSeriesMetadata();
 		metadata.setTvSeriesId(tvSeriesId);
-		metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSerie(connection, tvSeriesId));
+		metadata.setActors(MediaTableVideoMetadataActors.getActorsForTvSeries(connection, tvSeriesId));
 		metadata.setApiVersion(resultSet.getString(COL_API_VERSION));
-		metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSerie(connection, tvSeriesId));
-		metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForTvSerie(connection, tvSeriesId));
+		metadata.setAwards(MediaTableVideoMetadataAwards.getValueForTvSeries(connection, tvSeriesId));
+		metadata.setCountries(MediaTableVideoMetadataCountries.getCountriesForTvSeries(connection, tvSeriesId));
 		metadata.setCreatedBy(resultSet.getString(COL_CREATEDBY));
 		metadata.setCredits(resultSet.getString(COL_CREDITS));
-		metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSerie(connection, tvSeriesId));
+		metadata.setDirectors(MediaTableVideoMetadataDirectors.getDirectorsForTvSeries(connection, tvSeriesId));
 		metadata.setEndYear(toInteger(resultSet, COL_ENDYEAR));
 		metadata.setExternalIDs(resultSet.getString(COL_EXTERNALIDS));
 		metadata.setFirstAirDate(getLocalDate(resultSet, COL_FIRSTAIRDATE));
-		metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSerie(connection, tvSeriesId));
+		metadata.setGenres(MediaTableVideoMetadataGenres.getGenresForTvSeries(connection, tvSeriesId));
 		metadata.setHomepage(resultSet.getString(COL_HOMEPAGE));
 		metadata.setImages(resultSet.getString(COL_IMAGES));
 		metadata.setIMDbID(resultSet.getString(COL_IMDBID));
@@ -760,7 +760,7 @@ public final class MediaTableTVSeries extends MediaTable {
 		metadata.setProductionCountries(resultSet.getString(COL_PRODUCTIONCOUNTRIES));
 		metadata.setRated(resultSet.getString(COL_RATED));
 		metadata.setRating(toDouble(resultSet, COL_RATING));
-		metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSerie(connection, tvSeriesId));
+		metadata.setRatings(MediaTableVideoMetadataRatings.getRatingsForTvSeries(connection, tvSeriesId));
 		metadata.setSeasons(resultSet.getString(COL_SEASONS));
 		metadata.setSeriesType(resultSet.getString(COL_SERIESTYPE));
 		metadata.setSpokenLanguages(resultSet.getString(COL_SPOKENLANGUAGES));
@@ -782,7 +782,7 @@ public final class MediaTableTVSeries extends MediaTable {
 			) {
 			DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(metadata.getPoster(null));
 			if (thumbnail != null) {
-				Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
+				Long thumbnailId = ThumbnailStore.getIdForTvSeries(thumbnail, tvSeriesId, ThumbnailSource.TMDB_LOC);
 				metadata.setThumbnailSource(ThumbnailSource.TMDB_LOC);
 				metadata.setThumbnailId(thumbnailId);
 			}

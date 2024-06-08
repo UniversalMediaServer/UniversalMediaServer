@@ -74,11 +74,11 @@
 
 		<binary-revision>187</binary-revision>
 
-		<exec-maven-plugin-version>3.2.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.3.0</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
-		<maven-enforcer-plugin-version>3.4.1</maven-enforcer-plugin-version>
+		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -121,7 +121,7 @@
 		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.10.2</junit5.version>
-		<jetty.version>12.0.8</jetty.version>
+		<jetty.version>12.0.9</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -178,7 +178,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.1</version>
+			<version>1.3.2</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -453,7 +453,7 @@
 		<dependency>
 			<groupId>org.jupnp</groupId>
 			<artifactId>org.jupnp.support</artifactId>
-			<version>3.0.1</version>
+			<version>3.0.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -557,7 +557,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.0</version>
+			<version>6.6.1</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -940,8 +940,9 @@
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
+					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<nodeVersion>v20.12.2</nodeVersion>
-					<yarnVersion>v1.22.19</yarnVersion>
+					<yarnVersion>v1.22.22</yarnVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -3493,7 +3494,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.12.7</version>
+								<version>10.17.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

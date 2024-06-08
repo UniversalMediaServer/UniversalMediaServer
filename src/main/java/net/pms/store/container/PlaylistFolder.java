@@ -37,9 +37,9 @@ import net.pms.store.item.FeedItem;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.WebAudioStream;
 import net.pms.store.item.WebVideoStream;
+import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.BOMInputStream;
 import org.slf4j.Logger;
@@ -268,10 +268,14 @@ public final class PlaylistFolder extends StoreContainer {
 					// 'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
 					type = defaultContent;
 				}
-				StoreResource d = type == Format.VIDEO ? new WebVideoStream(renderer, entry.title, u, null) :
-					type == Format.AUDIO ? new WebAudioStream(renderer, entry.title, u, null) :
-						type == Format.IMAGE ? new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE) :
-							type == Format.PLAYLIST ? getPlaylist(renderer, entry.title, u, 0) : null;
+				StoreResource d = switch (type) {
+					case Format.VIDEO -> new WebVideoStream(renderer, entry.title, u, null);
+					case Format.AUDIO -> new WebAudioStream(renderer, entry.title, u, null);
+					case Format.IMAGE -> new FeedItem(renderer, entry.title, u, null, null, Format.IMAGE);
+					case Format.PLAYLIST -> getPlaylist(renderer, entry.title, u, 0);
+					default -> null;
+				};
+
 				if (d != null) {
 					addChild(d);
 					valid = true;
@@ -281,7 +285,7 @@ public final class PlaylistFolder extends StoreContainer {
 		if (!isweb) {
 			storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
-		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
+		if (renderer.getUmsConfiguration().getSortMethod(getPlaylistfile()) == StoreResourceSorter.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
 

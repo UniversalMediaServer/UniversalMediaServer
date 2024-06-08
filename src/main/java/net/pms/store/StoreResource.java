@@ -102,7 +102,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * The last time refresh was called.
 	 */
 	private long lastRefreshTime;
-	protected boolean isSortableByDisplayName = false;
+	protected boolean isSortable = false;
 
 	protected HashMap<String, Object> attachments = null;
 

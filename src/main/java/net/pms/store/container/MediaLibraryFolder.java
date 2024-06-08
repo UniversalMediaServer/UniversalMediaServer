@@ -75,7 +75,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		isSortedByDisplayName = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
+		isSorted = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + columnName + FROM + tableName + WHERE + MediaTableTVSeries.CHILD_ID + IS_NOT_NULL + ORDER_BY + columnName + ASC);
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + LEFT_JOIN + tableName + ON + MediaTableTVSeries.TABLE_COL_ID + EQUAL + tableName + "." + MediaTableTVSeries.CHILD_ID + WHERE + columnName + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -161,7 +161,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + columnName + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + columnName + (desc ? DESC : ASC));
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + columnName + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_TITLE + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -169,7 +169,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		List<String> queries = new ArrayList<>();
 		queries.add(SELECT + MediaTableTVSeries.FIRSTAIRDATE_FORMATED + FROM + MediaTableTVSeries.TABLE_NAME + ORDER_BY + MediaTableTVSeries.TABLE_COL_STARTYEAR + DESC);
 		queries.add(SELECT + MediaTableTVSeries.TABLE_COL_ID + ", " + MediaTableTVSeries.TABLE_COL_TITLE + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.FIRSTAIRDATE_FORMATED + EQUAL + "'${0}'" + ORDER_BY + MediaTableTVSeries.TABLE_COL_STARTYEAR + ASC);
-		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER);
+		queries.add(SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE);
 		return queries;
 	}
 
@@ -496,7 +496,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
 			List<StoreResource> newVirtualFoldersResources = new ArrayList<>();
 			for (String virtualFolderName : newVirtualFolders) {
-				if (isTextOutputExpected(expectedOutput)) {
+				if (virtualFolderName != null && isTextOutputExpected(expectedOutput)) {
 					String[] sqls2 = new String[sqls.length - 1];
 					int[] expectedOutputs2 = new int[expectedOutputs.length - 1];
 					System.arraycopy(sqls, 1, sqls2, 0, sqls2.length);
@@ -513,7 +513,12 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 
 						sqls2 = new String[] {transformSQL(episodesWithinSeasonQuery.toString())};
 						if (virtualFolderName.length() != 4) {
-							i18nName = "SeasonX";
+							if ("0".equals(virtualFolderName)) {
+								i18nName = "SeasonSpecials";
+								virtualFolderName = null;
+							} else {
+								i18nName = "SeasonX";
+							}
 						}
 					}
 
@@ -601,33 +606,14 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
 					if (isExpectedTVSeries) {
-						try {
-							Long tvSeriesId = Long.valueOf(virtualFolderName);
+						Long tvSeriesId = getMediaLibraryTvSeriesId(virtualFolderName);
+						if (tvSeriesId != null) {
 							newVirtualFoldersResources.add(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
-						} catch (NumberFormatException e) {
-							//we need a long, other values are null (wrong db value check)
 						}
 					} else if (isExpectedMovieFolder) {
-						try {
-							Long fileId = Long.valueOf(virtualFolderName);
-							if (MediaDatabase.isAvailable()) {
-								Connection connection = null;
-								String filename = null;
-								try {
-									connection = MediaDatabase.getConnectionIfAvailable();
-									filename = MediaTableFiles.getFilenameById(connection, fileId);
-								} finally {
-									MediaDatabase.close(connection);
-								}
-								if (filename != null) {
-									File file = new File(filename);
-									if (file.exists() && renderer.hasShareAccess(file)) {
-										newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
-									}
-								}
-							}
-						} catch (NumberFormatException e) {
-							//we need a long, other values are null (wrong db value check)
+						String filename = getMediaLibraryMovieFilename(virtualFolderName);
+						if (filename != null) {
+							newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
 						}
 					} else if (i18nName != null) {
 						newVirtualFoldersResources.add(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
@@ -675,7 +661,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						MediaTableVideoMetadataGenres.TABLE_COL_GENRE + IN + "(genresSubquery." + MediaTableVideoMetadataGenres.COL_GENRE + ")" + AND +
 						MediaTableTVSeries.TABLE_COL_RATED  + EQUAL + "ratedSubquery." + MediaTableTVSeries.COL_RATED +
 					ORDER_BY + MediaTableTVSeries.TABLE_COL_RATING + DESC,
-					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_TVEPISODENUMBER
+					SELECT_ALL + FROM_FILES_VIDEOMETA_TV_SERIES + WHERE + FORMAT_TYPE_VIDEO + AND + TVEPISODE_CONDITION + AND + MediaTableTVSeries.TABLE_COL_ID + EQUAL + "${0}" + ORDER_BY + MediaTableVideoMetadata.TABLE_COL_TVSEASON + ", " + MediaTableVideoMetadata.TABLE_COL_FIRST_TVEPISODE
 				},
 				new int[]{MediaLibraryFolder.TVSERIES_NOSORT, MediaLibraryFolder.EPISODES}
 			);
@@ -775,6 +761,58 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 			expectedOutput != FILES_NOSORT_DEDUPED &&
 			expectedOutput != SEASONS &&
 			expectedOutput != EPISODES;
+	}
+
+	public Long getMediaLibraryTvSeriesId(String virtualFolderName) {
+		try {
+			Long tvSeriesId = Long.valueOf(virtualFolderName);
+			if (MediaDatabase.isAvailable()) {
+				Connection connection = null;
+				List<String> filenames = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, tvSeriesId);
+				} finally {
+					MediaDatabase.close(connection);
+				}
+				if (filenames != null && !filenames.isEmpty()) {
+					for (String filename : filenames) {
+						File file = new File(filename);
+						if (file.exists() && renderer.hasShareAccess(file)) {
+							return tvSeriesId;
+						}
+					}
+				}
+			}
+		} catch (NumberFormatException e) {
+			//we need a long, other values are null (wrong db value check)
+		}
+		return null;
+	}
+
+	public String getMediaLibraryMovieFilename(String virtualFolderName) {
+		try {
+			Long fileId = Long.valueOf(virtualFolderName);
+			if (MediaDatabase.isAvailable()) {
+				Connection connection = null;
+				String filename = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					filename = MediaTableFiles.getFilenameById(connection, fileId);
+				} finally {
+					MediaDatabase.close(connection);
+				}
+				if (filename != null) {
+					File file = new File(filename);
+					if (file.exists() && renderer.hasShareAccess(file)) {
+						return filename;
+					}
+				}
+			}
+		} catch (NumberFormatException e) {
+			//we need a long, other values are null (wrong db value check)
+		}
+		return null;
 	}
 
 	public boolean isTVSeries() {
