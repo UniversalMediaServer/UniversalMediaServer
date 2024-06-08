@@ -1,37 +1,32 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import net.pms.util.ParseException;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.util.ParseException;
 
 /**
  * This immutable class represents a mime-type.
@@ -91,16 +86,9 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		this.type = type == null ? ANY : type;
 		this.subtype = subtype == null ? ANY : subtype;
 		if (parameters == null) {
-			this.parameters = Collections.EMPTY_MAP;
+			this.parameters = Collections.emptyMap();
 		} else {
-			TreeMap<String, String> map = new TreeMap<String, String>(new Comparator<String>() {
-
-				@Override
-				public int compare(String o1, String o2) {
-					return o1.compareToIgnoreCase(o2);
-				}
-
-			});
+			TreeMap<String, String> map = new TreeMap<>((String o1, String o2) -> o1.compareToIgnoreCase(o2));
 			for (Entry<String, String> entry : parameters.entrySet()) {
 				map.put(entry.getKey(), entry.getValue());
 			}
@@ -121,7 +109,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 *         {@link MimeType} matches anything.
 	 */
 	public boolean isAnyType() {
-		return isBlank(type) || ANY.equals(type);
+		return StringUtils.isBlank(type) || ANY.equals(type);
 	}
 
 	/**
@@ -164,30 +152,30 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 			return false;
 		}
 		if (
-			(isBlank(type) || ANY.equals(type)) &&
-			isBlank(subtype) ||
-			(isBlank(other.type) || ANY.equals(other.type)) &&
-			isBlank(other.subtype)
+			(StringUtils.isBlank(type) || ANY.equals(type)) &&
+			StringUtils.isBlank(subtype) ||
+			(StringUtils.isBlank(other.type) || ANY.equals(other.type)) &&
+			StringUtils.isBlank(other.subtype)
 		) {
 			return true;
-		} else if (isBlank(type) || (isBlank(other.type))) {
+		} else if (StringUtils.isBlank(type) || (StringUtils.isBlank(other.type))) {
 			return
-				isBlank(subtype) ||
-				isBlank(other.subtype) ||
+				StringUtils.isBlank(subtype) ||
+				StringUtils.isBlank(other.subtype) ||
 				ANY.equals(subtype) ||
 				ANY.equals(other.subtype) ||
 				subtype.toLowerCase(Locale.ROOT).equals(other.subtype.toLowerCase(Locale.ROOT));
 		} else if (
 			type.toLowerCase(Locale.ROOT).equals(other.type.toLowerCase(Locale.ROOT)) &&
 			(
-				isBlank(subtype) ||
+				StringUtils.isBlank(subtype) ||
 				ANY.equals(subtype) ||
-				isBlank(other.subtype) ||
+				StringUtils.isBlank(other.subtype) ||
 				ANY.equals(other.subtype)
 			)
 		) {
 			return true;
-		} else if (isBlank(subtype) || isBlank(other.subtype)) {
+		} else if (StringUtils.isBlank(subtype) || StringUtils.isBlank(other.subtype)) {
 			return false;
 		} else {
 			return
@@ -205,7 +193,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 * @throws ParseException If {@code stringValue} isn't a valid mime-type.
 	 */
 	public static MimeType valueOf(String stringValue) throws ParseException {
-		if (isBlank(stringValue)) {
+		if (StringUtils.isBlank(stringValue)) {
 			return ANYANY;
 		}
 
@@ -216,7 +204,7 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		String subtype = null;
 
 		if (elements.length < 2) {
-			if (parts[0].equals(ANY) || isBlank(parts[0])) {
+			if (parts[0].equals(ANY) || StringUtils.isBlank(parts[0])) {
 				type = ANY;
 				subtype = ANY;
 			} else {
@@ -233,11 +221,11 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 		if (parts.length > 1) {
 			HashMap<String, String> parameterMap = new HashMap<>();
 			for (int i = 1; i < parts.length; i++) {
-				if (isBlank(parts[i])) {
+				if (StringUtils.isBlank(parts[i])) {
 					continue;
 				}
 				String[] parameter = parts[i].trim().split("\\s*=\\s*");
-				if (parameter.length == 2 && isNotBlank(parameter[0])) {
+				if (parameter.length == 2 && StringUtils.isNotBlank(parameter[0])) {
 					parameterMap.put(parameter[0], parameter[1]);
 				} else if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("MimeType: Unable to parse parameter \"{}\" - it will be ignored", parts[i]);
@@ -332,9 +320,9 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	 *
 	 * @return The generated {@link String} value.
 	 */
-	protected String generateStringValue() {
+	protected final String generateStringValue() {
 		StringBuilder sb = new StringBuilder(toStringWithoutParameters());
-		if (parameters != null && parameters.size() > 0) {
+		if (parameters != null && !parameters.isEmpty()) {
 			for (Entry<String, String> parameter : parameters.entrySet()) {
 				sb.append(";").append(parameter.getKey()).append("=").append(parameter.getValue());
 			}
@@ -343,12 +331,12 @@ public class MimeType implements Comparable<MimeType>, Serializable {
 	}
 
 	/**
-	 * Creates a {@link org.seamless.util.MimeType} from this instance.
+	 * Creates a {@link org.jupnp.util.MimeType} from this instance.
 	 *
-	 * @return The new {@link org.seamless.util.MimeType} instance.
+	 * @return The new {@link org.jupnp.util.MimeType} instance.
 	 */
-	public org.seamless.util.MimeType toSeamlessMimeType() {
-		return new org.seamless.util.MimeType(type, subtype, parameters);
+	public org.jupnp.util.MimeType toSeamlessMimeType() {
+		return new org.jupnp.util.MimeType(type, subtype, parameters);
 	}
 
 	/**

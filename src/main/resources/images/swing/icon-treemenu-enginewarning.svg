@@ -1,0 +1,21 @@
+<svg
+	xmlns="http://www.w3.org/2000/svg"
+	xmlns:xlink="http://www.w3.org/1999/xlink"
+	width="16" height="16">
+	<defs>
+		<linearGradient id="c" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#6E6E6E"/>
+			<stop offset="100%" stop-color="#5B5B5B"/>
+		</linearGradient>
+		<linearGradient id="d" x1="0" x2="0" y1="0" y2="1">
+			<stop offset="0%" stop-color="#EE9812"/>
+			<stop offset="100%" stop-color="#E25B18"/>
+		</linearGradient>
+		<path id="b" d="M6.7 3.6c0 0 1.4-2.4 2.7 0l4.9 8.3c0 0 .7 1.4-.7 1.4l-11.1 0c-1.4 0-.7-1.4-.7-1.4l4.9-8.3"/>
+		<path id="e" d="M8.8 6v3.4c0 .3-.3.7-.7.7s-.7-.3-.7-.7v-3.4c0-.3.3-.7.7-.7.3 0 .7.3.7.7zm-.7 4.7c.3 0 .7.3.7.7s-.3.7-.7.7-.7-.3-.7-.7.3-.7.7-.7z"/>
+	</defs>
+	<use xlink:href="#b" fill="none" stroke="#000" stroke-width="3.2" stroke-opacity=".2"/>
+	<use xlink:href="#b" fill="none" stroke="#FFF" stroke-width="3"/>
+	<use xlink:href="#b" fill="url(#d)"/>
+	<use xlink:href="#e" fill="#FFF"/>
+</svg>

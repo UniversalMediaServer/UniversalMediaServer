@@ -10,5 +10,7 @@ In order to help diagnose and fix your issue we often need your "debug informati
   * Click `Zip selected files`.
   * Save the zip file to a location you will remember.
   * Attach the zip file to the GitHub issue.
+
+Additionally, if the problem happened in the browser, it can be useful to know about any browser console errors, so please paste them into the issue too.
     
 ##  Thank you for your participation

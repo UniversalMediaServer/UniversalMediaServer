@@ -1,37 +1,35 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.encoders;
 
 import java.io.IOException;
-import javax.swing.JComponent;
-import net.pms.configuration.DeviceConfiguration;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.MediaInfo;
+import net.pms.platform.PlatformUtils;
+import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
+import net.pms.util.UMSUtils;
 
 public class MEncoderWebVideo extends MEncoderVideo {
-	public static final PlayerId ID = StandardPlayerId.MENCODER_WEB_VIDEO;
+	public static final EngineId ID = StandardEngineId.MENCODER_WEB_VIDEO;
 
 	/** The {@link Configuration} key for the DCRaw executable type. */
 	public static final String KEY_MENCODER_WEB_EXECUTABLE_TYPE = "mencoder_web_executable_type";
@@ -42,12 +40,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public JComponent config() {
-		return null;
-	}
-
-	@Override
-	public PlayerId id() {
+	public EngineId getEngineId() {
 		return ID;
 	}
 
@@ -58,7 +51,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public int purpose() {
-		return VIDEO_WEBSTREAM_PLAYER;
+		return VIDEO_WEBSTREAM_ENGINE;
 	}
 
 	@Override
@@ -71,8 +64,7 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		return "video/mpeg";
 	}
 
-	@Override
-	protected String[] getDefaultArgs() {
+	protected String[] getDefaultArgs(UmsConfiguration configuration) {
 		int nThreads = configuration.getMencoderMaxThreads();
 		String acodec = configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3";
 		return new String[]{
@@ -92,23 +84,23 @@ public class MEncoderWebVideo extends MEncoderVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		DLNAResource dlna,
-		DLNAMediaInfo media,
+		StoreItem resource,
+		MediaInfo media,
 		OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration) params.getMediaRenderer();
+		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
 		params.setMinBufferSize(params.getMinFileSize());
 		params.setSecondReadMinSize(100000);
 
-		PipeProcess pipe = new PipeProcess("mencoder" + System.currentTimeMillis());
+		IPipeProcess pipe = PlatformUtils.INSTANCE.getPipeProcess("mencoder" + System.currentTimeMillis());
 		params.getInputPipes()[0] = pipe;
 
-		String[] cmdArray = new String[args().length + 4];
+		String[] defaultArgs = getDefaultArgs(configuration);
+		String[] cmdArray = new String[defaultArgs.length + 4];
 		cmdArray[0] = getExecutable();
-		final String filename = dlna.getFileName();
+		final String filename = resource.getFileName();
 		cmdArray[1] = filename;
-		System.arraycopy(args(), 0, cmdArray, 2, args().length);
+		System.arraycopy(defaultArgs, 0, cmdArray, 2, defaultArgs.length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
@@ -129,31 +121,17 @@ public class MEncoderWebVideo extends MEncoderVideo {
 		pw.runInNewThread();
 
 		// Not sure what good this 50ms wait will do for the calling method.
-		try {
-			Thread.sleep(50);
-		} catch (InterruptedException e) {
-		}
-		configuration = prev;
+		UMSUtils.sleep(50);
 		return pw;
 	}
 
 	@Override
-	public boolean avisynth() {
-		return false;
-	}
-
-	@Override
-	public String name() {
+	public String getName() {
 		return NAME;
 	}
 
 	@Override
-	public String[] args() {
-		return getDefaultArgs();
-	}
-
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
+	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
 }

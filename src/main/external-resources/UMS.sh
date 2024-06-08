@@ -38,8 +38,8 @@ if [ -z "$JAVA" ]; then
 fi
 
 # Use our JVM if it exists
-if [ -f jre8/bin/java ]; then
-    JAVA="jre8/bin/java"
+if [ -f jre17/bin/java ]; then
+    JAVA="jre17/bin/java"
 fi
 
 # Setup the classpath

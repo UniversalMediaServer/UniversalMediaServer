@@ -1,10 +1,26 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.util;
 
 import java.util.Arrays;
 
 public final class Version implements Comparable<Version> {
 
-	private final static int MAX_ELEMENTS = 4;
+	private static final int MAX_ELEMENTS = 4;
 	private final int[] elements;
 
 	public Version(String versionString) {
@@ -40,7 +56,8 @@ public final class Version implements Comparable<Version> {
 	 */
 	@Override
 	public int compareTo(Version other) {
-		final int[] longerElements, shorterElements;
+		final int[] longerElements;
+		final int[] shorterElements;
 		final int sign;
 
 		if (elements.length >= other.elements.length) {
@@ -73,8 +90,8 @@ public final class Version implements Comparable<Version> {
 	 */
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof Version) {
-			return compareTo((Version) other) == 0;
+		if (other instanceof Version version) {
+			return compareTo(version) == 0;
 		} else {
 			return false;
 		}
@@ -126,20 +143,6 @@ public final class Version implements Comparable<Version> {
 	 */
 	public boolean isGreaterThanOrEqualTo(Version other) {
 		return compareTo(other) >= 0;
-	}
-
-	/**
-	 * Compares an initial (current) version and a target version of PMS and
-	 * returns true if the initial version can be updated to the target version.
-	 * See src/main/external-resources/update/README for the criteria.
-	 *
-	 * @param vFrom The initial version
-	 * @param vTo The target version
-	 * @return <code>true</code> if the current version can safely be updated,
-	 *         <code>false</code> otherwise.
-	 */
-	public static boolean isPmsUpdatable(Version vFrom, Version vTo) {
-		return vTo.isGreaterThan(vFrom);
 	}
 
 	/**
@@ -262,4 +265,5 @@ public final class Version implements Comparable<Version> {
 
 		return buf.toString();
 	}
+
 }

@@ -1,35 +1,34 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
-import static org.apache.commons.lang3.StringUtils.left;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-import net.pms.util.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
+import java.util.UUID;
+import net.pms.external.musicbrainz.coverart.CoverArtArchiveUtil.CoverArtArchiveTagInfo;
+import net.pms.media.audio.metadata.MusicBrainzAlbum;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 /**
  * This class is responsible for managing the MusicBrainz releases table. It
@@ -48,8 +47,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 3;
-
+	private static final int TABLE_VERSION = 4;
+	private static final String SQL_GET_MBID = "SELECT * FROM " + TABLE_NAME + " WHERE MBID = ?";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -94,32 +93,44 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
-				case 1:
+				case 1 -> {
 					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
-					Statement statement = connection.createStatement();
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ALBUM VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN TITLE VARCHAR(1000)"
-					);
-					statement.executeUpdate(
-						"ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MEDIA_YEAR VARCHAR(20)"
-					);
-					break;
-				case 2:
+					try (Statement statement = connection.createStatement()) {
+						statement.executeUpdate(
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ARTIST" + VARCHAR_1000
+						);
+						statement.executeUpdate(
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "TITLE" + VARCHAR_1000
+						);
+						statement.executeUpdate(
+								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "MEDIA_YEAR" + VARCHAR_20
+						);
+					}
+				}
+				case 2 -> {
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN `YEAR` RENAME TO MEDIA_YEAR");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`YEAR`" + RENAME_TO + "MEDIA_YEAR");
 					}
-					break;
-				default:
+				}
+				case 3 -> {
+					if (isColumnExist(connection, TABLE_NAME, "MBID")) {
+						LOGGER.trace("alter datatype of MBID column from VARCHAR to UUID");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MBID SET DATA TYPE UUID");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST_ID SET DATA TYPE UUID");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN GENRE VARCHAR(1000)");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN RATING INTEGER");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN TRACK_ID");
+						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN ALBUM");
+						executeUpdate(connection, "CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
+						executeUpdate(connection, "CREATE INDEX GENRE_IDX ON " + TABLE_NAME + "(GENRE)");
+					}
+				}
+				default -> {
 					throw new IllegalStateException(
 						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
+				}
 			}
 		}
 		MediaTableTablesVersions.setTableVersion(connection, TABLE_NAME, TABLE_VERSION);
@@ -129,18 +140,20 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID				IDENTITY		PRIMARY KEY	, " +
-				"MODIFIED		DATETIME					, " +
-				"MBID			VARCHAR(36)					, " +
-				"ARTIST			VARCHAR(1000)				, " +
-				"ALBUM			VARCHAR(1000)				, " +
-				"TITLE			VARCHAR(1000)				, " +
-				"MEDIA_YEAR		VARCHAR(20)					, " +
-				"ARTIST_ID		VARCHAR(36)					, " +
-				"TRACK_ID		VARCHAR(36)					  " +
+				"ID             IDENTITY         PRIMARY KEY , " +
+				"MODIFIED       TIMESTAMP                    , " +
+				"MBID           UUID                         , " +
+				"ARTIST         VARCHAR(1000)                , " +
+				"TITLE          VARCHAR(1000)                , " +
+				"MEDIA_YEAR     VARCHAR(20)                  , " +
+				"GENRE          VARCHAR(1000)                , " +
+				"ARTIST_ID      UUID                         , " +
+				"RATING         INTEGER                        " +
 			")",
 			"CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)",
-			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)"
+			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)",
+			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)",
+			"CREATE INDEX GENRE_IDX ON " + TABLE_NAME + "(GENRE)"
 		);
 	}
 
@@ -148,21 +161,35 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * A type class for returning results from MusicBrainzReleases database
 	 * lookup.
 	 */
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	public static class MusicBrainzReleasesResult {
-
-		public boolean found = false;
-		public Timestamp modified = null;
-		public String mBID = null;
+		private final boolean found;
+		private final Timestamp modified;
+		private final String mBID;
 
 		public MusicBrainzReleasesResult() {
+			this(false, null, null);
 		}
 
-		@SuppressFBWarnings("EI_EXPOSE_REP2")
 		public MusicBrainzReleasesResult(final boolean found, final Timestamp modified, final String mBID) {
 			this.found = found;
 			this.modified = modified;
 			this.mBID = mBID;
+		}
+
+		public boolean isFound() {
+			return found;
+		}
+
+		public long getModifiedTime() {
+			return modified.getTime();
+		}
+
+		public boolean hasMusicBrainzId() {
+			return StringUtils.isNotBlank(mBID);
+		}
+
+		public String getMusicBrainzId() {
+			return mBID;
 		}
 	}
 
@@ -171,10 +198,6 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		final String and = " AND ";
 		boolean added = false;
 
-		if (includeAll || StringUtil.hasValue(tagInfo.album)) {
-			where.append("ALBUM").append(sqlNullIfBlank(tagInfo.album, true, false));
-			added = true;
-		}
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
 			if (added) {
 				where.append(and);
@@ -192,29 +215,9 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 
 		if (
 			includeAll || (
-				StringUtil.hasValue(tagInfo.trackId) && (
-					!StringUtil.hasValue(tagInfo.album) || !(
-						StringUtil.hasValue(tagInfo.artist) ||
-						StringUtil.hasValue(tagInfo.artistId)
-					)
-				)
-			)
-		) {
-			if (added) {
-				where.append(and);
-			}
-			where.append("TRACK_ID").append(sqlNullIfBlank(tagInfo.trackId, true, false));
-			added = true;
-		}
-		if (
-			includeAll || (
-				!StringUtil.hasValue(tagInfo.trackId) && (
-					StringUtil.hasValue(tagInfo.title) && (
-						!StringUtil.hasValue(tagInfo.album) || !(
-							StringUtil.hasValue(tagInfo.artist) ||
-							StringUtil.hasValue(tagInfo.artistId)
-						)
-					)
+				StringUtil.hasValue(tagInfo.title) && (
+					StringUtil.hasValue(tagInfo.artist) ||
+					StringUtil.hasValue(tagInfo.artistId)
 				)
 			)
 		) {
@@ -276,12 +279,11 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 						LOGGER.trace(
 							"Inserting new row for MBID \"{}\":\n" +
 							"     Artist    \"{}\"\n" +
-							"     Album     \"{}\"\n" +
 							"     Title     \"{}\"\n" +
 							"     Year      \"{}\"\n" +
 							"     Artist ID \"{}\"\n" +
 							"     Track ID  \"{}\"\n",
-							mBID, tagInfo.artist, tagInfo.album,
+							mBID, tagInfo.artist,
 							tagInfo.title, tagInfo.year,
 							tagInfo.artistId, tagInfo.trackId
 						);
@@ -292,23 +294,17 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 					if (StringUtil.hasValue(mBID)) {
 						result.updateString("MBID", mBID);
 					}
-					if (StringUtil.hasValue(tagInfo.album)) {
-						result.updateString("ALBUM", left(tagInfo.album, 1000));
-					}
 					if (StringUtil.hasValue(tagInfo.artist)) {
-						result.updateString("ARTIST", left(tagInfo.artist, 1000));
+						result.updateString("ARTIST", StringUtils.left(tagInfo.artist, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.title)) {
-						result.updateString("TITLE", left(tagInfo.title, 1000));
+						result.updateString("TITLE", StringUtils.left(tagInfo.title, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.year)) {
-						result.updateString("MEDIA_YEAR", left(tagInfo.year, 20));
+						result.updateString("MEDIA_YEAR", StringUtils.left(tagInfo.year, 20));
 					}
 					if (StringUtil.hasValue(tagInfo.artistId)) {
 						result.updateString("ARTIST_ID", tagInfo.artistId);
-					}
-					if (StringUtil.hasValue(tagInfo.trackId)) {
-						result.updateString("TRACK_ID", tagInfo.trackId);
 					}
 					result.insertRow();
 				}
@@ -358,4 +354,66 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		return result;
 	}
 
+	public static MusicBrainzAlbum getMusicBrainzAlbum(String mbid) {
+		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY);
+		) {
+			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(mbid));
+			updateStatement.setObject(1, mbidRecord);
+			try (ResultSet rs = updateStatement.executeQuery()) {
+				if (rs.next()) {
+					MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, rs.getString("TITLE"), rs.getString("ARTIST"), rs.getString("MEDIA_YEAR"),
+						rs.getString("GENRE"));
+					return album;
+				} else {
+					LOGGER.debug("mbid not found in database : " + mbid);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("getMusicBrainzAlbum : Database error in " + TABLE_NAME + " for \"{}\": {}", mbid, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
+	public static void storeMusicBrainzAlbum(MusicBrainzAlbum album) {
+		try (
+			Connection connection = MediaDatabase.getConnectionIfAvailable();
+			PreparedStatement updateStatement = connection.prepareStatement(SQL_GET_MBID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+		) {
+			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(album.getMbReleaseid()));
+			updateStatement.setObject(1, mbidRecord);
+			try (ResultSet rs = updateStatement.executeQuery()) {
+				boolean isCreatingNewRecord = !rs.next();
+				if (isCreatingNewRecord) {
+					rs.moveToInsertRow();
+				}
+				updateAudioMetadata(rs, album);
+				if (isCreatingNewRecord) {
+					rs.insertRow();
+				} else {
+					rs.updateRow();
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", album, e.getMessage());
+			LOGGER.trace("", e);
+		}
+	}
+
+	private static void updateAudioMetadata(ResultSet result, MusicBrainzAlbum album) throws SQLException {
+		try {
+			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(album.getMbReleaseid()));
+			result.updateObject("MBID", mbidRecord);
+		} catch (IllegalArgumentException e) {
+			LOGGER.error("invalid UUID. Cannot add album information.", e);
+			return;
+		}
+		updateString(result, "ARTIST", album.getArtist(), 1000);
+		updateString(result, "TITLE", album.getAlbum(), 1000);
+		updateString(result, "MEDIA_YEAR", album.getYear(), 1000);
+		updateString(result, "GENRE", album.getGenre(), 1000);
+		// ArtistID for future reference
+	}
 }

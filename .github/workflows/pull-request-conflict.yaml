@@ -1,0 +1,22 @@
+name: PullRequestConflicting
+
+on:
+  push:
+  pull_request:
+    types: [ synchronize ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: print user login name
+      id: print-user
+      run: echo 'aa${{ github.event.pull_request.user.login }}aa'
+    - name: check if prs are dirty
+      if: ${{ github.event.pull_request.user.login == 'dependabot[bot]' }}
+      uses: eps1lon/actions-label-merge-conflict@v3
+      id: check
+      with:
+        dirtyLabel: "conflicting"
+        repoToken: "${{ secrets.AUTOMATION_TOKEN }}"
+        commentOnDirty: '@dependabot recreate'

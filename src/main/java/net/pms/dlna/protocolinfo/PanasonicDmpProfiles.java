@@ -1,37 +1,33 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import net.pms.dlna.protocolinfo.PanasonicComProfileName.KnownPanasonicComProfileName;
+import net.pms.renderers.Renderer;
+import net.pms.util.ParseException;
 import org.apache.commons.lang3.StringUtils;
-import org.fourthline.cling.support.model.Protocol;
+import org.jupnp.support.model.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.protocolinfo.PanasonicComProfileName.KnownPanasonicComProfileName;
-import net.pms.util.ParseException;
 
 /**
  * This class handles a Panasonic DMP's {@link ProfileName}s from the custom
@@ -123,7 +119,7 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *         Returns {@code false} this already contains the specified
 	 *         elements.
 	 */
-	public boolean add(String dmpProfilesString) {
+	private boolean add(String dmpProfilesString) {
 		if (StringUtils.isBlank(dmpProfilesString)) {
 			return false;
 		}
@@ -360,12 +356,12 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *
 	 * @param dmpProfilesString the {@code X-PANASONIC-DMP-Profile} string to
 	 *            parse.
-	 * @param renderer the {@link RendererConfiguration} for which to apply the
+	 * @param renderer the {@link Renderer} for which to apply the
 	 *            parsing results.
 	 * @throws IllegalStateException If {@code renderer}'s
 	 *             {@code deviceProtocolInfo} is {@code null}.
 	 */
-	public static void parsePanasonicDmpProfiles(String dmpProfilesString, RendererConfiguration renderer) {
+	public static void parsePanasonicDmpProfiles(String dmpProfilesString, Renderer renderer) {
 		if (renderer == null) {
 			return;
 		}
@@ -402,7 +398,7 @@ public class PanasonicDmpProfiles implements Serializable {
 	 *             {@code dmpProfile}.
 	 */
 	public static ProtocolInfo dmpProfileToProtocolInfo(String dmpProfile) throws ParseException {
-		if (isBlank(dmpProfile)) {
+		if (StringUtils.isBlank(dmpProfile)) {
 			return null;
 		}
 		dmpProfile = dmpProfile.trim();
@@ -416,8 +412,6 @@ public class PanasonicDmpProfiles implements Serializable {
 				mimeType = new MimeType("image", "png");
 			} else if (attribute.getValue().startsWith("GIF")) {
 				mimeType = new MimeType("image", "gif");
-			} else if (attribute.getValue().startsWith("MPEG")) {
-				mimeType = new MimeType("video", "mpeg");
 			} else if (attribute.getValue().startsWith("AC3")) {
 				mimeType = new MimeType("audio", "vnd.dolby.dd-raw");
 			} else if (attribute.getValue().startsWith("AMR")) {
@@ -453,26 +447,20 @@ public class PanasonicDmpProfiles implements Serializable {
 		attribute = PanasonicComProfileName.FACTORY.getProfileName(dmpProfile);
 		if (attribute != null) {
 			// Mime-types must be mapped manually, as this information is missing from X-PANASONIC-DMP-Profile
-			if (attribute instanceof KnownPanasonicComProfileName) {
+			if (attribute instanceof KnownPanasonicComProfileName knownPanasonicComProfileName) {
 				MimeType mimeType;
-				switch ((KnownPanasonicComProfileName) attribute) {
-					case MPO_3D:
+				switch (knownPanasonicComProfileName) {
+					case MPO_3D -> {
 						mimeType = new MimeType("image", "mpo");
-						break;
-					case PV_DIVX_DIV3:
-					case PV_DIVX_DIV4:
-					case PV_DIVX_DIVX:
-					case PV_DIVX_DX50:
+					}
+					case PV_DIVX_DIV3, PV_DIVX_DIV4, PV_DIVX_DIVX, PV_DIVX_DX50 -> {
 						mimeType = new MimeType("video", "divx");
-						break;
-					case PV_DRM_DIVX_DIV3:
-					case PV_DRM_DIVX_DIV4:
-					case PV_DRM_DIVX_DIVX:
-					case PV_DRM_DIVX_DX50:
+					}
+					case PV_DRM_DIVX_DIV3, PV_DRM_DIVX_DIV4, PV_DRM_DIVX_DIVX, PV_DRM_DIVX_DX50 -> {
 						// No idea what mime-type they use for DRM, or how to handle them
 						return null;
-					default:
-						throw new ParseException("Unimplemented PANASONIC.COM_PN profile \"" + attribute + "\"");
+					}
+					default -> throw new ParseException("Unimplemented PANASONIC.COM_PN profile \"" + attribute + "\"");
 				}
 				return new ProtocolInfo(
 					Protocol.HTTP_GET,

@@ -1,28 +1,22 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.dlna.protocolinfo;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumMap;
@@ -32,13 +26,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import org.fourthline.cling.support.model.Protocol;
-import org.fourthline.cling.support.model.dlna.DLNAAttribute;
-import org.fourthline.cling.support.model.dlna.DLNAProfiles;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import net.pms.dlna.protocolinfo.ProtocolInfoAttributeName.KnownProtocolInfoAttributeName;
 import net.pms.util.ParseException;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.jupnp.support.model.Protocol;
+import org.jupnp.support.model.dlna.DLNAAttribute;
+import org.jupnp.support.model.dlna.DLNAProfiles;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This immutable class represents a {@code protocolInfo} element.
@@ -317,11 +313,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new instance from a {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * Creates a new instance from a {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 *
-	 * @param template the {@link org.fourthline.cling.support.model.ProtocolInfo} instance.
+	 * @param template the {@link org.jupnp.support.model.ProtocolInfo} instance.
 	 */
-	public ProtocolInfo(org.fourthline.cling.support.model.ProtocolInfo template) {
+	public ProtocolInfo(org.jupnp.support.model.ProtocolInfo template) {
 		this(template.getProtocol(),
 			template.getNetwork(),
 			template.getContentFormat(),
@@ -405,8 +401,8 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 */
 	public ProfileName getProfileName() {
 		for (ProtocolInfoAttribute attribute : attributes.values()) {
-			if (attribute instanceof ProfileName) {
-				return (ProfileName) attribute;
+			if (attribute instanceof ProfileName profileName) {
+				return profileName;
 			}
 		}
 		return null;
@@ -428,7 +424,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link String} representation.
 	 */
-	protected String generateAttributesString() {
+	private String generateAttributesString() {
 		if (attributes == null || attributes.isEmpty()) {
 			return "";
 		}
@@ -464,7 +460,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *            parse.
 	 * @return A new {@link MimeType} instance.
 	 */
-	protected MimeType createMimeType(String contentFormat) {
+	private MimeType createMimeType(String contentFormat) {
 		try {
 			return MimeType.valueOf(contentFormat);
 		} catch (ParseException e) {
@@ -475,18 +471,18 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	}
 
 	/**
-	 * Creates a new {@link org.seamless.util.MimeType} from the
+	 * Creates a new {@link org.jupnp.util.MimeType} from the
 	 * {@link MimeType} of this {@link ProtocolInfo}. To get the
 	 * {@link MimeType}, use {@link #getMimeType()} instead.
 	 *
-	 * @return The corresponding {@link org.seamless.util.MimeType}.
+	 * @return The corresponding {@link org.jupnp.util.MimeType}.
 	 * @throws IllegalArgumentException if
-	 *             {@link org.seamless.util.MimeType#valueOf()} can't parse this
+	 *             {@link org.jupnp.util.MimeType#valueOf()} can't parse this
 	 *             {@link MimeType}.
 	 * @see #getMimeType()
 	 */
-	public org.seamless.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
-		return org.seamless.util.MimeType.valueOf(mimeType.toString());
+	public org.jupnp.util.MimeType getSeamlessMimeType() throws IllegalArgumentException {
+		return org.jupnp.util.MimeType.valueOf(mimeType.toString());
 	}
 
 	/**
@@ -494,11 +490,11 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The {@link SortedMap} of parsed {@link ProtocolInfoAttribute}s.
 	 */
-	protected SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
+	private SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> parseAdditionalInfo() {
 		if (isBlank(additionalInfo) || WILDCARD.equals(additionalInfo.trim())) {
 			return EMPTYMAP;
 		}
-		TreeMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
+		SortedMap<ProtocolInfoAttributeName, ProtocolInfoAttribute> result = createEmptyAttributesMap();
 		String[] attributeStrings = additionalInfo.trim().toUpperCase(Locale.ROOT).split("\\s*;\\s*");
 		for (String attributeString : attributeStrings) {
 			if (isBlank(attributeString)) {
@@ -611,7 +607,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 	 *
 	 * @return The string representation.
 	 */
-	protected String generateStringValue() {
+	private String generateStringValue() {
 		StringBuilder sb = new StringBuilder();
 		sb	.append(protocol == null ? WILDCARD : protocol).append(":")
 			.append(isBlank(network) ? WILDCARD : network).append(":")
@@ -672,19 +668,16 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 		} else if (!network.equals(other.network)) {
 			return false;
 		}
-		if (protocol != other.protocol) {
-			return false;
-		}
-		return true;
+		return (protocol == other.protocol);
 	}
 
 	/**
 	 * Converts an {@link EnumMap} of
-	 * {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s to a
+	 * {@link org.jupnp.support.model.dlna.DLNAAttribute}s to a
 	 * {@link TreeMap} of {@link ProtocolInfoAttribute}s.
 	 *
 	 * @param dlnaAttributes the {@link EnumMap} of
-	 *            {@link org.fourthline.cling.support.model.dlna.DLNAAttribute}s
+	 *            {@link org.jupnp.support.model.dlna.DLNAAttribute}s
 	 *            to convert.
 	 * @return A {@link TreeMap} containing the converted
 	 *         {@link ProtocolInfoAttribute}s.
@@ -743,8 +736,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 
 		private static final long serialVersionUID = 1L;
 		/** Defines the sort order for known attributes */
-		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER =
-			Collections.unmodifiableList(Arrays.asList(new ProtocolInfoAttributeName[] {
+		public static final List<ProtocolInfoAttributeName> DEFINED_ORDER = List.of(
 			KnownProtocolInfoAttributeName.DLNA_ORG_PN,
 			KnownProtocolInfoAttributeName.DLNA_ORG_OP,
 			KnownProtocolInfoAttributeName.DLNA_ORG_PS,
@@ -756,7 +748,7 @@ public class ProtocolInfo implements Comparable<ProtocolInfo>, Serializable {
 			KnownProtocolInfoAttributeName.MICROSOFT_COM_PN,
 			KnownProtocolInfoAttributeName.SHARP_COM_PN,
 			KnownProtocolInfoAttributeName.SONY_COM_PN
-		}));
+		);
 
 		@Override
 		public int compare(ProtocolInfoAttributeName o1, ProtocolInfoAttributeName o2) {

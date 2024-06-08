@@ -1,43 +1,34 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.util;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertEquals;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
+import net.pms.TestHelper;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class IteratorsTest {
 
-	@Before
-	public void setUp() throws ConfigurationException {
-		// Silence all log messages from the UMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.getLogger(Logger.ROOT_LOGGER_NAME).setLevel(Level.OFF);
+	@BeforeEach
+	public void setUp() {
+		TestHelper.SetLoggingOff();
 	}
 
 	@Test
@@ -51,11 +42,11 @@ public class IteratorsTest {
 		list2.add(2);
 		Iterators<Integer> iterators = new Iterators<>();
 		iterators.addList(list1);
-		assertEquals("IteratorSize", iterators.size(), 2);
+		assertEquals(iterators.size(), 2, "IteratorSize");
 		Iterator<Integer> iterator = iterators.combinedIterator();
 		int i = 0;
 		while (iterator.hasNext()) {
-			assertEquals("ListItem", iterator.next(), Integer.valueOf(i));
+			assertEquals(iterator.next(), Integer.valueOf(i), "ListItem");
 			i++;
 		}
 		iterators.addIterator(list2.iterator());
@@ -63,7 +54,7 @@ public class IteratorsTest {
 		i = 0;
 		boolean first = true;
 		while (iterator.hasNext()) {
-			assertEquals("ListItem", iterator.next(), Integer.valueOf(i));
+			assertEquals(iterator.next(), Integer.valueOf(i), "ListItem");
 			if (i == 1 && first) {
 				i = 0;
 				first = false;
@@ -71,15 +62,15 @@ public class IteratorsTest {
 				i++;
 			}
 		}
-		assertEquals("IteratorSize", iterators.size(), 5);
+		assertEquals(iterators.size(), 5, "IteratorSize");
 		iterators.clear();
-		assertEquals("IteratorSize", iterators.size(), 0);
+		assertEquals(iterators.size(), 0, "IteratorSize");
 		iterators.addIterator(list2.iterator());
 		iterators.addIterator(list1.iterator());
-		assertEquals("IteratorSize", iterators.size(), 5);
+		assertEquals(iterators.size(), 5, "IteratorSize");
 		i = 0;
 		while (iterator.hasNext()) {
-			assertEquals("ListItem", iterator.next(), Integer.valueOf(i));
+			assertEquals(iterator.next(), Integer.valueOf(i), "ListItem");
 			if (i == 2) {
 				i = 0;
 			} else {

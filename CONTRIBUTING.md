@@ -16,13 +16,13 @@ So if that is the case, please repeat the above steps for the last version witho
 
 Thanks for your efforts in helping us make UMS better!
 
-# Creating a Pull Request
+# Contributing code changes
 
-We welcome Pull Requests. Please be descriptive about the purpose of the code change, and please try to use the code conventions we use.
+We welcome code contributions. Please describe the change, and please try to use the code conventions we use.
 
 We will only merge Pull Requests if they don't break our automated tests, if they pass code review by one of our developers, and if they pass manual testing.
 
-For more information, please see [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/master/STYLEGUIDE.md)
+For more information, please see [our Development Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/Development) and [our Style Guide](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/STYLEGUIDE.md).
 
 # <a name="Attachments"></a>Attachments
 

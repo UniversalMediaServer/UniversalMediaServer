@@ -1,13 +1,29 @@
+/*
+ * This file is part of Universal Media Server, based on PS3 Media Server.
+ *
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 package net.pms.image;
 
-import java.awt.color.ColorSpace;
-import java.awt.image.ColorModel;
-import net.pms.util.ParseException;
 import com.drew.imaging.png.PngChunkType;
 import com.drew.imaging.png.PngColorType;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.png.PngDirectory;
+import java.awt.color.ColorSpace;
+import java.awt.image.ColorModel;
+import net.pms.util.ParseException;
 
 public class PNGInfo extends ImageInfo {
 	private static final long serialVersionUID = 1L;
@@ -187,27 +203,30 @@ public class PNGInfo extends ImageInfo {
 					if (i != null) {
 						((PNGParseInfo) parsedInfo).colorType = PngColorType.fromNumericValue(i);
 						switch (((PNGParseInfo) parsedInfo).colorType.getNumericValue()) {
-							case 0: // Grayscale without alpha
+							// Grayscale without alpha
+							case 0 -> {
 								parsedInfo.numComponents = 1;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
-								break;
-							case 2: // RGB without alpha
+							}
+							// RGB without alpha
+							// Palette index
+							case 2, 3 -> {
 								parsedInfo.numComponents = 3;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							case 3: // Palette index
-								parsedInfo.numComponents = 3;
-								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							case 4: // Grayscale with alpha
+							}
+							// Grayscale with alpha
+							case 4 -> {
 								parsedInfo.numComponents = 2;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_GRAY;
-								break;
-							case 6: // RGB with alpha
+							}
+							// RGB with alpha
+							case 6 -> {
 								parsedInfo.numComponents = 4;
 								parsedInfo.colorSpaceType = ColorSpaceType.TYPE_RGB;
-								break;
-							default:
+							}
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 				}
@@ -222,7 +241,7 @@ public class PNGInfo extends ImageInfo {
 					((PNGParseInfo) parsedInfo).colorType ==  PngColorType.TRUE_COLOR_WITH_ALPHA
 				) {
 					throw new ParseException(String.format(
-						"PNG parsing failed with illegal combination of %s color type and tRNS transparancy chunk",
+						"PNG parsing failed with illegal combination of %s color type and tRNS transparency chunk",
 						((PNGParseInfo) parsedInfo).colorType
 					));
 				}
@@ -257,15 +276,11 @@ public class PNGInfo extends ImageInfo {
 		NONE, ADAM7, UNKNOWN;
 
 		public static InterlaceMethod typeOf(int value) {
-			switch (value) {
-				case 0:
-					return NONE;
-				case 1:
-					return ADAM7;
-				default:
-					return UNKNOWN;
-
-			}
+			return switch (value) {
+				case 0 -> NONE;
+				case 1 -> ADAM7;
+				default -> UNKNOWN;
+			};
 		}
 	}
 
@@ -285,6 +300,6 @@ public class PNGInfo extends ImageInfo {
 			sb.append(", Interlace Method = ").append(interlaceMethod);
 		}
 		sb.append(", Has Transparency Chunk = ").append(hasTransparencyChunk ? "True" : "False")
-			.append("Has Modified Bit Depth = ").append(isModifiedBitDepth ? "True" : "False");
+			.append(", Has Modified Bit Depth = ").append(isModifiedBitDepth ? "True" : "False");
 	}
 }

@@ -1,10 +1,9 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3. Copyright (C) 2012 I.
- * Sokolov
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or modify it under
- * the terms of the GNU General Public License as published by the Free Software
- * Foundation; version 2 of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
  * This program is distributed in the hope that it will be useful, but WITHOUT
  * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
@@ -17,7 +16,19 @@
  */
 package net.pms.util;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -35,37 +46,42 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaInfo.Mode3D;
-import net.pms.dlna.DLNAMediaLang;
-import net.pms.dlna.DLNAMediaOnDemandSubtitle;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.StandardPlayerId;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.encoders.EngineFactory;
+import net.pms.encoders.FFmpegLogLevels;
+import net.pms.encoders.StandardEngineId;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.media.MediaInfo;
+import net.pms.media.MediaLang;
+import net.pms.media.subtitle.MediaOnDemandSubtitle;
+import net.pms.media.subtitle.MediaSubtitle;
+import net.pms.media.video.MediaVideo.Mode3D;
+import net.pms.renderers.Renderer;
+import net.pms.store.StoreResource;
+import static net.pms.util.Constants.*;
 import net.pms.util.FileUtil.BufferedReaderDetectCharsetResult;
 import net.pms.util.StringUtil.LetterCase;
-import static net.pms.util.Constants.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private final static PmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	private final static Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
-	private final static long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
-	private final static char[] SUBTITLES_UPPER_CASE;
-	private final static char[] SUBTITLES_LOWER_CASE;
-	private final static File ALTERNATIVE_SUBTITLES_FOLDER;
+	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private static final long FOLDER_CACHE_EXPIRATION_TIME = 300000; // Milliseconds
+	private static final char[] SUBTITLES_UPPER_CASE;
+	private static final char[] SUBTITLES_LOWER_CASE;
+	private static final File ALTERNATIVE_SUBTITLES_FOLDER;
+
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private SubtitleUtils() {
+	}
 
 	static {
 		String subtitles = "Subtitles";
@@ -76,7 +92,7 @@ public class SubtitleUtils {
 			SUBTITLES_LOWER_CASE[i] = Character.toLowerCase(subtitles.charAt(i));
 		}
 
-		if (PMS.getConfiguration() == null || isBlank(PMS.getConfiguration().getAlternateSubtitlesFolder())) {
+		if (PMS.getConfiguration() == null || StringUtils.isBlank(PMS.getConfiguration().getAlternateSubtitlesFolder())) {
 			ALTERNATIVE_SUBTITLES_FOLDER = null;
 		} else {
 			File alternativeFolder = new File(PMS.getConfiguration().getAlternateSubtitlesFolder());
@@ -101,7 +117,7 @@ public class SubtitleUtils {
 		}
 	}
 
-	private final static Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
+	private static final Map<String, String> FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP = new HashMap<String, String>() {
 
 		private static final long serialVersionUID = 1L;
 
@@ -156,14 +172,14 @@ public class SubtitleUtils {
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
 	 * detected charset.
 	 *
-	 * @param dlnaMediaSubtitle DLNAMediaSubtitle with external subtitles file.
+	 * @param dlnaMediaSubtitle MediaSubtitle with external subtitles file.
 	 * @return value for mencoder's -subcp option or null if can't determine.
 	 */
-	public static String getSubCpOptionForMencoder(DLNAMediaSubtitle dlnaMediaSubtitle) {
+	public static String getSubCpOptionForMencoder(MediaSubtitle dlnaMediaSubtitle) {
 		if (dlnaMediaSubtitle == null) {
 			throw new NullPointerException("dlnaMediaSubtitle can't be null.");
 		}
-		if (isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
+		if (StringUtils.isBlank(dlnaMediaSubtitle.getSubCharacterSet())) {
 			return null;
 		}
 		return FILE_CHARSET_TO_MENCODER_SUBCP_OPTION_MAP.get(dlnaMediaSubtitle.getSubCharacterSet());
@@ -180,7 +196,7 @@ public class SubtitleUtils {
 	public static File applyCodepageConversion(File fileToConvert, File outputSubs) throws IOException {
 		String line;
 		String cp = CONFIGURATION.getSubtitlesCodepage();
-		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
+		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = StringUtils.isNotBlank(cp) && Charset.isSupported(cp);
 
 		try (
 			BufferedReader reader = isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM ?
@@ -204,24 +220,25 @@ public class SubtitleUtils {
 	 * fontconfig setting to that converted file and applies timeseeking when
 	 * required.
 	 *
-	 * @param dlna DLNAResource
-	 * @param media DLNAMediaInfo
+	 * @param resource StoreResource
+	 * @param media MediaInfo
 	 * @param params Output parameters
 	 * @param configuration
+	 * @param subtitleType
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
 	public static File getSubtitles(
-		DLNAResource dlna,
-		DLNAMediaInfo media,
+		StoreResource resource,
+		MediaInfo media,
 		OutputParams params,
-		PmsConfiguration configuration,
+		UmsConfiguration configuration,
 		SubtitleType subtitleType
 	) throws IOException {
 		if (
 			media == null ||
 			params.getSid() == null ||
-			params.getSid().getId() == DLNAMediaLang.DUMMY_ID ||
+			params.getSid().getId() == MediaLang.DUMMY_ID ||
 			!params.getSid().getType().isText()
 		) {
 			return null;
@@ -243,7 +260,7 @@ public class SubtitleUtils {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.getSid().isEmbedded();
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+		boolean is3D = media.getDefaultVideoTrack() != null && media.getDefaultVideoTrack().is3d() && !media.getDefaultVideoTrack().multiViewIsAnaglyph();
 		File convertedFile = params.getSid().getConvertedFile();
 
 		if (convertedFile != null && convertedFile.canRead()) {
@@ -253,7 +270,7 @@ public class SubtitleUtils {
 			return convertedFile;
 		}
 
-		String filename = isEmbeddedSource ? dlna.getSystemName() : params.getSid().getExternalFile().getAbsolutePath();
+		String filename = isEmbeddedSource ? resource.getFileName() : params.getSid().getExternalFile().getAbsolutePath();
 
 		String basename;
 
@@ -264,7 +281,7 @@ public class SubtitleUtils {
 		} else {
 			// It's something else, e.g. a url or psuedo-url without meaningful
 			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			basename = resource.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			modId = filename.hashCode();
 		}
 
@@ -282,12 +299,12 @@ public class SubtitleUtils {
 		}
 		nameBuilder.append("_").append(modId);
 		String extension;
-		if (subtitleType != null && isNotBlank(subtitleType.getExtension())) {
+		if (subtitleType != null && StringUtils.isNotBlank(subtitleType.getExtension())) {
 			extension = subtitleType.getExtension();
 		} else {
 			extension = FileUtil.getExtension(basename);
 		}
-		if (isNotBlank(extension)) {
+		if (StringUtils.isNotBlank(extension)) {
 			nameBuilder.append(".").append(extension);
 		}
 		convertedSubs = new File(nameBuilder.toString());
@@ -387,9 +404,9 @@ public class SubtitleUtils {
 	 */
 	public static File convertSubsToSubtitleType(
 		String fileName,
-		DLNAMediaInfo media,
+		MediaInfo media,
 		OutputParams params,
-		PmsConfiguration configuration,
+		UmsConfiguration configuration,
 		SubtitleType outputSubtitleType
 	) {
 		if (!params.getSid().getType().isText()) {
@@ -397,18 +414,28 @@ public class SubtitleUtils {
 		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
-		cmdList.add(PlayerFactory.getPlayerExecutable(StandardPlayerId.FFMPEG_VIDEO));
+		cmdList.add(EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO));
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
+		FFmpegLogLevels askedLogLevel = FFmpegLogLevels.valueOfLabel(configuration.getFFmpegLoggingLevel());
 		if (LOGGER.isTraceEnabled()) {
-			cmdList.add("info");
+			// Set -loglevel in accordance with LOGGER setting
+			if (FFmpegLogLevels.INFO.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("info");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		} else {
-			cmdList.add("fatal");
+			if (FFmpegLogLevels.FATAL.isMoreVerboseThan(askedLogLevel)) {
+				cmdList.add("fatal");
+			} else {
+				cmdList.add(askedLogLevel.label);
+			}
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
 		if (params.getSid().isExternal() && !params.getSid().isExternalFileUtf8()) {
-			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+			String encoding = StringUtils.isNotBlank(configuration.getSubtitlesCodepage()) ?
 			// Prefer the global user-specified encoding if we have one.
 			// Note: likely wrong if the file isn't supplied by the user.
 				configuration.getSubtitlesCodepage() : params.getSid().getSubCharacterSet() != null ?
@@ -431,11 +458,11 @@ public class SubtitleUtils {
 
 		try {
 			tempSubsFile = new File(
-				configuration.getTempFolder(),
+				CONFIGURATION.getTempFolder(),
 				FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension()
 			);
 		} catch (IOException e1) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e1);
+			LOGGER.debug("Subtitles conversion finished with error: " + e1);
 			return null;
 		}
 		cmdList.add(tempSubsFile.getAbsolutePath());
@@ -451,7 +478,8 @@ public class SubtitleUtils {
 			// Avoid creating a pipe for this process and messing up with buffer progress bar
 			pw.stopProcess();
 		} catch (InterruptedException e) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e);
+			LOGGER.debug("Subtitles conversion finished with error: " + e);
+			Thread.currentThread().interrupt();
 			return null;
 		}
 
@@ -461,13 +489,13 @@ public class SubtitleUtils {
 
 	public static File applyFontconfigToASSTempSubsFile(
 		File tempSubs,
-		DLNAMediaInfo media,
-		PmsConfiguration configuration
+		MediaInfo media,
+		UmsConfiguration configuration
 	) throws IOException {
 		LOGGER.debug("Applying fontconfig to subtitles " + tempSubs.getName());
 		File outputSubs = tempSubs;
 		StringBuilder outputString = new StringBuilder();
-		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
+		File temp = new File(CONFIGURATION.getTempFolder(), tempSubs.getName() + ".tmp");
 		FileUtils.copyFile(tempSubs, temp);
 		try (
 			BufferedReaderDetectCharsetResult input = FileUtil.createBufferedReaderDetectCharset(temp, StandardCharsets.UTF_8);
@@ -486,7 +514,7 @@ public class SubtitleUtils {
 					output.write(outputString.toString());
 					while ((line = reader.readLine()) != null) {
 						outputString.setLength(0);
-						if (isNotBlank(line)) {
+						if (StringUtils.isNotBlank(line)) {
 							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
 								playResIsSet = true;
 							}
@@ -512,38 +540,38 @@ public class SubtitleUtils {
 				if (line != null && line.contains("Style: Default")) {
 					String[] params = line.split(",");
 
-					for (i = 0; i < format.length; i++) {
+					int length = format != null ? format.length : 0;
+					for (i = 0; i < length; i++) {
 						switch (format[i].trim()) {
-							case "Fontname":
+							case "Fontname" -> {
 								if (!configuration.getFont().isEmpty()) {
 									params[i] = configuration.getFont();
 								}
-
-								break;
-							case "Fontsize":
+							}
+							case "Fontsize" -> {
 								if (!playResIsSet) {
-									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
-										Double.parseDouble(configuration.getAssScale()))));
+									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * media.getHeight() / (double) 288 *
+											Double.parseDouble(configuration.getAssScale())));
 								} else {
 									params[i] = Integer
-										.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
+											.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
 								}
-
-								break;
-							case "PrimaryColour":
+							}
+							case "PrimaryColour" -> {
 								params[i] = configuration.getSubsColor().getASSv4StylesHexValue();
-								break;
-							case "Outline":
+							}
+							case "Outline" -> {
 								params[i] = configuration.getAssOutline();
-								break;
-							case "Shadow":
+							}
+							case "Shadow" -> {
 								params[i] = configuration.getAssShadow();
-								break;
-							case "MarginV":
+							}
+							case "MarginV" -> {
 								params[i] = configuration.getAssMargin();
-								break;
-							default:
-								break;
+							}
+							default -> {
+								//nothing to do
+							}
 						}
 					}
 
@@ -564,22 +592,23 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles. Based on
-	 * https://bitbucket.org/r3pek/srt2ass3d
+	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles.Based on
+ https://bitbucket.org/r3pek/srt2ass3d
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @param media Information about video
+	 * @param params
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params) throws IOException, NullPointerException {
+	public static File convertASSToASS3D(File tempSubs, MediaInfo media, OutputParams params) throws IOException, NullPointerException {
 		File outputSubs = new File(FileUtil.getFileNameWithoutExtension(tempSubs.getAbsolutePath()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		Charset subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		if (subsFileCharset == null) {
 			subsFileCharset = StandardCharsets.UTF_8;
 		}
-		Mode3D mode3D = media.get3DLayout();
+		Mode3D mode3D = media.getDefaultVideoTrack().get3DLayout();
 		boolean isOU = mode3D == Mode3D.ABL || mode3D == Mode3D.ABR || mode3D == Mode3D.AB2L;
 		boolean isSBS = mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR || mode3D == Mode3D.SBS2L;
 		if (mode3D == null) {
@@ -713,6 +742,7 @@ public class SubtitleUtils {
 	 *
 	 * @param file the source subtitles
 	 * @return InputStream with converted subtitles.
+	 * @throws java.io.IOException
 	 */
 	public static InputStream removeSubRipTags(File file) throws IOException {
 		if (file == null) {
@@ -765,7 +795,7 @@ public class SubtitleUtils {
 		}
 
 		public void setItems(List<File> items) {
-			setItems(items == null ? null : items.toArray(new File[items.size()]));
+			setItems(items == null ? null : items.toArray(File[]::new));
 		}
 
 		public void setItems(File[] items) {
@@ -854,15 +884,15 @@ public class SubtitleUtils {
 
 	/**
 	 * Scans for and registers external subtitles for the specified file by
-	 * creating {@link DLNAMediaSubtitle} instances and attaching them to the
-	 * specified {@link DLNAMediaInfo} instance.
+	 * creating {@link MediaSubtitle} instances and attaching them to the
+	 * specified {@link MediaInfo} instance.
 	 * <p>
 	 * A folder cache is used for performance optimization, and the parent
 	 * folder of {@code file}, any "subs" or "subtitles" (case insensitive)
 	 * subfolders of this folder and an alternative subtitles folder (if
 	 * configured) will be scanned for matching subtitles files. Already
 	 * "registered" files (files that already has a corresponding
-	 * {@link DLNAMediaSubtitle} instance in {@code media}) will not be
+	 * {@link MediaSubtitle} instance in {@code media}) will not be
 	 * re-parsed.
 	 * <p>
 	 * If {@code forceRefresh} is {@code true}, the content of the folder cache
@@ -873,15 +903,17 @@ public class SubtitleUtils {
 	 *            files. It does not have to point to an existing file, the
 	 *            parent folder will be used as a scan destination and the name
 	 *            will be used for subtitles file name comparison.
-	 * @param media the {@link DLNAMediaInfo} to add the resulting
-	 *            {@link DLNAMediaSubtitle} instances to.
+	 * @param media the {@link MediaInfo} to add the resulting
+	 *            {@link MediaSubtitle} instances to.
 	 * @param forceRefresh if {@code true} forces a new scan for external
 	 *            subtitles instead of relying on cached information (if it
 	 *            exists).
+	 * @return {@code true} if subtitles file attached changed,
+	 *         {@code false} otherwise.
 	 */
-	public static void searchAndAttachExternalSubtitles(File file, DLNAMediaInfo media, boolean forceRefresh) {
+	public static boolean searchAndAttachExternalSubtitles(File file, MediaInfo media, boolean forceRefresh) {
 		if (file == null || media == null) {
-			return;
+			return false;
 		}
 		File subFolder;
 		if (file.isAbsolute()) {
@@ -891,12 +923,12 @@ public class SubtitleUtils {
 				subFolder = file.getCanonicalFile().getParentFile();
 			} catch (IOException e) {
 				LOGGER.error("Could not find the folder for \"{}\" when looking for external subtitles", file);
-				return;
+				return false;
 			}
 		}
 
 		if (subFolder == null) {
-			return;
+			return false;
 		}
 
 		LOGGER.trace("Searching for external subtitles for {}", file.getName());
@@ -919,7 +951,7 @@ public class SubtitleUtils {
 
 		if (folders.isEmpty()) {
 			LOGGER.trace("There are no folders to search for subtitles for {}", file.getName());
-			return;
+			return false;
 		}
 
 		final Set<String> supportedFileExtensions = SubtitleType.getSupportedFileExtensions();
@@ -999,12 +1031,13 @@ public class SubtitleUtils {
 
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
-		for (DLNAMediaSubtitle subtitle : media.getSubtitlesTracks()) {
-			if (!(subtitle instanceof DLNAMediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
+		for (MediaSubtitle subtitle : media.getSubtitlesTracks()) {
+			if (subtitle != null && !(subtitle instanceof MediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
 		}
 
+		boolean changed = false;
 		// Parse subtitles that are not in the existing list
 		String baseFileName = FileUtil.getFileNameWithoutExtension(file.getName()).toLowerCase(Locale.ROOT);
 		for (File subtitlesFile : folderSubtitles) {
@@ -1018,12 +1051,14 @@ public class SubtitleUtils {
 				List<String> suffixParts = Arrays
 					.asList(FileUtil.getFileNameWithoutExtension(subtitlesNameLower).replace(baseFileName, "").split("[\\s\\.-]+"));
 				attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+				changed = true;
 			} else if (isSubtitlesFolder(subtitlesFile.getParentFile(), subtitlesName) != null) {
 				// Subtitles subfolder that doesn't start with video file name
 				List<String> suffixParts = Arrays.asList(FileUtil.getFileNameWithoutExtension(subtitlesNameLower).split("[\\s\\.-]+"));
 				for (String suffixPart : suffixParts) {
 					if (Iso639.isValid(suffixPart)) {
 						attachExternalSubtitlesFile(subtitlesFile, media, suffixParts);
+						changed = true;
 						break;
 					}
 				}
@@ -1031,32 +1066,34 @@ public class SubtitleUtils {
 		}
 
 		// Remove no longer existing external subtitles
-		for (Iterator<DLNAMediaSubtitle> iterator = media.getSubtitlesTracks().iterator(); iterator.hasNext();) {
-			DLNAMediaSubtitle subtitles = iterator.next();
+		for (Iterator<MediaSubtitle> iterator = media.getSubtitlesTracks().iterator(); iterator.hasNext();) {
+			MediaSubtitle subtitles = iterator.next();
 			if (
 				subtitles.isExternal() &&
-				!(subtitles instanceof DLNAMediaOnDemandSubtitle) &&
+				!(subtitles instanceof MediaOnDemandSubtitle) &&
 				!folderSubtitles.contains(subtitles.getExternalFile())
 			) {
+				changed = true;
 				iterator.remove();
 			}
 		}
+		return changed;
 	}
 
 	/**
-	 * Creates a new instance of DLNAMediaSubtitle, populates it based on the
-	 * incoming subtitlesFile, and attaches it to the incoming DLNAMediaInfo so
-	 * it appears on the subtitles tracks list for that media.
+	 * Creates a new instance of MediaSubtitle, populates it based on the
+ incoming subtitlesFile, and attaches it to the incoming MediaInfo so
+ it appears on the subtitles tracks list for that media.
 	 *
-	 * @see DLNAMediaInfo#getSubtitleTracksList
+	 * @see MediaInfo#getSubtitleTracksList
 	 * @param subtitlesFile
 	 * @param media
 	 * @param suffixParts contains potential language identifiers, e.g. en or
 	 *            eng.
 	 */
-	private static void attachExternalSubtitlesFile(File subtitlesFile, DLNAMediaInfo media, List<String> suffixParts) {
+	private static void attachExternalSubtitlesFile(File subtitlesFile, MediaInfo media, List<String> suffixParts) {
 		LOGGER.trace("Attaching external subtitles file for {}", subtitlesFile.getName());
-		DLNAMediaSubtitle subtitles = new DLNAMediaSubtitle();
+		MediaSubtitle subtitles = new MediaSubtitle();
 		subtitles.setType(SubtitleType.valueOfFileExtension(FileUtil.getExtension(subtitlesFile.getPath(), LetterCase.LOWER, Locale.ROOT)));
 
 		String language = null;
@@ -1064,7 +1101,7 @@ public class SubtitleUtils {
 			ArrayList<String> modifiableSuffixParts = new ArrayList<>(suffixParts);
 			for (Iterator<String> iterator = modifiableSuffixParts.iterator(); iterator.hasNext();) {
 				String part = iterator.next();
-				if (isBlank(part)) {
+				if (StringUtils.isBlank(part)) {
 					iterator.remove();
 				} else if (Iso639.isValid(part)) {
 					language = Iso639.getISO639_2Code(part);
@@ -1072,17 +1109,17 @@ public class SubtitleUtils {
 				}
 			}
 			if (!modifiableSuffixParts.isEmpty()) {
-				subtitles.setSubtitlesTrackTitleFromMetadata(StringUtils.join(modifiableSuffixParts, '-'));
+				subtitles.setTitle(StringUtils.join(modifiableSuffixParts, '-'));
 			}
 		}
 
 		try {
-			if (isNotBlank(language)) {
+			if (StringUtils.isNotBlank(language)) {
 				subtitles.setLang(language);
 			}
 			subtitles.setExternalFile(subtitlesFile);
 			if (subtitles.getLang() == null) {
-				subtitles.setLang(DLNAMediaLang.UND);
+				subtitles.setLang(MediaLang.UND);
 			}
 			media.addSubtitlesTrack(subtitles);
 			LOGGER.trace("Added external subtitles file {} to the media {}", subtitlesFile.getName(), media.toString());
@@ -1093,12 +1130,12 @@ public class SubtitleUtils {
 	}
 
 	private static int getPriorityIndex(List<String> languagePriorities, String languageCode) {
-		if (isBlank(languageCode)) {
+		if (StringUtils.isBlank(languageCode)) {
 			return languagePriorities.size();
 		}
 		for (int i = 0; i < languagePriorities.size(); i++) {
 			String code = languagePriorities.get(i);
-			if ("*".equals(code) || DLNAMediaLang.UND.equals(code) || Iso639.isCodesMatching(languageCode, code)) {
+			if ("*".equals(code) || MediaLang.UND.equals(code) || Iso639.isCodesMatching(languageCode, code)) {
 				return i;
 			}
 		}
@@ -1106,24 +1143,24 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Finds the {@link DLNAMediaSubtitle} with the highest priority based on
+	 * Finds the {@link MediaSubtitle} with the highest priority based on
 	 * the subtitles language and whether the subtitles are external or not.
 	 * External subtitles have priority over embedded ones if the language is
 	 * the same. Languages are prioritized according to the configured subtitles
 	 * language priorities.
 	 *
-	 * @param candidates the {@link Collection} of {@link DLNAMediaSubtitle}
+	 * @param candidates the {@link Collection} of {@link MediaSubtitle}
 	 *            candidates of which to find the one with the highest priority.
 	 * @param renderer the {@link RendererConfiguration} to use to get the
 	 *            configures subtitles language priorities.
-	 * @param returnNotPrioritized if {@code true} a {@link DLNAMediaSubtitle}
+	 * @param returnNotPrioritized if {@code true} a {@link MediaSubtitle}
 	 *            will be returned even if no match to the configured subtitles
 	 *            languages priorities is found.
 	 * @return The candidate with the highest priority or {@code null}.
 	 */
-	public static DLNAMediaSubtitle findPrioritizedSubtitles(
-		Collection<DLNAMediaSubtitle> candidates,
-		RendererConfiguration renderer,
+	public static MediaSubtitle findPrioritizedSubtitles(
+		Collection<MediaSubtitle> candidates,
+		Renderer renderer,
 		boolean returnNotPrioritized
 	) {
 		if (candidates == null || candidates.isEmpty()) {
@@ -1132,17 +1169,17 @@ public class SubtitleUtils {
 
 		final ArrayList<String> languagePriorities = new ArrayList<>();
 		for (String language : UMSUtils.getLangList(renderer, false).split(",")) {
-			if (isNotBlank(language)) {
+			if (StringUtils.isNotBlank(language)) {
 				languagePriorities.add(language.trim().toLowerCase(Locale.ROOT));
 			}
 		}
 
 		LOGGER.trace("Looking for subtitles with the highest priority from {}", StringUtils.join(languagePriorities, ", "));
-		ArrayList<DLNAMediaSubtitle> candidatesList = new ArrayList<>(candidates);
-		Collections.sort(candidatesList, (DLNAMediaSubtitle o1, DLNAMediaSubtitle o2) -> {
-			if (isBlank(o1.getLang()) || isBlank(o2.getLang())) {
-				if (isNotBlank(o1.getLang()) || isNotBlank(o2.getLang())) {
-					return isBlank(o1.getLang()) ? 1 : -1;
+		ArrayList<MediaSubtitle> candidatesList = new ArrayList<>(candidates);
+		Collections.sort(candidatesList, (MediaSubtitle o1, MediaSubtitle o2) -> {
+			if (StringUtils.isBlank(o1.getLang()) || StringUtils.isBlank(o2.getLang())) {
+				if (StringUtils.isNotBlank(o1.getLang()) || StringUtils.isNotBlank(o2.getLang())) {
+					return StringUtils.isBlank(o1.getLang()) ? 1 : -1;
 				}
 			} else if (!Iso639.isCodesMatching(o1.getLang(), o2.getLang())) {
 				int o1Priority = getPriorityIndex(languagePriorities, o1.getLang());
@@ -1156,7 +1193,7 @@ public class SubtitleUtils {
 			}
 			return o1.isExternal() ? -1 : 1;
 		});
-		DLNAMediaSubtitle result = candidatesList.get(0);
+		MediaSubtitle result = candidatesList.get(0);
 		int priority = getPriorityIndex(languagePriorities, result.getLang());
 		if (priority == languagePriorities.size()) {
 			if (LOGGER.isTraceEnabled()) {

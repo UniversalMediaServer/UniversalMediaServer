@@ -37,24 +37,14 @@ public final class NaturalComparator {
 	 * app might ever run on any locale that uses more than 7-bit ascii
 	 * characters.</p>
 	 */
-	private static final Comparator<String> NATURAL_COMPARATOR_ASCII = new Comparator<String>() {
-		@Override
-		public int compare(String o1, String o2) {
-			return compareNaturalAscii(o1, o2);
-		}
-	};
+	private static final Comparator<String> NATURAL_COMPARATOR_ASCII = NaturalComparator::compareNaturalAscii;
 	/**
 	 * <p>A string comparator that does case insensitive comparisons and
 	 * handles embedded numbers correctly.</p> <p><b>Do not use</b> if your
 	 * app might ever run on any locale that uses more than 7-bit ascii
 	 * characters.</p>
 	 */
-	private static final Comparator<String> IGNORE_CASE_NATURAL_COMPARATOR_ASCII = new Comparator<String>() {
-		@Override
-		public int compare(String o1, String o2) {
-			return compareNaturalIgnoreCaseAscii(o1, o2);
-		}
-	};
+	private static final Comparator<String> IGNORE_CASE_NATURAL_COMPARATOR_ASCII = NaturalComparator::compareNaturalIgnoreCaseAscii;
 
 	/**
 	 * This is a utility class (static methods only), don't instantiate.
@@ -94,12 +84,7 @@ public final class NaturalComparator {
 			// unrelated code that tries to use the comparator
 			throw new NullPointerException("collator must not be null");
 		}
-		return new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return compareNatural(collator, o1, o2);
-			}
-		};
+		return (String o1, String o2) -> compareNatural(collator, o1, o2);
 	}
 
 	/**
@@ -139,7 +124,7 @@ public final class NaturalComparator {
 	 * comparing contained numbers based on their numeric values.</p>
 	 * <p>This is probably the best default comparison to use.</p> <p>If you
 	 * know that the texts to be compared are in a certain language that
-	 * differs from the default locale's langage, then get a collator for
+	 * differs from the default locale's language, then get a collator for
 	 * the desired locale
 	 * ({@link java.text.Collator#getInstance(java.util.Locale)}) and pass
 	 * it to {@link #compareNatural(java.text.Collator, String, String)}</p>
@@ -192,6 +177,7 @@ public final class NaturalComparator {
 	 * values of any contained numbers.</p> <p>(This will probably make
 	 * sense only for strings containing 7-bit ascii characters only.)</p>
 	 *
+	 * @param s
 	 * @return zero iff <code>s</code> and <code>t</code> are equal, a value
 	 * less than zero iff <code>s</code> lexicographically
 	 * precedes <code>t</code> and a value larger than zero
@@ -319,7 +305,7 @@ public final class NaturalComparator {
 			} else {
 				// Compare words
 				if (collator != null) {
-					// To use the collator the whole subwords have to be compared - character-by-character comparision
+					// To use the collator the whole subwords have to be compared - character-by-character comparison
 					// is not possible. So find the two subwords first
 					int aw = sIndex;
 					int bw = tIndex;

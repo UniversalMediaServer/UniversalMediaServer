@@ -1,56 +1,46 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
 package net.pms.configuration;
 
-import ch.qos.logback.classic.LoggerContext;
-import java.util.*;
+import java.util.Locale;
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration.SortedHeaderMap;
-import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByHeaders;
-import static net.pms.configuration.RendererConfiguration.getRendererConfigurationByUPNPDetails;
-import static net.pms.configuration.RendererConfiguration.loadRendererConfigurations;
+import net.pms.TestHelper;
+import net.pms.util.SortedHeaderMap;
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.After;
-import org.junit.Test;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.AfterEach;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	PmsConfiguration prevConf;
+	UmsConfiguration prevConf;
 
-	@BeforeClass
-	public static void SetUPClass() {
+	@BeforeAll
+	public static void setUpClass() {
 		PMS.configureJNA();
 	}
-	
-	@Before
+
+	@BeforeEach
 	public void setUp() {
-		// Silence all log messages from the PMS code that is being tested
-		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		TestHelper.SetLoggingOff();
 
 		// Set locale to EN to ignore translations for renderers
 		Locale.setDefault(Locale.ENGLISH);
@@ -58,7 +48,7 @@ public class RendererConfigurationTest {
 		prevConf = PMS.getConfiguration();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		PMS.setConfiguration(prevConf);
 	}
@@ -72,13 +62,11 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testKnownHeaders() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Cases that are too generic should not match anything
 		testHeaders(
@@ -149,6 +137,13 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG OLED", "modelNumber=OLED55B9SLA");
 		testUPNPDetails("LG OLED", "friendlyName=[LG] webOS TV OLED55B9SLA");
 
+		testUPNPDetails("LG OLED 2020+", "modelNumber=OLED65C24LA");
+
+// 		This does not match the OLED[0-9]{2} configuration for the LG 2023+ config ...
+//		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
+
+		testUPNPDetails("LG TV 2023+", "# modelDescription=LG WebOSTV DMRplus OLED65C3AUA");
+
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
 		testUPNPDetails("LG UH770", "friendlyName=[LG] webOS TV UH770V");
@@ -158,6 +153,12 @@ public class RendererConfigurationTest {
 		testUPNPDetails("LG WebOS TV", "friendlyName=LG-webOSTV");
 		testUPNPDetails("LG WebOS TV", "friendlyName=[LG] webOS TV");
 		testUPNPDetails("LG WebOS TV", "DLNADeviceName.lge.com=LG-webOSTV");
+
+		testUPNPDetails("Lumin", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. DEVICENUMVER 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
+		testUPNPDetails("Lumin U1 Mini", "MyDevice:LUMIN 192.168.1.15 3c494e3e-4d8b-11e1-b76c-0015e808df4b Pixel Magic Systems Ltd. U1MINI 1.0 LUMIN https://www.luminmusic.com/ https://www.luminmusic.com/");
+
+		testUPNPDetails("Naim Mu-So Qb",
+			"friendlyName=MyDevice, address=192.168.1.8, udn=4A9EC1C3-ED59-89BB-5530-E8C74F0B2E3A, manufacturer=Naim Audio Ltd., modelName=Mu-so Qb, modelNumber=20-004-0024, modelDescription=Naim Mu-so Qb all-in-one audio player, manufacturerURL=http://www.naimaudio.com, modelURL=https://www.naimaudio.com/mu-so");
 
 		testUPNPDetails("Panasonic AS650", "modelNumber=TC-50AS650U");
 
@@ -248,7 +249,7 @@ public class RendererConfigurationTest {
 		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
-		
+
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung LED UHD", "modelName=UE88KS9810");
 
@@ -273,10 +274,6 @@ public class RendererConfigurationTest {
 		);
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
-			"modelName=UE43RU7179UXZG"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
 			"modelName=GQ43LS03TAUXZG"
 		);
 		testUPNPDetails(
@@ -290,6 +287,14 @@ public class RendererConfigurationTest {
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
 			"modelName=QN32LS03TBFXZA"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=TQ43Q68CAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung QLED 4K 2019+",
+			"modelName=UE43RU7179UXZG"
 		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
@@ -339,6 +344,11 @@ public class RendererConfigurationTest {
 		testHeaders("VLC for desktop", "User-Agent: 6.2.9200 2/, UPnP/1.0, Portable SDK for UPnP devices/1.6.19");
 		testHeaders("VLC for desktop", "User-Agent: Linux/3.13.0-68-generic, UPnP/1.0, Portable SDK for UPnP devices/1.6.6");
 		testHeaders("VLC for desktop", "User-Agent: 6.1.7601 2/Service Pack 1, UPnP/1.0, Portable SDK for UPnP devices/1.6.19 for VLC 64-bit version 2.2.4");
+		testHeaders("VLC for desktop", "User-Agent: UPnP/1.0, Portable SDK for UPnP devices/1.14.13on windows");
+		testHeaders("VLC for desktop", "User-Agent: VLC/3.0.19 LibVLC/3.0.19");
+
+		testHeaders("VLC for iOS", "User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0");
+		testHeaders("VLC for iOS", "User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13");
 
 		testHeaders("WD TV Live", "User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423");
 
@@ -405,9 +415,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testForcedDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to PlayStation 3
 		pmsConf.setRendererDefault("PlayStation 3");
@@ -415,7 +423,7 @@ public class RendererConfigurationTest {
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Known and unknown renderers should always return default
 		testHeaders(
@@ -433,9 +441,7 @@ public class RendererConfigurationTest {
 	 */
 	@Test
 	public void testBogusDefault() throws ConfigurationException, InterruptedException {
-		PmsConfiguration pmsConf = null;
-
-		pmsConf = new PmsConfiguration(false);
+		UmsConfiguration pmsConf = new UmsConfiguration(false);
 
 		// Set default to non existent renderer
 		pmsConf.setRendererDefault("Bogus Renderer");
@@ -443,11 +449,11 @@ public class RendererConfigurationTest {
 
 		// Initialize the RendererConfiguration
 		PMS.setConfiguration(pmsConf);
-		loadRendererConfigurations(pmsConf);
+		RendererConfigurations.loadRendererConfigurations();
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeaders(
-			"Unknown renderer",
+			"UnknownRenderer",
 			"User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0",
 			"User-Agent: Unknown Renderer",
 			"X-Unknown-Header: Unknown Content"
@@ -469,19 +475,20 @@ public class RendererConfigurationTest {
 		for (String header : headerLines) {
 			headers.put(header);
 		}
-		RendererConfiguration rc = getRendererConfigurationByHeaders(headers);
+		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByHeaders(headers);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for header \"" + headers + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for header \"" + headers + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for header(s) \"" +
-				headers + "\"", correctRendererName, rc.getRendererName());
+				headers + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for header(s) \"" + headers +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for header(s) \"" + headers +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 
@@ -494,19 +501,20 @@ public class RendererConfigurationTest {
 	 * @param upnpDetails         One or more raw header lines
 	 */
 	private void testUPNPDetails(String correctRendererName, String upnpDetails) {
-		RendererConfiguration rc = getRendererConfigurationByUPNPDetails(upnpDetails);
+		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByUPNPDetails(upnpDetails);
 		if (correctRendererName != null) {
 			// Headers are supposed to match a particular renderer
-			assertNotNull("Recognized renderer for upnpDetails \"" + upnpDetails + "\"", rc);
-			assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+			assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");
+			assertEquals(correctRendererName, rc.getRendererName(),
+				"Expected renderer \"" + correctRendererName + "\", " +
 				"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
-				upnpDetails + "\"", correctRendererName, rc.getRendererName());
+				upnpDetails + "\"");
 		} else {
 			// Headers are supposed to match no renderer at all
-			assertEquals("Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
+			assertEquals(null, rc,
+				"Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
 				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.", null,
-				rc);
+				"\" was recognized.");
 		}
 	}
 }

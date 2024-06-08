@@ -1,29 +1,27 @@
 /*
- * Universal Media Server, for streaming any media to DLNA
- * compatible renderers based on the http://www.ps3mediaserver.org.
- * Copyright (C) 2012 UMS developers.
+ * This file is part of Universal Media Server, based on PS3 Media Server.
  *
- * This program is a free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
+ * This program is a free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation; version 2 of the License only.
  *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, write to the Free Software Foundation, Inc., 51
+ * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 package net.pms.database;
 
-import java.sql.*;
-import net.pms.PMS;
+import java.sql.Connection;
+import java.sql.SQLException;
+import net.pms.store.MediaScanner;
+import net.pms.swing.Splash;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.pms.dlna.RootFolder;
 
 /**
  * This class provides methods for creating and maintaining the database where
@@ -32,10 +30,11 @@ import net.pms.dlna.RootFolder;
  * later.
  */
 public class MediaDatabase extends Database {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaDatabase.class);
 	public static final String DATABASE_NAME = "medias";
 	/**
-	 * Pointer to the instanciated MediaDatabase.
+	 * Pointer to the instantiated MediaDatabase.
 	 */
 	private static MediaDatabase instance = null;
 	private static boolean tablesChecked = false;
@@ -43,16 +42,16 @@ public class MediaDatabase extends Database {
 	/**
 	 * Initializes the database connection pool for the current profile.
 	 *
-	 * Will create the "UMS-tests" profile directory and put the database
-	 * in there if it doesn't exist, in order to prevent overwriting
-	 * real databases.
+	 * Will create the "UMS-tests" profile directory and put the database in
+	 * there if it doesn't exist, in order to prevent overwriting real
+	 * databases.
 	 */
 	public MediaDatabase() {
 		super(DATABASE_NAME);
 	}
 
 	@Override
-	void onOpening(boolean force) {
+	public final void onOpening(boolean force) {
 		try {
 			checkTables(force);
 		} catch (SQLException se) {
@@ -63,11 +62,8 @@ public class MediaDatabase extends Database {
 	}
 
 	@Override
-	void onOpeningFail(boolean force) {
-		RootFolder rootFolder = PMS.get().getRootFolder(null);
-		if (rootFolder != null) {
-			rootFolder.stopScan();
-		}
+	public final void onOpeningFail(boolean force) {
+		MediaScanner.stopMediaScan();
 	}
 
 	/**
@@ -77,19 +73,23 @@ public class MediaDatabase extends Database {
 	 * @param force do the check even if it has already happened
 	 * @throws SQLException
 	 */
-	public synchronized final void checkTables(boolean force) throws SQLException {
+	public final synchronized void checkTables(boolean force) throws SQLException {
 		if (tablesChecked && !force) {
 			LOGGER.debug("Database tables have already been checked, aborting check");
 		} else {
 			LOGGER.debug("Starting check of database tables");
 			try (Connection connection = getConnection()) {
+				Splash.setStatusMessage("UpgradingMediaDb");
 				//Tables Versions (need to be first)
 				MediaTableTablesVersions.checkTable(connection);
 
 				// Files and metadata
 				MediaTableMetadata.checkTable(connection);
 				MediaTableFiles.checkTable(connection);
+				MediaTableVideoMetadata.checkTable(connection);
+				MediaTableVideotracks.checkTable(connection);
 				MediaTableSubtracks.checkTable(connection);
+				MediaTableChapters.checkTable(connection);
 				MediaTableRegexpRules.checkTable(connection);
 
 				MediaTableMusicBrainzReleases.checkTable(connection);
@@ -105,17 +105,16 @@ public class MediaDatabase extends Database {
 				MediaTableVideoMetadataAwards.checkTable(connection);
 				MediaTableVideoMetadataCountries.checkTable(connection);
 				MediaTableVideoMetadataDirectors.checkTable(connection);
-				MediaTableVideoMetadataIMDbRating.checkTable(connection);
 				MediaTableVideoMetadataGenres.checkTable(connection);
-				MediaTableVideoMetadataPosters.checkTable(connection);
-				MediaTableVideoMetadataProduction.checkTable(connection);
-				MediaTableVideoMetadataRated.checkTable(connection);
 				MediaTableVideoMetadataRatings.checkTable(connection);
-				MediaTableVideoMetadataReleased.checkTable(connection);
+				MediaTableVideoMetadataLocalized.checkTable(connection);
 
 				// Audio Metadata
+				MediaTableAudioMetadata.checkTable(connection);
 				MediaTableAudiotracks.checkTable(connection);
 				MediaTableMusicBrainzReleaseLike.checkTable(connection);
+
+				MediaTableStoreIds.checkTable(connection);
 			}
 			tablesChecked = true;
 		}
@@ -147,6 +146,7 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableMusicBrainzReleases.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableCoverArtArchive.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableThumbnails.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableChapters.TABLE_NAME);
 
 		dropTableAndConstraint(connection, MediaTableTVSeries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableFailedLookups.TABLE_NAME);
@@ -156,13 +156,9 @@ public class MediaDatabase extends Database {
 		dropTableAndConstraint(connection, MediaTableVideoMetadataAwards.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataCountries.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataDirectors.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataIMDbRating.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataGenres.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataPosters.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataProduction.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataRated.TABLE_NAME);
 		dropTableAndConstraint(connection, MediaTableVideoMetadataRatings.TABLE_NAME);
-		dropTableAndConstraint(connection, MediaTableVideoMetadataReleased.TABLE_NAME);
+		dropTableAndConstraint(connection, MediaTableVideoMetadataLocalized.TABLE_NAME);
 
 		// Audio Metadata
 		dropTableAndConstraint(connection, MediaTableAudiotracks.TABLE_NAME);
@@ -170,11 +166,12 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Returns the MediaDatabase instance.
+	 *
 	 * Will create the database instance as needed.
 	 *
 	 * @return {@link net.pms.database.MediaDatabase}
 	 */
-	public synchronized static MediaDatabase get() {
+	public static synchronized MediaDatabase get() {
 		if (instance == null) {
 			instance = new MediaDatabase();
 		}
@@ -183,26 +180,29 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
 	 */
-	public synchronized static void init() {
+	public static synchronized void init() {
 		get().init(false);
 	}
 
 	/**
 	 * Initialize the MediaDatabase instance.
+	 *
 	 * Will initialize the database instance as needed.
+	 *
 	 * Will check all tables.
 	 */
-	public synchronized static void initForce() {
+	public static synchronized void initForce() {
 		get().init(true);
 	}
 
 	/**
 	 * Check the MediaDatabase instance.
 	 *
-	 * @return <code>true</code> if the MediaDatabase is instantiated
-	 * , <code>false</code> otherwise
+	 * @return <code>true</code> if the MediaDatabase is instantiated ,
+	 * <code>false</code> otherwise
 	 */
 	public static boolean isInstantiated() {
 		return instance != null;
@@ -211,7 +211,7 @@ public class MediaDatabase extends Database {
 	/**
 	 * Check the MediaDatabase instance availability.
 	 *
-	 * @return {@code true } if the MediaDatabase is instanciated and opened
+	 * @return {@code true } if the MediaDatabase is instantiated and opened
 	 * , <code>false</code> otherwise
 	 */
 	public static boolean isAvailable() {
@@ -220,50 +220,79 @@ public class MediaDatabase extends Database {
 
 	/**
 	 * Get a MediaDatabase connection.
-	 * Will not try to init the database.
-	 * Give a connection only if the database status is OPENED.
+	 *
+	 * Will not try to init the database. Give a connection only if the database
+	 * status is OPENED.
 	 *
 	 * Prevent for init or giving a connection on db closing
 	 *
-	 * @return A {@link java.sql.Connection} if the MediaDatabase is available, <code>null</code> otherwise
+	 * @return A {@link java.sql.Connection} if the MediaDatabase is available,
+	 * <code>null</code> otherwise
 	 */
 	public static Connection getConnectionIfAvailable() {
 		if (isAvailable()) {
 			try {
 				return instance.getConnection();
-			} catch (SQLException ex) {}
+			} catch (SQLException ex) {
+			}
 		}
 		return null;
 	}
 
 	/**
 	 * Reset the media database cache.
+	 *
 	 * Recreate all tables related to media cache except files status.
+	 *
 	 * @throws java.sql.SQLException
 	 */
-	public synchronized static void resetCache() throws SQLException {
+	public static synchronized void resetCache() throws SQLException {
 		if (instance != null) {
 			instance.reInitTablesExceptFilesStatus();
 		}
 	}
 
 	/**
-	 * Create the database report.
-	 * Use an automatic H2database profiling tool to make a report at the end of the logging file
-	 * converted to the "logging_report.txt" in the database directory.
+	 * Shutdown the MediaDatabase database.
 	 */
-	public static void createReport() {
+	public static synchronized void shutdown() {
 		if (instance != null) {
+			instance.close();
+		}
+	}
+
+	public static synchronized void createDatabaseReportIfNeeded() {
+		if (instance != null && instance.isEmbedded()) {
 			instance.createDatabaseReport();
 		}
 	}
 
-	/**
-	 * Shutdown the MediaDatabase database.
-	 */
-	public synchronized static void shutdown() {
-		if (instance != null) {
-			instance.close();
+	public static int getCacheSize() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					return DatabaseEmbedded.getCacheSize(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return 0;
+	}
+
+	public static void analyzeDb() {
+		if (instance != null && instance.isEmbedded()) {
+			Connection connection = null;
+			try {
+				connection = getConnectionIfAvailable();
+				if (connection != null) {
+					DatabaseEmbedded.analyzeDb(connection);
+				}
+			} finally {
+				MediaDatabase.close(connection);
+			}
 		}
 	}
 
