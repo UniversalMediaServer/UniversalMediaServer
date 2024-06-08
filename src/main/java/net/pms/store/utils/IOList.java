@@ -40,7 +40,6 @@ import net.pms.store.item.SevenZipEntry;
 import net.pms.store.item.WebStream;
 import net.pms.store.item.ZippedEntry;
 import net.pms.util.FileUtil;
-import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +108,7 @@ public class IOList extends ArrayList<StoreResource> {
 			} catch (IOException e) {
 				LOGGER.debug("Error loading resource list '{}': {}", f, e);
 			}
-			if (PMS.getConfiguration().getSortMethod(f) == UMSUtils.SORT_RANDOM) {
+			if (PMS.getConfiguration().getSortMethod(f) == StoreResourceSorter.SORT_RANDOM) {
 				Collections.shuffle(this);
 			}
 		}

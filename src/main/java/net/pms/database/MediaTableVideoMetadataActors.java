@@ -241,7 +241,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		return result;
 	}
 
-	public static ApiStringArray getActorsForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static ApiStringArray getActorsForTvSeries(final Connection connection, final Long tvSerieId) {
 		ApiStringArray result = new ApiStringArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ACTORS_TVSERIESID)) {
@@ -259,7 +259,7 @@ public final class MediaTableVideoMetadataActors extends MediaTable {
 		return result;
 	}
 
-	public static JsonArray getJsonArrayForTvSerie(final Connection connection, final Long tvSerieId) {
+	public static JsonArray getJsonArrayForTvSeries(final Connection connection, final Long tvSerieId) {
 		JsonArray result = new JsonArray();
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ACTORS_TVSERIESID)) {

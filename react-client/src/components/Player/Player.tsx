@@ -84,7 +84,7 @@ export const Player = () => {
 
   const setFullyPlayed = (id: string, fullyPlayed: boolean) => {
     setLoading(true);
-    axios.post(playerApiUrl + 'setFullyPlayed', { uuid:sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
+    axios.post(playerApiUrl + 'setFullyPlayed', { uuid: sse.uuid, id, fullyPlayed }, { headers: { 'Player': sse.uuid } })
       .then(function() {
         refreshPage();
       })

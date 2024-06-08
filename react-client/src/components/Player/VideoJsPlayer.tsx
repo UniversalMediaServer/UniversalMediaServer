@@ -118,7 +118,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
         try {
           (videoPlayer as any).hlsQualitySelector();
         } catch (error) {
-          videojs.log.warn(error);
+          videojs.log(error);
         }
       }
     };

@@ -778,7 +778,7 @@ public class APIUtils {
 				if (posterFromApi != null) {
 					DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(posterFromApi);
 					if (thumbnail != null) {
-						Long thumbnailId = ThumbnailStore.getIdForTvSerie(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
+						Long thumbnailId = ThumbnailStore.getIdForTvSeries(thumbnail, tvSeriesId, ThumbnailSource.TMDB);
 						tvSeriesMetadata.setThumbnailSource(ThumbnailSource.TMDB);
 						tvSeriesMetadata.setThumbnailId(thumbnailId);
 					}

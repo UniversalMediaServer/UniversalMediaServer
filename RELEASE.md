@@ -12,7 +12,7 @@ There are a number of manual steps involved in a new version release. This list 
      There are 4 usual sections in a changelog:
    - `General` contains most of our code changes like new features, improvements and bugfixes
    - `Translation updates via Crowdin` contains thanks and progress percentages
-   - `Renderers` contains changes that are specific to certain renderers
+   - `Media players` contains changes that are specific to certain media players
    - `Dependencies` is mostly automated by [the changelog GitHub Action](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/47ed539c03f01f5198988a9a2388ae2aafc5a998/.github/workflows/ci.yaml#L258-L276) supported by dangoslen/dependabot-changelog-helper and stefanzweifel/git-auto-commit-action.
       See the previous releases in the file to match existing conventions.
 
@@ -22,7 +22,7 @@ There are a number of manual steps involved in a new version release. This list 
 
      The version number will be dictated by the changes that are included in the release. There are 4 types of releases that can happen:
    - `Major (1.2.3 to 2.0.0)` is for a large feature-set and is usually the result of beta releases to get community feedback
-   - `Minor (1.2.3 to 1.3.0)` is for minor features or added renderers
+   - `Minor (1.2.3 to 1.3.0)` is for minor features or added media player configs
    - `Patch (1.2.3 to 1.2.4)` is for bugfixes
    - `Hotfix (1.2.3 to 1.2.3.1)` is rare, unplanned and contains a fix for an urgent problem in the last release
 
