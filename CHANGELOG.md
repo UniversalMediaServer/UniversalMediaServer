@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+-  Added custom FFmpeg Audio options (#1323)
+
 ## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
 
 ### General
