@@ -130,7 +130,6 @@ public abstract class StoreItem extends StoreResource {
 	////////////////////////////////////////////////////
 	private ResumeObj resume;
 	private int resHash = 0;
-	private long startTime;
 
 	private MediaSubtitle mediaSubtitle;
 	/**
@@ -597,10 +596,6 @@ public abstract class StoreItem extends StoreResource {
 		return mime;
 	}
 
-	public long getStartTime() {
-		return startTime;
-	}
-
 	/**
 	 * Plugin implementation. When this item is going to play, it will notify
 	 * all the StartStopListener objects available.
@@ -634,7 +629,7 @@ public abstract class StoreItem extends StoreResource {
 						LOGGER.debug(
 								"The full filename of which is: " + getFileName() + " and the address of the renderer is: " + rendererId);
 					}
-					startTime = System.currentTimeMillis();
+					lastStartSystemTime = System.currentTimeMillis();
 				};
 				new Thread(r, "StartPlaying Event").start();
 			}
@@ -651,7 +646,7 @@ public abstract class StoreItem extends StoreResource {
 		final StoreResource self = this;
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = () -> {
-			long start = startTime;
+			long start = lastStartSystemTime;
 			if (isLogPlayEvents()) {
 				LOGGER.trace("Stop playing {} on {} if no request under {} ms", getName(), renderer.getRendererName(), STOP_PLAYING_DELAY);
 			}
@@ -667,7 +662,7 @@ public abstract class StoreItem extends StoreResource {
 				assert refCount != null;
 				assert refCount > 0;
 				requestIdToRefcount.put(requestId, refCount - 1);
-				if (start != startTime) {
+				if (start != lastStartSystemTime) {
 					if (isLogPlayEvents()) {
 						LOGGER.trace("Continue playing {} on {}", getName(), renderer.getRendererName());
 					}
@@ -1133,7 +1128,7 @@ public abstract class StoreItem extends StoreResource {
 
 		notifyRefresh();
 		if (resume != null) {
-			resume.stop(startTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+			resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().removeChild(this);
 			} else if (getMediaInfo() != null) {
@@ -1143,7 +1138,7 @@ public abstract class StoreItem extends StoreResource {
 		} else {
 			for (StoreResource res : getParent().getChildren()) {
 				if (res instanceof StoreItem item && item.isResume() && item.getName().equals(getName())) {
-					item.resume.stop(startTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+					item.resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
 					if (item.resume.isDone()) {
 						getParent().removeChild(res);
 						return null;
@@ -1158,7 +1153,7 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 
-			ResumeObj r = ResumeObj.store(this, startTime);
+			ResumeObj r = ResumeObj.store(this, lastStartSystemTime);
 			if (r != null) {
 				StoreItem clone = this.clone();
 				clone.resume = r;
