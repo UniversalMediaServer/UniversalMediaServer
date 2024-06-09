@@ -5,6 +5,10 @@
 ### General
 -  Added custom FFmpeg Audio options (#1323)
 
+### Media players
+- Added configuration to set the maximum H.264 level supported.
+- Added configuration to set the maximum H.265 level supported.
+
 ## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
 
 ### General
