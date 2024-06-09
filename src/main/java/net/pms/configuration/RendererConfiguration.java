@@ -69,6 +69,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	private static final String KEY_CHARMAP = "CharMap";
 	private static final String KEY_CHUNKED_TRANSFER = "ChunkedTransfer";
+	private static final String KEY_CUSTOM_FFMPEG_AUDIO_OPTIONS = "CustomFFmpegAudioOptions";
 	private static final String KEY_CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String KEY_CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String KEY_CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMEncoderMPEG2Options";
@@ -1348,6 +1349,10 @@ public class RendererConfiguration extends BaseConfiguration {
 
 	public int getAutoPlayTmo() {
 		return getInt(KEY_AUTO_PLAY_TMO, 5000);
+	}
+
+	public String getCustomFFmpegAudioOptions() {
+		return getString(KEY_CUSTOM_FFMPEG_AUDIO_OPTIONS, "");
 	}
 
 	public String getCustomFFmpegOptions() {

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+-  Added custom FFmpeg Audio options (#1323)
+
 ### Media players
 - Added configuration to set the maximum H.264 level supported.
 - Added configuration to set the maximum H.265 level supported.

@@ -29,6 +29,7 @@ import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,7 +95,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		final String filename = resource.getFileName();
 		params.setMaxBufferSize(configuration.getMaxAudioBuffer());
-		params.setWaitBeforeStart(2000);
+		params.setWaitBeforeStart(1);
 		params.manageFastStart();
 
 		/*
@@ -161,30 +162,53 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + params.getTimeEnd());
 		}
 
+		String customFFmpegAudioOptions = renderer.getCustomFFmpegAudioOptions();
+
+		// Add audio options (-af, -filter_complex, -ab, -ar, -ac, -c:a, -f, -apre, -fpre, -pre, etc.)
+		if (StringUtils.isNotBlank(customFFmpegAudioOptions)) {
+			parseOptions(customFFmpegAudioOptions, cmdList);
+		}
+
 		if (renderer.isTranscodeToMP3()) {
-			cmdList.add("-f");
-			cmdList.add("mp3");
-			cmdList.add("-ab");
-			cmdList.add("320000");
+			if (!customFFmpegAudioOptions.contains("-ab ")) {
+				cmdList.add("-ab");
+				cmdList.add("320000");
+			}
+			if (!customFFmpegAudioOptions.contains("-f ")) {
+				cmdList.add("-f");
+				cmdList.add("mp3");
+			}
 		} else if (renderer.isTranscodeToWAV()) {
-			cmdList.add("-f");
-			cmdList.add("wav");
+			if (!customFFmpegAudioOptions.contains("-f ")) {
+				cmdList.add("-f");
+				cmdList.add("wav");
+			}
 		} else { // default: LPCM
-			cmdList.add("-f");
-			cmdList.add("s16be");
+			if (!customFFmpegAudioOptions.contains("-f ")) {
+				cmdList.add("-f");
+				cmdList.add("s16be");
+			}
 		}
 
 		if (configuration.isAudioResample()) {
 			if (renderer.isTranscodeAudioTo441()) {
-				cmdList.add("-ar");
-				cmdList.add("44100");
-				cmdList.add("-ac");
-				cmdList.add("2");
+				if (!customFFmpegAudioOptions.contains("-ar ")) {
+					cmdList.add("-ar");
+					cmdList.add("44100");
+				}
+				if (!customFFmpegAudioOptions.contains("-ac ")) {
+					cmdList.add("-ac");
+					cmdList.add("2");
+				}
 			} else {
-				cmdList.add("-ar");
-				cmdList.add("48000");
-				cmdList.add("-ac");
-				cmdList.add("2");
+				if (!customFFmpegAudioOptions.contains("-ar ")) {
+					cmdList.add("-ar");
+					cmdList.add("48000");
+				}
+				if (!customFFmpegAudioOptions.contains("-ac ")) {
+					cmdList.add("-ac");
+					cmdList.add("2");
+				}
 			}
 		}
 
