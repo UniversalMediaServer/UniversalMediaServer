@@ -928,7 +928,9 @@ public class FFMpegVideo extends Engine {
 		) {
 			LOGGER.debug("Switching from FFmpeg to MEncoder to transcode subtitles because the user setting is enabled.");
 			MEncoderVideo mv = (MEncoderVideo) EngineFactory.getEngine(StandardEngineId.MENCODER_VIDEO, false, true);
-			return mv.launchTranscode(resource, media, params);
+			if (mv != null) {
+				return mv.launchTranscode(resource, media, params);
+			}
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
@@ -947,7 +949,7 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "we are using AviSynth.");
-			} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+			} else if (defaultVideoTrack.isH264() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if ("bt.601".equals(defaultVideoTrack.getMatrixCoefficients())) {
@@ -1010,7 +1012,7 @@ public class FFMpegVideo extends Engine {
 			} else if (isAviSynthEngine()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "we are using AviSynth.");
-			} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+			} else if (defaultVideoTrack.isH264() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 			} else if (!isMuxable(defaultVideoTrack, renderer)) {
@@ -1209,7 +1211,7 @@ public class FFMpegVideo extends Engine {
 
 		setOutputParsing(configuration, resource, pw, false);
 
-		if (!dtsRemux) {
+		if (!dtsRemux && pipe != null) {
 			ProcessWrapper mkfifoProcess = pipe.getPipeProcess();
 
 			/**

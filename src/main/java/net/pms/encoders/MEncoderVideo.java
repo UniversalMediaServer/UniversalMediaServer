@@ -500,7 +500,7 @@ public class MEncoderVideo extends Engine {
 		} else if (isAviSynthEngine()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		} else if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+		} else if (defaultVideoTrack.isH264() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
 		} else if (!isMuxable(defaultVideoTrack, renderer)) {

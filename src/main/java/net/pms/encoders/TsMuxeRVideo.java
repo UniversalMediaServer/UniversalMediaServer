@@ -254,7 +254,7 @@ public class TsMuxeRVideo extends Engine {
 			 * In reality this won't cause problems since renderers typically don't support above 4.1 anyway - nor are many
 			 * videos encoded higher than that either - but it's worth acknowledging the logic discrepancy.
 			 */
-			if (defaultVideoTrack.isH264() && renderer.getH264LevelLimit() < 4.2 && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
+			if (defaultVideoTrack.isH264() && !isVideoWithinH264LevelLimits(defaultVideoTrack, renderer)) {
 				LOGGER.info("The video will not play or will show a black screen");
 			}
 
