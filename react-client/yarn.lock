@@ -1226,6 +1226,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@videojs/xhr@npm:2.7.0":
+  version: 2.7.0
+  resolution: "@videojs/xhr@npm:2.7.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.5.5"
+    global: "npm:~4.4.0"
+    is-function: "npm:^1.0.1"
+  checksum: 10c0/5dc0dd97bd8e4d5ef05bfd46ced6a9e26cad93335d3e4804ad1d8621d521c943712ad47ebc1968ed153b8cfad6702eafe400e659e724b8c1d005a5ad5f601d8a
+  languageName: node
+  linkType: hard
+
 "@vitejs/plugin-react@npm:4.3.1":
   version: 4.3.1
   resolution: "@vitejs/plugin-react@npm:4.3.1"
@@ -4762,7 +4773,7 @@ __metadata:
     react-router-dom: "npm:6.23.1"
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.4.5"
-    video.js: "npm:8.14.1"
+    video.js: "npm:8.15.0"
     vite: "npm:5.2.11"
   languageName: unknown
   linkType: soft
@@ -4893,14 +4904,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.14.1":
-  version: 8.14.1
-  resolution: "video.js@npm:8.14.1"
+"video.js@npm:8.15.0":
+  version: 8.15.0
+  resolution: "video.js@npm:8.15.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
     "@videojs/http-streaming": "npm:3.13.0"
     "@videojs/vhs-utils": "npm:^4.0.0"
-    "@videojs/xhr": "npm:2.6.0"
+    "@videojs/xhr": "npm:2.7.0"
     aes-decrypter: "npm:^4.0.1"
     global: "npm:4.4.0"
     m3u8-parser: "npm:^7.1.0"
@@ -4910,7 +4921,7 @@ __metadata:
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.1.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/b6898891123a767b0b7110c71f82c350e2839ff8b2a1e610979094eeaaee13131ff71e337440b7a182599126d7482973cbd49c58def4d2a50b3ca73b0affa32a
+  checksum: 10c0/3f0f582471df59eace69bc58cf076618ef658a8cdcef15fc3bbe16c0798f9c2d0f242e7b5b379057a11b056c4d22faca67092e7a239752ae15d03483dfe1af1a
   languageName: node
   linkType: hard
 
