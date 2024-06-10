@@ -678,6 +678,12 @@
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
 			<version>0.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
