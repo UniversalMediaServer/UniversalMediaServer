@@ -11,6 +11,7 @@
 
 ### Dependencies
 - Bump `@vitejs/plugin-react` from 4.3.0 to 4.3.1 ([#4751](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4751))
+- Bump `eslint` from 8.57.0 to 9.4.0 ([#4749](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4749))
 - Bump `jetty.version` from 12.0.9 to 12.0.10 ([#4743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4743))
 
 ## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
