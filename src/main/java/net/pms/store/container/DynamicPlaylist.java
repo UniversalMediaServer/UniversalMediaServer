@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.Locale;
 import net.pms.renderers.Renderer;
 
-public class DynamicPlaylist extends Playlist {
+public class DynamicPlaylist extends UmsPlaylist {
 	private final String savePath;
 	private long start;
 

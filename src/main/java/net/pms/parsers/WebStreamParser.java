@@ -14,17 +14,22 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.external.webstream;
+package net.pms.parsers;
 
 import java.net.http.HttpHeaders;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.database.MediaTableFiles;
+import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.media.WebStreamMetadata;
+import net.pms.media.MediaInfo;
+import net.pms.media.audio.metadata.MediaAudioMetadata;
+import net.pms.store.ThumbnailSource;
+import net.pms.store.ThumbnailStore;
 import net.pms.util.FileUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WebStreamParser {
 
@@ -36,31 +41,25 @@ public class WebStreamParser {
 	private WebStreamParser() {
 	}
 
-	public static WebStreamMetadata getWebStreamMetadata(String url, int defaultType) {
-		int type = getTypeFromUrl(url, defaultType);
-		if (type != Format.UNSET && type != Format.UNKNOWN && type != Format.VIDEO && type != Format.AUDIO) {
-			//this is not a media stream
-			return null;
+	public static void parse(MediaInfo mediaInfo, String url, int type) {
+		//ensure mediaInfo is not already parsing or is parsed
+		mediaInfo.waitMediaParsing(5);
+		if (mediaInfo.isMediaParsed()) {
+			return;
 		}
+		mediaInfo.resetParser();
 		HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
-		HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-		if (type == Format.UNSET || type == Format.UNKNOWN) {
-			LOGGER.debug("Analyzing internet resource type from content-type HEADER: {}", url);
-			type = getTypeFromHttpHeaders(headHeaders, type);
-			if (type == 0) {
-				type = getTypeFromHttpHeaders(getHeaders, type);
-				if (type == 0) {
-					LOGGER.warn("Couldn't determine stream content type for {}", url);
-				}
-			}
+		String contentType = headHeaders.firstValue("content-type").orElse(null);
+		if (contentType != null) {
+			mediaInfo.setMimeType(contentType);
 		}
-		if (type == Format.VIDEO || type == Format.AUDIO) {
-			WebStreamMetadata wsm = new WebStreamMetadata(url, type);
-			addAudioFormat(wsm, headHeaders);
-			addAudioFormat(wsm, getHeaders);
-			return wsm;
+		if (type == Format.AUDIO) {
+			HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+			addAudioIcyInfos(mediaInfo, url, headHeaders);
+			addAudioIcyInfos(mediaInfo, url, getHeaders);
 		}
-		return null;
+		FFmpegParser.parseUrl(mediaInfo, url);
+		mediaInfo.setMediaParser("WEBSTREAM");
 	}
 
 	public static int getWebStreamType(String url, int defaultType) {
@@ -70,8 +69,8 @@ public class WebStreamParser {
 			HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
 			type = getTypeFromHttpHeaders(headHeaders, 0);
 			if (type == 0) {
-				HttpHeaders inputStreamHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
-				type = getTypeFromHttpHeaders(inputStreamHeaders, 0);
+				HttpHeaders getHeaders = JavaHttpClient.getHeadersFromInputStreamRequest(url);
+				type = getTypeFromHttpHeaders(getHeaders, 0);
 			}
 			if (type == 0) {
 				LOGGER.debug("Couldn't determine stream content type from content-type HEADER for {}", url);
@@ -89,33 +88,43 @@ public class WebStreamParser {
 	/*
 	 * Extracts audio information from ice or icecast protocol.
 	 */
-	private static void addAudioFormat(WebStreamMetadata streamMeta, HttpHeaders headers) {
+	private static void addAudioIcyInfos(MediaInfo mediaInfo, String url, HttpHeaders headers) {
 		if (headers == null) {
 			LOGGER.trace("web audio stream without header info.");
 			return;
 		}
-		Optional<String> value = headers.firstValue("icy-br");
-		if (value.isPresent()) {
-			streamMeta.setBitrate(parseIntValue(value.get()));
+		if (!mediaInfo.hasAudioMetadata()) {
+			mediaInfo.setAudioMetadata(new MediaAudioMetadata());
 		}
-		value = headers.firstValue("icy-sr");
-		if (value.isPresent()) {
-			streamMeta.setSampleRate(parseIntValue(value.get()));
+		Integer bitrate = parseIntValue(headers.firstValue("icy-br").orElse(null));
+		if (bitrate != null) {
+			mediaInfo.setBitRate(bitrate);
+			mediaInfo.getDefaultAudioTrack().setBitRate(bitrate);
 		}
-
-		value = headers.firstValue("icy-genre");
-		if (value.isPresent()) {
-			streamMeta.setGenre(value.get());
+		Integer sampleRate = parseIntValue(headers.firstValue("icy-sr").orElse(null));
+		if (sampleRate != null) {
+			mediaInfo.getDefaultAudioTrack().setSampleRate(sampleRate);
 		}
-
-		value = headers.firstValue("content-type");
-		if (value.isPresent()) {
-			streamMeta.setContentType(value.get());
+		String genre = headers.firstValue("icy-genre").orElse(null);
+		if (genre != null) {
+			if (!mediaInfo.hasAudioMetadata()) {
+				mediaInfo.setAudioMetadata(new MediaAudioMetadata());
+			}
+			mediaInfo.getAudioMetadata().setGenre(genre);
 		}
-
-		value = headers.firstValue("icy-logo");
-		if (value.isPresent()) {
-			streamMeta.setLogoUrl(value.get());
+		String logo = headers.firstValue("icy-logo").orElse(null);
+		if (StringUtils.isNotBlank(logo) &&
+				!ThumbnailSource.WEBSTREAM.equals(mediaInfo.getThumbnailSource()) &&
+				!ThumbnailSource.RADIOBROWSER.equals(mediaInfo.getThumbnailSource())) {
+			DLNAThumbnail thumbnail = JavaHttpClient.getThumbnail(logo);
+			if (thumbnail != null) {
+				Long fileId = MediaTableFiles.getFileId(url);
+				if (fileId != null) {
+					Long thumbnailId = ThumbnailStore.getId(thumbnail, fileId, ThumbnailSource.WEBSTREAM);
+					mediaInfo.setThumbnailId(thumbnailId);
+					mediaInfo.setThumbnailSource(ThumbnailSource.WEBSTREAM);
+				}
+			}
 		}
 	}
 

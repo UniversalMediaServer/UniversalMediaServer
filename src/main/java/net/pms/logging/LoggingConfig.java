@@ -31,7 +31,7 @@ import ch.qos.logback.core.OutputStreamAppender;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.joran.spi.JoranException;
-import ch.qos.logback.core.util.StatusPrinter;
+import ch.qos.logback.core.util.StatusPrinter2;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -67,6 +67,7 @@ public class LoggingConfig {
 	private static boolean syslogDisabled = false;
 	private static Level consoleLevel = null;
 	private static Level tracesLevel = null;
+	private static final StatusPrinter2 STATUS_PRINTER = new StatusPrinter2();
 
 	private enum ActionType { START, STOP, NONE }
 
@@ -221,7 +222,7 @@ public class LoggingConfig {
 				CacheLogger.initContext();
 			}
 			LOGGER.error("Logback configuration failed with: {}", je.getLocalizedMessage());
-			StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+			STATUS_PRINTER.printInCaseOfErrorsOrWarnings(loggerContext);
 			return;
 		}
 
@@ -256,7 +257,7 @@ public class LoggingConfig {
 		// Set filters for console and traces
 		setConfigurableFilters(true, true);
 
-		StatusPrinter.printInCaseOfErrorsOrWarnings(loggerContext);
+		STATUS_PRINTER.printInCaseOfErrorsOrWarnings(loggerContext);
 	}
 
 	private static synchronized void setConfigurableFilters(boolean setConsole, boolean setTraces) {

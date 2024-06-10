@@ -31,16 +31,14 @@ import net.pms.database.MediaTableFailedLookups;
 import net.pms.database.MediaTableFiles;
 import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
-import net.pms.database.MediaTableWebResource;
 import net.pms.external.tmdb.TMDB;
-import net.pms.external.webstream.WebStreamMetadataCollector;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
-import net.pms.media.WebStreamMetadata;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
+import net.pms.parsers.WebStreamParser;
 import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
@@ -200,7 +198,7 @@ public class MediaInfoStore {
 		}
 	}
 
-	public static MediaInfo getWebStreamMediaInfo(String url, Map<String, String> directives, int defaultType) {
+	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
 		Object lock = getLock(url);
 		synchronized (lock) {
 			MediaInfo mediaInfo = getMediaInfoStored(url);
@@ -208,14 +206,21 @@ public class MediaInfoStore {
 				return mediaInfo;
 			}
 			LOGGER.trace("Store do not yet contains MediaInfo for {}", url);
-			mediaInfo = new MediaInfo();
-			WebStreamMetadata meta = MediaTableWebResource.getWebStreamMetadata(url);
-			if (meta != null) {
-				meta.fillMediaInfo(mediaInfo);
-			} else {
-				WebStreamMetadataCollector.backgroundLookupAndAddMetadata(url, directives, mediaInfo, defaultType);
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
+				if (mediaInfo == null) {
+					mediaInfo = new MediaInfo();
+				}
+				if (!mediaInfo.isMediaParsed()) {
+					WebStreamParser.parse(mediaInfo, url, type);
+					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
 			}
-			storeMediaInfo(url, mediaInfo);
+			if (mediaInfo != null) {
+				storeMediaInfo(url, mediaInfo);
+			}
 			return mediaInfo;
 		}
 	}

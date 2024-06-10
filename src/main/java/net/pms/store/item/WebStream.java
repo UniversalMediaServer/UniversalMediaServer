@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Map;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.external.radiobrowser.RadioBrowser4j;
 import net.pms.network.HTTPResource;
 import net.pms.network.HTTPResourceAuthenticator;
 import net.pms.renderers.Renderer;
@@ -174,8 +175,12 @@ public class WebStream extends StoreItem {
 			return;
 		}
 
-		if (FileUtil.isUrl(url) && (getMediaInfo() == null || !getMediaInfo().isMediaParsed())) {
-			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, directives, getSpecificType()));
+		if (getMediaInfo() == null || !getMediaInfo().isMediaParsed()) {
+			setMediaInfo(MediaInfoStore.getWebStreamMediaInfo(url, getSpecificType()));
+		}
+		if (directives != null && directives.containsKey("RADIOBROWSERUUID")) {
+			// Attempt to enhance the metadata via RADIOBROWSER API.
+			RadioBrowser4j.backgroundLookupAndAddMetadata(url, directives.get("RADIOBROWSERUUID"), mediaInfo);
 		}
 	}
 
