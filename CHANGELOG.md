@@ -10,6 +10,7 @@
 - Added configuration to set the maximum H.265 level supported.
 
 ### Dependencies
+- Bump `@types/lodash` from 4.17.4 to 4.17.5 ([#4750](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4750))
 - Bump `@vitejs/plugin-react` from 4.3.0 to 4.3.1 ([#4751](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4751))
 - Bump `jetty.version` from 12.0.9 to 12.0.10 ([#4743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4743))
 
