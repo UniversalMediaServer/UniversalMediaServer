@@ -232,7 +232,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.10.1</version>
+			<version>2.11.0</version>
 		</dependency>
 		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
 		<!-- com.sun.xml.messaging.saaj as well -->
@@ -678,6 +678,12 @@
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
 			<version>0.3</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
