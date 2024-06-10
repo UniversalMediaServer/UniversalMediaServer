@@ -11,6 +11,7 @@
 
 ### Dependencies
 - Bump `jetty.version` from 12.0.9 to 12.0.10 ([#4743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4743))
+- Bump `twelvemonkeys-imageio-version` from 3.10.1 to 3.11.0 ([#4744](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4744))
 
 ## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
 
