@@ -1,19 +1,9 @@
 import { defineConfig } from 'vite'
-import eslint from 'vite-plugin-eslint'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [
-    react(),
-    eslint({
-      cache: false,
-      include: ['./src/**'],
-      exclude: [],
-      emitWarning: true,
-      emitError: true,
-      failOnWarning: true,
-      failOnError: true
-    })
+    react()
   ],
   build: {
     outDir: '../src/main/external-resources/web/react-client',

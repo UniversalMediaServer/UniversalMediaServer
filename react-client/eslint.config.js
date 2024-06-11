@@ -1,5 +1,3 @@
-import tsPlugin from '@typescript-eslint/eslint-plugin'
-import tsParser from '@typescript-eslint/parser';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import hooksPlugin from 'eslint-plugin-react-hooks';
@@ -14,23 +12,23 @@ export default tseslint.config(
           ]
         },
         {
-          files: ['**/*.{js,mjs,cjs,ts,tsx}'],
+          files: ['**/*.js', '**/*.mjs', '**/*.cjs', '**/*.ts', '**/*.tsx'],
           languageOptions: {
-            parser: tsParser,
+            parser: tseslint.parser,
             parserOptions: {
               sourceType: 'module',
               ecmaVersion: 2021
             }
           },
           plugins: {
-            '@typescript-eslint': tsPlugin,
+            '@typescript-eslint': tseslint.plugin,
             'react': reactPlugin,
             'react-hooks': hooksPlugin,
             'react-refresh': refreshPlugin
           },
           rules: {
-            ...tsPlugin.configs['eslint-recommended'].rules,
-            ...tsPlugin.configs.recommended.rules,
+            ...tseslint.plugin.configs['eslint-recommended'].rules,
+            ...tseslint.plugin.configs.recommended.rules,
             '@typescript-eslint/no-empty-function': 'off',
             '@typescript-eslint/no-unused-vars': 'off',
             '@typescript-eslint/no-explicit-any': 'off',

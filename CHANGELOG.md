@@ -3,7 +3,9 @@
 ## [Unreleased]
 
 ### General
--  Added custom FFmpeg Audio options (#1323)
+- Added custom FFmpeg Audio options (#1323)
+- Run eslint on build
+- Migrate eslint configuration to flat config format (ESLint v8/v9).
 
 ### Media players
 - Added configuration to set the maximum H.264 level supported.
