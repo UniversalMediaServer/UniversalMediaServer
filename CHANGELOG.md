@@ -3,7 +3,8 @@
 ## [Unreleased]
 
 ### General
--  Added custom FFmpeg Audio options (#1323)
+- Added custom FFmpeg Audio options (#1323)
+- Implements vite-plugin-eslint to eslint on build
 
 ### Media players
 - Added configuration to set the maximum H.264 level supported.

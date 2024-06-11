@@ -1,10 +1,21 @@
 import { defineConfig } from 'vite'
+import eslint from 'vite-plugin-eslint'
 import react from '@vitejs/plugin-react'
 
-// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
-  build:{
+  plugins: [
+    react(),
+    eslint({
+      cache: false,
+      include: ['./src/**'],
+      exclude: [],
+      emitWarning: true,
+      emitError: true,
+      failOnWarning: true,
+      failOnError: true
+    })
+  ],
+  build: {
     outDir: '../src/main/external-resources/web/react-client',
     emptyOutDir: true,
     assetsDir: 'static',
@@ -24,8 +35,8 @@ export default defineConfig({
   },
   server: {
     open: '/',
-    proxy:{
+    proxy: {
       '/': 'http://localhost:9001',
-	}
+    }
   }
 })

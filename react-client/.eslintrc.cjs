@@ -21,7 +21,7 @@ module.exports = {
       },
     },
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', '**/**.css'],
   parser: '@typescript-eslint/parser',
   plugins: ['react-refresh'],
   rules: {
