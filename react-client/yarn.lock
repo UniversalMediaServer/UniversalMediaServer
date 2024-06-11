@@ -4721,6 +4721,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"typescript-eslint@npm:7.12.0":
+  version: 7.12.0
+  resolution: "typescript-eslint@npm:7.12.0"
+  dependencies:
+    "@typescript-eslint/eslint-plugin": "npm:7.12.0"
+    "@typescript-eslint/parser": "npm:7.12.0"
+    "@typescript-eslint/utils": "npm:7.12.0"
+  peerDependencies:
+    eslint: ^8.56.0
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10c0/4533dc8f277b431ff6911789581d4f2dada7c3f6382a95b5b727d3fbfc1f316fc28153c46375d2c0d72d628b1fd48762e7b66efb51d49a2614913d42b74a8033
+  languageName: node
+  linkType: hard
+
 "typescript@npm:5.4.5":
   version: 5.4.5
   resolution: "typescript@npm:5.4.5"
@@ -4756,8 +4772,6 @@ __metadata:
     "@types/lodash": "npm:4.17.5"
     "@types/react": "npm:18.3.3"
     "@types/react-dom": "npm:18.3.0"
-    "@typescript-eslint/eslint-plugin": "npm:7.12.0"
-    "@typescript-eslint/parser": "npm:7.12.0"
     "@vitejs/plugin-react": "npm:4.3.1"
     axios: "npm:1.7.2"
     eslint: "npm:8.57.0"
@@ -4773,6 +4787,7 @@ __metadata:
     react-router-dom: "npm:6.23.1"
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.4.5"
+    typescript-eslint: "npm:7.12.0"
     video.js: "npm:8.15.0"
     vite: "npm:5.2.11"
   languageName: unknown
