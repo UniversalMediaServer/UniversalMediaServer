@@ -47,6 +47,7 @@ public class WebStreamParser {
 		if (mediaInfo.isMediaParsed()) {
 			return;
 		}
+		mediaInfo.setParsing(true);
 		mediaInfo.resetParser();
 		HttpHeaders headHeaders = JavaHttpClient.getHeaders(url);
 		String contentType = headHeaders.firstValue("content-type").orElse(null);
@@ -58,6 +59,7 @@ public class WebStreamParser {
 			addAudioIcyInfos(mediaInfo, url, headHeaders);
 			addAudioIcyInfos(mediaInfo, url, getHeaders);
 		}
+		mediaInfo.setParsing(false);
 		FFmpegParser.parseUrl(mediaInfo, url);
 		mediaInfo.setMediaParser("WEBSTREAM");
 	}
@@ -99,10 +101,12 @@ public class WebStreamParser {
 		Integer bitrate = parseIntValue(headers.firstValue("icy-br").orElse(null));
 		if (bitrate != null) {
 			mediaInfo.setBitRate(bitrate);
-			mediaInfo.getDefaultAudioTrack().setBitRate(bitrate);
+			if (mediaInfo.hasAudio()) {
+				mediaInfo.getDefaultAudioTrack().setBitRate(bitrate);
+			}
 		}
 		Integer sampleRate = parseIntValue(headers.firstValue("icy-sr").orElse(null));
-		if (sampleRate != null) {
+		if (sampleRate != null && mediaInfo.hasAudio()) {
 			mediaInfo.getDefaultAudioTrack().setSampleRate(sampleRate);
 		}
 		String genre = headers.firstValue("icy-genre").orElse(null);
