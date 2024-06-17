@@ -16,6 +16,12 @@
 - Improved H.264 support on Sony PlayStation 4
 
 ### Dependencies
+- Bump `@mantine/core` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/dropzone` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/form` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/hooks` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/modals` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/notifications` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
 - Bump `@types/lodash` from 4.17.4 to 4.17.5 ([#4750](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4750))
 - Bump `@typescript-eslint/eslint-plugin` from 7.11.0 to 7.12.0 ([#4747](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4747))
 - Bump `@typescript-eslint/parser` from 7.11.0 to 7.12.0 ([#4747](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4747))
