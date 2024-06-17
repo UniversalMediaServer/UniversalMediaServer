@@ -33,6 +33,7 @@ import net.pms.configuration.UmsConfiguration;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.chapter.MediaChapter;
+import net.pms.media.codec.video.H264;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
@@ -392,14 +393,7 @@ public class HlsHelper {
 		if (mediaInfo != null && mediaInfo.hasVideoTrack()) {
 			MediaVideo mediaVideo = mediaInfo.getDefaultVideoTrack();
 			if (mediaVideo.isH264() && mediaVideo.getFormatLevel() != null) {
-				float h264Level;
-				try {
-					h264Level = Float.parseFloat(mediaVideo.getFormatLevel());
-				} catch (NumberFormatException e) {
-					h264Level = 4.1f;
-				}
-				int h264IntLevel = (int) (h264Level * 10);
-				return String.format("%02X", h264IntLevel);
+				return H264.getAvcLevelHex(mediaVideo.getFormatLevelAsDouble(4.1));
 			}
 			int width = mediaVideo.getWidth();
 			int height = mediaVideo.getHeight();
@@ -421,10 +415,9 @@ public class HlsHelper {
 		if (mediaInfo != null && mediaInfo.hasVideoTrack()) {
 			MediaVideo mediaVideo = mediaInfo.getDefaultVideoTrack();
 			if (mediaVideo.isH264() && mediaVideo.getFormatProfile() != null) {
-				int h264ProfileId = getAvcProfileId(mediaVideo.getFormatProfile());
-				if (h264ProfileId != 255) {
-					String profile = String.format("%02X", h264ProfileId);
-					return profile + "00";
+				String profileHex = H264.getAvcProfileHex(mediaVideo.getFormatProfile());
+				if (profileHex != null) {
+					return profileHex;
 				}
 			}
 			int width = mediaVideo.getWidth();
@@ -434,29 +427,6 @@ public class HlsHelper {
 			}
 		}
 		return "4D00"; //Main
-	}
-
-	public static int getAvcProfileId(String profile) {
-		if (profile == null) {
-			return 255;
-		}
-		return switch (profile.toLowerCase()) {
-			case "cavlc 4:4:4 intra" -> 44;
-			case "baseline" -> 66;
-			case "main" -> 77;
-			case "scalable baseline" -> 83;
-			case "scalable high" -> 86;
-			case "extended" -> 88;
-			case "high" -> 100;
-			case "high 10" -> 110;
-			case "multiview high" -> 118;
-			case "high 4:2:2" -> 122;
-			case "stereo high" -> 128;
-			case "multiview depth high" -> 138;
-			case "high 4:4:4" -> 144;
-			case "high 4:4:4 predictive" -> 244;
-			default -> 255;
-		};
 	}
 
 	/**

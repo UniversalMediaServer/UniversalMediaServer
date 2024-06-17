@@ -563,6 +563,22 @@ public class MediaVideo extends MediaLang implements Cloneable {
 	}
 
 	/**
+	 * @param def the default value to return if null or not number.
+	 * @return Format level for video stream or default value if not parsed.
+	 */
+	public double getFormatLevelAsDouble(double def) {
+		if (formatLevel == null) {
+			return def;
+		}
+		try {
+			return Double.parseDouble(formatLevel);
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not convert {} to double: {}", formatLevel, e.getMessage());
+			return def;
+		}
+	}
+
+	/**
 	 * Sets Format level for video stream or {@code null} if not parsed.
 	 *
 	 * @param formatLevel Format level.

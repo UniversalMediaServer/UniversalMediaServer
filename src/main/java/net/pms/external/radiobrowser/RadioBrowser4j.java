@@ -183,6 +183,8 @@ public class RadioBrowser4j {
 			try {
 				// wait until MediaStore Workers release before starting
 				MediaStore.waitWorkers();
+				//ensure mediaInfo is not parsing
+				mediaInfo.waitMediaParsing(10);
 			} catch (InterruptedException ex) {
 				Thread.currentThread().interrupt();
 				return;

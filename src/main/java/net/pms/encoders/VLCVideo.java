@@ -319,7 +319,7 @@ public class VLCVideo extends Engine {
 			 */
 			if (!isXboxOneWebVideo && (params.getMediaRenderer().isTranscodeToH264() || params.getMediaRenderer().isTranscodeToH265())) {
 				if (
-					params.getMediaRenderer().isH264Level41Limited() &&
+					params.getMediaRenderer().getH264LevelLimit() < 4.2 &&
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;

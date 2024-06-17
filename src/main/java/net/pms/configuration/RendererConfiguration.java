@@ -69,6 +69,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	private static final String KEY_CHARMAP = "CharMap";
 	private static final String KEY_CHUNKED_TRANSFER = "ChunkedTransfer";
+	private static final String KEY_CUSTOM_FFMPEG_AUDIO_OPTIONS = "CustomFFmpegAudioOptions";
 	private static final String KEY_CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String KEY_CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String KEY_CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMEncoderMPEG2Options";
@@ -80,7 +81,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_DLNA_PROFILE_CHANGES = "DLNAProfileChanges";
 	private static final String KEY_DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String KEY_HALVE_BITRATE = "HalveBitrate";
-	private static final String KEY_H264_L41_LIMITED = "H264Level41Limited";
+	private static final String KEY_H264_LEVEL_LIMIT = "H264LevelLimit";
+	private static final String KEY_H265_LEVEL_LIMIT = "H265LevelLimit";
 	protected static final String KEY_HLS_MULTI_VIDEO_QUALITY = "HlsMultiVideoQuality";
 	protected static final String KEY_HLS_VERSION = "HlsVersion";
 	private static final String KEY_IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
@@ -578,10 +580,17 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * @return whether to transcode H.264 video if it exceeds level 4.1
+	 * @return The maximum H.264 level supported by the renderer.
 	 */
-	public boolean isH264Level41Limited() {
-		return getBoolean(KEY_H264_L41_LIMITED, true);
+	public double getH264LevelLimit() {
+		return getDouble(KEY_H264_LEVEL_LIMIT, 4.1);
+	}
+
+	/**
+	 * @return The maximum H.265 level supported by the renderer.
+	 */
+	public double getH265LevelLimit() {
+		return getDouble(KEY_H265_LEVEL_LIMIT, 4.1);
 	}
 
 	public boolean isTranscodeFastStart() {
@@ -1340,6 +1349,10 @@ public class RendererConfiguration extends BaseConfiguration {
 
 	public int getAutoPlayTmo() {
 		return getInt(KEY_AUTO_PLAY_TMO, 5000);
+	}
+
+	public String getCustomFFmpegAudioOptions() {
+		return getString(KEY_CUSTOM_FFMPEG_AUDIO_OPTIONS, "");
 	}
 
 	public String getCustomFFmpegOptions() {

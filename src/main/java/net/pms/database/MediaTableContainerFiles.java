@@ -212,7 +212,7 @@ public class MediaTableContainerFiles extends MediaTable {
 				try (ResultSet result = ps.executeQuery()) {
 					boolean isCreatingNewRecord = !result.next();
 					if (isCreatingNewRecord) {
-						LOGGER.error("Adding container entry {} for {} ", entryId, containerId);
+						LOGGER.debug("Adding container entry {} for {} ", entryId, containerId);
 						result.moveToInsertRow();
 						result.updateLong(COL_CONTAINER_ID, containerId);
 						result.updateLong(COL_FILEID, entryId);
