@@ -157,7 +157,7 @@ public final class PlaylistFolder extends StoreContainer {
 	@Override
 	public void resolve() {
 		getChildren().clear();
-		setLastModified(getPlaylistfile().lastModified());
+		setLastModified(getPlaylistfile() != null ? getPlaylistfile().lastModified() : 0);
 		resolveOnce();
 	}
 
