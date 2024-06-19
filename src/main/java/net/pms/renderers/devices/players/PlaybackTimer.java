@@ -44,11 +44,8 @@ public class PlaybackTimer extends MinimalPlayer {
 		Runnable r = () -> {
 			state.setPlayback(PlayerState.PLAYING);
 			while (res == renderer.getPlayingRes()) {
-				long elapsed;
-				if ((long) res.getLastStartPosition() == 0) {
-					elapsed = System.currentTimeMillis() - res.getStartTime();
-				} else {
-					elapsed = System.currentTimeMillis() - (long) res.getLastStartSystemTime();
+				long elapsed = System.currentTimeMillis() - res.getLastStartSystemTime();
+				if ((long) res.getLastStartPosition() != 0) {
 					elapsed += (long) (res.getLastStartPosition() * 1000);
 				}
 
