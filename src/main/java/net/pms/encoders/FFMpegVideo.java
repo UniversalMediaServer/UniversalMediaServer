@@ -475,8 +475,6 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("ultrafast");
 						}
 					}
-					transcodeOptions.add("-pix_fmt");
-					transcodeOptions.add("yuv420p");
 				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
@@ -498,6 +496,12 @@ public class FFMpegVideo extends Engine {
 				} else {
 					transcodeOptions.add("vob");
 				}
+			}
+			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
+			if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
+				// this makes FFmpeg output HDR and Dolby Vision metadata
+				transcodeOptions.add("-strict");
+				transcodeOptions.add("unofficial");
 			}
 		}
 
@@ -961,30 +965,6 @@ public class FFMpegVideo extends Engine {
 			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
-				canMuxVideoWithFFmpeg = false;
-				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
-					"mpegts",
-					defaultVideoTrack.getCodec(),
-					null,
-					0,
-					0,
-					defaultVideoTrack.getBitRate(),
-					0,
-					defaultVideoTrack.getWidth(),
-					defaultVideoTrack.getHeight(),
-					defaultVideoTrack.getBitDepth(),
-					defaultVideoTrack.getHDRFormatForRenderer(),
-					defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
-					defaultVideoTrack.getExtras(),
-					null,
-					false,
-					renderer
-				) != null;
-				if (videoWouldBeCompatibleInTsContainer) {
-					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
-				}
-				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
 			}
 		}
 
@@ -1054,11 +1034,6 @@ public class FFMpegVideo extends Engine {
 
 				return tsMuxeRVideoInstance.launchTranscode(resource, media, params);
 			}
-		}
-
-		// If we got here, we are not deferring to tsMuxeR and can mux the video
-		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
-			canMuxVideoWithFFmpeg = true;
 		}
 
 		// Apply any video filters and associated options. These should go
