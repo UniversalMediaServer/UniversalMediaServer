@@ -133,6 +133,11 @@ public class StoreResourceSorter {
 
 	public static void sortResourcesByTitle(List<StoreResource> resources, boolean asc, String lang) {
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
+			if (!resources1.isSortable()) {
+				return asc ? -1 : 1;
+			} else if (!resources2.isSortable()) {
+				return asc ? 1 : -1;
+			}
 			String str1 = resources1.getLocalizedDisplayName(lang);
 			String str2 = resources2.getLocalizedDisplayName(lang);
 			if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {

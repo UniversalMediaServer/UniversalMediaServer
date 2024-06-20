@@ -16,11 +16,18 @@
 - Improved H.264 support on Sony PlayStation 4
 
 ### Dependencies
+- Bump `@mantine/core` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/dropzone` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/form` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/hooks` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/modals` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
+- Bump `@mantine/notifications` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
 - Bump `@types/lodash` from 4.17.4 to 4.17.5 ([#4750](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4750))
 - Bump `@typescript-eslint/eslint-plugin` from 7.11.0 to 7.12.0 ([#4747](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4747))
 - Bump `@typescript-eslint/parser` from 7.11.0 to 7.12.0 ([#4747](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4747))
 - Bump `@vitejs/plugin-react` from 4.3.0 to 4.3.1 ([#4751](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4751))
 - Bump `com.google.code.gson:gson` from 2.10.1 to 2.11.0 ([#4745](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4745))
+- Bump `eslint-plugin-react` from 7.34.1 to 7.34.2 ([#4764](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4764))
 - Bump `FFmpeg` from 6.1 to 7.0.1
 - Bump `jetty.version` from 12.0.9 to 12.0.10 ([#4743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4743))
 - Bump `org.apache.maven.plugins:maven-checkstyle-plugin` from 3.3.1 to 3.4.0 ([#4746](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4746))
