@@ -938,7 +938,6 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
-		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
