@@ -497,9 +497,10 @@ public class FFMpegVideo extends Engine {
 					transcodeOptions.add("vob");
 				}
 			}
+
+			// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 			if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
-				// this makes FFmpeg output HDR and Dolby Vision metadata
 				transcodeOptions.add("-strict");
 				transcodeOptions.add("unofficial");
 			}
@@ -938,6 +939,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		boolean canMuxVideoWithFFmpeg = true;
+		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
 			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
@@ -964,6 +966,30 @@ public class FFMpegVideo extends Engine {
 			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
+			} else if (!renderer.isTranscodeToMP4H265AC3() && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
+				canMuxVideoWithFFmpeg = false;
+				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+					"mpegts",
+					defaultVideoTrack.getCodec(),
+					null,
+					0,
+					0,
+					defaultVideoTrack.getBitRate(),
+					0,
+					defaultVideoTrack.getWidth(),
+					defaultVideoTrack.getHeight(),
+					defaultVideoTrack.getBitDepth(),
+					defaultVideoTrack.getHDRFormatForRenderer(),
+					defaultVideoTrack.getHDRFormatCompatibilityForRenderer(),
+					defaultVideoTrack.getExtras(),
+					null,
+					false,
+					renderer
+				) != null;
+				if (videoWouldBeCompatibleInTsContainer) {
+					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
+				}
+				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 7.0.1 (worth re-checking periodically).");
 			}
 		}
 
@@ -1033,6 +1059,11 @@ public class FFMpegVideo extends Engine {
 
 				return tsMuxeRVideoInstance.launchTranscode(resource, media, params);
 			}
+		}
+
+		// If we got here, we are not deferring to tsMuxeR and can mux the video
+		if (canMuxVideoWithFFmpegIfTsMuxerIsNotUsed) {
+			canMuxVideoWithFFmpeg = true;
 		}
 
 		// Apply any video filters and associated options. These should go
