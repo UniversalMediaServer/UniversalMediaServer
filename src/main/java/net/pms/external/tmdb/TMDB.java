@@ -1340,8 +1340,12 @@ public class TMDB {
 
 	public static String getTmdbImageBaseURL() {
 		if (tmdbImageBaseURL == null && isReady()) {
-			ConfigurationSchema configurationSchema = CLIENT.configuration().getConfiguration();
-			tmdbImageBaseURL = configurationSchema.getImages().getBaseUrl();
+			try {
+				ConfigurationSchema configurationSchema = CLIENT.configuration().getConfiguration();
+				tmdbImageBaseURL = configurationSchema.getImages().getBaseUrl();
+			} catch (Exception e) {
+				//let use APIUtils
+			}
 		}
 		if (tmdbImageBaseURL == null) {
 			//fallback to UMS API
