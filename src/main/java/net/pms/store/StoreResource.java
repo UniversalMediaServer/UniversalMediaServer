@@ -840,6 +840,14 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		) && isFullyPlayed();
 	}
 
+	public boolean isSortable() {
+		return isSortable;
+	}
+
+	public void setSortable(boolean isSortable) {
+		this.isSortable = isSortable;
+	}
+
 	/**
 	 * Returns an InputStream associated with the fileName.
 	 *

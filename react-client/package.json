@@ -18,12 +18,12 @@
   },
   "packageManager": "yarn@4.2.2",
   "dependencies": {
-    "@mantine/core": "7.10.1",
-    "@mantine/dropzone": "7.10.1",
-    "@mantine/form": "7.10.1",
-    "@mantine/hooks": "7.10.1",
-    "@mantine/modals": "7.10.1",
-    "@mantine/notifications": "7.10.1",
+    "@mantine/core": "7.10.2",
+    "@mantine/dropzone": "7.10.2",
+    "@mantine/form": "7.10.2",
+    "@mantine/hooks": "7.10.2",
+    "@mantine/modals": "7.10.2",
+    "@mantine/notifications": "7.10.2",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.7.2",
     "jwt-decode": "4.0.0",
@@ -43,11 +43,11 @@
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "4.3.1",
     "eslint": "8.57.0",
-    "eslint-plugin-react": "7.34.1",
+    "eslint-plugin-react": "7.34.2",
     "eslint-plugin-react-hooks": "4.6.2",
     "eslint-plugin-react-refresh": "0.4.7",
     "typescript": "5.4.5",
-    "typescript-eslint": "7.12.0",
+    "typescript-eslint": "7.13.1",
     "vite": "5.3.1"
   }
 }
