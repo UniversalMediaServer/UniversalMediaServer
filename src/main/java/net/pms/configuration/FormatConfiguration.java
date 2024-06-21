@@ -25,8 +25,7 @@ import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-import net.pms.encoders.EngineFactory;
-import net.pms.encoders.TsMuxeRVideo;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
@@ -372,7 +371,7 @@ public class FormatConfiguration {
 		 * @param videoHeight
 		 * @param videoBitDepth
 		 * @param videoHdrFormatInRendererFormat a sanitized HDR format based on compatibility
-		 * @param videoHdrFormat the raw HDR format, not compatibility/fallback info
+		 * @param videoHdrFormatCompatibilityInRendererFormat  the raw HDR format, not compatibility/fallback info
 		 * @param extras map containing 0 or more key/value pairs for:
 		 *               - qpel
 		 *               - gmc
@@ -485,14 +484,13 @@ public class FormatConfiguration {
 					 */
 					LOGGER.trace("Video HDR format value \"{}\" failed to match support line {}", videoHdrFormatInRendererFormat, supportLine);
 
-					final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-					if (!StringUtils.equalsIgnoreCase(format, "mpegts") && isTsMuxeRVideoEngineActive) {
+					if (!StringUtils.equalsIgnoreCase(format, renderer.getTranscodingContainer())) {
 						/**
-						 * Calls this function again, with a TS container and without
+						 * Calls this function again, with the transcoding container and without
 						 * HDR compatibility info, so we get either a STRICT match or none
 						 */
-						boolean wouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
-							"mpegts",
+						boolean wouldBeCompatibleInTranscodingContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
+							renderer.getTranscodingContainer(),
 							videoCodec,
 							audioCodec,
 							nbAudioChannels,
@@ -510,8 +508,8 @@ public class FormatConfiguration {
 							renderer
 						) != null;
 
-						if (wouldBeCompatibleInTsContainer) {
-							LOGGER.trace("Video HDR format value \"{}\" is compatible in TS container, but not this container \"{}\", so will report it as incompatible to allow on-the-fly remuxing with tsMuxeR {}", videoHdrFormatInRendererFormat, format, supportLine);
+						if (wouldBeCompatibleInTranscodingContainer) {
+							LOGGER.trace("Video HDR format value \"{}\" is compatible in TS container, but not this container \"{}\", so will report it as incompatible to allow on-the-fly remuxing {}", videoHdrFormatInRendererFormat, format, supportLine);
 							return false;
 						}
 					}
@@ -536,6 +534,11 @@ public class FormatConfiguration {
 						}
 					}
 				} else {
+					if (format != null && format == MP4 && subsFormat == SubtitleType.SUBRIP.toString()) {
+						// TX3G is the equivalent of SRT inside MP4
+						subsFormat = SubtitleType.TX3G.toString();
+					}
+
 					if (supportedEmbeddedSubtitlesFormats == null || !subsFormat.matches(supportedEmbeddedSubtitlesFormats)) {
 						LOGGER.trace("Internal subtitles format \"{}\" failed to match support line {}", subsFormat, supportLine);
 						if (renderer == null || !renderer.isEmbeddedSubtitlesFormatSupportedForAllFiletypes(subsFormat)) {
@@ -611,6 +614,44 @@ public class FormatConfiguration {
 
 	public boolean isMpeg2Supported() {
 		return getMatchedMIMEtype(MPEGPS, MPEG2, null) != null || getMatchedMIMEtype(MPEGTS, MPEG2, null) != null;
+	}
+
+	public boolean isFileCompatible(
+		String container,
+		String videoCodec,
+		String audioCodec,
+		int nbAudioChannels,
+		int frequency,
+		int bitrate,
+		int framerate,
+		int videoWidth,
+		int videoHeight,
+		int videoBitDepth,
+		String videoHdrFormatInRendererFormat,
+		String videoHdrFormatCompatibilityInRendererFormat,
+		Map<String, String> extras,
+		String subsFormat,
+		boolean isInternal,
+		RendererConfiguration renderer
+	) {
+		return getMatchedMIMEtype(
+			container,
+			videoCodec,
+			audioCodec,
+			nbAudioChannels,
+			frequency,
+			bitrate,
+			framerate,
+			videoWidth,
+			videoHeight,
+			videoBitDepth,
+			videoHdrFormatInRendererFormat,
+			videoHdrFormatCompatibilityInRendererFormat,
+			extras,
+			subsFormat,
+			isInternal,
+			renderer
+		) != null;
 	}
 
 	/**
