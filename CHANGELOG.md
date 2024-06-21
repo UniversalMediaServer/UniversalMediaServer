@@ -9,6 +9,12 @@
 - Improved speed while transcoding via FFmpeg
 - Run eslint on build
 - Migrated eslint configuration to flat config format (ESLint v8/v9)
+- Implements RadioBrowser Metadata lookup.
+- Added MediaTableContainerFiles to track files included in a container.
+- Store WebStream media info into the database.
+- Use of FFmpegParser to parse WebStream media info.
+- Implements WebStreamParser to parse headers of an http streams.
+- Added possibility to add playlist in playlist.
 
 ### Media players
 - Added configuration to set the maximum H.264 level supported
