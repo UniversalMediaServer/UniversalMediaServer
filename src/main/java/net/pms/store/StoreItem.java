@@ -130,7 +130,6 @@ public abstract class StoreItem extends StoreResource {
 	////////////////////////////////////////////////////
 	private ResumeObj resume;
 	private int resHash = 0;
-	private long startTime;
 
 	private MediaSubtitle mediaSubtitle;
 	/**
@@ -528,21 +527,15 @@ public abstract class StoreItem extends StoreResource {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the bitrate ({} b/s) is too high ({} b/s).", getName(), mediaInfo.getBitRate(),
 							maxBandwidth);
-				} else if (renderer.isH264Level41Limited() && mediaVideo.isH264()) {
+				} else if (mediaVideo.isH264()) {
+					double h264LevelLimit = renderer.getH264LevelLimit();
 					if (mediaVideo.getFormatLevel() != null) {
-						double h264Level = 4.1;
-
-						try {
-							h264Level = Double.parseDouble(mediaVideo.getFormatLevel());
-						} catch (NumberFormatException e) {
-							LOGGER.trace("Could not convert {} to double: {}", mediaVideo.getFormatLevel(), e.getMessage());
-						}
-
-						if (h264Level > 4.1) {
+						double h264Level = mediaVideo.getFormatLevelAsDouble(4.1);
+						if (h264Level > h264LevelLimit) {
 							isIncompatible = true;
-							LOGGER.debug(prependTranscodingReason + "the H.264 level ({}) is not supported.", getName(), h264Level);
+							LOGGER.debug(prependTranscodingReason + "the H.264 level ({}) is not supported by the renderer (limit: {}).", getName(), h264Level, h264LevelLimit);
 						}
-					} else {
+					} else if (h264LevelLimit < 4.2) {
 						isIncompatible = true;
 						LOGGER.debug(prependTranscodingReason + "the H.264 level is unknown.", getName());
 					}
@@ -583,10 +576,6 @@ public abstract class StoreItem extends StoreResource {
 	 * @return String representation of the mime type
 	 */
 	public String getRendererMimeType() {
-		// FIXME: There is a flaw here. In addChild(StoreResource) the mime type
-		// is determined for the default renderer. This renderer may rewrite the
-		// mime type based on its configuration. Looking up that mime type is
-		// not guaranteed to return a match for another renderer.
 		String mime = renderer.getMimeType(this);
 
 		// Use our best guess if we have no valid mime type
@@ -595,10 +584,6 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		return mime;
-	}
-
-	public long getStartTime() {
-		return startTime;
 	}
 
 	/**
@@ -634,7 +619,7 @@ public abstract class StoreItem extends StoreResource {
 						LOGGER.debug(
 								"The full filename of which is: " + getFileName() + " and the address of the renderer is: " + rendererId);
 					}
-					startTime = System.currentTimeMillis();
+					lastStartSystemTime = System.currentTimeMillis();
 				};
 				new Thread(r, "StartPlaying Event").start();
 			}
@@ -651,7 +636,7 @@ public abstract class StoreItem extends StoreResource {
 		final StoreResource self = this;
 		final String requestId = getRequestId(rendererId);
 		Runnable defer = () -> {
-			long start = startTime;
+			long start = lastStartSystemTime;
 			if (isLogPlayEvents()) {
 				LOGGER.trace("Stop playing {} on {} if no request under {} ms", getName(), renderer.getRendererName(), STOP_PLAYING_DELAY);
 			}
@@ -667,7 +652,7 @@ public abstract class StoreItem extends StoreResource {
 				assert refCount != null;
 				assert refCount > 0;
 				requestIdToRefcount.put(requestId, refCount - 1);
-				if (start != startTime) {
+				if (start != lastStartSystemTime) {
 					if (isLogPlayEvents()) {
 						LOGGER.trace("Continue playing {} on {}", getName(), renderer.getRendererName());
 					}
@@ -1133,7 +1118,7 @@ public abstract class StoreItem extends StoreResource {
 
 		notifyRefresh();
 		if (resume != null) {
-			resume.stop(startTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+			resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().removeChild(this);
 			} else if (getMediaInfo() != null) {
@@ -1143,7 +1128,7 @@ public abstract class StoreItem extends StoreResource {
 		} else {
 			for (StoreResource res : getParent().getChildren()) {
 				if (res instanceof StoreItem item && item.isResume() && item.getName().equals(getName())) {
-					item.resume.stop(startTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
+					item.resume.stop(lastStartSystemTime, (long) (mediaInfo.getDurationInSeconds() * 1000));
 					if (item.resume.isDone()) {
 						getParent().removeChild(res);
 						return null;
@@ -1158,7 +1143,7 @@ public abstract class StoreItem extends StoreResource {
 				}
 			}
 
-			ResumeObj r = ResumeObj.store(this, startTime);
+			ResumeObj r = ResumeObj.store(this, lastStartSystemTime);
 			if (r != null) {
 				StoreItem clone = this.clone();
 				clone.resume = r;

@@ -446,7 +446,13 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.mpg";
 						}
 					} else if (mediaInfo.isAudio()) {
-						if (renderer.isTranscodeToMP3()) {
+						if (renderer.getCustomFFmpegAudioOptions().contains("-f mp3")) {
+							transcodedExtension = "_transcoded_to.mp3";
+						} else if (renderer.getCustomFFmpegAudioOptions().contains("-f wav")) {
+							transcodedExtension = "_transcoded_to.wav";
+						} else if (renderer.getCustomFFmpegAudioOptions().contains("-f s16be")) {
+							transcodedExtension = "_transcoded_to.pcm";
+						} else if (renderer.isTranscodeToMP3()) {
 							transcodedExtension = "_transcoded_to.mp3";
 						} else if (renderer.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";

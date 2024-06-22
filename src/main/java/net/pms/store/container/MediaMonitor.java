@@ -166,44 +166,40 @@ public class MediaMonitor extends LocalizedStoreContainer {
 			fileDuration = realFile.getMediaInfo().getDurationInSeconds();
 		}
 
+		long now = System.currentTimeMillis();
+
 		/**
 		 * Time since the file started playing. This is not a great way to get
 		 * this value because if the video is paused, it will no longer be
 		 * accurate.
 		 */
-		long now = System.currentTimeMillis();
-		long startTime = realFile.getStartTime();
-		long startTimeUser = realFile.getLastStartSystemTimeUser();
-		double startPosition = realFile.getLastStartPosition();
+		long lastStartSystemTime = realFile.getLastStartSystemTime();
+		long lastStartSystemTimeUser = realFile.getLastStartSystemTimeUser();
+		double lastStartPosition = realFile.getLastStartPosition();
 
-		/**
-		 * Do not treat this as a legitimate playback attempt if the start time
-		 * was within 2 seconds of the end of the video.
-		 */
-		boolean playedByUser = true;
-		if (fileDuration > 2.0 && startPosition > (fileDuration - 2.0)) {
-			playedByUser = false;
-		}
 		int minimumPlayTime = CONFIGURATION.getMinimumWatchedPlayTimeSeconds();
-
 		FullyPlayedAction fullyPlayedAction = CONFIGURATION.getFullyPlayedAction();
 		double triggerPlayTime = fileDuration * CONFIGURATION.getResumeBackFactor();
-		double elapsed;
-		if (startPosition > 0D && startTimeUser > 0) {
-			elapsed = (now - startTimeUser) / 1000D;
-			elapsed += startPosition;
-		} else {
-			elapsed = (now - startTime) / 1000D;
+
+		// First, set the total amount of real time that has passed since the video was started
+		double elapsed = 0D;
+		if (lastStartSystemTimeUser > 0D) {
+			elapsed = (now - lastStartSystemTimeUser) / 1000D;
+		}
+
+		// Add the start offset requested by the renderer
+		if (lastStartPosition > 0D) {
+			elapsed += lastStartPosition;
 		}
 
 		boolean logTrace = LOGGER.isTraceEnabled() && !fullyPlayedAction.equals(FullyPlayedAction.NO_ACTION);
 		if (logTrace) {
 			LOGGER.trace("Fully Played feature logging:");
 			LOGGER.trace("   duration: " + fileDuration);
-			LOGGER.trace("   getLastStartPosition: " + startPosition);
+			LOGGER.trace("   getLastStartPosition: " + lastStartPosition);
 			LOGGER.trace("   currentTime: " + now);
-			LOGGER.trace("   getStartTime: " + startTime);
-			LOGGER.trace("   getLastStartSystemTimeUser: " + startTimeUser);
+			LOGGER.trace("   getLastStartSystemTime: " + lastStartSystemTime);
+			LOGGER.trace("   getLastStartSystemTimeUser: " + lastStartSystemTimeUser);
 			LOGGER.trace("   minimum play time: " + minimumPlayTime);
 			LOGGER.trace("   triggered fully played time: " + triggerPlayTime);
 			LOGGER.trace("   elapsed: " + elapsed);
@@ -214,9 +210,7 @@ public class MediaMonitor extends LocalizedStoreContainer {
 		 * Only mark the file as fully played if more than 92% (default) of the
 		 * duration has elapsed since it started playing.
 		 */
-		if (!playedByUser) {
-			LOGGER.trace("final decision: not fully played because the video was started within 2 seconds of the end, usually meaning it was an automatic parsing request");
-		} else if (
+		if (
 			fileDuration == 0 ||
 			elapsed > minimumPlayTime &&
 			elapsed >= triggerPlayTime

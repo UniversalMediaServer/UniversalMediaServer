@@ -38,6 +38,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
+import net.pms.media.codec.video.H264;
 import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
@@ -1126,69 +1127,44 @@ public abstract class Engine {
 		);
 	}
 
-
 	/**
-	 * Checks whether the video has too many reference frames per pixels for the renderer.
+	 * Checks whether the video has too many reference frames per pixels for the level.
 	 *
-	 * TODO move to PlayerUtil
-	 * @param f
+	 * @param video
 	 * @param renderer
 	 * @return
 	 */
 	public boolean isVideoWithinH264LevelLimits(MediaVideo video, Renderer renderer) {
 		if (video != null && video.isH264()) {
 			byte referenceFrameCount = video.getReferenceFrameCount();
-			String formatLevel = video.getFormatLevel();
 			int width = video.getWidth();
 			int height = video.getHeight();
-			if (
-				referenceFrameCount > -1 &&
-				(
-					"4.1".equals(formatLevel) ||
-					"4.2".equals(formatLevel) ||
-					"5".equals(formatLevel) ||
-					"5.0".equals(formatLevel) ||
-					"5.1".equals(formatLevel) ||
-					"5.2".equals(formatLevel)
-				) &&
-				width > 0 &&
-				height > 0
-			) {
-				int maxref;
-				if (renderer == null || renderer.isPS3()) {
-					/**
-					 * 2013-01-25: Confirmed maximum reference frames on PS3:
-					 *    - 4 for 1920x1080
-					 *    - 11 for 1280x720
-					 * Meaning this math is correct
-					 */
-					maxref = (int) Math.floor(10252743 / (double) (width * height));
-				} else {
-					/**
-					 * This is the math for level 4.1, which results in:
-					 *    - 4 for 1920x1080
-					 *    - 9 for 1280x720
-					 */
-					maxref = (int) Math.floor(8388608 / (double) (width * height));
-				}
-
-				if (referenceFrameCount > maxref) {
-					LOGGER.debug(
-						"The video is not compatible with this renderer because it " +
-						"can only take {} reference frames at this resolution while this " +
-						"video has {} reference frames",
-						maxref, referenceFrameCount
-					);
-					return false;
-				} else if (referenceFrameCount == -1) {
-					LOGGER.debug(
-						"The video may not be compatible with this renderer because " +
-						"we can't get its number of reference frames"
-					);
-					return false;
-				}
-				return true;
+			if (referenceFrameCount == -1 || width < 1 || height < 1) {
+				LOGGER.debug(
+					"The video may not be compatible with this renderer because " +
+					"we can't get its number of reference frames"
+				);
+				return false;
 			}
+			double videoLevel = video.getFormatLevelAsDouble(0);
+			if (videoLevel == 0) {
+				return false;
+			}
+			double limitLevel = renderer.getH264LevelLimit();
+			if (videoLevel > limitLevel) {
+				LOGGER.debug("The H.264 level ({}) is not supported by the renderer (limit: {}).", videoLevel, limitLevel);
+				return false;
+			}
+			int maximumStoredFrames = H264.getMaximumStoredFrames(limitLevel, width, height);
+			if (referenceFrameCount > maximumStoredFrames) {
+				LOGGER.debug(
+					"The video is not compatible with this renderer because it " +
+					"can only take {} reference frames at this resolution while this " +
+					"video has {} reference frames",
+					maximumStoredFrames, referenceFrameCount
+				);
+			}
+			return true;
 		}
 		return false;
 	}

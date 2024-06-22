@@ -40,12 +40,16 @@ public class WebPlayerServlet extends GuiHttpServlet {
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 		try {
-			String uri = req.getRequestURI() != null ? req.getRequestURI().toLowerCase() : "/index.html";
+			String uri = req.getRequestURI();
+			if (uri == null) {
+				uri = "/index.html";
+			} else if (uri.startsWith("/static/")) {
+				resp.setHeader("Cache-Control", "public, max-age=604800");
+			} else {
+				uri = uri.toLowerCase();
+			}
 			if (uri.equals(BASE_PATH) || ROUTES.contains(uri) || uri.startsWith(PLAYER_BASE_PATH)) {
 				uri = "/index.html";
-			}
-			if (uri.startsWith("/static/")) {
-				resp.setHeader("Cache-Control", "public, max-age=604800");
 			}
 			if (!writeAsync(req, resp, uri.substring(1))) {
 				// The resource manager can't found or send the file, we need to send a response.
