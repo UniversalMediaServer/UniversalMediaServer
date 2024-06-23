@@ -46,7 +46,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaType;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
@@ -722,10 +721,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (sub != null) {
 				// XXX external file is null if the first subtitle track is embedded
 				if (sub.isExternal()) {
-					if (sub.getExternalFile() == null && sub instanceof MediaOnDemandSubtitle) {
-						// Try to fetch subtitles
-						((MediaOnDemandSubtitle) sub).fetch();
-					}
 					if (sub.getExternalFile() == null) {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
 					} else {

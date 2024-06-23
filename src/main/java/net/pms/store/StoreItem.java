@@ -52,7 +52,6 @@ import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
 import net.pms.media.audio.MediaAudio;
-import net.pms.media.subtitle.MediaOpenSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.network.HTTPResource;
@@ -61,7 +60,6 @@ import net.pms.parsers.Parser;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
-import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.item.DVDISOTitle;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
@@ -678,9 +676,6 @@ public abstract class StoreItem extends StoreResource {
 					}
 				};
 				new Thread(r, "StopPlaying Event").start();
-			}
-			if (mediaSubtitle instanceof MediaOpenSubtitle dLNAMediaOpenSubtitle) {
-				dLNAMediaOpenSubtitle.deleteLiveSubtitlesFile();
 			}
 		};
 
@@ -1443,12 +1438,11 @@ public abstract class StoreItem extends StoreResource {
 	public BufferedImageFilterChain addFlagFilters(BufferedImageFilterChain filterChain) {
 		// Show audio and subtitles language flags in the TRANSCODE folder only
 		// for video files
-		if ((isInsideTranscodeFolder() || getParent() instanceof OpenSubtitleFolder) &&
-				(mediaAudio != null || mediaSubtitle != null)) {
-			if ((mediaInfo != null && mediaInfo.isVideo()) || (mediaInfo == null && format != null && format.isVideo())) {
-				filterChain = addAudioFlagFilter(filterChain);
-				filterChain = addSubtitlesFlagFilter(filterChain);
-			}
+		if (isInsideTranscodeFolder() &&
+				(mediaAudio != null || mediaSubtitle != null) &&
+				((mediaInfo != null && mediaInfo.isVideo()) || (mediaInfo == null && format != null && format.isVideo()))) {
+			filterChain = addAudioFlagFilter(filterChain);
+			filterChain = addSubtitlesFlagFilter(filterChain);
 		}
 		return filterChain;
 	}
