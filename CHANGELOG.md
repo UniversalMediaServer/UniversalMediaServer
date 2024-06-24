@@ -36,7 +36,7 @@
 - Bump `org.jupnp:org.jupnp` from 3.0.1 to 3.0.2 ([#4672](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4672))
 - Bump `twelvemonkeys-imageio-version` from 3.10.1 to 3.11.0 ([#4744](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4744))
 - Bump `typescript-eslint` from 7.12.0 to 7.13.1 ([#4774](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4774))
-- Bump `video.js` from 8.14.0 to 8.15.0 ([#4748](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4748))
+- Bump `video.js` from 8.14.0 to 8.16.0 ([#4748](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4748), [#4782](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4782))
 - Bump `vite` from 5.2.11 to 5.3.1 ([#4766](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4766))
 
 ## [14.1.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.0.2...14.1.0) (2024-06-05)
