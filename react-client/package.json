@@ -34,16 +34,16 @@
     "react-movable": "3.2.0",
     "react-router-dom": "6.23.1",
     "tabler-icons-react": "1.56.0",
-    "video.js": "8.15.0"
+    "video.js": "8.16.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.44.0",
+    "@playwright/test": "1.44.1",
     "@types/lodash": "4.17.5",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "4.3.1",
     "eslint": "8.57.0",
-    "eslint-plugin-react": "7.34.2",
+    "eslint-plugin-react": "7.34.3",
     "eslint-plugin-react-hooks": "4.6.2",
     "eslint-plugin-react-refresh": "0.4.7",
     "typescript": "5.5.2",

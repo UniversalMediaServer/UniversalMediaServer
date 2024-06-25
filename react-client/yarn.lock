@@ -770,14 +770,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.44.0":
-  version: 1.44.0
-  resolution: "@playwright/test@npm:1.44.0"
+"@playwright/test@npm:1.44.1":
+  version: 1.44.1
+  resolution: "@playwright/test@npm:1.44.1"
   dependencies:
-    playwright: "npm:1.44.0"
+    playwright: "npm:1.44.1"
   bin:
     playwright: cli.js
-  checksum: 10c0/34c48b18f64f1be6ccba3e27fa4691aa9f7f8ea1eb1555ac4ae8e4bfc9136d61923a4376d8a711390c95401e4cfd77a15b18aab6a507bddd9925e6dab3acb9e1
+  checksum: 10c0/f72669db3dfa83dc12d43ddbce8fbb27a69a80347b515fa00d8467ca640f8c7b7f5f5ff6d6cdfc5a1bce2c7d4b6ee62b988d682ef265f567302998de4f2a64ab
   languageName: node
   linkType: hard
 
@@ -1124,6 +1124,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@videojs/http-streaming@npm:3.13.1":
+  version: 3.13.1
+  resolution: "@videojs/http-streaming@npm:3.13.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+    "@videojs/vhs-utils": "npm:4.0.0"
+    aes-decrypter: "npm:4.0.1"
+    global: "npm:^4.4.0"
+    m3u8-parser: "npm:^7.1.0"
+    mpd-parser: "npm:^1.3.0"
+    mux.js: "npm:7.0.3"
+    video.js: "npm:^7 || ^8"
+  peerDependencies:
+    video.js: ^8.14.0
+  checksum: 10c0/fed4d95dc02582f054c3ca3998d60f08c1d8545b8564a23cd9dca8e027e32e159da1d29577bc342da39a52c0a58e81602aaac9dc37a94416345548e235ec3979
+  languageName: node
+  linkType: hard
+
 "@videojs/vhs-utils@npm:4.0.0":
   version: 4.0.0
   resolution: "@videojs/vhs-utils@npm:4.0.0"
@@ -1385,7 +1403,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"array.prototype.tosorted@npm:^1.1.3":
+"array.prototype.tosorted@npm:^1.1.4":
   version: 1.1.4
   resolution: "array.prototype.tosorted@npm:1.1.4"
   dependencies:
@@ -2086,15 +2104,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:7.34.2":
-  version: 7.34.2
-  resolution: "eslint-plugin-react@npm:7.34.2"
+"eslint-plugin-react@npm:7.34.3":
+  version: 7.34.3
+  resolution: "eslint-plugin-react@npm:7.34.3"
   dependencies:
     array-includes: "npm:^3.1.8"
     array.prototype.findlast: "npm:^1.2.5"
     array.prototype.flatmap: "npm:^1.3.2"
     array.prototype.toreversed: "npm:^1.1.2"
-    array.prototype.tosorted: "npm:^1.1.3"
+    array.prototype.tosorted: "npm:^1.1.4"
     doctrine: "npm:^2.1.0"
     es-iterator-helpers: "npm:^1.0.19"
     estraverse: "npm:^5.3.0"
@@ -2110,7 +2128,7 @@ __metadata:
     string.prototype.matchall: "npm:^4.0.11"
   peerDependencies:
     eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8
-  checksum: 10c0/37dc04424da8626f20a071466e7238d53ed111c53e5e5398d813ac2cf76a2078f00d91f7833fe5b2f0fc98f2688a75b36e78e9ada9f1068705d23c7031094316
+  checksum: 10c0/60717e32c9948e2b4ddc53dac7c4b62c68fc7129c3249079191c941c08ebe7d1f4793d65182922d19427c2a6634e05231a7b74ceee34169afdfd0e43d4a43d26
   languageName: node
   linkType: hard
 
@@ -3722,27 +3740,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.44.0":
-  version: 1.44.0
-  resolution: "playwright-core@npm:1.44.0"
+"playwright-core@npm:1.44.1":
+  version: 1.44.1
+  resolution: "playwright-core@npm:1.44.1"
   bin:
     playwright-core: cli.js
-  checksum: 10c0/e1220371a76cdf145f6aaefb2dd6c5194531d1c1e2b67712c56dbc1d589dffb66fd4fc0168be60cd2115aca40660aa13c572e14be47674c0542bc879705b9fb3
+  checksum: 10c0/6ffa3a04822b3df86d7f47a97e4f20318c0c50868ba4311820e6626ecadaab1424fbd0a3d01f0b4228adc0c781115e44b801742a4970b88739f804d82f142d68
   languageName: node
   linkType: hard
 
-"playwright@npm:1.44.0":
-  version: 1.44.0
-  resolution: "playwright@npm:1.44.0"
+"playwright@npm:1.44.1":
+  version: 1.44.1
+  resolution: "playwright@npm:1.44.1"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.44.0"
+    playwright-core: "npm:1.44.1"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10c0/dcbee9022623dd9e219e9867983789262e80339f0c3601219930883e5a304ce75e1397715c0f378a2bab0a799cf88a73ea4b58fe595cfd9058bd7a82f5d8e3b6
+  checksum: 10c0/de827d17746b18ae2ec67d510a640d8ceebf8ee8e3d8399bccffa83b76a967498ca377777e4e6a1daaef4b3c86cb2c44c7468de53d2d915acc61b3b89c032738
   languageName: node
   linkType: hard
 
@@ -4690,14 +4708,14 @@ __metadata:
     "@mantine/modals": "npm:7.10.2"
     "@mantine/notifications": "npm:7.10.2"
     "@microsoft/fetch-event-source": "npm:2.0.1"
-    "@playwright/test": "npm:1.44.0"
+    "@playwright/test": "npm:1.44.1"
     "@types/lodash": "npm:4.17.5"
     "@types/react": "npm:18.3.3"
     "@types/react-dom": "npm:18.3.0"
     "@vitejs/plugin-react": "npm:4.3.1"
     axios: "npm:1.7.2"
     eslint: "npm:8.57.0"
-    eslint-plugin-react: "npm:7.34.2"
+    eslint-plugin-react: "npm:7.34.3"
     eslint-plugin-react-hooks: "npm:4.6.2"
     eslint-plugin-react-refresh: "npm:0.4.7"
     jwt-decode: "npm:4.0.0"
@@ -4710,7 +4728,7 @@ __metadata:
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.5.2"
     typescript-eslint: "npm:7.13.1"
-    video.js: "npm:8.15.0"
+    video.js: "npm:8.16.0"
     vite: "npm:5.3.1"
   languageName: unknown
   linkType: soft
@@ -4841,7 +4859,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.15.0, video.js@npm:^7 || ^8":
+"video.js@npm:8.16.0":
+  version: 8.16.0
+  resolution: "video.js@npm:8.16.0"
+  dependencies:
+    "@babel/runtime": "npm:^7.12.5"
+    "@videojs/http-streaming": "npm:3.13.1"
+    "@videojs/vhs-utils": "npm:^4.0.0"
+    "@videojs/xhr": "npm:2.7.0"
+    aes-decrypter: "npm:^4.0.1"
+    global: "npm:4.4.0"
+    m3u8-parser: "npm:^7.1.0"
+    mpd-parser: "npm:^1.2.2"
+    mux.js: "npm:^7.0.1"
+    safe-json-parse: "npm:4.0.0"
+    videojs-contrib-quality-levels: "npm:4.1.0"
+    videojs-font: "npm:4.2.0"
+    videojs-vtt.js: "npm:0.15.5"
+  checksum: 10c0/874adb4d89bd28fe8bf5b81f06569ce324120e8acc6b16c800b9a08f118688656ccc65733f7a9454eb859e5d0145a9e6249113255f2e2524abc57bb971d2eacf
+  languageName: node
+  linkType: hard
+
+"video.js@npm:^7 || ^8":
   version: 8.15.0
   resolution: "video.js@npm:8.15.0"
   dependencies:
@@ -4877,6 +4916,13 @@ __metadata:
   version: 4.1.0
   resolution: "videojs-font@npm:4.1.0"
   checksum: 10c0/c1e6a7bf831138c89d08d0e148b951ab86ca070efe04683444ef7d958249b11a8b1d2465ffe51952a05ae40a566413174997ac98a377767b4866cb36e8da8571
+  languageName: node
+  linkType: hard
+
+"videojs-font@npm:4.2.0":
+  version: 4.2.0
+  resolution: "videojs-font@npm:4.2.0"
+  checksum: 10c0/c7960e13e70bd2dbf6940fa00ccd49547537bd0f56aed420d8049bcb908a4f0fabcb0d4693c43068c163b9ed09bfb641f205313ec3fec3143dffcff8c6d3ac6c
   languageName: node
   linkType: hard
 
