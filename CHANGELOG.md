@@ -29,6 +29,7 @@
 - Bump `@vitejs/plugin-react` from 4.3.0 to 4.3.1 ([#4751](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4751))
 - Bump `com.google.code.gson:gson` from 2.10.1 to 2.11.0 ([#4745](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4745))
 - Bump `eslint-plugin-react` from 7.34.1 to 7.34.3 ([#4764](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4764), [#4783](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4783))
+- Bump `eslint` from 8.57.0 to 9.5.0 ([#4767](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4767))
 - Bump `FFmpeg` from 6.1 to 7.0.1
 - Bump `jetty.version` from 12.0.9 to 12.0.10 ([#4743](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4743))
 - Bump `org.apache.maven.plugins:maven-checkstyle-plugin` from 3.3.1 to 3.4.0 ([#4746](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4746))
