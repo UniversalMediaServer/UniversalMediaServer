@@ -15,6 +15,11 @@
 - Added configuration to set the maximum H.265 level supported
 - Improved H.264 support on Sony PlayStation 4
 
+### Translation updates via Crowdin
+- Chinese Traditional (57%) (thanks, hugoalh!)
+- Japanese (79%) (thanks, marudosurdo!)
+- Vietnamese (14%) (thanks, Kiên Dương Đức!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
 - Bump `@mantine/dropzone` from 7.10.1 to 7.10.2 ([#4763](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4763))
