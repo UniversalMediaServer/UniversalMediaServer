@@ -31,8 +31,8 @@ rm -rf target/test-classes
 
 mvn -P macos package -DskipTests=true
 
-./dependencies/gon-intel ../gon-config-prebuild.json
-./dependencies/gon-intel ../gon-config-build.json
+./scripts/dependencies/gon-intel ./gon-config-prebuild.json
+./scripts/dependencies/gon-intel ./gon-config-build.json
 
 cd docker
 ant
