@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
+
 ### General
 - Added ability to customize FFmpeg Audio options (#1323)
 - Improved start time when transcoding audio
@@ -9,10 +11,15 @@
 - Improved speed while transcoding via FFmpeg
 - Run eslint on build
 - Migrated eslint configuration to flat config format (ESLint v8/v9)
+- Fixed virtual folders like "Filter by..." appearing in alphabetical order instead of at the top (#4771)
+- Fixed not parsing disc number for audio files
+- Made FFmpeg output HDR and DV metadata when transcoding
 
 ### Media players
 - Added configuration to set the maximum H.264 level supported
 - Added configuration to set the maximum H.265 level supported
+- Added support for specifying Dolby AC-4 audio codec support
+- Added support for specifying AV1 (AOMedia Video 1) video codec support
 - Improved H.264 support on Sony PlayStation 4
 
 ### Translation updates via Crowdin
