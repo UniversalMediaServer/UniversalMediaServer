@@ -1,0 +1,25 @@
+{
+    "source" : [
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/dcraw",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/ffmpeg",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/flac",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/mencoder",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/mplayer",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/tsMuxeR",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Resources/osx/youtube-dl",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/MacOS/UMS",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/PlugIns/liberica-jre-17.jre/Contents/MacOS/libjli.dylib",
+        "./target/ums-14.1.0-distribution/Universal Media Server.app/Contents/Java/ums-14.1.0-jar-with-dependencies.jar"
+    ],
+    "bundle_id" : "com.universalmediaserver.ums",
+    "apple_id": {
+        "username" : "",
+        "password":  "",
+        "provider": ""
+    },
+    "sign": {
+        "entitlements_file": "./entitlements.xml",
+        "application_identity" : "",
+        "deep": true
+    }
+}

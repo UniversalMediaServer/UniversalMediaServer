@@ -46,6 +46,7 @@ public class FormatConfiguration {
 	public static final String AAC_MAIN = "aac-main";
 	public static final String AAC_SSR = "aac-ssr";
 	public static final String AC3 = "ac3";
+	public static final String AC4 = "ac4";
 	public static final String ACELP = "acelp";
 	public static final String ADPCM = "adpcm";
 	public static final String ADTS = "adts";
