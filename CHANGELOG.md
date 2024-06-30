@@ -20,6 +20,7 @@
 - Added configuration to set the maximum H.265 level supported
 - Added support for specifying Dolby AC-4 audio codec support
 - Added support for specifying AV1 (AOMedia Video 1) video codec support
+- Improved support for Samsung OLED TVs
 - Improved H.264 support on Sony PlayStation 4
 
 ### Translation updates via Crowdin
