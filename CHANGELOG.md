@@ -146,6 +146,7 @@
 - Bump `com.github.oshi:oshi-core` from 6.5.0 to 6.6.0 ([#4626](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4626))
 - Bump `com.sun.xml.messaging.saaj:saaj-impl` from 3.0.3 to 3.0.4 ([#4674](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4674))
 - Bump `commons-codec:commons-codec` from 1.16.0 to 1.17.0 ([#4623](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4623))
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 7.0.0 to 8.0.2 ([#4624](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4624))
 - Bump `junit5.version` from 5.10.1 to 5.10.2 ([#4625](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4625))
 - Bump `react-dom` from 18.2.0 to 18.3.1 ([#4631](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4631))
 - Bump `react-router-dom` from 6.23.0 to 6.23.1 ([#4679](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4679))
