@@ -1665,10 +1665,13 @@ public class UmsConfiguration extends BaseConfiguration {
 		if (lang == null) {
 			lang = getLanguageRawString();
 		}
-		if (lang != null) {
-			lang = lang.toLowerCase();
+		if (lang == null) {
+			lang = PMS.getLocale().toLanguageTag();
 		}
-		return lang;
+		if (lang != null) {
+			return lang.toLowerCase();
+		}
+		return "en-us";
 	}
 
 	/**
