@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@playwright/test` from 1.44.1 to 1.45.0 ([#4795](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4795))
+
 ## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
 
 ### General
