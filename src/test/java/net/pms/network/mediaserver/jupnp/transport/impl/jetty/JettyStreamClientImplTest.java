@@ -14,35 +14,39 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.jupnp.transport.impl;
+package net.pms.network.mediaserver.jupnp.transport.impl.jetty;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketTimeoutException;
 import java.net.URI;
-import java.net.http.HttpConnectTimeoutException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import org.eclipse.jetty.client.Request;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.jupnp.model.message.StreamRequestMessage;
 import org.jupnp.model.message.StreamResponseMessage;
 import org.jupnp.model.message.UpnpRequest;
+import org.jupnp.transport.impl.jetty.StreamClientConfigurationImpl;
+import org.jupnp.transport.spi.StreamClient;
 
 /**
- * Check that JDK HttpServer and JdkStreamClient can handle special upnp methods
+ * Check that Jetty Http Client can handle special upnp methods
  */
-public class JdkStreamClientsTest {
+public class JettyStreamClientImplTest {
 
 	static HttpServer server;
 	static String host;
@@ -105,47 +109,75 @@ public class JdkStreamClientsTest {
 	}
 
 	@Test
-	public void testClientConnectTimeout() throws InterruptedException, ExecutionException, UnsupportedEncodingException {
+	public void testClientConnectTimeout() {
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		JdkStreamClientConfiguration configuration = new JdkStreamClientConfiguration(executorService, 1);
-		JdkStreamClients clients = new JdkStreamClients(configuration);
+		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
+		StreamClient client = JettyTransportConfiguration.INSTANCE.createStreamClient(executorService, configuration);
+		//non routable ip
+		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://10.253.252.251/"));
+		try {
+			//timeout to 1 second
+			long start = System.currentTimeMillis();
+			StreamResponseMessage responseMessage = client.sendRequest(requestMessage);
+			assertNull(responseMessage);
+			long run = System.currentTimeMillis() - start;
+			assertTrue(run < 1500);
+		} catch (InterruptedException ex) {
+			fail(ex);
+		}
+	}
+
+	@Test
+	public void testJettyClientConnectTimeout() {
+		ExecutorService executorService = Executors.newFixedThreadPool(2);
+		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
+		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
 		//non routable ip
 		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://10.253.252.251/"));
 
-		JdkStreamClient client = clients.createRequest(requestMessage);
+		Request request = clients.createRequest(requestMessage);
 		//timeout to 1 second
 		long start = System.currentTimeMillis();
 		ExecutionException e = assertThrows(ExecutionException.class, () -> {
-			client.getResponse(requestMessage);
+			clients.createCallable(requestMessage, request).call();
 		});
-		assertEquals(e.getCause().getClass(), HttpConnectTimeoutException.class);
+		assertEquals(SocketTimeoutException.class, e.getCause().getClass());
 		long run = System.currentTimeMillis() - start;
 		assertTrue(run < 1500);
 	}
 
 	@Test
-	public void testClientServerError() throws InterruptedException, ExecutionException, UnsupportedEncodingException {
+	public void testClientServerError() {
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		JdkStreamClientConfiguration configuration = new JdkStreamClientConfiguration(executorService, 1);
-		JdkStreamClients clients = new JdkStreamClients(configuration);
+		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService, 1);
+		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
 		StreamRequestMessage requestMessage = new StreamRequestMessage(UpnpRequest.Method.GET, URI.create("http://" + host + "/"));
-		JdkStreamClient client = clients.createRequest(requestMessage);
-		StreamResponseMessage response = client.getResponse(requestMessage);
-		assertTrue(response.getOperation().getStatusCode() == 500);
+		Request request = clients.createRequest(requestMessage);
+		try {
+			StreamResponseMessage response = clients.createCallable(requestMessage, request).call();
+			assertTrue(response.getOperation().getStatusCode() == 500);
+		} catch (Exception ex) {
+			fail(ex);
+		}
 	}
 
-	private void testClientMethod(UpnpRequest.Method upnpMethod, String body) throws InterruptedException, ExecutionException, UnsupportedEncodingException {
+	private void testClientMethod(UpnpRequest.Method upnpMethod, String body) {
 		ExecutorService executorService = Executors.newFixedThreadPool(2);
-		JdkStreamClientConfiguration configuration = new JdkStreamClientConfiguration(executorService);
-		JdkStreamClients clients = new JdkStreamClients(configuration);
+		StreamClientConfigurationImpl configuration = new StreamClientConfigurationImpl(executorService);
+		JettyStreamClientImpl clients = new JettyStreamClientImpl(configuration);
 		StreamRequestMessage requestMessage = new StreamRequestMessage(upnpMethod, URI.create("http://" + host + "/"));
 		if (body != null) {
 			requestMessage.setBody(body);
 		}
-		JdkStreamClient client = clients.createRequest(requestMessage);
-		StreamResponseMessage response = client.getResponse(requestMessage);
-		String method = response.getHeaders().getFirstHeader("method");
-		assertEquals(method, upnpMethod.getHttpName());
+		Request request = clients.createRequest(requestMessage);
+		StreamResponseMessage response;
+		try {
+			response = clients.createCallable(requestMessage, request).call();
+			String method = response.getHeaders().getFirstHeader("method");
+			assertEquals(method, upnpMethod.getHttpName());
+		} catch (Exception ex) {
+			fail(ex);
+		}
 	}
 
 }

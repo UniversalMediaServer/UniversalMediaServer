@@ -16,12 +16,8 @@
  */
 package net.pms.network.mediaserver;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.UUID;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
@@ -39,13 +35,6 @@ public class MediaServer {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaServer.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
-	public static final Map<Integer, String> VERSIONS = Map.of(
-		1, "JUPnP+ (Jetty)",
-		2, "JUPnP+ (Netty)",
-		3, "JUPnP (Netty)"
-	);
-
-	public static final int DEFAULT_VERSION = 2;
 
 	private static boolean isStarted = false;
 	private static ServerStatus status = ServerStatus.STOPPED;
@@ -98,27 +87,15 @@ public class MediaServer {
 				return isStarted;
 			}
 			//start the http service (for upnp and others)
-			int engineVersion = CONFIGURATION.getServerEngine();
-			if (engineVersion == 0 || !VERSIONS.containsKey(engineVersion)) {
-				engineVersion = DEFAULT_VERSION;
-			}
 			//start the upnp service
 			if (CONFIGURATION.isUpnpEnabled()) {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
-					switch (engineVersion) {
-						case 1, 2 -> {
-							upnpService = new UmsUpnpService(true);
-							upnpService.startup();
-						}
-						case 3 -> {
-							upnpService = new UmsUpnpService(false);
-							upnpService.startup();
-						}
-					}
+					upnpService = new UmsUpnpService(true);
+					upnpService.startup();
 				}
 				try {
-					isStarted = upnpService != null && upnpService.getRouter().isEnabled();
+					isStarted = upnpService.getRouter().isEnabled();
 				} catch (RouterException ex) {
 					isStarted = false;
 				}
@@ -232,27 +209,6 @@ public class MediaServer {
 	}
 
 	private enum ServerStatus { STARTING, STARTED, STOPPING, STOPPED, WAITING }
-
-	/**
-	 * @return available server engines as a JSON array
-	 */
-	public static synchronized JsonArray getServerEnginesAsJsonArray() {
-		JsonArray jsonArray = new JsonArray();
-
-		JsonObject defaultOption = new JsonObject();
-		defaultOption.addProperty("value", "0");
-		defaultOption.addProperty("label", "i18n@Default");
-		jsonArray.add(defaultOption);
-
-		for (Entry<Integer, String> upnpEngineVersion : VERSIONS.entrySet()) {
-			JsonObject version = new JsonObject();
-			version.addProperty("value", upnpEngineVersion.getKey().toString());
-			version.addProperty("label", upnpEngineVersion.getValue());
-			jsonArray.add(version);
-		}
-
-		return jsonArray;
-	}
 
 	/**
 	 * Returns the user friendly name of the UMS server.

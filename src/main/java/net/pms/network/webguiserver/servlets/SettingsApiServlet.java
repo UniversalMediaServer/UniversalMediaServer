@@ -40,7 +40,6 @@ import net.pms.iam.Account;
 import net.pms.iam.AuthService;
 import net.pms.iam.Permissions;
 import net.pms.network.configuration.NetworkConfiguration;
-import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationConverter;
@@ -60,7 +59,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = UmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray FFMPEG_LOGLEVEL = UmsConfiguration.getFfmpegLoglevels();
 	private static final JsonArray FULLY_PLAYED_ACTIONS = UmsConfiguration.getFullyPlayedActionsAsJsonArray();
-	private static final JsonArray SERVER_ENGINES = MediaServer.getServerEnginesAsJsonArray();
 	private static final JsonArray SORT_METHODS = UmsConfiguration.getSortMethodsAsJsonArray();
 	private static final JsonArray SUBTITLES_CODEPAGES = UmsConfiguration.getSubtitlesCodepageArray();
 	private static final JsonArray SUBTITLES_DEPTH = UmsConfiguration.getSubtitlesDepthArray();
@@ -99,7 +97,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 
 				// immutable data
 				jsonResponse.add("userSettingsDefaults", WEB_SETTINGS_WITH_DEFAULTS);
-				jsonResponse.add("serverEngines", SERVER_ENGINES);
 				jsonResponse.add("audioCoverSuppliers", AUDIO_COVER_SUPPLIERS);
 				jsonResponse.add("sortMethods", SORT_METHODS);
 				jsonResponse.add("subtitlesInfoLevels", SUBTITLES_INFO_LEVELS);

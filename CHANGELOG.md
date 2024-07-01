@@ -8,6 +8,7 @@
 ## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
 
 ### General
+- Removed Netty dependency
 - Added ability to customize FFmpeg Audio options (#1323)
 - Improved start time when transcoding audio
 - Fixed fully played status not updating when file has reached the end (#4728) (thanks, Fredo1650!)
