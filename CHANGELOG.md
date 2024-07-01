@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@mantine/core` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
+
+- Bump `@mantine/dropzone` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
+- Bump `@mantine/form` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
+- Bump `@mantine/hooks` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
+- Bump `@mantine/modals` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
+- Bump `@mantine/notifications` from 7.10.2 to 7.11.0 ([#4792](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4792))
 ## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
 
 ### General
