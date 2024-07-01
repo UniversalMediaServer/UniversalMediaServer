@@ -16,11 +16,18 @@
  */
 package net.pms.store.item;
 
+import java.util.Map;
 import net.pms.formats.Format;
 import net.pms.renderers.Renderer;
 
 public class WebAudioStream extends WebStream {
+
 	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL) {
-		super(renderer, fluxName, url, thumbURL, Format.AUDIO);
+		this(renderer, fluxName, url, thumbURL, null);
 	}
+
+	public WebAudioStream(Renderer renderer, String fluxName, String url, String thumbURL, Map<String, String> directives) {
+		super(renderer, fluxName, url, thumbURL, Format.AUDIO, directives);
+	}
+
 }

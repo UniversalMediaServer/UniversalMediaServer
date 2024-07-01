@@ -19,12 +19,15 @@ package net.pms.external;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImagesUtil.ScaleType;
@@ -100,6 +103,80 @@ public class JavaHttpClient {
 			}
 		} catch (URISyntaxException ex) {
 			throw new IOException("Unable to download by HTTP" + ex.getMessage());
+		}
+	}
+
+	/**
+	 * Request http body from uri. Result should be UTF-8.
+	 *
+	 * @param uri
+	 * @return
+	 * @throws IOException
+	 */
+	public static String getStringBody(String uri) throws IOException {
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(uri))
+					.headers("Content-Type", "text/plain;charset=UTF-8")
+					.GET()
+					.build();
+			HttpResponse<String> response = HttpClient.newBuilder()
+					.followRedirects(HttpClient.Redirect.ALWAYS)
+					.build()
+					.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+					.join();
+			int statusCode = response.statusCode();
+			if (statusCode != 200) {
+				throw new IOException("HTTP response not OK (" + statusCode + ") for " + uri);
+			}
+			return response.body();
+		} catch (IllegalArgumentException ex) {
+			throw new IOException("Unable to get string by HTTP:" + ex.getMessage());
+		}
+	}
+
+	public static HttpHeaders getHeaders(String uri) {
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(uri))
+					.method("HEAD", HttpRequest.BodyPublishers.noBody())
+					.build();
+			HttpResponse<Void> response = HttpClient.newBuilder()
+					.followRedirects(HttpClient.Redirect.ALWAYS)
+					.build()
+					.sendAsync(request, HttpResponse.BodyHandlers.discarding())
+					.join();
+			return response.headers();
+		} catch (IllegalArgumentException ex) {
+			LOGGER.error("Unable to read headers for " + uri);
+			return HttpHeaders.of(Map.of(), null);
+		}
+	}
+
+	public static HttpHeaders getHeadersFromInputStreamRequest(String uri) {
+		try {
+			HttpResponse<InputStream> response = getHttpResponseInputStream(uri);
+			response.body().close();
+			return response.headers();
+		} catch (IOException | IllegalArgumentException ex) {
+			LOGGER.error("Unable to read headers for request (InputStream) " + uri);
+			return HttpHeaders.of(Map.of(), null);
+		}
+	}
+
+	public static HttpResponse<InputStream> getHttpResponseInputStream(String uri) throws IOException {
+		try {
+			HttpRequest request = HttpRequest.newBuilder()
+					.uri(URI.create(uri))
+					.GET()
+					.build();
+			return HttpClient.newBuilder()
+					.followRedirects(HttpClient.Redirect.ALWAYS)
+					.build()
+					.sendAsync(request, HttpResponse.BodyHandlers.ofInputStream())
+					.join();
+		} catch (IllegalArgumentException ex) {
+			throw new IOException("Unable to GET InputStream for request " + uri + ":" + ex.getMessage());
 		}
 	}
 

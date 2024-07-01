@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### General
+- Implements RadioBrowser Metadata lookup.
+- Added MediaTableContainerFiles to track files included in a container.
+- Store WebStream media info into the database.
+- Use of FFmpegParser to parse WebStream media info.
+- Implements WebStreamParser to parse headers of an http streams.
+- Added possibility to add playlist in playlist.
+
 ### Dependencies
 - Bump `junit5.version` from 5.10.2 to 5.10.3 ([#4796](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4796))
 

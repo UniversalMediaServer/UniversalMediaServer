@@ -20,6 +20,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import net.pms.database.MediaTableContainerFiles;
+import net.pms.database.MediaTableFiles;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
 import net.pms.formats.Format;
@@ -72,7 +74,7 @@ public class CueFolder extends StoreContainer {
 					List<TrackData> tracks = f.getTrackData();
 					Engine defaultPlayer = null;
 					MediaInfo originalMedia = null;
-					ArrayList<StoreResource> addedResources = new ArrayList<>();
+					List<RealFile> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
 						TrackData track = tracks.get(i);
 						if (i > 0) {
@@ -166,7 +168,17 @@ public class CueFolder extends StoreContainer {
 						}
 					}
 
-					storeFileInCache(playlistfile, Format.PLAYLIST);
+					Long containerId = MediaTableFiles.getOrInsertFileId(playlistfile.getAbsolutePath(), playlistfile.lastModified(), Format.PLAYLIST);
+					if (containerId != null) {
+						for (RealFile realFile : addedResources) {
+							File file = realFile.getFile();
+							Format format = realFile.getFormat();
+							if (file != null && format != null) {
+								Long entryId = MediaTableFiles.getOrInsertFileId(file.getAbsolutePath(), file.lastModified(), format.getType());
+								MediaTableContainerFiles.addContainerEntry(containerId, entryId);
+							}
+						}
+					}
 				}
 			}
 		}

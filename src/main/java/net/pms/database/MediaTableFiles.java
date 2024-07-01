@@ -35,6 +35,7 @@ import net.pms.media.MediaInfo;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
+import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -143,9 +144,11 @@ public class MediaTableFiles extends MediaTable {
 	private static final String SQL_GET_FILENAME_BY_ID = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_FILENAME_LIKE = SELECT + TABLE_COL_FILENAME + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_ID_FILENAME = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
+	private static final String SQL_GET_FORMAT_TYPE_BY_FILENAME = SELECT + TABLE_COL_FORMAT_TYPE + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_ID_FILENAME_MODIFIED = SELECT + TABLE_COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER + AND + TABLE_COL_MODIFIED + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_UPDATE_THUMBID_BY_ID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
+	private static final String SQL_DELETE_BY_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + EQUAL + PARAMETER;
 	private static final String SQL_DELETE_BY_FILENAME_LIKE = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_FILENAME + LIKE + LIKE_STARTING_WITH_PARAMETER;
 	private static final String SQL_GET_THUMBNAIL_BY_TITLE = SELECT + TABLE_COL_THUMBID + FROM + TABLE_NAME + SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + LIMIT_1;
@@ -541,20 +544,6 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	/**
-	 * Checks whether a row representing a {@link MediaInfo} instance for
-	 * the given media exists in the database.
-	 *
-	 * @param connection the db connection
-	 * @param filename the full path of the media.
-	 * @param modified the current {@code lastModified} value of the media file.
-	 * @return {@code true} if the data exists for this media, {@code false}
-	 *         otherwise.
-	 */
-	public static boolean isDataExists(final Connection connection, String filename, long modified) {
-		return getFileId(connection, filename, modified) != null;
-	}
-
-	/**
 	 * Gets the file Id for the given media in the database.
 	 *
 	 * @param connection the db connection
@@ -574,8 +563,26 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, filename, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "getting fileId for {}", TABLE_NAME, filename, se.getMessage());
 			LOGGER.trace("", se);
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the file Id for the given media in the database.
+	 *
+	 * @param filename the full path of the media.
+	 * @return the file id if the data exists for this media, null otherwise.
+	 */
+	public static Long getFileId(String filename) {
+		if (StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			return getFileId(connection, filename);
+		} catch (Exception e) {
+			LOGGER.error("cannot get fileId for {} ", filename, e);
 		}
 		return null;
 	}
@@ -585,9 +592,9 @@ public class MediaTableFiles extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param filename the full path of the media.
-	 * @return the file id if the data exists for this media, -1 otherwise.
+	 * @return the file id if the data exists for this media, null otherwise.
 	 */
-	public static Long getFileId(final Connection connection, String filename) {
+	protected static Long getFileId(final Connection connection, String filename) {
 		try {
 			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_ID_FILENAME)) {
 				statement.setString(1, filename);
@@ -598,7 +605,49 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 		} catch (SQLException se) {
-			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "checking if data exists", TABLE_NAME, filename, se.getMessage());
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "getting fileId for {}", TABLE_NAME, filename, se.getMessage());
+			LOGGER.trace("", se);
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the format type for the given media in the database.
+	 *
+	 * @param filename the full path of the media.
+	 * @return the file type if the data exists for this media, null otherwise.
+	 */
+	public static Integer getFormatType(String filename) {
+		if (StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			return getFormatType(connection, filename);
+		} catch (Exception e) {
+			LOGGER.error("cannot get format type for {} ", filename, e);
+		}
+		return null;
+	}
+
+	/**
+	 * Gets the format type for the given media in the database.
+	 *
+	 * @param connection the db connection
+	 * @param filename the full path of the media.
+	 * @return the file type if the data exists for this media, null otherwise.
+	 */
+	private static Integer getFormatType(final Connection connection, String filename) {
+		try {
+			try (PreparedStatement statement = connection.prepareStatement(SQL_GET_FORMAT_TYPE_BY_FILENAME)) {
+				statement.setString(1, filename);
+				try (ResultSet resultSet = statement.executeQuery()) {
+					if (resultSet.next()) {
+						return resultSet.getInt(1);
+					}
+				}
+			}
+		} catch (SQLException se) {
+			LOGGER.error(LOG_ERROR_WHILE_IN_FOR, DATABASE_NAME, "getting format type for {}", TABLE_NAME, filename, se.getMessage());
 			LOGGER.trace("", se);
 		}
 		return null;
@@ -674,6 +723,52 @@ public class MediaTableFiles extends MediaTable {
 	}
 
 	/**
+	 * Stores the file in the database if it doesn't already exist.
+	 *
+	 * @param filename the full path to the file.
+	 * @param formatType the type constant defined in {@link Format}.
+	 * @return The file ID.
+	 */
+	public static Long getOrInsertFileId(String filename, Long modified, int type) {
+		if (StringUtils.isBlank(filename)) {
+			return null;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			return getOrInsertFileId(connection, filename, modified, type);
+		} catch (Exception e) {
+			LOGGER.error("cannot get fileId for {} ", filename, e);
+		}
+		return null;
+	}
+
+	private static Long getOrInsertFileId(final Connection connection, String filename, long modified, int type) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return null;
+		}
+		Long fileId = getFileId(connection, filename, modified);
+		if (fileId != null) {
+			return fileId;
+		}
+		try {
+			return insertOrUpdateData(connection, filename, modified, type, null);
+		} catch (SQLException ex) {
+			return null;
+		}
+	}
+
+	public static Long insertOrUpdateData(String name, long modified, int type, MediaInfo media) {
+		if (StringUtils.isBlank(name)) {
+			return null;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			return insertOrUpdateData(connection, name, modified, type, media);
+		} catch (Exception e) {
+			LOGGER.error("cannot store data for {} ", name, e);
+		}
+		return null;
+	}
+
+	/**
 	 * Inserts or updates a database row representing an {@link MediaInfo}
 	 * instance. If the row already exists, it will be updated with the
 	 * information given in {@code media}. If it doesn't exist, a new will row
@@ -683,12 +778,13 @@ public class MediaTableFiles extends MediaTable {
 	 * @param name the full path of the media.
 	 * @param modified the current {@code lastModified} value of the media file.
 	 * @param type the integer constant from {@link Format} indicating the type
-	 *            of media.
+	 *             of media.
 	 * @param media the {@link MediaInfo} row to update.
+	 * @return The file ID.
 	 * @throws SQLException if an SQL error occurs during the operation.
 	 */
-	public static void insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
-		long fileId = -1;
+	public static Long insertOrUpdateData(final Connection connection, String name, long modified, int type, MediaInfo media) throws SQLException {
+		Long fileId = null;
 		try {
 			try (PreparedStatement ps = connection.prepareStatement(SQL_GET_ALL_BY_FILENAME,
 				ResultSet.TYPE_FORWARD_ONLY,
@@ -732,7 +828,7 @@ public class MediaTableFiles extends MediaTable {
 				}
 			}
 
-			if (media != null && fileId > -1) {
+			if (media != null && fileId != null) {
 				media.setFileId(fileId);
 				MediaTableVideoMetadata.insertOrUpdateVideoMetadata(connection, fileId, media, false);
 				MediaTableVideotracks.insertOrUpdateVideoTracks(connection, fileId, media);
@@ -751,11 +847,12 @@ public class MediaTableFiles extends MediaTable {
 			}
 			throw se;
 		} finally {
-			if (fileId > -1) {
+			if (fileId != null) {
 				//let store know that we change media metadata
 				MediaStoreIds.incrementUpdateIdForFilename(connection, name);
 			}
 		}
+		return fileId;
 	}
 
 	/**
@@ -848,6 +945,76 @@ public class MediaTableFiles extends MediaTable {
 		}
 	}
 
+	/**
+	 * Removes a single media file from the database.
+	 *
+	 * It will remove all the related contained entries.
+	 * @param filename the filename.
+	 */
+	public static void removeEntry(String filename) {
+		if (StringUtils.isBlank(filename)) {
+			return;
+		}
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			removeEntry(connection, filename);
+		} catch (Exception e) {
+			LOGGER.error("cannot remove entry {} ", filename, e);
+		}
+	}
+
+	/**
+	 * Removes a single media file from the database.
+	 *
+	 * It will remove all the related contained entries.
+	 * @param connection the db connection
+	 * @param filename the filename.
+	 */
+	private static void removeEntry(final Connection connection, String filename) {
+		if (connection == null || StringUtils.isBlank(filename)) {
+			return;
+		}
+		Long fileId = getFileId(connection, filename);
+		if (fileId != null) {
+			removeEntry(connection, fileId);
+		}
+	}
+
+	/**
+	 * Removes a single media file from the database.
+	 *
+	 * It will remove all the related contained entries.
+	 * @param connection the db connection
+	 * @param fileId the file Id.
+	 */
+	protected static void removeEntry(final Connection connection, long fileId) {
+		if (connection == null) {
+			return;
+		}
+		//get actual contained entries.
+		List<Long> entries = MediaTableContainerFiles.getContainerFileIds(connection, fileId);
+		//remove relation.
+		MediaTableContainerFiles.deleteContainer(connection, fileId);
+		//delete the entry if not anymore related to a container
+		for (Long entryId : entries) {
+			if (!MediaTableContainerFiles.isInContainer(connection, entryId)) {
+				removeEntry(connection, entryId);
+			}
+		}
+		//remove the itself relation if any
+		MediaTableContainerFiles.deleteEntry(connection, fileId);
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_DELETE_BY_ID);
+			) {
+				ps.setLong(1, fileId);
+				ps.executeUpdate();
+			}
+		} catch (SQLException se) {
+			LOGGER.error("An error occurred while trying to remove \"{}\" from the database: {}", fileId, se.getMessage());
+			LOGGER.trace("", se);
+		}
+	}
+
 	public static void updateThumbnailId(final Connection connection, long fileId, Long thumbId, String thumbnailSource) {
 		try {
 			try (
@@ -929,37 +1096,51 @@ public class MediaTableFiles extends MediaTable {
 					PreparedStatement ps = connection.prepareStatement(SQL_GET_FILENAME_MODIFIED_ID, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
 					ResultSet rs = ps.executeQuery()) {
 					List<File> sharedFolders = SharedContentConfiguration.getSharedFolders();
+					List<Long> removedIds = new ArrayList<>();
 					int oldpercent = 0;
 					int i = 0;
 					while (rs.next()) {
 						String filename = rs.getString(COL_FILENAME);
-						long modified = rs.getTimestamp(COL_MODIFIED).getTime();
-						File file = new File(filename);
-						if (!file.exists() || file.lastModified() != modified) {
-							LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
-							rs.deleteRow();
-						} else {
-							// the file exists on the hard drive, but now check if we are still sharing it
-							boolean isFileStillShared = false;
-							for (File folder : sharedFolders) {
-								if (filename.contains(folder.getAbsolutePath())) {
-									isFileStillShared = true;
-									break;
-								}
-							}
+						Long id = toLong(rs, COL_ID);
+						if (Boolean.FALSE.equals(MediaTableContainerFiles.isInContainer(connection, id))) {
+							if (!FileUtil.isUrl(filename)) {
+								//this is a real file not in container
+								long modified = rs.getTimestamp(COL_MODIFIED).getTime();
+								File file = new File(filename);
+								if (!file.exists() || file.lastModified() != modified) {
+									LOGGER.trace("Removing the file {} from our database because it is no longer on the hard drive", filename);
+									rs.deleteRow();
+									removedIds.add(id);
+								} else {
+									// the file exists on the hard drive, but now check if we are still sharing it
+									boolean isFileStillShared = false;
+									for (File folder : sharedFolders) {
+										if (filename.contains(folder.getAbsolutePath())) {
+											isFileStillShared = true;
+											break;
+										}
+									}
 
-							if (!isFileStillShared) {
-								LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
-								rs.deleteRow();
+									if (!isFileStillShared) {
+										LOGGER.trace("Removing the file {} from our database because it is no longer shared", filename);
+										rs.deleteRow();
+										removedIds.add(id);
+									}
+								}
+							} else {
+								//check for url shared content
 							}
 						}
-
 						i++;
 						int newpercent = i * 100 / dbCount;
 						if (newpercent > oldpercent) {
 							GuiManager.setStatusLine(Messages.getString("CleaningUpDatabase") + newpercent + "%");
 							oldpercent = newpercent;
 						}
+					}
+					//clean relations
+					for (Long id : removedIds) {
+						removeEntry(connection, id);
 					}
 				}
 				GuiManager.setStatusLine(null);

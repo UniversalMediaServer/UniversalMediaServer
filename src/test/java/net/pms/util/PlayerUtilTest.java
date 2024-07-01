@@ -52,11 +52,11 @@ public class PlayerUtilTest {
 		audio.resolveFormat();
 		video = new RealFile(RendererConfigurations.getDefaultRenderer(), getNonExistingFile("test.mpg"));
 		video.resolveFormat();
-		webImage = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.jpg", "", Format.IMAGE);
+		webImage = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.jpg", "", Format.IMAGE, null);
 		webImage.isValid();
-		webAudio = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mp3", "", Format.AUDIO);
+		webAudio = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mp3", "", Format.AUDIO, null);
 		webAudio.isValid();
-		webVideo = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mpg", "", Format.VIDEO);
+		webVideo = new WebStream(RendererConfigurations.getDefaultRenderer(), "", "http://example.com/test.mpg", "", Format.VIDEO, null);
 		webVideo.isValid();
 	}
 

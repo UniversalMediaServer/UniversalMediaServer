@@ -37,6 +37,7 @@ public final class FormatFactory {
 	 * Initial list of known formats.
 	 */
 	static final Format[] FORMATS = new Format[] {
+		new AACP(),
 		new AC3(),
 		new ADPCM(),
 		new ADTS(),
