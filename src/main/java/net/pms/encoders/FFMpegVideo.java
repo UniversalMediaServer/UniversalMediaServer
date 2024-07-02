@@ -432,61 +432,68 @@ public class FFMpegVideo extends Engine {
 //				transcodeOptions.add("copy");
 
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
+			if (defaultVideoTrack != null) {
+				if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+					if (canMuxVideoWithFFmpeg) {
+						if (!customFFmpegOptions.contains("-c:v")) {
+							transcodeOptions.add("-c:v");
+							transcodeOptions.add("copy");
+						}
+					} else {
+						String selectedTranscodeAccelerationMethod = null;
 
-			if (defaultVideoTrack != null && (renderer.isTranscodeToH264() || renderer.isTranscodeToH265())) {
-				if (canMuxVideoWithFFmpeg) {
-					if (!customFFmpegOptions.contains("-c:v")) {
-						transcodeOptions.add("-c:v");
-						transcodeOptions.add("copy");
+						if (!customFFmpegOptions.contains("-c:v")) {
+							transcodeOptions.add("-c:v");
+
+							if (renderer.isTranscodeToH264()) {
+								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
+							} else {
+								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
+							}
+
+							transcodeOptions.add(selectedTranscodeAccelerationMethod);
+
+							// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
+
+							if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
+								transcodeOptions.add("-preset");
+								transcodeOptions.add("llhp");
+							}
+						}
+
+						if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
+							if (!customFFmpegOptions.contains("-preset")) {
+								transcodeOptions.add("-preset");
+
+								// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+								transcodeOptions.add("superfast");
+							}
+							if (!customFFmpegOptions.contains("-level")) {
+								transcodeOptions.add("-level");
+								transcodeOptions.add("31");
+							}
+						} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
+							if (!customFFmpegOptions.contains("-preset")) {
+								transcodeOptions.add("-preset");
+								transcodeOptions.add("ultrafast");
+							}
+						}
+
+						if (defaultVideoTrack.getHDRFormatForRenderer() == null) {
+							transcodeOptions.add("-pix_fmt");
+							transcodeOptions.add("yuv420p");
+						}
 					}
-				} else {
-					String selectedTranscodeAccelerationMethod = null;
-
-					if (!customFFmpegOptions.contains("-c:v")) {
-						transcodeOptions.add("-c:v");
-
-						if (renderer.isTranscodeToH264()) {
-							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
-						} else {
-							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
-						}
-
-						transcodeOptions.add(selectedTranscodeAccelerationMethod);
-
-						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
-
-						if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
-							transcodeOptions.add("-preset");
-							transcodeOptions.add("llhp");
-						}
-					}
-
-					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
-						if (!customFFmpegOptions.contains("-preset")) {
-							transcodeOptions.add("-preset");
-
-							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
-							transcodeOptions.add("superfast");
-						}
-						if (!customFFmpegOptions.contains("-level")) {
-							transcodeOptions.add("-level");
-							transcodeOptions.add("31");
-						}
-					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
-						if (!customFFmpegOptions.contains("-preset")) {
-							transcodeOptions.add("-preset");
-							transcodeOptions.add("ultrafast");
-						}
-					}
-
-					if (defaultVideoTrack.getHDRFormatForRenderer() == null) {
-						transcodeOptions.add("-pix_fmt");
-						transcodeOptions.add("yuv420p");
-					}
+				} else if (!dtsRemux) {
+					transcodeOptions.add("-c:v");
+					transcodeOptions.add("mpeg2video");
 				}
-			} else if (!dtsRemux) {
-				transcodeOptions.add("-c:v");
-				transcodeOptions.add("mpeg2video");
+
+				// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
+				if (defaultVideoTrack.getHDRFormatForRenderer() != null) {
+					transcodeOptions.add("-strict");
+					transcodeOptions.add("unofficial");
+				}
 			}
 
 			if (!customFFmpegOptions.contains("-f")) {
@@ -504,12 +511,6 @@ public class FFMpegVideo extends Engine {
 				} else {
 					transcodeOptions.add("vob");
 				}
-			}
-
-			// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
-			if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
-				transcodeOptions.add("-strict");
-				transcodeOptions.add("unofficial");
 			}
 		}
 
