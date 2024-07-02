@@ -430,7 +430,10 @@ public class FFMpegVideo extends Engine {
 //				resource.setMediaInfo(media);
 //				transcodeOptions.add("-c:v");
 //				transcodeOptions.add("copy");
-			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+
+			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
+
+			if (defaultVideoTrack != null && (renderer.isTranscodeToH264() || renderer.isTranscodeToH265())) {
 				if (canMuxVideoWithFFmpeg) {
 					if (!customFFmpegOptions.contains("-c:v")) {
 						transcodeOptions.add("-c:v");
@@ -475,6 +478,11 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("ultrafast");
 						}
 					}
+
+					if (defaultVideoTrack.getHDRFormatForRenderer() == null) {
+						transcodeOptions.add("-pix_fmt");
+						transcodeOptions.add("yuv420p");
+					}
 				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
@@ -499,7 +507,6 @@ public class FFMpegVideo extends Engine {
 			}
 
 			// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
-			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 			if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
 				transcodeOptions.add("-strict");
 				transcodeOptions.add("unofficial");
