@@ -39,7 +39,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
 import net.pms.media.codec.video.H264;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
@@ -977,16 +976,6 @@ public abstract class Engine {
 		if (params.getSid() != null && params.getSid().getId() == MediaLang.DUMMY_ID) {
 			LOGGER.trace("Don't want subtitles!");
 			params.setSid(null);
-		} else if (params.getSid() instanceof MediaOnDemandSubtitle dLNAMediaOnDemandSubtitle) {
-			// Download/fetch live subtitles
-			if (params.getSid().getExternalFile() == null) {
-				if (!dLNAMediaOnDemandSubtitle.fetch()) {
-					LOGGER.error("Failed to fetch on-demand subtitles \"{}\"", params.getSid().getName());
-				}
-				if (params.getSid().getExternalFile() == null) {
-					params.setSid(null);
-				}
-			}
 		} else if (params.getSid() == null) {
 			params.setSid(resource.resolveSubtitlesStream(params.getAid() == null ? null : params.getAid().getLang(), true));
 		}

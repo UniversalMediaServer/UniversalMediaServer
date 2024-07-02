@@ -33,8 +33,6 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
-import net.pms.store.container.OpenSubtitleFolder;
-import net.pms.store.container.SubSelect;
 import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
@@ -240,19 +238,6 @@ public class StoreContainer extends StoreResource {
 									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", item.getName(),
 											transcodingEngine);
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
-								}
-							}
-
-							if (item.getFormat().isVideo() && item.isSubSelectable() && !(this instanceof OpenSubtitleFolder)) {
-								StoreContainer vf = getSubSelector(true);
-								if (vf != null) {
-									StoreItem newChild = item.clone();
-									newChild.setEngine(transcodingEngine);
-									newChild.setMediaInfo(item.getMediaInfo());
-									LOGGER.trace("Adding live subtitles folder for \"{}\" with engine {}", item.getName(),
-											transcodingEngine);
-
-									vf.addChild(new OpenSubtitleFolder(renderer, newChild));
 								}
 							}
 
@@ -592,31 +577,6 @@ public class StoreContainer extends StoreResource {
 
 	public void setThumbnail(String thumbnailIcon) {
 		this.thumbnailIcon = thumbnailIcon;
-	}
-
-	////////////////////////////////////////////////////
-	// Subtitle handling
-	////////////////////////////////////////////////////
-	private SubSelect getSubSelector(boolean create) {
-		if (renderer.getUmsConfiguration().isDisableSubtitles() || !renderer.getUmsConfiguration().isAutoloadExternalSubtitles() ||
-				!renderer.getUmsConfiguration().isShowLiveSubtitlesFolder() || !isLiveSubtitleFolderAvailable()) {
-			return null;
-		}
-
-		// Search for transcode folder
-		for (StoreResource r : children) {
-			if (r instanceof SubSelect subSelect) {
-				return subSelect;
-			}
-		}
-
-		if (create) {
-			SubSelect vf = new SubSelect(renderer);
-			addChildInternal(vf);
-			return vf;
-		}
-
-		return null;
 	}
 
 	/**
