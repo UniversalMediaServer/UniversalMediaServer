@@ -244,6 +244,10 @@ public class MediaInfoParserTest {
 			"Container: MKV, Size: 11413502, Overall Bitrate: 6110012, Duration: 0:00:14.944, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Stream Order: 0, Duration: 0:00:14.920, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 25.0, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 768000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv").toString()
 		);
+		assertEquals(
+			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Duration: 0:01:11.905, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 4, Stream Order: 1, Duration: 0:01:11.905, Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.97, Frame Rate Mode: CFR (CFR), Reference Frame Count: 2], Audio Tracks: 1 [Audio Id: 0, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			getTestFileMediaInfo("video-h264-6ch-ac4.mp4").toString()
+		);
 
 		//audio
 		assertEquals(

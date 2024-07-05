@@ -25,7 +25,9 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
+import net.pms.encoders.FFMpegVideo;
 import net.pms.media.MediaInfo;
+import net.pms.media.audio.MediaAudio;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
@@ -215,6 +217,13 @@ public class StoreContainer extends StoreResource {
 							transcodingEngine = item.resolveEngine();
 						}
 						item.setEngine(transcodingEngine);
+						MediaAudio audio = item.getMediaInfo().getDefaultAudioTrack();
+						if (audio != null && audio.isAC4() && transcodingEngine instanceof FFMpegVideo) {
+							LOGGER.debug("Ignoring file \"{}\" because audio is AC-4 and engine is FFmpeg so skip it until FFmpeg" +
+								" will support it.", item.getName());
+							children.remove(item);
+							return;
+						}
 
 						if (resumeRes != null) {
 							resumeRes.setEngine(transcodingEngine);
@@ -255,6 +264,7 @@ public class StoreContainer extends StoreResource {
 							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", item.getName(),
 									renderer.getRendererName());
 							children.remove(item);
+							return;
 						}
 					}
 

@@ -598,7 +598,7 @@ public class TvSeriesMetadata {
 
 	private VideoMetadataLocalized getTranslation(String lang) {
 		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (hasTranslation(lang)) {
+		if (lang != null && hasTranslation(lang)) {
 			return this.translations.get(lang);
 		}
 		return null;

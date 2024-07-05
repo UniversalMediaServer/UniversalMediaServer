@@ -475,8 +475,6 @@ public class FFMpegVideo extends Engine {
 							transcodeOptions.add("ultrafast");
 						}
 					}
-					transcodeOptions.add("-pix_fmt");
-					transcodeOptions.add("yuv420p");
 				}
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
@@ -498,6 +496,13 @@ public class FFMpegVideo extends Engine {
 				} else {
 					transcodeOptions.add("vob");
 				}
+			}
+
+			// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
+			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
+			if (defaultVideoTrack != null && defaultVideoTrack.getHDRFormatForRenderer() != null) {
+				transcodeOptions.add("-strict");
+				transcodeOptions.add("unofficial");
 			}
 		}
 
@@ -961,7 +966,7 @@ public class FFMpegVideo extends Engine {
 			} else if (!renderer.isResolutionCompatibleWithRenderer(media.getWidth(), media.getHeight())) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the resolution is incompatible with the renderer.");
-			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
+			} else if (!renderer.isTranscodeToMP4H265AC3() && defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision")) {
 				canMuxVideoWithFFmpeg = false;
 				boolean videoWouldBeCompatibleInTsContainer = renderer.getFormatConfiguration().getMatchedMIMEtype(
 					"mpegts",
@@ -984,7 +989,7 @@ public class FFMpegVideo extends Engine {
 				if (videoWouldBeCompatibleInTsContainer) {
 					canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = true;
 				}
-				LOGGER.debug(prependFfmpegTraceReason + "the file is a strict Dolby Vision profile and FFmpeg seems to not preserve Dolby Vision data (worth re-checking periodically).");
+				LOGGER.debug(prependFfmpegTraceReason + "the file is Dolby Vision and FFmpeg only outputs Dolby Vision metadata to MP4 containers as of FFmpeg 7.0.1 (worth re-checking periodically).");
 			}
 		}
 
