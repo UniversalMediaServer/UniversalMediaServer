@@ -14,7 +14,8 @@
     "bundle_id" : "com.universalmediaserver.ums",
     "apple_id": {
         "username" : "",
-        "password":  ""
+        "password":  "",
+        "provider": ""
     },
     "sign": {
         "entitlements_file": "./entitlements.xml",
