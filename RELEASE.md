@@ -42,9 +42,9 @@ There are a number of manual steps involved in a new version release. This list 
 
      I also do the Docker release from that Intel MacBook, which requires the `linux` directory to be manually created/updated to contain the binaries for Linux.
 
-     The script for the two paragraphs above is `./scripts/ums-release-macos-intel.sh`, and it contains its own setup instructions to elaborate on this.
+     The script for the two paragraphs above is [ums-release-macos-intel.sh](./scripts/ums-release-macos-intel.sh), and it contains its own setup instructions to elaborate on this.
 
-     For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing.
+     For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing, and the [ums-release-macos-arm.sh](./scripts/ums-release-macos-arm.sh) script.
 
 1. Upload the releases. 
 
