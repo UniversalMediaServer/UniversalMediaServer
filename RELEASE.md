@@ -7,7 +7,7 @@ There are a number of manual steps involved in a new version release. This list 
 1. Pull the latest translations from Crowdin by running `mvn crowdin:pull`
 
      This relies on the [Crowdin Maven Plugin](https://github.com/DigitalMediaServer/crowdin-maven-plugin/)
-1. Update [the changelog](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populating the sections.
+1. Update [the changelog](./CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populating the sections.
 
      There are 4 usual sections in a changelog:
    - `General` contains most of our code changes like new features, improvements and bugfixes
@@ -18,7 +18,7 @@ There are a number of manual steps involved in a new version release. This list 
 
       Make sure you keep the `[Unreleased]` section up the top, because the changelog GitHub Action relies on that.
 
-1. Update the version in [pom.xml](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/pom.xml).
+1. Update the version in [pom.xml](./pom.xml).
 
      The version number will be dictated by the changes that are included in the release. There are 4 types of releases that can happen:
    - `Major (1.2.3 to 2.0.0)` is for a large feature-set and is usually the result of beta releases to get community feedback

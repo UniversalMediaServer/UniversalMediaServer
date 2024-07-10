@@ -2,9 +2,19 @@
 
 ## [Unreleased]
 
+## [14.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.0...14.2.1) (2024-07-11)
+
+### General
+- Fixed broken transcoding to renderers that do not support 10-bit video (#4797)
+- Fixed UMS not using default OS languages if only web settings is used (#4788)
+- Fixed file sorting options not working (#4698) (thanks, mykeehu!)
+- Fixed file sort order changing directions
+- Fixed broken web settings on Linux (#4803)
+
 ### Dependencies
 - Bump `jetty.version` from 12.0.10 to 12.0.11 ([#4801](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4801))
 - Bump `junit5.version` from 5.10.2 to 5.10.3 ([#4796](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4796))
+- Bump `MediaInfo` from 24.01.1 to 24.06
 
 ## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
 
