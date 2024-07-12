@@ -12,6 +12,9 @@ export default defineConfig({
     sourcemap: true,
     chunkSizeWarningLimit: 1600,
     rollupOptions: {
+      output: {
+          hashCharacters: 'hex'
+      },
       onwarn(warning, defaultHandler) {
         if (warning.code === 'SOURCEMAP_ERROR') {
           return

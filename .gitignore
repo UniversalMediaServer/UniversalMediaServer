@@ -46,3 +46,6 @@ docker/jre*
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-client
 /nbproject/
+
+# Ignore the populated Gon scripts because they contain private info
+/gon-config-*
