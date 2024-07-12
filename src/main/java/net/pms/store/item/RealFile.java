@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
@@ -43,7 +42,6 @@ import net.pms.store.StoreItem;
 import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
-import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
@@ -409,9 +407,6 @@ public class RealFile extends StoreItem implements SystemFileResource {
 
 	@Override
 	public String getDisplayNameBase() {
-		if (getParent() instanceof OpenSubtitleFolder && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
-			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
-		}
 		if (isFolder()) {
 			return super.getDisplayNameBase();
 		}
