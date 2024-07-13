@@ -958,7 +958,14 @@
 		-->
 		<profile>
 			<id>windows</id>
-
+			<activation>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+			<properties>
+				<activatedProfile>windows</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -1117,6 +1124,8 @@
 										<get src="${project.binaries-base}/win32/mplayer/subfont.ttf?p=${binary-revision}" dest="${project.binaries}/windows/mplayer/subfont.ttf" usetimestamp="true" />
 
 										<!-- Make sure the download folders exist -->
+
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1346,8 +1355,14 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>linux</family>
+					<arch>arm64</arch>
+				</os>
 			</activation>
-
+			<properties>
+				<activatedProfile>linux-arm64</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -1452,6 +1467,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/arm64/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/arm64/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1481,7 +1497,14 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>linux</family>
+					<arch>armel</arch>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>linux-armel</activatedProfile>
+			</properties>
 
 			<build>
 				<plugins>
@@ -1587,6 +1610,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armel/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armel/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1616,7 +1640,14 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>linux</family>
+					<arch>armhf</arch>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>linux-armhf</activatedProfile>
+			</properties>
 
 			<build>
 				<plugins>
@@ -1722,6 +1753,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/armhf/ffmpeg/ffmpeg?p=${binary-revision}" dest="${project.binaries}/linux/armhf/ffmpeg/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/youtube-dl?p=${binary-revision}" dest="${project.binaries}/linux/youtube-dl" usetimestamp="true" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1751,8 +1783,14 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>linux</family>
+					<arch>x86</arch>
+				</os>
 			</activation>
-
+			<properties>
+				<activatedProfile>linux-x86</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -1865,6 +1903,7 @@
 										<untar src="${project.binaries}/linux/x86/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -1894,7 +1933,14 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>linux</family>
+					<arch>x86_64</arch>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>linux-x86_64</activatedProfile>
+			</properties>
 
 			<build>
 				<plugins>
@@ -2008,6 +2054,7 @@
 										<untar src="${project.binaries}/linux/x86_64/jre${project.jre-version}.tar.gz" dest="${project.binaries}/linux/x86_64/jre${project.jre-version}" compression="gzip">
 											<cutdirsmapper dirs="1" />
 										</untar>
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2038,7 +2085,13 @@
 			<id>macos</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>mac</family>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>macos</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -2130,6 +2183,7 @@
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2268,7 +2322,14 @@
 			<id>macos-arm</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>mac</family>
+					<arch>arm64</arch>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>macos-arm64</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -2362,6 +2423,7 @@
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 										<chmod dir="${project.binaries}/osx/10.15" perm="a+x" includes="*" />
 										<chmod dir="${project.binaries}/osx/arm" perm="a+x" includes="*" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
@@ -2500,7 +2562,15 @@
 			<id>macos-pre1015</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
+				<os>
+					<family>mac</family>
+					<arch>x86_64</arch>
+					<version>(,10.15]</version>
+				</os>
 			</activation>
+			<properties>
+				<activatedProfile>macos-x8664</activatedProfile>
+			</properties>
 			<build>
 				<plugins>
 					<plugin>
@@ -2590,6 +2660,7 @@
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
+										<echo message="Profile selected: ${activatedProfile}"/>
 									</target>
 								</configuration>
 							</execution>
