@@ -18,7 +18,6 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -499,6 +498,23 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		// Skip adding season folders if there is only one season
 		if (!(expectedOutput == EPISODES && newVirtualFolders.size() == 1)) {
 			List<StoreResource> newVirtualFoldersResources = new ArrayList<>();
+			ApiSeasonArray seasonsOfThisSeries = null;
+
+			if (expectedOutput == EPISODES) {
+				Connection connection = null;
+				try {
+					connection = MediaDatabase.getConnectionIfAvailable();
+					if (connection != null) {
+						TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, Long.valueOf(getName()));
+						if (tvSeriesMetadata != null) {
+							seasonsOfThisSeries = tvSeriesMetadata.getSeasons();
+						}
+					}
+				} finally {
+					MediaDatabase.close(connection);
+				}
+			}
+
 			for (String virtualFolderName : newVirtualFolders) {
 				if (virtualFolderName != null && isTextOutputExpected(expectedOutput)) {
 					String[] sqls2 = new String[sqls.length - 1];
@@ -525,25 +541,16 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								i18nName = "SeasonX";
 
 								// Append any season name from the API to the season folder, so it is "Season 3: The Name"
-								Connection connection = null;
-								try {
-									connection = MediaDatabase.getConnectionIfAvailable();
-									if (connection != null) {
-										TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, Long.valueOf(getName()));
-										if (tvSeriesMetadata != null) {
-											ApiSeasonArray seasonsOfThisSeries = tvSeriesMetadata.getSeasons();
-											for (ApiSeason season : seasonsOfThisSeries) {
-												if (
-													season.getSeasonNumber() == Integer.parseInt(virtualFolderName) &&
-													!season.getName().equalsIgnoreCase("Season " + season.getSeasonNumber())
-												) {
-													seasonName = ": " + season.getName();
-												}
-											}
+								if (seasonsOfThisSeries != null) {
+									for (ApiSeason season : seasonsOfThisSeries) {
+										if (
+											season.getSeasonNumber() == Integer.parseInt(virtualFolderName) &&
+											!season.getName().equalsIgnoreCase("Season " + season.getSeasonNumber())
+										) {
+											seasonName = ": " + season.getName();
+											break;
 										}
 									}
-								} finally {
-									MediaDatabase.close(connection);
 								}
 							}
 						}
