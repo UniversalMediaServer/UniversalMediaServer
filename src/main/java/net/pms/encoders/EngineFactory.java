@@ -33,7 +33,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.formats.FormatFactory;
-import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExternalProgramInfo;
 import net.pms.util.ProgramExecutableType;
@@ -125,6 +124,7 @@ public final class EngineFactory {
 		registerEngine(new MEncoderVideo());
 		registerEngine(new FFMpegVideo());
 		registerEngine(new VLCVideo());
+		registerEngine(new FFmpegHlsVideo());
 		registerEngine(new FFmpegWebVideo());
 		registerEngine(new MEncoderWebVideo());
 		registerEngine(new VLCWebVideo());
@@ -409,60 +409,6 @@ public final class EngineFactory {
 	}
 
 	/**
-	 * Returns the first {@link Engine} that matches the given
-	 * {@link StoreItem}. Each of the available {@link Engine} instances are
-	 * passed the provided information and the first that reports that it is
-	 * compatible will be returned.
-	 *
-	 * @param resource the {@link StoreItem} to match.
-	 * @return The {@link Engine} if a match could be found, {@code null}
-	 *         otherwise.
-	 */
-	public static Engine getEngine(final StoreItem resource) {
-		if (resource == null) {
-			LOGGER.warn("Invalid resource (null): no engine found");
-			return null;
-		}
-		LOGGER.trace("Getting engine for resource \"{}\"", resource.getName());
-		boolean isImage = resource.getMediaInfo() != null && resource.getMediaInfo().isImage();
-
-		ENGINES_LOCK.readLock().lock();
-		try {
-			for (Engine engine : ENGINES) {
-				if (isImage && !(engine instanceof ImageEngine)) {
-					continue;
-				}
-				boolean enabled = engine.isEnabled();
-				boolean available = engine.isAvailable();
-				if (enabled && available) {
-					boolean compatible = engine.isCompatible(resource);
-					if (compatible) {
-						// Engine is enabled and compatible
-						LOGGER.trace("Returning compatible engine \"{}\"", engine.getName());
-						return engine;
-					} else if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Engine \"{}\" is incompatible", engine.getName());
-					}
-				} else if (LOGGER.isTraceEnabled()) {
-					if (available) {
-						LOGGER.trace("Engine \"{}\" is disabled", engine.getName());
-					} else if (enabled) {
-						LOGGER.trace("Engine \"{}\" isn't available", engine.getName());
-					} else {
-						LOGGER.trace("Engine \"{}\" is neither available nor enabled", engine.getName());
-					}
-				}
-			}
-		} finally {
-			ENGINES_LOCK.readLock().unlock();
-		}
-
-		LOGGER.trace("No engine found for {}", resource.getName());
-
-		return null;
-	}
-
-	/**
 	 * Gets the currently active executable for a registered {@link Engine} or
 	 * {@code null} if the no such {@link Engine} is registered.
 	 *
@@ -485,37 +431,6 @@ public final class EngineFactory {
 			ENGINES_LOCK.readLock().unlock();
 		}
 		return null;
-	}
-
-	/**
-	 * Returns all {@link Engine}s that match the given resource and are
-	 * enabled. Each of the available {@link Engine}s are passed the provided
-	 * information and each {@link Engine} that reports that it is compatible
-	 * will be returned.
-	 *
-	 * @param resource the {@link StoreItem} to match.
-	 * @return A list of compatible {@link Engine}s if a match could be found,
-	 *         {@code null} otherwise.
-	 */
-	public static List<Engine> getEngines(final StoreItem resource) {
-		if (resource == null) {
-			return null;
-		}
-
-		List<Engine> compatibleEngines = new ArrayList<>();
-		ENGINES_LOCK.readLock().lock();
-		try {
-			for (Engine engine : ENGINES) {
-				if (engine.isEnabled() && engine.isAvailable() && engine.isCompatible(resource)) {
-					// Engine is enabled, available and compatible
-					LOGGER.trace("Engine {} is compatible with resource \"{}\"", engine.getName(), resource.getName());
-					compatibleEngines.add(engine);
-				}
-			}
-		} finally {
-			ENGINES_LOCK.readLock().unlock();
-		}
-		return compatibleEngines;
 	}
 
 	/**

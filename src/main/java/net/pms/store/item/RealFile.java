@@ -152,7 +152,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 
 	@Override
 	public long length() {
-		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
+		if (isTranscoded() && getTranscodingSettings().getEngine().type() != Format.IMAGE) {
 			return TRANS_SIZE;
 		} else if (getMediaInfo() != null && getMediaInfo().isMediaParsed()) {
 			return getMediaInfo().getSize();
@@ -185,8 +185,8 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	public String getSystemName() {
 		String filename = getFileName();
 		if (isInsideTranscodeFolder() || getParent() instanceof ChapterFileTranscodeVirtualFolder) {
-			if (getEngine() != null) {
-				filename = filename.concat(">e").concat(getEngine().getName());
+			if (isTranscoded()) {
+				filename = filename.concat(">e").concat(getTranscodingSettings().getEngine().getName());
 			}
 			if (getMediaAudio() != null && getMediaAudio().getId() != 0) {
 				filename = filename.concat(">a").concat(String.valueOf(getMediaAudio().getId()));

@@ -43,6 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	public static final EngineId ID = StandardEngineId.FFMPEG_WEB_VIDEO;
 
@@ -278,9 +279,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		if (PlayerUtil.isWebVideo(resource)) {
-			String url = resource.getFileName();
+	public boolean isCompatible(StoreItem item) {
+		if (PlayerUtil.isWebVideo(item)) {
+			String url = item.getFileName();
 
 			ExecutableInfo executableInfo = programInfo.getExecutableInfo(currentExecutableType);
 			if (executableInfo instanceof FFmpegExecutableInfo) {
@@ -302,7 +303,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				return false;
 			}
 
-			return FFmpegWebFilters.isExluded(url);
+			return !FFmpegWebFilters.isExluded(url);
 		}
 
 		return false;
@@ -313,10 +314,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	/**
 	 * Parse media info from ffmpeg headers during playback
 	 */
-	public static void parseMediaInfo(String filename, final StoreItem resource, final ProcessWrapperImpl pw) {
-		if (resource.getMediaInfo() == null) {
-			resource.setMediaInfo(new MediaInfo());
-		} else if (resource.getMediaInfo().isMediaParsed()) {
+	public static void parseMediaInfo(String filename, final StoreItem item, final ProcessWrapperImpl pw) {
+		if (item.getMediaInfo() == null) {
+			item.setMediaInfo(new MediaInfo());
+		} else if (item.getMediaInfo().isMediaParsed()) {
 			return;
 		}
 		OutputTextLogger ffParser = new OutputTextLogger(null) {
@@ -326,9 +327,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (END_OF_HEADER.reset(line).find()) {
-					FFmpegParser.parseFFmpegInfo(resource.getMediaInfo(), lines, input);
-					LOGGER.trace("[{}] parsed media from headers: {}", ID, resource.getMediaInfo());
-					resource.getParent().updateChild(resource);
+					FFmpegParser.parseFFmpegInfo(item.getMediaInfo(), lines, input);
+					LOGGER.trace("[{}] parsed media from headers: {}", ID, item.getMediaInfo());
+					item.getParent().updateChild(item);
 					return false; // done, stop filtering
 				}
 				lines.add(line);

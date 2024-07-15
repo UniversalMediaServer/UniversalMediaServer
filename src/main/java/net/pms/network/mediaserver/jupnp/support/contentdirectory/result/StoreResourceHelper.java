@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Locale;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageResElement;
-import net.pms.encoders.Engine;
+import net.pms.encoders.EncodingFormat;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -179,12 +179,13 @@ public class StoreResourceHelper {
 
 	public static final Item getItem(StoreItem item, String filter) {
 		final Renderer renderer = item.getDefaultRenderer();
-		final Engine engine = item.getEngine();
+		final boolean isTrancoded = item.isTranscoded();
 		final MediaInfo mediaInfo = item.getMediaInfo();
 		final MediaStatus mediaStatus = item.getMediaStatus();
 		final MediaSubtitle mediaSubtitle = item.getMediaSubtitle();
 		final Format format = item.getFormat();
 		final MediaType mediaType = mediaInfo != null ? mediaInfo.getMediaType() : MediaType.UNKNOWN;
+		final EncodingFormat encodingFormat = isTrancoded ? item.getTranscodingSettings().getEncodingFormat() : null;
 		boolean subsAreValidForStreaming = false;
 		boolean xbox360 = renderer.isXbox360();
 		Item result;
@@ -211,7 +212,7 @@ public class StoreResourceHelper {
 			if (
 				!renderer.getUmsConfiguration().isDisableSubtitles() &&
 				(
-					engine == null ||
+					!isTrancoded ||
 					renderer.streamSubsForTranscodedVideo()
 				) &&
 				mediaSubtitle.isExternal() &&
@@ -224,7 +225,7 @@ public class StoreResourceHelper {
 					LOGGER.trace("Subtitles are disabled");
 				} else if (mediaSubtitle.isEmbedded()) {
 					LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
-				} else if (engine != null && !renderer.streamSubsForTranscodedVideo()) {
+				} else if (isTrancoded && !renderer.streamSubsForTranscodedVideo()) {
 					LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), renderer);
 				} else {
 					LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), renderer);
@@ -374,7 +375,7 @@ public class StoreResourceHelper {
 					MediaVideo defaultVideoTrack = mediaInfo.getDefaultVideoTrack();
 					MediaAudio defaultAudioTrack = mediaInfo.getDefaultAudioTrack();
 					long transcodedSize = renderer.getTranscodedSize();
-					if (engine == null) {
+					if (!isTrancoded) {
 						res.setSize(mediaInfo.getSize());
 					} else if (transcodedSize != 0) {
 						res.setSize(transcodedSize);
@@ -393,7 +394,7 @@ public class StoreResourceHelper {
 					}
 
 					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
-						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
+						if (isTrancoded && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
 							res.setResolution(item.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
 						} else {
 							res.setResolution(defaultVideoTrack.getResolution());
@@ -408,7 +409,7 @@ public class StoreResourceHelper {
 
 					if (defaultAudioTrack != null) {
 						if (defaultAudioTrack.getNumberOfChannels() > 0) {
-							if (engine == null) {
+							if (!isTrancoded) {
 								res.setNrAudioChannels(defaultAudioTrack.getNumberOfChannels());
 							} else {
 								res.setNrAudioChannels(renderer.getUmsConfiguration().getAudioChannelCount());
@@ -444,7 +445,7 @@ public class StoreResourceHelper {
 						int transcodeFrequency = -1;
 						int transcodeNumberOfChannels = -1;
 						if (defaultAudioTrack != null) {
-							if (engine == null) {
+							if (!isTrancoded) {
 								if (defaultAudioTrack.getSampleRate() > 1) {
 									res.setSampleFrequency(defaultAudioTrack.getSampleRate());
 								}
@@ -469,7 +470,7 @@ public class StoreResourceHelper {
 							res.setBitsPerSample(defaultAudioTrack.getBitDepth());
 						}
 
-						if (engine == null) {
+						if (!isTrancoded) {
 							if (mediaInfo.getSize() != 0) {
 								res.setSize(mediaInfo.getSize());
 							}
@@ -497,7 +498,7 @@ public class StoreResourceHelper {
 
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (engine != null && mediaInfo != null) {
+				if (encodingFormat != null && mediaInfo != null) {
 					// Note: Can't use instanceof below because the audio
 					// classes inherit the corresponding video class
 					if (mediaInfo.isVideo()) {
@@ -511,13 +512,13 @@ public class StoreResourceHelper {
 							transcodedExtension = "_transcoded_to.mov";
 						} else if (renderer.getCustomFFmpegOptions().contains("-f webm")) {
 							transcodedExtension = "_transcoded_to.webm";
-						} else if (renderer.isTranscodeToHLS()) {
+						} else if (encodingFormat.isTranscodeToHLS()) {
 							transcodedExtension = "_transcoded_to.m3u8";
-						} else if (renderer.isTranscodeToMPEGTS()) {
+						} else if (encodingFormat.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
-						} else if (renderer.isTranscodeToMP4H265AC3()) {
+						} else if (encodingFormat.isTranscodeToMP4()) {
 							transcodedExtension = "_transcoded_to.mp4";
-						} else if (renderer.isTranscodeToWMV() && !xbox360) {
+						} else if (encodingFormat.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
 						} else {
 							transcodedExtension = "_transcoded_to.mpg";
@@ -529,9 +530,9 @@ public class StoreResourceHelper {
 							transcodedExtension = "_transcoded_to.wav";
 						} else if (renderer.getCustomFFmpegAudioOptions().contains("-f s16be")) {
 							transcodedExtension = "_transcoded_to.pcm";
-						} else if (renderer.isTranscodeToMP3()) {
+						} else if (encodingFormat.isTranscodeToMP3()) {
 							transcodedExtension = "_transcoded_to.mp3";
-						} else if (renderer.isTranscodeToWAV()) {
+						} else if (encodingFormat.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";
 						} else {
 							transcodedExtension = "_transcoded_to.pcm";

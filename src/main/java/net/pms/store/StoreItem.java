@@ -39,8 +39,8 @@ import net.pms.database.MediaTableSubtracks;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
 import net.pms.encoders.HlsHelper;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.image.BufferedImageFilterChain;
@@ -64,6 +64,7 @@ import net.pms.store.item.DVDISOTitle;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.util.ByteRange;
+import net.pms.util.FileUtil;
 import net.pms.util.IPushOutput;
 import net.pms.util.InputFile;
 import net.pms.util.Iso639;
@@ -87,11 +88,9 @@ public abstract class StoreItem extends StoreResource {
 	private static final double CONTAINER_OVERHEAD = 1.04;
 
 	/**
-	 * Represents the transformation to be used to the file. If null, then
-	 *
-	 * @see Engine
+	 * Represents the transformation to be used to the file.
 	 */
-	private Engine engine;
+	private TranscodingSettings transcodingSettings;
 	private boolean skipTranscode = false;
 	private ProcessWrapper externalProcess;
 
@@ -211,24 +210,36 @@ public abstract class StoreItem extends StoreResource {
 	}
 
 	/**
-	 * Returns the {@link Engine} object that is used to encode this resource
-	 * for the renderer. Can be null.
+	 * Returns the {@link TranscodingSettings} object that is used to encode this resource
+	 * for the renderer.
 	 *
-	 * @return The engine object.
+	 * Can be null.
+	 *
+	 * @return The transcodingSettings object.
 	 */
-	public Engine getEngine() {
-		return engine;
+	public TranscodingSettings getTranscodingSettings() {
+		return transcodingSettings;
 	}
 
 	/**
-	 * Sets the {@link Engine} object that is to be used to encode this resource
-	 * for the renderer. The engine object can be null.
+	 * Sets the {@link TranscodingSettings} object that is to be used to encode this resource
+	 * for the renderer.
 	 *
-	 * @param engine The engine object to set.
+	 * The transcodingSettings object can be null.
+	 *
+	 * @param transcodingSettings The transcodingSettings object to set.
 	 * @since 1.50
 	 */
-	public void setEngine(Engine engine) {
-		this.engine = engine;
+	public void setTranscodingSettings(TranscodingSettings transcodingSettings) {
+		this.transcodingSettings = transcodingSettings;
+	}
+
+	public boolean isTranscoded() {
+		return getTranscodingSettings() != null;
+	}
+
+	public boolean isTimeSeekable() {
+		return isTranscoded() ? getTranscodingSettings().getEngine().isTimeSeekable() : true;
 	}
 
 	/**
@@ -237,8 +248,8 @@ public abstract class StoreItem extends StoreResource {
 	 * @return The engine name.
 	 */
 	protected String getEngineName() {
-		if (engine != null) {
-			return engine.getName();
+		if (isTranscoded()) {
+			return getTranscodingSettings().getEngine().getName();
 		}
 		return Messages.getString("NoTranscoding");
 	}
@@ -417,11 +428,11 @@ public abstract class StoreItem extends StoreResource {
 
 	/**
 	 * Determine whether we are a candidate for streaming or transcoding to the
-	 * renderer, and return the relevant engine or null as appropriate.
+	 * renderer, and return the relevant TranscodingSettings or null as appropriate.
 	 *
-	 * @return An engine if transcoding or null if streaming
+	 * @return An TranscodingSettings if transcoding or null if streaming
 	 */
-	public Engine resolveEngine() {
+	public TranscodingSettings resolveTranscodingSettings() {
 		if (renderer instanceof MediaScannerDevice) {
 			return null;
 		}
@@ -433,7 +444,7 @@ public abstract class StoreItem extends StoreResource {
 
 		// Use device-specific conf, if any
 		boolean parserV2 = mediaInfo != null && renderer.isUseMediaInfo();
-		Engine resolvedEngine;
+		TranscodingSettings resolvedTranscodingSettings;
 
 		if (mediaInfo == null) {
 			mediaInfo = new MediaInfo();
@@ -448,9 +459,9 @@ public abstract class StoreItem extends StoreResource {
 		// Check if we're a transcode folder item
 		if (isInsideTranscodeFolder()) {
 			// Yes, leave everything as-is
-			resolvedEngine = getEngine();
-			LOGGER.trace("Selecting engine {} based on transcode item settings", resolvedEngine);
-			return resolvedEngine;
+			resolvedTranscodingSettings = getTranscodingSettings();
+			LOGGER.trace("Selecting transcodingSettings {} based on transcode item settings", resolvedTranscodingSettings);
+			return resolvedTranscodingSettings;
 		}
 
 		// Resolve subtitles stream
@@ -478,10 +489,10 @@ public abstract class StoreItem extends StoreResource {
 		boolean forceTranscode = format.skip(configurationForceExtensions, rendererForceExtensions);
 
 		// Try to match an engine based on mediaInfo information and format.
-		resolvedEngine = EngineFactory.getEngine(this);
+		resolvedTranscodingSettings = TranscodingSettings.getBestTranscodingSettings(this);
 
 		boolean isIncompatible = false;
-		if (resolvedEngine != null) {
+		if (resolvedTranscodingSettings != null) {
 			String prependTranscodingReason = "File \"{}\" will not be streamed because ";
 			if (forceTranscode) {
 				LOGGER.debug(prependTranscodingReason + "transcoding is forced by configuration", getName());
@@ -552,19 +563,19 @@ public abstract class StoreItem extends StoreResource {
 			 */
 			if (forceTranscode || (isIncompatible && !isSkipTranscode())) {
 				if (parserV2) {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\" with mime type \"{}\"", getName(),
-							resolvedEngine.toString(), renderer.getMimeType(this));
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\" with mime type \"{}\"", getName(),
+							resolvedTranscodingSettings.toString(), getMimeType());
 				} else {
-					LOGGER.debug("Final verdict: \"{}\" will be transcoded with engine \"{}\"", getName(), resolvedEngine.toString());
+					LOGGER.debug("Final verdict: \"{}\" will be transcoded with transcodingSettings \"{}\"", getName(), resolvedTranscodingSettings.toString());
 				}
 			} else {
-				resolvedEngine = null;
+				resolvedTranscodingSettings = null;
 				LOGGER.debug("Final verdict: \"{}\" will be streamed", getName());
 			}
 		} else {
 			LOGGER.debug("Final verdict: \"{}\" will be streamed because no compatible engine was found", getName());
 		}
-		return resolvedEngine;
+		return resolvedTranscodingSettings;
 	}
 
 	/**
@@ -574,7 +585,7 @@ public abstract class StoreItem extends StoreResource {
 	 * @return String representation of the mime type
 	 */
 	public String getRendererMimeType() {
-		String mime = renderer.getMimeType(this);
+		String mime = getMimeType();
 
 		// Use our best guess if we have no valid mime type
 		if (mime == null || mime.contains("/transcode")) {
@@ -764,7 +775,7 @@ public abstract class StoreItem extends StoreResource {
 	 */
 	public synchronized InputStream getInputStream(Range range, HlsHelper.HlsConfiguration hlsConfiguration) throws IOException {
 		// Use device-specific UMS conf, if any
-		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + engine);
+		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + getTranscodingSettings());
 
 		// shagrath: small fix, regression on chapters
 		boolean timeseekAuto = false;
@@ -775,7 +786,7 @@ public abstract class StoreItem extends StoreResource {
 		long low = (range instanceof ByteRange byteRange) ? byteRange.getStartOrZero() : 0;
 		long high = (range instanceof ByteRange byteRange && range.isEndLimitAvailable()) ? (long) byteRange.getEnd() : -1;
 		TimeRange timeRange = range.createTimeRange();
-		if (engine != null && low > 0 && cbrVideoBitrate > 0) {
+		if (isTranscoded() && low > 0 && cbrVideoBitrate > 0) {
 			int usedBitRated = (int) ((cbrVideoBitrate + 256) * 1024 / (double) 8 * CONTAINER_OVERHEAD);
 			if (low > usedBitRated) {
 				timeRange.setStart(low / (double) (usedBitRated));
@@ -809,7 +820,7 @@ public abstract class StoreItem extends StoreResource {
 		}
 
 		// Determine source of the stream
-		if (engine == null && !isResume()) {
+		if (!isTranscoded() && !isResume()) {
 			// No transcoding
 			if (this instanceof IPushOutput iPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -861,8 +872,8 @@ public abstract class StoreItem extends StoreResource {
 			}
 
 			params.setTimeSeek(resume.getTimeOffset() / 1000);
-			if (engine == null) {
-				engine = EngineFactory.getEngine(this);
+			if (!isTranscoded()) {
+				setTranscodingSettings(TranscodingSettings.getBestTranscodingSettings(this));
 			}
 		}
 
@@ -888,7 +899,7 @@ public abstract class StoreItem extends StoreResource {
 				lastTimeSeek = params.getTimeSeek();
 			}
 
-			externalProcess = engine.launchTranscode(this, mediaInfo, params);
+			externalProcess = getTranscodingSettings().getEngine().launchTranscode(this, mediaInfo, params);
 			if (params.getWaitBeforeStart() > 0) {
 				LOGGER.trace("Sleeping for {} milliseconds", params.getWaitBeforeStart());
 				try {
@@ -921,7 +932,7 @@ public abstract class StoreItem extends StoreResource {
 				new Thread(r, "External Process Stopper").start();
 
 				setLastStartSystemTime(System.currentTimeMillis());
-				ProcessWrapper newExternalProcess = engine.launchTranscode(this, mediaInfo, params);
+				ProcessWrapper newExternalProcess = getTranscodingSettings().getEngine().launchTranscode(this, mediaInfo, params);
 
 				try {
 					Thread.sleep(1000);
@@ -997,15 +1008,15 @@ public abstract class StoreItem extends StoreResource {
 		return input;
 	}
 
-	public String mimeType() {
-		return mimeType(engine);
+	public String getMimeType() {
+		return getMimeType(getTranscodingSettings());
 	}
 
-	private String mimeType(Engine engine) {
-		if (engine != null) {
+	private String getMimeType(TranscodingSettings transcodingSettings) {
+		if (transcodingSettings != null) {
 			// Engines like FFmpegVideo can define placeholder MIME types like
 			// video/transcode to be replaced later
-			return engine.mimeType();
+			return transcodingSettings.getMimeType(this);
 		} else if (mediaInfo != null && mediaInfo.isMediaParsed()) {
 			return getPreferredMimeType();
 		} else if (getFormat() != null) {
@@ -1148,7 +1159,7 @@ public abstract class StoreItem extends StoreResource {
 					clone.mediaInfo.setThumbnailSource(ThumbnailSource.UNKNOWN);
 				}
 
-				clone.engine = engine;
+				clone.transcodingSettings = transcodingSettings;
 				getParent().addChildInternal(clone);
 				return clone;
 			}
@@ -1202,7 +1213,7 @@ public abstract class StoreItem extends StoreResource {
 	 */
 	protected String getDisplayNameEngine() {
 		if (isNoName() ||
-			(engine != null && !CONFIGURATION.isHideEngineNames())) {
+			(isTranscoded() && !CONFIGURATION.isHideEngineNames())) {
 			return "[" + getEngineName() + "]";
 		}
 		return null;
@@ -1224,7 +1235,7 @@ public abstract class StoreItem extends StoreResource {
 			case VIDEO:
 				StringBuilder nameSuffixBuilder = new StringBuilder();
 				boolean subsAreValidForStreaming = mediaSubtitle != null && mediaSubtitle.isExternal() &&
-						(engine == null || renderer.streamSubsForTranscodedVideo()) &&
+						(!isTranscoded() || renderer.streamSubsForTranscodedVideo()) &&
 						renderer.isExternalSubtitlesFormatSupported(mediaSubtitle, this);
 
 				if (mediaAudio != null) {
@@ -1476,7 +1487,7 @@ public abstract class StoreItem extends StoreResource {
 			}
 
 			File file = this instanceof RealFile ? ((RealFile) this).getFile() : new File(getFileName());
-			if (file == null || mediaInfo == null) {
+			if (file == null || mediaInfo == null || FileUtil.isUrl(getFileName())) {
 				isExternalSubtitlesParsed = true;
 				return;
 			}

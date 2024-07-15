@@ -20,6 +20,7 @@ import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 
 public class VLCWebVideo extends VLCVideo {
+
 	public static final EngineId ID = StandardEngineId.VLC_WEB_VIDEO;
 
 	/** The {@link Configuration} key for the VLC Web executable type. */
@@ -56,7 +57,8 @@ public class VLCWebVideo extends VLCVideo {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		return PlayerUtil.isWebVideo(resource);
+	public boolean isCompatible(StoreItem item) {
+		return PlayerUtil.isWebVideo(item);
 	}
+
 }

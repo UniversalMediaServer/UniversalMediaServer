@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 @ThreadSafe
 public abstract class Engine {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(Engine.class);
 	protected static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -130,7 +131,7 @@ public abstract class Engine {
 
 	public abstract int type();
 
-	public abstract String mimeType();
+	public abstract String getMimeType();
 
 	/**
 	 * Must be used to control all access to {@link #available}
@@ -149,14 +150,27 @@ public abstract class Engine {
 
 	/**
 	 * Returns whether or not this {@link Engine} can handle a given
-	 * {@link StoreItem}. If {@code resource} is {@code null} {@code false}
-	 * will be returned.
+	 * {@link StoreItem}.
 	 *
-	 * @param resource the {@link StoreItem} to be matched.
-	 * @return {@code true} if {@code resource} can be handled, {@code false}
-	 *         otherwise.
+	 * If {@code item} is {@code null}, {@code false} will be returned.
+	 *
+	 * @param item the {@link StoreItem} to be matched.
+	 * @return {@code true} if {@code item} can be handled, {@code false}
+	 * otherwise.
 	 */
-	public abstract boolean isCompatible(StoreItem resource);
+	public abstract boolean isCompatible(StoreItem item);
+
+	/**
+	 * Returns whether or not this {@link Engine} can handle a given
+	 * {@link EncodingFormat}.
+	 *
+	 * If {@code encodingFormat} is {@code null}, {@code false} will be returned.
+	 *
+	 * @param encodingFormat the {@link EncodingFormat} to be matched.
+	 * @return {@code true} if {@code item} can be handled, {@code false}
+	 * otherwise.
+	 */
+	public abstract boolean isCompatible(EncodingFormat encodingFormat);
 
 	protected abstract boolean isSpecificTest();
 

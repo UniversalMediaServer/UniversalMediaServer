@@ -457,8 +457,8 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
 						try {
 							InputStream imageInputStream;
-							if (item.getEngine() instanceof ImageEngine) {
-								ProcessWrapper transcodeProcess = item.getEngine().launchTranscode(item,
+							if (item.isTranscoded() && item.getTranscodingSettings().getEngine() instanceof ImageEngine) {
+								ProcessWrapper transcodeProcess = item.getTranscodingSettings().getEngine().launchTranscode(item,
 										item.getMediaInfo(),
 										new OutputParams(configuration)
 								);
@@ -578,7 +578,7 @@ public class RequestV2 extends HTTPResource {
 										!configuration.isDisableSubtitles() &&
 										renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 									String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
-									if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
+									if (StringUtils.isNotBlank(subtitleHttpHeader) && (!item.isTranscoded() || renderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
 										MediaSubtitle sub = item.getMediaSubtitle();
 										output.headers().set(subtitleHttpHeader, item.getSubsURL(sub));
@@ -624,7 +624,7 @@ public class RequestV2 extends HTTPResource {
 							}
 
 							// Try to determine the content type of the file
-							String rendererMimeType = renderer.getMimeType(item);
+							String rendererMimeType = item.getMimeType();
 
 							if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 								output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
@@ -1143,11 +1143,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (resource instanceof StoreContainer) {
 					filesData.append(DidlHelper.getDidlString(resource));
-				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
-						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
-						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						resources.get(0).isInsideTranscodeFolder())) {
+				} else if (resource instanceof StoreItem item && item.isCompatible()) {
 					filesData.append(DidlHelper.getDidlString(resource));
 				} else {
 					minus++;

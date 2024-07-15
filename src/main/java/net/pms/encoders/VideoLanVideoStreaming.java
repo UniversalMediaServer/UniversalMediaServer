@@ -34,6 +34,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.media.MediaInfo;
+import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
@@ -95,8 +96,8 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public String mimeType() {
-		return "video/mpeg";
+	public String getMimeType() {
+		return HTTPResource.MPEG_TYPEMIME;
 	}
 
 	protected String getEncodingArgs() {
@@ -201,8 +202,13 @@ public class VideoLanVideoStreaming extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		return PlayerUtil.isWebVideo(resource);
+	public boolean isCompatible(StoreItem item) {
+		return PlayerUtil.isWebVideo(item);
+	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isVideoFormat() && !encodingFormat.isTranscodeToHLS();
 	}
 
 	@Override
@@ -280,4 +286,5 @@ public class VideoLanVideoStreaming extends Engine {
 	protected boolean isSpecificTest() {
 		return false;
 	}
+
 }

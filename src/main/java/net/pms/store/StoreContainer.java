@@ -23,11 +23,8 @@ import java.util.List;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
-import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
-import net.pms.media.audio.MediaAudio;
 import net.pms.network.HTTPResource;
 import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
@@ -181,7 +178,7 @@ public class StoreContainer extends StoreResource {
 						}
 
 						// Try to determine a engine to use for transcoding.
-						Engine transcodingEngine = null;
+						TranscodingSettings transcodingSettings = null;
 
 						// First, try to match an engine from recently played
 						// folder or based on the name of the LibraryResource
@@ -190,19 +187,19 @@ public class StoreContainer extends StoreResource {
 						String currentName = getName();
 
 						if (renderer.getUmsConfiguration().isShowRecentlyPlayedFolder()) {
-							transcodingEngine = item.getEngine();
+							transcodingSettings = item.getTranscodingSettings();
 						} else {
-							for (Engine tEngine : EngineFactory.getEngines()) {
-								String end = "[" + tEngine.getEngineId().toString() + "]";
+							for (TranscodingSettings tSettings : TranscodingSettings.getTranscodingsSettings(item)) {
+								String end = "[" + tSettings.getEngine().getEngineId().toString() + "]";
 
 								if (currentName.endsWith(end)) {
 									truncateDisplayName(end);
-									transcodingEngine = tEngine;
+									transcodingSettings = tSettings;
 									LOGGER.trace("Selecting engine based on name end");
 									break;
 								} else if (getParent() != null && getParent().getName().endsWith(end)) {
 									getParent().truncateDisplayName(end);
-									transcodingEngine = tEngine;
+									transcodingSettings = tSettings;
 									LOGGER.trace("Selecting engine based on parent name end");
 									break;
 								}
@@ -211,20 +208,13 @@ public class StoreContainer extends StoreResource {
 
 						// If no preferred engine could be determined from the name,
 						// try to match a engine based on mediaInfo information and format.
-						if (transcodingEngine == null) {
-							transcodingEngine = item.resolveEngine();
+						if (transcodingSettings == null) {
+							transcodingSettings = item.resolveTranscodingSettings();
 						}
-						item.setEngine(transcodingEngine);
-						MediaAudio audio = item.getMediaInfo().getDefaultAudioTrack();
-						if (audio != null && audio.isAC4() && transcodingEngine instanceof FFMpegVideo) {
-							LOGGER.debug("Ignoring file \"{}\" because audio is AC-4 and engine is FFmpeg so skip it until FFmpeg" +
-								" will support it.", item.getName());
-							children.remove(item);
-							return;
-						}
+						item.setTranscodingSettings(transcodingSettings);
 
 						if (resumeRes != null) {
-							resumeRes.setEngine(transcodingEngine);
+							resumeRes.setTranscodingSettings(transcodingSettings);
 							resumeRes.setMediaSubtitle(item.getMediaSubtitle());
 						}
 
@@ -236,7 +226,7 @@ public class StoreContainer extends StoreResource {
 									FileTranscodeVirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(renderer, item);
 
 									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", item.getName(),
-											transcodingEngine);
+											transcodingSettings);
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
 								}
 							}
@@ -275,10 +265,10 @@ public class StoreContainer extends StoreResource {
 						item.setSecondaryResource(newChild);
 
 						if (!newChild.getFormat().isCompatible(newChild, renderer)) {
-							Engine transcodingEngine = EngineFactory.getEngine(newChild);
-							newChild.setEngine(transcodingEngine);
+							TranscodingSettings transcodingSettings = TranscodingSettings.getBestTranscodingSettings(newChild);
+							newChild.setTranscodingSettings(transcodingSettings);
 							LOGGER.trace("Secondary format \"{}\" will use engine \"{}\" for \"{}\"", newChild.getFormat().toString(),
-									transcodingEngine == null ? "null" : transcodingEngine.getName(), newChild.getName());
+									transcodingSettings == null ? "null" : transcodingSettings.toString(), newChild.getName());
 						}
 
 						if (item.getMediaInfo() != null && item.getMediaInfo().isSecondaryFormatValid()) {

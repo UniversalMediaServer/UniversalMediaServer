@@ -25,12 +25,12 @@ public class PlayerUtil {
 	 */
 	private PlayerUtil() { }
 
-	// Returns whether or not the supplied store resource matches the supplied format and format identifier
-	private static boolean isType(StoreItem resource, int matchType, Format.Identifier matchIdentifier) {
+	// Returns whether or not the supplied store item matches the supplied format and format identifier
+	private static boolean isType(StoreItem item, int matchType, Format.Identifier matchIdentifier) {
 		boolean match = false;
 
-		if (resource != null) {
-			Format format = resource.getFormat();
+		if (item != null) {
+			Format format = item.getFormat();
 
 			// the int returned by format.getType() is a bitmap, so match by checking the bit is set
 			// XXX the old isCompatible implementations (incorrectly) used to match
@@ -51,64 +51,64 @@ public class PlayerUtil {
 	/**
 	 * Returns whether or not the supplied store item is an image file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @return true if the store item is an image file, false otherwise.
 	 */
-	public static boolean isImage(StoreItem resource) {
-		return isType(resource, Format.IMAGE, null);
+	public static boolean isImage(StoreItem item) {
+		return isType(item, Format.IMAGE, null);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is an image file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @param identifier the format identifier to match against
 	 * @return true if the store item is an image file with the specified format identifier, false otherwise
 	 */
-	public static boolean isImage(StoreItem resource, Format.Identifier identifier) {
-		return isType(resource, Format.IMAGE, identifier);
+	public static boolean isImage(StoreItem item, Format.Identifier identifier) {
+		return isType(item, Format.IMAGE, identifier);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is an audio file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @return true if the store item is an audio file, false otherwise.
 	 */
-	public static boolean isAudio(StoreItem resource) {
-		return isType(resource, Format.AUDIO, null);
+	public static boolean isAudio(StoreItem item) {
+		return isType(item, Format.AUDIO, null);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is an audio file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @param identifier the format identifier to match against
 	 * @return true if the store item is an audio file with the specified format identifier, false otherwise
 	 */
-	public static boolean isAudio(StoreItem resource, Format.Identifier identifier) {
-		return isType(resource, Format.AUDIO, identifier);
+	public static boolean isAudio(StoreItem item, Format.Identifier identifier) {
+		return isType(item, Format.AUDIO, identifier);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is a video file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @return true if the store item is a video file, false otherwise.
 	 */
-	public static boolean isVideo(StoreItem resource) {
-		return isType(resource, Format.VIDEO, null);
+	public static boolean isVideo(StoreItem item) {
+		return isType(item, Format.VIDEO, null);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is a video file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @param identifier the format identifier to match against
 	 * @return true if the store item is a video file with the specified format identifier, false otherwise.
 	 */
-	public static boolean isVideo(StoreItem resource, Format.Identifier identifier) {
-		return isType(resource, Format.VIDEO, identifier);
+	public static boolean isVideo(StoreItem item, Format.Identifier identifier) {
+		return isType(item, Format.VIDEO, identifier);
 	}
 
 	/**
@@ -117,17 +117,17 @@ public class PlayerUtil {
 	 * @param resource the store item
 	 * @return true if the store item is a web audio file, false otherwise.
 	 */
-	public static boolean isWebAudio(StoreItem resource) {
-		return isType(resource, Format.AUDIO, Format.Identifier.WEB);
+	public static boolean isWebAudio(StoreItem item) {
+		return isType(item, Format.AUDIO, Format.Identifier.WEB);
 	}
 
 	/**
 	 * Returns whether or not the supplied store item is a web video file.
 	 *
-	 * @param resource the store item
+	 * @param item the store item
 	 * @return true if the store item is a web video file, false otherwise.
 	 */
-	public static boolean isWebVideo(StoreItem resource) {
-		return isType(resource, Format.VIDEO, Format.Identifier.WEB);
+	public static boolean isWebVideo(StoreItem item) {
+		return isType(item, Format.VIDEO, Format.Identifier.WEB);
 	}
 }

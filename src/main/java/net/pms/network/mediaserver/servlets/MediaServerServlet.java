@@ -383,8 +383,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				//resp.setHeader("Connection", "keep-alive");
 				try {
 					InputStream imageInputStream;
-					if (item.getEngine() instanceof ImageEngine) {
-						ProcessWrapper transcodeProcess = item.getEngine().launchTranscode(item,
+					if (item.isTranscoded() && item.getTranscodingSettings().getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = item.getTranscodingSettings().getEngine().launchTranscode(item,
 								item.getMediaInfo(),
 								new OutputParams(CONFIGURATION)
 						);
@@ -471,7 +471,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 								!CONFIGURATION.isDisableSubtitles() &&
 								renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 							String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
-							if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
+							if (StringUtils.isNotBlank(subtitleHttpHeader) && (!item.isTranscoded() || renderer.streamSubsForTranscodedVideo())) {
 								// Device allows a custom subtitle HTTP header; construct it
 								MediaSubtitle sub = item.getMediaSubtitle();
 								String subtitleUrl = item.getSubsURL(sub);
@@ -519,7 +519,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 
 					// Try to determine the content type of the file
-					String rendererMimeType = renderer.getMimeType(item);
+					String rendererMimeType = item.getMimeType();
 
 					if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 						resp.setContentType(rendererMimeType);
@@ -583,6 +583,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 
 					resp.setHeader("Accept-Ranges", "bytes");
+					if (GET.equals(req.getMethod().toUpperCase())) {
+						resp.setHeader("Connection", "keep-alive");
+					}
 				}
 			}
 

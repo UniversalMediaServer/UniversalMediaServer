@@ -826,7 +826,7 @@ public class TMDB {
 		}
 		SearchTvEndpoint searchTvEndpoint = CLIENT.search(title).forTvShow();
 		TvSimpleResultsSchema tvSimpleResultsSchema = searchTvEndpoint.getResults();
-		if (tvSimpleResultsSchema.getTotalResults() > 0) {
+		if (tvSimpleResultsSchema != null && tvSimpleResultsSchema.getTotalResults() > 0) {
 			for (TvSimpleSchema tvSimple : tvSimpleResultsSchema.getResults()) {
 				Long tvShowId = tvSimple.getId();
 				if (tvShowId != null && !tvShowIds.contains(tvShowId)) {
@@ -1169,7 +1169,7 @@ public class TMDB {
 			searchMovieEndpoint.setYear(year);
 		}
 		MovieShortResultsSchema movieShortResults = searchMovieEndpoint.getResults();
-		if (movieShortResults.getTotalResults() > 0) {
+		if (movieShortResults != null && movieShortResults.getTotalResults() > 0) {
 			for (MovieShortSchema movieShort : movieShortResults.getResults()) {
 				Long tmdbId = movieShort.getId();
 				MovieDetailsSchema movieDetails = getMovieInfo(tmdbId, null);

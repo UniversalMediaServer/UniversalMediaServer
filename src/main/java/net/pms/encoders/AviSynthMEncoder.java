@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
 	public static final EngineId ID = StandardEngineId.AVI_SYNTH_MENCODER;
 	public static final String NAME = "AviSynth/MEncoder";
@@ -217,14 +218,14 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		Format format = resource.getFormat();
+	public boolean isCompatible(StoreItem item) {
+		Format format = item.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
 			return false;
 		}
 
-		MediaSubtitle subtitle = resource.getMediaSubtitle();
+		MediaSubtitle subtitle = item.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
 		// Uninitialized MediaSubtitle objects have a null language.
@@ -233,27 +234,27 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			return subtitle.isExternal();
 		}
 
-		MediaAudio audio = resource.getMediaAudio();
+		MediaAudio audio = item.getMediaAudio();
 			if (audio != null) {
 				try {
-				String audioTrackName = resource.getMediaAudio().toString();
-				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
+				String audioTrackName = item.getMediaAudio().toString();
+				String defaultAudioTrackName = item.getMediaInfo().getDefaultAudioTrack().toString();
 
 				if (!audioTrackName.equals(defaultAudioTrackName)) {
 					// This engine only supports playback of the default audio track
 					return false;
 				}
 			} catch (NullPointerException e) {
-				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + resource.getFileName());
+				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + item.getFileName());
 			} catch (IndexOutOfBoundsException e) {
-				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getFileName());
+				LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + item.getFileName());
 			}
 		}
 
 		return (
-			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
+			PlayerUtil.isVideo(item, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(item, Format.Identifier.OGG)
 		);
 	}
 }
