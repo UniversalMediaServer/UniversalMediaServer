@@ -18,6 +18,7 @@ package net.pms.store.container;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,9 @@ import net.pms.database.MediaTableVideoMetadataCountries;
 import net.pms.database.MediaTableVideoMetadataDirectors;
 import net.pms.database.MediaTableVideoMetadataGenres;
 import net.pms.dlna.DLNAThumbnailInputStream;
+import net.pms.media.video.metadata.ApiSeason;
+import net.pms.media.video.metadata.ApiSeasonArray;
+import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.renderers.Renderer;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreResource;
@@ -503,6 +507,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 					System.arraycopy(expectedOutputs, 1, expectedOutputs2, 0, expectedOutputs2.length);
 
 					String i18nName = null;
+					String seasonName = "";
 					if (expectedOutput == EPISODES) {
 						expectedOutputs2 = new int[]{MediaLibraryFolder.EPISODES_WITHIN_SEASON};
 						StringBuilder episodesWithinSeasonQuery = new StringBuilder(sqls[0]);
@@ -518,6 +523,28 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								virtualFolderName = null;
 							} else {
 								i18nName = "SeasonX";
+
+								// Append any season name from the API to the season folder, so it is "Season 3: The Name"
+								Connection connection = null;
+								try {
+									connection = MediaDatabase.getConnectionIfAvailable();
+									if (connection != null) {
+										TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, Long.valueOf(getName()));
+										if (tvSeriesMetadata != null) {
+											ApiSeasonArray seasonsOfThisSeries = tvSeriesMetadata.getSeasons();
+											for (ApiSeason season : seasonsOfThisSeries) {
+												if (
+													season.getSeasonNumber() == Integer.parseInt(virtualFolderName) &&
+													!season.getName().equalsIgnoreCase("Season " + season.getSeasonNumber())
+												) {
+													seasonName = ": " + season.getName();
+												}
+											}
+										}
+									}
+								} finally {
+									MediaDatabase.close(connection);
+								}
 							}
 						}
 					}
@@ -616,7 +643,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 							newVirtualFoldersResources.add(new MediaLibraryMovieFolder(renderer, virtualFolderName, filename, sqls2, expectedOutputs2));
 						}
 					} else if (i18nName != null) {
-						newVirtualFoldersResources.add(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName));
+						newVirtualFoldersResources.add(new MediaLibraryFolder(renderer, i18nName, sqls2, expectedOutputs2, virtualFolderName + seasonName));
 					} else {
 						newVirtualFoldersResources.add(new MediaLibraryFolderNamed(renderer, virtualFolderName, sqls2, expectedOutputs2, null));
 					}
