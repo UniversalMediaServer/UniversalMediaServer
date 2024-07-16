@@ -39,14 +39,14 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 
 	public MediaLibraryTvSeries(Renderer renderer, Long tvSeriesId, String[] sql, int[] expectedOutput) {
 		super(renderer, null, sql, expectedOutput);
-		this.name = tvSeriesId.toString();
+		setName(tvSeriesId.toString());
 		this.tvSeriesId = tvSeriesId;
-		this.isSortable = true;
+		setSortable(true);
 	}
 
 	@Override
 	public String getSystemName() {
-		return "tv_series_" + this.name;
+		return "tv_series_" + getName();
 	}
 
 	/**

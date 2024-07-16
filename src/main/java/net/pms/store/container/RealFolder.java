@@ -41,9 +41,10 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 	public RealFolder(Renderer renderer, File directory, String name) {
 		super(renderer);
 		this.directory = directory;
-		this.name = name;
+		setName(name);
 		addFile(directory);
 		setLastModified(directory.lastModified());
+		setSortable(true);
 	}
 
 	@Override
@@ -96,25 +97,25 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 
 	@Override
 	public String getName() {
-		if (name == null) {
+		if (super.getName() == null) {
 			if (directory == null) {
 				return null;
 			}
 
 			if (directory.getName().trim().isEmpty()) {
 				if (Platform.isWindows()) {
-					name = PlatformUtils.INSTANCE.getDiskLabel(directory);
+					setName(PlatformUtils.INSTANCE.getDiskLabel(directory));
 				}
-				if (name != null && name.length() > 0) {
-					name = directory.getAbsolutePath().substring(0, 1) + ":\\ [" + name + "]";
+				if (super.getName() != null && super.getName().length() > 0) {
+					setName(directory.getAbsolutePath().substring(0, 1) + ":\\ [" + super.getName() + "]");
 				} else {
-					name = directory.getAbsolutePath().substring(0, 1);
+					setName(directory.getAbsolutePath().substring(0, 1));
 				}
 			} else {
-				name = directory.getName();
+				setName(directory.getName());
 			}
 		}
-		return name.replaceAll("_imdb([^_]+)_", "");
+		return super.getName().replaceAll("_imdb([^_]+)_", "");
 	}
 
 	@Override

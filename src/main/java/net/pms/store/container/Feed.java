@@ -63,7 +63,7 @@ public class Feed extends StoreContainer {
 		byte[] b = HTTPResource.downloadAndSendBinary(url);
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			name = feed.getTitle();
+			setName(feed.getTitle());
 			if (feed.getCategories() != null && !feed.getCategories().isEmpty()) {
 				SyndCategory category = feed.getCategories().get(0);
 				tempCategory = category.getName();
@@ -207,14 +207,6 @@ public class Feed extends StoreContainer {
 	 */
 	protected void setTempItemThumbURL(String tempItemThumbURL) {
 		this.tempItemThumbURL = tempItemThumbURL;
-	}
-
-	/**
-	 * @param name the name to set
-	 * @since 1.50
-	 */
-	protected void setName(String name) {
-		this.name = name;
 	}
 
 	@Override

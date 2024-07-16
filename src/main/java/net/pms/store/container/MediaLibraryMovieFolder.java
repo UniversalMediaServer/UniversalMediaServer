@@ -32,13 +32,13 @@ public class MediaLibraryMovieFolder extends MediaLibraryFolder {
 
 	public MediaLibraryMovieFolder(Renderer renderer, String name, String filename, String[] sql, int[] expectedOutput) {
 		super(renderer, null, sql, expectedOutput);
-		this.name = name;
+		setName(name);
 		this.filename = filename;
 	}
 
 	@Override
 	public String getSystemName() {
-		return "movie_" + this.name;
+		return "movie_" + getName();
 	}
 
 	/**
