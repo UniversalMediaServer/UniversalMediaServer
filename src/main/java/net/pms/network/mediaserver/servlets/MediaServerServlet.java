@@ -271,6 +271,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), BUFFER_SIZE);
 			copyStreamAsync(inputStream, os, async);
 		} else {
+			if (HEAD.equalsIgnoreCase(req.getMethod()) && contentLength < 1) {
+				resp.flushBuffer();
+			}
 			try {
 				inputStream.close();
 			} catch (IOException ioe) {
