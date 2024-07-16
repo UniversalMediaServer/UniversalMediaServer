@@ -33,7 +33,6 @@ public class MediaLibraryTvSeason extends MediaLibraryFolder {
 	public MediaLibraryTvSeason(Renderer renderer, String i18nName, String tvSeason, String[] sql, int[] expectedOutput) {
 		super(renderer, i18nName, sql, expectedOutput, tvSeason);
 		this.tvSeasonId = getInteger(tvSeason);
-		this.isSortable = false;
 	}
 
 	@Override
