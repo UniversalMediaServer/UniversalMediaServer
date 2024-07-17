@@ -9,6 +9,7 @@
 - Bump `@mantine/hooks` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
 - Bump `@mantine/modals` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
 - Bump `@mantine/notifications` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `commons-logging:commons-logging` from 1.3.2 to 1.3.3 ([#4799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4799))
 - Bump `eslint-plugin-react-refresh` from 0.4.7 to 0.4.8 ([#4817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4817))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.0 to 3.3.1 ([#4816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4816))
 
