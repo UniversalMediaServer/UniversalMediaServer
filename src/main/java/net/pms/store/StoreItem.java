@@ -146,7 +146,7 @@ public abstract class StoreItem extends StoreResource {
 	protected StoreItem(Renderer renderer, int specificType) {
 		super(renderer);
 		setSpecificType(specificType);
-		this.isSortable = true;
+		setSortable(true);
 	}
 
 	@Override

@@ -350,7 +350,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				resources.get(0).getParent() != null &&
 				resources.get(0).getParent().isFolder()) {
 			StoreContainer thisResourceFromResources = resources.get(0).getParent();
-			if (thisResourceFromResources.isSorted()) {
+			if (thisResourceFromResources.isChildrenSorted()) {
 				StoreResourceSorter.sortResourcesByDefault(resources, lang);
 			}
 

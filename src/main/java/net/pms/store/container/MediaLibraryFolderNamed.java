@@ -25,7 +25,7 @@ public class MediaLibraryFolderNamed extends MediaLibraryFolder {
 
 	public MediaLibraryFolderNamed(Renderer renderer, String virtualFolderName, String[] sql, int[] expectedOutput, String formatString) {
 		super(renderer, null, sql, expectedOutput, null);
-		this.name = virtualFolderName;
+		setName(virtualFolderName);
 	}
 
 }

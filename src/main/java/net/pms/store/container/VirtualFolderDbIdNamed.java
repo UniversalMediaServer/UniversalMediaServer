@@ -27,7 +27,7 @@ public class VirtualFolderDbIdNamed extends VirtualFolderDbId {
 
 	public VirtualFolderDbIdNamed(Renderer renderer, String folderName, DbIdTypeAndIdent typeIdent) {
 		super(renderer, null, typeIdent);
-		this.name = folderName;
+		setName(folderName);
 	}
 
 }

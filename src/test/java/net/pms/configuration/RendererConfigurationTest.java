@@ -305,6 +305,8 @@ public class RendererConfigurationTest {
 
 		testHeaders("Sony Bluray UBP-X800M2", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"UBP-X800M2\"; mv=\"2.0\";");
 
+		testHeaders("Sony Bravia", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA\"; mv=\"1.7\";");
+
 		testHeaders("Sony Bravia EX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";");
 
 		testHeaders("Sony Bravia HX", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";");
@@ -328,10 +330,25 @@ public class RendererConfigurationTest {
 			"modelName=XBR-65A1E"
 		);
 
+		testHeaders(
+			"Sony Bravia XR",
+			"X-av-client-info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA XR-55X90K\"; mv=\"3.0\";",
+			"X-av-physical-unit-info: pa=\"BRAVIA XR-55X90K\";",
+			"X-av-physical-unit-info: K-65XR90\";"
+		);
+		testUPNPDetails(
+			"Sony Bravia XR",
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=XR-55X90K, manufacturerURL=http://www.sony.net/}"
+		);
+		testUPNPDetails(
+			"Sony Bravia XR",
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=K-65XR90, manufacturerURL=http://www.sony.net/}"
+		);
+
 		testHeaders("Sony X Series TV", "X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KD-50X80J\"; mv=\"3.0\";");
 		testUPNPDetails(
 			"Sony X Series TV",
-			"{friendlyName=Security TV, address=192.168.50.183, udn=uuid:96c90ee4-6768-460a-ad31-090018db9149, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
+			"{friendlyName=Security TV, manufacturer=Sony Corporation, modelName=KD-50X80J, manufacturerURL=http://www.sony.net/}"
 		);
 
 		testHeaders("Sony Xperia Z/ZL/ZQ/Z1/Z2", "X-AV-Client-Info: C6603");
@@ -498,7 +515,7 @@ public class RendererConfigurationTest {
 	 * that nothing matches at all.
 	 *
 	 * @param correctRendererName The name of the renderer
-	 * @param upnpDetails         One or more raw header lines
+	 * @param upnpDetails         A raw header line
 	 */
 	private void testUPNPDetails(String correctRendererName, String upnpDetails) {
 		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByUPNPDetails(upnpDetails);

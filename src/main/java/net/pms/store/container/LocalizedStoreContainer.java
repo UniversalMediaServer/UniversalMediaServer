@@ -46,7 +46,7 @@ public class LocalizedStoreContainer extends StoreContainer {
 			this.formatStrings = null;
 		}
 		if (i18nName != null) {
-			this.name = String.format(Messages.getString(i18nName), (Object[]) this.formatStrings);
+			setName(String.format(Messages.getString(i18nName), (Object[]) this.formatStrings));
 		}
 	}
 

@@ -50,7 +50,7 @@ public class StoreContainer extends StoreResource {
 
 	protected String name;
 	protected String thumbnailIcon;
-	protected boolean isSorted = false;
+	private boolean isChildrenSorted = false;
 
 	private boolean allChildrenAreContainers = true;
 	private boolean discovered = false;
@@ -457,7 +457,7 @@ public class StoreContainer extends StoreResource {
 	}
 
 	protected void sortChildrenIfNeeded() {
-		if (isSorted) {
+		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}
 	}
@@ -506,6 +506,14 @@ public class StoreContainer extends StoreResource {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 * @since 1.50
+	 */
+	protected void setName(String name) {
+		this.name = name;
 	}
 
 	/**
@@ -806,8 +814,12 @@ public class StoreContainer extends StoreResource {
 		this.discovered = discovered;
 	}
 
-	public boolean isSorted() {
-		return isSorted;
+	protected void setChildrenSorted(boolean isChildrenSorted) {
+		this.isChildrenSorted = isChildrenSorted;
+	}
+
+	public boolean isChildrenSorted() {
+		return isChildrenSorted;
 	}
 
 	@Override
