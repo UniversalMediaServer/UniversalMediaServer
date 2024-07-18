@@ -423,6 +423,12 @@ public class RendererConfigurationTest {
 			"Samsung 2021 NEO QLED TV 8K",
 			"modelName=QE85QN800ATXXC"
 		);
+
+		testUPNPDetails(
+			"Samsung 2023 TV (QE1C/Q6*C Series)",
+			"modelName=TQ43Q68CAUXXC"
+		);
+		testHeaders("Samsung 2023 TV (QE1C/Q6*C Series)", "User-agent: DLNADOC/1.50 SEC_HHP_Samsung Q68CA 43");
 	}
 
 	/**
