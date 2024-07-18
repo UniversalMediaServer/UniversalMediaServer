@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### General
+- Added season names to folders
+- Improved folder scanning speed (#4778)
+- Made new Media Server engine (Jetty+) the default
+- Fixed folder sorting (#4814) (thanks, Mandy D!)
+- Added automatic launch instructions for web settings in VS Code
+
+### Media players
+- Added renderer config for Sony Bravia XR series TVs
+- Added fallback renderer config for Sony Bravia TVs
+
 ### Dependencies
 - Bump `@mantine/core` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
 - Bump `@mantine/dropzone` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
@@ -13,6 +24,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.7 to 0.4.8 ([#4817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4817))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.0 to 3.3.1 ([#4816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4816))
 - Bump `video.js` from 8.16.0 to 8.16.1 ([#4794](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4794))
+- Bump `youtube-dl` from 2021.12.17 to 2024.07.11
 
 ## [14.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.0...14.2.1) (2024-07-11)
 
