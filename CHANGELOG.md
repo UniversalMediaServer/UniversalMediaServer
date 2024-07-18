@@ -23,6 +23,7 @@
 - Bump `commons-logging:commons-logging` from 1.3.2 to 1.3.3 ([#4799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4799))
 - Bump `eslint-plugin-react-refresh` from 0.4.7 to 0.4.8 ([#4817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4817))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.0 to 3.3.1 ([#4816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4816))
+- Bump `video.js` from 8.16.0 to 8.16.1 ([#4794](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4794))
 - Bump `youtube-dl` from 2021.12.17 to 2024.07.11
 
 ## [14.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.0...14.2.1) (2024-07-11)
