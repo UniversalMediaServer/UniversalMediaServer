@@ -51,13 +51,12 @@ import javax.imageio.spi.ImageReaderSpi;
 import javax.imageio.spi.ImageWriterSpi;
 import net.pms.configuration.Build;
 import net.pms.configuration.GuiConfiguration;
+import net.pms.configuration.PostUpgrade;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.database.MediaDatabase;
 import net.pms.database.UserDatabase;
 import net.pms.encoders.EngineFactory;
-import net.pms.encoders.FFmpegWebVideo;
-import net.pms.encoders.YoutubeDl;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.external.update.AutoUpdater;
 import net.pms.gui.EConnectionState;
@@ -259,6 +258,8 @@ public class PMS {
 		MediaDatabase.init();
 		Splash.setStatusMessage("InitUserDb");
 		UserDatabase.init();
+		//Post Upgrading
+		PostUpgrade.proceed();
 		Splash.setStatusMessage("InitFilters");
 		NetworkDeviceFilter.reset();
 		RendererFilter.reset();
@@ -308,22 +309,6 @@ public class PMS {
 
 			// It will be shown only once
 			umsConfiguration.setShowInfoAboutVideoAutomaticSetting(false);
-		}
-
-		// Actions that happen only the first time UMS runs
-		if (!umsConfiguration.hasRunOnce()) {
-			Splash.setStatusMessage("InitFirstRun");
-			/*
-			 * Enable youtube-dl once, to ensure that if it is
-			 * disabled, that was done by the user.
-			 */
-			if (!EngineFactory.isEngineActive(YoutubeDl.ID)) {
-				umsConfiguration.setEngineEnabled(YoutubeDl.ID, true);
-				umsConfiguration.setEnginePriorityBelow(YoutubeDl.ID, FFmpegWebVideo.ID);
-			}
-
-			// Ensure this only happens once
-			umsConfiguration.setHasRunOnce();
 		}
 
 		GuiManager.setMediaScanStatus(false);
