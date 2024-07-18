@@ -4728,7 +4728,7 @@ __metadata:
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.5.2"
     typescript-eslint: "npm:7.13.1"
-    video.js: "npm:8.16.0"
+    video.js: "npm:8.16.1"
     vite: "npm:5.3.1"
   languageName: unknown
   linkType: soft
@@ -4859,9 +4859,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.16.0":
-  version: 8.16.0
-  resolution: "video.js@npm:8.16.0"
+"video.js@npm:8.16.1":
+  version: 8.16.1
+  resolution: "video.js@npm:8.16.1"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
     "@videojs/http-streaming": "npm:3.13.1"
@@ -4876,7 +4876,7 @@ __metadata:
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.2.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/874adb4d89bd28fe8bf5b81f06569ce324120e8acc6b16c800b9a08f118688656ccc65733f7a9454eb859e5d0145a9e6249113255f2e2524abc57bb971d2eacf
+  checksum: 10c0/17614627a0657293ac1a51fd88e84a08e605e4e63096ca79b1025a34f47f536f28dd70df16c6dbbbc0b6462398f6295bdf6c86fd7e2af2dda6373a461116f4a3
   languageName: node
   linkType: hard
 
