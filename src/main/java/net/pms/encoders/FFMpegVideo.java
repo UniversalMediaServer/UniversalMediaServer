@@ -509,17 +509,7 @@ public class FFMpegVideo extends Engine {
 					transcodeOptions.add(FormatConfiguration.MP4);
 
 					transcodeOptions.add("-movflags");
-					if (encodingFormat.isTranscodeToH265()) {
-						//todo: check if it is the rigth settings
-						//I splitted it as it break moov on H264 output.
-						//I don't know about h265 requirements, but faststart
-						// need seekable output (what pipe streamed is not).
-						// and frag_keyframe without empty_moov miss the first frame.
-						//I think it should be frag_keyframe+empty_moov.
-						transcodeOptions.add("frag_keyframe+faststart");
-					} else {
-						transcodeOptions.add("frag_keyframe+empty_moov");
-					}
+					transcodeOptions.add("frag_keyframe+faststart+delay_moov");
 				} else {
 					transcodeOptions.add("vob");
 				}
