@@ -273,6 +273,28 @@ public class RendererConfigurationTest {
 			"modelName=QE43LS03TAUXXH",
 			"modelName=QE55LS03RAUXXH",
 			"modelName=QN32LS03TBFXZA",
+			"modelName=QA65S95BASXNZ", // 2022 starts here
+			"modelName=UA65AU7002SXNZ",
+			"modelName=QA65QN90BASXNZ",
+			"modelName=QA65QN95BASXNZ",
+			"modelName=QA65QN900BSXNZ",
+			"modelName=QA65Q80BASXNZ",
+			"modelName=QA65Q70BASXNZ",
+			"modelName=QA65QN85BASXNZ",
+			"modelName=QA65Q60BASXNZ",
+			"modelName=QA65QN800BSXNZ",
+			"modelName=UA65BU8000SXNZ",
+			"modelName=UA65BU8500SXNZ",
+			"modelName=QA65QE1CASXNZ", // 2023 starts here
+			"modelName=UA65CU8500SXNZ",
+			"modelName=QA65S90CASXNZ",
+			"modelName=UA65CU7000SXNZ",
+			"modelName=UA65CU8000SXNZ",
+			"modelName=QA65Q60CASXNZ",
+			"modelName=QA65Q70CASXNZ",
+			"modelName=QA65Q80CASXNZ",
+			"modelName=QA65S95CASXNZ",
+			"modelName=QA65QN90CASXNZ",
 			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
 			"modelName=QA65QE1DASXNZ", // 2024 starts here
 			"modelName=UA65DU8000SXNZ",
@@ -289,7 +311,8 @@ public class RendererConfigurationTest {
 		testUPNPDetails(
 			"Samsung 2021 AU9/Q6/43Q7/50Q7",
 			"modelName=QE85Q60AAUXXC",
-			"modelName=UE75AU9005KXXC"
+			"modelName=UE75AU9005KXXC",
+			"modelName=QA65Q60ABSXNZ"
 		);
 		testUPNPDetails(
 			"Samsung 2021 AU9/Q6/43Q7/50Q7",
