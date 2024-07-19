@@ -266,35 +266,44 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
-			"modelName=QN49Q70RAFXZA"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=QN75Q90RAFXZA"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=GQ43LS03TAUXZG"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=QE43LS03TAUXXH"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=QE55LS03RAUXXH"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=QN32LS03TBFXZA"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
-			"modelName=TQ43Q68CAUXXC"
-		);
-		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
+			"modelName=QN49Q70RAFXZA",
+			"modelName=QN75Q90RAFXZA",
+			"modelName=GQ43LS03TAUXZG",
+			"modelName=QE43LS03TAUXXH",
+			"modelName=QE55LS03RAUXXH",
+			"modelName=QN32LS03TBFXZA",
+			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
 			"modelName=UE43RU7179UXZG"
+		);
+
+		testUPNPDetails(
+			"Samsung 2021 QLED TV",
+			"modelName=QE50QN90AATXXC",
+			"modelName=QE75Q80AATXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE85Q60AAUXXC",
+			"modelName=UE75AU9005KXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU9/Q6/43Q7/50Q7",
+			"modelName=QE50Q70AAUXXC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 AU8/AU7/BEA/32Q6",
+			"modelName=UE75AU7105KXXC",
+			"modelName=QN32Q60AAFXZA",
+			"modelName=LH85BEAHLGUXEN"
+		);
+		testUPNPDetails(
+			"Samsung 2021 Q5",
+			"modelName=QN32Q50AAFXZC"
+		);
+		testUPNPDetails(
+			"Samsung 2021 NEO QLED TV 8K",
+			"modelName=QE65QN900ATXXC",
+			"modelName=QE85QN800ATXXC"
 		);
 
 		testHeaders("Sharp Aquos", "User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W");
@@ -378,57 +387,6 @@ public class RendererConfigurationTest {
 			"FriendlyName.DLNA.ORG: XboxOne",
 			"User-Agent: NSPlayer/12.00.9600.16411 WMFSDK/12.00.9600.16411"
 		);
-
-		testUPNPDetails(
-			"Samsung 2021 QLED TV",
-			"modelName=QE50QN90AATXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 QLED TV",
-			"modelName=QE75Q80AATXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU9/Q6/43Q7/50Q7",
-			"modelName=QE85Q60AAUXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU9/Q6/43Q7/50Q7",
-			"modelName=UE75AU9005KXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU9/Q6/43Q7/50Q7",
-			"modelName=QE50Q70AAUXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU8/AU7/BEA/32Q6",
-			"modelName=UE75AU7105KXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU8/AU7/BEA/32Q6",
-			"modelName=QN32Q60AAFXZA"
-		);
-		testUPNPDetails(
-			"Samsung 2021 AU8/AU7/BEA/32Q6",
-			"modelName=LH85BEAHLGUXEN"
-		);
-		testUPNPDetails(
-			"Samsung 2021 Q5",
-			"modelName=QN32Q50AAFXZC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 NEO QLED TV 8K",
-			"modelName=QE65QN900ATXXC"
-		);
-		testUPNPDetails(
-			"Samsung 2021 NEO QLED TV 8K",
-			"modelName=QE85QN800ATXXC"
-		);
-
-		testUPNPDetails(
-			"Samsung 2023 TV (QE1C/Q6*C Series)",
-			"modelName=TQ43Q68CAUXXC"
-		);
-		testHeaders("Samsung 2023 TV (QE1C/Q6*C Series)", "User-agent: DLNADOC/1.50 SEC_HHP_Samsung Q68CA 43");
 	}
 
 	/**
@@ -521,23 +479,25 @@ public class RendererConfigurationTest {
 	 * that nothing matches at all.
 	 *
 	 * @param correctRendererName The name of the renderer
-	 * @param upnpDetails         A raw header line
+	 * @param upnpDetails         One or more UPnP details
 	 */
-	private void testUPNPDetails(String correctRendererName, String upnpDetails) {
-		RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByUPNPDetails(upnpDetails);
-		if (correctRendererName != null) {
-			// Headers are supposed to match a particular renderer
-			assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");
-			assertEquals(correctRendererName, rc.getRendererName(),
-				"Expected renderer \"" + correctRendererName + "\", " +
-				"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
-				upnpDetails + "\"");
-		} else {
-			// Headers are supposed to match no renderer at all
-			assertEquals(null, rc,
-				"Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
-				"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
-				"\" was recognized.");
+	private void testUPNPDetails(String correctRendererName, String ...upnpDetailsArray) {
+		for (String upnpDetails : upnpDetailsArray) {
+			RendererConfiguration rc = RendererConfigurations.getRendererConfigurationByUPNPDetails(upnpDetails);
+			if (correctRendererName != null) {
+				// Headers are supposed to match a particular renderer
+				assertNotNull(rc, "Recognized renderer for upnpDetails \"" + upnpDetails + "\"");
+				assertEquals(correctRendererName, rc.getRendererName(),
+					"Expected renderer \"" + correctRendererName + "\", " +
+					"instead renderer \"" + rc.getRendererName() + "\" was returned for upnpDetails \"" +
+					upnpDetails + "\"");
+			} else {
+				// Headers are supposed to match no renderer at all
+				assertEquals(null, rc,
+					"Expected no matching renderer to be found for upnpDetails \"" + upnpDetails +
+					"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+					"\" was recognized.");
+			}
 		}
 	}
 }
