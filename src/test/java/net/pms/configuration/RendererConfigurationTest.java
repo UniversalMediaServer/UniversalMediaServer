@@ -251,7 +251,11 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
-		testUPNPDetails("Samsung LED UHD", "modelName=UE88KS9810");
+		testUPNPDetails(
+			"Samsung LED UHD",
+			"modelName=UE88KS9810", 
+			"modelName=UE43RU7179UXZG"
+		);
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
 
@@ -266,7 +270,6 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
-			"modelName=UE43RU7179UXZG",
 			"modelName=QN49Q70RAFXZA",
 			"modelName=QN75Q90RAFXZA",
 			"modelName=GQ43LS03TAUXZG",
