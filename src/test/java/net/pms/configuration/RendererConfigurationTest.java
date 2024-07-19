@@ -266,6 +266,7 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
+			"modelName=UE43RU7179UXZG",
 			"modelName=QN49Q70RAFXZA",
 			"modelName=QN75Q90RAFXZA",
 			"modelName=GQ43LS03TAUXZG",
@@ -273,7 +274,11 @@ public class RendererConfigurationTest {
 			"modelName=QE55LS03RAUXXH",
 			"modelName=QN32LS03TBFXZA",
 			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
-			"modelName=UE43RU7179UXZG"
+			"modelName=QA65QE1DASXNZ", // 2024 starts here
+			"modelName=UA65DU8000SXNZ",
+			"modelName=UA65DU7700SXNZ",
+			"modelName=UA65DU8500SXNZ",
+			"modelName=QA65QN900DSXNZ"
 		);
 
 		testUPNPDetails(
