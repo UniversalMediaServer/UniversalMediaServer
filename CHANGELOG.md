@@ -13,6 +13,9 @@
 - Added renderer config for Sony Bravia XR series TVs
 - Added fallback renderer config for Sony Bravia TVs
 
+### Translation updates via Crowdin
+- Hungarian (50%) (thanks, LZsolt75!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
 - Bump `@mantine/dropzone` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
