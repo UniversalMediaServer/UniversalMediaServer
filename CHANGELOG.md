@@ -2,16 +2,21 @@
 
 ## [Unreleased]
 
+## [14.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.1...14.3.0) (2024-07-21)
+
 ### General
-- Added season names to folders
+- Added season names to folders:
+  ![image info](./changelog-images/14-3-0-season-names.png)
 - Improved folder scanning speed (#4778)
 - Made new Media Server engine (Jetty+) the default
+- Fixed video player not fitting in browser window (#4832)
 - Fixed folder sorting (#4814) (thanks, Mandy D!)
 - Added automatic launch instructions for web settings in VS Code
 
 ### Media players
 - Added renderer config for Sony Bravia XR series TVs
 - Added fallback renderer config for Sony Bravia TVs
+- Improved support for and detection of Samsung TVs including 2024 models
 
 ### Translation updates via Crowdin
 - Hungarian (50%) (thanks, LZsolt75!)
