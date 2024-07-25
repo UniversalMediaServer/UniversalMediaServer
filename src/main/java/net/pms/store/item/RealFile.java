@@ -32,7 +32,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
@@ -40,9 +39,9 @@ import net.pms.renderers.Renderer;
 import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.StoreItem;
+import net.pms.store.SystemFileResource;
 import net.pms.store.SystemFilesHelper;
 import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
-import net.pms.store.container.OpenSubtitleFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
@@ -58,7 +57,8 @@ import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RealFile extends StoreItem {
+public class RealFile extends StoreItem implements SystemFileResource {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 
 	private final Object displayNameBaseLock = new Object();
@@ -407,9 +407,6 @@ public class RealFile extends StoreItem {
 
 	@Override
 	public String getDisplayNameBase() {
-		if (getParent() instanceof OpenSubtitleFolder && getMediaSubtitle() instanceof MediaOnDemandSubtitle) {
-			return ((MediaOnDemandSubtitle) getMediaSubtitle()).getName();
-		}
 		if (isFolder()) {
 			return super.getDisplayNameBase();
 		}
@@ -472,6 +469,11 @@ public class RealFile extends StoreItem {
 	 */
 	public void setSplitTrack(int splitTrack) {
 		this.splitTrack = splitTrack;
+	}
+
+	@Override
+	public File getSystemFile() {
+		return getFile();
 	}
 
 }

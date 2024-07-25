@@ -77,6 +77,11 @@ nav button .mantine-Button-inner {
   color: var(--mantine-color-text);
 }
 
+#videodiv {
+  /* 158px is the height from the top of the page to the video element */
+  height: calc(100vh - 158px);
+}
+
 .mantine-Breadcrumbs-root .mantine-Button-inner {
   color: var(--mantine-color-text);
 }

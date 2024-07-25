@@ -33,8 +33,6 @@ import net.pms.renderers.Renderer;
 import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
-import net.pms.store.container.OpenSubtitleFolder;
-import net.pms.store.container.SubSelect;
 import net.pms.store.container.TranscodeVirtualFolder;
 import net.pms.store.container.VirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
@@ -55,7 +53,7 @@ public class StoreContainer extends StoreResource {
 
 	protected String name;
 	protected String thumbnailIcon;
-	protected boolean isSorted = false;
+	private boolean isChildrenSorted = false;
 
 	private boolean allChildrenAreContainers = true;
 	private boolean discovered = false;
@@ -240,19 +238,6 @@ public class StoreContainer extends StoreResource {
 									LOGGER.trace("Adding \"{}\" to transcode folder for engine: \"{}\"", item.getName(),
 											transcodingEngine);
 									transcodeFolder.addChildInternal(fileTranscodeFolder);
-								}
-							}
-
-							if (item.getFormat().isVideo() && item.isSubSelectable() && !(this instanceof OpenSubtitleFolder)) {
-								StoreContainer vf = getSubSelector(true);
-								if (vf != null) {
-									StoreItem newChild = item.clone();
-									newChild.setEngine(transcodingEngine);
-									newChild.setMediaInfo(item.getMediaInfo());
-									LOGGER.trace("Adding live subtitles folder for \"{}\" with engine {}", item.getName(),
-											transcodingEngine);
-
-									vf.addChild(new OpenSubtitleFolder(renderer, newChild));
 								}
 							}
 
@@ -482,7 +467,7 @@ public class StoreContainer extends StoreResource {
 	}
 
 	protected void sortChildrenIfNeeded() {
-		if (isSorted) {
+		if (isChildrenSorted()) {
 			StoreResourceSorter.sortResourcesByDefault(children);
 		}
 	}
@@ -531,6 +516,14 @@ public class StoreContainer extends StoreResource {
 	@Override
 	public String getName() {
 		return name;
+	}
+
+	/**
+	 * @param name the name to set
+	 * @since 1.50
+	 */
+	protected void setName(String name) {
+		this.name = name;
 	}
 
 	/**
@@ -592,31 +585,6 @@ public class StoreContainer extends StoreResource {
 
 	public void setThumbnail(String thumbnailIcon) {
 		this.thumbnailIcon = thumbnailIcon;
-	}
-
-	////////////////////////////////////////////////////
-	// Subtitle handling
-	////////////////////////////////////////////////////
-	private SubSelect getSubSelector(boolean create) {
-		if (renderer.getUmsConfiguration().isDisableSubtitles() || !renderer.getUmsConfiguration().isAutoloadExternalSubtitles() ||
-				!renderer.getUmsConfiguration().isShowLiveSubtitlesFolder() || !isLiveSubtitleFolderAvailable()) {
-			return null;
-		}
-
-		// Search for transcode folder
-		for (StoreResource r : children) {
-			if (r instanceof SubSelect subSelect) {
-				return subSelect;
-			}
-		}
-
-		if (create) {
-			SubSelect vf = new SubSelect(renderer);
-			addChildInternal(vf);
-			return vf;
-		}
-
-		return null;
 	}
 
 	/**
@@ -856,8 +824,12 @@ public class StoreContainer extends StoreResource {
 		this.discovered = discovered;
 	}
 
-	public boolean isSorted() {
-		return isSorted;
+	protected void setChildrenSorted(boolean isChildrenSorted) {
+		this.isChildrenSorted = isChildrenSorted;
+	}
+
+	public boolean isChildrenSorted() {
+		return isChildrenSorted;
 	}
 
 	@Override

@@ -88,10 +88,6 @@ public class WebSourcesConfiguration {
 									try {
 										switch (sourceType) {
 											case "imagefeed", "videofeed", "audiofeed" -> {
-												// Convert YouTube channel URIs to their feed URIs
-												if (uri.contains("youtube.com/channel/")) {
-													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-												}
 												resourceName = Feed.getFeedTitle(uri);
 											}
 											case "videostream", "audiostream" -> {

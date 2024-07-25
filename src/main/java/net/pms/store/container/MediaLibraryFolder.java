@@ -75,7 +75,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		isSorted = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
+		setChildrenSorted((expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0])));
 	}
 
 	@Override
@@ -604,12 +604,15 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						}
 					}
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
+					boolean isExpectedTVSeason = expectedOutput == EPISODES;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
 					if (isExpectedTVSeries) {
 						Long tvSeriesId = getMediaLibraryTvSeriesId(virtualFolderName);
 						if (tvSeriesId != null) {
 							newVirtualFoldersResources.add(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
 						}
+					} else if (isExpectedTVSeason) {
+						newVirtualFoldersResources.add(new MediaLibraryTvSeason(renderer, i18nName, virtualFolderName, sqls2, expectedOutputs2));
 					} else if (isExpectedMovieFolder) {
 						String filename = getMediaLibraryMovieFilename(virtualFolderName);
 						if (filename != null) {
