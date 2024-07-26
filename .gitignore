@@ -16,7 +16,6 @@ pms.iml
 Thumbs.db
 extras/
 target/
-/web/
 win32/
 .vscode/settings.json
 /src/main/pascal/ctrlsender/lib/
