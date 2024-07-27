@@ -3,13 +3,6 @@ import { expect, test } from '@playwright/test';
 test('should be able to disable authentication', async ({ page }) => {
   await page.goto('/');
 
-  // todo: fix the need for this initial delay
-  await page.waitForTimeout(1000);
-  await page.reload();
-
-  const foo = await page.innerText('html');
-  console.log(111,foo);
-
   await page.getByText('Disable authentication').click();
   await page.getByText('Confirm').click();
 });
