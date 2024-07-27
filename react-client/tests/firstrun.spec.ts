@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test';
 
 test('should be able to disable authentication', async ({ page }) => {
   await page.goto('/');
-  await page.getByLabel('Username').fill('admin');
 
   await page.getByText('Disable authentication').click();
   await page.getByText('Confirm').click();

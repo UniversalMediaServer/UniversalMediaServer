@@ -9,12 +9,12 @@
     "build": "tsc && eslint . && vite build",
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
-    "test:runserver:macos": "cd ../;./runtestserver.sh",
-    "test:runserver:macos-arm": "cd ../;./runtestserver.sh",
+    "test:runserver:macos": "export RUNNING_TESTS=true; npm run private:removeconfig:macos;cd ..;./runtestserver.sh",
     "test:prepareserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
     "test:prepareserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
     "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
-    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
+    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
+    "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
   "packageManager": "yarn@4.3.1",
   "dependencies": {
