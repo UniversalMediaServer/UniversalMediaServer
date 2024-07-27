@@ -967,7 +967,7 @@ public class MEncoderVideo extends Engine {
 						x264CRF = "16";
 
 						// Lower quality for 720p+ content
-						if (defaultVideoTrack.getWidth() > 720) {
+						if (defaultVideoTrack.getWidth() > 720 && !params.getMediaRenderer().isTranscodeToH265()) {
 							x264CRF = "19";
 						}
 					}
