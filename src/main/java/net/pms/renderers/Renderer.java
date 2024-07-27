@@ -721,7 +721,7 @@ public class Renderer extends RendererDeviceConfiguration {
 	 */
 	@Override
 	public int getMaxVideoBitrate() {
-		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate() && !PMS.isRunningTests()) {
 			try {
 				int calculatedSpeed = calculatedSpeed();
 				if (calculatedSpeed >= 70) { // this should be a wired connection
