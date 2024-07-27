@@ -439,7 +439,9 @@ public class RendererConfigurations {
 		if (profile) {
 			rendererName = rendererName + "*";
 		}
-		ALL_RENDERERS_NAMES.add(rendererName);
+		if (!ALL_RENDERERS_NAMES.contains(rendererName)) {
+			ALL_RENDERERS_NAMES.add(rendererName);
+		}
 		String renderersGroup = null;
 		if (rendererName.indexOf(' ') > 0) {
 			renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));
