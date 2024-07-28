@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Menu, ActionIcon } from '@mantine/core';
+import { Menu, ActionIcon, VisuallyHidden } from '@mantine/core';
 import { useContext } from 'react';
 import { Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, Share, Tool, User, Users } from 'tabler-icons-react';
 
@@ -31,6 +31,7 @@ function UserMenu() {
     <Menu>
       <Menu.Target>
         <ActionIcon variant='default' size={30}>
+          <VisuallyHidden>{i18n.get('MainMenu')}</VisuallyHidden>
           <Menu2 size={16} />
         </ActionIcon>
       </Menu.Target>

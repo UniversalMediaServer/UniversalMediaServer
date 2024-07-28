@@ -228,10 +228,12 @@ public class PMS {
 		}
 
 		// Show the language selection dialog before displayBanner();
-		if (!isHeadless() &&
-				!isRunningTests() &&
-				(umsConfiguration.getLanguageRawString() == null ||
-				!Languages.isValid(umsConfiguration.getLanguageRawString()))) {
+		if (
+			!isHeadless() &&
+			!isRunningTests() &&
+			(umsConfiguration.getLanguageRawString() == null ||
+			!Languages.isValid(umsConfiguration.getLanguageRawString()))
+		) {
 			LanguageSelection languageDialog = new LanguageSelection(null, PMS.getLocale(), false);
 			languageDialog.show();
 			if (languageDialog.isAborted()) {
@@ -1388,11 +1390,17 @@ public class PMS {
 	}
 
 	/**
-	 * @return whether UMS is being run by Surefire or a CI environment like
-	 * GitHub Actions
+	 * @return whether UMS is being run by Surefire, Playwright, or a CI
+	 * environment like GitHub Actions.
 	 */
 	public static boolean isRunningTests() {
-		return System.getProperty("surefire.real.class.path") != null || (System.getenv("CI") != null && System.getenv("CI").equals("true"));
+		return System.getProperty("surefire.real.class.path") != null || (
+			System.getenv("CI") != null &&
+			System.getenv("CI").equals("true")
+		) || (
+			System.getenv("RUNNING_TESTS") != null &&
+			System.getenv("RUNNING_TESTS").equals("true")
+		);
 	}
 
 	/**
