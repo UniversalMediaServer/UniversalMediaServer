@@ -477,7 +477,7 @@ public class FFMpegVideo extends Engine {
 						} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
 							if (!customFFmpegOptions.contains("-preset")) {
 								transcodeOptions.add("-preset");
-								transcodeOptions.add("ultrafast");
+								transcodeOptions.add("superfast");
 							}
 						}
 
@@ -708,7 +708,7 @@ public class FFMpegVideo extends Engine {
 					x264CRF = "16";
 
 					// Lower quality for 720p+ content
-					if (media.getWidth() > 720) {
+					if (media.getWidth() > 720 && !encodingFormat.isTranscodeToH265()) {
 						x264CRF = "19";
 					}
 				}
