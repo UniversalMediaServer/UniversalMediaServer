@@ -33,8 +33,8 @@ public class LibraryItemSorter implements Comparator<StoreItem> {
 
 	@Override
 	public int compare(StoreItem resource1, StoreItem resource2) {
-		Integer engineIndex1 = engines.indexOf(resource1.getEngine());
-		Integer engineIndex2 = engines.indexOf(resource2.getEngine());
+		Integer engineIndex1 = engines.indexOf(resource1.isTranscoded() ? resource1.getTranscodingSettings().getEngine() : null);
+		Integer engineIndex2 = engines.indexOf(resource2.isTranscoded() ? resource2.getTranscodingSettings().getEngine() : null);
 
 		if (!engineIndex1.equals(engineIndex2)) {
 			return engineIndex1.compareTo(engineIndex2);

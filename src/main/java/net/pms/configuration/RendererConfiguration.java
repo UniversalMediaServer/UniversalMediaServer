@@ -29,13 +29,13 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.PMS;
+import net.pms.encoders.EncodingFormat;
 import net.pms.formats.Format;
 import net.pms.formats.Format.Identifier;
 import net.pms.media.MediaInfo;
 import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
-import net.pms.network.HTTPResource;
 import net.pms.parsers.MediaInfoParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -63,7 +63,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 */
 	private static final String KEY_ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String KEY_AUDIO = "Audio";
-	private static final String KEY_AUTO_PLAY_TMO = "AutoPlayTmo";
+	protected static final String KEY_AUTO_PLAY_TMO = "AutoPlayTmo";
 	private static final String KEY_AVISYNTH_2D_TO_3D = "AviSynth2Dto3D";
 	private static final String KEY_BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds";
 	private static final String KEY_CBR_VIDEO_BITRATE = "CBRVideoBitrate";
@@ -89,7 +89,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_IMAGE = "Image";
 	private static final String KEY_KEEP_ASPECT_RATIO = "KeepAspectRatio";
 	private static final String KEY_KEEP_ASPECT_RATIO_TRANSCODING = "KeepAspectRatioTranscoding";
-	private static final String KEY_LIMIT_FOLDERS = "LimitFolders";
+	protected static final String KEY_LIMIT_FOLDERS = "LimitFolders";
 	private static final String KEY_LOADING_PRIORITY = "LoadingPriority";
 	private static final String KEY_MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String KEY_MAX_VIDEO_HEIGHT = "MaxVideoHeight";
@@ -150,35 +150,6 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
 	private static final String KEY_DISABLE_UMS_RESUME = "DisableUmsResume";
 	private static final String KEY_UPNP_ENABLE_SEARCHCAPS = "UpnpSearchCapsEnabled";
-
-	/**
-	 * audio transcoding options.
-	 */
-	private static final String TRANSCODE_TO_LPCM = "LPCM";
-	protected static final String TRANSCODE_TO_MP3 = "MP3";
-	private static final String TRANSCODE_TO_WAV = "WAV";
-	private static final String TRANSCODE_TO_WMV = "WMV";
-
-	/**
-	 * video transcoding options.
-	 */
-	private static final String MP4H265AC3 = "MP4-H265-AC3";
-	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
-	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
-	private static final String MPEGTSH265AAC = "MPEGTS-H265-AAC";
-	private static final String MPEGTSH265AC3 = "MPEGTS-H265-AC3";
-	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
-	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
-	//HLS (HTTP Live Streaming) encapsulated by MPEG-2 Transport Stream
-	protected static final String HLSMPEGTSH264AAC = "HLS-MPEGTS-H264-AAC";
-	private static final String HLSMPEGTSH264AC3 = "HLS-MPEGTS-H264-AC3";
-	//private static final String HLSMPEGTSH264MP3 = "HLS-MPEGTS-H264-MP3";
-	//private static final String HLSMPEGTSH264EAC3 = "HLS-MPEGTS-H264-EAC3";
-	//HLS (HTTP Live Streaming) encapsulated by MPEG-4_Part_14
-	//private static final String HLSMPEG4H264AAC = "HLS-MPEG4-H264-AAC";
-	//private static final String HLSMPEG4H264AC3 = "HLS-MPEG4-H264-AC3";
-	//private static final String HLSMPEG4H264MP3 = "HLS-MPEG4-H264-MP3";
-	//private static final String HLSMPEG4H264EAC3 = "HLS-MPEG4-H264-EAC3";
 
 	public static final File NOFILE = new File("NOFILE");
 	public static final String UNKNOWN_ICON = "unknown.png";
@@ -455,124 +426,14 @@ public class RendererConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_IMAGE, true);
 	}
 
-	public boolean isTranscodeToWMV() {
-		return getVideoTranscode().equals(TRANSCODE_TO_WMV);
-	}
-
-	public boolean isTranscodeToMP4H265AC3() {
-		return getVideoTranscode().equals(MP4H265AC3);
-	}
-
-	public boolean isTranscodeToMPEGPSMPEG2AC3() {
-		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSMPEG2AC3);
-	}
-
-	public boolean isTranscodeToMPEGTSMPEG2AC3() {
-		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSMPEG2AC3);
-	}
-
-	public boolean isTranscodeToMPEGTSH264AC3() {
-		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGTSH264AC3);
-	}
-
-	public boolean isTranscodeToMPEGTSH264AAC() {
-		return getVideoTranscode().equals(MPEGTSH264AAC);
-	}
-
-	public boolean isTranscodeToMPEGTSH265AAC() {
-		return getVideoTranscode().equals(MPEGTSH265AAC);
-	}
-
-	public boolean isTranscodeToMPEGTSH265AC3() {
-		return getVideoTranscode().equals(MPEGTSH265AC3);
-	}
-
-	public boolean isTranscodeToHLSMPEGTSH264AAC() {
-		return getVideoTranscode().equals(HLSMPEGTSH264AAC);
-	}
-
-	public boolean isTranscodeToHLSMPEGTSH264AC3() {
-		return getVideoTranscode().equals(HLSMPEGTSH264AC3);
-	}
-
-	/**
-	 * @return whether to use the HLS format for transcoded video
-	 */
-	public boolean isTranscodeToHLS() {
-		return isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
-	}
-
-	/**
-	 * @return whether to use the AC-3 audio codec for transcoded video
-	 */
-	public boolean isTranscodeToAC3() {
-		return isTranscodeToMP4H265AC3() || isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH265AC3() || isTranscodeToHLSMPEGTSH264AC3();
-	}
-
-	/**
-	 * @return whether to use the AAC audio codec for transcoded video
-	 */
-	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC();
-	}
-
-	/**
-	 * @return whether to use the H.264 video codec for transcoded video
-	 */
-	public boolean isTranscodeToH264() {
-		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3() || isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
-	}
-
-	/**
-	 * @return whether to use the H.265 video codec for transcoded video
-	 */
-	public boolean isTranscodeToH265() {
-		return isTranscodeToMP4H265AC3() || isTranscodeToMPEGTSH265AAC() || isTranscodeToMPEGTSH265AC3();
-	}
-
-	/**
-	 * @return whether to use the MPEG-TS container for transcoded video
-	 */
-	public boolean isTranscodeToMPEGTS() {
-		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH265AC3() || isTranscodeToMPEGTSH265AAC() || isTranscodeToHLSMPEGTSH264AAC() || isTranscodeToHLSMPEGTSH264AC3();
-	}
-
-	/**
-	 * @return the container for transcoded video
-	 */
-	public String getTranscodingContainer() {
-		if (isTranscodeToMPEGTS()) {
-			return FormatConfiguration.MPEGTS;
+	public List<EncodingFormat> getTranscodingFormats() {
+		List<EncodingFormat> encodingFormats = new ArrayList<>();
+		encodingFormats.addAll(EncodingFormat.getVideoEncodingFormats(getVideoTranscode()));
+		EncodingFormat audioFormat = EncodingFormat.getAudioEncodingFormat(getAudioTranscode());
+		if (audioFormat != null) {
+			encodingFormats.add(audioFormat);
 		}
-		if (isTranscodeToMP4H265AC3()) {
-			return FormatConfiguration.MP4;
-		}
-		if (isTranscodeToWMV()) {
-			return FormatConfiguration.WMV;
-		}
-		return FormatConfiguration.MPEGPS;
-	}
-
-	/**
-	 * @return whether to use the MPEG-2 video codec for transcoded video
-	 */
-	public boolean isTranscodeToMPEG2() {
-		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGPSMPEG2AC3();
-	}
-
-	public boolean isTranscodeToMP3() {
-		return getAudioTranscode().equals(TRANSCODE_TO_MP3);
-	}
-
-	public boolean isTranscodeToLPCM() {
-		return getAudioTranscode().equals(TRANSCODE_TO_LPCM);
-	}
-
-	public boolean isTranscodeToWAV() {
-		return getAudioTranscode().equals(TRANSCODE_TO_WAV);
+		return encodingFormats;
 	}
 
 	public boolean isTranscodeAudioTo441() {
@@ -620,17 +481,17 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether this renderer supports the video stream type of this
 	 *         resource inside the container it wants for transcoding.
 	 */
-	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media) {
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat) {
 		if (media.getDefaultVideoTrack() == null) {
 			return true;
 		}
 		if (getFormatConfiguration() == null) {
 			return (
-				(isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
-				(isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
+				(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
+				(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
 	/**
@@ -644,141 +505,18 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * @return whether this renderer supports the audio stream type of this
 	 *         resource inside the container it wants for transcoding.
 	 */
-	public boolean isAudioStreamTypeSupportedInTranscodingContainer(MediaAudio audio) {
+	public boolean isAudioStreamTypeSupportedInTranscodingContainer(MediaAudio audio, EncodingFormat encodingFormat) {
 		if (getFormatConfiguration() == null) {
 			return (
-				(isTranscodeToAAC() && audio.isAACLC()) ||
-				(isTranscodeToAC3() && audio.isAC3())
+				(encodingFormat.isTranscodeToAAC() && audio.isAACLC()) ||
+				(encodingFormat.isTranscodeToAC3() && audio.isAC3())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(getTranscodingContainer(), null, audio.getCodec()) != null;
+		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), null, audio.getCodec()) != null;
 	}
 
-	/**
-	 * Determine the mime type specific for this renderer, given a generic mime
-	 * type by resource. This translation takes into account all configured "Supported"
-	 * lines and mime type aliases for this renderer.
-	 *
-	 * @param resource The resource with the generic mime type.
-	 * @return The renderer specific mime type  for given resource. If the generic mime
-	 * type given by resource is <code>null</code> this method returns <code>null</code>.
-	 */
-	public String getMimeType(StoreItem resource) {
-		String mimeType = resource.mimeType();
-		if (mimeType == null) {
-			return null;
-		}
-
-		String matchedMimeType = null;
-		MediaInfo mediaInfo = resource.getMediaInfo();
-
-		if (isUseMediaInfo()) {
-			// Use the supported information in the configuration to determine the transcoding mime type.
-			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToHLSMPEGTSH264AC3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS_HLS, FormatConfiguration.H264, FormatConfiguration.AC3);
-				} else if (isTranscodeToHLSMPEGTSH264AAC()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS_HLS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
-				} else if (isTranscodeToMPEGTSH264AC3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSH264AAC()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC_LC);
-				} else if (isTranscodeToMPEGTSH265AC3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AC3);
-				} else if (isTranscodeToMP4H265AC3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MP4, FormatConfiguration.H265, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSH265AAC()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H265, FormatConfiguration.AAC_LC);
-				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				} else if (isTranscodeToWMV()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
-				} else {
-					// Default video transcoding mime type
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				}
-			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWAV()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.WAV, null, null);
-				} else if (isTranscodeToMP3()) {
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MP3, null, null);
-				} else {
-					// Default audio transcoding mime type
-					matchedMimeType = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.LPCM, null, null);
-
-					if (matchedMimeType != null) {
-						if (umsConfiguration.isAudioResample()) {
-							if (isTranscodeAudioTo441()) {
-								matchedMimeType += ";rate=44100;channels=2";
-							} else {
-								matchedMimeType += ";rate=48000;channels=2";
-							}
-						} else if (mediaInfo != null && mediaInfo.getDefaultAudioTrack() != null) {
-							MediaAudio audio = mediaInfo.getDefaultAudioTrack();
-							if (audio.getSampleRate() > 0) {
-								matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
-							}
-							if (audio.getNumberOfChannels() > 0) {
-								matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (matchedMimeType == null) {
-			// No match found in the renderer config, try our defaults
-			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWMV()) {
-					matchedMimeType = HTTPResource.WMV_TYPEMIME;
-				} else if (isTranscodeToHLS()) {
-					matchedMimeType = HTTPResource.HLS_TYPEMIME;
-				} else if (isTranscodeToMPEGTS()) {
-					// Default video transcoding mime type
-					matchedMimeType = HTTPResource.MPEGTS_TYPEMIME;
-				} else {
-					// Default video transcoding mime type
-					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
-				}
-			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWAV()) {
-					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-				} else if (isTranscodeToMP3()) {
-					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else {
-					// Default audio transcoding mime type
-					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-
-					if (umsConfiguration.isAudioResample()) {
-						if (isTranscodeAudioTo441()) {
-							matchedMimeType += ";rate=44100;channels=2";
-						} else {
-							matchedMimeType += ";rate=48000;channels=2";
-						}
-					} else if (mediaInfo != null && mediaInfo.getDefaultAudioTrack() != null) {
-						MediaAudio audio = mediaInfo.getDefaultAudioTrack();
-						if (audio.getSampleRate() > 0) {
-							matchedMimeType += ";rate=" + Integer.toString(audio.getSampleRate());
-						}
-						if (audio.getNumberOfChannels() > 0) {
-							matchedMimeType += ";channels=" + Integer.toString(audio.getNumberOfChannels());
-						}
-					}
-				}
-			}
-		}
-
-		if (matchedMimeType == null) {
-			matchedMimeType = mimeType;
-		}
-
-		// Apply renderer specific mime type aliases
-		if (mimes.containsKey(matchedMimeType)) {
-			return mimes.get(matchedMimeType);
-		}
-
-		return matchedMimeType;
+	public Map<String, String> getMimeTranslations() {
+		return mimes;
 	}
 
 	public boolean matchUPNPDetails(String details) {
@@ -1003,23 +741,27 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the codec to use for video transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "MPEGPSMPEG2AC3".
+	 * Returns the formats to use for video transcoding for this renderer as
+	 * defined in the renderer configuration.
 	 *
-	 * @return The codec name.
+	 * Default value is "MPEGPS-MPEG2-AC3".
+	 *
+	 * @return The video transcoding format list.
 	 */
-	public String getVideoTranscode() {
-		return getString(KEY_TRANSCODE_VIDEO, MPEGPSMPEG2AC3);
+	public List<String> getVideoTranscode() {
+		return getStringList(KEY_TRANSCODE_VIDEO, "MPEGPS-MPEG2-AC3");
 	}
 
 	/**
-	 * Returns the codec to use for audio transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "LPCM".
+	 * Returns the format to use for audio transcoding for this renderer as
+	 * defined in the renderer configuration.
 	 *
-	 * @return The codec name.
+	 * Default value is "LPCM".
+	 *
+	 * @return The audio transcoding format list.
 	 */
 	public String getAudioTranscode() {
-		return getString(KEY_TRANSCODE_AUDIO, TRANSCODE_TO_LPCM);
+		return getString(KEY_TRANSCODE_AUDIO, "LPCM");
 	}
 
 	/**

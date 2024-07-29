@@ -69,6 +69,7 @@ public class RendererDeviceConfiguration extends RendererConfiguration {
 	 */
 	public final void inherit(RendererConfiguration ref) throws ConfigurationException {
 		CompositeConfiguration cconf = new CompositeConfiguration();
+		cconf.setListDelimiter((char) 0);
 
 		// Add the component configurations in order of lookup priority:
 

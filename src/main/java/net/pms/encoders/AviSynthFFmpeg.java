@@ -52,10 +52,12 @@ import org.slf4j.LoggerFactory;
  * This class handles the Windows-specific AviSynth/FFmpeg player combination.
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
+	private static final String WIDESCREEN_STANDARD_ASPECT_RATO = "16:9";
+
 	public static final EngineId ID = StandardEngineId.AVI_SYNTH_FFMPEG;
 	public static final String NAME = "AviSynth/FFmpeg";
-	private static final String WIDESCREEN_STANDARD_ASPECT_RATO = "16:9";
 
 	/** The final AviSynth {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull
@@ -123,42 +125,42 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		Format format = resource.getFormat();
+	public boolean isCompatible(StoreItem item) {
+		Format format = item.getFormat();
 
 		if (format != null && format.getIdentifier() == Format.Identifier.WEB) {
 			return false;
 		}
 
-		MediaSubtitle subtitle = resource.getMediaSubtitle();
+		MediaSubtitle subtitle = item.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized MediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+			// The item needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
 		}
 
-		MediaAudio audio = resource.getMediaAudio();
+		MediaAudio audio = item.getMediaAudio();
 		if (audio != null) {
 			try {
-				String audioTrackName = resource.getMediaAudio().toString();
-				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
+				String audioTrackName = item.getMediaAudio().toString();
+				String defaultAudioTrackName = item.getMediaInfo().getDefaultAudioTrack().toString();
 
 				if (!audioTrackName.equals(defaultAudioTrackName)) {
 					// This engine implementation only supports playback of the default audio track at this time
 					return false;
 				}
 			} catch (NullPointerException e) {
-				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getFileName());
+				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + item.getFileName());
 			} catch (IndexOutOfBoundsException e) {
-				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getFileName());
+				LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + item.getFileName());
 			}
 		}
 
-		return PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG);
+		return PlayerUtil.isVideo(item, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(item, Format.Identifier.OGG);
 	}
 
 	@Override

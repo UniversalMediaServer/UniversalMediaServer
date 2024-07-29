@@ -1041,6 +1041,8 @@ export default function TranscodingSettings(
         return getFFMPEGVideo();
       case 'AviSynthFFmpeg':
         return getAviSynthFFMPEG();
+      case 'FFmpegHlsVideo':
+        return noSettingsForNow();
       case 'FFmpegWebVideo':
         return noSettingsForNow();
       case 'MEncoderVideo':

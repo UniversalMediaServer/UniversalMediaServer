@@ -17,11 +17,13 @@
 package net.pms.encoders;
 
 import net.pms.formats.Format;
+import net.pms.network.HTTPResource;
 import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web audio streaming engine */
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
+
 	public static final EngineId ID = StandardEngineId.VLC_AUDIO_STREAMING;
 
 	/** The {@link Configuration} key for the VLC Legacy Web Audio executable type. */
@@ -58,8 +60,8 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public String mimeType() {
-		return "audio/wav";
+	public String getMimeType() {
+		return HTTPResource.AUDIO_WAV_TYPEMIME;
 	}
 
 	@Override
@@ -73,7 +75,13 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		return PlayerUtil.isWebAudio(resource);
+	public boolean isCompatible(StoreItem item) {
+		return PlayerUtil.isWebAudio(item);
 	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isAudioFormat();
+	}
+
 }
