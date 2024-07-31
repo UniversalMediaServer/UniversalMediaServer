@@ -9,21 +9,21 @@
     "build": "tsc && eslint . && vite build",
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
-    "test:runserver:macos": "cd ../;./runtestserver.sh",
-    "test:runserver:macos-arm": "cd ../;./runtestserver.sh",
+    "test:runserver:macos": "export RUNNING_TESTS=true; npm run private:removeconfig:macos;cd ..;./runtestserver.sh",
     "test:prepareserver:macos": "cd ../;mvn -P macos package -DskipTests -Doffline -Djaronly;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
     "test:prepareserver:macos-arm": "cd ../;mvn -P macos-arm package -DskipTests -Doffline;cd react-client;npm run private:copy-jar;npm run private:ensure-file-permissions",
     "private:copy-jar": "cp -f ../target/ums-*-jar-with-dependencies.jar ../ums-testserver.jar",
-    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar"
+    "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
+    "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
-  "packageManager": "yarn@4.2.2",
+  "packageManager": "yarn@4.3.1",
   "dependencies": {
-    "@mantine/core": "7.10.2",
-    "@mantine/dropzone": "7.10.2",
-    "@mantine/form": "7.10.2",
-    "@mantine/hooks": "7.10.2",
-    "@mantine/modals": "7.10.2",
-    "@mantine/notifications": "7.10.2",
+    "@mantine/core": "7.11.2",
+    "@mantine/dropzone": "7.11.2",
+    "@mantine/form": "7.11.2",
+    "@mantine/hooks": "7.11.2",
+    "@mantine/modals": "7.11.2",
+    "@mantine/notifications": "7.11.2",
     "@microsoft/fetch-event-source": "2.0.1",
     "axios": "1.7.2",
     "jwt-decode": "4.0.0",
@@ -34,20 +34,20 @@
     "react-movable": "3.2.0",
     "react-router-dom": "6.23.1",
     "tabler-icons-react": "1.56.0",
-    "video.js": "8.16.0"
+    "video.js": "8.16.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.44.1",
+    "@playwright/test": "1.45.3",
     "@types/lodash": "4.17.5",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "@vitejs/plugin-react": "4.3.1",
-    "eslint": "8.57.0",
+    "eslint": "9.8.0",
     "eslint-plugin-react": "7.34.3",
     "eslint-plugin-react-hooks": "4.6.2",
-    "eslint-plugin-react-refresh": "0.4.7",
-    "typescript": "5.5.2",
-    "typescript-eslint": "7.13.1",
+    "eslint-plugin-react-refresh": "0.4.8",
+    "typescript": "5.5.3",
+    "typescript-eslint": "^7.17.0",
     "vite": "5.3.1"
   }
 }

@@ -64,7 +64,7 @@ public class ChapterFileTranscodeVirtualFolder extends LocalizedStoreContainer {
 				for (int i = 1; i <= nbIntervals; i++) {
 					// TODO: Remove clone(), instead create a new object from scratch to avoid unwanted cross references.
 					StoreItem newChildNoSub = item.clone();
-					newChildNoSub.setEngine(item.getEngine());
+					newChildNoSub.setTranscodingSettings(item.getTranscodingSettings());
 					newChildNoSub.setMediaInfo(item.getMediaInfo());
 					newChildNoSub.setNoName(true);
 					newChildNoSub.setMediaAudio(item.getMediaAudio());

@@ -34,7 +34,6 @@ import java.util.TimeZone;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.dlna.DlnaHelper;
 import net.pms.dlna.protocolinfo.PanasonicDmpProfiles;
 import net.pms.encoders.HlsHelper;
 import net.pms.encoders.ImageEngine;
@@ -46,11 +45,11 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaType;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.MediaServerRequest;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper;
 import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
@@ -272,6 +271,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), BUFFER_SIZE);
 			copyStreamAsync(inputStream, os, async);
 		} else {
+			if (HEAD.equalsIgnoreCase(req.getMethod()) && contentLength < 1) {
+				resp.flushBuffer();
+			}
 			try {
 				inputStream.close();
 			} catch (IOException ioe) {
@@ -384,8 +386,8 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				//resp.setHeader("Connection", "keep-alive");
 				try {
 					InputStream imageInputStream;
-					if (item.getEngine() instanceof ImageEngine) {
-						ProcessWrapper transcodeProcess = item.getEngine().launchTranscode(item,
+					if (item.isTranscoded() && item.getTranscodingSettings().getEngine() instanceof ImageEngine) {
+						ProcessWrapper transcodeProcess = item.getTranscodingSettings().getEngine().launchTranscode(item,
 								item.getMediaInfo(),
 								new OutputParams(CONFIGURATION)
 						);
@@ -398,15 +400,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					} else {
 						inputStream = DLNAImageInputStream.toImageInputStream(imageInputStream, imageProfile, false);
 						if (contentFeatures != null) {
-							if (CONFIGURATION.isUpnpJupnpDidl()) {
-								resp.setHeader("ContentFeatures.DLNA.ORG",
-										net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
-								);
-							} else {
-								resp.setHeader("ContentFeatures.DLNA.ORG",
-										DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false)
-								);
-							}
+							resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaImageContentFeatures(item, imageProfile, false));
 						}
 						if (inputStream != null && (range.getStart() > 0 || range.getEnd() > 0)) {
 							if (range.getStart() > 0) {
@@ -472,7 +466,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 								!CONFIGURATION.isDisableSubtitles() &&
 								renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
 							String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
-							if (StringUtils.isNotBlank(subtitleHttpHeader) && (item.getEngine() == null || renderer.streamSubsForTranscodedVideo())) {
+							if (StringUtils.isNotBlank(subtitleHttpHeader) && (!item.isTranscoded() || renderer.streamSubsForTranscodedVideo())) {
 								// Device allows a custom subtitle HTTP header; construct it
 								MediaSubtitle sub = item.getMediaSubtitle();
 								String subtitleUrl = item.getSubsURL(sub);
@@ -520,7 +514,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 
 					// Try to determine the content type of the file
-					String rendererMimeType = renderer.getMimeType(item);
+					String rendererMimeType = item.getMimeType();
 
 					if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 						resp.setContentType(rendererMimeType);
@@ -572,11 +566,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					range.setEnd(range.getStart() + cLoverride - (cLoverride > 0 ? 1 : 0));
 
 					if (contentFeatures != null) {
-						if (CONFIGURATION.isUpnpJupnpDidl()) {
-							resp.setHeader("ContentFeatures.DLNA.ORG", net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaContentFeatures(item));
-						} else {
-							resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
-						}
+						resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
 					}
 
 					if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
@@ -584,6 +574,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 
 					resp.setHeader("Accept-Ranges", "bytes");
+					if (GET.equals(req.getMethod().toUpperCase())) {
+						resp.setHeader("Connection", "keep-alive");
+					}
 				}
 			}
 
@@ -679,15 +672,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				filterChain
 		);
 		if (contentFeatures != null) {
-			if (CONFIGURATION.isUpnpJupnpDidl()) {
-				resp.setHeader("ContentFeatures.DLNA.ORG",
-						net.pms.network.mediaserver.jupnp.support.contentdirectory.result.DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
-				);
-			} else {
-				resp.setHeader("ContentFeatures.DLNA.ORG",
-						DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true)
-				);
-			}
+			resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true));
 		}
 		if (inputStream != null && (range.getStart() > 0 || range.getEnd() > 0)) {
 			if (range.getStart() > 0) {
@@ -722,10 +707,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			if (sub != null) {
 				// XXX external file is null if the first subtitle track is embedded
 				if (sub.isExternal()) {
-					if (sub.getExternalFile() == null && sub instanceof MediaOnDemandSubtitle) {
-						// Try to fetch subtitles
-						((MediaOnDemandSubtitle) sub).fetch();
-					}
 					if (sub.getExternalFile() == null) {
 						LOGGER.error("External subtitles file \"{}\" is unavailable", sub.getName());
 					} else {

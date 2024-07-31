@@ -20,10 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.database.MediaTableContainerFiles;
-import net.pms.database.MediaTableFiles;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
@@ -72,9 +69,9 @@ public class CueFolder extends StoreContainer {
 				if (!files.isEmpty()) {
 					FileData f = files.get(0);
 					List<TrackData> tracks = f.getTrackData();
-					Engine defaultPlayer = null;
+					TranscodingSettings defaultTranscodingSettings = null;
 					MediaInfo originalMedia = null;
-					List<RealFile> addedResources = new ArrayList<>();
+					ArrayList<StoreResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
 						TrackData track = tracks.get(i);
 						if (i > 0) {
@@ -116,12 +113,12 @@ public class CueFolder extends StoreContainer {
 						realFile.setSplitTrack(i + 1);
 
 						// Assign a splitter engine if file is natively supported by renderer
-						if (realFile.getEngine() == null) {
-							if (defaultPlayer == null) {
-								defaultPlayer = EngineFactory.getEngine(realFile);
+						if (!realFile.isTranscoded()) {
+							if (defaultTranscodingSettings == null) {
+								defaultTranscodingSettings = TranscodingSettings.getBestTranscodingSettings(realFile);
 							}
 
-							realFile.setEngine(defaultPlayer);
+							realFile.setTranscodingSettings(defaultTranscodingSettings);
 						}
 
 						if (realFile.getMediaInfo() != null) {
@@ -168,17 +165,7 @@ public class CueFolder extends StoreContainer {
 						}
 					}
 
-					Long containerId = MediaTableFiles.getOrInsertFileId(playlistfile.getAbsolutePath(), playlistfile.lastModified(), Format.PLAYLIST);
-					if (containerId != null) {
-						for (RealFile realFile : addedResources) {
-							File file = realFile.getFile();
-							Format format = realFile.getFormat();
-							if (file != null && format != null) {
-								Long entryId = MediaTableFiles.getOrInsertFileId(file.getAbsolutePath(), file.lastModified(), format.getType());
-								MediaTableContainerFiles.addContainerEntry(containerId, entryId);
-							}
-						}
-					}
+					storeFileInCache(playlistfile, Format.PLAYLIST);
 				}
 			}
 		}

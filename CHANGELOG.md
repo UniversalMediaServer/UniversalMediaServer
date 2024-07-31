@@ -11,7 +11,56 @@
 - Added possibility to add playlist in playlist.
 
 ### Dependencies
+- Bump `@playwright/test` from 1.44.1 to 1.45.3 ([#4861](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4861))
+- Bump `com.h2database:h2` from 2.2.224 to 2.3.230 ([#4840](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4840))
+- Bump `eslint` from 8.57.0 to 9.8.0 ([#4858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4858))
+- Bump `typescript` from 5.5.2 to 5.5.3 ([#4842](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4842))
+
+## [14.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.1...14.3.0) (2024-07-21)
+
+### General
+- Added season names to folders:
+  ![image info](./changelog-images/14-3-0-season-names.png)
+- Improved folder scanning speed (#4778)
+- Made new Media Server engine (Jetty+) the default
+- Fixed video player not fitting in browser window (#4832)
+- Fixed folder sorting (#4814) (thanks, Mandy D!)
+- Added automatic launch instructions for web settings in VS Code
+
+### Media players
+- Added renderer config for Sony Bravia XR series TVs
+- Added fallback renderer config for Sony Bravia TVs
+- Improved support for and detection of Samsung TVs including 2024 models
+
+### Translation updates via Crowdin
+- Hungarian (50%) (thanks, LZsolt75!)
+
+### Dependencies
+- Bump `@mantine/core` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `@mantine/dropzone` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `@mantine/form` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `@mantine/hooks` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `@mantine/modals` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `@mantine/notifications` from 7.10.2 to 7.11.2 ([#4818](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4818))
+- Bump `commons-logging:commons-logging` from 1.3.2 to 1.3.3 ([#4799](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4799))
+- Bump `eslint-plugin-react-refresh` from 0.4.7 to 0.4.8 ([#4817](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4817))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.0 to 3.3.1 ([#4816](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4816))
+- Bump `video.js` from 8.16.0 to 8.16.1 ([#4794](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4794))
+- Bump `youtube-dl` from 2021.12.17 to 2024.07.11
+
+## [14.2.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.0...14.2.1) (2024-07-11)
+
+### General
+- Fixed broken transcoding to renderers that do not support 10-bit video (#4797)
+- Fixed UMS not using default OS languages if only web settings is used (#4788)
+- Fixed file sorting options not working (#4698) (thanks, mykeehu!)
+- Fixed file sort order changing directions
+- Fixed broken web settings on Linux (#4803)
+
+### Dependencies
+- Bump `jetty.version` from 12.0.10 to 12.0.11 ([#4801](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4801))
 - Bump `junit5.version` from 5.10.2 to 5.10.3 ([#4796](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4796))
+- Bump `MediaInfo` from 24.01.1 to 24.06
 
 ## [14.2.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.1.0...14.2.0) (2024-06-29)
 

@@ -28,7 +28,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id = 'player';
-    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fluid', 'vjs-big-play-centered', 'full-card', 'card');
+    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fill', 'vjs-big-play-centered', 'full-card', 'card');
     document.getElementById('videodiv')?.appendChild(videoElem);
 
     const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null;

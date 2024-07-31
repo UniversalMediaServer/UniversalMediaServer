@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import net.pms.encoders.Engine;
+import net.pms.encoders.EncodingFormat;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -87,7 +87,7 @@ public class DidlHelper extends DlnaHelper {
 		final MediaStatus mediaStatus = resource.getMediaStatus();
 		final StoreContainer container = resource instanceof StoreContainer storeContainer ? storeContainer : null;
 		final StoreItem item = resource instanceof StoreItem storeItem ? storeItem : null;
-		final Engine engine = item != null ? item.getEngine() : null;
+		final EncodingFormat encodingFormat = item != null && item.isTranscoded() ? item.getTranscodingSettings().getEncodingFormat() : null;
 		final Format format = item != null ? item.getFormat() : null;
 		final MediaSubtitle mediaSubtitle = item != null ? item.getMediaSubtitle() : null;
 
@@ -99,7 +99,7 @@ public class DidlHelper extends DlnaHelper {
 				if (
 					!renderer.getUmsConfiguration().isDisableSubtitles() &&
 					(
-						engine == null ||
+						!item.isTranscoded() ||
 						renderer.streamSubsForTranscodedVideo()
 					) &&
 					mediaSubtitle != null &&
@@ -113,7 +113,7 @@ public class DidlHelper extends DlnaHelper {
 						LOGGER.trace("Subtitles are disabled");
 					} else if (mediaSubtitle.isEmbedded()) {
 						LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
-					} else if (engine != null && !renderer.streamSubsForTranscodedVideo()) {
+					} else if (item.isTranscoded() && !renderer.streamSubsForTranscodedVideo()) {
 						LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), renderer);
 					} else {
 						LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), renderer);
@@ -297,7 +297,7 @@ public class DidlHelper extends DlnaHelper {
 
 				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {
 					long transcodedSize = renderer.getTranscodedSize();
-					if (engine == null) {
+					if (!item.isTranscoded()) {
 						addAttribute(sb, "size", mediaInfo.getSize());
 					} else if (transcodedSize != 0) {
 						addAttribute(sb, "size", transcodedSize);
@@ -316,7 +316,7 @@ public class DidlHelper extends DlnaHelper {
 					}
 
 					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
-						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
+						if (item.isTranscoded() && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
 							addAttribute(sb, "resolution", item.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", defaultVideoTrack.getResolution());
@@ -331,7 +331,7 @@ public class DidlHelper extends DlnaHelper {
 
 					if (defaultAudioTrack != null) {
 						if (defaultAudioTrack.getNumberOfChannels() > 0) {
-							if (engine == null) {
+							if (!item.isTranscoded()) {
 								addAttribute(sb, "nrAudioChannels", defaultAudioTrack.getNumberOfChannels());
 							} else {
 								addAttribute(sb, "nrAudioChannels", renderer.getUmsConfiguration().getAudioChannelCount());
@@ -366,7 +366,7 @@ public class DidlHelper extends DlnaHelper {
 						int transcodeFrequency = -1;
 						int transcodeNumberOfChannels = -1;
 						if (defaultAudioTrack != null) {
-							if (engine == null) {
+							if (!item.isTranscoded()) {
 								if (defaultAudioTrack.getSampleRate() > 1) {
 									addAttribute(sb, "sampleFrequency", defaultAudioTrack.getSampleRate());
 								}
@@ -391,7 +391,7 @@ public class DidlHelper extends DlnaHelper {
 							addAttribute(sb, "bitsPerSample", defaultAudioTrack.getBitDepth());
 						}
 
-						if (engine == null) {
+						if (!item.isTranscoded()) {
 							if (mediaInfo.getSize() != 0) {
 								addAttribute(sb, "size", mediaInfo.getSize());
 							}
@@ -420,7 +420,7 @@ public class DidlHelper extends DlnaHelper {
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (engine != null && mediaInfo != null) {
+				if (encodingFormat != null && mediaInfo != null) {
 					// Note: Can't use instanceof below because the audio
 					// classes inherit the corresponding video class
 					if (mediaInfo.isVideo()) {
@@ -434,13 +434,13 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.mov";
 						} else if (renderer.getCustomFFmpegOptions().contains("-f webm")) {
 							transcodedExtension = "_transcoded_to.webm";
-						} else if (renderer.isTranscodeToHLS()) {
+						} else if (encodingFormat.isTranscodeToHLS()) {
 							transcodedExtension = "_transcoded_to.m3u8";
-						} else if (renderer.isTranscodeToMPEGTS()) {
+						} else if (encodingFormat.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
-						} else if (renderer.isTranscodeToMP4H265AC3()) {
+						} else if (encodingFormat.isTranscodeToMP4()) {
 							transcodedExtension = "_transcoded_to.mp4";
-						} else if (renderer.isTranscodeToWMV() && !xbox360) {
+						} else if (encodingFormat.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
 						} else {
 							transcodedExtension = "_transcoded_to.mpg";
@@ -452,9 +452,9 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.wav";
 						} else if (renderer.getCustomFFmpegAudioOptions().contains("-f s16be")) {
 							transcodedExtension = "_transcoded_to.pcm";
-						} else if (renderer.isTranscodeToMP3()) {
+						} else if (encodingFormat.isTranscodeToMP3()) {
 							transcodedExtension = "_transcoded_to.mp3";
-						} else if (renderer.isTranscodeToWAV()) {
+						} else if (encodingFormat.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";
 						} else {
 							transcodedExtension = "_transcoded_to.pcm";

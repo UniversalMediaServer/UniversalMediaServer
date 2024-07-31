@@ -661,11 +661,7 @@ public class UmsContentDirectoryService {
 
 				if (resource instanceof StoreContainer container) {
 					resultResources.add(container);
-				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
-						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
-						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						resources.get(0).isInsideTranscodeFolder())) {
+				} else if (resource instanceof StoreItem item && item.isCompatible()) {
 					resultResources.add(item);
 				} else {
 					badResourceCount++;
@@ -869,11 +865,7 @@ public class UmsContentDirectoryService {
 
 				if (resource instanceof StoreContainer container) {
 					resultResources.add(container);
-				} else if (resource instanceof StoreItem item && (item.isCompatible() &&
-						(item.getEngine() == null || item.getEngine().isEngineCompatible(renderer)) ||
-						// do not check compatibility of the media for items in the FileTranscodeVirtualFolder because we need
-						// all possible combination not only those supported by renderer because the renderer setting could be wrong.
-						resources.get(0).isInsideTranscodeFolder())) {
+				} else if (resource instanceof StoreItem item && item.isCompatible()) {
 					resultResources.add(item);
 				} else {
 					badResourceCount++;
