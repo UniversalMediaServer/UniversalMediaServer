@@ -286,7 +286,7 @@ public class Feed extends StoreContainer {
 		}
 
 		Document doc = Jsoup.connect(url).get();
-		feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href"); 
+		feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href");
 		LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
 
 		if (StringUtils.isNotBlank(feedUrl)) {
