@@ -38,7 +38,6 @@ import org.jdom2.Content;
 import org.jdom2.Element;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +59,7 @@ public class Feed extends StoreContainer {
 	public Feed(Renderer renderer, String name, String url, int type) {
 		super(renderer, name, null);
 		childSpecificType = type;
-		this.url = url;
+		this.url = getFeedUrl(url);
 	}
 
 	public void parse() throws Exception {
@@ -323,9 +322,13 @@ public class Feed extends StoreContainer {
 	 *
 	 * @return a transformed URL or the original one
 	 */
-	public static String getFeedUrl(String url) throws IOException {
-		if (url.contains("youtube.com")) {
-			return getYouTubeChannelFeedUrl(url);
+	public static String getFeedUrl(String url) {
+		try {
+			if (url.contains("youtube.com")) {
+				return getYouTubeChannelFeedUrl(url);
+			}
+		} catch (IOException e) {
+			LOGGER.debug("{}", e);
 		}
 
 		return url;
