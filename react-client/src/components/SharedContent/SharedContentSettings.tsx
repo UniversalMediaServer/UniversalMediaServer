@@ -583,7 +583,7 @@ export default function SharedContentSettings(
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group justify='flex-end' mt='sm'>
-          <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
+          <Button variant='outline' disabled={isLoading} onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
             {canModify ? isNew ? i18n.get('Add') : i18n.get('Apply') : i18n.get('Close')}
           </Button>
         </Group>
