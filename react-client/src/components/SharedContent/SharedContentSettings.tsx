@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -28,7 +28,7 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { getGroupName, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
-import { defaultTooltipSettings, openGitHubNewIssue, sharedApiUrl } from '../../utils';
+import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function SharedContentSettings(
@@ -355,12 +355,18 @@ export default function SharedContentSettings(
   const getMovableActionIcon = (value: SharedContent, isDragged: boolean, isSelected: boolean) => {
     return <ActionIcon
       data-movable-handle
-      size={20}
+      size={24}
       style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
       variant={isDragged || isSelected ? 'outline' : 'subtle'}
       disabled={!canModify}
     >
-      {sharedContents.indexOf(value) === 0 ? (<ArrowNarrowDown />) : sharedContents.indexOf(value) === sharedContents.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+      {
+        sharedContents.indexOf(value) === 0 ?
+          (<ArrowNarrowDown />) :
+          sharedContents.indexOf(value) === sharedContents.length - 1 ?
+            (<ArrowNarrowUp />) :
+            (<ArrowsVertical />)
+      }
     </ActionIcon>
   }
 
@@ -426,7 +432,7 @@ export default function SharedContentSettings(
             // react-movable has a bug, hack this until it's solved
             props.style = props.style ? { ...props.style, zIndex: isSelected ? 5000 : 'auto' } as CSSProperties : {} as CSSProperties;
             return (
-              <Card shadow='sm' withBorder {...props}>
+              <Card shadow='sm' padding='sm' withBorder {...props}>
                 <Group justify='space-between'>
                   <Group justify='flex-start'>
                     {getMovableActionIcon(value, isDragged, isSelected)}
@@ -666,19 +672,16 @@ export default function SharedContentSettings(
   const getScanSharedFoldersButton = () => {
     const haveFolder = sharedContents.find(sharedContent => sharedContent.type.startsWith('Folder'));
     return haveFolder ? (
-      <Tooltip label={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')} {...defaultTooltipSettings}>
-        <ActionIcon
-          size='xl'
-          disabled={!canModify || isLoading}
-          variant='transparent'
-          color={sse.mediaScan ? 'red' : 'blue'}
-          title={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
-          onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
-        >
-          <ListSearch />
-          {sse.mediaScan && (<Loader />)}
-        </ActionIcon>
-      </Tooltip>
+      <Button
+        disabled={!canModify || isLoading}
+        leftSection={<ListSearch />}
+        variant='outline'
+        color={sse.mediaScan ? 'red' : 'blue'}
+        onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+      >
+        {i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
+        {sse.mediaScan && (<Loader />)}
+      </Button>
     ) : null;
   }
 
@@ -705,7 +708,7 @@ export default function SharedContentSettings(
 
   return (
     <>
-      <Group>
+      <Group mb="md">
         <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get('AddNewSharedContent')}
         </Button>
