@@ -180,13 +180,12 @@ public class FFmpegParser {
 		args.add(engine);
 		args.add("-hide_banner");
 		args.add("-i");
-
 		args.add(url);
-
-		args.add("-vn");
-		args.add("-an");
-		args.add("-dn");
-		args.add("-sn");
+		args.add("-t");
+		args.add("1");
+		args.add("-f");
+		args.add("null");
+		args.add("-");
 
 		OutputParams params = new OutputParams(CONFIGURATION);
 		params.setMaxBufferSize(1);
