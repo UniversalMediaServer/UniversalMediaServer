@@ -365,6 +365,7 @@ public class RendererConfigurations {
 	 */
 	public static synchronized void loadRendererConfigurations() {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
+			ALL_RENDERERS_NAMES.clear();
 			ENABLED_RENDERERS_CONFS.clear();
 			try {
 				defaultConf = new RendererConfiguration(null);
