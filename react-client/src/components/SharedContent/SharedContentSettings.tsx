@@ -90,16 +90,21 @@ export default function SharedContentSettings(
   }
 
   /**
-   * SharedContent
-  */
+   * Shared Content
+   */
+  const getFeedName = async (uri: string): Promise<string> => {
+    const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: uri });
+    return response.data.name;
+  }
+
   const updateSharedContentFeedName = async (value: Feed) => {
     setLoading(true);
     try {
       const sharedContentsTemp = _.cloneDeep(sharedContents);
       const index = sharedContents.indexOf(value);
-      const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: value.uri });
-      if (response.data.name) {
-        (sharedContentsTemp[index] as Feed).name = response.data.name;
+      const name = await getFeedName(value.uri);
+      if (name) {
+        (sharedContentsTemp[index] as Feed).name = name;
         setSharedContents(sharedContentsTemp);
       } else {
         showNotification({
@@ -109,6 +114,7 @@ export default function SharedContentSettings(
         })
       }
     } catch (err) {
+      console.error(err);
       showNotification({
         color: 'red',
         title: i18n.get('Error'),
@@ -169,7 +175,14 @@ export default function SharedContentSettings(
     return (
       <div>
         <div>{type}</div>
-        <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>}</div>
+        <div>
+          {getSharedContentParents(value)}
+          {
+            value.name ?
+              <Code color='teal'>{value.name}</Code> :
+              <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>
+          }
+        </div>
         <div><Code color='blue'>{value.uri}</Code></div>
         {getRestrictedGroups(value)}
       </div>
@@ -578,9 +591,10 @@ export default function SharedContentSettings(
     );
   }
 
-  const saveModal = (values: typeof modalForm.values) => {
+  const saveModal = async (values: typeof modalForm.values) => {
     const sharedContentsTemp = _.cloneDeep(sharedContents);
     const contentGroups = values.contentGroups.map(Number);
+
     switch (values.contentType) {
       case 'Folder':
         if (editingIndex < 0) {
@@ -603,6 +617,10 @@ export default function SharedContentSettings(
       case 'FeedAudio':
       case 'FeedImage':
       case 'FeedVideo':
+        setLoading(true);
+        values.contentName = await getFeedName(values.contentSource);
+        setLoading(false);
+
         if (editingIndex < 0) {
           sharedContentsTemp.push({ type: values.contentType, active: true, groups: contentGroups, parent: values.contentPath, name: values.contentName, uri: values.contentSource } as Feed);
         } else {
