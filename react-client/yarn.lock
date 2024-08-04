@@ -3835,13 +3835,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-movable@npm:3.2.0":
-  version: 3.2.0
-  resolution: "react-movable@npm:3.2.0"
+"react-movable@npm:3.3.1":
+  version: 3.3.1
+  resolution: "react-movable@npm:3.3.1"
   peerDependencies:
-    react: ">=16.3"
-    react-dom: ">=16.3"
-  checksum: 10c0/34743a62ba9e559069452193d6a81420b7be0e92ba8165638b41b646edfa659e1c5a6e3cee029554c37dbd7bf81a7ec55f09186e3ae768fce5c9df2dcffecc68
+    react: "*"
+    react-dom: "*"
+  checksum: 10c0/eb809045471a64ea54f2e9bb0d863d1b835c5d6ec117d77a3369246d6b507ab856b73204fa64dab64739a1d6eb163e739712601f44405294ad1832ee425f57ec
   languageName: node
   linkType: hard
 
@@ -4649,7 +4649,7 @@ __metadata:
     react: "npm:18.3.1"
     react-country-flag: "npm:3.1.0"
     react-dom: "npm:18.3.1"
-    react-movable: "npm:3.2.0"
+    react-movable: "npm:3.3.1"
     react-router-dom: "npm:6.23.1"
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.5.4"
