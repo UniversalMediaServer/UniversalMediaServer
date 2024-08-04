@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@playwright/test` from 1.44.1 to 1.45.3 ([#4861](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4861))
+- Bump `@types/lodash` from 4.17.5 to 4.17.7 ([#4845](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4845))
 - Bump `com.h2database:h2` from 2.2.224 to 2.3.230 ([#4840](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4840))
 - Bump `eslint` from 8.57.0 to 9.8.0 ([#4858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4858))
 - Bump `typescript` from 5.5.2 to 5.5.4 ([#4842](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4842), [#4862](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4862))
