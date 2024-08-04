@@ -50,6 +50,5 @@ docker/jre*
 /gon-config-*
 
 # Playwright test outputs
-react-client/tests/*-snapshots/
 react-client/test-results/
 ums-testserver.jar
