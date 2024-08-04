@@ -3,7 +3,6 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  # Detect whether Java server code has changed, so it can be skipped
   changes:
     if: |
       (
@@ -51,9 +50,9 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.webfiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.webfiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: macOS web browser tests
     runs-on: macos-13
@@ -89,7 +88,7 @@ jobs:
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
-        if: needs.changes.outputs.javafiles == 'true'
+        if: steps.changes.outputs.javafiles == 'true'
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
       - name: Run Playwright tests
@@ -108,8 +107,8 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: macOS Java tests
     runs-on: macos-13
@@ -144,8 +143,8 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: Windows
     runs-on: windows-latest
@@ -176,8 +175,8 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: Linux 20.04
     runs-on: ubuntu-20.04
@@ -214,8 +213,8 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: Linux 22.04
     runs-on: ubuntu-22.04
@@ -252,8 +251,8 @@ jobs:
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
         (github.event_name == 'pull_request')
       ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
+        steps.changes.outputs.javafiles == 'true' ||
+        steps.changes.outputs.cifile == 'true'
       )
     name: Lint
     runs-on: ubuntu-22.04
