@@ -341,12 +341,17 @@ public class SharedContentTab implements SharedContentListener {
 					String resourceName = null;
 					if (!StringUtils.isBlank(newEntrySource.getText())) {
 						try {
-							if (readableTypeImageFeed.equals(newEntryType.getSelectedItem().toString()) ||
-									readableTypeAudioFeed.equals(newEntryType.getSelectedItem().toString()) ||
-									readableTypeVideoFeed.equals(newEntryType.getSelectedItem().toString())) {
-								resourceName = Feed.getFeedTitle(newEntrySource.getText());
-							} else if (readableTypeVideoStream.equals(newEntryType.getSelectedItem().toString()) ||
-									readableTypeAudioStream.equals(newEntryType.getSelectedItem().toString())) {
+							if (
+								readableTypeImageFeed.equals(newEntryType.getSelectedItem().toString()) ||
+								readableTypeAudioFeed.equals(newEntryType.getSelectedItem().toString()) ||
+								readableTypeVideoFeed.equals(newEntryType.getSelectedItem().toString())
+							) {
+								String uri = Feed.getFeedUrl(newEntrySource.getText());
+								resourceName = Feed.getFeedTitle(uri);
+							} else if (
+								readableTypeVideoStream.equals(newEntryType.getSelectedItem().toString()) ||
+								readableTypeAudioStream.equals(newEntryType.getSelectedItem().toString())
+							) {
 								resourceName = newEntryName.getText();
 							}
 						} catch (Exception e2) {
