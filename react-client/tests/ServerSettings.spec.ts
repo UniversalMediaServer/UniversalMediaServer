@@ -21,3 +21,4 @@ test('should be able to see the advanced settings', async ({ page }) => {
 
   await expect(page).toHaveScreenshot();
 });
+
