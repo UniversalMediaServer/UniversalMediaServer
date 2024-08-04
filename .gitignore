@@ -48,8 +48,3 @@ docker/jre*
 
 # Ignore the populated Gon scripts because they contain private info
 /gon-config-*
-
-# Playwright test outputs
-react-client/tests/*-snapshots/
-react-client/test-results/
-ums-testserver.jar
