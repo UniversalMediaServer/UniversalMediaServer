@@ -85,6 +85,7 @@ jobs:
         working-directory: ./react-client
         run: yarn
       - name: Install Playwright Browsers
+        if: steps.cache-node-dependencies.outputs.cache-hit != 'true'
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
