@@ -93,9 +93,13 @@ jobs:
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
       - name: Run Playwright tests
-        if: '!contains(github.event.head_commit.message, "--update-snapshots")'
+        if: !contains(github.event.head_commit.message, '--update-snapshots')
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
+      - name: Run Playwright tests while updating visual comparison screenshots
+        if: contains(github.event.head_commit.message, '--update-snapshots')
+        working-directory: ./react-client
+        run: DEBUG=pw:webserver yarn playwright test --update-snapshots
 
   macos:
     needs: changes
