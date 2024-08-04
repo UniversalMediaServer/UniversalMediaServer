@@ -20,5 +20,6 @@ test('should be able to see the advanced settings', async ({ page }) => {
   await expect(page.getByText('Renderers Settings')).toBeInViewport();
 
   await expect(page).toHaveScreenshot();
-});
 
+  await expect(page.getByText('Renderers Settings')).toBeInViewport();
+});
