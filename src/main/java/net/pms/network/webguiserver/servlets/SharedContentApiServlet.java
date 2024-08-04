@@ -147,7 +147,8 @@ public class SharedContentApiServlet extends GuiHttpServlet {
 					if (request.has("source")) {
 						String webContentName;
 						try {
-							webContentName = Feed.getFeedTitle(request.get("source").getAsString());
+							String uri = Feed.getFeedUrl(request.get("source").getAsString());
+							webContentName = Feed.getFeedTitle(uri);
 						} catch (Exception e) {
 							webContentName = "";
 						}
