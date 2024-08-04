@@ -44,24 +44,9 @@ jobs:
             cifile:
               - '.github/workflows/ci.yaml'
 
-  check_snapshot_flags:
-    name: Check snapshot flags
-    runs-on: ubuntu-latest
-    outputs:
-      head-commit-message: ${{ steps.get_head_commit_message.outputs.headCommitMsg }}
-    steps:
-      - name: Get repo
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-      - name: Print head git commit message
-        id: get_head_commit_message
-        run: echo "::set-output name=headCommitMsg::$(git show -s --format=%s)"
-
   macos-browser:
     needs:
       - changes
-      - check_snapshot_flags
     if: |
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
@@ -109,13 +94,8 @@ jobs:
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
       - name: Run Playwright tests
-        if: ${{ !contains(needs.check_snapshot_flags.outputs.head-commit-message, '--update-snapshots') }}
         working-directory: ./react-client
         run: DEBUG=pw:webserver yarn playwright test
-      - name: Run Playwright tests while updating visual comparison screenshots
-        if: ${{ contains(needs.check_snapshot_flags.outputs.head-commit-message, '--update-snapshots') }}
-        working-directory: ./react-client
-        run: DEBUG=pw:webserver yarn playwright test --update-snapshots
 
   macos:
     needs: changes
