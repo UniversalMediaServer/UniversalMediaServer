@@ -89,6 +89,7 @@ jobs:
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
+        if: needs.changes.outputs.javafiles == 'true'
         working-directory: ./react-client
         run: npm run test:prepareserver:macos
       - name: Run Playwright tests
