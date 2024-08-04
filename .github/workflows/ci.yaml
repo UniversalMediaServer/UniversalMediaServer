@@ -4,11 +4,6 @@ on: [push, pull_request]
 
 jobs:
   changes:
-    if: |
-      (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-        (github.event_name == 'pull_request')
-      )
     name: Build list of changed files
     runs-on: ubuntu-latest
     # Required permissions
