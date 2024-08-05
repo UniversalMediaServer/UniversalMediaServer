@@ -58,25 +58,27 @@ export default function SharedContent() {
   }, [configuration, sse, formSetValues]);
 
   useEffect(() => {
-    canView && axios.get(sharedApiUrl)
-      .then(function(response: any) {
-        const sharedResponse = response.data;
-        setConfiguration(sharedResponse);
-        formSetValues(sharedResponse);
-      })
-      .catch(function() {
-        showNotification({
-          id: 'data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-          onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
+    if (canView) {
+      axios.get(sharedApiUrl)
+        .then(function(response: any) {
+          const sharedResponse = response.data;
+          setConfiguration(sharedResponse);
+          formSetValues(sharedResponse);
+        })
+        .catch(function() {
+          showNotification({
+            id: 'data-loading',
+            color: 'red',
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
+            onClick: () => { openGitHubNewIssue(); },
+            autoClose: 3000,
+          });
+        })
+        .then(function() {
+          setLoading(false);
         });
-      })
-      .then(function() {
-        setLoading(false);
-      });
+    }
   }, [canView, formSetValues]);
 
   const handleSubmit = async (values: typeof form.values) => {

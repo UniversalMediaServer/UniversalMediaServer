@@ -171,7 +171,9 @@ const Accounts = () => {
                   userProfileForm.setFieldValue('avatar', result);
                 }
               }
-              files[0] && reader.readAsDataURL(files[0]);
+              if (files[0]) {
+                reader.readAsDataURL(files[0]);
+              }
             }}
           >
             <Group justify='center'>

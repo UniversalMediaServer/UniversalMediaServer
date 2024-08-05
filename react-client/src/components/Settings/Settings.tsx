@@ -81,31 +81,33 @@ export default function Settings() {
 
   // Code here will run just like componentDidMount
   useEffect(() => {
-    canView && axios.get(settingsApiUrl)
-      .then(function(response: any) {
-        const settingsResponse = response.data;
-        setSelectionSettings(settingsResponse);
-        setDefaultConfiguration(settingsResponse.userSettingsDefaults);
+    if (canView) {
+      axios.get(settingsApiUrl)
+        .then(function(response: any) {
+          const settingsResponse = response.data;
+          setSelectionSettings(settingsResponse);
+          setDefaultConfiguration(settingsResponse.userSettingsDefaults);
 
-        // merge defaults with what we receive, which might only be non-default values
-        const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
+          // merge defaults with what we receive, which might only be non-default values
+          const userConfig = _.merge({}, settingsResponse.userSettingsDefaults, settingsResponse.userSettings);
 
-        setConfiguration(userConfig);
-        formSetValues(userConfig);
-      })
-      .catch(function() {
-        showNotification({
-          id: 'data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-          onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
+          setConfiguration(userConfig);
+          formSetValues(userConfig);
+        })
+        .catch(function() {
+          showNotification({
+            id: 'data-loading',
+            color: 'red',
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
+            onClick: () => { openGitHubNewIssue(); },
+            autoClose: 3000,
+          });
+        })
+        .then(function() {
+          setLoading(false);
         });
-      })
-      .then(function() {
-        setLoading(false);
-      });
+    }
   }, [canView, formSetValues]);
 
   const handleSubmit = async (values: typeof form.values) => {
