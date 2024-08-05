@@ -335,7 +335,7 @@ export const Player = () => {
                     computedColorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
-              onClick={() => { media.id && sse.askBrowseId(media.id) }}
+              onClick={() => { if (media.id) { sse.askBrowseId(media.id) } }}
             >
               {getI18nName(media.name)}
             </Badge>);
@@ -357,7 +357,7 @@ export const Player = () => {
                 fontSize: '1.5em',
                 cursor: 'pointer',
               }}
-              onClick={() => { media.id && sse.askBrowseId(media.id) }}
+              onClick={() => { if (media.id) { sse.askBrowseId(media.id) } }}
             />
           );
         })}
