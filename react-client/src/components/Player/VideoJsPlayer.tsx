@@ -16,8 +16,8 @@
  */
 import axios from 'axios';
 import { useEffect } from 'react';
-import videojs, { ReadyCallback } from 'video.js';
-import Player from 'video.js/dist/types/player';
+import videojs from 'video.js';
+import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.min.css';
 
 import { playerApiUrl } from '../../utils';
@@ -123,7 +123,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
     };
 
-    const videoPlayer = videojs(videoElem, options, onready as ReadyCallback);
+    const videoPlayer = videojs(videoElem, options, onready as PlayerReadyCallback);
 
     return () => {
       if (!videoPlayer.isDisposed()) {
