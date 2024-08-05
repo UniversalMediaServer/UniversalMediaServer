@@ -5,6 +5,7 @@
 ### Dependencies
 - Bump `@playwright/test` from 1.44.1 to 1.45.3 ([#4861](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4861))
 - Bump `com.h2database:h2` from 2.2.224 to 2.3.230 ([#4840](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4840))
+- Bump `commons-codec:commons-codec` from 1.17.0 to 1.17.1 ([#4841](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4841))
 - Bump `eslint-plugin-react-refresh` from 0.4.8 to 0.4.9 ([#4875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4875))
 - Bump `eslint` from 8.57.0 to 9.8.0 ([#4858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4858))
 - Bump `jetty.version` from 12.0.11 to 12.0.12 ([#4876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4876))
