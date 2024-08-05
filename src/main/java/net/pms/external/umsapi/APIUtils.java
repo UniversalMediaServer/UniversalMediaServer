@@ -56,6 +56,7 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
@@ -783,16 +784,20 @@ public class APIUtils {
 					}
 				}
 
-				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+				MediaInfoStore.updateTvSeriesMetadata(tvSeriesMetadata, tvSeriesId);
 				tvSeriesMetadata.setTvSeriesId(tvSeriesId);
 			}
 			//update MediaVideoMetadata
 			if (videoMetadata != null) {
 				LOGGER.trace("Setting Episode TvSeriesMetadata {}", tvSeriesMetadata.getTitle());
-				videoMetadata.setSeriesMetadata(tvSeriesMetadata);
-				if (tvSeriesMetadata.getTvSeriesId() != null && !tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
-					LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
-					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+				if (tvSeriesMetadata.getTvSeriesId() != null) {
+					videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(videoMetadata.getTvSeriesId()));
+					if (!tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
+						LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
+						videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+					}
+				} else {
+					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 				}
 				if (!tvSeriesMetadata.getTmdbId().equals(videoMetadata.getTmdbTvId())) {
 					LOGGER.trace("Replacing Episode TmdbTvId from {} to {}", videoMetadata.getTmdbTvId(), tvSeriesMetadata.getTmdbId());
