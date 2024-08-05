@@ -234,13 +234,14 @@ public class Feed extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		try {
 			getChildren().clear();
 			parse();
 		} catch (Exception e) {
 			LOGGER.error("Error in parsing stream: " + url, e);
 		}
+		sortChildrenIfNeeded();
 	}
 
 	/**
