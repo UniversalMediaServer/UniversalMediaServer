@@ -123,7 +123,11 @@ export const I18nProvider = ({ children }: Props) => {
   }
 
   useEffect(() => {
-    version ? getI18nLanguage(language, version) : getI18nVersion(language);
+    if (version) {
+      getI18nLanguage(language, version);
+    } else {
+      getI18nVersion(language);
+    }
   }, [language]);
 
   const { Provider } = I18nContext;

@@ -397,7 +397,7 @@ export default function SharedContentSettings(
         lockVertically
         values={sharedContents}
         onChange={({ oldIndex, newIndex }) => {
-          canModify && moveSharedContentItem(oldIndex, newIndex);
+          if (canModify) { moveSharedContentItem(oldIndex, newIndex); }
         }}
         renderList={
           ({ children, props }) => {
@@ -492,9 +492,9 @@ export default function SharedContentSettings(
       { value: 'StreamAudio', label: i18n.get('AudioStream') },
       { value: 'StreamVideo', label: i18n.get('VideoStream') },
     ];
-    configuration.show_itunes_library && data.push({ value: 'iTunes', label: i18n.get('ItunesLibrary') });
-    configuration.show_iphoto_library && data.push({ value: 'iPhoto', label: i18n.get('IphotoLibrary') });
-    configuration.show_aperture_library && data.push({ value: 'Aperture', label: i18n.get('ApertureLibrary') });
+    if (configuration.show_itunes_library) { data.push({ value: 'iTunes', label: i18n.get('ItunesLibrary') }); }
+    if (configuration.show_iphoto_library) { data.push({ value: 'iPhoto', label: i18n.get('IphotoLibrary') }); }
+    if (configuration.show_aperture_library) { data.push({ value: 'Aperture', label: i18n.get('ApertureLibrary') }); }
     return (
       <Modal
         scrollAreaComponent={ScrollArea.Autosize}
@@ -570,7 +570,7 @@ export default function SharedContentSettings(
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group justify='flex-end' mt='sm'>
-          <Button variant='outline' onClick={() => { canModify ? saveModal(modalForm.values) : setNewOpened(false) }}>
+          <Button variant='outline' onClick={() => { if (canModify) { saveModal(modalForm.values) } else { setNewOpened(false) } }}>
             {canModify ? isNew ? i18n.get('Add') : i18n.get('Apply') : i18n.get('Close')}
           </Button>
         </Group>
