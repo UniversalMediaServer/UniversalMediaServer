@@ -80,7 +80,9 @@ const Home = () => {
   }, [renderers, sse]);
 
   useEffect(() => {
-    canView && refreshData();
+    if (canView) {
+      refreshData();
+    }
   }, [canView]);
 
   const refreshData = async () => {
@@ -166,7 +168,11 @@ const Home = () => {
           message: i18n.get('ConfigurationSaved'),
           icon: <Check size='1rem' />
         });
-        fromDevice ? refreshDeviceData() : refreshData();
+        if (fromDevice) {
+          refreshDeviceData()
+        } else {
+          refreshData();
+        }
       })
       .catch(function(error) {
         if (!error.response && error.request) {

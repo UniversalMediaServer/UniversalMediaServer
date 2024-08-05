@@ -115,7 +115,12 @@ const Renderers = (
       <Group justify='flex-end' mt='md'>
         <Button
           disabled={!userChangerValue || userChangerValue == userChanger?.userId.toString()}
-          onClick={() => { userChanger && setUserId(userChanger.uuid, userChangerValue); setUserChanger(null) }}
+          onClick={() => {
+            if (userChanger) {
+              setUserId(userChanger.uuid, userChangerValue);
+            }
+            setUserChanger(null)
+          }}
         >
           {i18n.get('Apply')}
         </Button>

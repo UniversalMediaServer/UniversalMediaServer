@@ -63,12 +63,16 @@ export const getGroupName = (groupId: number, groups: UmsGroup[]) => {
 
 export const getUserGroupsSelection = (groups: UmsGroup[], none?: string) => {
   const result = [];
-  none && result.push({ value: '0', label: none });
-  groups && groups.forEach((group: UmsGroup) => {
-    if (group.id > 0) {
-      result.push({ value: group.id.toString(), label: group.displayName });
-    }
-  });
+  if (none) {
+    result.push({ value: '0', label: none });
+  }
+  if (groups) {
+    groups.forEach((group: UmsGroup) => {
+      if (group.id > 0) {
+        result.push({ value: group.id.toString(), label: group.displayName });
+      }
+    });
+  }
   return result;
 };
 
