@@ -21,8 +21,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.pms.dlna.DLNAThumbnailInputStream;
-import net.pms.encoders.Engine;
 import net.pms.encoders.EngineFactory;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.image.BufferedImageFilterChain;
 import net.pms.media.MediaLang;
 import net.pms.media.audio.MediaAudio;
@@ -61,22 +61,16 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 			StoreItem original,
 			MediaAudio audio,
 			MediaSubtitle subtitle,
-			Engine engine) {
+			TranscodingSettings transcodingSettings) {
 		// FIXME clone is broken. should be e.g. original.newInstance()
 		StoreItem copy = original.clone();
 		copy.setMediaInfo(original.getMediaInfo());
 		copy.setNoName(true);
 		copy.setMediaAudio(audio);
 		copy.setMediaSubtitle(subtitle);
-		copy.setEngine(engine);
+		copy.setTranscodingSettings(transcodingSettings);
 
 		return copy;
-	}
-
-	private static boolean isSeekable(StoreItem resource) {
-		Engine engine = resource.getEngine();
-
-		return (engine == null) || engine.isTimeSeekable();
 	}
 
 	private void addChapterFolder(StoreItem resource) {
@@ -87,7 +81,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 		int chapterInterval = renderer.getUmsConfiguration().isChapterSupport() ?
 				renderer.getUmsConfiguration().getChapterInterval() : -1;
 
-		if ((chapterInterval > 0) && isSeekable(resource)) {
+		if ((chapterInterval > 0) && resource.isTimeSeekable()) {
 			// don't add a chapter folder if the duration of the video
 			// is less than the chapter length.
 			double duration = resource.getMediaInfo().getDurationInSeconds(); // 0 if the duration is unknown
@@ -215,12 +209,12 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 					// subtitle modified in order to be able to match engines to it.
 					StoreItem temp = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, null);
 
-					// Determine which engines match this audio track and subtitle
-					List<Engine> engines = EngineFactory.getEngines(temp);
+					// Determine which transcodingSettings match this audio track and subtitle
+					List<TranscodingSettings> transcodingsSettings = TranscodingSettings.getTranscodingsSettings(temp);
 
 					// create a copy for each compatible engine
-					for (Engine engine : engines) {
-						StoreItem copy = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, engine);
+					for (TranscodingSettings transcodingSettings : transcodingsSettings) {
+						StoreItem copy = createResourceWithAudioSubtitleEngine(originalResource, audio, subtitle, transcodingSettings);
 						entries.add(copy);
 					}
 				}
@@ -247,7 +241,7 @@ public class FileTranscodeVirtualFolder extends TranscodeVirtualFolder {
 						resource.getName(),
 						resource.getMediaAudio(),
 						resource.getMediaSubtitle(),
-						resource.getEngine() != null ? resource.getEngine().getName() : null);
+						resource.getTranscodingSettings() != null ? resource.getTranscodingSettings().toString() : null);
 
 				addChildInternal(resource);
 				addChapterFolder(resource);

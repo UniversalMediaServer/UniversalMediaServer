@@ -289,7 +289,7 @@ public class MEncoderVideo extends Engine {
 	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
-	private String addMaximumBitrateConstraints(EncodeOptions encodeOptions, String encodeSettings, MediaInfo media, String quality, Renderer renderer, String audioType) {
+	private String addMaximumBitrateConstraints(EncodeOptions encodeOptions, String encodeSettings, MediaInfo media, String quality, Renderer renderer, String audioType, EncodingFormat encodingFormat) {
 		// Use device-specific ums conf
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
@@ -337,7 +337,7 @@ public class MEncoderVideo extends Engine {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if ((renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) && !isXboxOneWebVideo) {
+			if ((encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265()) && !isXboxOneWebVideo) {
 				if (
 					renderer.getH264LevelLimit() < 4.2 &&
 					defaultMaxBitrates[0] > 31250
@@ -418,7 +418,7 @@ public class MEncoderVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		StoreItem resource,
+		StoreItem item,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -430,8 +430,9 @@ public class MEncoderVideo extends Engine {
 
 		boolean avisynth = isAviSynthEngine();
 
-		final String filename = resource.getFileName();
-		setAudioAndSubs(resource, params);
+		final String filename = item.getFileName();
+		final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
+		setAudioAndSubs(item, params);
 
 		MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 
@@ -456,7 +457,7 @@ public class MEncoderVideo extends Engine {
 		newInput.setFilename(filename);
 		newInput.setPush(params.getStdIn());
 
-		boolean isDVD = resource instanceof DVDISOTitle;
+		boolean isDVD = item instanceof DVDISOTitle;
 
 		encodeOptions.ovccopy  = false;
 		encodeOptions.pcm      = false;
@@ -485,12 +486,12 @@ public class MEncoderVideo extends Engine {
 		if (!configuration.isMencoderMuxWhenCompatible()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		} else if (resource.isInsideTranscodeFolder()) {
+		} else if (item.isInsideTranscodeFolder()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the TRANSCODE folder.");
-		} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media)) {
+		} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
 			deferToTsmuxer = false;
-			LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), renderer.getTranscodingContainer());
+			LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), encodingFormat.getTranscodingContainer());
 		} else if (params.getSid() != null) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
@@ -549,19 +550,21 @@ public class MEncoderVideo extends Engine {
 
 			if (!nomux) {
 				TsMuxeRVideo tv = (TsMuxeRVideo) EngineFactory.getEngine(StandardEngineId.TSMUXER_VIDEO, false, true);
-				params.setForceFps(getValidFps(media.getFrameRate(), false));
+				if (tv != null) {
+					params.setForceFps(getValidFps(media.getFrameRate(), false));
 
-				if (defaultVideoTrack.getCodec() != null) {
-					if (defaultVideoTrack.isH264()) {
-						params.setForceType("V_MPEG4/ISO/AVC");
-					} else if (defaultVideoTrack.getCodec().startsWith("mpeg2")) {
-						params.setForceType("V_MPEG-2");
-					} else if (defaultVideoTrack.getCodec().equals("vc1")) {
-						params.setForceType("V_MS/VFW/WVC1");
+					if (defaultVideoTrack.getCodec() != null) {
+						if (defaultVideoTrack.isH264()) {
+							params.setForceType("V_MPEG4/ISO/AVC");
+						} else if (defaultVideoTrack.getCodec().startsWith("mpeg2")) {
+							params.setForceType("V_MPEG-2");
+						} else if (defaultVideoTrack.getCodec().equals("vc1")) {
+							params.setForceType("V_MS/VFW/WVC1");
+						}
 					}
-				}
 
-				return tv.launchTranscode(resource, media, params);
+					return tv.launchTranscode(item, media, params);
+				}
 			}
 		} else if (params.getSid() == null && isDVD && configuration.isMencoderRemuxMPEG2() && renderer.isMpeg2Supported()) {
 			String[] expertOptions = getSpecificCodecOptions(
@@ -587,9 +590,9 @@ public class MEncoderVideo extends Engine {
 			}
 		}
 
-		encodeOptions.isTranscodeToMPEGTS = renderer.isTranscodeToMPEGTS();
-		encodeOptions.isTranscodeToH264   = renderer.isTranscodeToH264() || renderer.isTranscodeToH265();
-		encodeOptions.isTranscodeToAAC    = renderer.isTranscodeToAAC();
+		encodeOptions.isTranscodeToMPEGTS = encodingFormat.isTranscodeToMPEGTS();
+		encodeOptions.isTranscodeToH264   = encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265();
+		encodeOptions.isTranscodeToAAC    = encodingFormat.isTranscodeToAAC();
 
 		final boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
@@ -598,7 +601,7 @@ public class MEncoderVideo extends Engine {
 			vcodec = "libx264";
 		} else if (
 			(
-				renderer.isTranscodeToWMV() &&
+				encodingFormat.isTranscodeToWMV() &&
 				!renderer.isXbox360()
 			) ||
 			isXboxOneWebVideo
@@ -658,7 +661,7 @@ public class MEncoderVideo extends Engine {
 			params.getAid() != null &&
 			params.getAid().isAC3() &&
 			!isAviSynthEngine() &&
-			renderer.isTranscodeToAC3() &&
+			encodingFormat.isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
 			!encodeOptions.encodedAudioPassthrough &&
@@ -825,7 +828,7 @@ public class MEncoderVideo extends Engine {
 						acodec += "wmav2";
 					} else {
 						acodec = cbrSettings + acodec;
-						if (renderer.isTranscodeToAAC()) {
+						if (encodingFormat.isTranscodeToAAC()) {
 							acodec += "libfaac";
 						} else if (configuration.isMencoderAc3Fixed()) {
 							acodec += "ac3_fixed";
@@ -872,7 +875,7 @@ public class MEncoderVideo extends Engine {
 				audioType = "dts";
 			} else if (encodeOptions.pcm || encodeOptions.encodedAudioPassthrough) {
 				audioType = "pcm";
-			} else if (renderer.isTranscodeToAAC()) {
+			} else if (encodingFormat.isTranscodeToAAC()) {
 				audioType = "aac";
 			}
 
@@ -940,7 +943,7 @@ public class MEncoderVideo extends Engine {
 					":threads=" + (encodeOptions.wmv && !renderer.isXbox360() ? 1 : configuration.getMencoderMaxThreads()) +
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
-				encodeSettings = addMaximumBitrateConstraints(encodeOptions, encodeSettings, media, mpeg2Options, renderer, audioType);
+				encodeSettings = addMaximumBitrateConstraints(encodeOptions, encodeSettings, media, mpeg2Options, renderer, audioType, encodingFormat);
 			} else if (configuration.getx264ConstantRateFactor() != null && encodeOptions.isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
@@ -967,7 +970,7 @@ public class MEncoderVideo extends Engine {
 						x264CRF = "16";
 
 						// Lower quality for 720p+ content
-						if (defaultVideoTrack.getWidth() > 720) {
+						if (defaultVideoTrack.getWidth() > 720 && !encodingFormat.isTranscodeToH265()) {
 							x264CRF = "19";
 						}
 					}
@@ -978,7 +981,7 @@ public class MEncoderVideo extends Engine {
 
 				encodeSettings += " -x264encopts crf=" + x264CRF + ":preset=superfast:level=31:threads=auto";
 
-				encodeSettings = addMaximumBitrateConstraints(encodeOptions, encodeSettings, media, "", renderer, audioType);
+				encodeSettings = addMaximumBitrateConstraints(encodeOptions, encodeSettings, media, "", renderer, audioType, encodingFormat);
 			}
 
 			st = new StringTokenizer(encodeSettings, " ");
@@ -1286,16 +1289,16 @@ public class MEncoderVideo extends Engine {
 					cmdList.add("" + params.getSid().getLang());
 				} else if (
 					!renderer.streamSubsForTranscodedVideo() ||
-					!renderer.isExternalSubtitlesFormatSupported(params.getSid(), resource)
+					!renderer.isExternalSubtitlesFormatSupported(params.getSid(), item)
 				) {
 					// Only transcode subtitles if they aren't streamable
 					cmdList.add("-sub");
-					MediaSubtitle convertedSubs = resource.getMediaSubtitle();
+					MediaSubtitle convertedSubs = item.getMediaSubtitle();
 					if (defaultVideoTrack.is3d()) {
 						if (convertedSubs != null && convertedSubs.getConvertedFile() != null) { // subs are already converted to 3D so use them
 							cmdList.add(convertedSubs.getConvertedFile().getAbsolutePath().replace(",", "\\,"));
 						} else if (params.getSid().getType() != SubtitleType.ASS) { // When subs are not converted and they are not in the ASS format and video is 3D then subs need conversion to 3D
-							File subsFilename = SubtitleUtils.getSubtitles(resource, media, params, configuration, SubtitleType.ASS);
+							File subsFilename = SubtitleUtils.getSubtitles(item, media, params, configuration, SubtitleType.ASS);
 							cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
 						}
 					} else {
@@ -1550,7 +1553,7 @@ public class MEncoderVideo extends Engine {
 			String vfValuePrepend = "expand=";
 
 			if (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding()) {
-				String resolution = resource.getResolutionForKeepAR(scaleWidth, scaleHeight);
+				String resolution = item.getResolutionForKeepAR(scaleWidth, scaleHeight);
 				scaleWidth = Integer.parseInt(StringUtils.substringBefore(resolution, "x"));
 				scaleHeight = Integer.parseInt(StringUtils.substringAfter(resolution, "x"));
 
@@ -1681,7 +1684,8 @@ public class MEncoderVideo extends Engine {
 								media,
 								lavcopts,
 								renderer,
-								""
+								"",
+								encodingFormat
 						);
 
 						// a string format with no placeholders, so the cmdList option value is ignored.
@@ -2083,7 +2087,7 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public String mimeType() {
+	public String getMimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
 	}
 
@@ -2240,13 +2244,18 @@ public class MEncoderVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
+	public boolean isCompatible(StoreItem item) {
 		return (
-			PlayerUtil.isVideo(resource, Format.Identifier.ISOVOB) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
+			PlayerUtil.isVideo(item, Format.Identifier.ISOVOB) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(item, Format.Identifier.OGG)
 		);
+	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isVideoFormat() && !encodingFormat.isTranscodeToHLS();
 	}
 
 	@Override

@@ -365,6 +365,7 @@ public class RendererConfigurations {
 	 */
 	public static synchronized void loadRendererConfigurations() {
 		synchronized (LOAD_RENDERER_CONFIGURATIONS_LOCK) {
+			ALL_RENDERERS_NAMES.clear();
 			ENABLED_RENDERERS_CONFS.clear();
 			try {
 				defaultConf = new RendererConfiguration(null);
@@ -439,7 +440,9 @@ public class RendererConfigurations {
 		if (profile) {
 			rendererName = rendererName + "*";
 		}
-		ALL_RENDERERS_NAMES.add(rendererName);
+		if (!ALL_RENDERERS_NAMES.contains(rendererName)) {
+			ALL_RENDERERS_NAMES.add(rendererName);
+		}
 		String renderersGroup = null;
 		if (rendererName.indexOf(' ') > 0) {
 			renderersGroup = rendererName.substring(0, rendererName.indexOf(' '));

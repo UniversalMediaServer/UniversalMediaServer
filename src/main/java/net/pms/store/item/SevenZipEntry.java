@@ -77,7 +77,7 @@ public class SevenZipEntry extends StoreItem implements IPushOutput {
 
 	@Override
 	public long length() {
-		if (getEngine() != null && getEngine().type() != Format.IMAGE) {
+		if (isTranscoded() && getTranscodingSettings().getEngine().type() != Format.IMAGE) {
 			return TRANS_SIZE;
 		}
 

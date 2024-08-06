@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
@@ -188,6 +189,8 @@ public class MediaScanner implements SharedContentListener {
 	public static void startMediaScan() {
 		if (isMediaScanRunning()) {
 			LOGGER.info("Cannot start media scanner: A scan is already in progress");
+		} else if (PMS.isRunningTests()) {
+			LOGGER.debug("Skipping media scanner because UMS is being run by a test");
 		} else {
 			Runnable scan = () -> {
 				try {

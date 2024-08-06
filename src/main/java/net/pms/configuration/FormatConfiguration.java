@@ -36,8 +36,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FormatConfiguration {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatConfiguration.class);
-	private final ArrayList<SupportSpec> supportSpecs;
 	public static final String THREEGPP = "3gp";
 	public static final String THREEGPP2 = "3g2";
 	public static final String THREEGA = "3ga";
@@ -172,6 +172,8 @@ public class FormatConfiguration {
 	public static final String YUV = "yuv";
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
 	public static final String UND = "und";
+
+	private final ArrayList<SupportSpec> supportSpecs;
 
 	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;

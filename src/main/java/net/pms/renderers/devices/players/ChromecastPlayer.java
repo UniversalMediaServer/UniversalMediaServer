@@ -50,7 +50,7 @@ public class ChromecastPlayer extends LogicalPlayer {
 			}
 			try {
 				api.launchApp(MEDIA_PLAYER);
-				api.load("", null, playlistItem.getUri(), item.mimeType());
+				api.load("", null, playlistItem.getUri(), item.getMimeType());
 			} catch (IOException e) {
 				LOGGER.debug("Bad chromecast load: " + e);
 			}

@@ -21,7 +21,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.image.ImageFormat;
-import net.pms.network.HTTPResource;
 import net.pms.network.webguiserver.IEventSourceClient;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
@@ -34,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebGuiRenderer extends Renderer {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiRenderer.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -61,16 +61,13 @@ public class WebGuiRenderer extends Renderer {
 		setFileless(true);
 		startStop = null;
 		configuration.setProperty(KEY_MEDIAPARSERV2, true);
-		configuration.setProperty(KEY_MEDIAPARSERV2_THUMB, true);
-		configuration.setProperty(KEY_SUPPORTED, "f:mpegts v:h264 a:aac-lc|aac-ltp|aac-main|aac-ssr|he-aac|ac3|eac3 m:video/mp2t");
-		configuration.setProperty(KEY_SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
-		configuration.setProperty(KEY_SUPPORTED, "f:m4a m:audio/mp4");
-		configuration.setProperty(KEY_SUPPORTED, "f:oga a:vorbis|flac m:audio/ogg");
-		configuration.setProperty(KEY_SUPPORTED, "f:wav n:2 m:audio/wav");
-		configuration.setProperty(KEY_TRANSCODE_AUDIO, TRANSCODE_TO_MP3);
-		configuration.setProperty(KEY_TRANSCODE_VIDEO, HLSMPEGTSH264AAC);
+		configuration.setProperty(KEY_MEDIAPARSERV2_THUMB, false);
+		configuration.setProperty(KEY_TRANSCODE_AUDIO, "MP3");
+		configuration.setProperty(KEY_TRANSCODE_VIDEO, "HLS-MPEGTS-H264-AAC,MP4-H264-AAC");
 		configuration.setProperty(KEY_HLS_MULTI_VIDEO_QUALITY, true);
 		configuration.setProperty(KEY_HLS_VERSION, 6);
+		configuration.setProperty(KEY_AUTO_PLAY_TMO, 0);
+		configuration.setProperty(KEY_LIMIT_FOLDERS, false);
 	}
 
 	@Override
@@ -97,10 +94,6 @@ public class WebGuiRenderer extends Renderer {
 			case WEBP -> browser == EDGE || browser == FIREFOX || browser == CHROME || browser == CHROMIUM || browser == OPERA;
 			default -> false;
 		};
-	}
-
-	public String getVideoMimeType() {
-		return HTTPResource.HLS_TYPEMIME;
 	}
 
 	@Override
@@ -143,22 +136,6 @@ public class WebGuiRenderer extends Renderer {
 			case VIVALDI -> "vivaldi.svg";
 			default -> super.getRendererIcon();
 		};
-	}
-
-	@Override
-	public boolean isMediaInfoThumbnailGeneration() {
-		return false;
-	}
-
-	@Override
-	public boolean isLimitFolders() {
-		// no folder limit on the web clients
-		return false;
-	}
-
-	@Override
-	public int getAutoPlayTmo() {
-		return 0;
 	}
 
 	@Override

@@ -121,7 +121,7 @@
 		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.10.3</junit5.version>
-		<jetty.version>12.0.11</jetty.version>
+		<jetty.version>12.0.12</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -156,7 +156,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.17.0</version>
+			<version>1.17.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -194,7 +194,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.14.0</version>
+			<version>3.15.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -548,7 +548,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.1</version>
+			<version>6.6.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -933,12 +933,6 @@
 		-->
 		<profile>
 			<id>windows</id>
-			<activation>
-				<os>
-					<name>windows</name>
-					<family>windows</family>
-				</os>
-			</activation>
 
 			<build>
 				<plugins>
@@ -1327,10 +1321,6 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
-				<os>
-					<family>linux</family>
-					<arch>arm64</arch>
-				</os>
 			</activation>
 
 			<build>
@@ -1466,10 +1456,6 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
-				<os>
-					<family>linux</family>
-					<arch>armel</arch>
-				</os>
 			</activation>
 
 			<build>
@@ -1605,10 +1591,6 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
-				<os>
-					<family>linux</family>
-					<arch>armhf</arch>
-				</os>
 			</activation>
 
 			<build>
@@ -1744,10 +1726,6 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
-				<os>
-					<family>linux</family>
-					<arch>x86</arch>
-				</os>
 			</activation>
 
 			<build>
@@ -1891,10 +1869,6 @@
 			-->
 			<activation>
 				<activeByDefault>true</activeByDefault>
-				<os>
-					<family>linux</family>
-					<arch>x86_64</arch>
-				</os>
 			</activation>
 
 			<build>
@@ -2269,10 +2243,6 @@
 			<id>macos-arm</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
-				<os>
-					<family>mac</family>
-					<arch>arm</arch>
-				</os>
 			</activation>
 			<build>
 				<plugins>
@@ -2505,11 +2475,6 @@
 			<id>macos-pre1015</id>
 			<activation>
 				<activeByDefault>false</activeByDefault>
-				<os>
-					<family>mac</family>
-					<arch>x86_64</arch>
-					<version>(,10.15]</version>
-				</os>
 			</activation>
 			<build>
 				<plugins>
@@ -3400,12 +3365,6 @@
 		</profile>
 		<profile>
 			<id>testing-macos</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<os>
-					<family>mac</family>
-				</os>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
@@ -3442,13 +3401,6 @@
 		</profile>
 		<profile>
 			<id>testing-windows</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-				<os>
-					<name>windows</name>
-					<family>windows</family>
-				</os>
-			</activation>
 			<build>
 				<plugins>
 					<plugin>
