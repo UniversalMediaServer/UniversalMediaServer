@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Card, Code, Group, Menu, Modal, MultiSelect, ScrollArea, Select, Stack, TextInput } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -28,7 +28,7 @@ import ServerEventContext from '../../contexts/server-event-context';
 import SessionContext from '../../contexts/session-context';
 import { getGroupName, getUserGroupsSelection, havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
-import { defaultTooltipSettings, openGitHubNewIssue, sharedApiUrl } from '../../utils';
+import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import DirectoryChooser from '../DirectoryChooser/DirectoryChooser';
 
 export default function SharedContentSettings(
@@ -90,16 +90,21 @@ export default function SharedContentSettings(
   }
 
   /**
-   * SharedContent
-  */
+   * Shared Content
+   */
+  const getFeedName = async (uri: string): Promise<string> => {
+    const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: uri });
+    return response.data.name;
+  }
+
   const updateSharedContentFeedName = async (value: Feed) => {
     setLoading(true);
     try {
       const sharedContentsTemp = _.cloneDeep(sharedContents);
       const index = sharedContents.indexOf(value);
-      const response: { data: { name: string } } = await axios.post(sharedApiUrl + 'web-content-name', { source: value.uri });
-      if (response.data.name) {
-        (sharedContentsTemp[index] as Feed).name = response.data.name;
+      const name = await getFeedName(value.uri);
+      if (name) {
+        (sharedContentsTemp[index] as Feed).name = name;
         setSharedContents(sharedContentsTemp);
       } else {
         showNotification({
@@ -109,6 +114,7 @@ export default function SharedContentSettings(
         })
       }
     } catch (err) {
+      console.error(err);
       showNotification({
         color: 'red',
         title: i18n.get('Error'),
@@ -169,7 +175,14 @@ export default function SharedContentSettings(
     return (
       <div>
         <div>{type}</div>
-        <div>{getSharedContentParents(value)}{value.name ? <Code color='teal'>{value.name}</Code> : <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>}</div>
+        <div>
+          {getSharedContentParents(value)}
+          {
+            value.name ?
+              <Code color='teal'>{value.name}</Code> :
+              <Code color='red'>{i18n.get('FeedNameNotFound')}</Code>
+          }
+        </div>
         <div><Code color='blue'>{value.uri}</Code></div>
         {getRestrictedGroups(value)}
       </div>
@@ -342,12 +355,18 @@ export default function SharedContentSettings(
   const getMovableActionIcon = (value: SharedContent, isDragged: boolean, isSelected: boolean) => {
     return <ActionIcon
       data-movable-handle
-      size={20}
+      size={24}
       style={{ cursor: isDragged ? 'grabbing' : 'grab', }}
       variant={isDragged || isSelected ? 'outline' : 'subtle'}
       disabled={!canModify}
     >
-      {sharedContents.indexOf(value) === 0 ? (<ArrowNarrowDown />) : sharedContents.indexOf(value) === sharedContents.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+      {
+        sharedContents.indexOf(value) === 0 ?
+          (<ArrowNarrowDown />) :
+          sharedContents.indexOf(value) === sharedContents.length - 1 ?
+            (<ArrowNarrowUp />) :
+            (<ArrowsVertical />)
+      }
     </ActionIcon>
   }
 
@@ -413,7 +432,7 @@ export default function SharedContentSettings(
             // react-movable has a bug, hack this until it's solved
             props.style = props.style ? { ...props.style, zIndex: isSelected ? 5000 : 'auto' } as CSSProperties : {} as CSSProperties;
             return (
-              <Card shadow='sm' withBorder {...props}>
+              <Card shadow='sm' padding='sm' withBorder {...props}>
                 <Group justify='space-between'>
                   <Group justify='flex-start'>
                     {getMovableActionIcon(value, isDragged, isSelected)}
@@ -570,7 +589,7 @@ export default function SharedContentSettings(
           {...modalForm.getInputProps('contentGroups')}
         />
         <Group justify='flex-end' mt='sm'>
-          <Button variant='outline' onClick={() => { if (canModify) { saveModal(modalForm.values) } else { setNewOpened(false) } }}>
+          <Button variant='outline' disabled={isLoading} onClick={() => { if (canModify) { saveModal(modalForm.values) } else { setNewOpened(false) } }}>
             {canModify ? isNew ? i18n.get('Add') : i18n.get('Apply') : i18n.get('Close')}
           </Button>
         </Group>
@@ -578,9 +597,10 @@ export default function SharedContentSettings(
     );
   }
 
-  const saveModal = (values: typeof modalForm.values) => {
+  const saveModal = async (values: typeof modalForm.values) => {
     const sharedContentsTemp = _.cloneDeep(sharedContents);
     const contentGroups = values.contentGroups.map(Number);
+
     switch (values.contentType) {
       case 'Folder':
         if (editingIndex < 0) {
@@ -603,6 +623,10 @@ export default function SharedContentSettings(
       case 'FeedAudio':
       case 'FeedImage':
       case 'FeedVideo':
+        setLoading(true);
+        values.contentName = await getFeedName(values.contentSource);
+        setLoading(false);
+
         if (editingIndex < 0) {
           sharedContentsTemp.push({ type: values.contentType, active: true, groups: contentGroups, parent: values.contentPath, name: values.contentName, uri: values.contentSource } as Feed);
         } else {
@@ -648,19 +672,16 @@ export default function SharedContentSettings(
   const getScanSharedFoldersButton = () => {
     const haveFolder = sharedContents.find(sharedContent => sharedContent.type.startsWith('Folder'));
     return haveFolder ? (
-      <Tooltip label={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')} {...defaultTooltipSettings}>
-        <ActionIcon
-          size='xl'
-          disabled={!canModify || isLoading}
-          variant='transparent'
-          color={sse.mediaScan ? 'red' : 'blue'}
-          title={i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
-          onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
-        >
-          <ListSearch />
-          {sse.mediaScan && (<Loader />)}
-        </ActionIcon>
-      </Tooltip>
+      <Button
+        disabled={!canModify || isLoading}
+        leftSection={<ListSearch />}
+        variant='outline'
+        color={sse.mediaScan ? 'red' : 'blue'}
+        onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
+      >
+        {i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
+        {sse.mediaScan && (<Loader />)}
+      </Button>
     ) : null;
   }
 
@@ -687,7 +708,7 @@ export default function SharedContentSettings(
 
   return (
     <>
-      <Group>
+      <Group mb="md">
         <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get('AddNewSharedContent')}
         </Button>
