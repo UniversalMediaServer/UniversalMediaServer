@@ -28,6 +28,7 @@ import net.pms.external.umsapi.APIUtils;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaInfoStore;
 import net.pms.util.FileUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -570,7 +571,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 						metadata.setReleased(getLocalDate(rs, COL_RELEASEDATE));
 						metadata.setRevenue(toLong(rs, COL_REVENUE));
 						if (metadata.isTvEpisode() && metadata.getTvSeriesId() != null) {
-							metadata.setSeriesMetadata(MediaTableTVSeries.getTvSeriesMetadata(connection, metadata.getTvSeriesId()));
+							metadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(metadata.getTvSeriesId()));
 						}
 						metadata.setTvSeason(toInteger(rs, COL_TVSEASON));
 						metadata.setTvEpisodeNumber(rs.getString(COL_TVEPISODENUMBER));

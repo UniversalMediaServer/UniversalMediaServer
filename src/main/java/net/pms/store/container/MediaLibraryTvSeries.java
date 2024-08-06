@@ -21,11 +21,11 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.util.List;
 import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.ThumbnailStore;
 
@@ -69,14 +69,8 @@ public class MediaLibraryTvSeries extends MediaLibraryFolder {
 	}
 
 	public synchronized TvSeriesMetadata getTvSeriesMetadata() {
-		if (tvSeriesMetadata == null && tvSeriesId != null && MediaDatabase.isAvailable()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
-			} finally {
-				MediaDatabase.close(connection);
-			}
+		if (tvSeriesMetadata == null && tvSeriesId != null) {
+			tvSeriesMetadata = MediaInfoStore.getTvSeriesMetadata(tvSeriesId);
 		}
 		return tvSeriesMetadata;
 	}
