@@ -222,7 +222,7 @@ public class IOList extends ArrayList<StoreResource> {
 				} catch (NumberFormatException e) {
 					type = Format.UNKNOWN;
 				}
-				return new WebStream(renderer, tmp[0], tmp[1], tmp[2], type);
+				return new WebStream(renderer, tmp[0], tmp[1], tmp[2], type, null);
 			}
 			error = true;
 		}

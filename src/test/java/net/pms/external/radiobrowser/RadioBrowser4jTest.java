@@ -14,20 +14,28 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.store.item;
+package net.pms.external.radiobrowser;
 
-import java.util.Map;
-import net.pms.formats.Format;
-import net.pms.renderers.Renderer;
+import java.util.ArrayList;
+import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
-public class WebVideoStream extends WebStream {
+public class RadioBrowser4jTest {
 
-	public WebVideoStream(Renderer renderer, String fluxName, String url, String thumbURL) {
-		this(renderer, fluxName, url, thumbURL, null);
+	public RadioBrowser4jTest() {
 	}
 
-	public WebVideoStream(Renderer renderer, String fluxName, String url, String thumbURL, Map<String, String> directives) {
-		super(renderer, fluxName, url, thumbURL, Format.VIDEO, null);
+	@Test
+	public void testGenreList() {
+		List<String> tags = new ArrayList<>();
+
+		tags.add("pop");
+		tags.add("dance");
+		tags.add("edm");
+
+		String tagsString = RadioBrowser4j.getGenres(tags);
+		assertEquals("pop / dance / edm", tagsString);
 	}
 
 }

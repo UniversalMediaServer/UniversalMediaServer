@@ -14,20 +14,29 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.store.item;
+package net.pms.formats.audio;
 
-import java.util.Map;
-import net.pms.formats.Format;
-import net.pms.renderers.Renderer;
+public class AACP extends AudioBase {
 
-public class WebVideoStream extends WebStream {
-
-	public WebVideoStream(Renderer renderer, String fluxName, String url, String thumbURL) {
-		this(renderer, fluxName, url, thumbURL, null);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.AACP;
 	}
 
-	public WebVideoStream(Renderer renderer, String fluxName, String url, String thumbURL, Map<String, String> directives) {
-		super(renderer, fluxName, url, thumbURL, Format.VIDEO, null);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String[] getSupportedExtensions() {
+		return new String[]{"aacp"};
+	}
+
+	@Override
+	public boolean transcodable() {
+		return false;
 	}
 
 }

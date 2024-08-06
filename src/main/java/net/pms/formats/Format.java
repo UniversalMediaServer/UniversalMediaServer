@@ -43,6 +43,7 @@ public abstract class Format implements Cloneable {
 	private String matchedExtension;
 
 	public enum Identifier {
+		AACP,
 		AC3,
 		ADPCM,
 		ADTS,
@@ -109,6 +110,7 @@ public abstract class Format implements Cloneable {
 		PLAYLIST
 	}
 
+	public static final int UNSET    =  0;
 	public static final int AUDIO    =  1;
 	public static final int IMAGE    =  2;
 	public static final int VIDEO    =  4;
@@ -327,4 +329,18 @@ public abstract class Format implements Cloneable {
 	 * @return The identifier.
 	 */
 	public abstract Identifier getIdentifier();
+
+	public static String getStringType(int type) {
+		return switch (type) {
+			case AUDIO -> "AUDIO";
+			case IMAGE -> "IMAGE";
+			case VIDEO -> "VIDEO";
+			case UNKNOWN -> "UNKNOWN";
+			case PLAYLIST -> "PLAYLIST";
+			case ISO -> "ISO";
+			case SUBTITLE -> "SUBTITLE";
+			default -> "NOT DEFINED";
+		};
+	}
+
 }

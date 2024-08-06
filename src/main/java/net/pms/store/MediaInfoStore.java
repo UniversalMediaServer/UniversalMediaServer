@@ -38,6 +38,7 @@ import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
+import net.pms.parsers.WebStreamParser;
 import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
@@ -193,6 +194,33 @@ public class MediaInfoStore {
 			}
 			if (mediaInfo != null) {
 				storeMediaInfo(filename, mediaInfo);
+			}
+			return mediaInfo;
+		}
+	}
+
+	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
+		Object lock = getLock(url);
+		synchronized (lock) {
+			MediaInfo mediaInfo = getMediaInfoStored(url);
+			if (mediaInfo != null) {
+				return mediaInfo;
+			}
+			LOGGER.trace("Store do not yet contains MediaInfo for {}", url);
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
+				if (mediaInfo == null) {
+					mediaInfo = new MediaInfo();
+				}
+				if (!mediaInfo.isMediaParsed()) {
+					WebStreamParser.parse(mediaInfo, url, type);
+					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
+			}
+			if (mediaInfo != null) {
+				storeMediaInfo(url, mediaInfo);
 			}
 			return mediaInfo;
 		}

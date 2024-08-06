@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.encoders.TranscodingSettings;
-import net.pms.formats.Format;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
@@ -165,7 +164,7 @@ public class CueFolder extends StoreContainer {
 						}
 					}
 
-					storeFileInCache(playlistfile, Format.PLAYLIST);
+					// storeFileInCache(playlistfile, Format.PLAYLIST);
 				}
 			}
 		}

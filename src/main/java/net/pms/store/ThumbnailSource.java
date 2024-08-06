@@ -24,6 +24,8 @@ public enum ThumbnailSource {
 	TMDB,
 	TMDB_LOC,
 	MUSICBRAINZ,
+	WEBSTREAM,
+	RADIOBROWSER,
 	EMBEDDED;
 
 	public static ThumbnailSource valueOfName(String value) {

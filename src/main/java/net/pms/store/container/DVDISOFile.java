@@ -19,6 +19,7 @@ package net.pms.store.container;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import net.pms.database.MediaTableFiles;
 import net.pms.formats.Format;
 import net.pms.parsers.MPlayerParser;
 import net.pms.renderers.Renderer;
@@ -104,7 +105,7 @@ public class DVDISOFile extends StoreContainer {
 		}
 
 		if (childrenCount() > 0) {
-			storeFileInCache(file, Format.ISO);
+			MediaTableFiles.getOrInsertFileId(file.getAbsolutePath(), file.lastModified(), Format.ISO);
 		}
 
 	}

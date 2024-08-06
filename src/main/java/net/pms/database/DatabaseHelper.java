@@ -228,6 +228,7 @@ public abstract class DatabaseHelper {
 	 */
 	protected static final String CREATE = "CREATE ";
 	protected static final String INSERT_INTO = "INSERT INTO ";
+	protected static final String MERGE_INTO = "MERGE INTO ";
 	protected static final String SELECT = "SELECT ";
 	protected static final String UPDATE = "UPDATE ";
 	protected static final String WITH = "WITH ";
@@ -271,6 +272,7 @@ public abstract class DatabaseHelper {
 	protected static final String SET = " SET ";
 	protected static final String TABLE = "TABLE ";
 	protected static final String UNIQUE = "UNIQUE ";
+	protected static final String VALUES = " VALUES ";
 	protected static final String WHERE = " WHERE ";
 
 	protected static final String ALTER_COLUMN = " " + ALTER + COLUMN;
