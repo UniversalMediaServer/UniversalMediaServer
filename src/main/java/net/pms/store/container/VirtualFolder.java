@@ -179,7 +179,7 @@ public class VirtualFolder extends StoreContainer {
 		return out;
 	}
 
-	public boolean analyzeChildren() {
+	private boolean analyzeChildren() {
 		FileSearch fs = null;
 		if (!discoverable.isEmpty() && renderer.getUmsConfiguration().getSearchInFolder()) {
 			searchList = new ArrayList<>();
@@ -200,13 +200,14 @@ public class VirtualFolder extends StoreContainer {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
 			return;
 		}
 
+		getChildren().clear();
 		List<File> childrenFiles = getFilesListForDirectories();
 
 		// Build a map of all files and their corresponding formats
@@ -313,6 +314,9 @@ public class VirtualFolder extends StoreContainer {
 				discoverable.add(f);
 			}
 		}
+		setDiscovered(analyzeChildren());
+		sortChildrenIfNeeded();
+		setLastRefreshTime(System.currentTimeMillis());
 	}
 
 	/**
@@ -357,12 +361,10 @@ public class VirtualFolder extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
-		getChildren().clear();
+	public synchronized void doRefreshChildren() {
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
 		discoverChildren();
-		analyzeChildren();
 	}
 
 	@Override

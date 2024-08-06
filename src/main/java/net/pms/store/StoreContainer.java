@@ -31,7 +31,6 @@ import net.pms.store.container.CodeEnter;
 import net.pms.store.container.FileTranscodeVirtualFolder;
 import net.pms.store.container.LocalizedStoreContainer;
 import net.pms.store.container.TranscodeVirtualFolder;
-import net.pms.store.container.VirtualFolder;
 import net.pms.store.item.VirtualVideoAction;
 import net.pms.store.item.VirtualVideoActionLocalized;
 import net.pms.store.utils.StoreResourceSorter;
@@ -675,6 +674,7 @@ public class StoreContainer extends StoreResource {
 	 * Discover the list of children.
 	 */
 	public void discoverChildren() {
+		sortChildrenIfNeeded();
 	}
 
 	public void discoverChildren(String str) {
@@ -694,19 +694,7 @@ public class StoreContainer extends StoreResource {
 			}
 
 			discoverChildren();
-			sortChildrenIfNeeded();
-			boolean ready;
-
-			if (this instanceof VirtualFolder virtualFolder) {
-				ready = virtualFolder.analyzeChildren();
-			} else {
-				ready = true;
-			}
-
-			if (!renderer.isUseMediaInfo() || ready) {
-				setDiscovered(true);
-			}
-
+			setDiscovered(true);
 			notifyRefresh();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
@@ -740,11 +728,11 @@ public class StoreContainer extends StoreResource {
 	}
 
 	public void doRefreshChildren() {
+		sortChildrenIfNeeded();
 	}
 
 	public void doRefreshChildren(String search, String lang) {
 		doRefreshChildren();
-		sortChildrenIfNeeded();
 	}
 
 	private boolean depthLimit() {
