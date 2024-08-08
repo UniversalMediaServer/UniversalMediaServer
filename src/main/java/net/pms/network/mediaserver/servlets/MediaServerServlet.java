@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
+import net.pms.PMS;
+import net.pms.configuration.RendererConfigurations;
 import net.pms.dlna.DLNAImageInputStream;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
@@ -115,6 +117,16 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					 * fixme : non-renderer should advise a special uuid.
 					 * renderer = null;
 					 */
+
+					/**
+					 * In in a 3-box setup: If the accessing control point is a web application, physical IP-access to the resources
+					 * like thumbnails is done by the users web browser. If the web application and the web browser do not run on
+					 * the same machine, no renderer can be associated. If authentication is not enabled, just use the
+					 * default renderer.
+					 */
+					if (!PMS.getConfiguration().isAuthenticationEnabled()) {
+						renderer = RendererConfigurations.getDefaultRenderer();
+					}
 				}
 			}
 
