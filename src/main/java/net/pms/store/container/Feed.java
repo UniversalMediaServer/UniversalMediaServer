@@ -314,7 +314,7 @@ public class Feed extends StoreContainer {
 			return url.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
 		}
 
-		return null;
+		return url;
 	}
 
 	/**
