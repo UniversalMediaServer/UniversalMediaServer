@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+- Removed Netty dependency
+
 ### Dependencies
 - Bump `@playwright/test` from 1.44.1 to 1.45.3 ([#4861](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4861))
 - Bump `@types/lodash` from 4.17.5 to 4.17.7 ([#4845](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4845))

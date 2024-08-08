@@ -392,7 +392,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SELECTED_RENDERERS = "selected_renderers";
-	private static final String KEY_SERVER_ENGINE = "server_engine";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -518,7 +517,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		"bump.skin",				//old player
 		"min_playtime_web",			//old player
 		"bump",						//old player
-		"shares"					//not used
+		"shares",					//not used
+		"server_engine"				//no more multiple engines
 	);
 
 	/**
@@ -528,7 +528,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	public static final Set<String> NEED_MEDIA_SERVER_RELOAD_FLAGS = Set.of(
 		KEY_CHROMECAST_EXT,
 		KEY_NETWORK_INTERFACE,
-		KEY_SERVER_ENGINE,
 		KEY_SERVER_HOSTNAME,
 		KEY_SERVER_PORT,
 		KEY_UPNP_ENABLED
@@ -1580,18 +1579,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setTsmuxerForceFps(boolean value) {
 		configuration.setProperty(KEY_TSMUXER_FORCEFPS, value);
-	}
-
-	/**
-	 * Get the MediaServer Engine version.
-	 * @return the MediaServer engine version selected, or 0 for default.
-	 */
-	public int getServerEngine() {
-		return getInt(KEY_SERVER_ENGINE, 0);
-	}
-
-	public void setServerEngine(int value) {
-		configuration.setProperty(KEY_SERVER_ENGINE, value);
 	}
 
 	/**
@@ -5680,7 +5667,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
-		jObj.addProperty(KEY_SERVER_ENGINE, "0");
 		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
 		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
