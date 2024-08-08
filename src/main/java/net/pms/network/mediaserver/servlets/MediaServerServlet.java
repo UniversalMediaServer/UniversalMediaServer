@@ -117,7 +117,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					 * fixme : non-renderer should advise a special uuid.
 					 * renderer = null;
 					 */
+				}
 
+				if (renderer == null) {
 					/**
 					 * In in a 3-box setup: If the accessing control point is a web application, physical IP-access to the resources
 					 * like thumbnails is done by the users web browser. If the web application and the web browser do not run on
