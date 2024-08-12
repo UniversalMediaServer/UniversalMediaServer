@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.0 ([#4888](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4888))
+
 ## [14.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.3.0...14.4.0) (2024-08-10)
 
 ### General
