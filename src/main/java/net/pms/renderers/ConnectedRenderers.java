@@ -131,6 +131,10 @@ public class ConnectedRenderers {
 				LOGGER.debug("Recognized media renderer \"{}\"", renderer.getRendererName());
 			}
 		} finally {
+			if ((renderer != null) && getUuidRenderer(renderer.getUUID()) == null) {
+				LOGGER.trace("adding renderer to UUID map : " + renderer);
+				addUuidRenderer(renderer.getUUID(), renderer);
+			}
 			RENDERER_LOCK.unlock();
 		}
 		return renderer;
