@@ -20,14 +20,15 @@ import jakarta.servlet.AsyncEvent;
 import jakarta.servlet.AsyncListener;
 import java.io.IOException;
 import net.pms.service.StartStopListenerDelegate;
+import net.pms.store.StoreItem;
 
 /**
  * @author Surf@ceS
  */
 public class StartStopListener extends StartStopListenerDelegate implements AsyncListener {
 
-	public StartStopListener(String rendererId) {
-		super(rendererId);
+	public StartStopListener(String rendererId, StoreItem item) {
+		super(rendererId, item);
 	}
 
 	@Override
@@ -47,7 +48,7 @@ public class StartStopListener extends StartStopListenerDelegate implements Asyn
 
 	@Override
 	public void onStartAsync(AsyncEvent event) throws IOException {
-		//nothing to do.
+		stop();
 	}
 
 }
