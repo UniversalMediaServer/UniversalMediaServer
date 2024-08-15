@@ -19,26 +19,37 @@ package net.pms.service;
 import net.pms.formats.Format;
 import net.pms.store.StoreItem;
 
-// a utility class, instances of which trigger start/stop callbacks before/after streaming a resource
+// a utility class, instances of which trigger start/stop callbacks before/after streaming a item
 public class StartStopListenerDelegate {
+
 	private final String rendererId;
-	private StoreItem resource;
+	private StoreItem item;
 	private boolean started = false;
 	private boolean stopped = false;
+
+	public StartStopListenerDelegate(String rendererId, StoreItem item) {
+		this.rendererId = rendererId;
+		this.item = item;
+	}
 
 	public StartStopListenerDelegate(String rendererId) {
 		this.rendererId = rendererId;
 	}
 
+	public synchronized void start(StoreItem item) {
+		assert this.item == null;
+		this.item = item;
+		start();
+	}
+
 	// technically, these don't need to be synchronized as there should be
 	// one thread per request/response, but it doesn't hurt to enforce the contract
-	public synchronized void start(StoreItem resource) {
-		assert this.resource == null;
-		this.resource = resource;
-		Format ext = resource.getFormat();
+	public synchronized void start() {
+		assert this.item != null;
+		Format format = item.getFormat();
 		// only trigger the start/stop events for audio and video
-		if (!started && ext != null && (ext.isVideo() || ext.isAudio())) {
-			resource.startPlaying(rendererId);
+		if (!started && format != null && (format.isVideo() || format.isAudio())) {
+			item.startPlaying(rendererId);
 			started = true;
 			Services.sleepManager().startPlaying();
 		} else {
@@ -48,9 +59,10 @@ public class StartStopListenerDelegate {
 
 	public synchronized void stop() {
 		if (started && !stopped) {
-			resource.stopPlaying(rendererId);
+			item.stopPlaying(rendererId);
 			stopped = true;
 			Services.sleepManager().stopPlaying();
 		}
 	}
+
 }
