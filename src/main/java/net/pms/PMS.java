@@ -874,12 +874,6 @@ public class PMS {
 			SwingUtil.initializeLookAndFeel();
 		}
 
-		if (Build.isUpdatable()) {
-			Splash.setStatusMessage("CheckForUpdates");
-			String serverURL = Build.getUpdateServerURL();
-			autoUpdater = new AutoUpdater(serverURL, getVersion(), getBinariesRevision());
-		}
-
 		if (profilePath != null) {
 			if (!FileUtil.isValidFileName(profilePath.getName())) {
 				LOGGER.warn("Invalid file name in profile argument - using default profile");
@@ -905,10 +899,18 @@ public class PMS {
 				}
 			}
 
-			/* Rename previous log file to .prev
-			* Log file location is unknown at this point, it's finally decided during loadFile() below
-			* but the file is also truncated at the same time, so we'll have to try a qualified guess
-			* for the file location.
+			if (Build.isUpdatable()) {
+				// Splash.setStatusMessage("CheckForUpdates");
+				String serverURL = Build.getUpdateServerURL();
+				autoUpdater = new AutoUpdater(serverURL, getVersion(), getBinariesRevision());
+			}
+
+			/*
+			 * Rename previous log file to .prev
+			 *
+			 * Log file location is unknown at this point, it's finally decided during loadFile() below
+			 * but the file is also truncated at the same time, so we'll have to try a qualified guess
+			 * for the file location.
 			 */
 			// Set root level from configuration here so that logging is available during renameOldLogFile();
 			LoggingConfig.setRootLevel(Level.toLevel(umsConfiguration.getRootLogLevel()));
