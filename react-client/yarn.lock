@@ -1129,9 +1129,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:3.13.1":
-  version: 3.13.1
-  resolution: "@videojs/http-streaming@npm:3.13.1"
+"@videojs/http-streaming@npm:3.13.2":
+  version: 3.13.2
+  resolution: "@videojs/http-streaming@npm:3.13.2"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
     "@videojs/vhs-utils": "npm:4.0.0"
@@ -1143,7 +1143,7 @@ __metadata:
     video.js: "npm:^7 || ^8"
   peerDependencies:
     video.js: ^8.14.0
-  checksum: 10c0/fed4d95dc02582f054c3ca3998d60f08c1d8545b8564a23cd9dca8e027e32e159da1d29577bc342da39a52c0a58e81602aaac9dc37a94416345548e235ec3979
+  checksum: 10c0/65352ac785c588ffa2eda3aff970f1ee17f28eed294ef2b0470d1d9265bda25efa00ac21065ef41ebbeec65c72a063bed40d1c1af037add14459a1d54400c9aa
   languageName: node
   linkType: hard
 
@@ -4650,7 +4650,7 @@ __metadata:
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.5.4"
     typescript-eslint: "npm:^8.0.0"
-    video.js: "npm:8.17.1"
+    video.js: "npm:8.17.3"
     vite: "npm:5.3.1"
   languageName: unknown
   linkType: soft
@@ -4781,12 +4781,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.17.1":
-  version: 8.17.1
-  resolution: "video.js@npm:8.17.1"
+"video.js@npm:8.17.3":
+  version: 8.17.3
+  resolution: "video.js@npm:8.17.3"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
-    "@videojs/http-streaming": "npm:3.13.1"
+    "@videojs/http-streaming": "npm:3.13.2"
     "@videojs/vhs-utils": "npm:^4.0.0"
     "@videojs/xhr": "npm:2.7.0"
     aes-decrypter: "npm:^4.0.1"
@@ -4798,7 +4798,7 @@ __metadata:
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.2.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/e00ad665519706362846d842408b3ed74b5d7f237e566d2b103ad9b9a0b51559663adca13fa9ead03c6800f580330a4357c20ba8208b4f0ae068c0d0610106fd
+  checksum: 10c0/47b492e2d52c72f73590fab1f1884f70249774ce353c632b80a2660e6fc3e02a86569e1ff8da8d6d12e253ed3265f9b2a40f4c222cad24b5398f28202ad22c3d
   languageName: node
   linkType: hard
 
