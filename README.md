@@ -20,6 +20,12 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
 * [SurfaceS][33]
 * [valib][5]
 
+## Sponsors
+
+* [Architecture of Sales][35]
+
+[Become a sponsor][36]
+
 ## Links
 
 * [Website][1]
@@ -109,3 +115,5 @@ It is powered by [FFmpeg][27], [MediaInfo][28], [OpenSubtitles][25], [Crowdin][2
   [32]: https://github.com/ik666
   [33]: https://github.com/SurfaceS
   [34]: https://github.com/threedguru
+  [35]: https://architectureofsales.com
+  [36]: https://www.patreon.com/universalmediaserver
