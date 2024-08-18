@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/dropzone` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/form` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/hooks` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/modals` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/notifications` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `org.apache.commons:commons-lang3` from 3.15.0 to 3.16.0 ([#4890](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4890))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.1 ([#4904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4904))
 - Bump `org.slf4j:slf4j-api` from 2.0.13 to 2.0.16 ([#4889](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4889))
