@@ -75,6 +75,8 @@ jobs:
             react-client/node
             react-client/node_modules
             ~/Library/Caches/ms-playwright
+            ~/.cache/ms-playwright
+            **/node_modules/playwright
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
       - name: Cache compiled server binary
         id: cache-compiled-server-binary
@@ -85,10 +87,12 @@ jobs:
       - name: Install dependencies
         working-directory: ./react-client
         run: yarn
-      - name: Install Playwright Browsers
+      - name: Install Playwright with dependencies
         if: steps.cache-node-dependencies.outputs.cache-hit != 'true'
-        working-directory: ./react-client
         run: yarn playwright install --with-deps
+      - name: Install Playwright dependencies
+        if: steps.cache-node-dependencies.outputs.cache-hit == 'true'
+        run: yarn playwright install-deps
       - name: Prepare server for Playwright tests
         if: needs.changes.outputs.javafiles == 'true'
         working-directory: ./react-client
