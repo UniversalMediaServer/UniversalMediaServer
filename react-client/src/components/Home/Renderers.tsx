@@ -133,8 +133,8 @@ const Renderers = (
       case -1: return i18n.get('NoAccountAssigned');
       case 0: return i18n.get('DefaultAccount');
       default: {
-        const founded = users.find((user) => user.value === userId);
-        return founded ? founded.label : i18n.get('NonExistentUser')
+        const userFound = users.find((user) => user.value === userId);
+        return userFound ? userFound.label : i18n.get('NonExistentUser')
       }
     }
   }
