@@ -500,7 +500,7 @@ public class MediaStore extends StoreContainer {
 			if (res != null) {
 				return res;
 			} else {
-				// object id not founded, try recreate
+				// object id not found, try recreate
 				return recreateResource(id);
 			}
 		}

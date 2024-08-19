@@ -152,7 +152,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				// Get resource
 				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
 				if (resource == null) {
-					//resource not founded
+					// resource not found
 					respondNotFound(req, resp);
 					return;
 				}
