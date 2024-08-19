@@ -12,6 +12,7 @@
 - Bump `axios` from 1.7.2 to 1.7.4 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903))
 - Bump `eslint-plugin-react` from 7.34.3 to 7.35.0 ([#4895](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4895))
 - Bump `org.apache.commons:commons-lang3` from 3.15.0 to 3.16.0 ([#4890](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4890))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.1 to 3.4.0 ([#4914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4914))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.1 ([#4904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4904))
 - Bump `org.slf4j:slf4j-api` from 2.0.13 to 2.0.16 ([#4889](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4889))
 - Bump `video.js` from 8.17.1 to 8.17.3 ([#4906](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4906))
