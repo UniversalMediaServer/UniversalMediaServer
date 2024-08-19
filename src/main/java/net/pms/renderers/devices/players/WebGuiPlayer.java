@@ -126,8 +126,9 @@ public class WebGuiPlayer extends LogicalPlayer {
 			}
 		}
 		alert();
-		if (state.isStopped()) {
-			((WebGuiRenderer) renderer).stop();
+		if (renderer.getPlayingRes() != null && (state.isPlaying() || state.isPaused())) {
+			renderer.getPlayingRes().setLastStartSystemTime(System.currentTimeMillis());
 		}
 	}
+
 }

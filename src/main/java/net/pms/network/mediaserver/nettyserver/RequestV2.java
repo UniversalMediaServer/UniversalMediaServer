@@ -330,9 +330,9 @@ public class RequestV2 extends HTTPResource {
 					LOGGER.trace("Looking for resource id : {}", mediaServerRequest.getResourceId());
 					resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
 					if (resource != null) {
-						LOGGER.trace("Resource with id '{}' was founded : {}", mediaServerRequest.getResourceId(), resource.getName());
+						LOGGER.trace("Resource with id '{}' was found : {}", mediaServerRequest.getResourceId(), resource.getName());
 					} else {
-						LOGGER.trace("Resource with id '{}' was not founded", mediaServerRequest.getResourceId());
+						LOGGER.trace("Resource with id '{}' was not found", mediaServerRequest.getResourceId());
 					}
 				}
 
