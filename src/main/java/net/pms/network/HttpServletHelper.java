@@ -40,6 +40,7 @@ import javax.xml.xpath.XPathExpressionException;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.servlets.StartStopListener;
 import net.pms.util.StringUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -243,23 +244,36 @@ public abstract class HttpServletHelper extends HttpServlet {
 		return formattedContent;
 	}
 
-	protected static void copyStream(final InputStream in, final OutputStream os, final UmsAsyncListener listener) {
+	protected static void copyStream(final InputStream in, final OutputStream os, final AsyncContext context, final UmsAsyncListener umsAsyncListener, final StartStopListener startStopListener) {
 		byte[] buffer = new byte[32 * 1024];
 		int bytes;
 		long sendBytes = 0;
 
 		try {
+			if (startStopListener != null) {
+				startStopListener.start();
+			}
 			while ((bytes = in.read(buffer)) != -1) {
 				os.write(buffer, 0, bytes);
 				sendBytes += bytes;
 				os.flush();
-				if (listener != null) {
-					listener.setBytesSent(sendBytes);
+				if (umsAsyncListener != null) {
+					umsAsyncListener.setBytesSent(sendBytes);
 				}
 			}
 			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
 		} catch (IOException e) {
-			LOGGER.debug("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+			String reason = e.getMessage();
+			if (reason == null && e.getCause() != null) {
+				reason = e.getCause().getMessage();
+			}
+			LOGGER.debug("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + reason);
+			if (umsAsyncListener != null) {
+				umsAsyncListener.onPrematureEnd(reason);
+			}
+			if (startStopListener != null) {
+				startStopListener.stop();
+			}
 		} finally {
 			try {
 				in.close();
@@ -273,17 +287,22 @@ public abstract class HttpServletHelper extends HttpServlet {
 		} catch (IOException e) {
 			//do not care
 		}
+		context.complete();
+	}
+
+	protected static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context, final StartStopListener startStopListener) {
+		UmsAsyncListener umsAsyncListener = new UmsAsyncListener(System.currentTimeMillis(), 0);
+		context.addListener(umsAsyncListener);
+		if (startStopListener != null) {
+			context.setTimeout(0);
+			context.addListener(startStopListener);
+		}
+		Runnable r = () -> copyStream(in, os, context, umsAsyncListener, startStopListener);
+		context.start(r);
 	}
 
 	protected static void copyStreamAsync(final InputStream in, final OutputStream os, final AsyncContext context) {
-		UmsAsyncListener listener = new UmsAsyncListener(System.currentTimeMillis(), 0);
-		context.setTimeout(0);
-		context.addListener(listener);
-		Runnable r = () -> {
-			copyStream(in, os, listener);
-			context.complete();
-		};
-		context.start(r);
+		copyStreamAsync(in, os, context, null);
 	}
 
 	protected static void respond(HttpServletRequest req, HttpServletResponse resp, String response, int status, String mime) {

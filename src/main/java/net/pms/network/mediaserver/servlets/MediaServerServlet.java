@@ -152,7 +152,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				// Get resource
 				StoreResource resource = renderer.getMediaStore().getResource(mediaServerRequest.getResourceId());
 				if (resource == null) {
-					//resource not founded
+					// resource not found
 					respondNotFound(req, resp);
 					return;
 				}
@@ -225,9 +225,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		// There is an input stream to send as a response.
 		resp.setHeader("Server", MediaServer.getServerName());
 		AsyncContext async = req.startAsync();
-		if (startStopListener != null) {
-			async.addListener(startStopListener);
-		}
 		if (inputStream == null) {
 			// No input stream. Seems we are merely serving up headers.
 			resp.setContentLength(0);
@@ -269,7 +266,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		if (writeStream && !HEAD.equalsIgnoreCase(req.getMethod())) {
 			// Send the response body to the client in chunks.
 			OutputStream os = new BufferedOutputStream(resp.getOutputStream(), BUFFER_SIZE);
-			copyStreamAsync(inputStream, os, async);
+			copyStreamAsync(inputStream, os, async, startStopListener);
 		} else {
 			if (HEAD.equalsIgnoreCase(req.getMethod()) && contentLength < 1) {
 				resp.flushBuffer();
@@ -323,8 +320,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					if (inputStream != null) {
 						if (filename.endsWith(".ts")) {
 							resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
-							startStopListener = new StartStopListener(req.getRemoteHost());
-							startStopListener.start(item);
+							startStopListener = new StartStopListener(req.getRemoteHost(), item);
 							LOGGER.trace("Sending inputstream for " + filename);
 							sendResponse(req, resp, renderer, 200, inputStream, StoreResource.TRANS_SIZE, true, startStopListener);
 						} else if (filename.endsWith(".vtt")) {
@@ -509,8 +505,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					}
 				} else {
 					if (!isVideoThumbnailRequest && GET.equals(req.getMethod().toUpperCase())) {
-						startStopListener = new StartStopListener(req.getRemoteHost());
-						startStopListener.start(item);
+						startStopListener = new StartStopListener(req.getRemoteHost(), item);
 					}
 
 					// Try to determine the content type of the file

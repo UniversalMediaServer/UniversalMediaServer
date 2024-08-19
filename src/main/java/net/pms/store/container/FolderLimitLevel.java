@@ -44,9 +44,10 @@ public class FolderLimitLevel extends StoreContainer {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 		if (start != null) {
 			addChild(start);
+			sortChildrenIfNeeded();
 		}
 	}
 

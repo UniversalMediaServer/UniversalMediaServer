@@ -25,16 +25,11 @@ import net.pms.network.webguiserver.IEventSourceClient;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.players.BasicPlayer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
-import net.pms.service.StartStopListenerDelegate;
-import net.pms.store.StoreItem;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class WebGuiRenderer extends Renderer {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(WebGuiRenderer.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
 	private static final int CHROME = 1;
@@ -51,7 +46,6 @@ public class WebGuiRenderer extends Renderer {
 	private final int browser;
 	private final String subLang;
 	private IEventSourceClient sse;
-	private StartStopListenerDelegate startStop;
 
 	public WebGuiRenderer(String uuid, int userId, String userAgent, String subLang) throws ConfigurationException, InterruptedException {
 		super(uuid);
@@ -59,7 +53,6 @@ public class WebGuiRenderer extends Renderer {
 		this.browser = getBrowser(userAgent);
 		this.subLang = subLang;
 		setFileless(true);
-		startStop = null;
 		configuration.setProperty(KEY_MEDIAPARSERV2, true);
 		configuration.setProperty(KEY_MEDIAPARSERV2_THUMB, false);
 		configuration.setProperty(KEY_TRANSCODE_AUDIO, "MP3");
@@ -210,30 +203,6 @@ public class WebGuiRenderer extends Renderer {
 		if (sseOpened != isActive()) {
 			setActive(sseOpened);
 		}
-	}
-
-	public void start(StoreItem item) {
-		// Stop playing any previous media on the renderer
-		if (getPlayingRes() != null && getPlayingRes() != item) {
-			stop();
-		}
-
-		setPlayingRes(item);
-		if (startStop == null) {
-			startStop = new StartStopListenerDelegate(getAddress().getHostAddress());
-		}
-		startStop.start(getPlayingRes());
-	}
-
-	public void stop() {
-		if (startStop == null) {
-			return;
-		}
-		if (getPlayingRes() != null) {
-			LOGGER.trace("WebGuiRender stop for " + getPlayingRes().getDisplayName());
-		}
-		startStop.stop();
-		startStop = null;
 	}
 
 	private static String getBrowserName(int browser) {

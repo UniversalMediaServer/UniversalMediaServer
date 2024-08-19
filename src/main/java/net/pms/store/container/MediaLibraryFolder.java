@@ -216,7 +216,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 * Removes all children and re-adds them
 	 */
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -733,6 +733,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (isDiscovered()) {
 			MediaStoreIds.incrementUpdateId(getLongId());
 		}
+		sortChildrenIfNeeded();
 	}
 
 	/**

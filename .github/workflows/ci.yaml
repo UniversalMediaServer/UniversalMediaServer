@@ -45,7 +45,8 @@ jobs:
               - '.github/workflows/ci.yaml'
 
   macos-browser:
-    needs: changes
+    needs:
+      - changes
     if: |
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
@@ -74,10 +75,16 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Cache compiled server binary
+        id: cache-compiled-server-binary
+        uses: actions/cache@v4
+        with:
+          path: ums-testserver.jar
+          key: compiled-server-binary
       - name: Install dependencies
         working-directory: ./react-client
         run: yarn
-      - name: Install Playwright Browsers
+      - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
