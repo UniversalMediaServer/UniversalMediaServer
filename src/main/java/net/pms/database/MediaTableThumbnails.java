@@ -75,8 +75,8 @@ public final class MediaTableThumbnails extends MediaTable {
 
 	private static final String SQL_DELETE_ID = DELETE_FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_CLEANUP = DELETE_FROM + TABLE_NAME + WHERE +
-      NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" +
-      AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
+		NOT + EXISTS + "(" + SELECT + MediaTableTVSeries.TABLE_COL_THUMBID + FROM + MediaTableTVSeries.TABLE_NAME + WHERE + MediaTableTVSeries.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")" +
+		AND + NOT + EXISTS + "(" + SELECT + MediaTableFiles.TABLE_COL_THUMBID + FROM + MediaTableFiles.TABLE_NAME + WHERE + MediaTableFiles.TABLE_COL_THUMBID + EQUAL + TABLE_COL_ID + ")";
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
