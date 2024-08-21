@@ -500,7 +500,7 @@ public class MediaStore extends StoreContainer {
 			if (res != null) {
 				return res;
 			} else {
-				// object id not founded, try recreate
+				// object id not found, try recreate
 				return recreateResource(id);
 			}
 		}
@@ -518,13 +518,8 @@ public class MediaStore extends StoreContainer {
 		if (!libraryIds.isEmpty()) {
 			for (MediaStoreId libraryId : libraryIds) {
 				StoreResource parent = getWeakResource(libraryId.getId());
-				if (parent != null) {
-					if (parent instanceof StoreContainer container) {
-						container.discoverChildren();
-					}
-					if (parent instanceof VirtualFolder container) {
-						container.analyzeChildren();
-					}
+				if (parent instanceof StoreContainer container) {
+					container.discoverChildren();
 				}
 			}
 			//now that parent folders are discovered, try to get the resource

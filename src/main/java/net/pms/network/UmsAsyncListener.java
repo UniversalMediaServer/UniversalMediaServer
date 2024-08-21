@@ -63,12 +63,16 @@ public class UmsAsyncListener implements AsyncListener {
 		log(asyncEvent, "Complete", true);
 	}
 
+	public void onPrematureEnd(String state) {
+		log(null, String.format("Premature end: %s", state), true);
+	}
+
 	public void log(AsyncEvent asyncEvent, String state, boolean extended) {
 		String data = String.format("Stream Async %s", state);
 		if (counter > 0) {
 			data += String.format(", id: %d", counter);
 		}
-		if (asyncEvent.getSuppliedRequest() instanceof HttpServletRequest request) {
+		if (asyncEvent != null && asyncEvent.getSuppliedRequest() instanceof HttpServletRequest request) {
 			data += String.format(", uri: %s", request.getRequestURI());
 			request.getRequestURI();
 		}

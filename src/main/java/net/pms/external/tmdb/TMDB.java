@@ -387,11 +387,11 @@ public class TMDB {
 			videoMetadata.setTvSeriesId(tvSeriesId);
 		}
 		if (videoMetadata.getSeriesMetadata() == null) {
-			TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, videoMetadata.getTvSeriesId());
+			TvSeriesMetadata tvSeriesMetadata = MediaInfoStore.getTvSeriesMetadata(videoMetadata.getTvSeriesId());
 			videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 		}
 
-		//first check if tv series is founded
+		// first check if tv series is found
 		Long tvShowId = videoMetadata.getSeriesMetadata().getTmdbId();
 		if (tvShowId == null) {
 			String showNameFromFilename = videoMetadata.getMovieOrShowName();
@@ -445,7 +445,7 @@ public class TMDB {
 					TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromTmdbId(connection, tvShowId);
 					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
 					videoMetadata.setTmdbTvId(tvShowId);
-					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+					videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(tvSeriesMetadata.getTvSeriesId()));
 				}
 			} catch (IOException ex) {
 				// this likely means a transient error so don't store the failure, to allow retries
@@ -679,7 +679,7 @@ public class TMDB {
 		//clear old localized values
 		tvSeriesMetadata.setTranslations(null);
 		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, tvSeriesId, true);
-		MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+		MediaInfoStore.updateTvSeriesMetadata(tvSeriesMetadata, tvSeriesId);
 
 		//ensure we have the default translation
 		tvSeriesMetadata.ensureHavingTranslation(null);
@@ -753,7 +753,7 @@ public class TMDB {
 		if (videoMetadata != null && tvSeriesId != null) {
 			videoMetadata.setTvSeriesId(tvSeriesId);
 			videoMetadata.setTmdbTvId(tvDetails.getId());
-			videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+			videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(tvSeriesId));
 		}
 		return tvSeriesId;
 	}

@@ -54,6 +54,7 @@ import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.network.HTTPResource;
 import net.pms.network.mediaserver.MediaServer;
+import net.pms.network.mediaserver.servlets.StartStopListener;
 import net.pms.network.webguiserver.EventSourceClient;
 import net.pms.network.webguiserver.GuiHttpServlet;
 import net.pms.renderers.ConnectedRenderers;
@@ -1132,20 +1133,21 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						AsyncContext async = req.startAsync();
 						InputStream in = HlsHelper.getInputStream(uri, item);
 						if (in != null) {
+							StartStopListener startStopListener = null;
 							resp.setHeader("Connection", "keep-alive");
 							if (uri.endsWith(".ts")) {
 								resp.setContentType(HTTPResource.MPEGTS_BYTESTREAM_TYPEMIME);
+								startStopListener = new StartStopListener(req.getRemoteHost(), item);
 							} else if (uri.endsWith(".vtt")) {
 								resp.setContentType(HTTPResource.WEBVTT_TYPEMIME);
 							}
 							resp.setHeader("Transfer-Encoding", "chunked");
 							resp.setStatus(200);
-							renderer.start(item);
 							if (LOGGER.isTraceEnabled()) {
 								logHttpServletResponse(req, resp, null, true);
 							}
 							OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 512 * 1024);
-							copyStreamAsync(in, os, async);
+							copyStreamAsync(in, os, async, startStopListener);
 						} else {
 							resp.setStatus(500);
 							resp.setContentLength(0);
@@ -1185,12 +1187,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					if (LOGGER.isTraceEnabled()) {
 						logHttpServletResponse(req, resp, null, true);
 					}
-					renderer.start(item);
 					if (sid != null) {
 						item.setMediaSubtitle(sid);
 					}
+					StartStopListener startStopListener = new StartStopListener(req.getRemoteHost(), item);
 					OutputStream os = new BufferedOutputStream(resp.getOutputStream(), 8 * 1024);
-					copyStreamAsync(in, os, async);
+					copyStreamAsync(in, os, async, startStopListener);
 				} else {
 					resp.setStatus(500);
 					resp.setContentLength(0);

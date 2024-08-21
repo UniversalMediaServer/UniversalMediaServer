@@ -88,7 +88,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		Connection connection = null;
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
@@ -285,6 +285,7 @@ public class VirtualFolderDbId extends LocalizedStoreContainer {
 		} finally {
 			MediaDatabase.close(connection);
 		}
+		sortChildrenIfNeeded();
 	}
 
 	private MusicBrainzAlbum generateMusicBrainzAlbum(ResultSet resultSet) throws SQLException {

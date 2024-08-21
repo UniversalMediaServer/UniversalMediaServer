@@ -267,8 +267,10 @@ const Logs = () => {
         const thread = tmplines[i].substring(31, tmplines[i].indexOf(']')).replace(/[\d|-]+$/, '');
         if (!threads.includes(thread)) { threads.push(thread) }
         lines.push(tmplines[i]);
+      } else if (lines.length === 0) {
+        lines.push(tmplines[i]);
       } else {
-        (lines.length === 0) ? lines.push(tmplines[i]) : lines[lines.length - 1] = lines[lines.length - 1].concat('\r', tmplines[i]);
+        lines[lines.length - 1] = lines[lines.length - 1].concat('\r', tmplines[i]);
       }
     }
     setLogThreads(threads);

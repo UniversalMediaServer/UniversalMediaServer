@@ -47,7 +47,7 @@ public class ThumbnailStore {
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					id = MediaTableThumbnails.setThumbnail(connection, thumbnail, false);
+					id = MediaTableThumbnails.setThumbnail(connection, thumbnail);
 					if (id != null) {
 						STORE.put(id, new WeakReference<>(thumbnail));
 					}
@@ -60,47 +60,33 @@ public class ThumbnailStore {
 	}
 
 	public static Long getId(DLNAThumbnail thumbnail, Long fileId, ThumbnailSource thumbnailSource) {
-		if (thumbnail == null) {
-			return null;
-		}
-		synchronized (STORE) {
+		Long id = getId(thumbnail);
+		if (id != null && fileId != null) {
 			Connection connection = null;
-			Long id = null;
 			try {
 				connection = MediaDatabase.getConnectionIfAvailable();
 				if (connection != null) {
-					id = MediaTableThumbnails.setThumbnail(connection, thumbnail, false);
-					if (id != null) {
-						STORE.put(id, new WeakReference<>(thumbnail));
-						if (fileId != null) {
-							MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
-						}
-					}
+					MediaTableFiles.updateThumbnailId(connection, fileId, id, thumbnailSource.toString());
 				}
 			} finally {
 				MediaDatabase.close(connection);
 			}
-			return id;
 		}
+		return id;
 	}
 
 	public static Long getIdForTvSeries(DLNAThumbnail thumbnail, long tvSeriesId, ThumbnailSource thumbnailSource) {
-		if (thumbnail == null) {
-			return null;
-		}
-		Connection connection = null;
-		Long id = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
-			if (connection != null) {
-				id = MediaTableThumbnails.setThumbnail(connection, thumbnail, false);
-				if (id != null) {
-					STORE.put(id, new WeakReference<>(thumbnail));
+		Long id = getId(thumbnail);
+		if (id != null) {
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
 					MediaTableTVSeries.updateThumbnailId(connection, tvSeriesId, id, thumbnailSource.toString());
 				}
+			} finally {
+				MediaDatabase.close(connection);
 			}
-		} finally {
-			MediaDatabase.close(connection);
 		}
 		return id;
 	}

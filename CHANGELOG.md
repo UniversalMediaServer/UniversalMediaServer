@@ -11,16 +11,72 @@
 - Added possibility to add playlist in playlist.
 
 ### Dependencies
+- Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/dropzone` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/form` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/hooks` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/modals` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@mantine/notifications` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
+- Bump `@playwright/test` from 1.46.0 to 1.46.1 ([#4910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4910))
+- Bump `axios` from 1.7.2 to 1.7.4 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903))
+- Bump `com.h2database:h2` from 2.3.230 to 2.3.232 ([#4913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4913))
+- Bump `eslint-plugin-react` from 7.34.3 to 7.35.0 ([#4895](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4895))
+- Bump `eslint` from 9.8.0 to 9.9.0 ([#4911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4911))
+- Bump `junit5.version` from 5.10.3 to 5.11.0 ([#4916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4916))
+- Bump `logback-version` from 1.5.6 to 1.5.7 ([#4915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4915))
+- Bump `org.apache.commons:commons-lang3` from 3.15.0 to 3.16.0 ([#4890](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4890))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.1 to 3.4.0 ([#4914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4914))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.1 ([#4904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4904))
+- Bump `org.slf4j:slf4j-api` from 2.0.13 to 2.0.16 ([#4889](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4889))
+- Bump `typescript-eslint` from 8.0.0 to 8.1.0 ([#4912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4912))
+- Bump `video.js` from 8.17.1 to 8.17.3 ([#4906](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4906))
+- Bump `vite` from 5.3.1 to 5.4.1 ([#4909](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4909))
+
+## [14.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.3.0...14.4.0) (2024-08-10)
+
+### General
+- Added support for adding video feeds from YouTube Handle URLs:
+  ![adding youtube via handle](./changelog-images/14.4.0-add-youtube-handle.png)
+- Improved video quality when transcoding to H.265
+- Improved design of Shared Content tab:
+  ![adding youtube via handle](./changelog-images/14.4.0-shared-content.png)
+- Fixed video feeds (#4807, #4872 and #3134) (thanks, Demonsthere and ums-user!)
+- Fixed MP4 transcoding compatibility
+- Fixed browser settings crash when server is restarted
+- Fixed UMS crash during drive scan (#4859) (thanks, sherebiahtishbi!)
+- Fixed video feed names not being parsed when added via web settings (#4865)
+- Fixed TV series metadata remote refresh (#4867)
+- Fixed wrong thumbnails being served (#4820) (thanks, xeophyte!)
+- Fixed duplicate files and folders being added when changes are made (#4860) (thanks, KYFHO22!)
+- Added tests to protect against regressions
+- Made E2E tests run faster
+
+### Translation updates via Crowdin
+- Chinese Simplified (58%) (thanks, PenGoFox!)
+- Hungarian (54%) (thanks, Kovács Bálint!)
+
+### Dependencies
 - Bump `@playwright/test` from 1.44.1 to 1.45.3 ([#4861](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4861))
+- Bump `@types/lodash` from 4.17.5 to 4.17.7 ([#4845](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4845))
+- Bump `com.github.oshi:oshi-core` from 6.6.1 to 6.6.2 ([#4863](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4863))
 - Bump `com.h2database:h2` from 2.2.224 to 2.3.230 ([#4840](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4840))
+- Bump `commons-codec:commons-codec` from 1.17.0 to 1.17.1 ([#4841](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4841))
+- Bump `eslint-plugin-react-refresh` from 0.4.8 to 0.4.9 ([#4875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4875))
 - Bump `eslint` from 8.57.0 to 9.8.0 ([#4858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4858))
-- Bump `typescript` from 5.5.2 to 5.5.3 ([#4842](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4842))
+- Bump `jetty.version` from 12.0.11 to 12.0.12 ([#4876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4876))
+- Bump `JRE` from 17.0.11+10 to 17.0.12+10
+- Bump `org.apache.commons:commons-lang3` from 3.14.0 to 3.15.0 ([#4839](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4839))
+- Bump `react-movable` from 3.2.0 to 3.3.1 ([#4843](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4843))
+- Bump `react-router-dom` from 6.23.1 to 6.26.0 ([#4868](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4868))
+- Bump `typescript` from 5.5.2 to 5.5.4 ([#4842](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4842), [#4862](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4862))
+- Bump `yarn` from 4.3.1 to 4.4.0
+- Bump `youtube-dl` from 2024.07.11 to 2024.08.07
 
 ## [14.3.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.2.1...14.3.0) (2024-07-21)
 
 ### General
 - Added season names to folders:
-  ![image info](./changelog-images/14-3-0-season-names.png)
+  ![season names](./changelog-images/14-3-0-season-names.png)
 - Improved folder scanning speed (#4778)
 - Made new Media Server engine (Jetty+) the default
 - Fixed video player not fitting in browser window (#4832)
