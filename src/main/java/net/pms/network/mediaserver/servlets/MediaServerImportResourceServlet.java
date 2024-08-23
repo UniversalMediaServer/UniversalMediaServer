@@ -13,10 +13,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import net.pms.configuration.RendererConfigurations;
 import net.pms.network.HttpServletHelper;
-import net.pms.renderers.Renderer;
-import net.pms.store.StoreResource;
+import net.pms.store.MediaStoreIds;
 
 @WebServlet(name = "MEDIA SERVER IMPORT RESOURCE", urlPatterns = { "/import" }, displayName = "Media Server Import Resource Servlet")
 public class MediaServerImportResourceServlet extends HttpServletHelper {
@@ -48,11 +46,9 @@ public class MediaServerImportResourceServlet extends HttpServletHelper {
 					LOGGER.error("reported and transmitted file size do not match. StoreResource will not be updated.");
 					return;
 				}
-
-				Renderer renderer = RendererConfigurations.getDefaultRenderer();
-				StoreResource sr = renderer.getMediaStore().getResource(id);
-				if (sr != null) {
-					outFile = new File(sr.getFileName());
+				String filename = MediaStoreIds.getMediaStoreNameForId(id);
+				if (filename != null) {
+					outFile = new File(filename);
 					IO.copy(inFile, outFile);
 					LOGGER.info("Resource id {} imported/updated at {}", id, outFile.getAbsolutePath());
 				} else {
