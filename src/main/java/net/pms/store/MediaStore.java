@@ -55,7 +55,7 @@ import net.pms.store.container.ITunesLibrary;
 import net.pms.store.container.ImagesFeed;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaMonitor;
-import net.pms.store.container.Playlist;
+import net.pms.store.container.UmsPlaylist;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RarredFile;
 import net.pms.store.container.RealFolder;
@@ -120,7 +120,7 @@ public class MediaStore extends StoreContainer {
 		return tempFolder;
 	}
 
-	public Playlist getDynamicPls() {
+	public UmsPlaylist getDynamicPls() {
 		if (dynamicPls == null) {
 			dynamicPls = new DynamicPlaylist(renderer, Messages.getString("DynamicPlaylist"),
 					renderer.getUmsConfiguration().getDynamicPlsSavePath(),
@@ -365,7 +365,7 @@ public class MediaStore extends StoreContainer {
 		StoreContainer parent = getSharedContentParent(sharedContent.getParent());
 		// Handle web playlists stream
 		if (sharedContent instanceof StreamContent streamContent) {
-			StoreResource playlist = PlaylistFolder.getPlaylist(renderer, streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
+			StoreResource playlist = PlaylistManager.getPlaylist(renderer, streamContent.getName(), streamContent.getUri(), streamContent.getFormat());
 			if (playlist != null) {
 				parent.addChild(playlist);
 				return;
@@ -780,7 +780,7 @@ public class MediaStore extends StoreContainer {
 		} else if (lcFilename.endsWith(".cue")) {
 			return findResourceFromFile(resources, file, CueFolder.class);
 		} else if (lcFilename.endsWith(".ups")) {
-			return findResourceFromFile(resources, file, Playlist.class);
+			return findResourceFromFile(resources, file, UmsPlaylist.class);
 		} else {
 			return findResourceFromFile(resources, file, RealFile.class);
 		}
@@ -841,7 +841,7 @@ public class MediaStore extends StoreContainer {
 				lcFilename.endsWith(".pls") ||
 				lcFilename.endsWith(".cue") ||
 				lcFilename.endsWith(".ups")) {
-			StoreContainer d = PlaylistFolder.getPlaylist(renderer, file.getName(), file.getAbsolutePath(), 0);
+			StoreContainer d = PlaylistManager.getPlaylist(renderer, file.getName(), file.getAbsolutePath(), 0);
 			if (d == null) {
 				LOGGER.trace("createResourceFromFile return null as {} is PlaylistFolder fail.", file.toString());
 			}

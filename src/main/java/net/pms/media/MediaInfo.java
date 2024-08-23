@@ -57,6 +57,8 @@ public class MediaInfo implements Cloneable {
 	 */
 	protected static final Map<String, AudioVariantInfo> AUDIO_OR_VIDEO_CONTAINERS = getAudioOrVideoContainers();
 
+	private final AtomicBoolean parsing = new AtomicBoolean(false);
+
 	// Stored in database
 	private Long fileId;
 	private String lastParser;
@@ -88,10 +90,7 @@ public class MediaInfo implements Cloneable {
 	 * Not stored in database.
 	 */
 	private Integer dvdtrack;
-
 	private long lastExternalLookup = 0;
-	private final Object parsingLock = new Object();
-	private AtomicBoolean parsing = new AtomicBoolean(false);
 
 	public void resetParser() {
 		this.lastParser = null;

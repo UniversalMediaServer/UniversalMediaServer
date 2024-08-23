@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### General
+- Implements RadioBrowser Metadata lookup.
+- Added MediaTableContainerFiles to track files included in a container.
+- Store WebStream media info into the database.
+- Use of FFmpegParser to parse WebStream media info.
+- Implements WebStreamParser to parse headers of an http streams.
+- Added possibility to add playlist in playlist.
+
 ### Dependencies
 - Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `@mantine/dropzone` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))

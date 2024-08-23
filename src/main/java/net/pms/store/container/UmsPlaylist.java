@@ -28,20 +28,20 @@ import net.pms.store.utils.IOList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Playlist extends StoreContainer {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Playlist.class);
+public class UmsPlaylist extends StoreContainer {
+	private static final Logger LOGGER = LoggerFactory.getLogger(UmsPlaylist.class);
 	protected IOList list;
 	protected int maxSize;
 
-	public Playlist(Renderer renderer, String name) {
+	public UmsPlaylist(Renderer renderer, String name) {
 		this(renderer, name, null, 0, IOList.AUTOSAVE);
 	}
 
-	public Playlist(Renderer renderer, String name, String filename) {
+	public UmsPlaylist(Renderer renderer, String name, String filename) {
 		this(renderer, name, filename, 0, IOList.AUTOSAVE);
 	}
 
-	public Playlist(Renderer renderer, String name, String filename, int maxSize, int mode) {
+	public UmsPlaylist(Renderer renderer, String name, String filename, int maxSize, int mode) {
 		super(renderer, name, "images/store/folder.png");
 		this.maxSize = maxSize > 0 ? maxSize : 0;
 		list = new IOList(renderer, filename, mode);
@@ -103,7 +103,7 @@ public class Playlist extends StoreContainer {
 	@Override
 	public void discoverChildren() {
 		if (!list.isEmpty()) {
-			final Playlist self = this;
+			final UmsPlaylist self = this;
 			// Save
 			if (!isMode(IOList.AUTOSAVE)) {
 				addChild(new VirtualVideoActionLocalized(renderer, "Save", true, null) {
