@@ -457,60 +457,60 @@ public class FFMpegVideo extends Engine {
 
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 			if (defaultVideoTrack != null) {
-				if (encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265()) {
-					if (canMuxVideoWithFFmpeg) {
-						if (!customFFmpegOptions.contains("-c:v")) {
-							transcodeOptions.add("-c:v");
-							transcodeOptions.add("copy");
-						}
-					} else {
-						String selectedTranscodeAccelerationMethod = null;
+				if (canMuxVideoWithFFmpeg) {
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
+						transcodeOptions.add("copy");
+					}
+				} else if (encodingFormat.isTranscodeToMPEG2() && !dtsRemux) {
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
+						transcodeOptions.add("mpeg2video");
+					}
+				} else {
+					String selectedTranscodeAccelerationMethod = null;
 
-						if (!customFFmpegOptions.contains("-c:v")) {
-							transcodeOptions.add("-c:v");
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
 
-							if (encodingFormat.isTranscodeToH264()) {
-								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
-							} else {
-								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
-							}
-
+						if (encodingFormat.isTranscodeToH264()) {
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
 							transcodeOptions.add(selectedTranscodeAccelerationMethod);
-
-							// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
-
-							if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
-								transcodeOptions.add("-preset");
-								transcodeOptions.add("llhp");
-							}
+						} else if (encodingFormat.isTranscodeToH265()) {
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
+							transcodeOptions.add(selectedTranscodeAccelerationMethod);
 						}
 
-						if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
-							if (!customFFmpegOptions.contains("-preset")) {
-								transcodeOptions.add("-preset");
-
-								// do not use ultrafast for compatibility problems, particularly Panasonic TVs
-								transcodeOptions.add("superfast");
-							}
-							if (!customFFmpegOptions.contains("-level")) {
-								transcodeOptions.add("-level");
-								transcodeOptions.add("31");
-							}
-						} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
-							if (!customFFmpegOptions.contains("-preset")) {
-								transcodeOptions.add("-preset");
-								transcodeOptions.add("superfast");
-							}
-						}
-
-						if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
-							transcodeOptions.add("-pix_fmt");
-							transcodeOptions.add("yuv420p");
+						if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("llhp");
 						}
 					}
-				} else if (!dtsRemux) {
-					transcodeOptions.add("-c:v");
-					transcodeOptions.add("mpeg2video");
+
+					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+
+							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+							transcodeOptions.add("superfast");
+						}
+						if (!customFFmpegOptions.contains("-level")) {
+							transcodeOptions.add("-level");
+							transcodeOptions.add("31");
+						}
+
+						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
+					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("superfast");
+						}
+					}
+
+					if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
+						transcodeOptions.add("-pix_fmt");
+						transcodeOptions.add("yuv420p");
+					}
 				}
 
 				// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
