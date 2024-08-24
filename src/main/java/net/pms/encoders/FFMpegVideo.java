@@ -394,6 +394,27 @@ public class FFMpegVideo extends Engine {
 					transcodeOptions.add("copy");
 				}
 			} else {
+				// log the reason for not remuxing audio
+				String logPrepend = "Audio was not remuxed because ";
+				if (params.getAid() == null) {
+					LOGGER.trace(logPrepend + "there is no audio");
+				}
+				if (!configuration.isAudioRemuxAC3() && params.getAid().isAC3()) {
+					LOGGER.trace(logPrepend + "audio is AC-3 and the user setting to remux AC-3 is disabled");
+				}
+				if (!renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat)) {
+					LOGGER.trace(logPrepend + "audio stream type {} is not supported inside the container {}", params.getAid().getAudioCodec(), encodingFormat);
+				}
+				if (isAviSynthEngine()) {
+					LOGGER.trace(logPrepend + "this is AviSynth");
+				}
+				if (isSubtitlesAndTimeseek) {
+					LOGGER.trace(logPrepend + "there are subtitles and seeking involved");
+				}
+				if (!ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())) {
+					LOGGER.trace(logPrepend + "FFmpeg does not support remuxing the audio stream {} to the transcoding container {}", params.getAid().getAudioCodec(), encodingFormat.getTranscodingContainer());
+				}
+
 				if (dtsRemux) {
 					// Audio is added in a separate process later
 					transcodeOptions.add("-an");
