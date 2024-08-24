@@ -1120,9 +1120,7 @@ public class FFMpegVideo extends Engine {
 		}
 
 		if (!override) {
-			if (!canMuxVideoWithFFmpeg) {
-				cmdList.addAll(getVideoBitrateOptions(item, media, params, dtsRemux));
-			}
+			cmdList.addAll(getVideoBitrateOptions(item, media, params, dtsRemux));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
