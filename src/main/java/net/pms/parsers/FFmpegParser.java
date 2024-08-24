@@ -133,6 +133,7 @@ public class FFmpegParser {
 
 		ArrayList<String> args = new ArrayList<>();
 		args.add(engine);
+		args.add("-hide_banner");
 		args.add("-i");
 
 		String input;
@@ -163,6 +164,42 @@ public class FFmpegParser {
 			LOGGER.info("Error parsing information from the file: " + input);
 		} else {
 			parseFFmpegInfo(media, pw.getResults(), input);
+		}
+
+		media.setParsing(false);
+	}
+
+	public static void parseUrl(MediaInfo media, String url) {
+		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
+		if (engine == null) {
+			LOGGER.warn("Cannot parse since the FFmpeg executable is undefined");
+			return;
+		}
+
+		ArrayList<String> args = new ArrayList<>();
+		args.add(engine);
+		args.add("-hide_banner");
+		args.add("-i");
+		args.add(url);
+		args.add("-t");
+		args.add("1");
+		args.add("-f");
+		args.add("null");
+		args.add("-");
+
+		OutputParams params = new OutputParams(CONFIGURATION);
+		params.setMaxBufferSize(1);
+
+		// true: consume stderr on behalf of the caller i.e. parse()
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+		media.setParsing(true);
+		fspw.runInSameThread();
+
+		if (fspw.hasFail()) {
+			LOGGER.info("Error parsing information from the url: " + url);
+		} else {
+			parseFFmpegInfo(media, pw.getResults(), url);
 		}
 
 		media.setParsing(false);

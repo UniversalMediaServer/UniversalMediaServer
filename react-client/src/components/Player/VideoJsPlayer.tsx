@@ -16,8 +16,8 @@
  */
 import axios from 'axios';
 import { useEffect } from 'react';
-import videojs, { ReadyCallback } from 'video.js';
-import Player from 'video.js/dist/types/player';
+import videojs from 'video.js';
+import Player, { PlayerReadyCallback } from 'video.js/dist/types/player';
 import 'video.js/dist/video-js.min.css';
 
 import { playerApiUrl } from '../../utils';
@@ -28,7 +28,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
   useEffect(() => {
     const videoElem = document.createElement('video');
     videoElem.id = 'player';
-    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fluid', 'vjs-big-play-centered', 'full-card', 'card');
+    videoElem.classList.add('video-js', 'vjs-default-skin', 'vjs-fill', 'vjs-big-play-centered', 'full-card', 'card');
     document.getElementById('videodiv')?.appendChild(videoElem);
 
     const videoMedia = (vpOptions.media.mediaType === 'video') ? (vpOptions.media as VideoMedia) : null;
@@ -123,7 +123,7 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
       }
     };
 
-    const videoPlayer = videojs(videoElem, options, onready as ReadyCallback);
+    const videoPlayer = videojs(videoElem, options, onready as PlayerReadyCallback);
 
     return () => {
       if (!videoPlayer.isDisposed()) {

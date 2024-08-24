@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class YoutubeDl extends FFMpegVideo {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(YoutubeDl.class);
 
 	public static final EngineId ID = StandardEngineId.YOUTUBE_DL;
@@ -163,8 +164,8 @@ public class YoutubeDl extends FFMpegVideo {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		return PlayerUtil.isWebVideo(resource);
+	public boolean isCompatible(StoreItem item) {
+		return PlayerUtil.isWebVideo(item);
 	}
 
 }

@@ -98,7 +98,17 @@ export default function TranscodingSettings(
     } else if (items.includes(engine.id)) {
       return (
         <Tooltip label={allowHtml(i18n.get('TranscodingEngineXEnabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-          <ActionIcon variant='transparent' size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, false); e.stopPropagation(); }}>
+          <ActionIcon
+            variant='transparent'
+            size={20}
+            style={{ cursor: 'copy' }}
+            onClick={(e: any) => {
+              if (canModify) {
+                setTranscodingEngineStatus(engine.id, false);
+              }
+              e.stopPropagation();
+            }}
+          >
             <PlayerPlay strokeWidth={2} color={'green'} size={14} />
           </ActionIcon>
         </Tooltip>
@@ -106,7 +116,16 @@ export default function TranscodingSettings(
     }
     return (
       <Tooltip label={allowHtml(i18n.get('TranscodingEngineXDisabled')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
-        <ActionIcon size={20} style={{ cursor: 'copy' }} onClick={(e: any) => { canModify && setTranscodingEngineStatus(engine.id, true); e.stopPropagation(); }}>
+        <ActionIcon
+          size={20}
+          style={{ cursor: 'copy' }}
+          onClick={(e: any) => {
+            if (canModify) {
+              setTranscodingEngineStatus(engine.id, true);
+            }
+            e.stopPropagation();
+          }}
+        >
           <Ban color={'red'} size={14} />
         </ActionIcon>
       </Tooltip>
@@ -120,7 +139,9 @@ export default function TranscodingSettings(
         lockVertically
         values={getTranscodingEnginesPriority(purpose)}
         onChange={({ oldIndex, newIndex }) => {
-          canModify && moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
+          if (canModify) {
+            moveTranscodingEnginesPriority(purpose, oldIndex, newIndex);
+          }
         }}
         renderList={({ children, props }) => (
           <Stack justify='flex-start' align='flex-start' gap='xs' {...props}>
@@ -469,7 +490,12 @@ export default function TranscodingSettings(
                   ></ColorPicker>
                   <Button
                     size='xs'
-                    onClick={() => { canModify && form.setFieldValue('subtitles_color', rgbaToHexA(subColor)); setSubColorModalOpened(false); }}
+                    onClick={() => {
+                      if (canModify) {
+                        form.setFieldValue('subtitles_color', rgbaToHexA(subColor));
+                      }
+                      setSubColorModalOpened(false);
+                    }}
                   >{i18n.get('Confirm')}</Button>
                 </Stack>
               </Modal>
@@ -1041,6 +1067,8 @@ export default function TranscodingSettings(
         return getFFMPEGVideo();
       case 'AviSynthFFmpeg':
         return getAviSynthFFMPEG();
+      case 'FFmpegHlsVideo':
+        return noSettingsForNow();
       case 'FFmpegWebVideo':
         return noSettingsForNow();
       case 'MEncoderVideo':

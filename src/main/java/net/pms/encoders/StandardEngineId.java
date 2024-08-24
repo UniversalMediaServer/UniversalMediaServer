@@ -48,6 +48,9 @@ public class StandardEngineId extends EngineId {
 	/** The identifier for {@link FFMpegVideo} */
 	public static final EngineId FFMPEG_VIDEO = new StandardEngineId("FFmpegVideo");
 
+	/** The identifier for {@link FFmpegHlsVideo} */
+	public static final EngineId FFMPEG_HLS_VIDEO = new StandardEngineId("FFmpegHlsVideo");
+
 	/** The identifier for {@link FFmpegWebVideo} */
 	public static final EngineId FFMPEG_WEB_VIDEO = new StandardEngineId("FFmpegWebVideo");
 
@@ -98,6 +101,7 @@ public class StandardEngineId extends EngineId {
 		allEngines.add(VLC_VIDEO);
 		allEngines.add(FFMPEG_AUDIO);
 		allEngines.add(TSMUXER_AUDIO);
+		allEngines.add(FFMPEG_HLS_VIDEO);
 		allEngines.add(FFMPEG_WEB_VIDEO);
 		allEngines.add(VLC_WEB_VIDEO);
 		allEngines.add(VLC_VIDEO_STREAMING);
@@ -148,6 +152,8 @@ public class StandardEngineId extends EngineId {
 				return FFMPEG_AUDIO;
 			case "FFMPEGVIDEO":
 				return FFMPEG_VIDEO;
+			case "FFMPEGHLSVIDEO":
+				return FFMPEG_HLS_VIDEO;
 			case "FFMPEGWEBVIDEO":
 				return FFMPEG_WEB_VIDEO;
 			case "MENCODER": // old name

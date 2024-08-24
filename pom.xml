@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.1.0-SNAPSHOT</version>
+	<version>14.4.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.1.0</project.version.short>
+		<project.version.short>14.4.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -72,9 +72,9 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>189</binary-revision>
+		<binary-revision>194</binary-revision>
 
-		<exec-maven-plugin-version>3.3.0</exec-maven-plugin-version>
+		<exec-maven-plugin-version>3.4.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
 		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
@@ -93,13 +93,13 @@
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
 		-->
-		<slf4j-api-version>2.0.13</slf4j-api-version>
+		<slf4j-api-version>2.0.16</slf4j-api-version>
 
 		<!--
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.5.6</logback-version>
+		<logback-version>1.5.7</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -107,9 +107,9 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.17.1</jackson.version>
+		<jackson.version>2.17.2</jackson.version>
 
-		<surefire-version>3.3.0</surefire-version>
+		<surefire-version>3.4.0</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -120,8 +120,8 @@
 		-->
 		<jna-version>5.14.0</jna-version>
 
-		<junit5.version>5.10.2</junit5.version>
-		<jetty.version>12.0.10</jetty.version>
+		<junit5.version>5.11.0</junit5.version>
+		<jetty.version>12.0.12</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -156,7 +156,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.17.0</version>
+			<version>1.17.1</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-configuration</groupId>
@@ -178,7 +178,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.2</version>
+			<version>1.3.3</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -194,7 +194,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.14.0</version>
+			<version>3.16.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -210,7 +210,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>2.2.224</version>
+			<version>2.3.232</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -557,7 +557,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.1</version>
+			<version>6.6.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -669,12 +669,6 @@
 			<version>0.10.2</version>
 		</dependency>
 		<dependency>
-			<groupId>jakarta.servlet</groupId>
-			<artifactId>jakarta.servlet-api</artifactId>
-			<version>6.0.0</version>
-			<type>jar</type>
-		</dependency>
-		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
 			<version>0.3</version>
@@ -717,6 +711,27 @@
 					<artifactId>slf4j-api</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>de.sfuhrm</groupId>
+			<artifactId>radiobrowser4j</artifactId>
+			<version>3.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.18.1</version>
 		</dependency>
 	</dependencies>
 	<build>

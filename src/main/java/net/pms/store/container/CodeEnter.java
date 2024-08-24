@@ -112,10 +112,11 @@ public class CodeEnter extends StoreContainer {
 				return true;
 			}
 		});
+		sortChildrenIfNeeded();
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		setEnteredCode("");
 		getChildren().clear();
 		discoverChildren();

@@ -5,6 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "command": "yarn && yarn dev",
+            "name": "Launch web interface",
+            "request": "launch",
+            "type": "node-terminal",
+            "cwd": "${workspaceFolder}/react-client"
+        },
+        {
             "type": "java",
             "name": "Launch Current File",
             "request": "launch",

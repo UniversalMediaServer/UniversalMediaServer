@@ -55,7 +55,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer) {
 		super(renderer, null, null);
-		isSorted = true;
+		setChildrenSorted(true);
 		this.files = new ArrayList<>();
 		this.virtualFolders = new ArrayList<>();
 		this.forcedName = null;
@@ -64,7 +64,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolderContent virtualFolder) {
 		super(renderer, virtualFolder.getName(), null);
-		isSorted = true;
+		setChildrenSorted(true);
 		this.addToMediaLibrary = virtualFolder.isAddToMediaLibrary();
 		this.files = virtualFolder.getFiles();
 		this.virtualFolders = virtualFolder.getVirtualFolders();
@@ -74,7 +74,7 @@ public class VirtualFolder extends StoreContainer {
 
 	public VirtualFolder(Renderer renderer, VirtualFolder virtualFile, List<File> files, String forcedName) {
 		super(renderer, null, null);
-		isSorted = true;
+		setChildrenSorted(true);
 		this.addToMediaLibrary = virtualFile.isAddToMediaLibrary();
 		this.files = virtualFile.getFiles();
 		this.virtualFolders = new ArrayList<>();
@@ -179,7 +179,7 @@ public class VirtualFolder extends StoreContainer {
 		return out;
 	}
 
-	public boolean analyzeChildren() {
+	private boolean analyzeChildren() {
 		FileSearch fs = null;
 		if (!discoverable.isEmpty() && renderer.getUmsConfiguration().getSearchInFolder()) {
 			searchList = new ArrayList<>();
@@ -200,13 +200,14 @@ public class VirtualFolder extends StoreContainer {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
 		} else {
 			return;
 		}
 
+		getChildren().clear();
 		List<File> childrenFiles = getFilesListForDirectories();
 
 		// Build a map of all files and their corresponding formats
@@ -313,6 +314,9 @@ public class VirtualFolder extends StoreContainer {
 				discoverable.add(f);
 			}
 		}
+		setDiscovered(analyzeChildren());
+		sortChildrenIfNeeded();
+		setLastRefreshTime(System.currentTimeMillis());
 	}
 
 	/**
@@ -357,12 +361,10 @@ public class VirtualFolder extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
-		getChildren().clear();
+	public synchronized void doRefreshChildren() {
 		emptyFoldersToRescan = null; // Since we're re-scanning, reset this list so it can be built again
 		discoverable = null;
 		discoverChildren();
-		analyzeChildren();
 	}
 
 	@Override
@@ -382,7 +384,7 @@ public class VirtualFolder extends StoreContainer {
 	@Override
 	public String getName() {
 		if (StringUtils.isEmpty(forcedName)) {
-			return name;
+			return super.getName();
 		}
 		return forcedName;
 	}

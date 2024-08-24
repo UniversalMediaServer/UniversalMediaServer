@@ -122,13 +122,14 @@ public class HlsHelper {
 	    You must use at least protocol version 8 if you use variable substitution.
 	*/
 
-	public static String getHLSm3u8(StoreItem resource, Renderer renderer, String baseUrl) {
-		if (resource.getMediaInfo() != null) {
+	public static String getHLSm3u8(StoreItem item, Renderer renderer, String baseUrl) {
+		if (item.getMediaInfo() != null) {
+			final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
 			int hlsVersion = renderer.getHlsVersion();
-			MediaInfo mediaInfo = resource.getMediaInfo();
+			MediaInfo mediaInfo = item.getMediaInfo();
 			// add 5% to handle cropped borders
 			int maxHeight = (int) (mediaInfo.getHeight() * 1.05);
-			String id = resource.getResourceId();
+			String id = item.getResourceId();
 			StringBuilder sb = new StringBuilder();
 			sb.append("#EXTM3U\n");
 			if (hlsVersion > 1) {
@@ -158,7 +159,7 @@ public class HlsHelper {
 					}
 				}
 			}
-			HlsAudioConfiguration askedDefaultAudioGroup = renderer.isTranscodeToAAC() ? HlsAudioConfiguration.getByKey("AAC-LC") : HlsAudioConfiguration.getByKey("AC3");
+			HlsAudioConfiguration askedDefaultAudioGroup = encodingFormat.isTranscodeToAAC() ? HlsAudioConfiguration.getByKey("AAC-LC") : HlsAudioConfiguration.getByKey("AC3");
 			if (!audioGroups.contains(askedDefaultAudioGroup)) {
 				audioGroups.add(askedDefaultAudioGroup);
 			}

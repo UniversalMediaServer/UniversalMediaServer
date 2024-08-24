@@ -29,7 +29,7 @@ public class MediaLibraryTvEpisode extends RealFile {
 	public MediaLibraryTvEpisode(Renderer renderer, File file, boolean isWithinSeasonFolder) {
 		super(renderer, file);
 		isEpisodeWithinSeasonFolder = isWithinSeasonFolder;
-		this.isSortable = false;
+		setSortable(false);
 	}
 
 	@Override

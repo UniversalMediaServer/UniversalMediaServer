@@ -16,7 +16,6 @@ pms.iml
 Thumbs.db
 extras/
 target/
-/web/
 win32/
 .vscode/settings.json
 /src/main/pascal/ctrlsender/lib/
@@ -46,3 +45,10 @@ docker/jre*
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-client
 /nbproject/
+
+# Ignore the populated Gon scripts because they contain private info
+/gon-config-*
+
+# Playwright test outputs
+react-client/test-results/
+ums-testserver.jar

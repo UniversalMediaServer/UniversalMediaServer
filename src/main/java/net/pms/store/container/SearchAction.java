@@ -34,7 +34,7 @@ public class SearchAction extends StoreContainer {
 		super(renderer, name, "images/Play1Hot_120.jpg");
 		this.sobj = sobj;
 		this.ch = ch;
-		this.name = name;
+		setName(name);
 	}
 
 	@Override
@@ -51,11 +51,6 @@ public class SearchAction extends StoreContainer {
 	public void discoverChildren() {
 		sobj.append(ch);
 		setDiscovered(false);
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override

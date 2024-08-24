@@ -17,19 +17,14 @@
 package net.pms.store;
 
 import java.awt.RenderingHints;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableFiles;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAThumbnailInputStream;
 import net.pms.image.BufferedImageFilterChain;
@@ -845,6 +840,14 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		) && isFullyPlayed();
 	}
 
+	public boolean isSortable() {
+		return isSortable;
+	}
+
+	public void setSortable(boolean isSortable) {
+		this.isSortable = isSortable;
+	}
+
 	/**
 	 * Returns an InputStream associated with the fileName.
 	 *
@@ -929,38 +932,6 @@ public abstract class StoreResource implements Cloneable, Runnable {
 		}
 
 		return "";
-	}
-
-	/**
-	 * Stores the file in the cache if it doesn't already exist.
-	 *
-	 * @param file the full path to the file.
-	 * @param formatType the type constant defined in {@link Format}.
-	 */
-	protected final void storeFileInCache(File file, int formatType) {
-		if (MediaDatabase.isAvailable()) {
-			Connection connection = null;
-			try {
-				connection = MediaDatabase.getConnectionIfAvailable();
-				if (connection != null && !MediaTableFiles.isDataExists(connection, file.getAbsolutePath(), file.lastModified())) {
-					//handle autocommit
-					boolean currentAutoCommit = connection.getAutoCommit();
-					if (currentAutoCommit) {
-						connection.setAutoCommit(false);
-					}
-					MediaTableFiles.insertOrUpdateData(connection, file.getAbsolutePath(), file.lastModified(), formatType, null);
-					if (currentAutoCommit) {
-						connection.commit();
-						connection.setAutoCommit(true);
-					}
-				}
-			} catch (SQLException e) {
-				LOGGER.error("Database error while trying to store \"{}\" in the cache: {}", file.getName(), e.getMessage());
-				LOGGER.trace("", e);
-			} finally {
-				MediaDatabase.close(connection);
-			}
-		}
 	}
 
 	public String getGenre() {

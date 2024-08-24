@@ -132,6 +132,7 @@ public class JaudiotaggerParser {
 					audioMetadata.setMbidTrack(extractAudioTagKeyValue(t, FieldKey.MUSICBRAINZ_TRACK_ID));
 					audioMetadata.setRating(convertTagRatingToStar(t));
 					audioMetadata.setGenre(extractAudioTagKeyValue(t, FieldKey.GENRE));
+					audioMetadata.setDisc(extractAudioTagKeyIntegerValue(t, FieldKey.DISC_NO, 1));
 
 					String keyyear = extractAudioTagKeyValue(t, FieldKey.YEAR);
 					if (keyyear != null) {

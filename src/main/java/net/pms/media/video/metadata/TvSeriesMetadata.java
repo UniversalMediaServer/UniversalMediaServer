@@ -598,7 +598,7 @@ public class TvSeriesMetadata {
 
 	private VideoMetadataLocalized getTranslation(String lang) {
 		lang = CONFIGURATION.getTranslationLanguage(lang);
-		if (hasTranslation(lang)) {
+		if (lang != null && hasTranslation(lang)) {
 			return this.translations.get(lang);
 		}
 		return null;
@@ -642,6 +642,51 @@ public class TvSeriesMetadata {
 			return translation.getTitle();
 		}
 		return title;
+	}
+
+	public void update(TvSeriesMetadata tvSeriesMetadata) {
+		setActors(tvSeriesMetadata.getActors());
+		setApiVersion(tvSeriesMetadata.getApiVersion());
+		setAwards(tvSeriesMetadata.getAwards());
+		setCountries(tvSeriesMetadata.getCountries());
+		setCreatedBy(tvSeriesMetadata.getCreatedBy());
+		setCredits(tvSeriesMetadata.getCredits());
+		setDirectors(tvSeriesMetadata.getDirectors());
+		setEndYear(tvSeriesMetadata.getEndYear());
+		setExternalIDs(tvSeriesMetadata.getExternalIDs());
+		setFirstAirDate(tvSeriesMetadata.getFirstAirDate());
+		setGenres(tvSeriesMetadata.getGenres());
+		setHomepage(tvSeriesMetadata.getHomepage());
+		setIMDbID(tvSeriesMetadata.getIMDbID());
+		setImages(tvSeriesMetadata.getImages());
+		setLanguages(tvSeriesMetadata.getLanguages());
+		setLastAirDate(tvSeriesMetadata.getLastAirDate());
+		setNetworks(tvSeriesMetadata.getNetworks());
+		setNumberOfEpisodes(tvSeriesMetadata.getNumberOfEpisodes());
+		setNumberOfSeasons(tvSeriesMetadata.getNumberOfSeasons());
+		setOriginCountry(tvSeriesMetadata.getOriginCountry());
+		setOriginalLanguage(tvSeriesMetadata.getOriginalLanguage());
+		setOriginalTitle(tvSeriesMetadata.getOriginalTitle());
+		setOverview(tvSeriesMetadata.getOverview());
+		setPoster(tvSeriesMetadata.getPoster());
+		setProductionCompanies(tvSeriesMetadata.getProductionCompanies());
+		setProductionCountries(tvSeriesMetadata.getProductionCountries());
+		setRated(tvSeriesMetadata.getRated());
+		setRating(tvSeriesMetadata.getRating());
+		setRatings(tvSeriesMetadata.getRatings());
+		setSeasons(tvSeriesMetadata.getSeasons());
+		setSeriesType(tvSeriesMetadata.getSeriesType());
+		setSpokenLanguages(tvSeriesMetadata.getSpokenLanguages());
+		setStartYear(tvSeriesMetadata.getStartYear());
+		setStatus(tvSeriesMetadata.getStatus());
+		setTagline(tvSeriesMetadata.getTagline());
+		setThumbnailId(tvSeriesMetadata.getThumbnailId());
+		setThumbnailSource(tvSeriesMetadata.getThumbnailSource());
+		setTitle(tvSeriesMetadata.getTitle());
+		setTmdbId(tvSeriesMetadata.getTmdbId());
+		setTotalSeasons(tvSeriesMetadata.getTotalSeasons());
+		setTranslations(null);
+		setVotes(tvSeriesMetadata.getVotes());
 	}
 
 	public JsonObject asJsonObject(String lang) {

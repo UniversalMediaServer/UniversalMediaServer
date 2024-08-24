@@ -113,7 +113,7 @@ public class TsMuxeRVideo extends Engine {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		StoreItem resource,
+		StoreItem item,
 		MediaInfo media,
 		OutputParams params
 	) throws IOException {
@@ -121,8 +121,9 @@ public class TsMuxeRVideo extends Engine {
 		// Use device-specific ums conf
 		UmsConfiguration configuration = renderer.getUmsConfiguration();
 
-		final String filename = resource.getFileName();
-		setAudioAndSubs(resource, params);
+		final String filename = item.getFileName();
+		final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
+		setAudioAndSubs(item, params);
 
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;
@@ -290,7 +291,7 @@ public class TsMuxeRVideo extends Engine {
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-					ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+					ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !encodingFormat.isTranscodeToAAC();
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.getAid().isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
@@ -347,7 +348,7 @@ public class TsMuxeRVideo extends Engine {
 						if (!renderer.isMuxDTSToMpeg()) {
 							ffAudioPipe[0].setModifier(sm);
 						}
-					} else if (!ac3Remux && renderer.isTranscodeToAAC()) {
+					} else if (!ac3Remux && encodingFormat.isTranscodeToAAC()) {
 						// AAC audio
 						ffmpegCommands = new String[] {
 							EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
@@ -389,7 +390,7 @@ public class TsMuxeRVideo extends Engine {
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
 						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !encodingFormat.isTranscodeToAAC();
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
@@ -446,7 +447,7 @@ public class TsMuxeRVideo extends Engine {
 								"-y",
 								ffAudioPipe[i].getInputPipe()
 							};
-						} else if (!ac3Remux && renderer.isTranscodeToAAC()) {
+						} else if (!ac3Remux && encodingFormat.isTranscodeToAAC()) {
 							// AAC audio
 							ffmpegCommands = new String[] {
 								EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO),
@@ -498,7 +499,7 @@ public class TsMuxeRVideo extends Engine {
 			String videoparams;
 			if (this instanceof TsMuxeRAudio) {
 				videoparams = "track=224";
-			} else if (renderer.isTranscodeToH264()) {
+			} else if (encodingFormat.isTranscodeToH264()) {
 				String sei = "insertSEI";
 				if (
 					renderer.isPS3() &&
@@ -523,7 +524,7 @@ public class TsMuxeRVideo extends Engine {
 				boolean pcm;
 
 				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.getAid().isNonPCMEncodedAudio() && renderer.isWrapEncodedAudioIntoPCM();
-				ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !renderer.isTranscodeToAAC();
+				ac3Remux = params.getAid().isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough && !encodingFormat.isTranscodeToAAC();
 				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.getAid().isDTS() && renderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
@@ -674,7 +675,7 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public String mimeType() {
+	public String getMimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
 	}
 
@@ -704,39 +705,44 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		MediaSubtitle subtitle = resource.getMediaSubtitle();
+	public boolean isCompatible(StoreItem item) {
+		MediaSubtitle subtitle = item.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized MediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but we do not support subtitles for tsMuxeR.
+			// The item needs a subtitle, but we do not support subtitles for tsMuxeR.
 			// @todo add subtitles support for tsMuxeR
 			return false;
 		}
 
-		MediaAudio audio = resource.getMediaAudio();
+		MediaAudio audio = item.getMediaAudio();
 		if (audio != null) {
 			try {
-				String audioTrackName = resource.getMediaAudio().toString();
-				String defaultAudioTrackName = resource.getMediaInfo().getDefaultAudioTrack().toString();
+				String audioTrackName = item.getMediaAudio().toString();
+				String defaultAudioTrackName = item.getMediaInfo().getDefaultAudioTrack().toString();
 
 				if (!audioTrackName.equals(defaultAudioTrackName)) {
 					// We only support playback of the default audio track for tsMuxeR
 					return false;
 				}
 			} catch (NullPointerException e) {
-				LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + resource.getFileName());
+				LOGGER.trace("tsMuxeR cannot determine compatibility based on audio track for " + item.getFileName());
 			} catch (IndexOutOfBoundsException e) {
-				LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + resource.getFileName());
+				LOGGER.trace("tsMuxeR cannot determine compatibility based on default audio track for " + item.getFileName());
 			}
 		}
 
 		return (
-			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
+			PlayerUtil.isVideo(item, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(item, Format.Identifier.OGG)
 		);
+	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isVideoFormat() && !encodingFormat.isTranscodeToHLS();
 	}
 
 	@Override

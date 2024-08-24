@@ -213,7 +213,7 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.05-eac3_atmos.mkv").toString()
 		);
 		assertEquals(
-			"Container: MKV, Size: 8180475, Overall Bitrate: 21916879, Duration: 0:00:02.986, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Stream Order: 0, Duration: 0:00:02.787, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 59.94, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2086, HDR Format Compatibility: HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 1, Bitrate: 117969, Channels: 2, Sample Frequency: 48000 Hz, Video Delay: -71], Mime Type: video/x-matroska",
+			"Container: MKV, Size: 2270734, Overall Bitrate: 6083681, Duration: 0:00:02.986, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Stream Order: 0, Duration: 0:00:02.853, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 58.535, Frame Rate Mode: VFR (VFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: SMPTE ST 2086, HDR Format Compatibility: HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 1, Bitrate: 117969, Channels: 2, Sample Frequency: 48000 Hz, Video Delay: -67], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_hdr10-aac.mkv").toString()
 		);
 		assertEquals(
@@ -221,28 +221,32 @@ public class MediaInfoParserTest {
 			getTestFileMediaInfo("video-h265_hdr10+-dtshd_x_imax.mkv").toString()
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Duration: 0:00:08.342, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Duration: 0:00:08.425, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: SDR], Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 32636236, Overall Bitrate: 31110533, Duration: 0:00:08.392, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Duration: 0:00:08.425, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: SDR], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p04.06.ts").toString()
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 29792360, Overall Bitrate: 40020476, Duration: 0:00:05.923, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 6.1, Format Tier: main, Duration: 0:00:06.006, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 29792360, Overall Bitrate: 40020476, Duration: 0:00:05.955, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 6.1, Format Tier: main, Duration: 0:00:06.006, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.06.ts").toString()
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 12851116, Overall Bitrate: 20212872, Duration: 0:00:05.083, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Duration: 0:00:05.116, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 60.0, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 12851116, Overall Bitrate: 20212872, Duration: 0:00:05.086, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: main, Duration: 0:00:05.116, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 60.0, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision)], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p05.09.ts").toString()
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 2448136, Overall Bitrate: 3926871, Duration: 0:00:04.922, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Duration: 0:00:05.005, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: Blu-ray / HDR10 (hdr10)], Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 2448136, Overall Bitrate: 3926871, Duration: 0:00:04.987, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Duration: 0:00:05.005, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 23.976, Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: Blu-ray / HDR10 (hdr10)], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p07.06.ts").toString()
 		);
 		assertEquals(
-			"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Duration: 0:00:04.505, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Duration: 0:00:04.504, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: HLG (hlg)], Mime Type: video/vnd.dlna.mpeg-tts",
+			"Container: MPEGTS, Size: 16063660, Overall Bitrate: 28310726, Duration: 0:00:04.539, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5.1, Format Tier: high, Duration: 0:00:04.504, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision (dolbyvision), HDR Format Compatibility: HLG (hlg)], Mime Type: video/vnd.dlna.mpeg-tts",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.12.ts").toString()
 		);
 		assertEquals(
 			"Container: MKV, Size: 11413502, Overall Bitrate: 6110012, Duration: 0:00:14.944, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Format Level: 5, Format Tier: main, Stream Order: 0, Duration: 0:00:14.920, Resolution: 3840 x 2160, Display Aspect Ratio: 16:9, Frame Rate: 25.0, Frame Rate Mode: CFR (CFR), Matrix Coefficients: BT.2020 non-constant, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 / HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 768000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
 			getTestFileMediaInfo("video-h265_dolbyvision_p08.07-eac3_atmos.mkv").toString()
+		);
+		assertEquals(
+			"Container: MP4, Size: 23449234, Overall Bitrate: 2608913, Duration: 0:01:11.905, Video Tracks: 1 [Video Id: 0, Language Code: eng, Codec: h264, Format Profile: main, Format Level: 4, Stream Order: 1, Duration: 0:01:11.905, Resolution: 1280 x 720, Display Aspect Ratio: 16:9, Scan Type: Progressive, Frame Rate: 29.97, Frame Rate Mode: CFR (CFR), Reference Frame Count: 2], Audio Tracks: 1 [Audio Id: 0, Codec: ac4, Stream Order: 0, Bitrate: 128000, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
+			getTestFileMediaInfo("video-h264-6ch-ac4.mp4").toString()
 		);
 
 		//audio

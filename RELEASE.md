@@ -7,7 +7,7 @@ There are a number of manual steps involved in a new version release. This list 
 1. Pull the latest translations from Crowdin by running `mvn crowdin:pull`
 
      This relies on the [Crowdin Maven Plugin](https://github.com/DigitalMediaServer/crowdin-maven-plugin/)
-1. Update [the changelog](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populating the sections.
+1. Update [the changelog](./CHANGELOG.md) by changing the `Unreleased` section to the version name (see the next step for which value to use) and populating the sections.
 
      There are 4 usual sections in a changelog:
    - `General` contains most of our code changes like new features, improvements and bugfixes
@@ -18,7 +18,7 @@ There are a number of manual steps involved in a new version release. This list 
 
       Make sure you keep the `[Unreleased]` section up the top, because the changelog GitHub Action relies on that.
 
-1. Update the version in [pom.xml](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/main/pom.xml).
+1. Update the version in [pom.xml](./pom.xml).
 
      The version number will be dictated by the changes that are included in the release. There are 4 types of releases that can happen:
    - `Major (1.2.3 to 2.0.0)` is for a large feature-set and is usually the result of beta releases to get community feedback
@@ -42,7 +42,9 @@ There are a number of manual steps involved in a new version release. This list 
 
      I also do the Docker release from that Intel MacBook, which requires the `linux` directory to be manually created/updated to contain the binaries for Linux.
 
-     For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing.
+     The script for the two paragraphs above is [ums-release-macos-intel.sh](./scripts/ums-release-macos-intel.sh), and it contains its own setup instructions to elaborate on this.
+
+     For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing, and the [ums-release-macos-arm.sh](./scripts/ums-release-macos-arm.sh) script.
 
 1. Upload the releases. 
 
@@ -60,7 +62,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Upload the previous release binaries to GitHub and remove the `This release is available via our Patreon page, and will be available here when the next release happens.` part. Make sure you check the checkbox for `Set as the latest release` because you are now promoting it from pre-release to latest.
 
-1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 14 lines of [latest_version.properties](https://github.com/UniversalMediaServer/UniversalMediaServer/blob/14.0.0/src/main/external-resources/update/latest_version.properties#L1-L14). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
+1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 14 lines of [latest_version.properties](./src/main/external-resources/update/latest_version.properties#L1-L14). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
 
 1. Other release repositories like [Chocolatey](https://community.chocolatey.org/packages/ums) and [Homebrew](https://formulae.brew.sh/cask/universal-media-server), and third-party mirrors like [Major Geeks](https://www.majorgeeks.com/files/details/universal_media_server.html) and [VideoHelp](https://www.videohelp.com/software/Universal-Media-Server) have their own automations, so we do not have to do anything besides tag and add releases to GitHub.
 
