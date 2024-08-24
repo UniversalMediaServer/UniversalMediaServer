@@ -949,7 +949,7 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
+			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, null)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {
@@ -1008,9 +1008,9 @@ public class FFMpegVideo extends Engine {
 			if (item.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
+			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, FormatConfiguration.MPEGTS)) {
 				deferToTsmuxer = false;
-				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), encodingFormat.getTranscodingContainer());
+				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside MPEG-TS.", defaultVideoTrack.getCodec());
 			} else if (params.getSid() != null && !(defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))) {
 				deferToTsmuxer = false;
 				/**

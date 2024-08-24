@@ -477,21 +477,29 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * There is a lot of logic necessary to determine that and this is only
 	 * one step in the process.
 	 *
-	 * @param media
+	 * @param media 
+	 * @param encodingFormat the EncodingFormat for transcoding
+	 * @param transcodingContainerOverride override the transcoding container to
+	 *                                     see whether it would be compatible in
+	 *                                     another one
 	 * @return whether this renderer supports the video stream type of this
 	 *         resource inside the container it wants for transcoding.
 	 */
-	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat) {
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat, String transcodingContainerOverride) {
 		if (media.getDefaultVideoTrack() == null) {
 			return true;
 		}
+
 		if (getFormatConfiguration() == null) {
 			return (
 				(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
 				(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
+
+		String transcodingContainer = transcodingContainerOverride != null ? transcodingContainerOverride : encodingFormat.getTranscodingContainer();
+
+		return getFormatConfiguration().getMatchedMIMEtype(transcodingContainer, media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
 	/**

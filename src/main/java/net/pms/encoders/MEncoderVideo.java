@@ -489,9 +489,9 @@ public class MEncoderVideo extends Engine {
 		} else if (item.isInsideTranscodeFolder()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the TRANSCODE folder.");
-		} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
+		} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, FormatConfiguration.MPEGTS)) {
 			deferToTsmuxer = false;
-			LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), encodingFormat.getTranscodingContainer());
+			LOGGER.debug(prependTraceReason + "the renderer does not support {} inside MPEG-TS.", defaultVideoTrack.getCodec());
 		} else if (params.getSid() != null) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
