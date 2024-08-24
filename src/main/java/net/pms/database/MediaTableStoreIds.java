@@ -66,6 +66,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_NAME_ID = SELECT + COL_NAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_TYPE = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE = SQL_GET_ID_NAME + AND + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE_PARENTTYPE = SQL_GET_ID_NAME_TYPE + AND + TABLE_COL_PARENT_ID + IN + "(" + SQL_GET_ID_TYPE + ")";
@@ -219,6 +220,24 @@ public class MediaTableStoreIds extends MediaTable {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	public static String getMediaStoreNameForId(Connection connection, String id) {
+		if (connection == null) {
+			return null;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_NAME_ID)) {
+			stmt.setLong(1, Long.parseLong(id));
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					return elements.getString(COL_NAME);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for id \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	public static List<Long> getMediaStoreIdsForName(Connection connection, String name) {
