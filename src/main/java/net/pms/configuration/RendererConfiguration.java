@@ -669,22 +669,6 @@ public class RendererConfiguration extends BaseConfiguration {
 		return getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
 	}
 
-	/**
-	 * @return {boolean} whether the renderer supports H.264 inside MPEG-TS
-	 */
-	public boolean isMuxH264MpegTS() {
-		boolean muxCompatible = getBoolean(KEY_MUX_H264_WITH_MPEGTS, true);
-		if (isUseMediaInfo()) {
-			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
-		}
-
-		if (!PlatformUtils.INSTANCE.isTsMuxeRCompatible()) {
-			muxCompatible = false;
-		}
-
-		return muxCompatible;
-	}
-
 	public boolean isDTSPlayable() {
 		return isMuxDTSToMpeg() || (isWrapDTSIntoPCM() && isMuxLPCMToMpeg());
 	}

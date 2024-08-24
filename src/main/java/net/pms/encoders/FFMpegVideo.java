@@ -1674,11 +1674,6 @@ public class FFMpegVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return true;
-	}
-
-	@Override
 	public ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
 		executableInfo = testExecutableFile(executableInfo);
 		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
