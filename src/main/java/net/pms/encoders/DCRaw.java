@@ -46,7 +46,6 @@ import net.pms.media.MediaInfo;
 import net.pms.network.HTTPResource;
 import net.pms.parsers.MetadataExtractorParser;
 import net.pms.platform.windows.NTStatus;
-import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;

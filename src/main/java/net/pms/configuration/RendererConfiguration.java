@@ -37,7 +37,6 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.parsers.MediaInfoParser;
-import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -477,7 +476,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * There is a lot of logic necessary to determine that and this is only
 	 * one step in the process.
 	 *
-	 * @param media 
+	 * @param media
 	 * @param encodingFormat the EncodingFormat for transcoding
 	 * @param transcodingContainerOverride override the transcoding container to
 	 *                                     see whether it would be compatible in
