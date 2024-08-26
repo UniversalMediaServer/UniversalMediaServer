@@ -140,8 +140,6 @@ public abstract class Engine {
 
 	public abstract boolean excludeFormat(Format extension);
 
-	public abstract boolean isEngineCompatible(Renderer renderer);
-
 	public abstract ProcessWrapper launchTranscode(
 		StoreItem resource,
 		MediaInfo media,

@@ -16,6 +16,7 @@
  */
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
@@ -324,12 +325,14 @@ public class DlnaHelper {
 						 * Note: This is an oversimplified duplicate of the engine logic, that
 						 * should be fixed.
 						 */
-						if (resolvedSubtitle == null &&
-								!item.hasExternalSubtitles() &&
-								mediaInfo != null &&
-								mediaInfo.getDvdtrack() == null &&
-								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
-								renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, encodingFormat)) {
+						if (
+							resolvedSubtitle == null &&
+							!item.hasExternalSubtitles() &&
+							mediaInfo != null &&
+							mediaInfo.getDvdtrack() == null &&
+							Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+							renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, encodingFormat, FormatConfiguration.MPEGTS)
+						) {
 							isOutputtingMPEGTS = true;
 						}
 					}

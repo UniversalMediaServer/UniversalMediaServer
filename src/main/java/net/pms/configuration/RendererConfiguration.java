@@ -37,7 +37,6 @@ import net.pms.media.audio.MediaAudio;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.parsers.MediaInfoParser;
-import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -478,20 +477,28 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * one step in the process.
 	 *
 	 * @param media
+	 * @param encodingFormat the EncodingFormat for transcoding
+	 * @param transcodingContainerOverride override the transcoding container to
+	 *                                     see whether it would be compatible in
+	 *                                     another one
 	 * @return whether this renderer supports the video stream type of this
 	 *         resource inside the container it wants for transcoding.
 	 */
-	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat) {
+	public boolean isVideoStreamTypeSupportedInTranscodingContainer(MediaInfo media, EncodingFormat encodingFormat, String transcodingContainerOverride) {
 		if (media.getDefaultVideoTrack() == null) {
 			return true;
 		}
+
 		if (getFormatConfiguration() == null) {
 			return (
 				(encodingFormat.isTranscodeToH264() && media.getDefaultVideoTrack().isH264()) ||
 				(encodingFormat.isTranscodeToH265() && media.getDefaultVideoTrack().isH265())
 			);
 		}
-		return getFormatConfiguration().getMatchedMIMEtype(encodingFormat.getTranscodingContainer(), media.getDefaultVideoTrack().getCodec(), null) != null;
+
+		String transcodingContainer = transcodingContainerOverride != null ? transcodingContainerOverride : encodingFormat.getTranscodingContainer();
+
+		return getFormatConfiguration().getMatchedMIMEtype(transcodingContainer, media.getDefaultVideoTrack().getCodec(), null) != null;
 	}
 
 	/**
@@ -667,22 +674,6 @@ public class RendererConfiguration extends BaseConfiguration {
 	 */
 	public boolean isSeekByTimeExclusive() {
 		return getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
-	}
-
-	/**
-	 * @return {boolean} whether the renderer supports H.264 inside MPEG-TS
-	 */
-	public boolean isMuxH264MpegTS() {
-		boolean muxCompatible = getBoolean(KEY_MUX_H264_WITH_MPEGTS, true);
-		if (isUseMediaInfo()) {
-			muxCompatible = getFormatConfiguration().getMatchedMIMEtype(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
-		}
-
-		if (!PlatformUtils.INSTANCE.isTsMuxeRCompatible()) {
-			muxCompatible = false;
-		}
-
-		return muxCompatible;
 	}
 
 	public boolean isDTSPlayable() {
