@@ -34,7 +34,7 @@
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.1 ([#4904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4904))
 - Bump `org.slf4j:slf4j-api` from 2.0.13 to 2.0.16 ([#4889](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4889))
 - Bump `react-router-dom` from 6.26.0 to 6.26.1 ([#4908](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4908))
-- Bump `typescript-eslint` from 8.0.0 to 8.1.0 ([#4912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4912))
+- Bump `typescript-eslint` from 8.0.0 to 8.2.0 ([#4912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4912), [#4925](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4925))
 - Bump `video.js` from 8.17.1 to 8.17.3 ([#4906](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4906))
 - Bump `vite` from 5.3.1 to 5.4.2 ([#4909](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4909), [#4926](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4926))
 
