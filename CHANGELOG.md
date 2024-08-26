@@ -3,12 +3,17 @@
 ## [Unreleased]
 
 ### General
-- Implements RadioBrowser Metadata lookup.
-- Added MediaTableContainerFiles to track files included in a container.
-- Store WebStream media info into the database.
-- Use of FFmpegParser to parse WebStream media info.
-- Implements WebStreamParser to parse headers of an http streams.
-- Added possibility to add playlist in playlist.
+- Added RadioBrowser metadata lookup for audio streams
+- Added supports for playlists inside playlists
+- Fixed videos not marked as fully played when they are stopped (#4887)
+- Fixed automatic updater not working (#4899) (thanks, DasSmeagle and Gehi14!)
+- Fixed broken transcoding on some media players (#4901) (thanks, binary512!)
+- Fixed video quality on some media players (#4922) (thanks, hego, KONTROLMASTER, latimers and Putzo1234!)
+- Fixed FFmpeg not deferring to tsMuxeR when it should
+- Fixed support for remuxing supported video streams
+
+### Media players
+- Improved support for AAC audio streams in video files on PS3
 
 ### Dependencies
 - Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
