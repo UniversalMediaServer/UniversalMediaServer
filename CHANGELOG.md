@@ -24,7 +24,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 10.17.0 to 10.18.0 ([#4930](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4930))
 - Bump `commons-logging:commons-logging` from 1.3.3 to 1.3.4 ([#4932](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4932))
 - Bump `eslint-plugin-react` from 7.34.3 to 7.35.0 ([#4895](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4895))
-- Bump `eslint` from 9.8.0 to 9.9.0 ([#4911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4911))
+- Bump `eslint` from 9.8.0 to 9.9.1 ([#4911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4911), [#4928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4928))
 - Bump `junit5.version` from 5.10.3 to 5.11.0 ([#4916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4916))
 - Bump `logback-version` from 1.5.6 to 1.5.7 ([#4915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4915))
 - Bump `org.apache.commons:commons-lang3` from 3.15.0 to 3.16.0 ([#4890](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4890))
