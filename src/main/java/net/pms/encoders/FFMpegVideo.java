@@ -385,7 +385,8 @@ public class FFMpegVideo extends Engine {
 				) &&
 				renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat) &&
 				!isAviSynthEngine() &&
-				!isSubtitlesAndTimeseek
+				!isSubtitlesAndTimeseek &&
+				ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())
 			) {
 				// Audio remux if the renderer supports the audio stream inside the transcoding container
 				if (!customFFmpegOptions.contains("-c:a ")) {
@@ -1755,5 +1756,32 @@ public class FFMpegVideo extends Engine {
 	@Override
 	protected boolean isSpecificTest() {
 		return false;
+	}
+
+	/**
+	 * @param fileAudio
+	 * @param transcodingContainer
+	 * @return whether FFmpeg will error if we try to remux the audio in the container
+	 */
+	private boolean ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(MediaAudio fileAudio, String transcodingContainer) {
+		if (transcodingContainer.equals(FormatConfiguration.MPEGPS)) {
+			/**
+			 * FFmpeg says this for VOB (MPEG-PS):
+			 * Must be one of mp1, mp2, mp3, 16-bit pcm_dvd, pcm_s16be, ac3 or dts
+			 * Worth noting that MPEG-PS itself seems to support AAC audio, but FFmpeg does
+			 * not support doing that.
+			 *
+			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/issues/4901
+			 */
+			return fileAudio.isMpegAudio() ||
+				fileAudio.isMP3() ||
+				fileAudio.isAC3() ||
+				fileAudio.isDTS() ||
+				fileAudio.isPCM();
+		}
+
+		// Other containers could be added to this method to make it more complete. For now just return true for them.
+
+		return true;
 	}
 }
