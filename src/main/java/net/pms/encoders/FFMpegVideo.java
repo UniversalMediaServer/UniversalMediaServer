@@ -394,6 +394,27 @@ public class FFMpegVideo extends Engine {
 					transcodeOptions.add("copy");
 				}
 			} else {
+				// log the reason for not remuxing audio
+				String logPrepend = "Audio was not remuxed because ";
+				if (params.getAid() == null) {
+					LOGGER.trace(logPrepend + "there is no audio");
+				}
+				if (!configuration.isAudioRemuxAC3() && params.getAid().isAC3()) {
+					LOGGER.trace(logPrepend + "audio is AC-3 and the user setting to remux AC-3 is disabled");
+				}
+				if (!renderer.isAudioStreamTypeSupportedInTranscodingContainer(params.getAid(), encodingFormat)) {
+					LOGGER.trace(logPrepend + "audio stream type {} is not supported inside the container {}", params.getAid().getAudioCodec(), encodingFormat);
+				}
+				if (isAviSynthEngine()) {
+					LOGGER.trace(logPrepend + "this is AviSynth");
+				}
+				if (isSubtitlesAndTimeseek) {
+					LOGGER.trace(logPrepend + "there are subtitles and seeking involved");
+				}
+				if (!ffmpegSupportsRemuxingAudioStreamToTranscodingContainer(params.getAid(), encodingFormat.getTranscodingContainer())) {
+					LOGGER.trace(logPrepend + "FFmpeg does not support remuxing the audio stream {} to the transcoding container {}", params.getAid().getAudioCodec(), encodingFormat.getTranscodingContainer());
+				}
+
 				if (dtsRemux) {
 					// Audio is added in a separate process later
 					transcodeOptions.add("-an");
@@ -436,60 +457,60 @@ public class FFMpegVideo extends Engine {
 
 			MediaVideo defaultVideoTrack = media.getDefaultVideoTrack();
 			if (defaultVideoTrack != null) {
-				if (encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265()) {
-					if (canMuxVideoWithFFmpeg) {
-						if (!customFFmpegOptions.contains("-c:v")) {
-							transcodeOptions.add("-c:v");
-							transcodeOptions.add("copy");
-						}
-					} else {
-						String selectedTranscodeAccelerationMethod = null;
+				if (canMuxVideoWithFFmpeg) {
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
+						transcodeOptions.add("copy");
+					}
+				} else if (encodingFormat.isTranscodeToMPEG2() && !dtsRemux) {
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
+						transcodeOptions.add("mpeg2video");
+					}
+				} else {
+					String selectedTranscodeAccelerationMethod = null;
 
-						if (!customFFmpegOptions.contains("-c:v")) {
-							transcodeOptions.add("-c:v");
+					if (!customFFmpegOptions.contains("-c:v")) {
+						transcodeOptions.add("-c:v");
 
-							if (encodingFormat.isTranscodeToH264()) {
-								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
-							} else {
-								selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
-							}
-
+						if (encodingFormat.isTranscodeToH264()) {
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH264EncodingAccelerationMethod();
 							transcodeOptions.add(selectedTranscodeAccelerationMethod);
-
-							// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
-
-							if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
-								transcodeOptions.add("-preset");
-								transcodeOptions.add("llhp");
-							}
+						} else if (encodingFormat.isTranscodeToH265()) {
+							selectedTranscodeAccelerationMethod = configuration.getFFmpegGPUH265EncodingAccelerationMethod();
+							transcodeOptions.add(selectedTranscodeAccelerationMethod);
 						}
 
-						if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
-							if (!customFFmpegOptions.contains("-preset")) {
-								transcodeOptions.add("-preset");
-
-								// do not use ultrafast for compatibility problems, particularly Panasonic TVs
-								transcodeOptions.add("superfast");
-							}
-							if (!customFFmpegOptions.contains("-level")) {
-								transcodeOptions.add("-level");
-								transcodeOptions.add("31");
-							}
-						} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
-							if (!customFFmpegOptions.contains("-preset")) {
-								transcodeOptions.add("-preset");
-								transcodeOptions.add("superfast");
-							}
-						}
-
-						if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
-							transcodeOptions.add("-pix_fmt");
-							transcodeOptions.add("yuv420p");
+						if (selectedTranscodeAccelerationMethod.endsWith("nvenc")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("llhp");
 						}
 					}
-				} else if (!dtsRemux) {
-					transcodeOptions.add("-c:v");
-					transcodeOptions.add("mpeg2video");
+
+					if (selectedTranscodeAccelerationMethod == null || selectedTranscodeAccelerationMethod.startsWith("libx264")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+
+							// do not use ultrafast for compatibility problems, particularly Panasonic TVs
+							transcodeOptions.add("superfast");
+						}
+						if (!customFFmpegOptions.contains("-level")) {
+							transcodeOptions.add("-level");
+							transcodeOptions.add("31");
+						}
+
+						// do not use -tune zerolatency for compatibility problems, particularly Panasonic TVs
+					} else if (selectedTranscodeAccelerationMethod.startsWith("libx265")) {
+						if (!customFFmpegOptions.contains("-preset")) {
+							transcodeOptions.add("-preset");
+							transcodeOptions.add("superfast");
+						}
+					}
+
+					if (defaultVideoTrack.getBitDepth() == 8 || !renderer.isVideoBitDepthSupportedForAllFiletypes(10)) {
+						transcodeOptions.add("-pix_fmt");
+						transcodeOptions.add("yuv420p");
+					}
 				}
 
 				// this makes FFmpeg output HDR metadata, and Dolby Vision metadata if we output MP4 (only HDR if we are outputting MPEG-TS)
@@ -949,7 +970,7 @@ public class FFMpegVideo extends Engine {
 		boolean canMuxVideoWithFFmpegIfTsMuxerIsNotUsed = false;
 		String prependFfmpegTraceReason = "Not muxing the video stream with FFmpeg because ";
 		if (!(renderer instanceof OutputOverride)) {
-			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
+			if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, null)) {
 				canMuxVideoWithFFmpeg = false;
 				LOGGER.debug(prependFfmpegTraceReason + "the video codec is not the same as the transcoding goal.");
 			} else if (item.isInsideTranscodeFolder()) {
@@ -1008,9 +1029,9 @@ public class FFMpegVideo extends Engine {
 			if (item.isInsideTranscodeFolder()) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the file is being played via a FFmpeg entry in the TRANSCODE folder.");
-			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat)) {
+			} else if (!renderer.isVideoStreamTypeSupportedInTranscodingContainer(media, encodingFormat, FormatConfiguration.MPEGTS)) {
 				deferToTsmuxer = false;
-				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside {}.", defaultVideoTrack.getCodec(), encodingFormat.getTranscodingContainer());
+				LOGGER.debug(prependTraceReason + "the renderer does not support {} inside MPEG-TS.", defaultVideoTrack.getCodec());
 			} else if (params.getSid() != null && !(defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision"))) {
 				deferToTsmuxer = false;
 				/**
@@ -1671,11 +1692,6 @@ public class FFMpegVideo extends Engine {
 	@Override
 	public boolean excludeFormat(Format extension) {
 		return false;
-	}
-
-	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return true;
 	}
 
 	@Override

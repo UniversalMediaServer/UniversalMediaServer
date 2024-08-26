@@ -700,11 +700,6 @@ public class TsMuxeRVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return renderer != null && renderer.isMuxH264MpegTS();
-	}
-
-	@Override
 	public boolean isCompatible(StoreItem item) {
 		MediaSubtitle subtitle = item.getMediaSubtitle();
 
