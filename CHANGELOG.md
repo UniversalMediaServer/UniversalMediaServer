@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.4.0...14.5.0) (2024-08-26)
+
 ### General
 - Added RadioBrowser metadata lookup for audio streams
 - Added supports for playlists inside playlists
@@ -14,6 +16,9 @@
 
 ### Media players
 - Improved support for AAC audio streams in video files on PS3
+
+### Translation updates via Crowdin
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
