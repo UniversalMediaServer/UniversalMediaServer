@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Set;
 import net.pms.database.MediaTableCoverArtArchive;
@@ -82,6 +83,25 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		setLastModified(file.lastModified());
 	}
 
+	/**
+	 * Check if this this a new resource.
+	 *
+	 * @return true : File is an empty container. Upload by AV client is still missing. No need to check any formats yet.
+	 */
+	private boolean isUploadResource(File file, int type) {
+		if (type == Format.AUDIO || type == Format.VIDEO) {
+			try {
+				if (Files.size(file.toPath()) == 17) {
+					LOGGER.trace("isUploadResource true");
+					return true;
+				}
+			} catch (Exception e) {
+				LOGGER.error("cannot check file size", e);
+			}
+		}
+		return false;
+	}
+
 	@Override
 	public boolean isValid() {
 		if (file == null || !file.exists() || !file.isFile()) {
@@ -92,6 +112,10 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		if (getType() == Format.SUBTITLE) {
 			// Don't add subtitles as separate resources
 			return false;
+		}
+
+		if (isUploadResource(file, getType())) {
+			return true;
 		}
 
 		boolean valid = getFormat() != null;
