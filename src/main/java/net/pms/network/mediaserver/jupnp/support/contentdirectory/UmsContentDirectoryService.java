@@ -62,6 +62,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.I
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.PlaylistManager;
@@ -390,12 +391,13 @@ public class UmsContentDirectoryService {
 
 				StoreResource resource = null;
 				if (modelObjectToAdd.getItems().size() > 0) {
-					resource = checkItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
+					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
 				if (modelObjectToAdd.getContainers().size() > 0) {
-					resource = checkContainerResource(storeContainer, modelObjectToAdd.getContainers().get(0), resource);
+					resource = createContainerResource(storeContainer, modelObjectToAdd.getContainers().get(0), resource);
 				}
 				if (resource != null) {
+					MediaScanner.backgroundScanFileOrFolder(resource.getFileName());
 					return createObjectResult(renderer, resource);
 				}
 				throw new ContentDirectoryException(712, "The specified Elements argument is not supported or is invalid.");
@@ -424,7 +426,7 @@ public class UmsContentDirectoryService {
 		}
 	}
 
-	private StoreResource checkContainerResource(StoreContainer storeContainer, Container containerToCreate, StoreResource resource) throws Exception {
+	private StoreResource createContainerResource(StoreContainer storeContainer, Container containerToCreate, StoreResource resource) throws Exception {
 		if (containerToCreate != null) {
 			if ("object.container.storageFolder".equalsIgnoreCase(containerToCreate.getUpnpClassName())) {
 				resource = createFolder(storeContainer, containerToCreate.getTitle());
@@ -433,7 +435,7 @@ public class UmsContentDirectoryService {
 		return resource;
 	}
 
-	private StoreResource checkItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
+	private StoreResource createItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
 		if (itemToCreate != null) {
 			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
 				resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
@@ -472,6 +474,9 @@ public class UmsContentDirectoryService {
 
 				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
 				storeContainer.addChild(newResource);
+				if (newResource.getId() != null) {
+					LOGGER.error("created resource at {} got a NULL id!", newResource.getFileName());
+				}
 				return newResource;
 			} catch (IOException e) {
 				LOGGER.warn("cannot create object item", e);
@@ -528,6 +533,7 @@ public class UmsContentDirectoryService {
 				if (storeContainer instanceof PlaylistFolder playlistFolder) {
 					String newID = PlaylistManager.addSongToPlaylist(objectResource, playlistFolder);
 					if (newID != null) {
+						MediaScanner.backgroundScanFileOrFolder(playlistFolder.getFileName());
 						return newID;
 					}
 					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "song already in Playlist");
@@ -632,6 +638,8 @@ public class UmsContentDirectoryService {
 				LOGGER.info("removing playlist {} ...", playlistFolder.getDisplayName());
 				if (!PlaylistManager.deletePlaylistFromDisk(playlistFolder)) {
 					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file");
+				} else {
+					MediaScanner.backgroundScanFileOrFolder(playlistFolder.getFileName());
 				}
 			} else {
 				//this object destroy is not yet implemented

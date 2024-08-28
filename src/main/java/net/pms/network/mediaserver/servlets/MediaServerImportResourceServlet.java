@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import net.pms.network.HttpServletHelper;
+import net.pms.store.MediaScanner;
 import net.pms.store.MediaStoreIds;
 
 @WebServlet(name = "MEDIA SERVER IMPORT RESOURCE", urlPatterns = { "/import" }, displayName = "Media Server Import Resource Servlet")
@@ -51,6 +52,7 @@ public class MediaServerImportResourceServlet extends HttpServletHelper {
 					outFile = new File(filename);
 					IO.copy(inFile, outFile);
 					LOGGER.info("Resource id {} imported/updated at {}", id, outFile.getAbsolutePath());
+					MediaScanner.backgroundScanFileOrFolder(outFile.getParentFile().getAbsolutePath());
 				} else {
 					LOGGER.warn("Store resource with id {} not found. StoreResource will not be updated.", id);
 				}
