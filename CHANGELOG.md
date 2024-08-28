@@ -29,7 +29,7 @@
 - Bump `@mantine/notifications` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `@playwright/test` from 1.46.0 to 1.46.1 ([#4910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4910))
 - Bump `@types/react` from 18.3.3 to 18.3.4 ([#4924](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4924))
-- Bump `axios` from 1.7.2 to 1.7.4 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903))
+- Bump `axios` from 1.7.2 to 1.7.5 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903), [#4927](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4927))
 - Bump `com.github.oshi:oshi-core` from 6.6.2 to 6.6.3 ([#4931](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4931))
 - Bump `com.h2database:h2` from 2.3.230 to 2.3.232 ([#4913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4913))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.17.0 to 10.18.0 ([#4930](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4930))
