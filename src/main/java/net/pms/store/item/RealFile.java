@@ -34,6 +34,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.media.MediaLang;
 import net.pms.media.MediaType;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
 import net.pms.parsers.FFmpegParser;
 import net.pms.platform.PlatformUtils;
 import net.pms.renderers.Renderer;
@@ -91,7 +92,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 	private boolean isUploadResource(File file, int type) {
 		if (type == Format.AUDIO || type == Format.VIDEO) {
 			try {
-				if (Files.size(file.toPath()) == 17) {
+				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
 					LOGGER.trace("isUploadResource true");
 					return true;
 				}

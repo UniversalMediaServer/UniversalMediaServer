@@ -75,6 +75,7 @@ import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 
+
 @UpnpService(
 		serviceId =
 		@UpnpServiceId("ContentDirectory"),
@@ -163,6 +164,8 @@ import net.pms.util.UMSUtils;
 			datatype = "string")
 })
 public class UmsContentDirectoryService {
+
+	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
 	private static final List<String> CAPS_SEARCH = List.of();
@@ -469,7 +472,7 @@ public class UmsContentDirectoryService {
 			try {
 				newItem.createNewFile();
 				FileWriter fileWriter = new FileWriter(newItem);
-				fileWriter.write("<UPLOAD RESOURCE>");
+				fileWriter.write(EMPTY_FILE_CONTENT);
 				fileWriter.close();
 
 				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
@@ -496,8 +499,8 @@ public class UmsContentDirectoryService {
 			storeContainer.addChild(newResource);
 			return newResource;
 		} else {
-			LOGGER.warn("Folder or file already exists for path {}", newContainer.getAbsolutePath());
-			return null;
+			LOGGER.warn("file system resource already exists for path {}", newContainer.getAbsolutePath());
+			throw new RuntimeException(String.format("file system resource already exists for path : %s", newContainer.getAbsolutePath()));
 		}
 	}
 
@@ -844,11 +847,11 @@ public class UmsContentDirectoryService {
 
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
-
-			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
-
+			List<StoreResource> resultResources = null;
+			int totalMatches = 0;
+			totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+			resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			LOGGER.trace("Creating DIDL result");
