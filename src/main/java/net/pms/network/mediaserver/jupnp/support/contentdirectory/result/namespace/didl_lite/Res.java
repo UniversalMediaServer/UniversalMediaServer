@@ -519,7 +519,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setSize(long size) {
-		setSize(UnsignedLong.asUnsigned(size));
+		setSize(UnsignedLong.fromLongBits(size));
 	}
 
 	public String getDuration() {
@@ -547,7 +547,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setBitrate(int bitrate) {
-		setBitrate(UnsignedInteger.asUnsigned(bitrate));
+		setBitrate(UnsignedInteger.fromIntBits(bitrate));
 	}
 
 	public UnsignedInteger getBitsPerSample() {
@@ -559,7 +559,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setBitsPerSample(int bitsPerSample) {
-		setBitsPerSample(UnsignedInteger.asUnsigned(bitsPerSample));
+		setBitsPerSample(UnsignedInteger.fromIntBits(bitsPerSample));
 	}
 
 	public UnsignedInteger getSampleFrequency() {
@@ -571,7 +571,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setSampleFrequency(int sampleFrequency) {
-		setSampleFrequency(UnsignedInteger.asUnsigned(sampleFrequency));
+		setSampleFrequency(UnsignedInteger.fromIntBits(sampleFrequency));
 	}
 
 	public UnsignedInteger getNrAudioChannels() {
@@ -583,7 +583,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setNrAudioChannels(int nrAudioChannels) {
-		setNrAudioChannels(UnsignedInteger.asUnsigned(nrAudioChannels));
+		setNrAudioChannels(UnsignedInteger.fromIntBits(nrAudioChannels));
 	}
 
 	public String getResolution() {
@@ -619,7 +619,7 @@ public class Res extends Property<URI> implements DIDL_LITE.NAMESPACE {
 	}
 
 	public final void setColorDepth(int colorDepth) {
-		setColorDepth(UnsignedInteger.asUnsigned(colorDepth));
+		setColorDepth(UnsignedInteger.fromIntBits(colorDepth));
 	}
 
 	/**

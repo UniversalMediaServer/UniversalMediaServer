@@ -16,17 +16,9 @@
  */
 package net.pms.external.musicbrainz.coverart;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import net.pms.PMS;
 import net.pms.util.CoverSupplier;
 import org.jaudiotagger.tag.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * This class is the superclass of all cover utility implementations.
@@ -38,9 +30,7 @@ import org.w3c.dom.NodeList;
 
 public abstract class CoverUtil {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(CoverUtil.class);
 	private static final Object INSTANCE_LOCK = new Object();
-	protected static final String ENCODING = StandardCharsets.UTF_8.name();
 	private static CoverUtil instance = null;
 
 	/**
@@ -67,41 +57,6 @@ public abstract class CoverUtil {
 				instance = null;
 			}
 			return instance;
-		}
-	}
-
-	/**
-	 * Convenience method to find the first child {@link Element} of the given
-	 * name.
-	 *
-	 * @param element the {@link Element} to search
-	 * @param name the name of the child {@link Element}
-	 * @return The found {@link Element} or null if not found
-	 */
-	protected Element getChildElement(Element element, String name) {
-		NodeList list = element.getElementsByTagName(name);
-		int listLength = list.getLength();
-		for (int i = 0; i < listLength; i++) {
-			Node node = list.item(i);
-			if (node.getNodeType() == Node.ELEMENT_NODE && node.getNodeName().equals(name) && node instanceof Element) {
-				return (Element) node;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Convenience method to URL encode a string with {@link #encoding} without
-	 * handling the hypothetical {@link UnsupportedEncodingException}
-	 * @param url {@link String} to encode
-	 * @return The encoded {@link String}
-	 */
-	protected String urlEncode(String url) {
-		try {
-			return URLEncoder.encode(url, ENCODING);
-		} catch (UnsupportedEncodingException e) {
-			LOGGER.error("UTF-8 is unsupported :O", e);
-			return "";
 		}
 	}
 
