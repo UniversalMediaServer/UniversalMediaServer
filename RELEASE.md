@@ -64,7 +64,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. The automatic updater in UMS downloads from GitHub so now you are ready to point that to the previous release you just promoted. You can do that by updating the versions on the first 14 lines of [latest_version.properties](./src/main/external-resources/update/latest_version.properties#L1-L14). Remember this is the one you just promoted to the first public release, NOT the one on Patreon.
 
-1. Other release repositories like [Chocolatey](https://community.chocolatey.org/packages/ums) and [Homebrew](https://formulae.brew.sh/cask/universal-media-server), and third-party mirrors like [Major Geeks](https://www.majorgeeks.com/files/details/universal_media_server.html) and [VideoHelp](https://www.videohelp.com/software/Universal-Media-Server) have their own automations, so we do not have to do anything besides tag and add releases to GitHub.
+1. Nothing to do for other release repositories like [Chocolatey](https://community.chocolatey.org/packages/ums) and [Homebrew](https://formulae.brew.sh/cask/universal-media-server), and third-party mirrors like [Major Geeks](https://www.majorgeeks.com/files/details/universal_media_server.html) and [VideoHelp](https://www.videohelp.com/software/Universal-Media-Server) because they have their own automations.
 
 1. Add `-SNAPSHOT` to the `<version>` in `pom.xml` to show you are now ahead of the version you just released to Patreon.
 
