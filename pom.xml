@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.4.0-SNAPSHOT</version>
+	<version>14.5.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.4.0</project.version.short>
+		<project.version.short>14.5.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -178,7 +178,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.3</version>
+			<version>1.3.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -557,7 +557,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.2</version>
+			<version>6.6.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -709,6 +709,21 @@
 				<exclusion>
 					<groupId>org.slf4j</groupId>
 					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>de.sfuhrm</groupId>
+			<artifactId>radiobrowser4j</artifactId>
+			<version>3.0.1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -949,6 +964,7 @@
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<nodeVersion>v20.12.2</nodeVersion>
 					<yarnVersion>v1.22.22</yarnVersion>
+					<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>					
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -3495,12 +3511,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.4.0</version>
+						<version>3.5.0</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.17.0</version>
+								<version>10.18.0</version>
 							</dependency>
 						</dependencies>
 						<configuration>

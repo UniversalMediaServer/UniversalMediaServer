@@ -534,12 +534,12 @@ public class UmsContentDirectoryService {
 			}
 			if (containerResource instanceof StoreContainer storeContainer) {
 				if (storeContainer instanceof PlaylistFolder playlistFolder) {
-					String newID = PlaylistManager.addSongToPlaylist(objectResource, playlistFolder);
+					String newID = PlaylistManager.addEntryToPlaylist(objectResource, playlistFolder);
 					if (newID != null) {
 						MediaScanner.backgroundScanFileOrFolder(playlistFolder.getFileName());
 						return newID;
 					}
-					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "song already in Playlist");
+					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "entry already in Playlist");
 				} else {
 					//this object create reference is not yet implemented
 					throw new ContentDirectoryException(ErrorCode.OPTIONAL_ACTION);
@@ -633,8 +633,8 @@ public class UmsContentDirectoryService {
 			if (objectResource == null) {
 				throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 			} else if (objectResource.getParent() instanceof PlaylistFolder playlistFolder) {
-				LOGGER.info("removing song {} from playlist {} ...", objectResource.getDisplayName(), playlistFolder.getDisplayName());
-				if (!PlaylistManager.removeSongFromPlaylist(objectResource, playlistFolder)) {
+				LOGGER.info("removing entry {} from playlist {} ...", objectResource.getDisplayName(), playlistFolder.getDisplayName());
+				if (!PlaylistManager.removeEntryFromPlaylist(objectResource, playlistFolder)) {
 					throw new ContentDirectoryException(ContentDirectoryErrorCode.NO_SUCH_OBJECT);
 				}
 			} else if (objectResource instanceof PlaylistFolder playlistFolder) {

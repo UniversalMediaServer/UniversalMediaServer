@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+## [14.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.4.0...14.5.0) (2024-08-26)
+
+### General
+- Added RadioBrowser metadata lookup for audio streams
+- Added supports for playlists inside playlists
+- Fixed videos not marked as fully played when they are stopped (#4887)
+- Fixed automatic updater not working (#4899) (thanks, DasSmeagle and Gehi14!)
+- Fixed broken transcoding on some media players (#4901) (thanks, binary512!)
+- Fixed video quality on some media players (#4922) (thanks, hego, KONTROLMASTER, latimers and Putzo1234!)
+- Fixed FFmpeg not deferring to tsMuxeR when it should
+- Fixed support for remuxing supported video streams
+
+### Media players
+- Improved support for AAC audio streams in video files on PS3
+
+### Translation updates via Crowdin
+- Turkish (100%) (thanks, Burak Yavuz!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `@mantine/dropzone` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
@@ -10,20 +28,25 @@
 - Bump `@mantine/modals` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `@mantine/notifications` from 7.11.2 to 7.12.1 ([#4907](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4907))
 - Bump `@playwright/test` from 1.46.0 to 1.46.1 ([#4910](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4910))
-- Bump `axios` from 1.7.2 to 1.7.4 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903))
+- Bump `@types/react` from 18.3.3 to 18.3.4 ([#4924](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4924))
+- Bump `axios` from 1.7.2 to 1.7.5 ([#4903](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4903), [#4927](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4927))
+- Bump `com.github.oshi:oshi-core` from 6.6.2 to 6.6.3 ([#4931](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4931))
 - Bump `com.h2database:h2` from 2.3.230 to 2.3.232 ([#4913](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4913))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.17.0 to 10.18.0 ([#4930](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4930))
+- Bump `commons-logging:commons-logging` from 1.3.3 to 1.3.4 ([#4932](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4932))
 - Bump `eslint-plugin-react` from 7.34.3 to 7.35.0 ([#4895](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4895))
-- Bump `eslint` from 9.8.0 to 9.9.0 ([#4911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4911))
+- Bump `eslint` from 9.8.0 to 9.9.1 ([#4911](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4911), [#4928](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4928))
 - Bump `junit5.version` from 5.10.3 to 5.11.0 ([#4916](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4916))
 - Bump `logback-version` from 1.5.6 to 1.5.7 ([#4915](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4915))
 - Bump `org.apache.commons:commons-lang3` from 3.15.0 to 3.16.0 ([#4890](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4890))
+- Bump `org.apache.maven.plugins:maven-checkstyle-plugin` from 3.4.0 to 3.5.0 ([#4929](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4929))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.3.1 to 3.4.0 ([#4914](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4914))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.3.0 to 3.4.1 ([#4904](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4904))
 - Bump `org.slf4j:slf4j-api` from 2.0.13 to 2.0.16 ([#4889](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4889))
 - Bump `react-router-dom` from 6.26.0 to 6.26.1 ([#4908](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4908))
 - Bump `typescript-eslint` from 8.0.0 to 8.1.0 ([#4912](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4912))
 - Bump `video.js` from 8.17.1 to 8.17.3 ([#4906](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4906))
-- Bump `vite` from 5.3.1 to 5.4.1 ([#4909](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4909))
+- Bump `vite` from 5.3.1 to 5.4.2 ([#4909](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4909), [#4926](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4926))
 
 ## [14.4.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.3.0...14.4.0) (2024-08-10)
 

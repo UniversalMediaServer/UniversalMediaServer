@@ -16,6 +16,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
 import net.pms.encoders.EncodingFormat;
@@ -271,12 +272,14 @@ public class DlnaHelper {
 							 * Note: This is an oversimplified duplicate of the engine logic, that
 							 * should be fixed.
 							 */
-							if (resolvedSubtitle == null &&
-									!item.hasExternalSubtitles() &&
-									mediaInfo != null &&
-									mediaInfo.getDvdtrack() == null &&
-									Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
-									renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, transcodingSettings.getEncodingFormat())) {
+							if (
+								resolvedSubtitle == null &&
+								!item.hasExternalSubtitles() &&
+								mediaInfo != null &&
+								mediaInfo.getDvdtrack() == null &&
+								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+								renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, transcodingSettings.getEncodingFormat(), FormatConfiguration.MPEGTS)
+							) {
 								isOutputtingMPEGTS = true;
 							}
 						}
