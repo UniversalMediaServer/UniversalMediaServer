@@ -964,6 +964,7 @@
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<nodeVersion>v20.12.2</nodeVersion>
 					<yarnVersion>v1.22.22</yarnVersion>
+					<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>					
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
