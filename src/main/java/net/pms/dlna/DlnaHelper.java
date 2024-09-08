@@ -307,9 +307,17 @@ public class DlnaHelper {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMpegTsMpeg2OrgPN(localizationValue, mediaInfo, !item.isTranscoded());
 					}
 				} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {
-					if (!item.isTranscoded() && defaultVideoTrack != null && defaultVideoTrack.isH265() && defaultAudioTrack != null &&
-						(defaultAudioTrack.isAC3() || defaultAudioTrack.isEAC3() ||
-							defaultAudioTrack.isHEAAC())) {
+					if (
+						!item.isTranscoded() &&
+						defaultVideoTrack != null &&
+						defaultVideoTrack.isH265() &&
+						defaultAudioTrack != null &&
+						(
+							defaultAudioTrack.isAC3() ||
+							defaultAudioTrack.isEAC3() ||
+							defaultAudioTrack.isHEAAC()
+						)
+					) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=DASH_HEVC_MP4_UHD_NA";
 					} else if (!item.isTranscoded() && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
 						dlnaOrgPnFlags = "DLNA.ORG_PN=" + getMp4H264OrgPN(mediaInfo, encodingFormat);
