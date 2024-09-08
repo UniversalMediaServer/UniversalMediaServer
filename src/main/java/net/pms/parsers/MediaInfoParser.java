@@ -831,7 +831,7 @@ public class MediaInfoParser {
 			format = FormatConfiguration.QDESIGN;
 		} else if (value.equals("realaudio lossless")) {
 			format = FormatConfiguration.RALF;
-		} else if (value.equals("e-ac-3")) {
+		} else if (value.contains("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
 			format = FormatConfiguration.TRUEHD;
