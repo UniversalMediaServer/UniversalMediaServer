@@ -15,6 +15,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 10.18.0 to 10.18.1 ([#4942](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4942))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.0.1 to 3.1.0 ([#4940](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4940))
 - Bump `eslint` from 9.9.1 to 9.10.0 ([#4959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4959))
+- Bump `jetty.version` from 12.0.12 to 12.0.13 ([#4958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4958))
 - Bump `org.apache.commons:commons-lang3` from 3.16.0 to 3.17.0 ([#4941](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4941))
 - Bump `typescript-eslint` from 8.1.0 to 8.4.0 ([#4949](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4949))
 - Bump `vite` from 5.4.2 to 5.4.3 ([#4961](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4961))
