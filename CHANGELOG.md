@@ -17,6 +17,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.9 to 0.4.11 ([#4962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4962))
 - Bump `eslint` from 9.9.1 to 9.10.0 ([#4959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4959))
 - Bump `jetty.version` from 12.0.12 to 12.0.13 ([#4958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4958))
+- Bump `logback-version` from 1.5.7 to 1.5.8 ([#4957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4957))
 - Bump `org.apache.commons:commons-lang3` from 3.16.0 to 3.17.0 ([#4941](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4941))
 - Bump `typescript-eslint` from 8.1.0 to 8.4.0 ([#4949](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4949))
 - Bump `vite` from 5.4.2 to 5.4.3 ([#4961](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4961))
