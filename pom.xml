@@ -121,7 +121,7 @@
 		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.11.0</junit5.version>
-		<jetty.version>12.0.12</jetty.version>
+		<jetty.version>12.0.13</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
