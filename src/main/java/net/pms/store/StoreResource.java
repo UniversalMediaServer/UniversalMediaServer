@@ -726,11 +726,11 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @return The result
 	 */
 	public boolean isHideFullyPlayed() {
-		return CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA &&
-				mediaInfo != null &&
+		return  mediaInfo != null &&
 				mediaInfo.isVideo() &&
 				mediaStatus != null &&
-				mediaStatus.isFullyPlayed();
+				mediaStatus.isFullyPlayed() &&
+				CONFIGURATION.getFullyPlayedAction() == FullyPlayedAction.HIDE_MEDIA;
 	}
 
 	public boolean isSubSelectable() {
