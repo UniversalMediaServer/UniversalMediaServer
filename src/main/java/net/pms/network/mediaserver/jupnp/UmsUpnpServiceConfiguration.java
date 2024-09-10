@@ -94,7 +94,7 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private final Namespace namespace;
 
 	private boolean ownContentDirectory = false;
-	private boolean useThreadPool = false;
+	private boolean useThreadPool = true;
 	private boolean multicastReceiverThreadPool = true;
 	private boolean datagramIOThreadPool = true;
 	private boolean streamClientThreadPool = true;
