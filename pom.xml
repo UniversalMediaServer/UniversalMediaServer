@@ -99,7 +99,7 @@
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.5.7</logback-version>
+		<logback-version>1.5.8</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -109,7 +109,7 @@
 		-->
 		<jackson.version>2.17.2</jackson.version>
 
-		<surefire-version>3.4.0</surefire-version>
+		<surefire-version>3.5.0</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -121,7 +121,7 @@
 		<jna-version>5.14.0</jna-version>
 
 		<junit5.version>5.11.0</junit5.version>
-		<jetty.version>12.0.12</jetty.version>
+		<jetty.version>12.0.13</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -715,7 +715,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.0.1</version>
+			<version>3.1.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
