@@ -312,7 +312,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_MEDIA_YEAR + INTEGER);
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSEASON + INTEGER);
 				}
-				case (8) -> {
+				case (7) -> {
 					LOGGER.debug("creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER);
 					executeUpdate(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")");
 					LOGGER.debug("creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER);
