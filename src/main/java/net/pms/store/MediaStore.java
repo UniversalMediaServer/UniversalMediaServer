@@ -191,14 +191,13 @@ public class MediaStore extends StoreContainer {
 			mon = new MediaMonitor(renderer, dirs);
 		}
 
-		if (renderer.getUmsConfiguration().getFolderLimit() &&
-				renderer.isLimitFolders()) {
+		if (renderer.isLimitFolders() && renderer.getUmsConfiguration().getFolderLimit()) {
 			lim = new FolderLimit(renderer);
 			addChild(lim);
 		}
 
-		if (renderer.getUmsConfiguration().isDynamicPls()) {
-			if (dynamicPls != null && backupChildren.contains(dynamicPls)) {
+		if (dynamicPls != null && backupChildren.contains(dynamicPls)) {
+			if (renderer.getUmsConfiguration().isDynamicPls()) {
 				addChildInternal(dynamicPls, false);
 				backupChildren.remove(dynamicPls);
 			} else {
@@ -219,16 +218,14 @@ public class MediaStore extends StoreContainer {
 
 		setSharedContents();
 
-		if (renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
-			StoreResource serverSettingsFolder = findSystemNameInResources(backupChildren, "ServerSettings");
+		StoreResource serverSettingsFolder = findSystemNameInResources(backupChildren, "ServerSettings");
+		if (serverSettingsFolder != null && renderer.getUmsConfiguration().isShowServerSettingsFolder()) {
+			addChildInternal(serverSettingsFolder, false);
+			backupChildren.remove(serverSettingsFolder);
+		} else {
+			serverSettingsFolder = ServerSettingsFolder.getServerSettingsFolder(renderer);
 			if (serverSettingsFolder != null) {
-				addChildInternal(serverSettingsFolder, false);
-				backupChildren.remove(serverSettingsFolder);
-			} else {
-				serverSettingsFolder = ServerSettingsFolder.getServerSettingsFolder(renderer);
-				if (serverSettingsFolder != null) {
-					addChild(serverSettingsFolder);
-				}
+				addChild(serverSettingsFolder);
 			}
 		}
 
@@ -761,14 +758,14 @@ public class MediaStore extends StoreContainer {
 			}
 		}
 		String lcFilename = file.getName().toLowerCase();
-		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+		if ((lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return findResourceFromFile(resources, file, ZippedFile.class);
-		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
+		} else if ((lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return findResourceFromFile(resources, file, RarredFile.class);
-		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
+		} else if ((lcFilename.endsWith(".tar") ||
 				lcFilename.endsWith(".gzip") ||
 				lcFilename.endsWith(".gz") ||
-				lcFilename.endsWith(".7z"))) {
+				lcFilename.endsWith(".7z")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return findResourceFromFile(resources, file, SevenZipFile.class);
 		} else if (lcFilename.endsWith(".iso") ||
 				lcFilename.endsWith(".img")) {
@@ -823,14 +820,14 @@ public class MediaStore extends StoreContainer {
 		} else {
 			lcFilename = lcFilename.toLowerCase();
 		}
-		if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+		if ((lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return new ZippedFile(renderer, file);
-		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
+		} else if ((lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return new RarredFile(renderer, file);
-		} else if (renderer.getUmsConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") ||
+		} else if ((lcFilename.endsWith(".tar") ||
 				lcFilename.endsWith(".gzip") ||
 				lcFilename.endsWith(".gz") ||
-				lcFilename.endsWith(".7z"))) {
+				lcFilename.endsWith(".7z")) && renderer.getUmsConfiguration().isArchiveBrowsing()) {
 			return new SevenZipFile(renderer, file);
 		} else if (lcFilename.endsWith(".iso") ||
 				lcFilename.endsWith(".img") || (file.isDirectory() &&
@@ -850,7 +847,7 @@ public class MediaStore extends StoreContainer {
 			List<String> ignoredFolderNames = renderer.getUmsConfiguration().getIgnoredFolderNames();
 
 			/* Optionally ignore empty directories */
-			if (file.isDirectory() && renderer.getUmsConfiguration().isHideEmptyFolders() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration())) {
+			if (file.isDirectory() && !FileUtil.isFolderRelevant(file, renderer.getUmsConfiguration()) && renderer.getUmsConfiguration().isHideEmptyFolders()) {
 				LOGGER.debug("Ignoring empty/non-relevant directory: " + file.toString());
 				return null;
 			} else if (file.isDirectory() && !"".equals(lcFilename) && !ignoredFolderNames.isEmpty() && ignoredFolderNames.contains(file.getName())) {
