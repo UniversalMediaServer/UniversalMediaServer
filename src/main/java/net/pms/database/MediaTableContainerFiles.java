@@ -184,10 +184,6 @@ public class MediaTableContainerFiles extends MediaTable {
 		} catch (Exception e) {
 			LOGGER.error("Cannot delete entry {}", entryId, e);
 		}
-		//clean MediaTableFiles if not more related to a container
-		if (Boolean.FALSE.equals(MediaTableContainerFiles.isInContainer(connection, entryId))) {
-			MediaTableFiles.removeEntry(connection, entryId);
-		}
 	}
 
 	public static void addContainerEntry(final Long containerId, final Long entryId) {

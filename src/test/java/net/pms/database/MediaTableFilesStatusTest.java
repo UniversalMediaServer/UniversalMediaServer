@@ -82,17 +82,15 @@ public class MediaTableFilesStatusTest {
 
 	@Test
 	public void testIsFullyPlayed() throws Exception {
-		Connection connection = null;
-		try {
-			connection = MediaDatabase.getConnectionIfAvailable();
+		MediaDatabase.init();
+		MediaDatabase database = MediaDatabase.get();
+		try (Connection connection = database.getConnection()) {
 			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenPlayed", 0, true);
 			MediaTableFilesStatus.setFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0, false);
 			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatDoesntExist", 0));
 			assertTrue(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 0));
 			assertNull(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenPlayed", 1));
 			assertFalse(MediaTableFilesStatus.isFullyPlayed(connection, "FileThatHasBeenMarkedNotPlayed", 0));
-		} finally {
-			MediaDatabase.close(connection);
 		}
 	}
 }
