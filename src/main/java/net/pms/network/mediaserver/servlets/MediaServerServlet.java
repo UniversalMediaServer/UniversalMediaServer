@@ -431,12 +431,23 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				boolean ignoreTranscodeByteRangeRequests = renderer.ignoreTranscodeByteRangeRequests();
 
 				// Ignore ByteRangeRequests while media is transcoded
-				if (!ignoreTranscodeByteRangeRequests ||
-						totalsize != StoreResource.TRANS_SIZE ||
-						(ignoreTranscodeByteRangeRequests &&
+				if (
+					!ignoreTranscodeByteRangeRequests ||
+					totalsize != StoreResource.TRANS_SIZE ||
+					(
+						ignoreTranscodeByteRangeRequests &&
 						range.getStart() == 0 &&
-						totalsize == StoreResource.TRANS_SIZE)) {
+						totalsize == StoreResource.TRANS_SIZE
+					)
+				) {
+					LOGGER.info("Made it {} {} {} {}", range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd());
+					if (item.isTranscoded() && renderer.isSeekByTimeExclusive() && ((timeseekrange.getStart() != null && timeseekrange.getStart() > 0) || (timeseekrange.getEnd() != null && timeseekrange.getEnd() > 0))) {
+						// ensure that we ignore any byte ranges from a renderer that is seek-by-time exclusive
+						range.setStart(0L);
+						range.setEnd(0L);
+					}
 					inputStream = item.getInputStream(Range.create(range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd()));
+
 					if (item.isResume()) {
 						// Update range to possibly adjusted resume time
 						timeseekrange.setStart(item.getResume().getTimeOffset() / (double) 1000);
