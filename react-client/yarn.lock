@@ -4618,7 +4618,7 @@ __metadata:
     typescript: "npm:5.5.4"
     typescript-eslint: "npm:^8.4.0"
     video.js: "npm:8.17.3"
-    vite: "npm:5.4.3"
+    vite: "npm:5.4.5"
   languageName: unknown
   linkType: soft
 
@@ -4824,9 +4824,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:5.4.3":
-  version: 5.4.3
-  resolution: "vite@npm:5.4.3"
+"vite@npm:5.4.5":
+  version: 5.4.5
+  resolution: "vite@npm:5.4.5"
   dependencies:
     esbuild: "npm:^0.21.3"
     fsevents: "npm:~2.3.3"
@@ -4863,7 +4863,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/7afe601bcba82f81980c718fc171ba8f0c45e3bffaeb7ef831b64b84e396f963c3c87818b74da4c8e817d1bce1c179f1efae3bcb14d2e94b4eb635071722c8f2
+  checksum: 10c0/89c6459452fc238cdf8e99681b30996af171c9c557af476f96408a18a639fb5a0a6ee2d2257e005b21dc284edceb604595c34920cd4a007ad18f7ebafb654c76
   languageName: node
   linkType: hard
 
