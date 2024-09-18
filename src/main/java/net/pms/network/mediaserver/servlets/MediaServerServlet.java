@@ -440,7 +440,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						totalsize == StoreResource.TRANS_SIZE
 					)
 				) {
-					LOGGER.info("Made it {} {} {} {}", range.getStart(), range.getEnd(), timeseekrange.getStart(), timeseekrange.getEnd());
 					if (item.isTranscoded() && renderer.isSeekByTimeExclusive() && ((timeseekrange.getStart() != null && timeseekrange.getStart() > 0) || (timeseekrange.getEnd() != null && timeseekrange.getEnd() > 0))) {
 						// ensure that we ignore any byte ranges from a renderer that is seek-by-time exclusive
 						range.setStart(0L);

@@ -30,19 +30,19 @@ public class DebounceTraceLogger {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DebounceTraceLogger.class);
 
 	private Timer timer = new Timer();
-	private long debounceDelay = 300; // 300ms
+	private long DEBOUNCE_DELAY = 300; // 300ms
 
 	public void log(String logMessage) {
-        try {
-            timer.cancel(); // Cancel any existing timer
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    LOGGER.trace(logMessage);
-                }
-            }, debounceDelay);
-        } catch (Exception e) {
-            // don't log that the timer is already cancelled
-        }
+		try {
+			timer.cancel(); // Cancel any existing timer
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					LOGGER.trace(logMessage);
+				}
+			}, DEBOUNCE_DELAY);
+		} catch (Exception e) {
+			// don't log that the timer is already cancelled
+		}
 	}
 }
