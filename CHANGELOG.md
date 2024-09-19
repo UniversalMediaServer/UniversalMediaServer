@@ -18,6 +18,7 @@
 - Bump `eslint-plugin-react` from 7.35.0 to 7.36.1 ([#4975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4975))
 - Bump `eslint` from 9.9.1 to 9.10.0 ([#4959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4959))
 - Bump `jetty.version` from 12.0.12 to 12.0.13 ([#4958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4958))
+- Bump `jna-version` from 5.14.0 to 5.15.0 ([#4971](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4971))
 - Bump `logback-version` from 1.5.7 to 1.5.8 ([#4957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4957))
 - Bump `org.apache.commons:commons-lang3` from 3.16.0 to 3.17.0 ([#4941](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4941))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.4.0 to 3.5.0 ([#4943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4943))

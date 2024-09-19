@@ -118,7 +118,7 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.14.0</jna-version>
+		<jna-version>5.15.0</jna-version>
 
 		<junit5.version>5.11.0</junit5.version>
 		<jetty.version>12.0.13</jetty.version>
