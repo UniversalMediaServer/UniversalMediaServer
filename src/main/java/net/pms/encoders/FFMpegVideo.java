@@ -1066,7 +1066,7 @@ public class FFMpegVideo extends Engine {
 			} else if (!EngineFactory.isEngineAvailable(StandardEngineId.TSMUXER_VIDEO)) {
 				deferToTsmuxer = false;
 				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
-			} else if (defaultVideoTrack.getHDRFormatForRenderer() != null && defaultVideoTrack.getHDRFormatForRenderer().equals("dolbyvision") && params.getTimeSeek() > 0) {
+			} else if (params.getTimeSeek() > 0) {
 				deferToTsmuxer = false;
 				LOGGER.debug(prependTraceReason + "the renderer will display a blank screen, no good explanation for this yet.");
 			}
