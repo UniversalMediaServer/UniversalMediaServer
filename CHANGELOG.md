@@ -14,7 +14,7 @@
 - Bump `axios` from 1.7.5 to 1.7.7 ([#4945](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4945))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.18.0 to 10.18.1 ([#4942](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4942))
 - Bump `de.sfuhrm:radiobrowser4j` from 3.0.1 to 3.1.0 ([#4940](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4940))
-- Bump `eslint-plugin-react-refresh` from 0.4.9 to 0.4.11 ([#4962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4962))
+- Bump `eslint-plugin-react-refresh` from 0.4.9 to 0.4.12 ([#4962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4962), [#4973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4973))
 - Bump `eslint-plugin-react` from 7.35.0 to 7.36.1 ([#4975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4975))
 - Bump `eslint` from 9.9.1 to 9.10.0 ([#4959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4959))
 - Bump `jetty.version` from 12.0.12 to 12.0.13 ([#4958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4958))
