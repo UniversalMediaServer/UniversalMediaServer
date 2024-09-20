@@ -25,7 +25,7 @@
 - Bump `org.apache.commons:commons-lang3` from 3.16.0 to 3.17.0 ([#4941](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4941))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.4.0 to 3.5.0 ([#4943](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4943))
 - Bump `typescript-eslint` from 8.1.0 to 8.6.0 ([#4949](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4949), [#4977](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4977))
-- Bump `vite` from 5.4.2 to 5.4.5 ([#4961](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4961), [#4976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4976))
+- Bump `vite` from 5.4.2 to 5.4.6 ([#4961](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4961), [#4976](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4976), [#4978](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4978))
 
 ## [14.5.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.4.0...14.5.0) (2024-08-26)
 
