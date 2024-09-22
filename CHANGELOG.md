@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+## [14.5.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.0...14.5.1) (2024-09-22)
+
+### General
+- Improved speed of file parsing, browsing and scanning
+- Fixed database update failure (#4884 and #4937)
+- Fixed excessive CPU use by log file compressor
+- Fixed frontend development proxy
+- Fixed E-AC3 detection for mixed streams
+- Fixed recursive error on file removal
+- Fixed broken FFmpeg transcoding for media players that need padding added to videos
+
+### Translation updates via Crowdin
+- Slovak (46%) (thanks, Dušan!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.12.1 to 7.12.2 ([#4944](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4944))
 - Bump `@mantine/dropzone` from 7.12.1 to 7.12.2 ([#4944](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4944))
@@ -18,6 +32,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.9 to 0.4.12 ([#4962](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4962), [#4973](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4973))
 - Bump `eslint-plugin-react` from 7.35.0 to 7.36.1 ([#4975](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4975))
 - Bump `eslint` from 9.9.1 to 9.10.0 ([#4959](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4959))
+- Bump `FFmpeg` from 7.0.1 to 7.0.2
 - Bump `jetty.version` from 12.0.12 to 12.0.13 ([#4958](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4958))
 - Bump `jna-version` from 5.14.0 to 5.15.0 ([#4971](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4971))
 - Bump `logback-version` from 1.5.7 to 1.5.8 ([#4957](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4957))
