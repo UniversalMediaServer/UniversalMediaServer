@@ -270,40 +270,40 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails(
 			"Samsung QLED 4K 2019+",
-			"modelName=QN49Q70RAFXZA",
-			"modelName=QN75Q90RAFXZA",
-			"modelName=GQ43LS03TAUXZG",
-			"modelName=QE43LS03TAUXXH",
-			"modelName=QE55LS03RAUXXH",
-			"modelName=QN32LS03TBFXZA",
-			"modelName=QA65S95BASXNZ", // 2022 starts here
-			"modelName=UA65AU7002SXNZ",
-			"modelName=QA65QN90BASXNZ",
-			"modelName=QA65QN95BASXNZ",
-			"modelName=QA65QN900BSXNZ",
-			"modelName=QA65Q80BASXNZ",
-			"modelName=QA65Q70BASXNZ",
-			"modelName=QA65QN85BASXNZ",
-			"modelName=QA65Q60BASXNZ",
-			"modelName=QA65QN800BSXNZ",
-			"modelName=UA65BU8000SXNZ",
-			"modelName=UA65BU8500SXNZ",
-			"modelName=QA65QE1CASXNZ", // 2023 starts here
-			"modelName=UA65CU8500SXNZ",
-			"modelName=QA65S90CASXNZ",
-			"modelName=UA65CU7000SXNZ",
-			"modelName=UA65CU8000SXNZ",
-			"modelName=QA65Q60CASXNZ",
-			"modelName=QA65Q70CASXNZ",
-			"modelName=QA65Q80CASXNZ",
-			"modelName=QA65S95CASXNZ",
-			"modelName=QA65QN90CASXNZ",
+			"modelName=QN49Q70RAFXZA, modelDescription=Samsung TV",
+			"modelName=QN75Q90RAFXZA, modelDescription=Samsung TV",
+			"modelName=GQ43LS03TAUXZG, modelDescription=Samsung TV",
+			"modelName=QE43LS03TAUXXH, modelDescription=Samsung TV",
+			"modelName=QE55LS03RAUXXH, modelDescription=Samsung TV",
+			"modelName=QN32LS03TBFXZA, modelDescription=Samsung TV",
+			"modelName=QA65S95BASXNZ, modelDescription=Samsung TV", // 2022 starts here
+			"modelName=UA65AU7002SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN90BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN95BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN900BSXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q80BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q70BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN85BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q60BASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN800BSXNZ, modelDescription=Samsung TV",
+			"modelName=UA65BU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65BU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QE1CASXNZ, modelDescription=Samsung TV", // 2023 starts here
+			"modelName=UA65CU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65S90CASXNZ, modelDescription=Samsung TV",
+			"modelName=UA65CU7000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65CU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q60CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q70CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65Q80CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65S95CASXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN90CASXNZ, modelDescription=Samsung TV",
 			"friendlyName=Samsung Q68CA 43, manufacturer=Samsung Electronics, modelName=TQ43Q68CAUXXC, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
-			"modelName=QA65QE1DASXNZ", // 2024 starts here
-			"modelName=UA65DU8000SXNZ",
-			"modelName=UA65DU7700SXNZ",
-			"modelName=UA65DU8500SXNZ",
-			"modelName=QA65QN900DSXNZ"
+			"modelName=QA65QE1DASXNZ, modelDescription=Samsung TV", // 2024 starts here
+			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65DU7700SXNZ, modelDescription=Samsung TV",
+			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV",
+			"modelName=QA65QN900DSXNZ, modelDescription=Samsung TV"
 		);
 
 		testUPNPDetails(
