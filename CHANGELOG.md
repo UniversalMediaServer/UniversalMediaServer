@@ -9,12 +9,12 @@
 
 ### General
 - Improved speed of file parsing, browsing and scanning
-- Fixed database update failure (#4884 and #4937)
-- Fixed excessive CPU use by log file compressor
+- Fixed database update failure (#4884 and #4937) (thanks, @dberkham and @radioresearch)
+- Fixed excessive CPU use by log file compressor (#4939)
 - Fixed frontend development proxy
 - Fixed E-AC3 detection for mixed streams
 - Fixed recursive error on file removal
-- Fixed broken FFmpeg transcoding for media players that need padding added to videos
+- Fixed broken FFmpeg transcoding for media players that need padding added to videos (#4950)
 
 ### Translation updates via Crowdin
 - Slovak (46%) (thanks, Dušan!)
