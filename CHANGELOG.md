@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `typescript` from 5.5.4 to 5.6.2 ([#4984](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4984))
+
 ## [14.5.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.0...14.5.1) (2024-09-22)
 
 ### General
