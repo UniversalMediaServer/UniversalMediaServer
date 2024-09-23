@@ -74,7 +74,7 @@ There are a number of manual steps involved in a new version release. This list 
 
 1. Post about the release
 
-     - Twitter/X: https://twitter.com/UMS16
+     - X: https://x.com/UMS16
      - Facebook: https://www.facebook.com/UniversalMediaServer
      - Our forum: https://www.universalmediaserver.com/forum/viewforum.php?f=3
 
