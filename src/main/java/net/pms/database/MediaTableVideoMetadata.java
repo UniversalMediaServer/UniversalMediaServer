@@ -468,6 +468,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				}
 				if (isCreatingNewRecord) {
 					rs.insertRow();
+					connection.commit();
 				} else {
 					rs.updateRow();
 				}
