@@ -143,6 +143,7 @@ public final class MediaTableTVSeries extends MediaTable {
 	private static final String SQL_GET_IMAGES_BY_ID = SELECT + TABLE_COL_IMAGES + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_UPDATE_THUMBID = UPDATE + TABLE_NAME + SET + COL_THUMBID + EQUAL + PARAMETER + COMMA + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_THUMB_SRC_LOC = UPDATE + TABLE_NAME + SET + COL_THUMB_SRC + EQUAL + PARAMETER + WHERE + COL_THUMB_SRC + EQUAL + PARAMETER;
+	private static final String SQL_UPDATE_TMDBID = UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + PARAMETER + WHERE + COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_UPDATE_IMDBID_TMDBID_NULL = UPDATE + TABLE_NAME + SET + COL_IMDBID + EQUAL + NULL + ", " + COL_TMDBID + EQUAL + NULL + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_PARTIALLY_PLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
 	private static final String SQL_GET_NOT_FULLYPLAYED = SELECT + MediaTableVideoMetadata.TABLE_COL_TITLE + FROM + MediaTableFiles.TABLE_NAME + MediaTableFiles.SQL_LEFT_JOIN_TABLE_FILES_STATUS + MediaTableFiles.SQL_LEFT_JOIN_TABLE_VIDEO_METADATA + WHERE + MediaTableFiles.TABLE_COL_FORMAT_TYPE + EQUAL + "4" + AND + MediaTableVideoMetadata.TABLE_COL_ISTVEPISODE + AND + MediaTableVideoMetadata.TABLE_COL_TITLE + EQUAL + PARAMETER + AND + MediaTableFilesStatus.TABLE_COL_ISFULLYPLAYED + IS_NOT_TRUE + AND + MediaTableFilesStatus.TABLE_COL_USERID + EQUAL + PARAMETER + LIMIT_1;
@@ -635,8 +636,10 @@ public final class MediaTableTVSeries extends MediaTable {
 						}
 						rs.updateString(COL_VOTES, seriesMetadata.getVotes());
 						rs.updateRow();
+						connection.commit();
 					} else {
 						LOGGER.debug("Couldn't find \"{}\" in the database when trying to store data from our API", title);
+						return;
 					}
 				}
 			}
@@ -1031,11 +1034,14 @@ public final class MediaTableTVSeries extends MediaTable {
 	}
 
 	private static void updateTmdbId(final Connection connection, final long tvSeriesId, final long tmdbId) {
-		try (Statement statement = connection.createStatement()) {
-			statement.executeUpdate(
-				UPDATE + TABLE_NAME + SET + COL_TMDBID + EQUAL + tmdbId +
-				WHERE + COL_ID + EQUAL + tvSeriesId
-			);
+		try {
+			try (
+				PreparedStatement ps = connection.prepareStatement(SQL_UPDATE_TMDBID);
+			) {
+				ps.setLong(1, tmdbId);
+				ps.setLong(2, tvSeriesId);
+				ps.executeUpdate();
+			}
 		} catch (SQLException e) {
 			LOGGER.error("Failed to update TMDB ID for \"{}\" to \"{}\": {}", tvSeriesId, tmdbId, e.getMessage());
 			LOGGER.trace("", e);

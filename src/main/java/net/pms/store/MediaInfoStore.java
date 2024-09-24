@@ -287,7 +287,7 @@ public class MediaInfoStore {
 			return;
 		}
 		if (tvSeriesMetadata == null) {
-			LOGGER.warn("Couldn't update Tv Series Metadata for \"{}\" because there is no media information");
+			LOGGER.warn("Couldn't update Tv Series Metadata for \"{}\" because there is no media information", tvSeriesId);
 			return;
 		}
 		Connection connection = null;
