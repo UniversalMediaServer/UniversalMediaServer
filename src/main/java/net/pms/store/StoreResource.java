@@ -643,7 +643,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 * @param lastModified The timestamp to set.
 	 * @since 1.71.0
 	 */
-	protected void setLastModified(long lastModified) {
+	protected final void setLastModified(long lastModified) {
 		this.lastModified = lastModified;
 	}
 

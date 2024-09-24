@@ -72,6 +72,9 @@ public class VirtualFolder extends StoreContainer {
 		setLastModified(0);
 	}
 
+	/**
+	 * A to Z limit VirtualFolder
+	 */
 	public VirtualFolder(Renderer renderer, VirtualFolder virtualFile, List<File> files, String forcedName) {
 		super(renderer, null, null);
 		setChildrenSorted(true);
@@ -81,6 +84,7 @@ public class VirtualFolder extends StoreContainer {
 		this.discoverable = files;
 		this.forcedName = forcedName;
 		setLastModified(0);
+		analyzeChildren();
 	}
 
 	public List<File> getFiles() {
@@ -294,13 +298,15 @@ public class VirtualFolder extends StoreContainer {
 				map.put(String.valueOf(c), l);
 			}
 
-			for (Entry<String, List<File>> entry : map.entrySet()) {
-				// loop over all letters, this avoids adding
-				// empty letters
-				VirtualFolder mf = new VirtualFolder(renderer, this, entry.getValue(), entry.getKey());
-				addChild(mf, true, true);
+			if (map.size() > 1) {
+				for (Entry<String, List<File>> entry : map.entrySet()) {
+					// loop over all letters, this avoids adding
+					// empty letters
+					VirtualFolder mf = new VirtualFolder(renderer, this, entry.getValue(), entry.getKey());
+					addChild(mf, true, true);
+				}
+				return;
 			}
-			return;
 		}
 
 		for (File f : childrenFiles) {
