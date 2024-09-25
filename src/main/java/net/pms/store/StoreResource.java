@@ -147,7 +147,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 	 */
 	public Long getLongId() {
 		try {
-		return Long.valueOf(getId());
+			return Long.valueOf(getId());
 		} catch (NumberFormatException e) {
 			return null;
 		}

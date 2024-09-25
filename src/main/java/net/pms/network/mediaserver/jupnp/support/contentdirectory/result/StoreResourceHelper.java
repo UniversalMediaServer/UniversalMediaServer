@@ -18,7 +18,6 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 
 import com.google.common.primitives.UnsignedInteger;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,6 +59,7 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.upnp.UPNP.AlbumArtURI;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -791,6 +791,9 @@ public class StoreResourceHelper {
 	}
 
 	private static Res getImageRes(StoreResource resource, DLNAImageResElement resElement) {
+		if (resource == null) {
+			throw new NullPointerException("resource cannot be null");
+		}
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -829,11 +832,15 @@ public class StoreResourceHelper {
 				resElement.getProfile() + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000";
 			ProtocolInfo protocolInfo = new ProtocolInfo(protocolInfoStr);
 			res.setProtocolInfo(protocolInfo);
-			try {
-				res.setValue(new URI(url));
-			} catch (URISyntaxException ex) {
-				LOGGER.trace("Res fail with url: {}", url);
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && url != null) {
+				if (url.contains("?")) {
+					url += "&update=" + updateId;
+				} else {
+					url += "?update=" + updateId;
+				}
 			}
+			res.setValue(URI.create(url));
 			return res;
 		}
 		return null;
@@ -850,6 +857,14 @@ public class StoreResourceHelper {
 				-> {
 					String albumArtURL = resource.getThumbnailURL(imageProfile);
 					if (StringUtils.isNotBlank(albumArtURL)) {
+						String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+						if (updateId != null && albumArtURL != null) {
+							if (albumArtURL.contains("?")) {
+								albumArtURL += "&update=" + updateId;
+							} else {
+								albumArtURL += "?update=" + updateId;
+							}
+						}
 						UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
 						albumArtURI.setProfileID(imageProfile.toString());
 						return albumArtURI;

@@ -202,6 +202,50 @@ public class MediaStoreIds {
 	}
 
 	/**
+	 * Returns the updates id for an object.
+	 *
+	 * @return The object updated id.
+	 */
+	private static synchronized UnsignedIntegerFourBytes getObjectUpdateId(Long id) {
+		if (id == null || id == -1) {
+			return getSystemUpdateId();
+		}
+		if (!UPDATE_IDS.containsKey(id)) {
+			UnsignedIntegerFourBytes value = null;
+			Connection connection = null;
+			try {
+				connection = MediaDatabase.getConnectionIfAvailable();
+				if (connection != null) {
+					MediaStoreId mediaStoreId = MediaTableStoreIds.getMediaStoreId(connection, id);
+					if (mediaStoreId != null && mediaStoreId.getUpdateId() != 0) {
+						value = new UnsignedIntegerFourBytes(mediaStoreId.getUpdateId());
+					}
+				}
+				if (value == null) {
+					value = getSystemUpdateId();
+				}
+				UPDATE_IDS.put(id, value);
+			} finally {
+				MediaDatabase.close(connection);
+			}
+		}
+		return UPDATE_IDS.get(id);
+	}
+
+	/**
+	 * Returns the updates id for an object as string.
+	 *
+	 * @return The object updated id as string.
+	 */
+	public static String getObjectUpdateIdAsString(Long id) {
+		UnsignedIntegerFourBytes result = getObjectUpdateId(id);
+		if (result == null) {
+			return null;
+		}
+		return result.toString();
+	}
+
+	/**
 	 * Call this method after making changes to your content directory.
 	 * <p>
 	 * This will notify clients that their view of the content directory is
