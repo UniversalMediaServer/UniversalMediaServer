@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.4.0-SNAPSHOT</version>
+	<version>14.5.1-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.4.0</project.version.short>
+		<project.version.short>14.5.1</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -72,11 +72,11 @@
 
 		<project.binaries-base>https://www.universalmediaserver.com/svn/binaries</project.binaries-base>
 
-		<binary-revision>194</binary-revision>
+		<binary-revision>195</binary-revision>
 
 		<exec-maven-plugin-version>3.4.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
 
@@ -99,7 +99,7 @@
 			ch.qos.logback:logback-classic and logback-core is shared with
 				- net.pms:ums
 		-->
-		<logback-version>1.5.7</logback-version>
+		<logback-version>1.5.8</logback-version>
 
 		<!--
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
@@ -109,7 +109,7 @@
 		-->
 		<jackson.version>2.17.2</jackson.version>
 
-		<surefire-version>3.4.0</surefire-version>
+		<surefire-version>3.5.0</surefire-version>
 
 		<!--
 			net.java.dev.jna:jna-platform is shared with
@@ -118,10 +118,10 @@
 
 			Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading
 		-->
-		<jna-version>5.14.0</jna-version>
+		<jna-version>5.15.0</jna-version>
 
-		<junit5.version>5.11.0</junit5.version>
-		<jetty.version>12.0.12</jetty.version>
+		<junit5.version>5.11.1</junit5.version>
+		<jetty.version>12.0.13</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -178,7 +178,7 @@
 		<dependency>
 			<groupId>commons-logging</groupId>
 			<artifactId>commons-logging</artifactId>
-			<version>1.3.3</version>
+			<version>1.3.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
@@ -189,12 +189,12 @@
 
 				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
-			<version>2.16.1</version>
+			<version>2.17.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.16.0</version>
+			<version>3.17.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -548,7 +548,7 @@
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna version of the other libraries before upgrading -->
 			<!-- Check the net.java.dev.jna:jna-platform version of the other libraries before upgrading -->
-			<version>6.6.2</version>
+			<version>6.6.4</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -690,7 +690,7 @@
 		<dependency>
 			<groupId>de.sfuhrm</groupId>
 			<artifactId>radiobrowser4j</artifactId>
-			<version>3.0.1</version>
+			<version>3.1.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -932,13 +932,14 @@
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
-				<version>1.15.0</version>
+				<version>1.15.1</version>
 				<configuration>
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<nodeVersion>v20.12.2</nodeVersion>
 					<yarnVersion>v1.22.22</yarnVersion>
+					<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>					
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -3485,12 +3486,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-checkstyle-plugin</artifactId>
-						<version>3.4.0</version>
+						<version>3.5.0</version>
 						<dependencies>
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.17.0</version>
+								<version>10.18.1</version>
 							</dependency>
 						</dependencies>
 						<configuration>

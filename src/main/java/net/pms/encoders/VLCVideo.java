@@ -639,11 +639,6 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return true;
-	}
-
-	@Override
 	public @Nullable ExecutableInfo testExecutable(@Nonnull ExecutableInfo executableInfo) {
 		executableInfo = testExecutableFile(executableInfo);
 		if (Boolean.FALSE.equals(executableInfo.getAvailable())) {
