@@ -103,10 +103,11 @@ public abstract class HttpServletHelper extends HttpServlet {
 		StringBuilder header = new StringBuilder();
 		header.append(req.getMethod());
 		header.append(" ").append(req.getRequestURI());
-		if (header.length() > 0) {
-			header.append(" ");
+		String query = req.getQueryString();
+		if (StringUtils.isNotBlank(query)) {
+			header.append("?").append(query);
 		}
-		header.append(req.getProtocol());
+		header.append(" ").append(req.getProtocol());
 		header.append("\n\n");
 		header.append("HEADER:\n");
 		Enumeration<String> headerNames = req.getHeaderNames();

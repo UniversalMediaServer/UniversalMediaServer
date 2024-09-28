@@ -37,6 +37,7 @@ import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -66,7 +67,7 @@ public class DidlHelper extends DlnaHelper {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		for (StoreResource resource : resultResources) {
-			filesData.append(DidlHelper.getDidlString(resource));
+			filesData.append(getDidlString(resource));
 		}
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 		return StringEscapeUtils.unescapeXml(filesData.toString());
@@ -283,10 +284,10 @@ public class DidlHelper extends DlnaHelper {
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
+				String dlnaOrgPnFlags = getDlnaOrgPnFlags(item, c);
 				String dlnaOrgFlags = "*";
 				if (renderer.isSendDLNAOrgFlags()) {
-					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
+					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(item);
 				}
 				String tempString = "http-get:*:" + item.getRendererMimeType() + ":" + dlnaOrgFlags;
 				addAttribute(sb, "protocolInfo", tempString);
@@ -820,6 +821,9 @@ public class DidlHelper extends DlnaHelper {
 	}
 
 	private static void addImageResource(StoreResource resource, StringBuilder sb, DLNAImageResElement resElement) {
+		if (resource == null) {
+			throw new NullPointerException("resource cannot be null");
+		}
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -859,6 +863,14 @@ public class DidlHelper extends DlnaHelper {
 			addAttribute(sb, "protocolInfo", "http-get:*:" + resElement.getProfile().getMimeType() + ":DLNA.ORG_PN=" +
 				resElement.getProfile() + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000");
 			endTag(sb);
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && url != null) {
+				if (url.contains("?")) {
+					url += "&update=" + updateId;
+				} else {
+					url += "?update=" + updateId;
+				}
+			}
 			sb.append(url);
 			closeTag(sb, "res");
 		}
@@ -867,6 +879,14 @@ public class DidlHelper extends DlnaHelper {
 	private static void addAlbumArt(StoreResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
 		String albumArtURL = resource.getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && albumArtURL != null) {
+				if (albumArtURL.contains("?")) {
+					albumArtURL += "&update=" + updateId;
+				} else {
+					albumArtURL += "?update=" + updateId;
+				}
+			}
 			openTag(sb, "upnp:albumArtURI");
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
@@ -975,19 +995,6 @@ public class DidlHelper extends DlnaHelper {
 		// adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
-	}
-
-	/**
-	 * Removes xml character representations.
-	 *
-	 * @param s String to be cleaned
-	 * @return Encoded String
-	 */
-	public static String unEncodeXML(String s) {
-		// Note: ampersand substitution must be first in order to undo double
-		// transformations
-		// TODO: support ' and " if/when required, see encodeXML() above
-		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
 
 }
