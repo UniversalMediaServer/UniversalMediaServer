@@ -4,12 +4,6 @@
 
 ### General
 - Removed Netty dependency
-- Implements RadioBrowser Metadata lookup.
-- Added MediaTableContainerFiles to track files included in a container.
-- Store WebStream media info into the database.
-- Use of FFmpegParser to parse WebStream media info.
-- Implements WebStreamParser to parse headers of an http streams.
-- Added possibility to add playlist in playlist.
 
 ### Dependencies
 - Bump `@types/react` from 18.3.5 to 18.3.8 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986))
