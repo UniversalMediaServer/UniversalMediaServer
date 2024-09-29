@@ -601,6 +601,8 @@ public class FileUtil {
 	private static final String MIXED_EPISODE_CONVENTION_MATCH = ".*" + MIXED_EPISODE_CONVENTION + ".*";
 	private static final Pattern MIXED_EPISODE_CONVENTION_PATTERN = Pattern.compile(MIXED_EPISODE_CONVENTION);
 
+	private static final String SCENE_P2P_MOVIE_MATCH = "^(?!.*\\d{1,3}[\\s:][\\s-]\\s).*\\s(?:19|20)\\d{2}.*";
+
 	private static final String MINISERIES_CONVENTION = "\\s(\\d{1,2})of\\d{1,2}\\s";
 	private static final String MINISERIES_CONVENTION_MATCH = ".*" + MINISERIES_CONVENTION + ".*";
 	private static final Pattern MINISERIES_CONVENTION_PATTERN = Pattern.compile(MINISERIES_CONVENTION);
@@ -1145,7 +1147,7 @@ public class FileUtil {
 			// This matches some sports releases
 
 			formattedName = convertFormattedNameToTitleCase(formattedName);
-		} else if (formattedName.matches("^(?!.*\\d{1,3}[\\s:][\\s-]).*\\s(?:19|20)\\d{2}.*")) {
+		} else if (formattedName.matches(SCENE_P2P_MOVIE_MATCH)) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"

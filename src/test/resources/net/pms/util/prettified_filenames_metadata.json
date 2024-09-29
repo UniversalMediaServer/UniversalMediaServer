@@ -530,6 +530,16 @@
 		}
 	},
 	{
+		"comment": "Video of a movie with a hyphen in the group name",
+		"filename": "Movie.Name.2015.1080p.BluRay.DDP.5.1.H.265.-uMs.mkv",
+		"prettified": "Movie Name (2015)",
+		"metadata": {
+			"type": "movie",
+			"title": "Movie Name",
+			"released": { "year": 2015 }
+		}
+	},
+	{
 		"comment": "Video of a movie with a year at the end of title",
 		"filename": "UMS.2018.mp4",
 		"prettified": "UMS (2018)",
