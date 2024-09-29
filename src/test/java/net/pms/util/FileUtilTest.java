@@ -337,7 +337,7 @@ public class FileUtilTest {
 				elem = metadata.get("title");
 				if (elem != null) {
 					try {
-						assertEquals(movieOrShowName, elem.getAsString());
+						assertEquals(elem.getAsString(), movieOrShowName);
 					} catch (NullPointerException ex) {
 						// There is no movieOrShowName extracted
 						if (todo) {
