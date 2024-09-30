@@ -10,6 +10,7 @@
 - Bump `@mantine/modals` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
 - Bump `@mantine/notifications` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
 - Bump `@types/react` from 18.3.5 to 18.3.8 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986))
+- Bump `@vitejs/plugin-react` from 4.3.1 to 4.3.2 ([#5005](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5005))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.17.2 to 2.18.0 ([#5009](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5009))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.0 to 1.15.1 ([#4983](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4983))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.18.1 to 10.18.2 ([#5007](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5007))
