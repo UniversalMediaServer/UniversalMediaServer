@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `@types/react` from 18.3.5 to 18.3.8 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.17.2 to 2.18.0 ([#5009](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5009))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.0 to 1.15.1 ([#4983](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4983))
 - Bump `commons-io:commons-io` from 2.16.1 to 2.17.0 ([#4982](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4982))
 - Bump `eslint` from 9.10.0 to 9.11.0 ([#4988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4988))
