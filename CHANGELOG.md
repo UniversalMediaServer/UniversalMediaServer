@@ -8,6 +8,7 @@
 - Bump `commons-io:commons-io` from 2.16.1 to 2.17.0 ([#4982](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4982))
 - Bump `eslint` from 9.10.0 to 9.11.0 ([#4988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4988))
 - Bump `rollup` from 4.21.0 to 4.22.4 ([#4996](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4996))
+- Bump `typescript-eslint` from 8.6.0 to 8.7.0 ([#5004](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5004))
 - Bump `typescript` from 5.5.4 to 5.6.2 ([#4984](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4984))
 - Bump `video.js` from 8.17.3 to 8.17.4 ([#4985](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4985))
 - Bump `vite` from 5.4.6 to 5.4.7 ([#4987](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4987))
