@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/dropzone` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/form` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/hooks` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/modals` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/notifications` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
 - Bump `@types/react` from 18.3.5 to 18.3.8 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986))
 - Bump `com.fasterxml.jackson.core:jackson-databind` from 2.17.2 to 2.18.0 ([#5009](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5009))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.0 to 1.15.1 ([#4983](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4983))
