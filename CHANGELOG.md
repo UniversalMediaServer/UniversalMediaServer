@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+- Removed Netty dependency
+
 ### Dependencies
 - Bump `@mantine/core` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
 - Bump `@mantine/dropzone` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
