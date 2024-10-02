@@ -1,15 +1,20 @@
 # Changelog
 
-## [Unreleased]
+## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
 
 ### General
 - Improved the filename matcher and prettifier for better API matches
+- Improved performance
 - Fixed thumbnails not parsed by new media server engine (#4968)
 - Fixed the A-to-Z folder generation feature (#4937) (thanks, radioresearch!)
 - Fixed database errors causing API metadata to not save (#4963)
 
 ### Media players
 - Fixed Samsung 2021+ TV detection which fixes video playback errors (#4952) (thanks, Fredo1650!)
+
+### Translation updates via Crowdin
+- French approvals (6%) (thanks, A.D.!)
+- Hungarian (60%) (thanks, Blaszlo!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
