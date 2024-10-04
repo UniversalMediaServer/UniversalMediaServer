@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.5.1-SNAPSHOT</version>
+	<version>14.6.0</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.5.1</project.version.short>
+		<project.version.short>14.6.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -107,7 +107,7 @@
 				- su.litvak.chromecast:api-v2
 				- fm.last:coverartarchive-api
 		-->
-		<jackson.version>2.17.2</jackson.version>
+		<jackson.version>2.18.0</jackson.version>
 
 		<surefire-version>3.5.0</surefire-version>
 
@@ -120,7 +120,7 @@
 		-->
 		<jna-version>5.15.0</jna-version>
 
-		<junit5.version>5.11.0</junit5.version>
+		<junit5.version>5.11.1</junit5.version>
 		<jetty.version>12.0.13</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
@@ -619,7 +619,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>5.1.0</version>
+			<version>6.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -3516,7 +3516,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.18.1</version>
+								<version>10.18.2</version>
 							</dependency>
 						</dependencies>
 						<configuration>

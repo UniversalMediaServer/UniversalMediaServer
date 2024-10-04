@@ -1,13 +1,39 @@
 # Changelog
 
-## [Unreleased]
+## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
+
+### General
+- Improved the filename matcher and prettifier for better API matches
+- Improved performance
+- Fixed thumbnails not parsed by new media server engine (#4968)
+- Fixed the A-to-Z folder generation feature (#4937) (thanks, radioresearch!)
+- Fixed database errors causing API metadata to not save (#4963)
+
+### Media players
+- Fixed Samsung 2021+ TV detection which fixes video playback errors (#4952) (thanks, Fredo1650!)
+
+### Translation updates via Crowdin
+- French approvals (6%) (thanks, A.D.!)
+- Hungarian (60%) (thanks, Blaszlo!)
 
 ### Dependencies
-- Bump `@types/react` from 18.3.5 to 18.3.8 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986))
+- Bump `@mantine/core` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/dropzone` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/form` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/hooks` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/modals` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@mantine/notifications` from 7.12.2 to 7.13.0 ([#5002](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5002))
+- Bump `@types/react` from 18.3.5 to 18.3.10 ([#4986](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4986), [#5006](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5006))
+- Bump `@vitejs/plugin-react` from 4.3.1 to 4.3.2 ([#5005](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5005))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.17.2 to 2.18.0 ([#5009](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5009))
 - Bump `com.github.eirslett:frontend-maven-plugin` from 1.15.0 to 1.15.1 ([#4983](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4983))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.18.1 to 10.18.2 ([#5007](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5007))
+- Bump `com.zaxxer:HikariCP` from 5.1.0 to 6.0.0 ([#5010](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5010))
 - Bump `commons-io:commons-io` from 2.16.1 to 2.17.0 ([#4982](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4982))
 - Bump `eslint` from 9.10.0 to 9.11.0 ([#4988](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4988))
+- Bump `junit5.version` from 5.11.0 to 5.11.1 ([#5008](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5008))
 - Bump `rollup` from 4.21.0 to 4.22.4 ([#4996](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4996))
+- Bump `typescript-eslint` from 8.6.0 to 8.7.0 ([#5004](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5004))
 - Bump `typescript` from 5.5.4 to 5.6.2 ([#4984](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4984))
 - Bump `video.js` from 8.17.3 to 8.17.4 ([#4985](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4985))
 - Bump `vite` from 5.4.6 to 5.4.7 ([#4987](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4987))
