@@ -983,7 +983,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * The only AlbumArt DLNA Profile to use.
 	 *
 	 * Some renderers only accept one AlbumArt Profile on DIDL.
-	 * 
+	 *
 	 * The default value is "".
 	 *
 	 * @return The only AlbumArt DLNA Profile that will be used.
