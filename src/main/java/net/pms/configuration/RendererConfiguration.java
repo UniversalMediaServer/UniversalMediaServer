@@ -969,9 +969,9 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Whether to to always send the album art URI.
+	 * Whether to always send the album art URI.
 	 *
-	 * Some renderers are buggy needed album art URI as Thumbnail URI.
+	 * Some renderers need album art URIs as thumbnail URIs.
 	 *
 	 * @return whether to always send the album art URI
 	 */
@@ -980,25 +980,25 @@ public class RendererConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Returns the AlbumArt DLNA Profile to use.
+	 * The only AlbumArt DLNA Profile to use.
 	 *
 	 * Some renderers only accept one AlbumArt Profile on DIDL.
-	 *
+	 * 
 	 * The default value is "".
 	 *
-	 * @return The additional HTTP header name.
+	 * @return The only AlbumArt DLNA Profile that will be used.
 	 */
 	public String getAlbumArtProfile() {
 		return getString(KEY_ALBUM_ART_PROFILE, "");
 	}
 
 	/**
-	 * Whether to send versioned UPnP object id.
+	 * Whether to send the versioned UPnP object id.
 	 *
 	 * Some renderers are buggy getting updated info if normal id is used.
 	 * They store the first info, then keep it.
 	 *
-	 * @return whether to send the cache control
+	 * @return whether to send the versioned UPnP object id.
 	 */
 	public boolean needVersionedObjectId() {
 		return getBoolean(KEY_NEED_VERSIONED_OBJECT_ID, false);
