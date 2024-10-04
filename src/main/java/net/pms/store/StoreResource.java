@@ -925,7 +925,7 @@ public abstract class StoreResource implements Cloneable, Runnable {
 			if (s == null) {
 				return "";
 			}
-			s = s.replace('\\', '-').replace('/', '-');
+			s = s.replace('\\', '-').replace('/', '-').replace('%', '-');
 			return URLEncoder.encode(s, StandardCharsets.UTF_8);
 		} catch (IllegalArgumentException e) {
 			LOGGER.debug("Error while URL encoding \"{}\": {}", s, e.getMessage());

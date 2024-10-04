@@ -168,6 +168,15 @@ public class StoreResourceHelper {
 				result.addResource(getImageRes(container, resElement));
 				// Offering AlbumArt here breaks the standard, but some renderers
 				// need it
+				if (renderer.needAlbumArtHack() || result instanceof MusicAlbum) {
+					AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
+				}
+			}
+		} else if (result instanceof MusicAlbum) {
+			for (DLNAImageResElement resElement : getThumbnailResElements(container, mediaType)) {
 				AlbumArtURI albumArtURI = getAlbumArtURI(container, resElement);
 				if (albumArtURI != null) {
 					result.addProperty(albumArtURI);
@@ -238,6 +247,12 @@ public class StoreResourceHelper {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
+		}
+		if (renderer.needVersionedObjectId()) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(item.getLongId());
+			if (updateId != null) {
+				resourceId += "#" + updateId;
+			}
 		}
 		result.setId(resourceId);
 
@@ -564,11 +579,13 @@ public class StoreResourceHelper {
 			}
 			for (DLNAImageResElement resElement : getThumbnailResElements(item, mediaType)) {
 				result.addResource(getImageRes(item, resElement));
-				// Offering AlbumArt here breaks the standard, but some renderers
-				// need it
-				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
-				if (albumArtURI != null) {
-					result.addProperty(albumArtURI);
+				if (renderer.needAlbumArtHack()) {
+					// Offering AlbumArt here breaks the standard, but some renderers
+					// need it
+					AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
 				}
 			}
 		} else {
@@ -576,9 +593,11 @@ public class StoreResourceHelper {
 				result.addResource(getImageRes(item, resElement));
 				// Offering AlbumArt here breaks the standard, but some renderers
 				// need it
-				AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
-				if (albumArtURI != null) {
-					result.addProperty(albumArtURI);
+				if (renderer.needAlbumArtHack()) {
+					AlbumArtURI albumArtURI = getAlbumArtURI(item, resElement);
+					if (albumArtURI != null) {
+						result.addProperty(albumArtURI);
+					}
 				}
 			}
 		}
@@ -848,6 +867,10 @@ public class StoreResourceHelper {
 
 	private static AlbumArtURI getAlbumArtURI(StoreResource resource, DLNAImageResElement resElement) {
 		DLNAImageProfile imageProfile = resElement.getProfile();
+		String rendererProfile = resource.getDefaultRenderer().getAlbumArtProfile();
+		if (StringUtils.isNotBlank(rendererProfile) && !rendererProfile.equalsIgnoreCase(imageProfile.toString())) {
+			return null;
+		}
 		switch (imageProfile.toInt()) {
 			case DLNAImageProfile.GIF_LRG_INT,
 				DLNAImageProfile.JPEG_SM_INT,
@@ -855,21 +878,26 @@ public class StoreResourceHelper {
 				DLNAImageProfile.PNG_LRG_INT,
 				DLNAImageProfile.PNG_TN_INT
 				-> {
-					String albumArtURL = resource.getThumbnailURL(imageProfile);
-					if (StringUtils.isNotBlank(albumArtURL)) {
-						String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
-						if (updateId != null && albumArtURL != null) {
-							if (albumArtURL.contains("?")) {
-								albumArtURL += "&update=" + updateId;
-							} else {
-								albumArtURL += "?update=" + updateId;
-							}
-						}
-						UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
-						albumArtURI.setProfileID(imageProfile.toString());
-						return albumArtURI;
-					}
+					return getAlbumArtURI(resource, imageProfile);
 				}
+		}
+		return null;
+	}
+
+	private static AlbumArtURI getAlbumArtURI(StoreResource resource, DLNAImageProfile imageProfile) {
+		String albumArtURL = resource.getThumbnailURL(imageProfile);
+		if (StringUtils.isNotBlank(albumArtURL)) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && albumArtURL != null) {
+				if (albumArtURL.contains("?")) {
+					albumArtURL += "&update=" + updateId;
+				} else {
+					albumArtURL += "?update=" + updateId;
+				}
+			}
+			UPNP.AlbumArtURI albumArtURI = new UPNP.AlbumArtURI(URI.create(albumArtURL));
+			albumArtURI.setProfileID(imageProfile.toString());
+			return albumArtURI;
 		}
 		return null;
 	}

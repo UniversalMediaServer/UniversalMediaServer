@@ -134,6 +134,13 @@ public class DidlHelper extends DlnaHelper {
 			resourceId += "$";
 		}
 
+		if (item != null && renderer.needVersionedObjectId()) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(item.getLongId());
+			if (updateId != null) {
+				resourceId += "#" + updateId;
+			}
+		}
+
 		addAttribute(sb, "id", resourceId);
 		if (container != null) {
 			if (!container.isDiscovered() && container.childrenCount() == 0) {
@@ -513,10 +520,6 @@ public class DidlHelper extends DlnaHelper {
 			}
 		}
 
-		if (mediaType != MediaType.IMAGE && (container == null || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
-			appendThumbnail(resource, sb, mediaType);
-		}
-
 		String uclass;
 		if (resource.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
 			uclass = "dummy";
@@ -556,6 +559,10 @@ public class DidlHelper extends DlnaHelper {
 			 *      http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
 			 */
 			uclass = "object.item.videoItem";
+		}
+
+		if (mediaType != MediaType.IMAGE && (container == null || uclass.startsWith("object.container.album") || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
+			appendThumbnail(resource, sb, mediaType, uclass.startsWith("object.container.album"));
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
@@ -691,7 +698,7 @@ public class DidlHelper extends DlnaHelper {
 	 * @param mediaType the {@link MediaType} of this {@link StoreResource}.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType) {
+	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType, boolean isAlbum) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or
@@ -809,12 +816,13 @@ public class DidlHelper extends DlnaHelper {
 				addImageResource(resource, sb, resElement);
 			}
 
-			//FIXME : as it break upnp standard, implement a renderer setting that allow it
-			for (DLNAImageResElement resElement : resElements) {
-				// Offering AlbumArt for video breaks the standard, but some
-				// renderers need it
-				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+			if (isAlbum || renderer.needAlbumArtHack()) {
+				for (DLNAImageResElement resElement : resElements) {
+					// Offering AlbumArt for object other than Album container
+					// breaks the standard, but some renderers need it.
+					switch (resElement.getProfile().toInt()) {
+						case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+					}
 				}
 			}
 		}
@@ -877,6 +885,10 @@ public class DidlHelper extends DlnaHelper {
 	}
 
 	private static void addAlbumArt(StoreResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
+		String rendererProfile = resource.getDefaultRenderer().getAlbumArtProfile();
+		if (StringUtils.isNotBlank(rendererProfile) && !rendererProfile.equalsIgnoreCase(thumbnailProfile.toString())) {
+			return;
+		}
 		String albumArtURL = resource.getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
 			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
