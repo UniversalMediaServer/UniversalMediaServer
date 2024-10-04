@@ -214,7 +214,7 @@ public class MediaTableContainerFiles extends MediaTable {
 						result.updateLong(COL_FILEID, entryId);
 						result.insertRow();
 					} else {
-						LOGGER.error("Container entry {} for {} already exists", entryId, containerId);
+						LOGGER.trace("Container entry {} for {} already exists", entryId, containerId);
 					}
 				}
 			}

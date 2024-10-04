@@ -61,6 +61,7 @@ public class RendererConfiguration extends BaseConfiguration {
 	 * renderer configuration property keys.
 	 */
 	private static final String KEY_ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
+	private static final String KEY_ALBUM_ART_PROFILE = "AlbumArtProfile";
 	private static final String KEY_AUDIO = "Audio";
 	protected static final String KEY_AUTO_PLAY_TMO = "AutoPlayTmo";
 	private static final String KEY_AVISYNTH_2D_TO_3D = "AviSynth2Dto3D";
@@ -98,7 +99,6 @@ public class RendererConfiguration extends BaseConfiguration {
 	protected static final String KEY_MEDIAPARSERV2_THUMB = "MediaParserV2_ThumbnailGeneration";
 	private static final String KEY_MIME_TYPES_CHANGES = "MimeTypesChanges";
 	private static final String KEY_MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
-	private static final String KEY_MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String KEY_MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String KEY_MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String KEY_OFFER_SUBTITLES_BY_PROTOCOL_INFO = "OfferSubtitlesByProtocolInfo";
@@ -113,6 +113,8 @@ public class RendererConfiguration extends BaseConfiguration {
 	private static final String KEY_RENDERER_NAME = "RendererName";
 	private static final String KEY_RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String KEY_SEEK_BY_TIME = "SeekByTime";
+	private static final String KEY_NEED_ALBUM_ART_HACK = "NeedAlbumArtHack";
+	private static final String KEY_NEED_VERSIONED_OBJECT_ID = "NeedVersionedObjectId";
 	private static final String KEY_SEND_DATE_METADATA = "SendDateMetadata";
 	private static final String KEY_SEND_DATE_METADATA_YEAR_FOR_AUDIO_TAGS = "SendDateMetadataYearForAudioTags";
 	private static final String KEY_SEND_DLNA_ORG_FLAGS = "SendDLNAOrgFlags";
@@ -964,6 +966,42 @@ public class RendererConfiguration extends BaseConfiguration {
 
 	public boolean isShowSubMetadata() {
 		return getBoolean(KEY_SHOW_SUB_METADATA, true);
+	}
+
+	/**
+	 * Whether to always send the album art URI.
+	 *
+	 * Some renderers need album art URIs as thumbnail URIs.
+	 *
+	 * @return whether to always send the album art URI
+	 */
+	public boolean needAlbumArtHack() {
+		return getBoolean(KEY_NEED_ALBUM_ART_HACK, true);
+	}
+
+	/**
+	 * The only AlbumArt DLNA Profile to use.
+	 *
+	 * Some renderers only accept one AlbumArt Profile on DIDL.
+	 *
+	 * The default value is "".
+	 *
+	 * @return The only AlbumArt DLNA Profile that will be used.
+	 */
+	public String getAlbumArtProfile() {
+		return getString(KEY_ALBUM_ART_PROFILE, "");
+	}
+
+	/**
+	 * Whether to send the versioned UPnP object id.
+	 *
+	 * Some renderers are buggy getting updated info if normal id is used.
+	 * They store the first info, then keep it.
+	 *
+	 * @return whether to send the versioned UPnP object id.
+	 */
+	public boolean needVersionedObjectId() {
+		return getBoolean(KEY_NEED_VERSIONED_OBJECT_ID, false);
 	}
 
 	/**

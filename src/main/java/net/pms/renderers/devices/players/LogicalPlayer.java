@@ -204,6 +204,7 @@ public abstract class LogicalPlayer extends MinimalPlayer {
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
 						return;
 					}
 				}

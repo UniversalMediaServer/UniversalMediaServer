@@ -61,6 +61,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.renderers.devices.WebGuiRenderer;
 import net.pms.renderers.devices.players.WebGuiPlayer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -541,6 +542,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				jMedia.addProperty("goal", "play");
 			}
 			jMedia.addProperty("name", item.getLocalizedResumeName(lang));
+			jMedia.addProperty("updateId", MediaStoreIds.getObjectUpdateIdAsString(item.getLongId()));
 		}
 		jMedia.addProperty("id", resource.getResourceId());
 		return jMedia;
@@ -600,10 +602,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 	private static JsonObject getShowPage(WebGuiRenderer renderer, String id, String lang) throws IOException, InterruptedException {
 		JsonObject result = getPlayPage(renderer, id, lang);
-		if (result != null) {
-			result.remove("goal");
-			result.addProperty("goal", "show");
-		}
+		result.remove("goal");
+		result.addProperty("goal", "show");
 		return result;
 	}
 
@@ -637,6 +637,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 
 		String mime = item.getMimeType();
 		media.addProperty("mime", mime);
+		media.addProperty("updateId", MediaStoreIds.getObjectUpdateIdAsString(item.getLongId()));
 
 		if (isVideo) {
 			media.addProperty("mediaType", "video");

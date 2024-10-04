@@ -37,12 +37,14 @@ import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespa
 import org.jupnp.model.XMLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class Generator {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Generator.class);
+	private static final String XMLNS_NAMESPACE_URI = "http://www.w3.org/2000/xmlns/";
 
 	/**
 	 * Generates an XML representation of the content model.
@@ -96,11 +98,11 @@ public class Generator {
 		Element rootElement = descriptor.createElementNS(Result.NAMESPACE_URI, "DIDL-Lite");
 		descriptor.appendChild(rootElement);
 
-		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:upnp", UPNP.NAMESPACE_URI);
-		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dc", DC.NAMESPACE_URI);
-		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:dlna", DLNA.NAMESPACE_URI);
-		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:sec", SEC.NAMESPACE_URI);
-		rootElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:pv", PV.NAMESPACE_URI);
+		rootElement.setAttributeNS(XMLNS_NAMESPACE_URI, "xmlns:upnp", UPNP.NAMESPACE_URI);
+		rootElement.setAttributeNS(XMLNS_NAMESPACE_URI, "xmlns:dc", DC.NAMESPACE_URI);
+		rootElement.setAttributeNS(XMLNS_NAMESPACE_URI, "xmlns:dlna", DLNA.NAMESPACE_URI);
+		rootElement.setAttributeNS(XMLNS_NAMESPACE_URI, "xmlns:sec", SEC.NAMESPACE_URI);
+		rootElement.setAttributeNS(XMLNS_NAMESPACE_URI, "xmlns:pv", PV.NAMESPACE_URI);
 
 		for (Container container : content.getContainers()) {
 			if (container == null) {
@@ -127,47 +129,61 @@ public class Generator {
 
 		Element containerElement = XMLUtil.appendNewElement(descriptor, parent, "container");
 
-		appendAttributes(containerElement, container);
-		appendProperties(descriptor, containerElement, container, "dc:", DC.NAMESPACE.class, DC.NAMESPACE_URI);
-		appendProperties(descriptor, containerElement, container, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
-		appendProperties(descriptor, containerElement, container, "", DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
+		appendAttributes(descriptor, containerElement, container);
+		appendProperties(descriptor, containerElement, container, DC.NAMESPACE.class, DC.NAMESPACE_URI);
+		appendProperties(descriptor, containerElement, container, UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
+		appendProperties(descriptor, containerElement, container, DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
 	}
 
 	protected void generateItem(Document descriptor, Element parent, Item item) {
 		Element itemElement = XMLUtil.appendNewElement(descriptor, parent, "item");
 
-		appendAttributes(itemElement, item);
-		appendProperties(descriptor, itemElement, item, "dc:", DC.NAMESPACE.class, DC.NAMESPACE_URI);
-		appendProperties(descriptor, itemElement, item, "upnp:", UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
-		appendProperties(descriptor, itemElement, item, "sec:", SEC.NAMESPACE.class, SEC.NAMESPACE_URI);
-		appendProperties(descriptor, itemElement, item, "", DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
+		appendAttributes(descriptor, itemElement, item);
+		appendProperties(descriptor, itemElement, item, DC.NAMESPACE.class, DC.NAMESPACE_URI);
+		appendProperties(descriptor, itemElement, item, UPNP.NAMESPACE.class, UPNP.NAMESPACE_URI);
+		appendProperties(descriptor, itemElement, item, SEC.NAMESPACE.class, SEC.NAMESPACE_URI);
+		appendProperties(descriptor, itemElement, item, DIDL_LITE.NAMESPACE.class, DIDL_LITE.NAMESPACE_URI);
 	}
 
 	protected void generateDescriptions(Document descriptor, Element parent, Result content) {
 		for (Property<?> property : content.getDescriptions()) {
-			Element el = descriptor.createElementNS(DIDL_LITE.NAMESPACE_URI, property.getQualifiedName());
-			parent.appendChild(el);
-			property.setOnElement(el);
+			Element element = descriptor.createElementNS(DIDL_LITE.NAMESPACE_URI, property.getQualifiedName());
+			appendAttributes(descriptor, element, property);
+			element.setTextContent(property.toString());
+			parent.appendChild(element);
 		}
 	}
 
-	protected void appendAttributes(Element parent, Property object) {
-		for (Property<?> property : object.getDependentProperties().get()) {
-			parent.setAttributeNS(
-				property.getNamespaceURI(),
-				property.getQualifiedName(),
-				property.toString()
-			);
+	protected void appendAttributes(Document descriptor, Element parent, Property property) {
+		for (Property<?> attributeProperty : property.getDependentProperties().get()) {
+			String namespaceURI = attributeProperty.getNamespaceURI();
+			Attr attr;
+			if (namespaceURI != null) {
+				attr = descriptor.createAttributeNS(namespaceURI, attributeProperty.getQualifiedName());
+			} else {
+				attr = descriptor.createAttribute(attributeProperty.getQualifiedName());
+			}
+			attr.setTextContent(attributeProperty.toString());
+			if (namespaceURI != null) {
+				String pre = descriptor.lookupPrefix(namespaceURI);
+				attr.setPrefix(pre);
+				parent.setAttributeNodeNS(attr);
+			} else {
+				parent.setAttributeNode(attr);
+			}
 		}
 	}
 
-	protected void appendProperties(Document descriptor, Element parent, BaseObject object, String prefix,
+	protected void appendProperties(Document descriptor, Element parent, BaseObject object,
 			Class<?> namespace,
 			String namespaceURI) {
 		for (Property<?> property : object.getProperties().getPropertiesInstanceOf(namespace)) {
-			Element el = descriptor.createElementNS(namespaceURI, prefix + property.getQualifiedName());
-			parent.appendChild(el);
-			property.setOnElement(el);
+			Element element = descriptor.createElementNS(namespaceURI, property.getQualifiedName());
+			String pre = descriptor.lookupPrefix(namespaceURI);
+			element.setPrefix(pre);
+			appendAttributes(descriptor, element, property);
+			element.setTextContent(property.toString());
+			parent.appendChild(element);
 		}
 	}
 

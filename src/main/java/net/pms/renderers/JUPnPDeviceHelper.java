@@ -35,7 +35,6 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.dlna.DidlHelper;
 import net.pms.dlna.protocolinfo.DeviceProtocolInfo;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.controlpoint.UmsSubscriptionCallback;
@@ -819,7 +818,7 @@ public class JUPnPDeviceHelper {
 
 	public static void setAVTransportURI(Device dev, String uri, String metaData) {
 		send(dev, AV_TRANSPORT_SERVICE, "SetAVTransportURI", "CurrentURI", uri,
-			"CurrentURIMetaData", metaData != null ? DidlHelper.unEncodeXML(metaData) : null);
+			"CurrentURIMetaData", metaData != null ? unEncodeXML(metaData) : null);
 	}
 
 	/**
@@ -962,6 +961,19 @@ public class JUPnPDeviceHelper {
 		} catch (IOException | SAXException e) {
 			LOGGER.debug("Error parsing xml: " + e);
 		}
+	}
+
+	/**
+	 * Removes xml character representations.
+	 *
+	 * @param s String to be cleaned
+	 * @return Encoded String
+	 */
+	private static String unEncodeXML(String s) {
+		// Note: ampersand substitution must be first in order to undo double
+		// transformations
+		// TODO: support ' and " if/when required, see encodeXML() above
+		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
 
 }

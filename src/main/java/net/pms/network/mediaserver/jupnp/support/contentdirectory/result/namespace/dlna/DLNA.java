@@ -32,7 +32,7 @@ public class DLNA {
 		}
 
 		public ProfileID(String value) {
-			super(value, "profileID");
+			super(value, "profileID", NAMESPACE_URI);
 		}
 	}
 

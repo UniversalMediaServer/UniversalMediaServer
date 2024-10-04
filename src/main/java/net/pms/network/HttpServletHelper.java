@@ -95,6 +95,10 @@ public abstract class HttpServletHelper extends HttpServlet {
 		}
 	}
 
+	protected static boolean isHttp10(ServletRequest req) {
+		return "HTTP/1.0".equals(req.getProtocol());
+	}
+
 	public static void logHttpServletRequest(HttpServletRequest req, String content) {
 		logHttpServletRequest(req, content, req.getRemoteHost());
 	}
@@ -103,10 +107,11 @@ public abstract class HttpServletHelper extends HttpServlet {
 		StringBuilder header = new StringBuilder();
 		header.append(req.getMethod());
 		header.append(" ").append(req.getRequestURI());
-		if (header.length() > 0) {
-			header.append(" ");
+		String query = req.getQueryString();
+		if (StringUtils.isNotBlank(query)) {
+			header.append("?").append(query);
 		}
-		header.append(req.getProtocol());
+		header.append(" ").append(req.getProtocol());
 		header.append("\n\n");
 		header.append("HEADER:\n");
 		Enumeration<String> headerNames = req.getHeaderNames();
@@ -337,6 +342,10 @@ public abstract class HttpServletHelper extends HttpServlet {
 				logHttpServletResponse(req, resp, null, false);
 			}
 		}
+	}
+
+	protected static void respondNotModified(HttpServletRequest req, HttpServletResponse resp) {
+		respond(req, resp, null, HttpServletResponse.SC_NOT_MODIFIED, null);
 	}
 
 	protected static void respondBadRequest(HttpServletRequest req, HttpServletResponse resp) throws IOException {
