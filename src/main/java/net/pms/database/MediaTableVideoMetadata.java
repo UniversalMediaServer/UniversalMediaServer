@@ -313,10 +313,10 @@ public class MediaTableVideoMetadata extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TVSEASON + INTEGER);
 				}
 				case (7) -> {
-					LOGGER.debug("creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER);
-					executeUpdate(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")");
-					LOGGER.debug("creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER);
-					executeUpdate(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_IMDBID + ")");
+					LOGGER.debug("creating index " + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_TMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_TMDBID + ")");
+					LOGGER.debug("creating index " + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_IMDBID  + IDX_MARKER + ON + TABLE_NAME + "(" + COL_IMDBID + ")");
 				}
 				default -> {
 					throw new IllegalStateException(
@@ -468,6 +468,7 @@ public class MediaTableVideoMetadata extends MediaTable {
 				}
 				if (isCreatingNewRecord) {
 					rs.insertRow();
+					connection.commit();
 				} else {
 					rs.updateRow();
 				}
