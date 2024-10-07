@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `eslint-plugin-react` from 7.36.1 to 7.37.1 ([#5019](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5019))
+
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
 
 ### General
