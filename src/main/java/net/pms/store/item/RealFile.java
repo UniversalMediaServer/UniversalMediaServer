@@ -93,7 +93,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 		if (type == Format.AUDIO || type == Format.VIDEO) {
 			try {
 				if (Files.size(file.toPath()) == UmsContentDirectoryService.EMPTY_FILE_CONTENT.length()) {
-					LOGGER.trace("isUploadResource true");
+					LOGGER.trace("isUploadResource true for {}", file.getAbsolutePath());
 					return true;
 				}
 			} catch (Exception e) {

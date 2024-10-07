@@ -28,28 +28,6 @@ import java.util.TimerTask;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
-import org.jupnp.binding.annotations.UpnpAction;
-import org.jupnp.binding.annotations.UpnpInputArgument;
-import org.jupnp.binding.annotations.UpnpOutputArgument;
-import org.jupnp.binding.annotations.UpnpService;
-import org.jupnp.binding.annotations.UpnpServiceId;
-import org.jupnp.binding.annotations.UpnpServiceType;
-import org.jupnp.binding.annotations.UpnpStateVariable;
-import org.jupnp.binding.annotations.UpnpStateVariables;
-import org.jupnp.model.profile.RemoteClientInfo;
-import org.jupnp.model.types.ErrorCode;
-import org.jupnp.model.types.UnsignedIntegerFourBytes;
-import org.jupnp.model.types.csv.CSV;
-import org.jupnp.model.types.csv.CSVString;
-import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
-import org.jupnp.support.contentdirectory.ContentDirectoryException;
-import org.jupnp.support.model.BrowseFlag;
-import org.jupnp.support.model.BrowseResult;
-import org.jupnp.support.model.SearchResult;
-import org.jupnp.support.model.SortCriterion;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.xml.sax.SAXException;
 import net.pms.dlna.DidlHelper;
 import net.pms.network.mediaserver.handlers.SearchRequestHandler;
 import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
@@ -74,7 +52,28 @@ import net.pms.store.container.PlaylistFolder;
 import net.pms.store.utils.StoreResourceSorter;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
-
+import org.jupnp.binding.annotations.UpnpAction;
+import org.jupnp.binding.annotations.UpnpInputArgument;
+import org.jupnp.binding.annotations.UpnpOutputArgument;
+import org.jupnp.binding.annotations.UpnpService;
+import org.jupnp.binding.annotations.UpnpServiceId;
+import org.jupnp.binding.annotations.UpnpServiceType;
+import org.jupnp.binding.annotations.UpnpStateVariable;
+import org.jupnp.binding.annotations.UpnpStateVariables;
+import org.jupnp.model.profile.RemoteClientInfo;
+import org.jupnp.model.types.ErrorCode;
+import org.jupnp.model.types.UnsignedIntegerFourBytes;
+import org.jupnp.model.types.csv.CSV;
+import org.jupnp.model.types.csv.CSVString;
+import org.jupnp.support.contentdirectory.ContentDirectoryErrorCode;
+import org.jupnp.support.contentdirectory.ContentDirectoryException;
+import org.jupnp.support.model.BrowseFlag;
+import org.jupnp.support.model.BrowseResult;
+import org.jupnp.support.model.SearchResult;
+import org.jupnp.support.model.SortCriterion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 @UpnpService(
 		serviceId =
@@ -419,13 +418,13 @@ public class UmsContentDirectoryService {
 
 	private void checkInput(Result modelObjectToAdd) {
 		if (modelObjectToAdd.getItems().size() > 1) {
-			LOGGER.warn("more than 1 item ... using first found.");
+			LOGGER.trace("more than 1 item ... using first found.");
 		}
 		if (modelObjectToAdd.getContainers().size() > 1) {
-			LOGGER.warn("more than 1 container ... using first found.");
+			LOGGER.trace("more than 1 container ... using first found.");
 		}
 		if (modelObjectToAdd.getContainers().size() > 0 && modelObjectToAdd.getItems().size() > 0) {
-			LOGGER.warn("found items and container ... using container object ...");
+			LOGGER.trace("found items and container ... using container object ...");
 		}
 	}
 
