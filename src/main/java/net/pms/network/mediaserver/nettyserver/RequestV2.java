@@ -572,11 +572,13 @@ public class RequestV2 extends HTTPResource {
 						if (!isVideoThumbnailRequest && format != null && format.isVideo()) {
 							MediaType mediaType = item.getMediaInfo() == null ? null : item.getMediaInfo().getMediaType();
 							if (mediaType == MediaType.VIDEO) {
-								if (item.getMediaInfo() != null &&
-										item.getMediaSubtitle() != null &&
-										item.getMediaSubtitle().isExternal() &&
-										!configuration.isDisableSubtitles() &&
-										renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)) {
+								if (
+									item.getMediaInfo() != null &&
+									item.getMediaSubtitle() != null &&
+									item.getMediaSubtitle().isExternal() &&
+									!configuration.isDisableSubtitles() &&
+									renderer.isExternalSubtitlesFormatSupported(item.getMediaSubtitle(), item)
+								) {
 									String subtitleHttpHeader = renderer.getSubtitleHttpHeader();
 									if (StringUtils.isNotBlank(subtitleHttpHeader) && (!item.isTranscoded() || renderer.streamSubsForTranscodedVideo())) {
 										// Device allows a custom subtitle HTTP header; construct it
