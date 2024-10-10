@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import net.pms.PMS;
 import net.pms.encoders.EncodingFormat;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
@@ -35,6 +36,8 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
@@ -293,6 +296,14 @@ public class DidlHelper extends DlnaHelper {
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", mediaSubtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", resource.getSubsURL(mediaSubtitle));
+				}
+				if (item.getRendererMimeType().toLowerCase().startsWith("audio") || item.getRendererMimeType().toLowerCase().startsWith("video")) {
+					NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+					if (ia != null) {
+						int port = PMS.getConfiguration().getMediaServerPort();
+						String hostname = ia.getAddr().getHostAddress();
+						addAttribute(sb, "importUri", String.format("http://%s:%d/import?id=%s", hostname, port, resource.getId()));
+					}
 				}
 
 				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {
