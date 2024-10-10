@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### General
+- Removed Netty dependency
+
 ### Dependencies
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 
