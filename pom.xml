@@ -646,7 +646,7 @@
 		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
-			<version>0.3</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.code.gson</groupId>
