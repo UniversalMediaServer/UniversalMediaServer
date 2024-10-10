@@ -230,6 +230,24 @@ public class MediaTableStoreIds extends MediaTable {
 		}
 	}
 
+	public static String getMediaStoreNameForId(Connection connection, String id) {
+		if (connection == null) {
+			return null;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_NAME_ID)) {
+			stmt.setLong(1, Long.parseLong(id));
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					return elements.getString(COL_NAME);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for id \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
+	}
+
 	public static List<Long> getMediaStoreIdsForName(Connection connection, String name) {
 		List<Long> result = new ArrayList<>();
 		if (connection == null) {

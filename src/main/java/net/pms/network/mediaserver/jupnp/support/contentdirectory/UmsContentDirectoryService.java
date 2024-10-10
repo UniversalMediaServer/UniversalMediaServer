@@ -18,6 +18,7 @@ package net.pms.network.mediaserver.jupnp.support.contentdirectory;
 
 import java.beans.PropertyChangeSupport;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -33,11 +34,13 @@ import net.pms.network.mediaserver.jupnp.model.meta.UmsRemoteClientInfo;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Parser;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.Result;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.StoreResourceHelper;
+import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.container.Container;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.item.Item;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.IUpdateObjectHandler;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.updateobject.UpdateObjectFactory;
 import net.pms.renderers.Renderer;
 import net.pms.store.DbIdMediaType;
+import net.pms.store.MediaScanner;
 import net.pms.store.MediaStatusStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.PlaylistManager;
@@ -160,6 +163,8 @@ import org.xml.sax.SAXException;
 			datatype = "string")
 })
 public class UmsContentDirectoryService {
+
+	public final static String EMPTY_FILE_CONTENT = "<UPLOAD RESOURCE>";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsContentDirectoryService.class);
 	private static final List<String> CAPS_SEARCH = List.of();
@@ -382,27 +387,20 @@ public class UmsContentDirectoryService {
 			StoreResource parentContainer = renderer.getMediaStore().getResource(containerId);
 			if (parentContainer instanceof StoreContainer storeContainer) {
 				Parser parser = new Parser();
-				Result modelItemToAdd = parser.parse(elements);
-				Item itemToCreate = modelItemToAdd.getItems().get(0);
-				if (itemToCreate != null) {
-					StoreResource resource = null;
-					if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
-						resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
-					} else {
-						LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
-					}
-					if (resource != null) {
-						String result;
-						if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
-							result = getJUPnPDidlResults(List.of(resource), null);
-						} else {
-							result = DidlHelper.getDidlResults(List.of(resource));
-						}
-						if (renderer.getUmsConfiguration().isUpnpDebug()) {
-							logDidlLiteResult(result);
-						}
-						return new CreateObjectResult(result, resource.getId());
-					}
+				Result modelObjectToAdd = parser.parse(elements);
+
+				checkInput(modelObjectToAdd);
+
+				StoreResource resource = null;
+				if (modelObjectToAdd.getItems().size() > 0) {
+					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
+				}
+				if (modelObjectToAdd.getContainers().size() > 0) {
+					resource = createContainerResource(storeContainer, modelObjectToAdd.getContainers().get(0), resource);
+				}
+				if (resource != null) {
+					MediaScanner.backgroundScanFileOrFolder(resource.getFileName());
+					return createObjectResult(renderer, resource);
 				}
 				throw new ContentDirectoryException(712, "The specified Elements argument is not supported or is invalid.");
 			} else {
@@ -415,6 +413,93 @@ public class UmsContentDirectoryService {
 				LOGGER.error("createObject failed", e);
 				throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, e.toString());
 			}
+		}
+	}
+
+	private void checkInput(Result modelObjectToAdd) {
+		if (modelObjectToAdd.getItems().size() > 1) {
+			LOGGER.trace("more than 1 item ... using first found.");
+		}
+		if (modelObjectToAdd.getContainers().size() > 1) {
+			LOGGER.trace("more than 1 container ... using first found.");
+		}
+		if (modelObjectToAdd.getContainers().size() > 0 && modelObjectToAdd.getItems().size() > 0) {
+			LOGGER.trace("found items and container ... using container object ...");
+		}
+	}
+
+	private StoreResource createContainerResource(StoreContainer storeContainer, Container containerToCreate, StoreResource resource) throws Exception {
+		if (containerToCreate != null) {
+			if ("object.container.storageFolder".equalsIgnoreCase(containerToCreate.getUpnpClassName())) {
+				resource = createFolder(storeContainer, containerToCreate.getTitle());
+			}
+		}
+		return resource;
+	}
+
+	private StoreResource createItemResource(StoreContainer storeContainer, Item itemToCreate, StoreResource resource) throws Exception {
+		if (itemToCreate != null) {
+			if ("object.item.playlistItem".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				resource = PlaylistManager.createPlaylist(storeContainer, itemToCreate.getTitle());
+			} else if ("object.item".equalsIgnoreCase(itemToCreate.getUpnpClassName())) {
+				resource = createEmptyItem(storeContainer, itemToCreate.getTitle());
+			} else {
+				LOGGER.error("CreateObject of unknown upnp:class : " + itemToCreate.getUpnpClassName());
+			}
+		}
+		return resource;
+	}
+
+	private CreateObjectResult createObjectResult(Renderer renderer, StoreResource resource) {
+		LOGGER.debug("createObjectResult for objectID {}", resource.getId());
+		String result;
+		result = getJUPnPDidlResults(List.of(resource), null);
+		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
+			result = getJUPnPDidlResults(List.of(resource), null);
+		} else {
+			result = DidlHelper.getDidlResults(List.of(resource));
+		}
+		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			logDidlLiteResult(result);
+		}
+		return new CreateObjectResult(result, resource.getId());
+	}
+
+	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) {
+		File newItem = new File(storeContainer.getFileName(), title);
+		if (!newItem.exists()) {
+			try {
+				newItem.createNewFile();
+				FileWriter fileWriter = new FileWriter(newItem);
+				fileWriter.write(EMPTY_FILE_CONTENT);
+				fileWriter.close();
+
+				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
+				storeContainer.addChild(newResource);
+				if (newResource.getId() != null) {
+					LOGGER.error("created resource at {} got a NULL id!", newResource.getFileName());
+				}
+				return newResource;
+			} catch (IOException e) {
+				LOGGER.warn("cannot create object item", e);
+				return null;
+			}
+		} else {
+			LOGGER.warn("Folder or file already exists for path {}", newItem.getAbsolutePath());
+			return null;
+		}
+	}
+
+	private StoreResource createFolder(StoreContainer storeContainer, String title) {
+		File newContainer = new File(storeContainer.getFileName(), title);
+		if (!newContainer.exists()) {
+			newContainer.mkdir();
+			StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newContainer);
+			storeContainer.addChild(newResource);
+			return newResource;
+		} else {
+			LOGGER.warn("file system resource already exists for path {}", newContainer.getAbsolutePath());
+			throw new RuntimeException(String.format("file system resource already exists for path : %s", newContainer.getAbsolutePath()));
 		}
 	}
 
@@ -450,6 +535,7 @@ public class UmsContentDirectoryService {
 				if (storeContainer instanceof PlaylistFolder playlistFolder) {
 					String newID = PlaylistManager.addEntryToPlaylist(objectResource, playlistFolder);
 					if (newID != null) {
+						MediaScanner.backgroundScanFileOrFolder(playlistFolder.getFileName());
 						return newID;
 					}
 					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "entry already in Playlist");
@@ -554,6 +640,8 @@ public class UmsContentDirectoryService {
 				LOGGER.info("removing playlist {} ...", playlistFolder.getDisplayName());
 				if (!PlaylistManager.deletePlaylistFromDisk(playlistFolder)) {
 					throw new ContentDirectoryException(ErrorCode.ACTION_FAILED, "failed deleting playlist file");
+				} else {
+					MediaScanner.backgroundScanFileOrFolder(playlistFolder.getFileName());
 				}
 			} else {
 				//this object destroy is not yet implemented
@@ -758,11 +846,11 @@ public class UmsContentDirectoryService {
 
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
-
-			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
-
+			List<StoreResource> resultResources = null;
+			int totalMatches = 0;
+			totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+			resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			LOGGER.trace("Creating DIDL result");

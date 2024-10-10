@@ -14,11 +14,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10;
+package net.pms.network.mediaserver.jupnp.transport.impl.jetty;
 
 import java.util.concurrent.ExecutorService;
 import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerConfigurationImpl;
 import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerImpl;
+import net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10.JettyServletContainer;
 import org.jupnp.transport.TransportConfiguration;
 import org.jupnp.transport.impl.jetty.StreamClientConfigurationImpl;
 import org.jupnp.transport.spi.StreamClient;
