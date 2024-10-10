@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import net.pms.PMS;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.dlna.DLNAImageResElement;
 import net.pms.encoders.EncodingFormat;
@@ -39,6 +40,8 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.dc.DC;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.BaseObject;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.result.namespace.didl_lite.Desc;
@@ -369,6 +372,14 @@ public class StoreResourceHelper {
 				if (subsAreValidForStreaming && mediaSubtitle != null && renderer.offerSubtitlesByProtocolInfo() && !renderer.useClosedCaption()) {
 					res.getDependentProperties().add(new PV.SubtitleFileType(mediaSubtitle.getType().getExtension().toUpperCase()));
 					res.getDependentProperties().add(new PV.SubtitleFileUri(item.getSubsURL(mediaSubtitle)));
+				}
+				if (item.getRendererMimeType().toLowerCase().startsWith("audio") || item.getRendererMimeType().toLowerCase().startsWith("video")) {
+					NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+					if (ia != null) {
+						int port = PMS.getConfiguration().getMediaServerPort();
+						String hostname = ia.getAddr().getHostAddress();
+						res.getDependentProperties().add(new Res.ImportUri(URI.create(String.format("http://%s:%d/import?id=%s", hostname, port, item.getId()))));
+					}
 				}
 
 				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {

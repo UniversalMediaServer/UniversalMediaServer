@@ -114,6 +114,19 @@ public class MediaStoreIds {
 		return ids;
 	}
 
+	public static String getMediaStoreNameForId(String id) {
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				return MediaTableStoreIds.getMediaStoreNameForId(connection, id);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		return null;
+	}
+
 	public static List<Long> getMediaStoreIdsForName(String name, String objectType) {
 		List<Long> ids = new ArrayList<>();
 		Connection connection = null;
