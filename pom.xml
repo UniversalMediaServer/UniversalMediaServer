@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.5.1-SNAPSHOT</version>
+	<version>14.6.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -53,7 +53,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>14.5.1</project.version.short>
+		<project.version.short>14.6.0</project.version.short>
 		<project.jre-version>17</project.jre-version>
 		<jgoodies-forms-version>1.9.0</jgoodies-forms-version>
 
@@ -76,7 +76,7 @@
 
 		<exec-maven-plugin-version>3.4.1</exec-maven-plugin-version>
 		<maven-antrun-plugin-version>3.1.0</maven-antrun-plugin-version>
-		<git-commit-id-plugin-version>8.0.2</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>9.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
 
@@ -121,7 +121,7 @@
 		<jna-version>5.15.0</jna-version>
 
 		<junit5.version>5.11.1</junit5.version>
-		<jetty.version>12.0.13</jetty.version>
+		<jetty.version>12.0.14</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -234,15 +234,6 @@
 			<artifactId>gson</artifactId>
 			<version>2.11.0</version>
 		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<!-- com.sun.xml.messaging.saaj as well -->
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.10.6.Final</version>
-			<scope>compile</scope>
-		</dependency>
-
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
 			<groupId>maven</groupId>
@@ -579,22 +570,6 @@
 			<artifactId>angus-activation</artifactId>
 			<version>2.0.2</version>
 		</dependency>
-		<!-- TODO this can be removed when org.eclipse.jetty is fully tested -->
-		<dependency>
-			<groupId>com.sun.xml.messaging.saaj</groupId>
-			<artifactId>saaj-impl</artifactId>
-			<version>3.0.4</version>
-			<exclusions>
-				<exclusion>
-					<groupId>jakarta.activation</groupId>
-					<artifactId>jakarta.activation-api</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.eclipse.angus</groupId>
-					<artifactId>angus-activation</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
@@ -671,7 +646,7 @@
 		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
-			<version>0.3</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.google.code.gson</groupId>
