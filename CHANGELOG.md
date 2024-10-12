@@ -13,6 +13,7 @@
 - Bump `@mantine/modals` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
 - Bump `@mantine/notifications` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `react-router-dom` from 6.26.1 to 6.26.2 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003))
 
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
