@@ -54,6 +54,7 @@ import net.pms.renderers.ConnectedRenderers;
 import net.pms.renderers.Renderer;
 import net.pms.service.Services;
 import net.pms.service.sleep.SleepManager;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
 import net.pms.util.ByteRange;
@@ -359,7 +360,15 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				if (sleepManager != null) {
 					sleepManager.postponeSleep();
 				}
-
+				String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+				String etag = req.getHeader("If-None-Match");
+				if (etag != null && etag.equals(updateId)) {
+					respondNotModified(req, resp);
+					return;
+				}
+				if (updateId != null) {
+					resp.setHeader("etag", updateId);
+				}
 				DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(filename, null);
 				if (imageProfile == null) {
 					// Parsing failed for some reason, we'll have to pick a profile
@@ -378,8 +387,11 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				}
 				resp.setContentType(imageProfile.getMimeType().toString());
 				resp.setHeader("Accept-Ranges", "bytes");
-				resp.setHeader("Expires", getFutureDate() + " GMT");
-				//resp.setHeader("Connection", "keep-alive");
+				if (isHttp10(req)) {
+					resp.setHeader("Expires", getFutureDate() + " GMT");
+				} else {
+					resp.setHeader("Cache-Control", "max-age=86400");
+				}
 				try {
 					InputStream imageInputStream;
 					if (item.isTranscoded() && item.getTranscodingSettings().getEngine() instanceof ImageEngine) {
@@ -644,6 +656,16 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	private static void sendThumbnailResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a thumbnail
 		ByteRange range = getRange(req.getHeader("Range"));
+		String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+		String etag = req.getHeader("If-None-Match");
+		if (etag != null && etag.equals(updateId)) {
+			respondNotModified(req, resp);
+			return;
+		}
+		if (updateId != null) {
+			resp.setHeader("etag", updateId);
+		}
+
 		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		InputStream inputStream;
 
@@ -656,7 +678,11 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		DLNAImageProfile imageProfile = ImagesUtil.parseImageRequest(filename, DLNAImageProfile.JPEG_TN);
 		resp.setContentType(imageProfile.getMimeType().toString());
 		resp.setHeader("Accept-Ranges", "bytes");
-		resp.setHeader("Expires", getFutureDate() + " GMT");
+		if (isHttp10(req)) {
+			resp.setHeader("Expires", getFutureDate() + " GMT");
+		} else {
+			resp.setHeader("Cache-Control", "max-age=86400");
+		}
 
 		DLNAThumbnailInputStream thumbInputStream;
 		if (!CONFIGURATION.isShowCodeThumbs() && !resource.isCodeValid(resource)) {
@@ -707,7 +733,20 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				item.getMediaInfo() != null) {
 			// This is a request for a subtitles file
 			resp.setContentType("text/plain");
-			resp.setHeader("Expires", getFutureDate() + " GMT");
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			String etag = req.getHeader("If-None-Match");
+			if (etag != null && etag.equals(updateId)) {
+				respondNotModified(req, resp);
+				return;
+			}
+			if (updateId != null) {
+				resp.setHeader("etag", updateId);
+			}
+			if (isHttp10(req)) {
+				resp.setHeader("Expires", getFutureDate() + " GMT");
+			} else {
+				resp.setHeader("Cache-Control", "max-age=86400");
+			}
 			MediaSubtitle sub = item.getMediaSubtitle();
 			if (sub != null) {
 				// XXX external file is null if the first subtitle track is embedded

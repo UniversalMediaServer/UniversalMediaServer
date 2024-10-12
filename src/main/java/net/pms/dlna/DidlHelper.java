@@ -40,6 +40,7 @@ import net.pms.network.configuration.NetworkConfiguration;
 import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -69,7 +70,7 @@ public class DidlHelper extends DlnaHelper {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		for (StoreResource resource : resultResources) {
-			filesData.append(DidlHelper.getDidlString(resource));
+			filesData.append(getDidlString(resource));
 		}
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 		return StringEscapeUtils.unescapeXml(filesData.toString());
@@ -134,6 +135,13 @@ public class DidlHelper extends DlnaHelper {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
+		}
+
+		if (item != null && renderer.needVersionedObjectId()) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(item.getLongId());
+			if (updateId != null) {
+				resourceId += "#" + updateId;
+			}
 		}
 
 		addAttribute(sb, "id", resourceId);
@@ -286,10 +294,10 @@ public class DidlHelper extends DlnaHelper {
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
+				String dlnaOrgPnFlags = getDlnaOrgPnFlags(item, c);
 				String dlnaOrgFlags = "*";
 				if (renderer.isSendDLNAOrgFlags()) {
-					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
+					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(item);
 				}
 				String tempString = "http-get:*:" + item.getRendererMimeType() + ":" + dlnaOrgFlags;
 				addAttribute(sb, "protocolInfo", tempString);
@@ -523,10 +531,6 @@ public class DidlHelper extends DlnaHelper {
 			}
 		}
 
-		if (mediaType != MediaType.IMAGE && (container == null || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
-			appendThumbnail(resource, sb, mediaType);
-		}
-
 		String uclass;
 		if (resource.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
 			uclass = "dummy";
@@ -566,6 +570,10 @@ public class DidlHelper extends DlnaHelper {
 			 *      http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
 			 */
 			uclass = "object.item.videoItem";
+		}
+
+		if (mediaType != MediaType.IMAGE && (container == null || uclass.startsWith("object.container.album") || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
+			appendThumbnail(resource, sb, mediaType, uclass.startsWith("object.container.album"));
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
@@ -701,7 +709,7 @@ public class DidlHelper extends DlnaHelper {
 	 * @param mediaType the {@link MediaType} of this {@link StoreResource}.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType) {
+	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType, boolean isAlbum) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or
@@ -819,18 +827,22 @@ public class DidlHelper extends DlnaHelper {
 				addImageResource(resource, sb, resElement);
 			}
 
-			//FIXME : as it break upnp standard, implement a renderer setting that allow it
-			for (DLNAImageResElement resElement : resElements) {
-				// Offering AlbumArt for video breaks the standard, but some
-				// renderers need it
-				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+			if (isAlbum || renderer.needAlbumArtHack()) {
+				for (DLNAImageResElement resElement : resElements) {
+					// Offering AlbumArt for object other than Album container
+					// breaks the standard, but some renderers need it.
+					switch (resElement.getProfile().toInt()) {
+						case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+					}
 				}
 			}
 		}
 	}
 
 	private static void addImageResource(StoreResource resource, StringBuilder sb, DLNAImageResElement resElement) {
+		if (resource == null) {
+			throw new NullPointerException("resource cannot be null");
+		}
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -870,14 +882,34 @@ public class DidlHelper extends DlnaHelper {
 			addAttribute(sb, "protocolInfo", "http-get:*:" + resElement.getProfile().getMimeType() + ":DLNA.ORG_PN=" +
 				resElement.getProfile() + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000");
 			endTag(sb);
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && url != null) {
+				if (url.contains("?")) {
+					url += "&update=" + updateId;
+				} else {
+					url += "?update=" + updateId;
+				}
+			}
 			sb.append(url);
 			closeTag(sb, "res");
 		}
 	}
 
 	private static void addAlbumArt(StoreResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
+		String rendererProfile = resource.getDefaultRenderer().getAlbumArtProfile();
+		if (StringUtils.isNotBlank(rendererProfile) && !rendererProfile.equalsIgnoreCase(thumbnailProfile.toString())) {
+			return;
+		}
 		String albumArtURL = resource.getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && albumArtURL != null) {
+				if (albumArtURL.contains("?")) {
+					albumArtURL += "&update=" + updateId;
+				} else {
+					albumArtURL += "?update=" + updateId;
+				}
+			}
 			openTag(sb, "upnp:albumArtURI");
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
@@ -986,19 +1018,6 @@ public class DidlHelper extends DlnaHelper {
 		// adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
-	}
-
-	/**
-	 * Removes xml character representations.
-	 *
-	 * @param s String to be cleaned
-	 * @return Encoded String
-	 */
-	public static String unEncodeXML(String s) {
-		// Note: ampersand substitution must be first in order to undo double
-		// transformations
-		// TODO: support ' and " if/when required, see encodeXML() above
-		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
 
 }

@@ -100,6 +100,7 @@ public class MediaStatusStore {
 					MediaTableFilesStatus.setLastPlayed(connection, filename, userId, lastPlaybackPosition);
 				}
 			}
+			MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
 		} finally {
 			MediaDatabase.close(connection);
 		}
@@ -125,6 +126,7 @@ public class MediaStatusStore {
 				if (connection != null) {
 					MediaTableFilesStatus.setLastPlayed(connection, filename, userId, lastPlaybackPosition);
 				}
+				MediaStoreIds.incrementUpdateIdForFilename(connection, filename);
 			} finally {
 				MediaDatabase.close(connection);
 			}
