@@ -19,7 +19,7 @@
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
-- Bump `react-router-dom` from 6.26.1 to 6.26.2 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003))
+- Bump `react-router-dom` from 6.26.1 to 6.27.0 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003), [#5034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5034))
 - Bump `vite` from 5.4.7 to 5.4.8 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018))
 
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
