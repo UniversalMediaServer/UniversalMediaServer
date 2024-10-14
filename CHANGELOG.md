@@ -16,6 +16,7 @@
 - Bump `eslint` from 9.11.0 to 9.12.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017))
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
+- Bump `logback-version` from 1.5.8 to 1.5.10 ([#5027](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5027))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `react-router-dom` from 6.26.1 to 6.26.2 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003))
 - Bump `vite` from 5.4.7 to 5.4.8 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018))
