@@ -13,7 +13,7 @@
 #
 # The Docker part requires permission to push to universalmediaserver/ums.
 # It also requires you to have a "linux" folder inside the ./docker folder that contains the
-# binaries to run on Alpine Linux. For now they are ffmpeg, tsMuxeR and tsMuxeR-new.
+# binaries to run on Alpine Linux. For now they are ffmpeg and tsMuxeR.
 
 cd ..
 

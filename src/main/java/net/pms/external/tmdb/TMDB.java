@@ -76,6 +76,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.gui.GuiManager;
+import net.pms.logging.DebounceTraceLogger;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
@@ -105,6 +106,7 @@ public class TMDB {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final TMDbClient CLIENT = new TMDbClient();
 	private static final Gson GSON = new Gson();
+	private static final DebounceTraceLogger DEBOUNCED_TRACE_LOGGER = new DebounceTraceLogger();
 
 	// Minimum number of threads in pool
 	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
@@ -146,29 +148,29 @@ public class TMDB {
 
 	private static boolean shouldLookupAndAddMetadata(final File file, final MediaInfo mediaInfo) {
 		if (BACKGROUND_EXECUTOR.isShutdown()) {
-			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because background executor is shut down");
 			return false;
 		}
 
 		if (!CONFIGURATION.getExternalNetwork()) {
-			LOGGER.trace("Not doing background TMDB lookup because external network is disabled");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because external network is disabled");
 			return false;
 		}
 
 		if (!MediaDatabase.isAvailable()) {
-			LOGGER.trace("Not doing background TMDB lookup because database is closed");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because database is closed");
 			return false;
 		}
 
 		if (!CONFIGURATION.isUseInfoFromTMDB()) {
-			LOGGER.trace("Not doing background TMDB lookup because isUseInfoFromTMDB is disabled");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because isUseInfoFromTMDB is disabled, passing to UMS API");
 			//fallback to UMS API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
 		}
 
 		if (!isReady()) {
-			LOGGER.trace("Not doing background TMDB lookup because no/bad api key found");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because no/bad api key found, passing to UMS API");
 			//fallback to UMS API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
