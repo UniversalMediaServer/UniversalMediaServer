@@ -6,12 +6,12 @@
 - Removed Netty dependency
 
 ### Dependencies
-- Bump `@mantine/core` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/dropzone` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/form` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/hooks` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/modals` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/notifications` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
+- Bump `@mantine/core` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/dropzone` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/form` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/hooks` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/modals` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/notifications` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
 - Bump `@playwright/test` from 1.47.0 to 1.48.0 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033))
 - Bump `@types/lodash` from 4.17.7 to 4.17.10 ([#5030](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5030))
 - Bump `@types/react` from 18.3.10 to 18.3.11 ([#5032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5032))
