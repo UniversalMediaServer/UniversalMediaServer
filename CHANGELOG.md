@@ -3,7 +3,14 @@
 ## [Unreleased]
 
 ### General
+- Extended UPnP CreateObject / ImportUri support
 - Removed Netty dependency
+- Updated TMDB API schemas to 24/09/2024
+- Fixed URI bug when using TMDB directly
+
+### Media players
+- Samsung TVs: Fixed thumbnails not updating (thanks, Fredo1650!)
+- LG TVs: Fixed not directly playing non-mod4 (resolution divisible by 4) videos
 
 ### Dependencies
 - Bump `@mantine/core` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
