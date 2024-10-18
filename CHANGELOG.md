@@ -12,7 +12,7 @@
 - Bump `@mantine/hooks` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
 - Bump `@mantine/modals` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
 - Bump `@mantine/notifications` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@playwright/test` from 1.47.0 to 1.48.0 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033))
+- Bump `@playwright/test` from 1.47.0 to 1.48.1 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033), [#5043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5043))
 - Bump `@types/lodash` from 4.17.7 to 4.17.10 ([#5030](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5030))
 - Bump `@types/react` from 18.3.10 to 18.3.11 ([#5032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5032))
 - Bump `com.github.oshi:oshi-core` from 6.6.4 to 6.6.5 ([#5028](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5028))
