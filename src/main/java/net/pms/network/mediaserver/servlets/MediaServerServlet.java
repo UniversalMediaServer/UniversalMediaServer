@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import net.pms.dlna.DLNAImageInputStream;
@@ -80,6 +81,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 	private static final String GET = "GET";
 	private static final String HEAD = "HEAD";
 	private static final int BUFFER_SIZE = 8 * 1024;
+	private static final String HTTP_HEADER_RANGE_PREFIX = "bytes=";
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -285,7 +287,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		// Request to retrieve a file
 		if (resource instanceof StoreItem item) {
 			TimeRange timeseekrange = getTimeSeekRange(req.getHeader("timeseekrange.dlna.org"));
-			ByteRange range = getRange(req.getHeader("Range"));
+			ByteRange range = getRange(req.getHeader("Range"), item.length());
 			int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 			StartStopListener startStopListener = null;
 			InputStream inputStream = null;
@@ -612,31 +614,74 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		}
 	}
 
-	private static ByteRange getRange(String rangeStr) {
-		ByteRange range = new ByteRange(0L, 0L);
-		if (rangeStr == null || StringUtils.isEmpty(rangeStr)) {
-			return range;
+	private static ByteRange getRange(String rangeStr, long streamLength) {
+		List<ByteRange> ranges = parseRanges(rangeStr, streamLength);
+		if (ranges.isEmpty()) {
+			return new ByteRange(0L, 0L);
+		} else {
+			return ranges.get(0);
 		}
-		rangeStr = rangeStr.toLowerCase().trim();
-		if (!rangeStr.startsWith("bytes=")) {
-			LOGGER.warn("Range '" + rangeStr + "' does not start with 'bytes='");
-			return range;
+	}
+
+	private static List<ByteRange> parseRanges(String rangesStr, long streamLength) {
+		List<ByteRange> ranges = new ArrayList<>();
+		if (rangesStr == null || StringUtils.isEmpty(rangesStr)) {
+			return ranges;
 		}
-		rangeStr = rangeStr.substring(6);
-		int dashPos = rangeStr.indexOf('-');
-		if (dashPos > 0) {
-			long firstPos = Long.parseLong(rangeStr.substring(0, dashPos));
-			if (dashPos < rangeStr.length() - 1) {
-				Long lastPos = Long.valueOf(rangeStr.substring(dashPos + 1, rangeStr.length()));
-				return new ByteRange(firstPos, lastPos);
-			} else {
-				return new ByteRange(firstPos, -1L);
+		long streamEnd = streamLength - 1;
+		rangesStr = rangesStr.toLowerCase().trim();
+		if (!rangesStr.startsWith(HTTP_HEADER_RANGE_PREFIX)) {
+			LOGGER.warn("Range '{}' does not start with '{}'", rangesStr, HTTP_HEADER_RANGE_PREFIX);
+			return ranges;
+		}
+		for (String rangeStr : rangesStr.split(",")) {
+			try {
+				rangeStr = rangeStr.trim();
+				if (rangeStr.startsWith(HTTP_HEADER_RANGE_PREFIX)) {
+					rangeStr = rangeStr.substring(HTTP_HEADER_RANGE_PREFIX.length());
+				}
+				long start = -1;
+				long end = -1;
+				int dash = rangeStr.indexOf('-');
+				if (dash < 0 || rangeStr.indexOf("-", dash + 1) >= 0) {
+					LOGGER.warn("Range header '{}' is not well formed on '{}'", rangesStr, rangeStr);
+					break;
+				}
+				if (dash > 0) {
+					start = Long.parseLong(rangeStr.substring(0, dash).trim());
+				}
+				if (dash < (rangeStr.length() - 1)) {
+					end = Long.parseLong(rangeStr.substring(dash + 1).trim());
+				}
+				if (start == -1) {
+					if (end == 0) {
+						continue;
+					}
+					if (end == -1) {
+						LOGGER.warn("Range header '{}' is not well formed on '{}'", rangesStr, rangeStr);
+						break;
+					}
+
+					start = Math.max(0, streamEnd - end + 1);
+					end = streamEnd;
+				} else {
+					if (start > streamEnd) {
+						continue;
+					}
+					if (end == -1 || end > streamEnd) {
+						end = streamEnd;
+					}
+				}
+				if (end < start) {
+					LOGGER.warn("Range header '{}' is not well formed on '{}'", rangesStr, rangeStr);
+					break;
+				}
+				ranges.add(new ByteRange(start, end));
+			} catch (NumberFormatException x) {
+				LOGGER.warn("Range header '{}' is not well formed on '{}'", rangesStr, rangeStr);
 			}
-		} else if (dashPos == 0) {
-			return new ByteRange(0L, Long.valueOf(rangeStr.substring(1)));
 		}
-		LOGGER.warn("Range '" + rangeStr + "' is not well formed");
-		return range;
+		return ranges;
 	}
 
 	private static TimeRange getTimeSeekRange(String timeSeekRangeStr) {
@@ -655,7 +700,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 
 	private static void sendThumbnailResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, StoreResource resource, String filename) throws IOException {
 		// Request to retrieve a thumbnail
-		ByteRange range = getRange(req.getHeader("Range"));
 		String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
 		String etag = req.getHeader("If-None-Match");
 		if (etag != null && etag.equals(updateId)) {
@@ -666,7 +710,6 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			resp.setHeader("etag", updateId);
 		}
 
-		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
 		InputStream inputStream;
 
 		if (req.getHeader("transfermode.dlna.org") != null) {
@@ -705,22 +748,24 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 		if (contentFeatures != null) {
 			resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true));
 		}
-		if (inputStream != null && (range.getStart() > 0 || range.getEnd() > 0)) {
-			if (range.getStart() > 0) {
-				inputStream.skip(range.getStart());
+		int status = 200;
+		if (inputStream != null) {
+			ByteRange range = getRange(req.getHeader("Range"), inputStream.available());
+			if (range.getStart() > 0 || range.getEnd() > 0) {
+				if (range.getStart() > 0) {
+					inputStream.skip(range.getStart());
+				}
+				inputStream = StoreItem.wrap(inputStream, range.getEnd(), range.getStart());
+				status = 206;
 			}
-			inputStream = StoreItem.wrap(inputStream, range.getEnd(), range.getStart());
 		}
-
 		sendResponse(req, resp, renderer, status, inputStream);
 	}
 
 	private static void sendSubtitlesResponse(HttpServletRequest req, HttpServletResponse resp, final Renderer renderer, StoreResource resource) throws IOException {
 		// Request to retrieve a subtitles
 		TimeRange timeseekrange = getTimeSeekRange(req.getHeader("timeseekrange.dlna.org"));
-		ByteRange range = getRange(req.getHeader("Range"));
-		int status = (range.getStart() != 0 || range.getEnd() != 0) ? 206 : 200;
-
+		int status = 200;
 		InputStream inputStream = null;
 
 		if (req.getHeader("transfermode.dlna.org") != null) {
@@ -762,6 +807,10 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 								inputStream = new FileInputStream(sub.getExternalFile());
 							}
 							LOGGER.trace("Loading external subtitles file: {}", sub.getName());
+							ByteRange range = getRange(req.getHeader("Range"), inputStream.available());
+							if (range.getStart() != 0 || range.getEnd() != 0) {
+								status = 206;
+							}
 						} catch (IOException ioe) {
 							LOGGER.debug("Couldn't load external subtitles file: {}\nCause: {}", sub.getName(), ioe.getMessage());
 							LOGGER.trace("", ioe);

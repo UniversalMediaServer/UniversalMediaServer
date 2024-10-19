@@ -3,17 +3,31 @@
 ## [Unreleased]
 
 ### General
+- Extended UPnP CreateObject / ImportUri support
 - Removed Netty dependency
+- Updated TMDB API schemas to 24/09/2024
+- Fixed URI bug when using TMDB directly
+
+### Media players
+- Samsung TVs: Fixed thumbnails not updating (thanks, Fredo1650!)
+- LG TVs: Fixed not directly playing non-mod4 (resolution divisible by 4) videos
+
+### Translation updates via Crowdin
+- Afrikaans (12%) (thanks, Dusty Pienaar!)
+- Hungarian (64%) (thanks, Blaszlo!)
+- Turkish approvals (54%) (thanks, Burak Yavuz!)
 
 ### Dependencies
-- Bump `@mantine/core` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/dropzone` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/form` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/hooks` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/modals` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
-- Bump `@mantine/notifications` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
+- Bump `@mantine/core` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/dropzone` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/form` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/hooks` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/modals` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
+- Bump `@mantine/notifications` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
 - Bump `@playwright/test` from 1.47.0 to 1.48.0 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033))
 - Bump `@types/lodash` from 4.17.7 to 4.17.10 ([#5030](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5030))
+- Bump `@types/react-dom` from 18.3.0 to 18.3.1 ([#5044](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5044))
+- Bump `@types/react` from 18.3.10 to 18.3.11 ([#5032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5032))
 - Bump `com.github.oshi:oshi-core` from 6.6.4 to 6.6.5 ([#5028](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5028))
 - Bump `eslint-plugin-react` from 7.36.1 to 7.37.1 ([#5019](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5019))
 - Bump `eslint` from 9.11.0 to 9.12.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017))
@@ -22,6 +36,7 @@
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
 - Bump `react-router-dom` from 6.26.1 to 6.27.0 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003), [#5034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5034))
+- Bump `video.js` from 8.17.4 to 8.18.1 ([#5042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5042))
 - Bump `vite` from 5.4.7 to 5.4.8 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018))
 
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)

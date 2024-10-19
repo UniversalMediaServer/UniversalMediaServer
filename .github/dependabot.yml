@@ -34,9 +34,15 @@ updates:
     schedule:
       interval: "weekly"
     groups:
-      mockito:
-        patterns:
-        - "mockito"
       jupnp:
         patterns:
         - "org.jupnp:org.jupnp"
+      logback:
+        patterns:
+        - "ch.qos.logback"
+      mockito:
+        patterns:
+        - "mockito"
+      twelvemonkeys:
+        patterns:
+        - "com.twelvemonkeys.imageio"
