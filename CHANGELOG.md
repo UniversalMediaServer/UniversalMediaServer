@@ -12,6 +12,11 @@
 - Samsung TVs: Fixed thumbnails not updating (thanks, Fredo1650!)
 - LG TVs: Fixed not directly playing non-mod4 (resolution divisible by 4) videos
 
+### Translation updates via Crowdin
+- Afrikaans (12%) (thanks, Dusty Pienaar!)
+- Hungarian (64%) (thanks, Blaszlo!)
+- Turkish approvals (54%) (thanks, Burak Yavuz!)
+
 ### Dependencies
 - Bump `@mantine/core` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
 - Bump `@mantine/dropzone` from 7.13.0 to 7.13.2 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016))
