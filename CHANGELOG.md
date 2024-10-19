@@ -196,6 +196,7 @@
 - Bump `commons-codec:commons-codec` from 1.17.0 to 1.17.1 ([#4841](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4841))
 - Bump `eslint-plugin-react-refresh` from 0.4.8 to 0.4.9 ([#4875](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4875))
 - Bump `eslint` from 8.57.0 to 9.8.0 ([#4858](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4858))
+- Bump `io.github.git-commit-id:git-commit-id-maven-plugin` from 8.0.2 to 9.0.1 ([#4882](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4882))
 - Bump `jetty.version` from 12.0.11 to 12.0.12 ([#4876](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4876))
 - Bump `JRE` from 17.0.11+10 to 17.0.12+10
 - Bump `org.apache.commons:commons-lang3` from 3.14.0 to 3.15.0 ([#4839](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/4839))
