@@ -105,7 +105,11 @@ public class FFmpegHlsVideo extends FFMpegVideo {
 			cmdList.add("-sn");
 		}
 		cmdList.add("-i");
-		cmdList.add(filename);
+		if (params.getStdIn() != null) {
+			cmdList.add("pipe:");
+		} else {
+			cmdList.add(filename);
+		}
 
 		if (needSubtitle) {
 			cmdList.add("-map");

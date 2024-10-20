@@ -341,13 +341,13 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 					//only time seek, transcoded
 					resp.setHeader("ContentFeatures.DLNA.ORG", "DLNA.ORG_OP=10;DLNA.ORG_CI=01;DLNA.ORG_FLAGS=01700000000000000000000000000000");
 
-					if (item.getMediaInfo().getDurationInSeconds() > 0) {
+					if (item.getMediaInfo() != null && item.getMediaInfo().getDurationInSeconds() > 0) {
 						String durationStr = String.format(Locale.ENGLISH, "%.3f", item.getMediaInfo().getDurationInSeconds());
 						resp.setHeader("TimeSeekRange.dlna.org", "npt=0-" + durationStr + "/" + durationStr);
 						resp.setHeader("X-AvailableSeekRange", "npt=0-" + durationStr);
 					}
 				}
-				if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+				if (samsungMediaInfo != null && item.getMediaInfo() != null && item.getMediaInfo().getDurationInSeconds() > 0) {
 					resp.setHeader("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 				}
 
@@ -576,7 +576,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaContentFeatures(item));
 					}
 
-					if (samsungMediaInfo != null && item.getMediaInfo().getDurationInSeconds() > 0) {
+					if (samsungMediaInfo != null && item.getMediaInfo() != null && item.getMediaInfo().getDurationInSeconds() > 0) {
 						resp.setHeader("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 					}
 
@@ -587,7 +587,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 				}
 			}
 
-			if (timeseekrange.isStartOffsetAvailable()) {
+			if (timeseekrange.isStartOffsetAvailable() && item.getMediaInfo() != null) {
 				// Add timeseek information headers.
 				String timeseekValue = StringUtil.formatDLNADuration(timeseekrange.getStartOrZero());
 				String timetotalValue = item.getMediaInfo().getDurationString();

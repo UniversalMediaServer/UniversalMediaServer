@@ -16,64 +16,35 @@
  */
 package net.pms.store.container;
 
-import com.github.junrar.Archive;
-import com.github.junrar.exception.RarException;
-import com.github.junrar.rarfile.FileHeader;
-import com.github.junrar.volume.FileVolumeManager;
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
-import net.pms.store.item.RarredEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import net.pms.store.SystemFileResource;
 
-public class RarredFile extends StoreContainer {
-	private static final Logger LOGGER = LoggerFactory.getLogger(RarredFile.class);
-	private File f;
-	private Archive rarFile;
+public class RarredFile extends RarredFolder implements SystemFileResource {
 
-	public RarredFile(Renderer renderer, File f) {
-		super(renderer, f.getName(), null);
-		this.f = f;
-		setLastModified(f.lastModified());
+	public RarredFile(Renderer renderer, File file) {
+		super(renderer, file, "");
+		setLastModified(file.lastModified());
+	}
 
-		try {
-			rarFile = new Archive(new FileVolumeManager(f), null, null);
-			List<FileHeader> headers = rarFile.getFileHeaders();
-
-			for (FileHeader fh : headers) {
-				// if (fh.getFullUnpackSize() < MAX_ARCHIVE_ENTRY_SIZE && fh.getFullPackSize() < MAX_ARCHIVE_ENTRY_SIZE)
-				addChild(new RarredEntry(renderer, fh.getFileName(), f, fh.getFileName(), fh.getFullUnpackSize()));
-			}
-
-			rarFile.close();
-		} catch (RarException | IOException e) {
-			LOGGER.error(null, e);
-		}
+	@Override
+	public String getName() {
+		return file.getName();
 	}
 
 	@Override
 	public long length() {
-		return f.length();
+		return file.length();
 	}
 
 	@Override
 	public String getSystemName() {
-		return f.getAbsolutePath();
+		return file.getAbsolutePath();
 	}
 
 	@Override
-	public boolean isValid() {
-		boolean t = false;
-
-		try {
-			t = f.exists() && !rarFile.isEncrypted();
-		} catch (RarException th) {
-			LOGGER.debug("Caught exception", th);
-		}
-
-		return t;
+	public File getSystemFile() {
+		return file;
 	}
+
 }
