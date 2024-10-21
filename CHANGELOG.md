@@ -14,8 +14,12 @@
 
 ### Translation updates via Crowdin
 - Afrikaans (12%) (thanks, Dusty Pienaar!)
+- Czech (100%)
 - Hungarian (64%) (thanks, Blaszlo!)
-- Turkish approvals (54%) (thanks, Burak Yavuz!)
+- Japanese (71%) (thanks, elepro!)
+- Korean (100%) (thanks, VenusGirl!)
+- Polish (56%) (thanks, Karol Szastok!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.13.0 to 7.13.3 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041))
