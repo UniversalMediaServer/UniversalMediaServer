@@ -720,6 +720,16 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		} else {
 			length = len - cut;
 			System.arraycopy(buffer, mb, buf, off, length);
+			try {
+				System.arraycopy(buffer, mb, buf, off, length);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				LOGGER.trace("Something went wrong with the buffer, error: " + e);
+				LOGGER.trace("buffer: " + Arrays.toString(buffer));
+				LOGGER.trace("mb: " + mb);
+				LOGGER.trace("buf: " + Arrays.toString(buf));
+				LOGGER.trace("off: " + off);
+				LOGGER.trace("len - cut: " + length);
+			}
 			return length;
 		}
 	}

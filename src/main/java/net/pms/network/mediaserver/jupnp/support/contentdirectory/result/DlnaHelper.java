@@ -169,7 +169,7 @@ public class DlnaHelper {
 		dlnaOrgOp.setHttpRangeHeaderAccepted(true); // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
 
-		if (renderer.isSeekByTime() && item.isTranscoded() && item.isTimeSeekable()) {
+		if (renderer.isTranscodeSeekByTime() && item.isTranscoded() && item.isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -197,7 +197,7 @@ public class DlnaHelper {
 			 * SeekByTime = both
 			 */
 			dlnaOrgOp.setHttpTimeSeekRangeHeaderAccepted(true);
-			if (renderer.isSeekByTimeExclusive()) {
+			if (renderer.isTranscodeSeekByTimeExclusive()) {
 				// seek by time (exclusive)
 				dlnaOrgOp.setHttpRangeHeaderAccepted(false);
 			}

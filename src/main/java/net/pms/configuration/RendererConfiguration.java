@@ -657,25 +657,61 @@ public class RendererConfiguration extends BaseConfiguration {
 		return file;
 	}
 
+	private String getTranscodeSeekBy() {
+		return getString(KEY_SEEK_BY_TIME, "false");
+	}
+
 	/**
-	 * Returns true if SeekByTime is set to "true" or "exclusive", false otherwise.
-	 * Default value is false.
+	 * Returns true if SeekByTime is set to "false", false otherwise. Default
+	 * value is true.
 	 *
-	 * @return true if the renderer supports seek-by-time, false otherwise.
+	 * @return true if the renderer supports seek-by-byte exclusively, false
+	 * otherwise.
 	 */
-	public boolean isSeekByTime() {
-		return isSeekByTimeExclusive() || getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("true");
+	public boolean isTranscodeSeekByByteExclusive() {
+		return getTranscodeSeekBy().equalsIgnoreCase("false");
+	}
+
+	/**
+	 * Returns true if SeekByTime is set to "true", false otherwise. Default
+	 * value is false.
+	 *
+	 * @return true if the renderer supports seek-by-byte and seek-by-time,
+	 * false otherwise.
+	 */
+	public boolean isTranscodeSeekByBoth() {
+		return getTranscodeSeekBy().equalsIgnoreCase("true");
 	}
 
 	/**
 	 * Returns true if SeekByTime is set to "exclusive", false otherwise.
 	 * Default value is false.
 	 *
-	 * @return true if the renderer supports seek-by-time exclusively
-	 * (i.e. not in conjunction with seek-by-byte), false otherwise.
+	 * @return true if the renderer supports seek-by-time exclusively (i.e. not
+	 * in conjunction with seek-by-byte), false otherwise.
 	 */
-	public boolean isSeekByTimeExclusive() {
-		return getString(KEY_SEEK_BY_TIME, "false").equalsIgnoreCase("exclusive");
+	public boolean isTranscodeSeekByTimeExclusive() {
+		return getTranscodeSeekBy().equalsIgnoreCase("exclusive");
+	}
+
+	/**
+	 * Returns true if SeekByTime is set to "false" or "true", false otherwise.
+	 * Default value is true.
+	 *
+	 * @return true if the renderer supports seek-by-byte, false otherwise.
+	 */
+	public boolean isTranscodeSeekByByte() {
+		return isTranscodeSeekByByteExclusive() || isTranscodeSeekByBoth();
+	}
+
+	/**
+	 * Returns true if SeekByTime is set to "exclusive" or "true", false
+	 * otherwise. Default value is false.
+	 *
+	 * @return true if the renderer supports seek-by-time, false otherwise.
+	 */
+	public boolean isTranscodeSeekByTime() {
+		return isTranscodeSeekByTimeExclusive() || isTranscodeSeekByBoth();
 	}
 
 	public boolean isDTSPlayable() {
