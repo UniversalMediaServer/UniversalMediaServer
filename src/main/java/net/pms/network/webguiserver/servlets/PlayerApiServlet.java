@@ -1165,7 +1165,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				LOGGER.debug("Sending {} with mime type {} to {}", item, mimeType, renderer);
 				InputStream in = item.getInputStream(range);
 				long len = item.length();
-				boolean isTranscoding = len == StoreResource.TRANS_SIZE;
+				boolean isTranscoding = item.isTranscoded();
 				resp.setContentType(mimeType);
 				resp.setHeader("Server", MediaServer.getServerName());
 				resp.setHeader("Connection", "keep-alive");

@@ -267,7 +267,7 @@ public abstract class HttpServletHelper extends HttpServlet {
 				}
 			}
 			LOGGER.trace("Sending stream finished after: " + sendBytes + " bytes.");
-		} catch (IOException e) {
+		} catch (IOException | IndexOutOfBoundsException e) {
 			String reason = e.getMessage();
 			if (reason == null && e.getCause() != null) {
 				reason = e.getCause().getMessage();

@@ -890,14 +890,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.48.0":
-  version: 1.48.0
-  resolution: "@playwright/test@npm:1.48.0"
+"@playwright/test@npm:1.48.1":
+  version: 1.48.1
+  resolution: "@playwright/test@npm:1.48.1"
   dependencies:
-    playwright: "npm:1.48.0"
+    playwright: "npm:1.48.1"
   bin:
     playwright: cli.js
-  checksum: 10c0/595a5db99f75d1ffce11df2980ca0dd20523a0a20dd962e4256e536dddccca0138883ae2e9c82aaa26094fb50def73062badc14c001d20fb62a3a0b2df18ebca
+  checksum: 10c0/32cedc3b2d375cb8f4a830bc820d7726b0235be7a6202e1d6ee46e739b83666271c47c100c11311cf5a916468c18e6a4dc526accf9ef090786e7614c2633b2b8
   languageName: node
   linkType: hard
 
@@ -3823,27 +3823,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"playwright-core@npm:1.48.0":
-  version: 1.48.0
-  resolution: "playwright-core@npm:1.48.0"
+"playwright-core@npm:1.48.1":
+  version: 1.48.1
+  resolution: "playwright-core@npm:1.48.1"
   bin:
     playwright-core: cli.js
-  checksum: 10c0/b5a94f02445cb2fdad95e832d13a68448875ac627700a45f8df87c6e60890390651556aae3f5d6961c3a147f9ed6408fd44541fafe0a9f15c637e2c7c404fcfc
+  checksum: 10c0/2f75532b9b7dfa0e586f5660ac1d8ea729bbdbd28dd2c0711e7cfc1adfe5cf7448d7f15a018ec9851a8f50c0743c3990cb9df23064bed603627baeac4dce3915
   languageName: node
   linkType: hard
 
-"playwright@npm:1.48.0":
-  version: 1.48.0
-  resolution: "playwright@npm:1.48.0"
+"playwright@npm:1.48.1":
+  version: 1.48.1
+  resolution: "playwright@npm:1.48.1"
   dependencies:
     fsevents: "npm:2.3.2"
-    playwright-core: "npm:1.48.0"
+    playwright-core: "npm:1.48.1"
   dependenciesMeta:
     fsevents:
       optional: true
   bin:
     playwright: cli.js
-  checksum: 10c0/4c18b06f7de87442c697c5df5b1e1e4027c5d9f05c07679aca0135dcf18e69a4424ec7a0c91a323487ea4a92fb5146fc80c04329479426722ea742fd5eff1afa
+  checksum: 10c0/96280ae656226e52015c0c69c4c19e9f594c19353a79012a19bd7b7175d7b409c1aed289a629df49ef897a57ccd24668ad15b86c283db10f76212a4db90a94ac
   languageName: node
   linkType: hard
 
@@ -4774,7 +4774,7 @@ __metadata:
     "@mantine/modals": "npm:7.13.3"
     "@mantine/notifications": "npm:7.13.3"
     "@microsoft/fetch-event-source": "npm:2.0.1"
-    "@playwright/test": "npm:1.48.0"
+    "@playwright/test": "npm:1.48.1"
     "@types/lodash": "npm:4.17.10"
     "@types/react": "npm:18.3.11"
     "@types/react-dom": "npm:18.3.1"
@@ -4795,7 +4795,7 @@ __metadata:
     typescript: "npm:5.6.2"
     typescript-eslint: "npm:^8.7.0"
     video.js: "npm:8.18.1"
-    vite: "npm:5.4.8"
+    vite: "npm:5.4.9"
   languageName: unknown
   linkType: soft
 
@@ -5000,9 +5000,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:5.4.8":
-  version: 5.4.8
-  resolution: "vite@npm:5.4.8"
+"vite@npm:5.4.9":
+  version: 5.4.9
+  resolution: "vite@npm:5.4.9"
   dependencies:
     esbuild: "npm:^0.21.3"
     fsevents: "npm:~2.3.3"
@@ -5039,7 +5039,7 @@ __metadata:
       optional: true
   bin:
     vite: bin/vite.js
-  checksum: 10c0/af70af6d6316a3af71f44ebe3ab343bd66450d4157af73af3b32239e1b6ec43ff6f651d7cc4193b21ed3bff2e9356a3de9e96aee53857f39922e4a2d9fad75a1
+  checksum: 10c0/e9c59f2c639047e37c79bbbb151c7a55a3dc27932957cf4cf0447ee0bdcc1ddfd9b1fb3ba0465371c01ba3616d62561327855794c2d652213c3a10a32e6d369d
   languageName: node
   linkType: hard
 

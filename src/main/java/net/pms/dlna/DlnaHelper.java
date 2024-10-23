@@ -129,7 +129,7 @@ public class DlnaHelper {
 		String dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
 
-		if (renderer.isSeekByTime() && item.isTranscoded() && item.getTranscodingSettings().getEngine().isTimeSeekable()) {
+		if (renderer.isTranscodeSeekByTime() && item.isTranscoded() && item.getTranscodingSettings().getEngine().isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -156,7 +156,7 @@ public class DlnaHelper {
 			 *
 			 * SeekByTime = both
 			 */
-			if (renderer.isSeekByTimeExclusive()) {
+			if (renderer.isTranscodeSeekByTimeExclusive()) {
 				dlnaOrgOpFlags = "10"; // seek by time (exclusive)
 			} else {
 				dlnaOrgOpFlags = "11"; // seek by both
