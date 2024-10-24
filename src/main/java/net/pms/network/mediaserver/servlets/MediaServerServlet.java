@@ -593,7 +593,9 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 						resp.setHeader("MediaInfo.sec", "SEC_Duration=" + (long) (item.getMediaInfo().getDurationInSeconds() * 1000));
 					}
 
-					resp.setHeader("Accept-Ranges", "bytes");
+					if (!item.isTranscoded() || renderer.isTranscodeSeekByByte()) {
+						resp.setHeader("Accept-Ranges", "bytes");
+					}
 					if (GET.equals(req.getMethod().toUpperCase())) {
 						resp.setHeader("Connection", "keep-alive");
 					}
