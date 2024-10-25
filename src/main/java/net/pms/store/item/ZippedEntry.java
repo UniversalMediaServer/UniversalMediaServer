@@ -80,7 +80,7 @@ public class ZippedEntry extends StoreItem implements IPushOutput {
 
 	@Override
 	public String getSystemName() {
-		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
+		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "\\" + FileUtil.getFileNameWithoutExtension(zeName) + "." + FileUtil.getExtension(zeName);
 	}
 
 	@Override
