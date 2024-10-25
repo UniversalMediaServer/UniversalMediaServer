@@ -641,121 +641,120 @@ public class MEncoderVideo extends Engine {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 		 */
 
+		final boolean hasAudioStream = params.getAid() != null;
 		final boolean isTsMuxeRVideoEngineActive = EngineFactory.isEngineActive(TsMuxeRVideo.ID);
-		final boolean mencoderAC3RemuxAudioDelayBug = (params.getAid() != null) && (params.getAid().getVideoDelay() != 0) && (params.getTimeSeek() == 0);
-
-		encodeOptions.encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
-			configuration.isEncodedAudioPassthrough() &&
-			renderer.isWrapEncodedAudioIntoPCM() &&
-			(
-				!isDVD ||
-				configuration.isMencoderRemuxMPEG2()
-			) &&
-			params.getAid() != null &&
-			params.getAid().isNonPCMEncodedAudio() &&
-			!isAviSynthEngine() &&
-			renderer.isMuxLPCMToMpeg();
-
-		if (
-			configuration.isAudioRemuxAC3() &&
-			params.getAid() != null &&
-			params.getAid().isAC3() &&
-			!isAviSynthEngine() &&
-			encodingFormat.isTranscodeToAC3() &&
-			!configuration.isMEncoderNormalizeVolume() &&
-			!combinedCustomOptions.contains("acodec=") &&
-			!encodeOptions.encodedAudioPassthrough &&
-			!isXboxOneWebVideo &&
-			params.getAid().getNumberOfChannels() <= configuration.getAudioChannelCount()
-		) {
-			encodeOptions.ac3Remux = true;
-		} else {
-			// Now check for DTS remux and LPCM streaming
-			encodeOptions.dtsRemux = isTsMuxeRVideoEngineActive &&
-				configuration.isAudioEmbedDtsInPcm() &&
-				(
-					!isDVD ||
-					configuration.isMencoderRemuxMPEG2()
-				) &&
-				params.getAid() != null &&
-				params.getAid().isDTS() &&
-				!isAviSynthEngine() &&
-				renderer.isDTSPlayable() &&
-				!combinedCustomOptions.contains("acodec=");
-			encodeOptions.pcm = isTsMuxeRVideoEngineActive &&
-				configuration.isAudioUsePCM() &&
-				(
-					!isDVD ||
-					configuration.isMencoderRemuxMPEG2()
-				) &&
-				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
-				!(media.getContainer().equals(FormatConfiguration.MP4) && !defaultVideoTrack.isH264()) &&
-				params.getAid() != null &&
-				(
-					(params.getAid().isDTS() && params.getAid().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
-					params.getAid().isLossless() ||
-					params.getAid().isTrueHD() ||
-					(
-						!configuration.isMencoderUsePcmForHQAudioOnly() &&
-						(
-							params.getAid().isAC3() ||
-							params.getAid().isMP3() ||
-							params.getAid().isAAC() ||
-							params.getAid().isVorbis() ||
-							// Disable WMA to LPCM transcoding because of mencoder's channel mapping bug
-							// (see CodecUtil.getMixerOutput)
-							// params.aid.isWMA() ||
-							params.getAid().isMpegAudio()
-						)
-					)
-				) &&
-				renderer.isLPCMPlayable() &&
-				!combinedCustomOptions.contains("acodec=");
-		}
-
-		if (encodeOptions.dtsRemux || encodeOptions.pcm || encodeOptions.encodedAudioPassthrough) {
-			params.setLosslessAudio(true);
-			params.setForceFps(getValidFps(media.getFrameRate(), false));
-		}
-
-		// MPEG-2 remux still buggy with MEncoder
-		// TODO when we can still use it?
-		encodeOptions.ovccopy = false;
-
-		if (encodeOptions.pcm && isAviSynthEngine()) {
-			params.setAvidemux(true);
-		}
+		final boolean mencoderAC3RemuxAudioDelayBug = hasAudioStream && (params.getAid().getVideoDelay() != 0) && (params.getTimeSeek() == 0);
 
 		String add = "";
-		if (!combinedCustomOptions.contains("-lavdopts")) {
-			add = " -lavdopts debug=0";
-		}
+		int channels = 2;
+		String channelsString = "";
+		if (hasAudioStream) {
+			encodeOptions.encodedAudioPassthrough = isTsMuxeRVideoEngineActive &&
+				configuration.isEncodedAudioPassthrough() &&
+				renderer.isWrapEncodedAudioIntoPCM() &&
+				(
+					!isDVD ||
+					configuration.isMencoderRemuxMPEG2()
+				) &&
+				params.getAid().isNonPCMEncodedAudio() &&
+				!isAviSynthEngine() &&
+				renderer.isMuxLPCMToMpeg();
 
-		int channels;
-		if (encodeOptions.ac3Remux) {
-			channels = params.getAid().getNumberOfChannels(); // AC-3 remux
-		} else if (encodeOptions.dtsRemux || encodeOptions.encodedAudioPassthrough || (!renderer.isXbox360() && encodeOptions.wmv)) {
-			channels = 2;
-		} else if (
-			params.getAid().getNumberOfChannels() == 8 ||
-			params.getAid().isAAC()
-		) {
-			// MEncoder crashes when trying to downmix 7.1 AAC to 5.1 AC-3
-			channels = 2;
-		} else if (encodeOptions.pcm) {
-			channels = params.getAid().getNumberOfChannels();
-		} else {
-			/**
-			 * Note: MEncoder will output 2 audio channels if the input video had 2 channels
-			 * regardless of us telling it to output 6 (unlike FFmpeg which will output 6).
-			 */
-			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-		}
-		String channelsString = "-channels " + channels;
-		if (combinedCustomOptions.contains("-channels")) {
-			channelsString = "";
-		}
+			if (
+				configuration.isAudioRemuxAC3() &&
+				params.getAid().isAC3() &&
+				!isAviSynthEngine() &&
+				encodingFormat.isTranscodeToAC3() &&
+				!configuration.isMEncoderNormalizeVolume() &&
+				!combinedCustomOptions.contains("acodec=") &&
+				!encodeOptions.encodedAudioPassthrough &&
+				!isXboxOneWebVideo &&
+				params.getAid().getNumberOfChannels() <= configuration.getAudioChannelCount()
+			) {
+				encodeOptions.ac3Remux = true;
+			} else {
+				// Now check for DTS remux and LPCM streaming
+				encodeOptions.dtsRemux = isTsMuxeRVideoEngineActive &&
+					configuration.isAudioEmbedDtsInPcm() &&
+					(
+						!isDVD ||
+						configuration.isMencoderRemuxMPEG2()
+					) &&
+					params.getAid() != null &&
+					params.getAid().isDTS() &&
+					!isAviSynthEngine() &&
+					renderer.isDTSPlayable() &&
+					!combinedCustomOptions.contains("acodec=");
+				encodeOptions.pcm = isTsMuxeRVideoEngineActive &&
+					configuration.isAudioUsePCM() &&
+					(
+						!isDVD ||
+						configuration.isMencoderRemuxMPEG2()
+					) &&
+					// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
+					!(media.getContainer().equals(FormatConfiguration.MP4) && !defaultVideoTrack.isH264()) &&
+					(
+						(params.getAid().isDTS() && params.getAid().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
+						params.getAid().isLossless() ||
+						params.getAid().isTrueHD() ||
+						(
+							!configuration.isMencoderUsePcmForHQAudioOnly() &&
+							(
+								params.getAid().isAC3() ||
+								params.getAid().isMP3() ||
+								params.getAid().isAAC() ||
+								params.getAid().isVorbis() ||
+								// Disable WMA to LPCM transcoding because of mencoder's channel mapping bug
+								// (see CodecUtil.getMixerOutput)
+								// params.aid.isWMA() ||
+								params.getAid().isMpegAudio()
+							)
+						)
+					) &&
+					renderer.isLPCMPlayable() &&
+					!combinedCustomOptions.contains("acodec=");
+			}
 
+			if (encodeOptions.dtsRemux || encodeOptions.pcm || encodeOptions.encodedAudioPassthrough) {
+				params.setLosslessAudio(true);
+				params.setForceFps(getValidFps(media.getFrameRate(), false));
+			}
+
+			// MPEG-2 remux still buggy with MEncoder
+			// TODO when we can still use it?
+			encodeOptions.ovccopy = false;
+
+			if (encodeOptions.pcm && isAviSynthEngine()) {
+				params.setAvidemux(true);
+			}
+
+			if (!combinedCustomOptions.contains("-lavdopts")) {
+				add = " -lavdopts debug=0";
+			}
+
+			if (encodeOptions.ac3Remux) {
+				channels = params.getAid().getNumberOfChannels(); // AC-3 remux
+			} else if (encodeOptions.dtsRemux || encodeOptions.encodedAudioPassthrough || (!renderer.isXbox360() && encodeOptions.wmv)) {
+				channels = 2;
+			} else if (
+				params.getAid().getNumberOfChannels() == 8 ||
+				params.getAid().isAAC()
+			) {
+				// MEncoder crashes when trying to downmix 7.1 AAC to 5.1 AC-3
+				channels = 2;
+			} else if (encodeOptions.pcm) {
+				channels = params.getAid().getNumberOfChannels();
+			} else {
+				/**
+				 * Note: MEncoder will output 2 audio channels if the input video had 2 channels
+				 * regardless of us telling it to output 6 (unlike FFmpeg which will output 6).
+				 */
+				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+			}
+			if (!combinedCustomOptions.contains("-channels")) {
+				channelsString = "-channels " + channels;
+			}
+		}
 		StringTokenizer st = new StringTokenizer(
 			channelsString +
 			(StringUtils.isNotBlank(globalMencoderOptions) ? " " + globalMencoderOptions : "") +
