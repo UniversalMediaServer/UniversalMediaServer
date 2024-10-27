@@ -38,8 +38,8 @@
   },
   "devDependencies": {
     "@playwright/test": "1.48.1",
-    "@types/lodash": "4.17.10",
-    "@types/react": "18.3.11",
+    "@types/lodash": "4.17.12",
+    "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.3",
     "eslint": "9.12.0",
