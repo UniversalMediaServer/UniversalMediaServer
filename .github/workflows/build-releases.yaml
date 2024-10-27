@@ -16,9 +16,9 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: 17
-      - name: Build AppImage
-        run: ./build-appimage.sh
       - name: Where
         run: pwd
       - name: What
         run: ls
+      - name: Build AppImage
+        run: ./build-appimage.sh
