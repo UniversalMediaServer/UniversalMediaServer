@@ -42,6 +42,7 @@
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
+- Bump `org.codehaus.mojo:exec-maven-plugin` from 3.4.1 to 3.5.0 ([#5060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5060))
 - Bump `react-router-dom` from 6.26.1 to 6.27.0 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003), [#5034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5034))
 - Bump `tsMuxeR` to 2024-06-06-02-00-53
 - Bump `video.js` from 8.17.4 to 8.18.1 ([#5042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5042))
