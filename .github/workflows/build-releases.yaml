@@ -21,4 +21,4 @@ jobs:
       - name: What
         run: ls
       - name: Build AppImage
-        run: ./build-appimage.sh
+        run: ./.github/workflows/build-appimage.sh
