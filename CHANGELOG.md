@@ -15,10 +15,13 @@
 ### Translation updates via Crowdin
 - Afrikaans (12%) (thanks, Dusty Pienaar!)
 - Czech (100%)
+- Finnish (67%) (thanks, Esko Gardner!)
+- French (100%) (thanks, Fredo1650!)
 - Hungarian (64%) (thanks, Blaszlo!)
 - Japanese (71%) (thanks, elepro!)
 - Korean (100%) (thanks, VenusGirl!)
 - Polish (56%) (thanks, Karol Szastok!)
+- Slovak (47%) (thanks Dušan!)
 - Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
