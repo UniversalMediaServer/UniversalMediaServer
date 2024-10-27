@@ -2,9 +2,8 @@ name: Build releases
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
-      - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - '*'
 
 jobs:
   deploy:
@@ -20,5 +19,7 @@ jobs:
         run: pwd
       - name: What
         run: ls
+      - name: Build x86_64 release
+        run: mvn package -P linux-x86_64
       - name: Build AppImage
         run: bash ./.github/workflows/build-appimage.sh
