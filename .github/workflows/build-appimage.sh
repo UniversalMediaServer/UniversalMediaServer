@@ -9,7 +9,6 @@ export VERSION=$GITHUB_REF_NAME
 APPIMAGETOOL="https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
 UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|UniversalMediaServer|latest|*$ARCH.AppImage.zsync"
 
-# wget "https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/14.5.1/UMS-14.5.1-x86_64.tgz"
 cd target
 tar fx ./*.tar.gz
 
@@ -17,7 +16,7 @@ cd ./ums-$VERSION
 cp ./web/react-client/icon-256.png ./ums.png
 ln -s ./UMS.png ./.DirIcon
 echo '[Desktop Entry]
-Version=1.0
+Version=$VERSION
 Name=Universal Media Server
 Comment=A DLNA-compliant UPnP Media Server.
 Exec=UMS.sh
