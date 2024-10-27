@@ -1,0 +1,24 @@
+name: Build releases
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+      - name: Build AppImage
+        run: ./build-appimage.sh
+      - name: Where
+        run: pwd
+      - name: What
+        run: ls
