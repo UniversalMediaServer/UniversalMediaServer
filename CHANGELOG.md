@@ -7,10 +7,14 @@
 - Removed Netty dependency
 - Updated TMDB API schemas to 24/09/2024
 - Fixed URI bug when using TMDB directly
+- Fixed not playing videos without audio tracks (#5014) (thanks, Nothsor!)
+- Fixed not playing videos when transcoding on some players (#4919, #5015) (thanks, mykeehu, SpitFire-666, and wolfgangsaul!)
+- Logging improvements
 
 ### Media players
 - Samsung TVs: Fixed thumbnails not updating (thanks, Fredo1650!)
 - LG TVs: Fixed not directly playing non-mod4 (resolution divisible by 4) videos
+- LG TVs: Fixed playback of DivX and XviD videos (thanks, Dušan Kazik!)
 
 ### Translation updates via Crowdin
 - Afrikaans (12%) (thanks, Dusty Pienaar!)
@@ -43,6 +47,7 @@
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 - Bump `JRE` to 17.0.13+12
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
+- Bump `NSIS` from 3.09 to 3.10
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
 - Bump `react-router-dom` from 6.26.1 to 6.27.0 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003), [#5034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5034))
