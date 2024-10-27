@@ -209,7 +209,7 @@
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<version>1.5.8</version>
+			<version>1.5.12</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
