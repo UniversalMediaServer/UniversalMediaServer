@@ -22,7 +22,7 @@ jobs:
       - name: Install AppImage dependencies
         uses: awalsh128/cache-apt-pkgs-action@v1.4.2
         with:
-          packages: desktop-file-validate
+          packages: desktop-file-utils
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
