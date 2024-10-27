@@ -11,7 +11,7 @@ UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|UniversalMediaServer|latest|*
 
 # wget "https://github.com/UniversalMediaServer/UniversalMediaServer/releases/download/14.5.1/UMS-14.5.1-x86_64.tgz"
 cd target
-tar fx ./*.tgz
+tar fx ./*.tar.gz
 
 cd ./ums*
 cp ./web/react-client/icon-256.png ./ums.png
