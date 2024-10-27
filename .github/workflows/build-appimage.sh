@@ -13,7 +13,7 @@ UPINFO="gh-releases-zsync|$GITHUB_REPOSITORY_OWNER|UniversalMediaServer|latest|*
 cd target
 tar fx ./*.tar.gz
 
-cd ./ums*
+cd ./ums-$VERSION
 cp ./web/react-client/icon-256.png ./ums.png
 ln -s ./UMS.png ./.DirIcon
 echo '[Desktop Entry]
