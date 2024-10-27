@@ -33,6 +33,8 @@
 - Bump `@types/react-dom` from 18.3.0 to 18.3.1 ([#5044](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5044))
 - Bump `@types/react` from 18.3.10 to 18.3.11 ([#5032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5032))
 - Bump `@vitejs/plugin-react` from 4.3.2 to 4.3.3 ([#5049](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5049))
+- Bump `ch.qos.logback:logback-classic` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
+- Bump `ch.qos.logback:logback-core` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
 - Bump `com.github.oshi:oshi-core` from 6.6.4 to 6.6.5 ([#5028](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5028))
 - Bump `eslint-plugin-react-refresh` from 0.4.12 to 0.4.13 ([#5050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5050))
 - Bump `eslint-plugin-react` from 7.36.1 to 7.37.1 ([#5019](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5019))
