@@ -60,7 +60,7 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `eslint-plugin-react-refresh` from 0.4.12 to 0.4.13 ([#5050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5050))
 - Bump `eslint-plugin-react` from 7.36.1 to 7.37.2 ([#5019](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5019), [#5065](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5065))
-- Bump `eslint` from 9.11.0 to 9.12.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017))
+- Bump `eslint` from 9.11.0 to 9.13.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017), [#5069](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5069))
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 - Bump `JRE` to 17.0.13+12
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
