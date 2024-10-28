@@ -30,7 +30,7 @@ jobs:
           packages: desktop-file-utils
       - name: Install AppImage dependencies
         run: |
-          ./.github/workflows/build-appimage.sh
+          bash ./.github/workflows/build-appimage.sh
           mkdir dist
           mv *AppImage* dist/
       - name: Upload artifact
