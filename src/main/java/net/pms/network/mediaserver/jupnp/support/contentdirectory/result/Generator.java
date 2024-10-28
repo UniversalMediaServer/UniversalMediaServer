@@ -38,6 +38,7 @@ import org.jupnp.model.XMLUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Attr;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -178,12 +179,18 @@ public class Generator {
 			Class<?> namespace,
 			String namespaceURI) {
 		for (Property<?> property : object.getProperties().getPropertiesInstanceOf(namespace)) {
-			Element element = descriptor.createElementNS(namespaceURI, property.getQualifiedName());
-			String pre = descriptor.lookupPrefix(namespaceURI);
-			element.setPrefix(pre);
-			appendAttributes(descriptor, element, property);
-			element.setTextContent(property.toString());
-			parent.appendChild(element);
+			String qualifiedName = property.getQualifiedName();
+			try {
+				Element element = descriptor.createElementNS(namespaceURI, qualifiedName);
+				String pre = descriptor.lookupPrefix(namespaceURI);
+				element.setPrefix(pre);
+				appendAttributes(descriptor, element, property);
+				element.setTextContent(property.toString());
+				parent.appendChild(element);
+			} catch (DOMException e) {
+				LOGGER.warn("Property '{}' throw an exception: {}", qualifiedName, e.getMessage());
+				LOGGER.trace("", e);
+			}
 		}
 	}
 

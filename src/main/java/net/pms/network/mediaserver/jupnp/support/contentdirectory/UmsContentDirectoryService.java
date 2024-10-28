@@ -392,10 +392,10 @@ public class UmsContentDirectoryService {
 				checkInput(modelObjectToAdd);
 
 				StoreResource resource = null;
-				if (modelObjectToAdd.getItems().size() > 0) {
+				if (modelObjectToAdd.getItems().isEmpty()) {
 					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
-				if (modelObjectToAdd.getContainers().size() > 0) {
+				if (modelObjectToAdd.getContainers().isEmpty()) {
 					resource = createContainerResource(storeContainer, modelObjectToAdd.getContainers().get(0), resource);
 				}
 				if (resource != null) {
@@ -423,7 +423,7 @@ public class UmsContentDirectoryService {
 		if (modelObjectToAdd.getContainers().size() > 1) {
 			LOGGER.trace("more than 1 container ... using first found.");
 		}
-		if (modelObjectToAdd.getContainers().size() > 0 && modelObjectToAdd.getItems().size() > 0) {
+		if (modelObjectToAdd.getContainers().isEmpty() && modelObjectToAdd.getItems().isEmpty()) {
 			LOGGER.trace("found items and container ... using container object ...");
 		}
 	}
@@ -453,13 +453,12 @@ public class UmsContentDirectoryService {
 	private CreateObjectResult createObjectResult(Renderer renderer, StoreResource resource) {
 		LOGGER.debug("createObjectResult for objectID {}", resource.getId());
 		String result;
-		result = getJUPnPDidlResults(List.of(resource), null);
 		if (renderer.getUmsConfiguration().isUpnpJupnpDidl()) {
 			result = getJUPnPDidlResults(List.of(resource), null);
 		} else {
 			result = DidlHelper.getDidlResults(List.of(resource));
 		}
-		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+		if (renderer.getUmsConfiguration().isUpnpDebugMediaServer()) {
 			logDidlLiteResult(result);
 		}
 		return new CreateObjectResult(result, resource.getId());
@@ -470,9 +469,9 @@ public class UmsContentDirectoryService {
 		if (!newItem.exists()) {
 			try {
 				newItem.createNewFile();
-				FileWriter fileWriter = new FileWriter(newItem);
-				fileWriter.write(EMPTY_FILE_CONTENT);
-				fileWriter.close();
+				try (FileWriter fileWriter = new FileWriter(newItem)) {
+					fileWriter.write(EMPTY_FILE_CONTENT);
+				}
 
 				StoreResource newResource = storeContainer.getDefaultRenderer().getMediaStore().createResourceFromFile(newItem);
 				storeContainer.addChild(newResource);
@@ -813,7 +812,7 @@ public class UmsContentDirectoryService {
 			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
 		}
 		LOGGER.trace("DIDL result created");
-		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+		if (renderer.getUmsConfiguration().isUpnpDebugMediaServer()) {
 			logDidlLiteResult(result);
 		}
 		LOGGER.trace("Returning browse result");
@@ -846,11 +845,9 @@ public class UmsContentDirectoryService {
 
 		try {
 			DbIdMediaType requestType = SearchRequestHandler.getRequestType(searchCriteria);
-			List<StoreResource> resultResources = null;
-			int totalMatches = 0;
-			totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
+			int totalMatches = SearchRequestHandler.getLibraryResourceCountFromSQL(SearchRequestHandler.convertToCountSql(searchCriteria, requestType));
 			String sqlFiles = SearchRequestHandler.convertToFilesSql(searchCriteria, startingIndex, requestedCount, orderBy, requestType);
-			resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
+			List<StoreResource> resultResources = SearchRequestHandler.getLibraryResourceFromSQL(renderer, sqlFiles, requestType);
 
 			long containerUpdateID = MediaStoreIds.getSystemUpdateId().getValue();
 			LOGGER.trace("Creating DIDL result");
@@ -861,7 +858,7 @@ public class UmsContentDirectoryService {
 				result = DidlHelper.getDidlResults(resultResources);
 			}
 			LOGGER.trace("DIDL result created");
-			if (renderer.getUmsConfiguration().isUpnpDebug()) {
+			if (renderer.getUmsConfiguration().isUpnpDebugMediaServer()) {
 				logDidlLiteResult(result);
 			}
 			LOGGER.trace("Returning search result");
@@ -1024,7 +1021,7 @@ public class UmsContentDirectoryService {
 			result = DidlHelper.getDidlResults(resultResources.subList(fromIndex, toIndex));
 		}
 		LOGGER.trace("DIDL result created");
-		if (renderer.getUmsConfiguration().isUpnpDebug()) {
+		if (renderer.getUmsConfiguration().isUpnpDebugMediaServer()) {
 			logDidlLiteResult(result);
 		}
 		LOGGER.trace("Returning search result");

@@ -48,6 +48,7 @@ export default function Settings() {
     audioCoverSuppliers: [] as mantineSelectData[],
     enabledRendererNames: [] as mantineSelectData[],
     ffmpegLoglevels: [],
+    upnpLoglevels: [] as mantineSelectData[],
     fullyPlayedActions: [] as mantineSelectData[],
     gpuAccelerationMethod: [],
     networkInterfaces: [],
