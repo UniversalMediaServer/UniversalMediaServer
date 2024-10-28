@@ -25,10 +25,11 @@ jobs:
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
       - name: Install AppImage dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        with:
+          packages: desktop-file-utils
+      - name: Install AppImage dependencies
         run: |
-          sudo apt update
-          sudo apt install libfuse2 desktop-file-utils
-          chmod a+x ./.github/workflows/build-appimage.sh
           ./.github/workflows/build-appimage.sh
           mkdir dist
           mv *AppImage* dist/
