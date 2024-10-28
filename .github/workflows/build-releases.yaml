@@ -15,14 +15,6 @@ jobs:
         with:
           distribution: 'liberica'
           java-version: 17
-      - name: Where
-        run: pwd
-      - name: What
-        run: ls
-      - name: Install AppImage dependencies
-        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
-        with:
-          packages: desktop-file-utils
       - name: Install MediaInfo
         run: |
           sudo apt-get -y install libmms0
@@ -32,5 +24,16 @@ jobs:
           sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
       - name: Build x86_64 release
         run: mvn package -P linux-x86_64 -DskipTests
-      - name: Build AppImage
-        run: bash ./.github/workflows/build-appimage.sh
+      - name: Install AppImage dependencies
+        run: |
+          sudo apt update
+          sudo apt install libfuse2 desktop-file-utils
+          chmod a+x ./.github/workflows/build-appimage.sh
+          ./.github/workflows/build-appimage.sh
+          mkdir dist
+          mv *AppImage* dist/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: AppImage
+          path: 'dist'
