@@ -63,7 +63,7 @@
 - Bump `eslint` from 9.11.0 to 9.12.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017))
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 - Bump `JRE` to 17.0.13+12
-- Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
+- Bump `junit5.version` from 5.11.1 to 5.11.3 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020), [#5073](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5073))
 - Bump `NSIS` from 3.09 to 3.10
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
