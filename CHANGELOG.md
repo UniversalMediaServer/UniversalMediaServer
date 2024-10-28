@@ -65,6 +65,7 @@
 - Bump `JRE` to 17.0.13+12
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
 - Bump `NSIS` from 3.09 to 3.10
+- Bump `org.apache.maven.plugins:maven-checkstyle-plugin` from 3.5.0 to 3.6.0 ([#5074](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5074))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.4.1 to 3.5.0 ([#5060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5060))
