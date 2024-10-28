@@ -1259,7 +1259,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:^3.14.2":
+"@videojs/http-streaming@npm:^3.15.0":
   version: 3.15.0
   resolution: "@videojs/http-streaming@npm:3.15.0"
   dependencies:
@@ -4794,7 +4794,7 @@ __metadata:
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.6.3"
     typescript-eslint: "npm:^8.7.0"
-    video.js: "npm:8.18.1"
+    video.js: "npm:8.19.1"
     vite: "npm:5.4.9"
   languageName: unknown
   linkType: soft
@@ -4925,23 +4925,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.18.1":
-  version: 8.18.1
-  resolution: "video.js@npm:8.18.1"
+"video.js@npm:8.19.1":
+  version: 8.19.1
+  resolution: "video.js@npm:8.19.1"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
-    "@videojs/http-streaming": "npm:^3.14.2"
+    "@videojs/http-streaming": "npm:^3.15.0"
     "@videojs/vhs-utils": "npm:^4.1.1"
     "@videojs/xhr": "npm:2.7.0"
     aes-decrypter: "npm:^4.0.2"
     global: "npm:4.4.0"
     m3u8-parser: "npm:^7.2.0"
-    mpd-parser: "npm:^1.2.2"
+    mpd-parser: "npm:^1.3.1"
     mux.js: "npm:^7.0.1"
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.2.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/9fec8a206bbe6da26e27fcf124b43c0d2a0151df4ea1f3c1aa4f3e99bf1b5e1fda411a56c635c784e85f43efc7f757f75a6fcc008376badc3d2f76f1346f3145
+  checksum: 10c0/dfdd190be5bd92ddbcca51d7c035d4205005915d755b9edacb6aeee40917ea58a705c6289df23fc19edbc7125016b54a19450a5a17e422ced46317b366e3e7d9
   languageName: node
   linkType: hard
 
