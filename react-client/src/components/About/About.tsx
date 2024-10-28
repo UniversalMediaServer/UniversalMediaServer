@@ -55,6 +55,11 @@ const About = () => {
       <Table.Td><Text ta='center' style={{ cursor: 'pointer' }} onClick={() => { window.open(link.value, '_blank'); }}>{link.key}</Text></Table.Td>
     </Table.Tr>
   ));
+  
+  //set the document Title to About
+  useEffect(() => {
+    document.title="Universal Media Server-About";
+  }, []);
 
   useEffect(() => {
     axios.get(aboutApiUrl)

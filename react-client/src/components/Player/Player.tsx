@@ -51,6 +51,17 @@ export const Player = () => {
     }
   }
 
+   //set the document title to last breadCrumbs Name else default
+   useEffect(() => {
+    let subTitle="";
+    if(hasBreadcrumbs()){
+      const lastBreadCrumb=data.breadcrumbs[data.breadcrumbs.length-1]
+      subTitle= getI18nName(lastBreadCrumb.name);
+    }
+    document.title=`Universal Media Server ${(subTitle?"-":"")+subTitle}`
+      
+ }, [data.breadcrumbs]);
+
   const refreshPage = () => {
     if (sse.uuid && sse.reqType) {
       setLoading(true);

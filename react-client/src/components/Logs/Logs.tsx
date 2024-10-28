@@ -92,6 +92,11 @@ const Logs = () => {
     return 0;
   }
 
+  //set the document Title to Logs
+  useEffect(() => {
+    document.title="Universal Media Server- Logs";
+  }, []);
+
   useEffect(() => {
     if (!canModify || fileMode) {
       setLogs([]);
