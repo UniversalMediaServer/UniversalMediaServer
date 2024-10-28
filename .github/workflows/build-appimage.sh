@@ -31,6 +31,8 @@ wget "$APPIMAGETOOL" -O ./appimagetool
 
 chmod +x ./appimagetool
 
+echo "$(ls)"
+
 mv ./ums* ./ums.AppDir
 
 ./appimagetool --comp zstd \
