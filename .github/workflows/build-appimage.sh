@@ -16,7 +16,7 @@ cd ./ums-$VERSION
 cp ./web/react-client/icon-256.png ./ums.png
 ln -s ./UMS.png ./.DirIcon
 echo '[Desktop Entry]
-Version=$VERSION
+Version=1.0
 Name=Universal Media Server
 Comment=A DLNA-compliant UPnP Media Server.
 Exec=UMS.sh
@@ -34,5 +34,5 @@ chmod +x ./appimagetool
 mv ./ums* ./ums.AppDir
 
 ./appimagetool --comp zstd \
-	--mksquashfs-opt -Xcompression-level --mksquashfs-opt 22 \
-	-n -u "$UPINFO" ./ums.AppDir UMS-"$VERSION"-"$ARCH".AppImage
+    --mksquashfs-opt -Xcompression-level --mksquashfs-opt 22 \
+    -n -u "$UPINFO" ./ums.AppDir UMS-"$LATEST_VERSION"-"$ARCH".AppImage
