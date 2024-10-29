@@ -28,7 +28,7 @@ jobs:
         uses: awalsh128/cache-apt-pkgs-action@v1.4.2
         with:
           packages: desktop-file-utils
-      - name: Install AppImage dependencies
+      - name: Build AppImage
         run: |
           bash ./.github/workflows/build-appimage.sh
           mkdir dist

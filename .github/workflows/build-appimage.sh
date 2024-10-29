@@ -15,7 +15,7 @@ tar fx ./*.tar.gz
 cd ./ums-$VERSION
 cp ./web/react-client/icon-256.png ./ums.png
 ln -s ./UMS.png ./.DirIcon
-echo '[Desktop Entry]
+echo "[Desktop Entry]
 Version=$VERSION
 Name=Universal Media Server
 Comment=A DLNA-compliant UPnP Media Server.
@@ -23,7 +23,7 @@ Exec=UMS.sh
 Icon=ums
 Terminal=false
 Type=Application
-Categories=Java;AudioVideo;' > ums.desktop
+Categories=Java;AudioVideo;" > ums.desktop
 ln -s ./UMS.sh ./AppRun
 cd ..
 
