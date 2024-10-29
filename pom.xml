@@ -113,7 +113,6 @@
 		-->
 		<jna-version>5.15.0</jna-version>
 
-		<junit5.version>5.11.2</junit5.version>
 		<jetty.version>12.0.14</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
@@ -415,13 +414,13 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-engine</artifactId>
-			<version>${junit5.version}</version>
+			<version>5.11.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter-api</artifactId>
-			<version>${junit5.version}</version>
+			<version>5.11.2</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
