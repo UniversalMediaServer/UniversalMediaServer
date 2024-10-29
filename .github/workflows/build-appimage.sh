@@ -33,9 +33,6 @@ wget "$APPIMAGETOOL" -O ./appimagetool
 
 chmod +x ./appimagetool
 
-echo "ls $(ls)"
-echo "pwd $(pwd)"
-
 ./appimagetool --comp zstd \
     --mksquashfs-opt -Xcompression-level --mksquashfs-opt 22 \
-    -n -u "$UPINFO" ./ums-$VERSION UMS-"$LATEST_VERSION"-"$ARCH".AppImage
+    -n -u "$UPINFO" ./ums-$VERSION UMS-"$VERSION"-"$ARCH".AppImage
