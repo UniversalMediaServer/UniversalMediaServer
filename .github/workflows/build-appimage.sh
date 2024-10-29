@@ -33,7 +33,8 @@ wget "$APPIMAGETOOL" -O ./appimagetool
 
 chmod +x ./appimagetool
 
-echo "$(ls)"
+echo "ls $(ls)"
+echo "pwd $(pwd)"
 
 ./appimagetool --comp zstd \
     --mksquashfs-opt -Xcompression-level --mksquashfs-opt 22 \
