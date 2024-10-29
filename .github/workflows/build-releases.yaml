@@ -1,0 +1,40 @@
+name: Build releases
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'liberica'
+          java-version: 17
+      - name: Install MediaInfo
+        run: |
+          sudo apt-get -y install libmms0
+          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
+      - name: Build x86_64 release
+        run: mvn package -P linux-x86_64 -DskipTests
+      - name: Install AppImage dependencies
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.2
+        with:
+          packages: desktop-file-utils
+      - name: Build AppImage
+        run: |
+          bash ./.github/workflows/build-appimage.sh
+          mkdir dist
+          mv ./target/*AppImage* dist/
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: AppImage
+          path: 'dist'
