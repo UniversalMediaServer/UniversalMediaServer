@@ -74,7 +74,7 @@
 - Bump `tsMuxeR` to 2024-06-06-02-00-53
 - Bump `typescript` from 5.6.2 to 5.6.3 ([#5047](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5047))
 - Bump `video.js` from 8.17.4 to 8.19.1 ([#5042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5042), [#5068](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5068))
-- Bump `vite` from 5.4.7 to 5.4.9 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018), [#5048](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5048))
+- Bump `vite` from 5.4.7 to 5.4.10 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018), [#5048](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5048), [#5066](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5066))
 
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)
 
