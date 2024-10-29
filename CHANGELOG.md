@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
+## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
+
 ### General
+- Started releasing AppImages
 - Extended UPnP CreateObject / ImportUri support
 - Removed Netty dependency
 - Updated TMDB API schemas to 24/09/2024
