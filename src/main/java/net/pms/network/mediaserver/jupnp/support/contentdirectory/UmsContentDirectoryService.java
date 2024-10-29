@@ -392,10 +392,10 @@ public class UmsContentDirectoryService {
 				checkInput(modelObjectToAdd);
 
 				StoreResource resource = null;
-				if (modelObjectToAdd.getItems().isEmpty()) {
+				if (!modelObjectToAdd.getItems().isEmpty()) {
 					resource = createItemResource(storeContainer, modelObjectToAdd.getItems().get(0), resource);
 				}
-				if (modelObjectToAdd.getContainers().isEmpty()) {
+				if (!modelObjectToAdd.getContainers().isEmpty()) {
 					resource = createContainerResource(storeContainer, modelObjectToAdd.getContainers().get(0), resource);
 				}
 				if (resource != null) {
@@ -423,7 +423,7 @@ public class UmsContentDirectoryService {
 		if (modelObjectToAdd.getContainers().size() > 1) {
 			LOGGER.trace("more than 1 container ... using first found.");
 		}
-		if (modelObjectToAdd.getContainers().isEmpty() && modelObjectToAdd.getItems().isEmpty()) {
+		if (!modelObjectToAdd.getContainers().isEmpty() && !modelObjectToAdd.getItems().isEmpty()) {
 			LOGGER.trace("found items and container ... using container object ...");
 		}
 	}
