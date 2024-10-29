@@ -32,7 +32,8 @@ jobs:
         run: |
           bash ./.github/workflows/build-appimage.sh
           mkdir dist
-          mv *AppImage* dist/
+          ls
+          mv *AppImage dist/
       - name: Upload artifact
         uses: actions/upload-artifact@v4.4.0
         with:
