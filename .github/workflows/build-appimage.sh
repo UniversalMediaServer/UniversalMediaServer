@@ -16,8 +16,10 @@ cd ./ums-$VERSION
 cp ./web/react-client/icon-256.png ./ums.png
 ln -s ./UMS.png ./.DirIcon
 echo "[Desktop Entry]
-Version=$VERSION
 Name=Universal Media Server
+X-AppImage-Name=Universal Media Server
+X-AppImage-Version=$VERSION
+X-AppImage-Arch=$ARCH
 Comment=A DLNA-compliant UPnP Media Server.
 Exec=UMS.sh
 Icon=ums
