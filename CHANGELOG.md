@@ -43,6 +43,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
 - Bump `ch.qos.logback:logback-core` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
 - Bump `com.github.oshi:oshi-core` from 6.6.4 to 6.6.5 ([#5028](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5028))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.18.2 to 10.19.0 ([#5072](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5072))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `com.twelvemonkeys.imageio:imageio-core` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
