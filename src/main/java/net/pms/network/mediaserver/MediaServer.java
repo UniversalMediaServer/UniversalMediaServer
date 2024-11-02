@@ -91,7 +91,7 @@ public class MediaServer {
 			if (CONFIGURATION.isUpnpEnabled()) {
 				if (upnpService == null) {
 					LOGGER.debug("Starting UPnP (JUPnP) services.");
-					upnpService = new UmsUpnpService(true);
+					upnpService = new UmsUpnpService();
 					upnpService.startup();
 				}
 				try {

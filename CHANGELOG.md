@@ -2,7 +2,10 @@
 
 ## [Unreleased]
 
+## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
+
 ### General
+- Started releasing AppImages (thanks, @Samueru-sama and @Twig6943!)
 - Extended UPnP CreateObject / ImportUri support
 - Removed Netty dependency
 - Updated TMDB API schemas to 24/09/2024
@@ -35,7 +38,7 @@
 - Bump `@mantine/hooks` from 7.13.0 to 7.13.4 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041), [#5063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5063))
 - Bump `@mantine/modals` from 7.13.0 to 7.13.4 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041), [#5063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5063))
 - Bump `@mantine/notifications` from 7.13.0 to 7.13.4 ([#5016](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5016), [#5041](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5041), [#5063](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5063))
-- Bump `@playwright/test` from 1.47.0 to 1.48.1 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033), [#5043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5043))
+- Bump `@playwright/test` from 1.47.0 to 1.48.2 ([#5033](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5033), [#5043](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5043), [#5070](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5070))
 - Bump `@types/lodash` from 4.17.7 to 4.17.12 ([#5030](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5030), [#5064](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5064))
 - Bump `@types/react-dom` from 18.3.0 to 18.3.1 ([#5044](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5044))
 - Bump `@types/react` from 18.3.10 to 18.3.12 ([#5032](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5032), [#5064](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5064))
@@ -43,6 +46,7 @@
 - Bump `ch.qos.logback:logback-classic` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
 - Bump `ch.qos.logback:logback-core` from 1.5.8 to 1.5.12 ([#5058](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5058))
 - Bump `com.github.oshi:oshi-core` from 6.6.4 to 6.6.5 ([#5028](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5028))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.18.2 to 10.19.0 ([#5072](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5072))
 - Bump `com.twelvemonkeys.imageio:imageio-batik` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `com.twelvemonkeys.imageio:imageio-bmp` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `com.twelvemonkeys.imageio:imageio-core` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
@@ -60,18 +64,21 @@
 - Bump `com.twelvemonkeys.imageio:imageio-tiff` from 3.11.0 to 3.12.0 ([#5059](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5059))
 - Bump `eslint-plugin-react-refresh` from 0.4.12 to 0.4.13 ([#5050](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5050))
 - Bump `eslint-plugin-react` from 7.36.1 to 7.37.2 ([#5019](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5019), [#5065](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5065))
-- Bump `eslint` from 9.11.0 to 9.12.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017))
+- Bump `eslint` from 9.11.0 to 9.13.0 ([#5017](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5017), [#5069](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5069))
 - Bump `jetty.version` from 12.0.13 to 12.0.14 ([#5022](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5022))
 - Bump `JRE` to 17.0.13+12
 - Bump `junit5.version` from 5.11.1 to 5.11.2 ([#5020](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5020))
 - Bump `NSIS` from 3.09 to 3.10
+- Bump `org.apache.maven.plugins:maven-checkstyle-plugin` from 3.5.0 to 3.6.0 ([#5074](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5074))
 - Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.0 to 3.5.1 ([#5021](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5021))
 - Bump `org.apache.xmlgraphics:batik-svgrasterizer` from 1.17 to 1.18 ([#5029](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5029))
 - Bump `org.codehaus.mojo:exec-maven-plugin` from 3.4.1 to 3.5.0 ([#5060](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5060))
+- Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.2 to 5.11.3 ([#5080](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5080))
 - Bump `react-router-dom` from 6.26.1 to 6.27.0 ([#5003](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5003), [#5034](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5034))
 - Bump `tsMuxeR` to 2024-06-06-02-00-53
+- Bump `typescript-eslint` from 8.7.0 to 8.12.1 ([#5079](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5079))
 - Bump `typescript` from 5.6.2 to 5.6.3 ([#5047](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5047))
-- Bump `video.js` from 8.17.4 to 8.18.1 ([#5042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5042))
+- Bump `video.js` from 8.17.4 to 8.19.1 ([#5042](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5042), [#5068](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5068))
 - Bump `vite` from 5.4.7 to 5.4.9 ([#5018](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5018), [#5048](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5048))
 
 ## [14.6.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.5.1...14.6.0) (2024-10-02)

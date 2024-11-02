@@ -16,6 +16,9 @@
  */
 package net.pms.network.mediaserver.jupnp;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -32,6 +35,7 @@ import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
 import net.pms.network.mediaserver.jupnp.transport.impl.jetty.JettyTransportConfiguration;
 import net.pms.util.SimpleThreadFactory;
+import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.jupnp.UpnpServiceConfiguration;
 import org.jupnp.binding.xml.DeviceDescriptorBinder;
 import org.jupnp.binding.xml.RecoveringUDA10DeviceDescriptorBinderImpl;
@@ -57,12 +61,16 @@ import org.jupnp.transport.spi.SOAPActionProcessor;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
 import org.jupnp.util.Exceptions;
+import org.jupnp.util.SpecificationViolationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsUpnpServiceConfiguration.class);
+	private static final List<String> LOG_LEVEL_MEDIASERVER = List.of("org.jupnp");
+	private static final List<String> LOG_LEVEL_BASIC = List.of("net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor", "org.jupnp.protocol");
+	private static final List<String> LOG_LEVEL_FULL = List.of("org.jupnp.binding", "org.jupnp.model", "org.jupnp.registry", "org.jupnp.transport");
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
 	private static final int THREAD_POOL_SIZE = 200;
@@ -86,7 +94,6 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private final ServiceDescriptorBinder serviceDescriptorBinderUDA10;
 	private final Namespace namespace;
 
-	private boolean ownContentDirectory = false;
 	private boolean useThreadPool = false;
 	private boolean multicastReceiverThreadPool = true;
 	private boolean datagramIOThreadPool = true;
@@ -107,8 +114,16 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private ExecutorService registryListenerExecutorService;
 	private ExecutorService registryMaintainerExecutorService;
 
-	public UmsUpnpServiceConfiguration(boolean ownContentDirectory) {
-		this.ownContentDirectory = ownContentDirectory;
+	static {
+		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate() && UmsConfiguration.KEY_UPNP_LOG_LEVEL.equals(event.getPropertyName())) {
+				resetLoggingMode();
+			}
+		});
+	}
+
+	public UmsUpnpServiceConfiguration() {
+		resetLoggingMode();
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 		datagramProcessor = new UmsDatagramProcessor();
 		soapActionProcessor = new SOAPActionProcessorImpl();
@@ -242,10 +257,6 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	public StreamClient createStreamClient() {
 		ExecutorService executorService = getStreamClientExecutorService();
 		return JettyTransportConfiguration.INSTANCE.createStreamClient(executorService, new StreamClientConfigurationImpl(executorService));
-	}
-
-	public boolean useOwnContentDirectory() {
-		return ownContentDirectory;
 	}
 
 	@Override
@@ -462,6 +473,39 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 				LOGGER.warn("Thread terminated " + runnable + " abruptly with exception: " + throwable);
 				LOGGER.warn("Root cause: " + cause);
 			}
+		}
+	}
+
+	private static void resetLoggingMode() {
+		Level mediaServerLevel = CONFIGURATION.isUpnpDebugMediaServer() ? Level.ALL : Level.INFO;
+		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.ALL : Level.INFO;
+		Level fullLevel = CONFIGURATION.isUpnpDebugFull() ? Level.ALL : Level.INFO;
+		if (fullLevel == Level.ALL) {
+			LOGGER.debug("Upnp log mode: full");
+			SpecificationViolationReporter.enableReporting();
+		} else {
+			if (basicLevel == Level.ALL) {
+				LOGGER.debug("Upnp log mode: basic");
+			} else if (mediaServerLevel == Level.ALL) {
+				LOGGER.debug("Upnp log mode: MediaServer only");
+			} else {
+				LOGGER.debug("Upnp log mode: silent");
+			}
+			SpecificationViolationReporter.disableReporting();
+		}
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		ch.qos.logback.classic.Logger rootLogger;
+		for (String name : LOG_LEVEL_MEDIASERVER) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(mediaServerLevel);
+		}
+		for (String name : LOG_LEVEL_BASIC) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(basicLevel);
+		}
+		for (String name : LOG_LEVEL_FULL) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(fullLevel);
 		}
 	}
 

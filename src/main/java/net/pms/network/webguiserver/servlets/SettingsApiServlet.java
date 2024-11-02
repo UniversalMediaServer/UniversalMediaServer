@@ -58,6 +58,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = UmsConfiguration.getWebSettingsWithDefaults();
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = UmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray FFMPEG_LOGLEVEL = UmsConfiguration.getFfmpegLoglevels();
+	private static final JsonArray UPNP_LOGLEVEL = UmsConfiguration.getUpnpLoglevels();
 	private static final JsonArray FULLY_PLAYED_ACTIONS = UmsConfiguration.getFullyPlayedActionsAsJsonArray();
 	private static final JsonArray SORT_METHODS = UmsConfiguration.getSortMethodsAsJsonArray();
 	private static final JsonArray SUBTITLES_CODEPAGES = UmsConfiguration.getSubtitlesCodepageArray();
@@ -75,7 +76,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			"web_gui_port",
 			"web_player_port"
 	);
-	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method", "ffmpeg_avisynth_output_format_index_3d", "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d", "ffmpeg_avisynth_horizontal_resize_resolution");
+	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method", "ffmpeg_avisynth_output_format_index_3d", "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d", "ffmpeg_avisynth_horizontal_resize_resolution", UmsConfiguration.KEY_UPNP_LOG_LEVEL);
 	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
 
 	@Override
@@ -104,6 +105,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("subtitlesCodepages", SUBTITLES_CODEPAGES);
 				jsonResponse.add("subtitlesDepth", SUBTITLES_DEPTH);
 				jsonResponse.add("ffmpegLoglevels", FFMPEG_LOGLEVEL);
+				jsonResponse.add("upnpLoglevels", UPNP_LOGLEVEL);
 				jsonResponse.add("fullyPlayedActions", FULLY_PLAYED_ACTIONS);
 				jsonResponse.add("networkInterfaces", NetworkConfiguration.getNetworkInterfacesAsJsonArray());
 				jsonResponse.add("allRendererNames", RendererConfigurations.getAllRendererNamesAsJsonArray());

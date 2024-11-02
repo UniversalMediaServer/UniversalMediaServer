@@ -35,6 +35,24 @@ export const VideoJsPlayer = (vpOptions: VideoPlayerOption) => {
     const options = {} as any;
     options.liveui = true;
     options.controls = true;
+    options.userActions = {
+      hotkeys: function(event: any) {
+        if (event.which === 32) {
+          if (this.paused()) {
+            this.play();
+          } else {
+            this.pause();
+          }
+        }
+        if (event.which === 37) {
+          this.currentTime(Math.max(0, this.currentTime() - 15));
+        }
+        if (event.which === 39) {
+          const duration = this.liveTracker && this.liveTracker.isLive() ? this.liveTracker.seekableEnd() : this.duration();
+          this.currentTime(Math.min(this.currentTime() + 15), duration);
+        }
+      }
+    };
     options.sources = [{ src: playerApiUrl + 'media/' + vpOptions.uuid + '/' + vpOptions.media.id, type: vpOptions.media.mime }];
     options.poster = playerApiUrl + 'thumbnail/' + vpOptions.uuid + '/' + vpOptions.media.id;
     if (vpOptions.media.mediaType === 'audio') {
