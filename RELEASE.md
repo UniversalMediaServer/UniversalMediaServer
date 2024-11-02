@@ -46,7 +46,9 @@ There are a number of manual steps involved in a new version release. This list 
 
      For the remaining macOS release (ARM) I use a newer MacBook Pro with an M1 chip, which also uses Gon for signing/notarizing, and the [ums-release-macos-arm.sh](./scripts/ums-release-macos-arm.sh) script.
 
-1. Upload the releases. 
+     Lastly, download the AppImage release from GitHub Actions by going to the `Build releases` workflow run for the tag. Unzip the folder, and the two files contained in it can be uploaded in the next step.
+
+1. Upload the releases.
 
      After each of the 3 machines are done compiling, I upload the binaries directly to Patreon. The first machine you do it on will create draft post, then you can find the draft post on the remaining machines and add their binaries to that. I hope Patreon will add that ability to their API some day!
 
