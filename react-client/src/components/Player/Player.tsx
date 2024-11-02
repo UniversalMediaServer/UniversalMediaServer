@@ -58,7 +58,7 @@ export const Player = () => {
       const lastBreadCrumb=data.breadcrumbs[data.breadcrumbs.length-1]
       subTitle= getI18nName(lastBreadCrumb.name);
     }
-    document.title=`Universal Media Server ${(subTitle?"-":"")+subTitle}`
+    document.title=`Universal Media Server${(subTitle?" - ":"")+subTitle}`
       
  }, [data.breadcrumbs]);
 

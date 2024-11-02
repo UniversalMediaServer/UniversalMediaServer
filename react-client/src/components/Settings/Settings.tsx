@@ -72,7 +72,7 @@ export default function Settings() {
 
   //set the document Title to Server Settings
   useEffect(() => {
-    document.title="Universal Media Server- Server Settings";
+    document.title="Universal Media Server - Server Settings";
   }, []);
 
   useEffect(() => {

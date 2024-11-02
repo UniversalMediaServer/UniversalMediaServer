@@ -58,7 +58,7 @@ const About = () => {
   
   //set the document Title to About
   useEffect(() => {
-    document.title="Universal Media Server-About";
+    document.title="Universal Media Server - About";
   }, []);
 
   useEffect(() => {

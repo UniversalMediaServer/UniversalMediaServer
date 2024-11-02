@@ -92,7 +92,7 @@ const Login = () => {
 
   //set the document Title to Login
   useEffect(() => {
-    document.title="Universal Media Server- Login";
+    document.title="Universal Media Server - Login";
   }, []);
 
   return (

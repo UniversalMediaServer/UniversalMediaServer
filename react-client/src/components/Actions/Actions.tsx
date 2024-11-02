@@ -57,7 +57,7 @@ const Actions = () => {
 
   //set the document Title to Tools
   useEffect(() => {
-    document.title="Universal Media Server-Tools";
+    document.title="Universal Media Server - Tools";
   }, []);
 
   useEffect(() => {

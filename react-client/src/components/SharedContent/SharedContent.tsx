@@ -42,7 +42,7 @@ export default function SharedContent() {
 
   //set the document Title to Shared Content
   useEffect(() => {
-    document.title="Universal Media Server- Shared Content";
+    document.title="Universal Media Server - Shared Content";
   }, []);
 
   useEffect(() => {

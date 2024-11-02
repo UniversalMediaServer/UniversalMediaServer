@@ -94,7 +94,7 @@ const Logs = () => {
 
   //set the document Title to Logs
   useEffect(() => {
-    document.title="Universal Media Server- Logs";
+    document.title="Universal Media Server - Logs";
   }, []);
 
   useEffect(() => {

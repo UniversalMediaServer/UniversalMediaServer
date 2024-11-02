@@ -41,7 +41,7 @@ const Accounts = () => {
 
   //set the document Title to Accounts
   useEffect(() => {
-    document.title="Universal Media Server-Accounts";
+    document.title="Universal Media Server - Accounts";
   }, []);
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
