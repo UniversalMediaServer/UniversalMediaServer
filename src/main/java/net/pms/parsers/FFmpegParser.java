@@ -78,18 +78,18 @@ public class FFmpegParser {
 
 			boolean ffmpegParsing = true;
 
-			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
+			if (file != null && type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				ffmpegParsing = false;
 				JaudiotaggerParser.parse(media, file, ext);
 			}
 
-			if (type == Format.IMAGE && file != null) {
+			if (type == Format.IMAGE) {
 				try {
 					ffmpegParsing = false;
-					MetadataExtractorParser.parse(file, media);
+					MetadataExtractorParser.parse(inputFile, media);
 					media.setImageCount(media.getImageCount() + 1);
 				} catch (IOException e) {
-					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", file.getAbsolutePath(), e.getMessage());
+					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", inputFile.getFilename(), e.getMessage());
 					LOGGER.trace("", e);
 					ffmpegParsing = true;
 				}
@@ -305,7 +305,7 @@ public class FFmpegParser {
 				if (line.startsWith("Output")) {
 					matches = false;
 				} else if (line.startsWith("Input")) {
-					if (line.contains(input)) {
+					if (line.contains(input) || line.contains("from 'fd:':")) {
 						matches = true;
 						media.setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 

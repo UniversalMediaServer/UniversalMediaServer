@@ -21,7 +21,7 @@ updates:
         - "react|react-dom"
       types:
         patterns:
-        - "@types/"
+        - "@types/*"
       typescript-eslint:
         patterns:
         - "@typescript-eslint*"
@@ -34,15 +34,18 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      junit:
+        patterns:
+        - "*junit*"
       jupnp:
         patterns:
-        - "org.jupnp:org.jupnp"
+        - "*jupnp*"
       logback:
         patterns:
-        - "ch.qos.logback"
+        - "ch.qos.logback*"
       mockito:
         patterns:
-        - "mockito"
+        - "*mockito*"
       twelvemonkeys:
         patterns:
-        - "com.twelvemonkeys.imageio"
+        - "*twelvemonkeys*"
