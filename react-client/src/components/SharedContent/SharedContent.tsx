@@ -40,6 +40,11 @@ export default function SharedContent() {
   const canModify = havePermission(session, Permissions.settings_modify);
   const canView = canModify || havePermission(session, Permissions.settings_view);
 
+  //set the document Title to Shared Content
+  useEffect(() => {
+    document.title="Universal Media Server - Shared Content";
+  }, []);
+
   useEffect(() => {
     if (sse.userConfiguration === null) {
       return;

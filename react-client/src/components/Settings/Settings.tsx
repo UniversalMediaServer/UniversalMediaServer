@@ -70,6 +70,11 @@ export default function Settings() {
   const canModify = havePermission(session, Permissions.settings_modify);
   const canView = canModify || havePermission(session, Permissions.settings_view);
 
+  //set the document Title to Server Settings
+  useEffect(() => {
+    document.title="Universal Media Server - Server Settings";
+  }, []);
+
   useEffect(() => {
     if (sse.userConfiguration === null) {
       return;

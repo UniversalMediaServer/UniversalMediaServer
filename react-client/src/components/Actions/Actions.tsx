@@ -55,6 +55,11 @@ const Actions = () => {
     await sendAction('Process.Exit');
   };
 
+  //set the document Title to Tools
+  useEffect(() => {
+    document.title="Universal Media Server - Tools";
+  }, []);
+
   useEffect(() => {
     axios.get(actionsApiUrl)
       .then((response) => {
