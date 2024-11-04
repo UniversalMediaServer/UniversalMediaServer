@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `com.ibm.icu:icu4j` from 75.1 to 76.1 ([#5088](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5088))
+
 ## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
 
 ### General
