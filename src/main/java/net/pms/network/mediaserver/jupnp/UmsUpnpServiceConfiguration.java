@@ -477,16 +477,16 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	}
 
 	private static void resetLoggingMode() {
-		Level mediaServerLevel = CONFIGURATION.isUpnpDebugMediaServer() ? Level.ALL : Level.INFO;
-		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.ALL : Level.INFO;
-		Level fullLevel = CONFIGURATION.isUpnpDebugFull() ? Level.ALL : Level.INFO;
-		if (fullLevel == Level.ALL) {
+		Level mediaServerLevel = CONFIGURATION.isUpnpDebugMediaServer() ? Level.TRACE : Level.INFO;
+		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.TRACE : Level.INFO;
+		Level fullLevel = CONFIGURATION.isUpnpDebugFull() ? Level.TRACE : Level.ERROR;
+		if (fullLevel == Level.TRACE) {
 			LOGGER.debug("Upnp log mode: full");
 			SpecificationViolationReporter.enableReporting();
 		} else {
-			if (basicLevel == Level.ALL) {
+			if (basicLevel == Level.TRACE) {
 				LOGGER.debug("Upnp log mode: basic");
-			} else if (mediaServerLevel == Level.ALL) {
+			} else if (mediaServerLevel == Level.TRACE) {
 				LOGGER.debug("Upnp log mode: MediaServer only");
 			} else {
 				LOGGER.debug("Upnp log mode: silent");
