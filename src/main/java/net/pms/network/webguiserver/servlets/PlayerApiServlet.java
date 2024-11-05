@@ -1302,28 +1302,30 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			List<StoreResource> tvShowsOrMoviesChildren = renderer.getMediaStore().getResources(tvShowsOrMoviesFolder.getId(), true);
 			StoreResource filterByInformationFolder = UMSUtils.getFirstResourceWithSystemName(tvShowsOrMoviesChildren, "FilterByInformation");
 
-			List<StoreResource> filterByInformationChildren = renderer.getMediaStore().getResources(filterByInformationFolder.getId(), true);
+			if (filterByInformationFolder != null) {
+				List<StoreResource> filterByInformationChildren = renderer.getMediaStore().getResources(filterByInformationFolder.getId(), true);
 
-			for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
-				StoreResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
-				switch (filterByInformationChild.getSystemName()) {
-					case "Actors" -> {
-						actorsFolder = filterByInformationChild;
-					}
-					case "Country" -> {
-						countriesFolder = filterByInformationChild;
-					}
-					case "Director" -> {
-						directorsFolder = filterByInformationChild;
-					}
-					case "Genres" -> {
-						genresFolder = filterByInformationChild;
-					}
-					case "Rated" -> {
-						ratedFolder = filterByInformationChild;
-					}
-					default -> {
-						//nothing to do
+				for (int filterByInformationChildrenIterator = 0; filterByInformationChildrenIterator < filterByInformationChildren.size(); filterByInformationChildrenIterator++) {
+					StoreResource filterByInformationChild = filterByInformationChildren.get(filterByInformationChildrenIterator);
+					switch (filterByInformationChild.getSystemName()) {
+						case "Actors" -> {
+							actorsFolder = filterByInformationChild;
+						}
+						case "Country" -> {
+							countriesFolder = filterByInformationChild;
+						}
+						case "Director" -> {
+							directorsFolder = filterByInformationChild;
+						}
+						case "Genres" -> {
+							genresFolder = filterByInformationChild;
+						}
+						case "Rated" -> {
+							ratedFolder = filterByInformationChild;
+						}
+						default -> {
+							//nothing to do
+						}
 					}
 				}
 			}

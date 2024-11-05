@@ -298,7 +298,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								}
 
 								// This block adds the first SQL query for non-TV series, and all queries for TV series
-								if (renderer.getUmsConfiguration().isUseInfoFromIMDb()) {
+								if (renderer.getUmsConfiguration().isUseInfoFromExternalAPI()) {
 									/*
 									* With TV series we manually add the SQL statements, otherwise we
 									* attempt to modify the incoming statements to make filtering versions.
@@ -347,7 +347,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									watchedSqls.add(watchedSql.toString());
 
 									// Adds modified versions of the query that filter by metadata
-									if (renderer.getUmsConfiguration().isUseInfoFromIMDb() && expectedOutput != TVSERIES_WITH_FILTERS) {
+									if (renderer.getUmsConfiguration().isUseInfoFromExternalAPI() && expectedOutput != TVSERIES_WITH_FILTERS) {
 										actorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR, i));
 										countriesSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY, i));
 										directorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR, i));
