@@ -47,7 +47,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 14;
+	private static final int TABLE_VERSION = 15;
 
 	/**
 	 * COLUMNS NAMES
@@ -59,6 +59,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	private static final String COL_BOOKMARK = "BOOKMARK";
 	private static final String COL_ISFULLYPLAYED = "ISFULLYPLAYED";
 	private static final String COL_PLAYCOUNT = "PLAYCOUNT";
+	private static final String COL_DATEADDED = "DATEADDED";
 	private static final String COL_DATELASTPLAY = "DATELASTPLAY";
 	private static final String COL_LASTPLAYBACKPOSITION = "LASTPLAYBACKPOSITION";
 
@@ -69,6 +70,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static final String TABLE_COL_USERID = TABLE_NAME + "." + COL_USERID;
 	public static final String TABLE_COL_ISFULLYPLAYED = TABLE_NAME + "." + COL_ISFULLYPLAYED;
 	public static final String TABLE_COL_PLAYCOUNT = TABLE_NAME + "." + COL_PLAYCOUNT;
+	public static final String TABLE_COL_DATEADDED = TABLE_NAME + "." + COL_DATEADDED;
 	public static final String TABLE_COL_DATELASTPLAY = TABLE_NAME + "." + COL_DATELASTPLAY;
 
 	/**
@@ -201,6 +203,10 @@ public final class MediaTableFilesStatus extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_USERID + INTEGER + DEFAULT_0);
 					executeUpdate(connection, CREATE_UNIQUE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")");
 				}
+				case 14 -> {
+					// add DATEADDED column
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATEADDED + TIMESTAMP + DEFAULT + CURRENT_TIMESTAMP);
+				}
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
@@ -219,15 +225,16 @@ public final class MediaTableFilesStatus extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
-				COL_ID                     + IDENTITY              + PRIMARY_KEY      + COMMA +
-				COL_FILENAME               + VARCHAR_1024          + NOT_NULL         + COMMA +
-				COL_USERID                 + INTEGER               + DEFAULT_0        + COMMA +
-				COL_MODIFIED               + TIMESTAMP                                + COMMA +
-				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE  + COMMA +
-				COL_BOOKMARK               + INTEGER               + DEFAULT_0        + COMMA +
-				COL_DATELASTPLAY           + TIMESTAMP                                + COMMA +
-				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0        + COMMA +
-				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D       +
+				COL_ID                     + IDENTITY              + PRIMARY_KEY                 + COMMA +
+				COL_FILENAME               + VARCHAR_1024          + NOT_NULL                    + COMMA +
+				COL_USERID                 + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_MODIFIED               + TIMESTAMP                                           + COMMA +
+				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE             + COMMA +
+				COL_BOOKMARK               + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_DATEADDED              + TIMESTAMP             + DEFAULT + CURRENT_TIMESTAMP + COMMA +
+				COL_DATELASTPLAY           + TIMESTAMP                                           + COMMA +
+				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D                  +
 			")",
 			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")",
 			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")"
