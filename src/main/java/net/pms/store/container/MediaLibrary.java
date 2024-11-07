@@ -116,7 +116,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 		MediaLibraryFolder recentlyAddedVideos = new MediaLibraryFolder(
 			renderer,
 			"RecentlyAdded",
-			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + COMMA + MediaTableFiles.TABLE_COL_DATEMODIFIED + DESC + LIMIT_100},
+			new String[]{SELECT_ALL + FROM_FILES_VIDEOMETA + WHERE + FORMAT_TYPE_VIDEO + ORDER_BY + MediaTableFiles.TABLE_COL_DATEADDED + DatabaseHelper.COMMA + MediaTableFiles.TABLE_COL_MODIFIED + DESC + LIMIT_100},
 			new int[]{FILES_NOSORT}
 		);
 		MediaLibraryFolder inProgressVideos = new MediaLibraryFolder(

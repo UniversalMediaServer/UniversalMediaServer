@@ -47,7 +47,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 15;
+	private static final int TABLE_VERSION = 14;
 
 	/**
 	 * COLUMNS NAMES
@@ -70,7 +70,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 	public static final String TABLE_COL_USERID = TABLE_NAME + "." + COL_USERID;
 	public static final String TABLE_COL_ISFULLYPLAYED = TABLE_NAME + "." + COL_ISFULLYPLAYED;
 	public static final String TABLE_COL_PLAYCOUNT = TABLE_NAME + "." + COL_PLAYCOUNT;
-	public static final String TABLE_COL_DATEADDED = TABLE_NAME + "." + COL_DATEADDED;
 	public static final String TABLE_COL_DATELASTPLAY = TABLE_NAME + "." + COL_DATELASTPLAY;
 
 	/**
@@ -203,10 +202,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_USERID + INTEGER + DEFAULT_0);
 					executeUpdate(connection, CREATE_UNIQUE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")");
 				}
-				case 14 -> {
-					// add DATEADDED column
-					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_DATEADDED + TIMESTAMP + DEFAULT + CURRENT_TIMESTAMP);
-				}
 				default -> throw new IllegalStateException(
 					getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 				);
@@ -231,7 +226,6 @@ public final class MediaTableFilesStatus extends MediaTable {
 				COL_MODIFIED               + TIMESTAMP                                           + COMMA +
 				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE             + COMMA +
 				COL_BOOKMARK               + INTEGER               + DEFAULT_0                   + COMMA +
-				COL_DATEADDED              + TIMESTAMP             + DEFAULT + CURRENT_TIMESTAMP + COMMA +
 				COL_DATELASTPLAY           + TIMESTAMP                                           + COMMA +
 				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0                   + COMMA +
 				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D                  +
