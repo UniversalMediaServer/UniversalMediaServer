@@ -430,7 +430,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
-	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
+	private static final String KEY_USE_API_INFO = "use_api_info";
 	private static final String KEY_USE_TMDB_INFO = "use_tmdb_info";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
@@ -487,7 +487,9 @@ public class UmsConfiguration extends BaseConfiguration {
 		new AbstractMap.SimpleEntry<>("fmpeg_sox", KEY_FFMPEG_SOX),
 		new AbstractMap.SimpleEntry<>("ALIVE_delay", KEY_UPNP_ALIVE_DELAY),
 		//since 14
-		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY)
+		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY),
+		//since 14.7
+		new AbstractMap.SimpleEntry<>("use_imdb_info", KEY_USE_API_INFO)
 	);
 
 	/**
@@ -4286,14 +4288,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
-	public boolean isUseInfoFromIMDb() {
-		return getBoolean(KEY_USE_IMDB_INFO, true);
-	}
-
-	public void setUseInfoFromIMDb(boolean value) {
-		configuration.setProperty(KEY_USE_IMDB_INFO, value);
-	}
-
 	public boolean isRunWizard() {
 		return getBoolean(KEY_RUN_WIZARD, true);
 	}
@@ -4595,6 +4589,18 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setExternalNetwork(boolean b) {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
+
+	public boolean isUseInfoFromExternalAPI() {
+		return isUseInfoFromUmsAPI() || isUseInfoFromTMDB();
+	}
+
+	public boolean isUseInfoFromUmsAPI() {
+		return getBoolean(KEY_USE_API_INFO, true);
+	}
+
+	public void setUseInfoFromUmsAPI(boolean value) {
+		configuration.setProperty(KEY_USE_API_INFO, value);
 	}
 
 	public boolean isUseInfoFromTMDB() {
@@ -5713,8 +5719,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_UPNP_ENABLED, true);
 		jObj.addProperty(KEY_UPNP_JUPNP_DIDL, false);
 		jObj.addProperty(KEY_UPNP_LOG_LEVEL, "1");
+		jObj.addProperty(KEY_USE_API_INFO, true);
 		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
-		jObj.addProperty(KEY_USE_IMDB_INFO, true);
 		jObj.addProperty(KEY_USE_TMDB_INFO, true);
 		jObj.addProperty(KEY_USE_SYMLINKS_TARGET_FILE, true);
 		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);
