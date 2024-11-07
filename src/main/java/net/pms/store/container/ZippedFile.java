@@ -17,44 +17,14 @@
 package net.pms.store.container;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.Enumeration;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 import net.pms.renderers.Renderer;
-import net.pms.store.StoreContainer;
 import net.pms.store.SystemFileResource;
-import net.pms.store.item.ZippedEntry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-public class ZippedFile extends StoreContainer implements SystemFileResource {
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedFile.class);
-	private final File file;
-	private ZipFile zip;
+public class ZippedFile extends ZippedFolder implements SystemFileResource {
 
 	public ZippedFile(Renderer renderer, File file) {
-		super(renderer, null, null);
-		this.file = file;
+		super(renderer, file, "");
 		setLastModified(file.lastModified());
-
-		try {
-			zip = new ZipFile(file);
-			Enumeration<? extends ZipEntry> enm = zip.entries();
-
-			while (enm.hasMoreElements()) {
-				ZipEntry ze = enm.nextElement();
-				addChild(new ZippedEntry(renderer, file, ze.getName(), ze.getSize()));
-			}
-
-			zip.close();
-		} catch (ZipException e) {
-			LOGGER.error("Error reading zip file", e);
-		} catch (IOException e) {
-			LOGGER.error("Error reading zip file", e);
-		}
 	}
 
 	@Override
@@ -70,11 +40,6 @@ public class ZippedFile extends StoreContainer implements SystemFileResource {
 	@Override
 	public String getSystemName() {
 		return file.getAbsolutePath();
-	}
-
-	@Override
-	public boolean isValid() {
-		return file.exists();
 	}
 
 	@Override

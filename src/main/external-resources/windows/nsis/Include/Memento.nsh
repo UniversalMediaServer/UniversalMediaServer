@@ -85,10 +85,13 @@ A usage example can be found in `Examples\Memento.nsi`.
 ;
 ;   Usage is similar to Section.
 ;
-;     ${MementoSection} "name" "some_id"
+;     ${MementoSection} "name" "id"
+;
+;     ${MementoSectionEx} "[flags]" "name" "memento_id" "section_id"
 ;
 
 !define MementoSection "!insertmacro MementoSection"
+!define MementoSectionEx "!insertmacro MementoSectionEx"
 
 ;
 ; ${MementoSectionEnd}
@@ -97,7 +100,7 @@ A usage example can be found in `Examples\Memento.nsi`.
 ;
 ;   Usage is similar to SectionEnd.
 ;
-;     ${MementoSection} "name" "some_id"
+;     ${MementoSection} "name" "id"
 ;        # some code...
 ;     ${MementoSectionEnd}
 ;
@@ -110,7 +113,7 @@ A usage example can be found in `Examples\Memento.nsi`.
 ;
 ;   Usage is similar to Section with the /o switch.
 ;
-;     ${MementoUnselectedSection} "name" "some_id"
+;     ${MementoUnselectedSection} "name" "id"
 ;
 
 !define MementoUnselectedSection "!insertmacro MementoUnselectedSection"
@@ -122,7 +125,7 @@ A usage example can be found in `Examples\Memento.nsi`.
 ;
 ;   Usage is similar to SectionEnd.
 ;
-;     ${MementoSection} "name" "some_id"
+;     ${MementoSection} "name" "id"
 ;        # some code...
 ;     ${MementoSectionEnd}
 ;
@@ -188,24 +191,26 @@ A usage example can be found in `Examples\Memento.nsi`.
 ;
 ; Replaceable macros that allow custom storage methods to be used.
 ;
+!define /IfNDef MementoSectionStorageSeparator '_'
 
 !ifmacrondef MementoSectionReadInt
 !define __MementoSectionStdRegReadWrite
+!define /IfNDef MementoSectionStoragePrefix "MementoSection"
 
 !macro MementoSectionReadInt outvar name
-ReadRegDWord ${outvar} ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${name}`
+ReadRegDWord ${outvar} ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `${MementoSectionStoragePrefix}${name}`
 !macroend
 
 !macro MementoSectionWriteInt name val
-WriteRegDWord ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${name}` `${val}`
+WriteRegDWord ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `${MementoSectionStoragePrefix}${name}` `${val}`
 !macroend
 
 !macro MementoSectionReadMarker outvar name
-ReadRegStr ${outvar} ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${name}`
+ReadRegStr ${outvar} ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `${MementoSectionStoragePrefix}${name}`
 !macroend
 
 !macro MementoSectionWriteMarker name
-WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${name}` ``
+WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `${MementoSectionStoragePrefix}${name}` ``
 !macroend
 
 !endif
@@ -232,7 +237,7 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
 
 !macroend
 
-!macro __MementoSection flags name id
+!macro __MementoSection flags name mementoid sectionid
 
   !insertmacro __MementoCheckSettings
 
@@ -242,11 +247,13 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
 
   !endif
 
-  !define __MementoSectionLastSectionId `${id}`
+  !define __MementoSectionLastMementoId `${mementoid}`
+  !define __MementoSectionLastSectionId `${sectionid}`
+  !define __MementoSectionLastFlags `${flags}`
 
   !verbose pop
 
-  Section ${flags} `${name}` `${id}`
+  Section ${flags} `${name}` `${sectionid}`
 
   !verbose push
   !verbose 3
@@ -257,12 +264,21 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
 ### User Macros                   ###
 #####################################
 
+!macro MementoSectionEx flags name mid sid
+  
+  !verbose push 3
+
+  !insertmacro __MementoSection `${flags}` `${name}` `${mid}` `${sid}`
+
+  !verbose pop
+
+!macroend
+
 !macro MementoSection name id
 
-  !verbose push
-  !verbose 3
+  !verbose push 3
 
-  !insertmacro __MementoSection "" `${name}` `${id}`
+  !insertmacro __MementoSection "" `${name}` `${id}` `${id}`
 
   !verbose pop
 
@@ -270,12 +286,9 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
 
 !macro MementoUnselectedSection name id
 
-  !verbose push
-  !verbose 3
+  !verbose push 3
 
-  !insertmacro __MementoSection /o `${name}` `${id}`
-
-  !define __MementoSectionUnselected
+  !insertmacro __MementoSection /o `${name}` `${id}` `${id}`
 
   !verbose pop
 
@@ -302,7 +315,7 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
   Function __MementoSectionMarkNew${__MementoSectionIndex}
 
     ClearErrors
-    !insertmacro MementoSectionReadInt $0 `_${__MementoSectionLastSectionId}`
+    !insertmacro MementoSectionReadInt $0 `${MementoSectionStorageSeparator}${__MementoSectionLastMementoId}`
 
     ${If} ${Errors}
 
@@ -318,7 +331,9 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
   Function __MementoSectionRestoreStatus${__MementoSectionIndex}
 
     ClearErrors
-    !insertmacro MementoSectionReadInt $0 `_${__MementoSectionLastSectionId}`
+    !insertmacro MementoSectionReadInt $0 `${MementoSectionStorageSeparator}${__MementoSectionLastMementoId}`
+
+    !searchparse /ignorecase /noerrors `${__MementoSectionLastFlags}-` `/o` __MementoSectionUnselected
 
     !ifndef __MementoSectionUnselected
 
@@ -359,11 +374,11 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
 
     ${If} ${SectionIsSelected} `${${__MementoSectionLastSectionId}}`
 
-      !insertmacro MementoSectionWriteInt `_${__MementoSectionLastSectionId}` 1
+      !insertmacro MementoSectionWriteInt `${MementoSectionStorageSeparator}${__MementoSectionLastMementoId}` 1
 
     ${Else}
 
-      !insertmacro MementoSectionWriteInt `_${__MementoSectionLastSectionId}` 0
+      !insertmacro MementoSectionWriteInt `${MementoSectionStorageSeparator}${__MementoSectionLastMementoId}` 0
 
     ${EndIf}
 
@@ -376,7 +391,9 @@ WriteRegStr ${MEMENTO_REGISTRY_ROOT} `${MEMENTO_REGISTRY_KEY}` `MementoSection${
   !define __MementoSectionIndex ${__MementoSectionIndexNext}
   !undef __MementoSectionIndexNext
 
+  !undef __MementoSectionLastMementoId
   !undef __MementoSectionLastSectionId
+  !undef __MementoSectionLastFlags
 
   !verbose pop
 

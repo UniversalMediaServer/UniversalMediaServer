@@ -424,11 +424,11 @@ public class GeneralTab {
 			});
 			builder.add(extNetBox).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
-			isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromIMDb());
+			isUseInfoFromAPI = new JCheckBox(Messages.getGuiString("UseInfoFromOurApi"), configuration.isUseInfoFromUmsAPI());
 			isUseInfoFromAPI.setToolTipText(Messages.getGuiString("UsesInformationApiAllowBrowsing"));
 			isUseInfoFromAPI.setContentAreaFilled(false);
 			isUseInfoFromAPI.setEnabled(configuration.getExternalNetwork());
-			isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromIMDb((e.getStateChange() == ItemEvent.SELECTED)));
+			isUseInfoFromAPI.addItemListener((ItemEvent e) -> configuration.setUseInfoFromUmsAPI((e.getStateChange() == ItemEvent.SELECTED)));
 			builder.add(isUseInfoFromAPI).at(FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			ypos += 2;
 			useInfoFromTMDB = new JCheckBox(Messages.getGuiString("UseInfoFromTMDB"), configuration.isUseInfoFromTMDB());

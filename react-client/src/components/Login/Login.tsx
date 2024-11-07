@@ -17,7 +17,7 @@
 import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { User, Lock } from 'tabler-icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
@@ -89,6 +89,11 @@ const Login = () => {
       }
     );
   };
+
+  //set the document Title to Login
+  useEffect(() => {
+    document.title="Universal Media Server - Login";
+  }, []);
 
   return (
     <Box style={{ maxWidth: 300 }} mx='auto'>
