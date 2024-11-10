@@ -43,7 +43,8 @@ public class AutoUpdateDialog extends JDialog {
 	private final AutoUpdater autoUpdater;
 	private final JLabel stateLabel = new JLabel();
 	private final JLabel changelogLinkLabel = new ChangelogLinkLabel();
-	private final JButton okButton = new DownloadButton();
+	private final JButton patreonDownloadButton;
+	private final JButton freeDownloadButton;
 	private final JButton cancelButton = new CancelButton();
 	private final JProgressBar downloadProgressBar = new JProgressBar();
 
@@ -59,6 +60,10 @@ public class AutoUpdateDialog extends JDialog {
 	AutoUpdateDialog(Window parent, AutoUpdater autoUpdater) {
 		super(parent, Messages.getGuiString("UniversalMediaServerAutoUpdate"));
 		this.autoUpdater = autoUpdater;
+
+		patreonDownloadButton = new PatreonDownloadButton(autoUpdater);
+		freeDownloadButton = new FreeDownloadButton(autoUpdater);
+
 		AutoUpdater.addChangeListener((ChangeEvent e) -> {
 			if (SwingUtilities.isEventDispatchThread()) {
 				throw new RuntimeException("Work is probably happening on event thread. Bad.");
@@ -71,14 +76,27 @@ public class AutoUpdateDialog extends JDialog {
 		update();
 	}
 
-	private class DownloadButton extends JButton {
-		DownloadButton() {
-			super(Messages.getGuiString("Download"));
+	private class FreeDownloadButton extends JButton {
+		FreeDownloadButton(AutoUpdater autoUpdater) {
+			super(Messages.getGuiString("Free") + ": " + autoUpdater.getLatestVersion());
 			setEnabled(false);
 			this.setRequestFocusEnabled(false);
 			addActionListener((ActionEvent e) -> {
 				autoUpdater.getUpdateFromNetwork();
 				autoUpdater.runUpdateAndExit();
+			});
+		}
+	}
+
+	private class PatreonDownloadButton extends JButton {
+		PatreonDownloadButton(AutoUpdater autoUpdater) {
+			super("Patreon: " + autoUpdater.getLatestVersionPatreon());
+			addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					PlatformUtils.INSTANCE.browseURI(autoUpdater.getPatreonDownloadUrl());
+					AutoUpdateDialog.this.setVisible(false);
+				}
 			});
 		}
 	}
@@ -134,7 +152,7 @@ public class AutoUpdateDialog extends JDialog {
 		}
 
 		stateLabel.setText(getStateText());
-		okButton.setEnabled(state == State.UPDATE_AVAILABLE);
+		freeDownloadButton.setEnabled(state == State.UPDATE_AVAILABLE);
 		cancelButton.setEnabled(state == State.DOWNLOAD_IN_PROGRESS || state == State.UPDATE_AVAILABLE);
 
 		updateCancelButton(state);
@@ -202,18 +220,22 @@ public class AutoUpdateDialog extends JDialog {
 							permissionsReminder += "<br>" + Messages.getGuiString("TryRunningAsAdministrator");
 						}
 						cancelButton.setText(Messages.getGuiString("Close"));
-						okButton.setEnabled(false);
-						okButton.setVisible(false);
+						freeDownloadButton.setEnabled(false);
+						freeDownloadButton.setVisible(false);
 					}
 				} catch (FileNotFoundException e) {
 					// This should never happen
 					permissionsReminder = "\n" + String.format(Messages.getGuiString("XNotFound"), file.getAbsolutePath());
 					cancelButton.setText(Messages.getGuiString("Close"));
-					okButton.setEnabled(false);
-					okButton.setVisible(false);
+					freeDownloadButton.setEnabled(false);
+					freeDownloadButton.setVisible(false);
 				}
 
-				return "<html>" + String.format(Messages.getGuiString("VersionXIsAvailable"), autoUpdater.getLatestVersion()) + permissionsReminder + "</html>";
+				return "<html>" +
+					"<p>" + String.format(Messages.getGuiString("VersionXIsAvailable"), autoUpdater.getLatestVersionPatreon()) + "</p>" +
+					permissionsReminder +
+					"<p>" + Messages.getGuiString("BuildsReleasedPatreonFirst") + "</p>" +
+					"</html>";
 			}
 			default -> {
 				return Messages.getGuiString("UnknownState");
@@ -257,7 +279,9 @@ public class AutoUpdateDialog extends JDialog {
 									GroupLayout.Alignment.TRAILING,
 									layout
 										.createSequentialGroup()
-										.addComponent(okButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+										.addComponent(patreonDownloadButton, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(freeDownloadButton, GroupLayout.PREFERRED_SIZE, 150, GroupLayout.PREFERRED_SIZE)
 										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
 										.addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
 								)
@@ -269,7 +293,7 @@ public class AutoUpdateDialog extends JDialog {
 				)
 		);
 
-		layout.linkSize(SwingConstants.HORIZONTAL, cancelButton, okButton);
+		layout.linkSize(SwingConstants.HORIZONTAL, cancelButton, freeDownloadButton, patreonDownloadButton);
 
 		layout.setVerticalGroup(
 			layout
@@ -288,7 +312,8 @@ public class AutoUpdateDialog extends JDialog {
 						.addGroup(
 							layout
 								.createParallelGroup(GroupLayout.Alignment.BASELINE)
-								.addComponent(okButton)
+								.addComponent(patreonDownloadButton)
+								.addComponent(freeDownloadButton)
 								.addComponent(cancelButton)
 						)
 						.addContainerGap()

@@ -282,6 +282,14 @@ public class AutoUpdater implements ProgressCallback {
 		return SERVER_PROPERTIES.getLatestVersion();
 	}
 
+	public Version getLatestVersionPatreon() {
+		return SERVER_PROPERTIES.getLatestVersionPatreon();
+	}
+
+	public String getPatreonDownloadUrl() {
+		return SERVER_PROPERTIES.getPatreonDownloadUrl();
+	}
+
 	private static String getTargetFilename() {
 		String filename = "new-version.";
 		String fileExtension = "tgz";
