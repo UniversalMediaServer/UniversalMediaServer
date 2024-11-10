@@ -35,7 +35,6 @@ import net.pms.platform.PlatformUtils;
 import net.pms.util.FileUtil;
 
 public class AutoUpdateDialog extends JDialog {
-
 	private static final long serialVersionUID = 3809427933990495309L;
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 
@@ -43,7 +42,7 @@ public class AutoUpdateDialog extends JDialog {
 
 	private final AutoUpdater autoUpdater;
 	private final JLabel stateLabel = new JLabel();
-	private final JLabel hyperLinkLabel = new HyperLinkLabel();
+	private final JLabel changelogLinkLabel = new ChangelogLinkLabel();
 	private final JButton okButton = new DownloadButton();
 	private final JButton cancelButton = new CancelButton();
 	private final JProgressBar downloadProgressBar = new JProgressBar();
@@ -101,8 +100,8 @@ public class AutoUpdateDialog extends JDialog {
 		}
 	}
 
-	private class HyperLinkLabel extends JLabel {
-		HyperLinkLabel() {
+	private class ChangelogLinkLabel extends JLabel {
+		ChangelogLinkLabel() {
 			super(Messages.getGuiString("ClickHereSeeChangesRelease"));
 			setForeground(Color.BLUE.darker());
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -245,12 +244,56 @@ public class AutoUpdateDialog extends JDialog {
 		GroupLayout layout = new GroupLayout(getContentPane());
 		getContentPane().setLayout(layout);
 		layout.setHorizontalGroup(
-				layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(layout.createSequentialGroup().addContainerGap().addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addComponent(okButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.RELATED).addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)).addComponent(stateLabel).addComponent(hyperLinkLabel).addComponent(downloadProgressBar, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)).addContainerGap()));
+			layout
+				.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(
+					layout
+						.createSequentialGroup()
+						.addContainerGap()
+						.addGroup(
+							layout
+								.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addGroup(
+									GroupLayout.Alignment.TRAILING,
+									layout
+										.createSequentialGroup()
+										.addComponent(okButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
+										.addComponent(cancelButton, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+								)
+								.addComponent(stateLabel)
+								.addComponent(changelogLinkLabel)
+								.addComponent(downloadProgressBar, GroupLayout.DEFAULT_SIZE, 446, Short.MAX_VALUE)
+						)
+						.addContainerGap()
+				)
+		);
 
 		layout.linkSize(SwingConstants.HORIZONTAL, cancelButton, okButton);
 
 		layout.setVerticalGroup(
-			layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(GroupLayout.Alignment.TRAILING, layout.createSequentialGroup().addContainerGap().addComponent(stateLabel).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(hyperLinkLabel).addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED).addComponent(downloadProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE).addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED).addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE).addComponent(okButton).addComponent(cancelButton)).addContainerGap()));
+			layout
+				.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(
+					GroupLayout.Alignment.TRAILING,
+					layout
+						.createSequentialGroup()
+						.addContainerGap()
+						.addComponent(stateLabel)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(changelogLinkLabel)
+						.addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+						.addComponent(downloadProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+						.addPreferredGap(LayoutStyle.ComponentPlacement.UNRELATED)
+						.addGroup(
+							layout
+								.createParallelGroup(GroupLayout.Alignment.BASELINE)
+								.addComponent(okButton)
+								.addComponent(cancelButton)
+						)
+						.addContainerGap()
+				)
+		);
 
 		pack();
 	}
