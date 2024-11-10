@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
  * @author Tim Cox (mail@tcox.org)
  */
 public class AutoUpdater implements ProgressCallback {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final EventListenerList LISTENERS = new EventListenerList();
@@ -51,7 +50,6 @@ public class AutoUpdater implements ProgressCallback {
 	private final String serverUrl;
 	private final Object stateLock = new Object();
 	private final Version currentVersion;
-	private final String binariesRevision;
 	private final Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
 	private Throwable errorStateCause;
@@ -76,7 +74,6 @@ public class AutoUpdater implements ProgressCallback {
 	public AutoUpdater(String updateServerUrl, String currentVersion, String binariesRevision) {
 		this.serverUrl = updateServerUrl; // may be null if updating is disabled
 		this.currentVersion = new Version(currentVersion);
-		this.binariesRevision = binariesRevision;
 	}
 
 	public void pollServer() {
