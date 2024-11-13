@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
+- Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
 - Bump `eslint-plugin-react-refresh` from 0.4.13 to 0.4.14 ([#5092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5092))
 
 ## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
