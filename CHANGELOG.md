@@ -3,6 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@mantine/core` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
+- Bump `@mantine/dropzone` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
+- Bump `@mantine/form` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
+- Bump `@mantine/hooks` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
+- Bump `@mantine/modals` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
+- Bump `@mantine/notifications` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
 - Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
 - Bump `eslint-plugin-react-refresh` from 0.4.13 to 0.4.14 ([#5092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5092))
 
