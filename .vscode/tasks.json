@@ -4,12 +4,10 @@
 		{
 			"label": "copy website",
 			"type": "shell",
+			"command": "cp -a ${workspaceFolder}/src/main/external-resources/web/. ${workspaceFolder}/web",
 			"windows": {
 				// Default terminal profile must be Powershell
 				"command": "Copy-Item -Path ${workspaceFolder}/src/main/external-resources/web -Destination ${workspaceFolder} -Recurse -Force"
-			},
-			"linux": {
-				"command": "cp -a ${workspaceFolder}/src/main/external-resources/web/. ${workspaceFolder}/web"
 			},
 			"presentation": {
 				"echo": true,
