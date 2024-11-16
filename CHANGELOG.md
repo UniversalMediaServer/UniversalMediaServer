@@ -11,6 +11,7 @@
 - Bump `@mantine/modals` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
 - Bump `@mantine/notifications` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
 - Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
+- Bump `cross-spawn` from 7.0.3 to 7.0.5 ([#5112](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5112))
 - Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
 - Bump `eslint-plugin-react-refresh` from 0.4.13 to 0.4.14 ([#5092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5092))
 - Bump `typescript-eslint` from 8.12.1 to 8.14.0 ([#5106](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5106))
