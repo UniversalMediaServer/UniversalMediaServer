@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
 - Bump `@mantine/core` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
 - Bump `@mantine/dropzone` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
 - Bump `@mantine/form` from 7.13.4 to 7.14.0 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108))
