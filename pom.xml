@@ -113,7 +113,7 @@
 		-->
 		<jna-version>5.15.0</jna-version>
 
-		<jetty.version>12.0.14</jetty.version>
+		<jetty.version>12.0.15</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
