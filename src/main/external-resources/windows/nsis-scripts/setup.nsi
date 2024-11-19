@@ -524,6 +524,7 @@ Section "Program Files"
 	${If} $InstallType == "PORTABLE"
 		SetOutPath "$INSTDIR\portable"
 		CreateDirectory "$INSTDIR\portable\data"
+		CreateDirectory "$INSTDIR\portable\renderers"
 		; Store maximum memory limit
 		ClearErrors
 		FileOpen $1 "$INSTDIR\portable\data\heapmem.conf" w
@@ -550,6 +551,7 @@ Section "Program Files"
 		WriteRegDWORD SHCTX "${REG_KEY_UNINSTALL}" "EstimatedSize" "$0"
 		SetOutPath "$LOCALAPPDATA\UMS"
 		CreateDirectory "$LOCALAPPDATA\UMS\data"
+		CreateDirectory "$LOCALAPPDATA\UMS\renderers"
 		${If} $InstallType == "SYSTEM"
 			AccessControl::GrantOnFile "$LOCALAPPDATA\UMS" "(S-1-5-32-545)" "FullAccess"
 		${EndIf}
