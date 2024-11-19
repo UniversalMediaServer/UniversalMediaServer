@@ -113,7 +113,6 @@
 		-->
 		<jna-version>5.15.0</jna-version>
 
-		<jetty.version>12.0.14</jetty.version>
 		<maven.compiler.release>${project.jre-version}</maven.compiler.release>
 	</properties>
 	<dependencies>
@@ -586,7 +585,7 @@
 		<dependency>
 			<groupId>com.zaxxer</groupId>
 			<artifactId>HikariCP</artifactId>
-			<version>6.0.0</version>
+			<version>6.1.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -649,7 +648,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.14</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -660,7 +659,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.14</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -671,7 +670,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>${jetty.version}</version>
+			<version>12.0.14</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>

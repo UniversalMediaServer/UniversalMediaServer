@@ -276,8 +276,8 @@ public class APIUtils {
 			return false;
 		}
 
-		if (!CONFIGURATION.isUseInfoFromIMDb()) {
-			LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
+		if (!CONFIGURATION.isUseInfoFromUmsAPI()) {
+			LOGGER.trace("Not doing background API lookup because isUseInfoFromUmsAPI is disabled");
 			return false;
 		}
 

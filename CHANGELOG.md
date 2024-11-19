@@ -3,7 +3,18 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
+- Bump `@mantine/core` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/dropzone` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/form` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/hooks` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/modals` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/notifications` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
+- Bump `cross-spawn` from 7.0.3 to 7.0.5 ([#5112](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5112))
+- Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
 - Bump `eslint-plugin-react-refresh` from 0.4.13 to 0.4.14 ([#5092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5092))
+- Bump `typescript-eslint` from 8.12.1 to 8.14.0 ([#5106](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5106))
 
 ## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
 

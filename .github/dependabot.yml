@@ -34,6 +34,9 @@ updates:
     schedule:
       interval: "weekly"
     groups:
+      jetty:
+        patterns:
+        - "*jetty*"
       junit:
         patterns:
         - "*junit*"
