@@ -325,36 +325,55 @@ Function CreateDesktopShortcut
 	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
 FunctionEnd
 
-Function CleanInstall
+Function CheckCleanInstall
 	${If} $InstallType == "SYSTEM"
 	${OrIf} $InstallType == "USER"
 		${If} $CurrentInstallType == "SYSTEM"
-			ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-			RMDir /r $R1\UMS
-			RMDir /r $TEMP\fontconfig
-			RMDir /r $LOCALAPPDATA\fontconfig
-			RMDir /r $INSTDIR
-			DeleteRegValue SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision"
+			SetShellVarContext all
+			Call CleanInstall
 		${ElseIf} $CurrentInstallType == "USER"
-			ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-			ReadENVStr $R1 ALLUSERSPROFILE
-			RMDir /r $R1\UMS
-			RMDir /r $TEMP\fontconfig
-			RMDir /r $LOCALAPPDATA\fontconfig
-			RMDir /r $INSTDIR
-			DeleteRegValue SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision"
+			SetShellVarContext current
+			Call CleanInstall
 		${EndIf}
+	${EndIf}
+FunctionEnd
+
+Function CleanInstall
+	;context dependent, delete everything because the user may have changed it
+	ReadRegStr $0 SHCTX "${REG_KEY_SOFTWARE}" ""
+	${If} $0 != ""
+		RMDir /r $0
+	${EndIf}
+	RMDir /r $LOCALAPPDATA\UMS
+	RMDir /r $INSTDIR
+	DeleteRegKey SHCTX "${REG_KEY_SOFTWARE}"
+	DeleteRegKey SHCTX "${REG_KEY_UNINSTALL}"
+	${If} $CurrentInstallType == "SYSTEM"
+		SimpleSC::ExistsService "${SERVICE_NAME}"
+		Pop $0
+		${If} $0 != 0
+			SimpleSC::StopService "${SERVICE_NAME}" 1 30
+			SimpleSC::RemoveService "${SERVICE_NAME}"
+			DeleteRegKey SHCTX "SYSTEM\CurrentControlSet\Services\${SERVICE_NAME}"
+		${EndIf}
+	${EndIf}
+	;put back context
+	${If} $InstallType == "SYSTEM"
+		SetShellVarContext all
+	${Else}
+		SetShellVarContext current
 	${EndIf}
 FunctionEnd
 
 Function FixSystemInstall
 	${If} $InstallType == "UPDATE"
 	${AndIf} $CurrentInstallType == "SYSTEM"
-		ReadRegStr $0 HKLM "${REG_KEY_SOFTWARE}" ""
-		StrCmp $0 "$PROGRAMFILES\${PROJECT_NAME}" 0 +3
+		StrCmp $INSTDIR "$PROGRAMFILES\${PROJECT_NAME}" 0 +3
 		StrCpy $INSTDIR "$PROGRAMFILES64\${PROJECT_NAME}"
 		Rename $0 $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" $INSTDIR
+		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
+		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "UninstallString" '"$INSTDIR\uninst.exe"'
 	${EndIf}
 FunctionEnd
 
@@ -461,7 +480,7 @@ FunctionEnd
 
 Section "Program Files"
 	; clean if needed
-	Call CleanInstall
+	Call CheckCleanInstall
 	Call FixSystemInstall
 
 	Call DeleteOldFiles
