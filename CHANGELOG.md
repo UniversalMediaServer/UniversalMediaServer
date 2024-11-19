@@ -10,6 +10,7 @@
 - Bump `@mantine/hooks` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
 - Bump `@mantine/modals` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
 - Bump `@mantine/notifications` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `com.fasterxml.jackson.core:jackson-databind` from 2.18.0 to 2.18.1 ([#5078](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5078))
 - Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
 - Bump `cross-spawn` from 7.0.3 to 7.0.5 ([#5112](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5112))
 - Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
