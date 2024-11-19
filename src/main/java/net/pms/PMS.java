@@ -139,7 +139,6 @@ public class PMS {
 
 	public static final String NAME = "Universal Media Server";
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
-	public static final String AVS_SEPARATOR = "\1";
 
 	/**
 	 * Pointer to a running UMS server.
@@ -560,8 +559,8 @@ public class PMS {
 			}
 		}
 
-		String profilePath = umsConfiguration.getProfilePath();
-		String profileDirectoryPath = umsConfiguration.getProfileDirectory();
+		String profilePath = UmsConfiguration.getProfilePath();
+		String profileDirectoryPath = UmsConfiguration.getProfileDirectory();
 
 		LOGGER.info("");
 		LOGGER.info("Profile directory: {}", profileDirectoryPath);
@@ -881,13 +880,14 @@ public class PMS {
 				LOGGER.warn("Specified profile ({}) doesn't exist - using default profile", profilePath.getAbsolutePath());
 			} else {
 				LOGGER.debug("Using specified profile: {}", profilePath.getAbsolutePath());
-				System.setProperty("ums.profile.path", profilePath.getAbsolutePath());
+				System.setProperty(UmsConfiguration.PROPERTY_PROFILE_PATH, profilePath.getAbsolutePath());
 			}
 		} else if (!isHeadless() && displayProfileChooser) {
 			ProfileChooser.display();
 		}
 
 		try {
+			LOGGER.debug("Loading {} profile: {}", UmsConfiguration.getProfileType(), UmsConfiguration.getProfilePath());
 			umsConfiguration = new UmsConfiguration();
 			assert umsConfiguration != null;
 

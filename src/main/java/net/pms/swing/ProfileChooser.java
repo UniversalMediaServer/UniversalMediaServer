@@ -20,6 +20,7 @@ import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 import net.pms.Messages;
+import net.pms.configuration.UmsConfiguration;
 
 public class ProfileChooser {
 
@@ -54,7 +55,7 @@ public class ProfileChooser {
 
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			File file = fc.getSelectedFile();
-			System.setProperty("ums.profile.path", file.getAbsolutePath());
+			System.setProperty(UmsConfiguration.PROPERTY_PROFILE_PATH, file.getAbsolutePath());
 		} // else the open command was cancelled by the user
 	}
 
