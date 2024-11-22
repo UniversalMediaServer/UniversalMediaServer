@@ -1068,6 +1068,7 @@ public class FFMpegVideo extends Engine {
 				LOGGER.warn(prependTraceReason + "the configured executable isn't available.");
 			} else if (params.getTimeSeek() > 0) {
 				deferToTsmuxer = false;
+				// this condition can be removed when https://github.com/UniversalMediaServer/UniversalMediaServer/issues/5113 is fixed
 				LOGGER.debug(prependTraceReason + "the renderer will display a blank screen, no good explanation for this yet.");
 			}
 			if (deferToTsmuxer) {
