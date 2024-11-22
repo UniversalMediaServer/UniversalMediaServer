@@ -169,7 +169,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 	@Override
 	public void run() {
-		LOGGER.debug("Waiting for Windows names pipe connection \"{}\"", path);
+		LOGGER.debug("Waiting for Windows named pipe connection \"{}\"", path);
 		boolean b1 = Kernel32.INSTANCE.ConnectNamedPipe(handle1, null);
 
 		if (forceReconnect) {

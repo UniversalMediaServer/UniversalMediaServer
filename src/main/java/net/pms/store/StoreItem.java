@@ -504,8 +504,13 @@ public abstract class StoreItem extends StoreResource {
 				LOGGER.debug(prependTranscodingReason + "it is not supported by the renderer {}", getName(),
 						renderer.getRendererName());
 			} else if (renderer.getUmsConfiguration().isEncodedAudioPassthrough()) {
-				if (mediaAudio != null && (FormatConfiguration.AC3.equals(mediaAudio.getAudioCodec()) ||
-						FormatConfiguration.DTS.equals(mediaAudio.getAudioCodec()))) {
+				if (
+					mediaAudio != null &&
+					(
+						FormatConfiguration.AC3.equals(mediaAudio.getAudioCodec()) ||
+						FormatConfiguration.DTS.equals(mediaAudio.getAudioCodec())
+					)
+				) {
 					isIncompatible = true;
 					LOGGER.debug(prependTranscodingReason + "the audio will use the encoded audio passthrough feature", getName());
 				} else {
@@ -774,12 +779,9 @@ public abstract class StoreItem extends StoreResource {
 	 * @throws IOException
 	 */
 	public synchronized InputStream getInputStream(Range range, HlsHelper.HlsConfiguration hlsConfiguration) throws IOException {
-		// Use device-specific UMS conf, if any
-		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and engine " + getTranscodingSettings());
+		LOGGER.trace("Asked stream chunk: " + range + " of " + getName() + " and engine " + getTranscodingSettings());
 
-		// shagrath: small fix, regression on chapters
 		boolean timeseekAuto = false;
-		// Ditlew - WDTV Live
 		// Ditlew - We convert byteoffset to timeoffset here. This needs the
 		// stream to be CBR!
 		int cbrVideoBitrate = renderer.getCBRVideoBitrate();
@@ -803,7 +805,6 @@ public abstract class StoreItem extends StoreResource {
 				int rewindSecs = renderer.getByteToTimeseekRewindSeconds();
 				timeRange.rewindStart(rewindSecs);
 
-				// shagrath:
 				timeseekAuto = true;
 			}
 		}
