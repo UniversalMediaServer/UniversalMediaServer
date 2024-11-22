@@ -93,7 +93,7 @@ Function InstallTypeShow
 		${NSD_OnClick} $MoreInstallButton EnableMoreInstallGroup		
 		${NSD_CreateHLine} 0% 40% 100% 12u ""
 		Pop $MoreInstallLine
-		${NSD_CreateLabel} 0% 45% 100% 20u "Warning ! Selecting one of the following options will delete the ${PROJECT_NAME}'s configuration directory, program directory and font cache."
+		${NSD_CreateLabel} 0% 45% 100% 20u "Warning! Selecting one of the following options will delete ${PROJECT_NAME}'s configuration directory, program directory and font cache."
 		Pop $MoreInstallWarning
 		${NSD_CreateAdditionalRadioButton} 0% 60% 100% 12u "Clean install (All users)"
 		pop $InstallSystemButton
