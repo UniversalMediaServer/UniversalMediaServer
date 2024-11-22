@@ -1325,6 +1325,17 @@
 									<goal>make</goal>
 								</goals>
 							</execution>
+							<execution>
+								<id>build-setup-windows-x86</id>
+								<configuration>
+									<outputFile>${project.build.directory}/${project.name.short}-setup-x86.exe</outputFile>
+									<scriptFile>${project.build.directory}/setup-old.nsi</scriptFile>
+								</configuration>
+								<phase>package</phase>
+								<goals>
+									<goal>make</goal>
+								</goals>
+							</execution>
 						</executions>
 					</plugin>
 				</plugins>

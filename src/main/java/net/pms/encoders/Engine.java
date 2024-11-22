@@ -68,6 +68,7 @@ public abstract class Engine {
 	public static final int VIDEO_WEBSTREAM_ENGINE = 2;
 	public static final int AUDIO_WEBSTREAM_ENGINE = 3;
 	public static final int MISC_ENGINE = 4;
+	public static final String AVS_SEPARATOR = "\1";
 
 	/** The final {@link ExternalProgramInfo} instance set in the constructor */
 	@Nonnull

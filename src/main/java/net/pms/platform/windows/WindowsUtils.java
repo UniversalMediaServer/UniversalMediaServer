@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
 import net.pms.io.IPipeProcess;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -347,12 +348,23 @@ public class WindowsUtils extends PlatformUtils {
 			if (defaultFolders == null) {
 				// Lazy initialization
 				List<Path> result = new ArrayList<>();
+				//if Windows Vista or newer
 				if (OS_VERSION.isGreaterThanOrEqualTo("6.0.0")) {
-					List<GUID> knownFolders = List.of(
-						KnownFolders.FOLDERID_MUSIC,
-						KnownFolders.FOLDERID_PICTURES,
-						KnownFolders.FOLDERID_VIDEOS
-					);
+					List<GUID> knownFolders;
+					if (UmsConfiguration.isUserProfile()) {
+						knownFolders = List.of(
+							KnownFolders.FOLDERID_MUSIC,
+							KnownFolders.FOLDERID_PICTURES,
+							KnownFolders.FOLDERID_VIDEOS
+						);
+					} else {
+						knownFolders = List.of(
+							KnownFolders.FOLDERID_PUBLIC_MUSIC,
+							KnownFolders.FOLDERID_PUBLIC_PICTURES,
+							KnownFolders.FOLDERID_PUBLIC_VIDEOS
+						);
+					}
+
 					for (GUID guid : knownFolders) {
 						Path folder = getWindowsKnownFolder(guid);
 						if (folder != null) {
@@ -360,13 +372,14 @@ public class WindowsUtils extends PlatformUtils {
 						}
 					}
 				} else {
+					//Windows XP
 					CSIDL[] csidls = {
 						CSIDL.CSIDL_MYMUSIC,
 						CSIDL.CSIDL_MYPICTURES,
 						CSIDL.CSIDL_MYVIDEO
 					};
 					for (CSIDL csidl : csidls) {
-						Path folder = getWindowsFolder(csidl);
+						Path folder = CSIDL.getWindowsFolder(csidl);
 						if (folder != null) {
 							result.add(folder);
 						}
@@ -596,35 +609,6 @@ public class WindowsUtils extends PlatformUtils {
 			LOGGER.debug("Default folder \"{}\" not found: {}", guid, e.getMessage());
 		} catch (InvalidPathException e) {
 			LOGGER.error("Unexpected error while resolving default Windows folder with GUID {}: {}", guid, e.getMessage());
-			LOGGER.trace("", e);
-		}
-		return null;
-	}
-
-	@Nullable
-	private static Path getWindowsFolder(@Nullable CSIDL csidl) {
-		if (csidl == null) {
-			return null;
-		}
-		try {
-			String folderPath = Shell32Util.getFolderPath(csidl.getValue());
-			if (StringUtils.isNotBlank(folderPath)) {
-				Path folder = Paths.get(folderPath);
-				FilePermissions permissions;
-				try {
-					permissions = new FilePermissions(folder);
-					if (permissions.isBrowsable()) {
-						return folder;
-					}
-					LOGGER.warn("Insufficient permissions to read default folder \"{}\"", csidl);
-				} catch (FileNotFoundException e) {
-					LOGGER.debug("Default folder \"{}\" not found", folder);
-				}
-			}
-		} catch (Win32Exception e) {
-			LOGGER.debug("Default folder \"{}\" not found: {}", csidl, e.getMessage());
-		} catch (InvalidPathException e) {
-			LOGGER.error("Unexpected error while resolving default Windows folder with id {}: {}", csidl, e.getMessage());
 			LOGGER.trace("", e);
 		}
 		return null;
