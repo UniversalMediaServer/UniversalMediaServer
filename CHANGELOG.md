@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### General
+- Added keyboard shortcuts for web player (#5081) (thanks, @SpitFire-666!)
+- Added titles to the web player and settings (#5039) (thanks, @SpitFire-666!)
+- Added Patreon button to automatic updater, to allow our patrons to update more easily
+- Added new x86-64 Windows installer
+- Added portable install option to the new Windows installer
+- Added current user install option to new Windows installer
+- Added update mode to new Windows installer
+- Changed default shared folders on Linux to the user's video/music/pictures instead of their home folder (#5095) (thanks, ryncor21!)
+- Improved browsing performance
+- Fixed UPnP genre
+- Fixed excessive logging by default
+- Fixed archive file handling (#5025) (thanks, seisuke!)
+- Fixed not parsing media in archives
+- Fixed web player not working when API lookups are disabled (#5094) (thanks, ryncor21!)
+- Fixed VS Code debugging missing task on macOS
+- Fixed not using all users installation directory on Windows
+- Fixed all users install on Windows not sharing all users directory
+
+### Media players
+- Renamed VLC iOS renderer to indicate it is for macOS too
+- Fixed seeking in transocded videos on LG TVs
+
 ### Dependencies
 - Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
 - Bump `@mantine/core` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
