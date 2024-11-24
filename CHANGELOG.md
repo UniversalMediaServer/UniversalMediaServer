@@ -5,7 +5,8 @@
 ### General
 - Added keyboard shortcuts for web player (#5081) (thanks, @SpitFire-666!)
 - Added titles to the web player and settings (#5039) (thanks, @SpitFire-666!)
-- Added Patreon button to automatic updater, to allow our patrons to update more easily
+- Added Patreon button to automatic updater, to allow our patrons to update more easily:
+  ![updated automatic updater](./changelog-images/14.8.0-auto-update.png)
 - Added new x86-64 Windows installer
 - Added portable install option to the new Windows installer
 - Added current user install option to new Windows installer
@@ -23,7 +24,7 @@
 
 ### Media players
 - Renamed VLC iOS renderer to indicate it is for macOS too
-- Fixed seeking in transocded videos on LG TVs
+- Fixed seeking in transcoded videos on LG TVs
 
 ### Dependencies
 - Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
