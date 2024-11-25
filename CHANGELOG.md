@@ -35,6 +35,7 @@
 - Bump `@mantine/modals` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
 - Bump `@mantine/notifications` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
 - Bump `@types/lodash` from 4.17.12 to 4.17.13 ([#5090](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5090))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.19.0 to 10.20.1 ([#5128](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5128))
 - Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.2.1 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104), [#5123](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5123))
 - Bump `cross-spawn` from 7.0.3 to 7.0.5 ([#5112](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5112))
 - Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
