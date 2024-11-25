@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [14.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-11-25)
 
 ### General
 - Added keyboard shortcuts for web player (#5081) (thanks, @SpitFire-666!)
@@ -25,6 +25,16 @@
 ### Media players
 - Renamed VLC iOS renderer to indicate it is for macOS too
 - Fixed seeking in transcoded videos on LG TVs
+
+### Translation updates via Crowdin
+- Czech (100%)
+- Finnish (67%) (thanks, Esko Gardner!)
+- Hungarian (89%) (thanks, Zoltán Rózsa!)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (80%) (thanks, Filipe Boleto!)
+- Russian (91%) (thanks, Dmitry Yerokhin!)
+- Slovak (48%) (thanks, Patrn!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
 - Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
