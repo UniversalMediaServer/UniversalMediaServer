@@ -566,8 +566,8 @@ public class SearchRequestHandler {
 									String realFileName = resultSet.getString("FILENAME");
 									if (realFileName != null) {
 										StoreResource res = DbIdResourceLocator.getLibraryResourceRealFile(renderer, realFileName);
-										res.resolve();
 										if (res != null) {
+											res.resolve();
 											result.add(res);
 										}
 									}
