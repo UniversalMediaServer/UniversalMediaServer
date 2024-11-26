@@ -95,12 +95,14 @@ public class FileUtil {
 	 * @since 1.90.0
 	 */
 	public static final class FileLocation {
-		private String directoryPath;
-		private String filePath;
+		private final String directoryPath;
+		private final String filePath;
+		private final boolean isCustom;
 
-		FileLocation(File directory, File file) {
+		FileLocation(File directory, File file, boolean isCustom) {
 			this.directoryPath = FilenameUtils.normalize(directory.getAbsolutePath());
 			this.filePath = FilenameUtils.normalize(file.getAbsolutePath());
+			this.isCustom = isCustom;
 		}
 
 		public String getDirectoryPath() {
@@ -109,6 +111,10 @@ public class FileUtil {
 
 		public String getFilePath() {
 			return filePath;
+		}
+
+		public boolean isCustom() {
+			return isCustom;
 		}
 	}
 
@@ -139,6 +145,7 @@ public class FileUtil {
 		File customFile = null;
 		File directory = null;
 		File file = null;
+		boolean isCustom = true;
 
 		if (isBlank(defaultBasename)) {
 			// shouldn't get here
@@ -175,9 +182,10 @@ public class FileUtil {
 		if (directory == null || file == null) {
 			directory = new File(defaultDirectory).getAbsoluteFile();
 			file = new File(directory, defaultBasename).getAbsoluteFile();
+			isCustom = false;
 		}
 
-		return new FileLocation(directory, file);
+		return new FileLocation(directory, file, isCustom);
 	}
 
 	public static final class InvalidFileSystemException extends Exception {

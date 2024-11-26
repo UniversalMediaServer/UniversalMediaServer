@@ -1,10 +1,61 @@
 # Changelog
 
-## [Unreleased]
+## [14.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-11-25)
+
+### General
+- Added keyboard shortcuts for web player (#5081) (thanks, @SpitFire-666!)
+- Added titles to the web player and settings (#5039) (thanks, @SpitFire-666!)
+- Added Patreon button to automatic updater, to allow our patrons to update more easily:
+  ![updated automatic updater](./changelog-images/14.8.0-auto-update.png)
+- Added new x86-64 Windows installer
+- Added portable install option to the new Windows installer
+- Added current user install option to new Windows installer
+- Added update mode to new Windows installer
+- Changed default shared folders on Linux to the user's video/music/pictures instead of their home folder (#5095) (thanks, ryncor21!)
+- Improved browsing performance
+- Fixed UPnP genre
+- Fixed excessive logging by default
+- Fixed archive file handling (#5025) (thanks, seisuke!)
+- Fixed not parsing media in archives
+- Fixed web player not working when API lookups are disabled (#5094) (thanks, ryncor21!)
+- Fixed VS Code debugging missing task on macOS
+- Fixed not using all users installation directory on Windows
+- Fixed all users install on Windows not sharing all users directory
+
+### Media players
+- Renamed VLC iOS renderer to indicate it is for macOS too
+- Fixed seeking in transcoded videos on LG TVs
+
+### Translation updates via Crowdin
+- Czech (100%)
+- Finnish (67%) (thanks, Esko Gardner!)
+- Hungarian (89%) (thanks, Zoltán Rózsa!)
+- Korean (100%) (thanks, VenusGirl!)
+- Portuguese (80%) (thanks, Filipe Boleto!)
+- Russian (91%) (thanks, Dmitry Yerokhin!)
+- Slovak (48%) (thanks, Patrn!)
+- Turkish (100%) (thanks, Burak Yavuz!)
 
 ### Dependencies
-- Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.1.0 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104))
+- Bump `@eslint/plugin-kit` from 0.2.0 to 0.2.3 ([#5110](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5110))
+- Bump `@mantine/core` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/dropzone` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/form` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/hooks` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/modals` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@mantine/notifications` from 7.13.4 to 7.14.1 ([#5108](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5108), [#5116](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5116))
+- Bump `@types/lodash` from 4.17.12 to 4.17.13 ([#5090](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5090))
+- Bump `com.zaxxer:HikariCP` from 6.0.0 to 6.2.1 ([#5104](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5104), [#5123](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5123))
+- Bump `cross-spawn` from 7.0.3 to 7.0.5 ([#5112](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5112))
+- Bump `eslint-plugin-react-hooks` from 4.6.2 to 5.0.0 ([#5031](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5031))
 - Bump `eslint-plugin-react-refresh` from 0.4.13 to 0.4.14 ([#5092](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5092))
+- Bump `org.eclipse.jetty:jetty-client` from 12.0.14 to 12.0.15 ([#5122](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5122))
+- Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.14 to 12.0.15 ([#5122](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5122))
+- Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.14 to 12.0.15 ([#5122](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5122))
+- Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.2 to 5.11.3 ([#5087](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5087))
+- Bump `react-router-dom` from 6.27.0 to 6.28.0 ([#5118](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5118))
+- Bump `typescript-eslint` from 8.12.1 to 8.14.0 ([#5106](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5106))
+- Bump `vite` from 5.4.9 to 5.4.11 ([#5107](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5107))
 
 ## [14.7.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.6.0...14.7.0) (2024-10-29)
 

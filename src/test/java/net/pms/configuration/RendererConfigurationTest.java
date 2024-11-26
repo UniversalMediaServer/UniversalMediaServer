@@ -411,7 +411,7 @@ public class RendererConfigurationTest {
 		);
 
 		testHeaders(
-			"VLC for iOS",
+			"VLC for iOS or macOS",
 			"User-Agent: VLC%20for%20iOS/447 CFNetwork/1399 Darwin/22.1.0",
 			"User-Agent: Darwin/22.1.0, UPnP/1.0, Portable SDK for UPnP devices/1.14.13"
 		);

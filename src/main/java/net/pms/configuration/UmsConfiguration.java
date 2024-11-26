@@ -112,10 +112,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
-	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
+	private static final String PORTABLE_PATH = "portable";
+	public static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
+
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
 	 * for -lavdopts.
@@ -205,7 +207,13 @@ public class UmsConfiguration extends BaseConfiguration {
 	// "project.skelprofile.dir" project property
 	private static final String SKEL_PROFILE_PATH;
 
-	private static final String SYSTEM_PROFILE_DIRECTORY;
+	/*Profile type : 0
+		0 : System
+		1 : User
+		2 : Portable
+		3 : Custom
+	 */
+	private static final int PROFILE_TYPE;
 
 	/*
 	 * Configuration file keys
@@ -594,36 +602,57 @@ public class UmsConfiguration extends BaseConfiguration {
 	);
 
 	static {
+		int systemProfileType = 0;
+		String systemProfileDirectoryPath = null;
 		// first of all, set up the path to the default system profile directory
-		if (Platform.isWindows()) {
-			String programData = System.getenv("ALLUSERSPROFILE");
-
+		File systemConfigDirectory = new File(new File("").getAbsolutePath(), PORTABLE_PATH);
+		if (systemConfigDirectory.exists() && systemConfigDirectory.isDirectory()) {
+			systemProfileDirectoryPath = systemConfigDirectory.getAbsolutePath();
+			systemProfileType = 2; //portable
+		} else if (Platform.isWindows()) {
+			//check user only set up
+			String programData = System.getenv("LOCALAPPDATA");
 			if (programData != null) {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
-			} else {
-				SYSTEM_PROFILE_DIRECTORY = ""; // i.e. current (working) directory
+				systemProfileDirectoryPath = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
+				systemConfigDirectory = new File(systemProfileDirectoryPath);
+				if (systemConfigDirectory.exists() && systemConfigDirectory.isDirectory()) {
+					systemProfileType = 1; //user
+				} else {
+					systemProfileDirectoryPath = null;
+				}
+			}
+			if (systemProfileDirectoryPath == null) {
+				//check all user set up
+				programData = System.getenv("ALLUSERSPROFILE");
+				if (programData != null) {
+					systemProfileDirectoryPath = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
+				} else {
+					systemProfileDirectoryPath = ""; // i.e. current (working) directory
+				}
+				systemProfileType = 0; //system
 			}
 		} else if (Platform.isMac()) {
-			SYSTEM_PROFILE_DIRECTORY = String.format(
+			systemProfileDirectoryPath = String.format(
 				"%s/%s/%s",
 				System.getProperty("user.home"),
 				"/Library/Application Support",
 				PROFILE_DIRECTORY_NAME
 			);
+			systemProfileType = 1; //user
 		} else {
 			String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
 
 			if (xdgConfigHome == null) {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
+				systemProfileDirectoryPath = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
 			} else {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
+				systemProfileDirectoryPath = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
 			}
+			systemProfileType = 1; //user
 		}
-
-		// ensure that the SYSTEM_PROFILE_DIRECTORY exists
-		File systemProfileDirectory = new File(SYSTEM_PROFILE_DIRECTORY);
-		if (!systemProfileDirectory.exists()) {
-			systemProfileDirectory.mkdirs();
+		// ensure that the systemProfileDirectoryPath exists
+		systemConfigDirectory = new File(systemProfileDirectoryPath);
+		if (!systemConfigDirectory.exists()) {
+			systemConfigDirectory.mkdirs();
 		}
 
 		// now set the profile path. first: check for a custom setting.
@@ -638,11 +667,12 @@ public class UmsConfiguration extends BaseConfiguration {
 		// if customProfilePath is still blank, the default profile dir/filename is used
 		FileLocation profileLocation = FileUtil.getFileLocation(
 			customProfilePath,
-			SYSTEM_PROFILE_DIRECTORY,
+			systemProfileDirectoryPath,
 			DEFAULT_PROFILE_FILENAME
 		);
 		PROFILE_PATH = profileLocation.getFilePath();
 		PROFILE_DIRECTORY = profileLocation.getDirectoryPath();
+		PROFILE_TYPE = profileLocation.isCustom() ? 3 : systemProfileType;
 
 		// Set SKEL_PROFILE_PATH for Linux systems
 		PropertiesWrapper projectProperties = PropertiesUtil.getProjectProperties();
@@ -4386,12 +4416,37 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getProfilePath() {
+	public static String getProfilePath() {
 		return PROFILE_PATH;
 	}
 
-	public String getProfileDirectory() {
+	public static String getProfileDirectory() {
 		return PROFILE_DIRECTORY;
+	}
+
+	public static String getProfileType() {
+		return switch (PROFILE_TYPE) {
+			case 1 -> "user";
+			case 2 -> "portable";
+			case 3 -> "custom";
+			default -> "system";
+		};
+	}
+
+	public static boolean isSystemProfile() {
+		return PROFILE_TYPE == 0;
+	}
+
+	public static boolean isUserProfile() {
+		return PROFILE_TYPE == 1;
+	}
+
+	public static boolean isPortableProfile() {
+		return PROFILE_TYPE == 2;
+	}
+
+	public static boolean isCustomProfile() {
+		return PROFILE_TYPE == 3;
 	}
 
 	/**
@@ -4416,7 +4471,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getString(KEY_SHARED_CONF_PATH, sharedConfPath);
 	}
 
-	public String getProfileName() {
+	public static String getHostName() {
 		if (hostName == null) { // Initialise this lazily
 			try {
 				hostName = InetAddress.getLocalHost().getHostName();
@@ -4425,8 +4480,11 @@ public class UmsConfiguration extends BaseConfiguration {
 				hostName = "unknown host";
 			}
 		}
+		return hostName;
+	}
 
-		return getString(KEY_PROFILE_NAME, hostName);
+	public String getProfileName() {
+		return getString(KEY_PROFILE_NAME, getHostName());
 	}
 
 	public boolean isAuthenticationEnabled() {
