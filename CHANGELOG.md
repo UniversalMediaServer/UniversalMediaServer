@@ -11,13 +11,13 @@
 - Added portable install option to the new Windows installer
 - Added current user install option to new Windows installer
 - Added update mode to new Windows installer
-- Changed default shared folders on Linux to the user's video/music/pictures instead of their home folder (#5095) (thanks, ryncor21!)
+- Changed default shared folders on Linux to the user's video/music/pictures instead of their home folder (#5095) (thanks, @ryncor21!)
 - Improved browsing performance
 - Fixed UPnP genre
 - Fixed excessive logging by default
 - Fixed archive file handling (#5025) (thanks, seisuke!)
 - Fixed not parsing media in archives
-- Fixed web player not working when API lookups are disabled (#5094) (thanks, ryncor21!)
+- Fixed web player not working when API lookups are disabled (#5094) (thanks, @ryncor21!)
 - Fixed VS Code debugging missing task on macOS
 - Fixed not using all users installation directory on Windows
 - Fixed all users install on Windows not sharing all users directory
