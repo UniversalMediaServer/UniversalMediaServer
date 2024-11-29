@@ -484,6 +484,9 @@ public class FFmpegParser {
 									video.setFormatProfile(getFormatProfile(codec));
 									codec = codec.substring(0, profilePos).trim();
 								}
+								if (codec.equalsIgnoreCase("hevc")) {
+									codec = FormatConfiguration.H265;
+								}
 								video.setCodec(codec);
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
 								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
