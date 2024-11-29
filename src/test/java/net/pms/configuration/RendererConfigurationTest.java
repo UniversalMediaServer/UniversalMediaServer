@@ -112,6 +112,8 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 
+		testUPNPDetails("LG LED-backlit LCD TV (2022+)", "modelNumber=32LQ63006LA");
+
 		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
 
 		testUPNPDetails("LG LM660", "friendlyName=[TV]42LM660S-ZA");
