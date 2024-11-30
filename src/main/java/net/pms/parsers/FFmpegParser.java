@@ -478,12 +478,25 @@ public class FFmpegParser {
 								//get the codec
 								int positionAfterVideoString = token.indexOf(videoString) + videoString.length();
 								String codec = token.substring(positionAfterVideoString);
+
 								// Check whether there are more details after the video string
 								int profilePos = codec.indexOf(" (");
 								if (profilePos > -1) {
-									video.setFormatProfile(getFormatProfile(codec));
+									String formatProfile = getFormatProfile(codec);
+									video.setFormatProfile(formatProfile);
+
+									// Attempt to parse the bit depth from the profile name, e.g. "main 10"
+									if (formatProfile != null) {
+										if (formatProfile.endsWith(" 10")) {
+											video.setBitDepth(10);
+										} else if (formatProfile.endsWith(" 12")) {
+											video.setBitDepth(12);
+										}
+									}
+
 									codec = codec.substring(0, profilePos).trim();
 								}
+
 								if (codec.equalsIgnoreCase("hevc")) {
 									codec = FormatConfiguration.H265;
 								}
