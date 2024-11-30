@@ -120,6 +120,8 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG LS5700", "friendlyName=[TV]42LS5700-SB");
 
+		testUPNPDetails("LG NANO TV", "modelNumber=NANO756PR");
+
 		testUPNPDetails(
 			"LG OLED",
 			"modelNumber=OLED65C9PUA",
@@ -147,7 +149,11 @@ public class RendererConfigurationTest {
 // 		This does not match the OLED[0-9]{2} configuration for the LG 2023+ config ...
 //		testUPNPDetails("LG TV 2023+", "modelNumber=UR73003LA");
 
-		testUPNPDetails("LG TV 2023+", "# modelDescription=LG WebOSTV DMRplus OLED65C3AUA");
+		testUPNPDetails(
+			"LG TV 2023+",
+			"# modelDescription=LG WebOSTV DMRplus OLED65C3AUA",
+			"modelNumber=65QNED91T6A"
+		);
 
 		testHeaders    ("LG UB820V", "User-Agent: Linux/3.0.13 UPnP/1.0 LGE_DLNA_SDK/1.6.0 [TV][LG]42UB820V-ZH/04.02.00 DLNADOC/1.50");
 
