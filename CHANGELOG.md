@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
+
 ## [14.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-11-25)
 
 ### General
