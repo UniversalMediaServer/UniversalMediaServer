@@ -647,7 +647,8 @@ public class FormatConfiguration {
 		}
 		if (media.getDefaultAudioTrack() == null) {
 			// no sound
-			return getMatchedMIMEtype(media.getContainer(),
+			return getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				null,
 				0,
@@ -678,7 +679,8 @@ public class FormatConfiguration {
 			* track needs to be checked.
 			*/
 			MediaAudio audio = media.getDefaultAudioTrack();
-			return getMatchedMIMEtype(media.getContainer(),
+			return getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
@@ -700,7 +702,8 @@ public class FormatConfiguration {
 		String finalMimeType = null;
 
 		for (MediaAudio audio : media.getAudioTracks()) {
-			String mimeType = getMatchedMIMEtype(media.getContainer(),
+			String mimeType = getMatchedMIMEtype(
+				media.getContainer(),
 				media.getDefaultVideoTrack() != null ? media.getDefaultVideoTrack().getCodec() : null,
 				audio.getCodec(),
 				audio.getNumberOfChannels(),
