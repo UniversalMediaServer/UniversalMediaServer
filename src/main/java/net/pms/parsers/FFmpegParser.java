@@ -543,6 +543,9 @@ public class FFmpegParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
 								}
+							} else if (token.contains("smpte2084")) {
+								video.setHDRFormat("HDR10");
+								video.setHDRFormatCompatibility("HDR10");
 							}
 						}
 						media.addVideoTrack(video);
@@ -685,6 +688,22 @@ public class FFmpegParser {
 							ffmpegChapters.add(chapter);
 						}
 						media.setChapters(ffmpegChapters);
+					} else if (line.contains("DOVI configuration record")) {
+						// e.g. DOVI configuration record: version: 1.0, profile: 8, level: 6, rpu flag: 1, el flag: 0, bl flag: 1, compatibility id: 1
+
+						// find the relevant video track and modify the HDR metadata, then replace the video track
+						int previousVideoId = videoId - 1;
+						for (MediaVideo videoTrack : media.getVideoTracks()) {
+							if (videoTrack.getId() == previousVideoId) {
+								String hdrFormat = "Dolby Vision";
+								if (videoTrack.getHDRFormatCompatibility() != null && videoTrack.getHDRFormatCompatibility().equals("HDR10")) {
+									hdrFormat += " / SMPTE ST 2086";
+								}
+								videoTrack.setHDRFormat(hdrFormat);
+								media.replaceVideoTrack(videoTrack, previousVideoId);
+								break;
+							}
+						}
 					}
 				}
 			}
