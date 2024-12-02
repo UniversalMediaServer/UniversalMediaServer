@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Dependencies
+- Bump `@playwright/test` from 1.48.2 to 1.49.0 ([#5125](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5125))
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
 - Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
 - Bump `video.js` from 8.19.1 to 8.20.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147))
