@@ -4,6 +4,7 @@
 
 ### Dependencies
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
+- Bump `react-router-dom` from 6.28.0 to 7.0.1 ([#5126](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5126))
 - Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
 - Bump `video.js` from 8.19.1 to 8.20.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147))
 
