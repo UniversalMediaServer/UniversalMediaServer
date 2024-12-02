@@ -59,6 +59,7 @@ public final class MediaTableFilesStatus extends MediaTable {
 	private static final String COL_BOOKMARK = "BOOKMARK";
 	private static final String COL_ISFULLYPLAYED = "ISFULLYPLAYED";
 	private static final String COL_PLAYCOUNT = "PLAYCOUNT";
+	private static final String COL_DATEADDED = "DATEADDED";
 	private static final String COL_DATELASTPLAY = "DATELASTPLAY";
 	private static final String COL_LASTPLAYBACKPOSITION = "LASTPLAYBACKPOSITION";
 
@@ -219,15 +220,15 @@ public final class MediaTableFilesStatus extends MediaTable {
 		LOGGER.info(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
 			CREATE_TABLE + TABLE_NAME + "(" +
-				COL_ID                     + IDENTITY              + PRIMARY_KEY      + COMMA +
-				COL_FILENAME               + VARCHAR_1024          + NOT_NULL         + COMMA +
-				COL_USERID                 + INTEGER               + DEFAULT_0        + COMMA +
-				COL_MODIFIED               + TIMESTAMP                                + COMMA +
-				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE  + COMMA +
-				COL_BOOKMARK               + INTEGER               + DEFAULT_0        + COMMA +
-				COL_DATELASTPLAY           + TIMESTAMP                                + COMMA +
-				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0        + COMMA +
-				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D       +
+				COL_ID                     + IDENTITY              + PRIMARY_KEY                 + COMMA +
+				COL_FILENAME               + VARCHAR_1024          + NOT_NULL                    + COMMA +
+				COL_USERID                 + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_MODIFIED               + TIMESTAMP                                           + COMMA +
+				COL_ISFULLYPLAYED          + BOOLEAN               + DEFAULT + FALSE             + COMMA +
+				COL_BOOKMARK               + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_DATELASTPLAY           + TIMESTAMP                                           + COMMA +
+				COL_PLAYCOUNT              + INTEGER               + DEFAULT_0                   + COMMA +
+				COL_LASTPLAYBACKPOSITION   + DOUBLE_PRECISION      + DEFAULT_0D                  +
 			")",
 			CREATE_UNIQUE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_FILENAME + CONSTRAINT_SEPARATOR + COL_USERID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_FILENAME + COMMA + COL_USERID + ")",
 			CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ISFULLYPLAYED + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ISFULLYPLAYED + ")"
