@@ -112,8 +112,7 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public String mimeType() {
-		// I think?
+	public String getMimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
 	}
 
@@ -123,13 +122,13 @@ public class VLCVideo extends Engine {
 	 * @param renderer The {@link Renderer}.
 	 * @return The codec configuration
 	 */
-	protected CodecConfig genConfig(Renderer renderer) {
+	protected CodecConfig genConfig(Renderer renderer, EncodingFormat encodingFormat) {
 		CodecConfig codecConfig = new CodecConfig();
 		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_ENGINE;
 
 		if (
 			(
-				renderer.isTranscodeToWMV() &&
+				encodingFormat.isTranscodeToWMV() &&
 				!renderer.isXbox360()
 			) ||
 			isXboxOneWebVideo
@@ -141,20 +140,20 @@ public class VLCVideo extends Engine {
 			/**
 			 * VLC does not support H.265 encoding as of VLC 2.1.5.
 			 */
-			if (renderer.isTranscodeToH264() || renderer.isTranscodeToH265()) {
+			if (encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265()) {
 				codecConfig.videoCodec = "h264";
 				codecConfig.videoRemux = true;
 			} else {
 				codecConfig.videoCodec = "mp2v";
 			}
 
-			if (renderer.isTranscodeToAC3()) {
+			if (encodingFormat.isTranscodeToAC3()) {
 				codecConfig.audioCodec = "a52";
 			} else {
 				codecConfig.audioCodec = "mp4a";
 			}
 
-			if (renderer.isTranscodeToMPEGTS()) {
+			if (encodingFormat.isTranscodeToMPEGTS()) {
 				codecConfig.container = "ts";
 			} else {
 				codecConfig.container = "ps";
@@ -177,7 +176,7 @@ public class VLCVideo extends Engine {
 		boolean videoRemux;
 	}
 
-	protected Map<String, Object> getEncodingArgs(UmsConfiguration configuration, CodecConfig codecConfig, OutputParams params) {
+	protected Map<String, Object> getEncodingArgs(UmsConfiguration configuration, CodecConfig codecConfig, EncodingFormat encodingFormat, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap<>();
@@ -220,7 +219,7 @@ public class VLCVideo extends Engine {
 			params.getAid() != null &&
 			params.getAid().getNumberOfChannels() > 2 &&
 			configuration.getAudioChannelCount() == 6 &&
-			!params.getMediaRenderer().isTranscodeToAC3()
+			!encodingFormat.isTranscodeToAC3()
 		) {
 			channels = 6;
 		}
@@ -271,10 +270,11 @@ public class VLCVideo extends Engine {
 	 *
 	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param EncodingFormat encodingFormat
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	private List<String> getVideoBitrateOptions(UmsConfiguration configuration, MediaInfo media, OutputParams params) {
+	private List<String> getVideoBitrateOptions(UmsConfiguration configuration, MediaInfo media, EncodingFormat encodingFormat, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
 
 		int[] defaultMaxBitrates = getVideoBitrateConfig(configuration.getMaximumBitrate());
@@ -317,7 +317,7 @@ public class VLCVideo extends Engine {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && (params.getMediaRenderer().isTranscodeToH264() || params.getMediaRenderer().isTranscodeToH265())) {
+			if (!isXboxOneWebVideo && (encodingFormat.isTranscodeToH264() || encodingFormat.isTranscodeToH265())) {
 				if (
 					params.getMediaRenderer().getH264LevelLimit() < 4.2 &&
 					defaultMaxBitrates[0] > 31250
@@ -347,7 +347,7 @@ public class VLCVideo extends Engine {
 			if (!bitrateLevel41Limited) {
 				// Make room for audio
 				// TODO: set correct bitrate when remuxing DTS, like in FFMpegVideo
-				if (params.getMediaRenderer().isTranscodeToAAC()) {
+				if (encodingFormat.isTranscodeToAAC()) {
 					defaultMaxBitrates[0] -= Math.min(configuration.getAudioBitrate(), 320);
 				} else {
 					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
@@ -364,7 +364,7 @@ public class VLCVideo extends Engine {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (isXboxOneWebVideo || (!params.getMediaRenderer().isTranscodeToH264() && !params.getMediaRenderer().isTranscodeToH265())) {
+		if (isXboxOneWebVideo || (!encodingFormat.isTranscodeToH264() && !encodingFormat.isTranscodeToH265())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.getMediaRenderer().getCustomFFmpegMPEG2Options();
@@ -415,7 +415,7 @@ public class VLCVideo extends Engine {
 				x264CRF = "16";
 
 				// Lower CRF for 720p+ content
-				if (media.getWidth() > 720) {
+				if (media.getWidth() > 720 && !encodingFormat.isTranscodeToH265()) {
 					x264CRF = "19";
 				}
 			}
@@ -427,15 +427,17 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(StoreItem resource, MediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(StoreItem item, MediaInfo media, OutputParams params) throws IOException {
 		// Use device-specific pms conf
-		UmsConfiguration configuration = params.getMediaRenderer().getUmsConfiguration();
-		final String filename = resource.getFileName();
+		final Renderer renderer = params.getMediaRenderer();
+		final UmsConfiguration configuration = renderer.getUmsConfiguration();
+		final String filename = item.getFileName();
+		final EncodingFormat encodingFormat = item.getTranscodingSettings().getEncodingFormat();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(resource, params);
+		setAudioAndSubs(item, params);
 
 		// Make sure we can play this
-		CodecConfig config = genConfig(params.getMediaRenderer());
+		CodecConfig config = genConfig(renderer, encodingFormat);
 
 		IPipeProcess tsPipe = PlatformUtils.INSTANCE.getPipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
 		ProcessWrapper pipeProcess = tsPipe.getPipeProcess();
@@ -517,8 +519,8 @@ public class VLCVideo extends Engine {
 					cmdList.add("--sub-" + disableSuffix);
 					LOGGER.error("External subtitles file \"{}\" is unavailable", params.getSid().getName());
 				} else if (
-					!params.getMediaRenderer().streamSubsForTranscodedVideo() ||
-					!params.getMediaRenderer().isExternalSubtitlesFormatSupported(params.getSid(), resource)
+					!renderer.streamSubsForTranscodedVideo() ||
+					!renderer.isExternalSubtitlesFormatSupported(params.getSid(), item)
 				) {
 					String externalSubtitlesFileName;
 
@@ -564,7 +566,7 @@ public class VLCVideo extends Engine {
 			 */
 			//cmdList.add("--no-sout-avcodec-hurry-up");
 
-			cmdList.addAll(getVideoBitrateOptions(configuration, media, params));
+			cmdList.addAll(getVideoBitrateOptions(configuration, media, encodingFormat, params));
 		}
 
 		// Skip forward if necessary
@@ -576,7 +578,7 @@ public class VLCVideo extends Engine {
 		// Generate encoding args
 		String separator = "";
 		StringBuilder encodingArgsBuilder = new StringBuilder();
-		for (Map.Entry<String, Object> curEntry : getEncodingArgs(configuration, config, params).entrySet()) {
+		for (Map.Entry<String, Object> curEntry : getEncodingArgs(configuration, config, encodingFormat, params).entrySet()) {
 			encodingArgsBuilder.append(separator);
 			encodingArgsBuilder.append(curEntry.getKey());
 
@@ -617,23 +619,23 @@ public class VLCVideo extends Engine {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
+	public boolean isCompatible(StoreItem item) {
 		// Only handle local video - not web video or audio
 		return (
-			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.OGG)
+			PlayerUtil.isVideo(item, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(item, Format.Identifier.MPG) ||
+			PlayerUtil.isVideo(item, Format.Identifier.OGG)
 		);
+	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isVideoFormat() && !encodingFormat.isTranscodeToHLS();
 	}
 
 	@Override
 	public boolean excludeFormat(Format extension) {
 		return false;
-	}
-
-	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return true;
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.GuardedBy;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.sharedcontent.FolderContent;
 import net.pms.configuration.sharedcontent.SharedContent;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
@@ -41,7 +42,6 @@ import net.pms.renderers.devices.MediaScannerDevice;
 import net.pms.store.container.DVDISOFile;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RealFolder;
-import net.pms.store.container.VirtualFolder;
 import net.pms.util.FileUtil;
 import net.pms.util.FileWatcher;
 import org.slf4j.Logger;
@@ -139,9 +139,6 @@ public class MediaScanner implements SharedContentListener {
 						}
 
 						storeContainer.discoverChildren();
-						if (child instanceof VirtualFolder virtualFolder) {
-							virtualFolder.analyzeChildren();
-						}
 						storeContainer.setDiscovered(true);
 					}
 
@@ -188,6 +185,8 @@ public class MediaScanner implements SharedContentListener {
 	public static void startMediaScan() {
 		if (isMediaScanRunning()) {
 			LOGGER.info("Cannot start media scanner: A scan is already in progress");
+		} else if (PMS.isRunningTests()) {
+			LOGGER.debug("Skipping media scanner because UMS is being run by a test");
 		} else {
 			Runnable scan = () -> {
 				try {
@@ -292,9 +291,6 @@ public class MediaScanner implements SharedContentListener {
 				for (StoreResource storeResource : systemFileResources) {
 					if (storeResource instanceof StoreContainer storeContainer) {
 						storeContainer.discoverChildren();
-						if (storeResource instanceof VirtualFolder virtualFolder) {
-							virtualFolder.doRefreshChildren();
-						}
 						storeContainer.setDiscovered(true);
 					}
 				}

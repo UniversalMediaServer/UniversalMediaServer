@@ -28,4 +28,5 @@ public abstract class AudioBase extends Format {
 	public boolean transcodable() {
 		return true;
 	}
+
 }

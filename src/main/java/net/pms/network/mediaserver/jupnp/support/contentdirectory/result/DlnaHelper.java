@@ -16,13 +16,16 @@
  */
 package net.pms.network.mediaserver.jupnp.support.contentdirectory.result;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.dlna.DLNAImageProfile;
 import net.pms.encoders.AviSynthFFmpeg;
 import net.pms.encoders.AviSynthMEncoder;
+import net.pms.encoders.EncodingFormat;
 import net.pms.encoders.Engine;
+import net.pms.encoders.EngineId;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.TsMuxeRVideo;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.encoders.VLCVideo;
 import net.pms.encoders.VideoLanVideoStreaming;
 import net.pms.image.ImageInfo;
@@ -52,20 +55,19 @@ public class DlnaHelper {
 	protected DlnaHelper() {
 	}
 
-	public static String getDlnaContentFeatures(StoreItem resource) {
+	public static String getDlnaContentFeatures(StoreItem item) {
 		// TODO: Determine renderer's correct localization value
 		int localizationValue = 1;
-		final Engine engine = resource.getEngine();
 		StringBuilder sb = new StringBuilder();
-		sb.append(getDlnaOrgPn(resource, localizationValue));
-		ORG_OP op = getDlnaOrgOp(resource);
+		sb.append(getDlnaOrgPn(item, localizationValue));
+		ORG_OP op = getDlnaOrgOp(item);
 		if (sb.length() > 0) {
 			sb.append(op.getParam());
 		} else {
 			sb.append(op);
 		}
 		ORG_CI ci = new ORG_CI();
-		ci.setConverted(engine != null);
+		ci.setConverted(item.isTranscoded());
 		sb.append(ci.getParam());
 		ORG_FLAGS flags = new ORG_FLAGS();
 		flags.setDLNAv15(true);
@@ -166,9 +168,8 @@ public class DlnaHelper {
 		ORG_OP dlnaOrgOp = new ORG_OP();
 		dlnaOrgOp.setHttpRangeHeaderAccepted(true); // seek by byte (exclusive)
 		final Renderer renderer = item.getDefaultRenderer();
-		final Engine engine = item.getEngine();
 
-		if (renderer.isSeekByTime() && engine != null && engine.isTimeSeekable()) {
+		if (renderer.isTranscodeSeekByTime() && item.isTranscoded() && item.isTimeSeekable()) {
 			/**
 			 * Some renderers - e.g. the PS3 and Panasonic TVs - behave
 			 * erratically when transcoding if we keep the default seek-by-byte
@@ -196,7 +197,7 @@ public class DlnaHelper {
 			 * SeekByTime = both
 			 */
 			dlnaOrgOp.setHttpTimeSeekRangeHeaderAccepted(true);
-			if (renderer.isSeekByTimeExclusive()) {
+			if (renderer.isTranscodeSeekByTimeExclusive()) {
 				// seek by time (exclusive)
 				dlnaOrgOp.setHttpRangeHeaderAccepted(false);
 			}
@@ -232,7 +233,9 @@ public class DlnaHelper {
 		// Use device-specific UMS conf, if any
 		String mime = item.getRendererMimeType();
 		final Renderer renderer = item.getDefaultRenderer();
-		final Engine engine = item.getEngine();
+		final TranscodingSettings transcodingSettings = item.getTranscodingSettings();
+		final EncodingFormat encodingFormat = transcodingSettings != null ? transcodingSettings.getEncodingFormat() : null;
+		final EngineId engineId = transcodingSettings != null ? transcodingSettings.getEngine().getEngineId() : null;
 		final MediaInfo mediaInfo = item.getMediaInfo();
 		final MediaSubtitle mediaSubtitle = item.getMediaSubtitle();
 		final MediaVideo defaultVideoTrack = mediaInfo != null ? mediaInfo.getDefaultVideoTrack() : null;
@@ -246,28 +249,28 @@ public class DlnaHelper {
 			if (mime.equals(HTTPResource.DIVX_TYPEMIME)) {
 				profileId = "AVI";
 			} else if (mime.equals(HTTPResource.WMV_TYPEMIME) && defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
-				profileId = getWmvProfileId(mediaInfo, renderer, engine == null);
+				profileId = getWmvProfileId(mediaInfo, encodingFormat);
 			}
 		} else {
 			if (mime.equals(HTTPResource.DIVX_TYPEMIME)) {
 				profileId = "AVI";
 			} else if (mime.equals(HTTPResource.WMV_TYPEMIME) && defaultVideoTrack != null && defaultVideoTrack.isHDVideo()) {
-				profileId = getWmvProfileId(mediaInfo, renderer, engine == null);
+				profileId = getWmvProfileId(mediaInfo, encodingFormat);
 			} else if (mime.equals(HTTPResource.MPEG_TYPEMIME) || mime.equals(HTTPResource.HLS_TYPEMIME) || mime.equals(HTTPResource.HLS_APPLE_TYPEMIME)) {
 				profileId = getMpegPsProfileId(localizationValue);
 
 				// If engine is not null, we are not streaming it
-				if (engine != null) {
+				if (encodingFormat != null) {
 					// VLC Web Video (Legacy) and tsMuxeR always output
 					// MPEG-TS
-					boolean isOutputtingMPEGTS = TsMuxeRVideo.ID.equals(engine.getEngineId()) || VideoLanVideoStreaming.ID.equals(engine.getEngineId());
+					boolean isOutputtingMPEGTS = encodingFormat.isTranscodeToMPEGTS();
 
 					// Check if the renderer settings make the current
 					// engine always output MPEG-TS
-					if (!isOutputtingMPEGTS && renderer.isTranscodeToMPEGTS() &&
-						(MEncoderVideo.ID.equals(engine.getEngineId()) || FFMpegVideo.ID.equals(engine.getEngineId()) ||
-							VLCVideo.ID.equals(engine.getEngineId()) || AviSynthFFmpeg.ID.equals(engine.getEngineId()) ||
-							AviSynthMEncoder.ID.equals(engine.getEngineId()))) {
+					if (!isOutputtingMPEGTS && encodingFormat.isTranscodeToMPEGTS() &&
+						(MEncoderVideo.ID.equals(engineId) || FFMpegVideo.ID.equals(engineId) ||
+							VLCVideo.ID.equals(engineId) || AviSynthFFmpeg.ID.equals(engineId) ||
+							AviSynthMEncoder.ID.equals(engineId))) {
 						isOutputtingMPEGTS = true;
 					}
 
@@ -275,9 +278,9 @@ public class DlnaHelper {
 					// MPEG-TS and the setting is enabled, it might be
 					// MPEG-TS
 					if (!isOutputtingMPEGTS &&
-						((renderer.getUmsConfiguration().isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engine.getEngineId())) ||
+						((renderer.getUmsConfiguration().isMencoderMuxWhenCompatible() && MEncoderVideo.ID.equals(engineId)) ||
 							(renderer.getUmsConfiguration().isFFmpegMuxWithTsMuxerWhenCompatible() &&
-								FFMpegVideo.ID.equals(engine.getEngineId())))) {
+								FFMpegVideo.ID.equals(engineId)))) {
 						/*
 						 * Media renderer needs ORG_PN to be accurate. If
 						 * the value does not match the mediaInfo, it won't play
@@ -322,52 +325,54 @@ public class DlnaHelper {
 						 * Note: This is an oversimplified duplicate of the engine logic, that
 						 * should be fixed.
 						 */
-						if (resolvedSubtitle == null &&
-								!item.hasExternalSubtitles() &&
-								mediaInfo != null &&
-								mediaInfo.getDvdtrack() == null &&
-								Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
-								renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo)) {
+						if (
+							resolvedSubtitle == null &&
+							!item.hasExternalSubtitles() &&
+							mediaInfo != null &&
+							mediaInfo.getDvdtrack() == null &&
+							Engine.isMuxable(mediaInfo.getDefaultVideoTrack(), renderer) &&
+							renderer.isVideoStreamTypeSupportedInTranscodingContainer(mediaInfo, encodingFormat, FormatConfiguration.MPEGTS)
+						) {
 							isOutputtingMPEGTS = true;
 						}
 					}
 
 					if (isOutputtingMPEGTS) {
-						if (renderer.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engine.getEngineId())) {
+						if (encodingFormat.isTranscodeToH264() && !VideoLanVideoStreaming.ID.equals(engineId)) {
 							profileId = getMpegTsH264ProfileId(localizationValue, false);
-						} else if (renderer.isTranscodeToMPEG2()) {
+						} else if (encodingFormat.isTranscodeToMPEG2()) {
 							profileId = getMpegTsMpeg2ProfileId(localizationValue, mediaInfo, false);
 						}
 					}
 				} else if (mediaInfo != null && mediaInfo.isMpegTS() && defaultVideoTrack != null) {
 					// In this block, we are streaming the file
 					if (defaultVideoTrack.isH264()) {
-						profileId = getMpegTsH264ProfileId(localizationValue, engine == null);
+						profileId = getMpegTsH264ProfileId(localizationValue, encodingFormat == null);
 					} else if (defaultVideoTrack.isMpeg2()) {
-						profileId = getMpegTsMpeg2ProfileId(localizationValue, mediaInfo, engine == null);
+						profileId = getMpegTsMpeg2ProfileId(localizationValue, mediaInfo, encodingFormat == null);
 					}
 				}
 			} else if (mediaInfo != null && mime.equals(HTTPResource.MPEGTS_TYPEMIME)) {
 				// patterns - on Sony BDP m2ts clips aren't listed without this
-				if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (engine != null && renderer.isTranscodeToH264())) {
-					profileId = getMpegTsH264ProfileId(localizationValue, engine == null);
-				} else if ((engine == null && defaultVideoTrack != null && defaultVideoTrack.isMpeg2()) || (engine != null && renderer.isTranscodeToMPEG2())) {
-					profileId = getMpegTsMpeg2ProfileId(localizationValue, mediaInfo, engine == null);
+				if ((encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) || (encodingFormat != null && encodingFormat.isTranscodeToH264())) {
+					profileId = getMpegTsH264ProfileId(localizationValue, encodingFormat == null);
+				} else if ((encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.isMpeg2()) || (encodingFormat != null && encodingFormat.isTranscodeToMPEG2())) {
+					profileId = getMpegTsMpeg2ProfileId(localizationValue, mediaInfo, encodingFormat == null);
 				}
 			} else if (mediaInfo != null && mime.equals(HTTPResource.MP4_TYPEMIME)) {
-				if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH265() && defaultAudioTrack != null &&
+				if (encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.isH265() && defaultAudioTrack != null &&
 					(defaultAudioTrack.isAC3() || defaultAudioTrack.isEAC3() ||
 						defaultAudioTrack.isHEAAC())) {
 					profileId = "DASH_HEVC_MP4_UHD_NA";
-				} else if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
-					profileId = getMp4H264OrgPN(mediaInfo, renderer, true);
+				} else if (encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
+					profileId = getMp4H264OrgPN(mediaInfo, encodingFormat);
 				}
 			} else if (mediaInfo != null && mime.equals(HTTPResource.MATROSKA_TYPEMIME)) {
-				if (engine == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
-					profileId = getMkvH264ProfileId(mediaInfo, renderer, engine == null);
+				if (encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.isH264()) {
+					profileId = getMkvH264ProfileId(mediaInfo, encodingFormat);
 				}
 			} else if (mediaInfo != null && mime.equals(HTTPResource.ASF_TYPEMIME)) {
-				if (engine == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("vc1") && defaultAudioTrack != null && defaultAudioTrack.isWMA()) {
+				if (encodingFormat == null && defaultVideoTrack != null && defaultVideoTrack.getCodec().equals("vc1") && defaultAudioTrack != null && defaultAudioTrack.isWMA()) {
 					if (mediaInfo.getDefaultVideoTrack() != null && mediaInfo.getDefaultVideoTrack().isHDVideo()) {
 						profileId = "VC1_ASF_AP_L2_WMA";
 					} else {
@@ -446,7 +451,7 @@ public class DlnaHelper {
 		return orgPN;
 	}
 
-	private static String getMkvH264ProfileId(MediaInfo media, Renderer renderer, boolean isStreaming) {
+	private static String getMkvH264ProfileId(MediaInfo media, EncodingFormat encodingFormat) {
 		String orgPN = "AVC_MKV";
 
 		if (media == null || media.getDefaultVideoTrack() == null ||
@@ -462,36 +467,36 @@ public class DlnaHelper {
 		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
 				(
-					isStreaming &&
+					encodingFormat == null &&
 					media.getDefaultAudioTrack().isAACLC()
 				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAAC()
+					encodingFormat != null &&
+					encodingFormat.isTranscodeToAAC()
 				)
 			) {
 				orgPN += "_AAC_MULT5";
 			} else if (
 				(
-					isStreaming &&
+					encodingFormat == null &&
 					media.getDefaultAudioTrack().isAC3()
 				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAC3()
+					encodingFormat != null &&
+					encodingFormat.isTranscodeToAC3()
 				)
 			) {
 				orgPN += "_AC3";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				media.getDefaultAudioTrack().isDTS()
 			) {
 				orgPN += "_DTS";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				media.getDefaultAudioTrack().isEAC3()
 			) {
 				orgPN += "_EAC3";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				media.getDefaultAudioTrack().isHEAAC()
 			) {
 				orgPN += "_HEAAC_L4";
@@ -501,13 +506,13 @@ public class DlnaHelper {
 		return orgPN;
 	}
 
-	private static String getMp4H264OrgPN(MediaInfo media, Renderer renderer, boolean isStreaming) {
+	private static String getMp4H264OrgPN(MediaInfo media, EncodingFormat encodingFormat) {
 		String orgPN = "AVC_MP4";
 
 		if (media != null && media.getDefaultVideoTrack() != null &&
 			media.getDefaultVideoTrack().getFormatProfile() != null) {
 			if (media.getDefaultVideoTrack().getFormatProfile().contains("high")) {
-				if (isStreaming && media.getDefaultAudioTrack() != null && media.getDefaultAudioTrack().isHEAAC()) {
+				if (encodingFormat == null && media.getDefaultAudioTrack() != null && media.getDefaultAudioTrack().isHEAAC()) {
 					orgPN += "_HD_HEAACv2_L6";
 				} else {
 					orgPN += "_HP_HD";
@@ -524,24 +529,24 @@ public class DlnaHelper {
 		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
 				(
-					isStreaming &&
+					encodingFormat == null &&
 					(
 						media.getDefaultAudioTrack().isAC3() ||
 						media.getDefaultAudioTrack().isEAC3()
 					)
 				) || (
-					!isStreaming &&
-					renderer.isTranscodeToAC3()
+					encodingFormat != null &&
+					encodingFormat.isTranscodeToAC3()
 				)
 			) {
 				orgPN += "_EAC3";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				media.getDefaultAudioTrack().isDTS()
 			) {
 				orgPN += "_DTS";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				media.getDefaultAudioTrack().isDTSHD()
 			) {
 				orgPN += "_DTSHD";
@@ -551,7 +556,7 @@ public class DlnaHelper {
 		return orgPN;
 	}
 
-	private static String getWmvProfileId(MediaInfo media, Renderer renderer, boolean isStreaming) {
+	private static String getWmvProfileId(MediaInfo media, EncodingFormat encodingFormat) {
 		String orgPN = "WMV";
 		if (media != null && media.getDefaultVideoTrack() != null &&  media.getDefaultVideoTrack().isHDVideo()) {
 			orgPN += "HIGH";
@@ -562,16 +567,16 @@ public class DlnaHelper {
 		if (media != null && media.getDefaultAudioTrack() != null) {
 			if (
 				(
-					isStreaming &&
+					encodingFormat == null &&
 					media.getDefaultAudioTrack().isWMA()
 				) || (
-					!isStreaming &&
-					renderer.isTranscodeToWMV()
+					encodingFormat != null &&
+					encodingFormat.isTranscodeToWMV()
 				)
 			) {
 				orgPN += "_FULL";
 			} else if (
-				isStreaming &&
+				encodingFormat == null &&
 				(
 					media.getDefaultAudioTrack().isWMAPro() ||
 					media.getDefaultAudioTrack().isWMA10()

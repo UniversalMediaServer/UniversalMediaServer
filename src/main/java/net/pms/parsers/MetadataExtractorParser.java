@@ -54,6 +54,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collection;
@@ -74,6 +76,7 @@ import net.pms.image.ImageIORuntimeException;
 import net.pms.image.ImageIOTools;
 import net.pms.image.ImageInfo;
 import net.pms.media.MediaInfo;
+import net.pms.util.InputFile;
 import net.pms.util.ParseException;
 import net.pms.util.ResettableInputStream;
 import net.pms.util.UnknownFormatException;
@@ -89,6 +92,22 @@ public class MetadataExtractorParser {
 	 * This class is not meant to be instantiated.
 	 */
 	private MetadataExtractorParser() {
+	}
+
+	public static void parse(InputFile inputFile, MediaInfo mediaInfo) throws IOException {
+		if (inputFile.getFile() != null) {
+			parse(inputFile.getFile(), mediaInfo);
+		} else if (inputFile.getPush() != null) {
+			try (PipedOutputStream out = new PipedOutputStream(); InputStream fis = new PipedInputStream(out)) {
+				inputFile.getPush().push(out);
+				parseStream(fis, inputFile.getSize(), inputFile.getFilename(), mediaInfo);
+			} catch (IOException e) {
+				LOGGER.debug("Error reading \"{}\": {}", inputFile.getFilename(), e.getMessage());
+				LOGGER.trace("", e);
+			}
+		} else {
+			throw new IllegalArgumentException("parseImage: inputFile cannot be null");
+		}
 	}
 
 	/**
@@ -110,9 +129,36 @@ public class MetadataExtractorParser {
 	 *
 	 */
 	public static void parse(File file, MediaInfo mediaInfo) throws IOException {
+		long size = file.length();
+		InputStream fis = Files.newInputStream(file.toPath());
+		String filename = file.getAbsolutePath();
+		parseStream(fis, size, filename, mediaInfo);
+	}
+
+	/**
+	 * Parses an image stream and stores the results in the given
+	 * {@link MediaInfo}. Parsing is performed using both
+	 * <a href=https://github.com/drewnoakes/metadata-extractor>Metadata Extractor</a>
+	 * and {@link ImageIO}. While Metadata Extractor offers more detailed
+	 * information, {@link ImageIO} offers information that is convenient for
+	 * image transformation with {@link ImageIO}. Parsing will be performed if
+	 * just one of the two methods produces results, but some details will be
+	 * missing if either one failed.
+	 * <p><b>
+	 * This method consumes and closes {@code inputStream}.
+	 * </b>
+	 * @param stream the {@link InputStream} to parse.
+	 * @param size the size.
+	 * @param filename the filename for debug.
+	 * @param mediaInfo the {@link MediaInfo} instance to store the parsing
+	 *              results to.
+	 * @throws IOException if an IO error occurs or no information can be parsed.
+	 *
+	 */
+	private static void parseStream(InputStream stream, long size, String filename, MediaInfo mediaInfo) throws IOException {
 		final int maxBuffer = 1048576; // 1 MB
-		if (file == null) {
-			throw new IllegalArgumentException("parseImage: file cannot be null");
+		if (stream == null) {
+			throw new IllegalArgumentException("parseImage: stream cannot be null");
 		}
 		if (mediaInfo == null) {
 			throw new IllegalArgumentException("parseImage: media cannot be null");
@@ -120,10 +166,9 @@ public class MetadataExtractorParser {
 
 		boolean trace = LOGGER.isTraceEnabled();
 		if (trace) {
-			LOGGER.trace("Parsing image file \"{}\"", file.getAbsolutePath());
+			LOGGER.trace("Parsing image file \"{}\"", filename);
 		}
-		long size = file.length();
-		ResettableInputStream inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
+		ResettableInputStream inputStream = new ResettableInputStream(stream, maxBuffer);
 		try  {
 			Metadata metadata;
 			FileType fileType = null;
@@ -132,14 +177,14 @@ public class MetadataExtractorParser {
 				metadata = getMetadata(inputStream, fileType);
 			} catch (IOException e) {
 				metadata = new Metadata();
-				LOGGER.debug("Error reading \"{}\": {}", file.getAbsolutePath(), e.getMessage());
+				LOGGER.debug("Error reading \"{}\": {}", filename, e.getMessage());
 				LOGGER.trace("", e);
 			} catch (ImageProcessingException e) {
 				metadata = new Metadata();
 				LOGGER.debug(
 					"Error parsing {} metadata for \"{}\": {}",
 					fileType != null ? fileType.toString().toUpperCase(Locale.ROOT) : "null",
-					file.getAbsolutePath(),
+					filename,
 					e.getMessage()
 				);
 				LOGGER.trace("", e);
@@ -157,7 +202,7 @@ public class MetadataExtractorParser {
 			} else {
 				// If we can't reset it, close it and create a new
 				inputStream.close();
-				inputStream = new ResettableInputStream(Files.newInputStream(file.toPath()), maxBuffer);
+				inputStream = new ResettableInputStream(stream, maxBuffer);
 			}
 			ImageInfo imageInfo = null;
 			try {
@@ -165,13 +210,13 @@ public class MetadataExtractorParser {
 			} catch (UnknownFormatException | IIOException | ParseException e) {
 				if (format == null) {
 					throw new UnknownFormatException(
-						"Unable to recognize image format for \"" + file.getAbsolutePath() + "\" - parsing failed",
+						"Unable to recognize image format for \"" + filename + "\" - parsing failed",
 						e
 					);
 				}
 				LOGGER.debug(
 					"Unable to parse \"{}\" with ImageIO because the format is unsupported, image information will be limited",
-					file.getAbsolutePath()
+					filename
 				);
 				LOGGER.trace("ImageIO parse failure reason: {}", e.getMessage());
 
@@ -180,14 +225,14 @@ public class MetadataExtractorParser {
 					try {
 						imageInfo = ImageInfo.create(metadata, format, size, true, true);
 					} catch (ParseException pe) {
-						LOGGER.debug("Unable to parse metadata for \"{}\": {}", file.getAbsolutePath(), pe.getMessage());
+						LOGGER.debug("Unable to parse metadata for \"{}\": {}", filename, pe.getMessage());
 						LOGGER.trace("", pe);
 					}
 				}
 			}
 
 			if (imageInfo == null && format == null) {
-				throw new ParseException("Parsing of \"" + file.getAbsolutePath() + "\" failed");
+				throw new ParseException("Parsing of \"" + filename + "\" failed");
 			}
 
 			if (format == null && imageInfo != null) {
@@ -204,7 +249,7 @@ public class MetadataExtractorParser {
 						LOGGER.trace(
 							"Correcting misidentified image format ARW to {} for \"{}\"",
 							format,
-							file.getAbsolutePath()
+							filename
 						);
 					} else {
 						/*
@@ -228,14 +273,14 @@ public class MetadataExtractorParser {
 						LOGGER.trace(
 							"Correcting misidentified image format TIFF to {} for \"{}\"",
 							format.toString(),
-							file.getAbsolutePath()
+							filename
 						);
 					}
 				} else {
 					LOGGER.debug(
 						"Image parsing for \"{}\" was inconclusive, metadata parsing " +
 						"detected {} format while ImageIO detected {}. Choosing {}.",
-						file.getAbsolutePath(),
+						filename,
 						format,
 						imageInfo.getFormat(),
 						imageInfo.getFormat()
@@ -248,11 +293,11 @@ public class MetadataExtractorParser {
 			if (format != null) {
 				mediaInfo.setContainer(format.toFormatConfiguration());
 			}
-			mediaInfo.setSize(file.length());
+			mediaInfo.setSize(size);
 			mediaInfo.setMediaParser(PARSER_NAME);
 			Parser.postParse(mediaInfo, Format.IMAGE);
 			if (trace) {
-				LOGGER.trace("Parsing of image \"{}\" completed", file.getName());
+				LOGGER.trace("Parsing of image \"{}\" completed", filename);
 			}
 		} finally {
 			inputStream.close();

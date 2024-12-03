@@ -16,6 +16,9 @@
  */
 package net.pms.network.mediaserver.jupnp;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.LoggerContext;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -26,20 +29,13 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
-import net.pms.network.mediaserver.MediaServer;
-import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerConfigurationImpl;
-import net.pms.network.mediaserver.jupnp.transport.impl.JakartaServletStreamServerImpl;
-import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClientConfiguration;
-import net.pms.network.mediaserver.jupnp.transport.impl.JdkStreamClients;
-import net.pms.network.mediaserver.jupnp.transport.impl.NettyStreamServer;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramIO;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsMulticastReceiver;
 import net.pms.network.mediaserver.jupnp.transport.impl.UmsNetworkAddressFactory;
-import net.pms.network.mediaserver.jupnp.transport.impl.UmsStreamServerConfiguration;
-import net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10.JettyServletContainer;
-import net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10.JettyStreamClientImpl;
+import net.pms.network.mediaserver.jupnp.transport.impl.jetty.JettyTransportConfiguration;
 import net.pms.util.SimpleThreadFactory;
+import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.jupnp.UpnpServiceConfiguration;
 import org.jupnp.binding.xml.DeviceDescriptorBinder;
 import org.jupnp.binding.xml.RecoveringUDA10DeviceDescriptorBinderImpl;
@@ -55,6 +51,7 @@ import org.jupnp.transport.impl.DatagramIOConfigurationImpl;
 import org.jupnp.transport.impl.GENAEventProcessorImpl;
 import org.jupnp.transport.impl.MulticastReceiverConfigurationImpl;
 import org.jupnp.transport.impl.SOAPActionProcessorImpl;
+import org.jupnp.transport.impl.jetty.StreamClientConfigurationImpl;
 import org.jupnp.transport.spi.DatagramIO;
 import org.jupnp.transport.spi.DatagramProcessor;
 import org.jupnp.transport.spi.GENAEventProcessor;
@@ -64,12 +61,16 @@ import org.jupnp.transport.spi.SOAPActionProcessor;
 import org.jupnp.transport.spi.StreamClient;
 import org.jupnp.transport.spi.StreamServer;
 import org.jupnp.util.Exceptions;
+import org.jupnp.util.SpecificationViolationReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(UmsUpnpServiceConfiguration.class);
+	private static final List<String> LOG_LEVEL_MEDIASERVER = List.of("org.jupnp");
+	private static final List<String> LOG_LEVEL_BASIC = List.of("net.pms.network.mediaserver.jupnp.transport.impl.UmsDatagramProcessor", "org.jupnp.protocol");
+	private static final List<String> LOG_LEVEL_FULL = List.of("org.jupnp.binding", "org.jupnp.model", "org.jupnp.registry", "org.jupnp.transport");
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final int CORE_THREAD_POOL_SIZE = 16;
 	private static final int THREAD_POOL_SIZE = 200;
@@ -93,7 +94,6 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private final ServiceDescriptorBinder serviceDescriptorBinderUDA10;
 	private final Namespace namespace;
 
-	private boolean ownContentDirectory = false;
 	private boolean useThreadPool = false;
 	private boolean multicastReceiverThreadPool = true;
 	private boolean datagramIOThreadPool = true;
@@ -114,8 +114,16 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 	private ExecutorService registryListenerExecutorService;
 	private ExecutorService registryMaintainerExecutorService;
 
-	public UmsUpnpServiceConfiguration(boolean ownContentDirectory) {
-		this.ownContentDirectory = ownContentDirectory;
+	static {
+		CONFIGURATION.addConfigurationListener((ConfigurationEvent event) -> {
+			if (!event.isBeforeUpdate() && UmsConfiguration.KEY_UPNP_LOG_LEVEL.equals(event.getPropertyName())) {
+				resetLoggingMode();
+			}
+		});
+	}
+
+	public UmsUpnpServiceConfiguration() {
+		resetLoggingMode();
 		umsHeaders.add(UpnpHeader.Type.USER_AGENT.getHttpName(), "UMS/" + PMS.getVersion() + " UPnP/1.0 DLNADOC/1.50 (" + System.getProperty("os.name").replace(" ", "_") + ")");
 		datagramProcessor = new UmsDatagramProcessor();
 		soapActionProcessor = new SOAPActionProcessorImpl();
@@ -247,47 +255,13 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 
 	@Override
 	public StreamClient createStreamClient() {
-		int engineVersion = CONFIGURATION.getServerEngine();
-		if (engineVersion == 2 || engineVersion == 3) {
-			return new JdkStreamClients(
-					new JdkStreamClientConfiguration(getStreamClientExecutorService())
-			);
-		}
-		return new JettyStreamClientImpl(getStreamClientExecutorService());
-	}
-
-	public boolean useOwnContentDirectory() {
-		return ownContentDirectory;
+		ExecutorService executorService = getStreamClientExecutorService();
+		return JettyTransportConfiguration.INSTANCE.createStreamClient(executorService, new StreamClientConfigurationImpl(executorService));
 	}
 
 	@Override
 	public StreamServer createStreamServer(NetworkAddressFactory networkAddressFactory) {
-		int engineVersion = CONFIGURATION.getServerEngine();
-		if (engineVersion == 0 || !MediaServer.VERSIONS.containsKey(engineVersion)) {
-			engineVersion = MediaServer.DEFAULT_VERSION;
-		}
-		switch (engineVersion) {
-			case 1 -> {
-				return new JakartaServletStreamServerImpl(
-						new JakartaServletStreamServerConfigurationImpl(
-								JettyServletContainer.INSTANCE,
-								networkAddressFactory.getStreamListenPort()
-						)
-				);
-			}
-			case 2, 3 -> {
-				return new NettyStreamServer(
-						new UmsStreamServerConfiguration(
-								networkAddressFactory.getStreamListenPort(),
-								true
-						)
-				);
-			}
-			default -> {
-				return new JakartaServletStreamServerImpl(
-						new JakartaServletStreamServerConfigurationImpl(JettyServletContainer.INSTANCE, networkAddressFactory.getStreamListenPort()));
-			}
-		}
+		return JettyTransportConfiguration.INSTANCE.createStreamServer(networkAddressFactory.getStreamListenPort());
 	}
 
 	@Override
@@ -499,6 +473,39 @@ public class UmsUpnpServiceConfiguration implements UpnpServiceConfiguration {
 				LOGGER.warn("Thread terminated " + runnable + " abruptly with exception: " + throwable);
 				LOGGER.warn("Root cause: " + cause);
 			}
+		}
+	}
+
+	private static void resetLoggingMode() {
+		Level mediaServerLevel = CONFIGURATION.isUpnpDebugMediaServer() ? Level.TRACE : Level.INFO;
+		Level basicLevel = CONFIGURATION.isUpnpDebugBasic() ? Level.TRACE : Level.INFO;
+		Level fullLevel = CONFIGURATION.isUpnpDebugFull() ? Level.TRACE : Level.ERROR;
+		if (fullLevel == Level.TRACE) {
+			LOGGER.debug("Upnp log mode: full");
+			SpecificationViolationReporter.enableReporting();
+		} else {
+			if (basicLevel == Level.TRACE) {
+				LOGGER.debug("Upnp log mode: basic");
+			} else if (mediaServerLevel == Level.TRACE) {
+				LOGGER.debug("Upnp log mode: MediaServer only");
+			} else {
+				LOGGER.debug("Upnp log mode: silent");
+			}
+			SpecificationViolationReporter.disableReporting();
+		}
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		ch.qos.logback.classic.Logger rootLogger;
+		for (String name : LOG_LEVEL_MEDIASERVER) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(mediaServerLevel);
+		}
+		for (String name : LOG_LEVEL_BASIC) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(basicLevel);
+		}
+		for (String name : LOG_LEVEL_FULL) {
+			rootLogger = loggerContext.getLogger(name);
+			rootLogger.setLevel(fullLevel);
 		}
 	}
 

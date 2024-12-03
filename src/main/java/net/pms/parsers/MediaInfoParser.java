@@ -823,13 +823,15 @@ public class MediaInfoParser {
 			value.equals("2000")
 		) {
 			format = FormatConfiguration.AC3;
+		} else if (value.equals("ac-4")) {
+			format = FormatConfiguration.AC4;
 		} else if (value.startsWith("cook")) {
 			format = FormatConfiguration.COOK;
 		} else if (value.startsWith("qdesign")) {
 			format = FormatConfiguration.QDESIGN;
 		} else if (value.equals("realaudio lossless")) {
 			format = FormatConfiguration.RALF;
-		} else if (value.equals("e-ac-3")) {
+		} else if (value.contains("e-ac-3")) {
 			format = FormatConfiguration.EAC3;
 		} else if (value.contains("truehd")) {
 			format = FormatConfiguration.TRUEHD;

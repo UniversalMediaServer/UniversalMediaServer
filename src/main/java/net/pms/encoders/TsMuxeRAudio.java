@@ -63,7 +63,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	}
 
 	@Override
-	public String mimeType() {
+	public String getMimeType() {
 		return HTTPResource.AUDIO_TRANSCODE;
 	}
 
@@ -86,4 +86,10 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	public boolean isCompatible(StoreItem resource) {
 		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);
 	}
+
+	@Override
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return encodingFormat.isAudioFormat();
+	}
+
 }

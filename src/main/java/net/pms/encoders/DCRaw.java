@@ -43,9 +43,9 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SimpleProcessWrapper;
 import net.pms.media.MediaInfo;
+import net.pms.network.HTTPResource;
 import net.pms.parsers.MetadataExtractorParser;
 import net.pms.platform.windows.NTStatus;
-import net.pms.renderers.Renderer;
 import net.pms.store.StoreItem;
 import net.pms.util.ExecutableErrorType;
 import net.pms.util.ExecutableInfo;
@@ -106,8 +106,8 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public String mimeType() {
-		return "image/jpeg";
+	public String getMimeType() {
+		return HTTPResource.JPEG_TYPEMIME;
 	}
 
 	@Override
@@ -320,13 +320,13 @@ public class DCRaw extends ImageEngine {
 	}
 
 	@Override
-	public boolean excludeFormat(Format extension) {
-		return false;
+	public boolean isCompatible(EncodingFormat encodingFormat) {
+		return true;
 	}
 
 	@Override
-	public boolean isEngineCompatible(Renderer renderer) {
-		return true;
+	public boolean excludeFormat(Format extension) {
+		return false;
 	}
 
 	@Override

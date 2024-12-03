@@ -367,6 +367,13 @@ public class MediaAudio extends MediaLang implements Cloneable {
 	}
 
 	/**
+	 * @return whether the audio codec is AC-4.
+	 */
+	public boolean isAC4() {
+		return FormatConfiguration.AC4.equalsIgnoreCase(getCodec());
+	}
+
+	/**
 	 * @return whether the audio codec is ACELP.
 	 */
 	public boolean isACELP() {

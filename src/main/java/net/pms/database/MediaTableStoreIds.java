@@ -41,7 +41,7 @@ public class MediaTableStoreIds extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable(Connection, int)}
 	 */
-	private static final int TABLE_VERSION = 1;
+	private static final int TABLE_VERSION = 2;
 
 	/**
 	 * COLUMNS
@@ -66,6 +66,7 @@ public class MediaTableStoreIds extends MediaTable {
 	private static final String SQL_GET_ALL_ID = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ALL_PARENTID_NAME = SELECT_ALL + FROM + TABLE_NAME + WHERE + TABLE_COL_PARENT_ID + EQUAL + PARAMETER + AND + TABLE_COL_NAME + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_NAME + EQUAL + PARAMETER;
+	private static final String SQL_GET_NAME_ID = SELECT + COL_NAME + FROM + TABLE_NAME + WHERE + TABLE_COL_ID + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_TYPE = SELECT + COL_ID + FROM + TABLE_NAME + WHERE + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE = SQL_GET_ID_NAME + AND + TABLE_COL_OBJECT_TYPE + EQUAL + PARAMETER;
 	private static final String SQL_GET_ID_NAME_TYPE_PARENTTYPE = SQL_GET_ID_NAME_TYPE + AND + TABLE_COL_PARENT_ID + IN + "(" + SQL_GET_ID_TYPE + ")";
@@ -101,6 +102,12 @@ public class MediaTableStoreIds extends MediaTable {
 		for (int version = currentVersion; version < TABLE_VERSION; version++) {
 			LOGGER.trace(LOG_UPGRADING_TABLE, DATABASE_NAME, TABLE_NAME, version, version + 1);
 			switch (version) {
+				case 1 -> {
+					LOGGER.trace("Creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + COL_PARENT_ID + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ", " + COL_PARENT_ID + ")");
+					LOGGER.trace("Creating index " + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ")");
+				}
 				default -> {
 					throw new IllegalStateException(
 							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
@@ -128,7 +135,9 @@ public class MediaTableStoreIds extends MediaTable {
 					COL_UPDATE_ID +       BIGINT                              +
 				")",
 				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_PARENT_ID + ")",
-				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ")"
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ")",
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + COL_PARENT_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ", " + COL_PARENT_ID + ")",
+				CREATE_INDEX + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_NAME + COL_OBJECT_TYPE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_NAME + ", " + COL_OBJECT_TYPE + ")"
 		);
 		ensureSystemId(connection);
 	}
@@ -219,6 +228,24 @@ public class MediaTableStoreIds extends MediaTable {
 			LOGGER.error("Database error in " + TABLE_NAME + " for \"{}\": {}", id, e.getMessage());
 			LOGGER.trace("", e);
 		}
+	}
+
+	public static String getMediaStoreNameForId(Connection connection, String id) {
+		if (connection == null) {
+			return null;
+		}
+		try (PreparedStatement stmt = connection.prepareStatement(SQL_GET_NAME_ID)) {
+			stmt.setLong(1, Long.parseLong(id));
+			try (ResultSet elements = stmt.executeQuery()) {
+				while (elements.next()) {
+					return elements.getString(COL_NAME);
+				}
+			}
+		} catch (SQLException e) {
+			LOGGER.error("Database error in " + TABLE_NAME + " for id \"{}\": {}", id, e.getMessage());
+			LOGGER.trace("", e);
+		}
+		return null;
 	}
 
 	public static List<Long> getMediaStoreIdsForName(Connection connection, String name) {

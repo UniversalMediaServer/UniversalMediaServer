@@ -20,9 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.encoders.Engine;
-import net.pms.encoders.EngineFactory;
-import net.pms.formats.Format;
+import net.pms.encoders.TranscodingSettings;
 import net.pms.media.MediaInfo;
 import net.pms.renderers.Renderer;
 import net.pms.store.StoreContainer;
@@ -70,7 +68,7 @@ public class CueFolder extends StoreContainer {
 				if (!files.isEmpty()) {
 					FileData f = files.get(0);
 					List<TrackData> tracks = f.getTrackData();
-					Engine defaultPlayer = null;
+					TranscodingSettings defaultTranscodingSettings = null;
 					MediaInfo originalMedia = null;
 					ArrayList<StoreResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
@@ -114,12 +112,12 @@ public class CueFolder extends StoreContainer {
 						realFile.setSplitTrack(i + 1);
 
 						// Assign a splitter engine if file is natively supported by renderer
-						if (realFile.getEngine() == null) {
-							if (defaultPlayer == null) {
-								defaultPlayer = EngineFactory.getEngine(realFile);
+						if (!realFile.isTranscoded()) {
+							if (defaultTranscodingSettings == null) {
+								defaultTranscodingSettings = TranscodingSettings.getBestTranscodingSettings(realFile);
 							}
 
-							realFile.setEngine(defaultPlayer);
+							realFile.setTranscodingSettings(defaultTranscodingSettings);
 						}
 
 						if (realFile.getMediaInfo() != null) {
@@ -166,7 +164,7 @@ public class CueFolder extends StoreContainer {
 						}
 					}
 
-					storeFileInCache(playlistfile, Format.PLAYLIST);
+					// storeFileInCache(playlistfile, Format.PLAYLIST);
 				}
 			}
 		}

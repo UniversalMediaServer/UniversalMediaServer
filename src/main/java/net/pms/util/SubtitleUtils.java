@@ -55,7 +55,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
 import net.pms.media.MediaLang;
-import net.pms.media.subtitle.MediaOnDemandSubtitle;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo.Mode3D;
 import net.pms.renderers.Renderer;
@@ -1032,7 +1031,7 @@ public class SubtitleUtils {
 		// Find already parsed subtitles
 		HashSet<File> existingSubtitles = new HashSet<>();
 		for (MediaSubtitle subtitle : media.getSubtitlesTracks()) {
-			if (subtitle != null && !(subtitle instanceof MediaOnDemandSubtitle) && subtitle.getExternalFile() != null) {
+			if (subtitle != null && subtitle.getExternalFile() != null) {
 				existingSubtitles.add(subtitle.getExternalFile());
 			}
 		}
@@ -1070,7 +1069,6 @@ public class SubtitleUtils {
 			MediaSubtitle subtitles = iterator.next();
 			if (
 				subtitles.isExternal() &&
-				!(subtitles instanceof MediaOnDemandSubtitle) &&
 				!folderSubtitles.contains(subtitles.getExternalFile())
 			) {
 				changed = true;

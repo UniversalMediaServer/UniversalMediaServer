@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, Group, Tabs, Text } from '@mantine/core';
+import { Box, Button, Group, Text } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
@@ -40,6 +40,11 @@ export default function SharedContent() {
   const canModify = havePermission(session, Permissions.settings_modify);
   const canView = canModify || havePermission(session, Permissions.settings_view);
 
+  //set the document Title to Shared Content
+  useEffect(() => {
+    document.title="Universal Media Server - Shared Content";
+  }, []);
+
   useEffect(() => {
     if (sse.userConfiguration === null) {
       return;
@@ -58,25 +63,27 @@ export default function SharedContent() {
   }, [configuration, sse, formSetValues]);
 
   useEffect(() => {
-    canView && axios.get(sharedApiUrl)
-      .then(function(response: any) {
-        const sharedResponse = response.data;
-        setConfiguration(sharedResponse);
-        formSetValues(sharedResponse);
-      })
-      .catch(function() {
-        showNotification({
-          id: 'data-loading',
-          color: 'red',
-          title: i18n.get('Error'),
-          message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
-          onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
+    if (canView) {
+      axios.get(sharedApiUrl)
+        .then(function(response: any) {
+          const sharedResponse = response.data;
+          setConfiguration(sharedResponse);
+          formSetValues(sharedResponse);
+        })
+        .catch(function() {
+          showNotification({
+            id: 'data-loading',
+            color: 'red',
+            title: i18n.get('Error'),
+            message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
+            onClick: () => { openGitHubNewIssue(); },
+            autoClose: 3000,
+          });
+        })
+        .then(function() {
+          setLoading(false);
         });
-      })
-      .then(function() {
-        setLoading(false);
-      });
+    }
   }, [canView, formSetValues]);
 
   const handleSubmit = async (values: typeof form.values) => {
@@ -120,14 +127,8 @@ export default function SharedContent() {
   return canView ? (
     <Box style={{ maxWidth: 1024 }} mx='auto'>
       <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Tabs defaultValue='SharedContent'>
-          <Tabs.List>
-            <Tabs.Tab value='SharedContent'>{i18n.get('SharedContent')}</Tabs.Tab>
-          </Tabs.List>
-          <Tabs.Panel value='SharedContent'>
-            {SharedContentSettings(form, configuration)}
-          </Tabs.Panel>
-        </Tabs>
+        <Text size="lg" mb="md">{i18n.get('SharedContent')}</Text>
+        {SharedContentSettings(form, configuration)}
         {canModify && (
           <Group justify='flex-end' mt='md'>
             <Button type='submit' loading={isLoading}>

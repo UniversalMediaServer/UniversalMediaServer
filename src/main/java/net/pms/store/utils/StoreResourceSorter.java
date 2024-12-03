@@ -23,8 +23,10 @@ import java.util.List;
 import java.util.Random;
 import net.pms.PMS;
 import net.pms.configuration.UmsConfiguration;
+import net.pms.store.StoreContainer;
+import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
-import net.pms.store.item.RealFile;
+import net.pms.store.SystemFileResource;
 import org.jupnp.support.model.SortCriterion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,21 +135,43 @@ public class StoreResourceSorter {
 
 	public static void sortResourcesByTitle(List<StoreResource> resources, boolean asc, String lang) {
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
-			String str1 = resources1.getLocalizedDisplayName(lang);
-			String str2 = resources2.getLocalizedDisplayName(lang);
-			if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
-				str1 = str1 != null ? str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
-				str2 = str2 != null ? str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
+			if (resources1 instanceof StoreResource && resources2 instanceof StoreResource) {
+				if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
+					return 1;
+				} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
+					return -1;
+				}
+				if (!resources1.isSortable()) {
+					if (!resources2.isSortable()) {
+						return 0;
+					}
+					return asc ? -1 : 1;
+				} else if (!resources2.isSortable()) {
+					return asc ? 1 : -1;
+				}
+				String str1 = resources1.getLocalizedDisplayName(lang);
+				String str2 = resources2.getLocalizedDisplayName(lang);
+				if (PMS.getConfiguration().isIgnoreTheWordAandThe()) {
+					str1 = str1 != null ? str1.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
+					str2 = str2 != null ? str2.replaceAll("^(?i)A[ .]|The[ .]", "").replaceAll("\\s{2,}", " ") : null;
+				}
+				return compareToNormalizedString(str1, str2, asc);
+			} else {
+				return 0;
 			}
-			return compareToNormalizedString(str1, str2, asc);
 		});
 	}
 
 	public static void sortResourcesByModifiedDate(List<StoreResource> resources, boolean asc) {
 		Collections.sort(resources, (StoreResource resources1, StoreResource resources2) -> {
-			if (resources1 instanceof RealFile realFile1 && resources2 instanceof RealFile realFile2) {
-				File file1 = realFile1.getFile();
-				File file2 = realFile2.getFile();
+			if (resources1 instanceof SystemFileResource systemFileResource1 && resources2 instanceof SystemFileResource systemFileResource2) {
+				if (resources1 instanceof StoreItem && resources2 instanceof StoreContainer) {
+					return 1;
+				} else if (resources1 instanceof StoreContainer && resources2 instanceof StoreItem) {
+					return -1;
+				}
+				File file1 = systemFileResource1.getSystemFile();
+				File file2 = systemFileResource2.getSystemFile();
 				if (file1 == null || file2 == null) {
 					return 0;
 				}

@@ -76,6 +76,7 @@ import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.external.umsapi.APIUtils;
 import net.pms.gui.GuiManager;
+import net.pms.logging.DebounceTraceLogger;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
@@ -105,6 +106,7 @@ public class TMDB {
 	private static final UmsConfiguration CONFIGURATION = PMS.getConfiguration();
 	private static final TMDbClient CLIENT = new TMDbClient();
 	private static final Gson GSON = new Gson();
+	private static final DebounceTraceLogger DEBOUNCED_TRACE_LOGGER = new DebounceTraceLogger();
 
 	// Minimum number of threads in pool
 	private static final ThreadPoolExecutor BACKGROUND_EXECUTOR = new ThreadPoolExecutor(
@@ -146,29 +148,29 @@ public class TMDB {
 
 	private static boolean shouldLookupAndAddMetadata(final File file, final MediaInfo mediaInfo) {
 		if (BACKGROUND_EXECUTOR.isShutdown()) {
-			LOGGER.trace("Not doing background API lookup because background executor is shutdown");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because background executor is shut down");
 			return false;
 		}
 
 		if (!CONFIGURATION.getExternalNetwork()) {
-			LOGGER.trace("Not doing background TMDB lookup because external network is disabled");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because external network is disabled");
 			return false;
 		}
 
 		if (!MediaDatabase.isAvailable()) {
-			LOGGER.trace("Not doing background TMDB lookup because database is closed");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background API lookup because database is closed");
 			return false;
 		}
 
 		if (!CONFIGURATION.isUseInfoFromTMDB()) {
-			LOGGER.trace("Not doing background TMDB lookup because isUseInfoFromTMDB is disabled");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because isUseInfoFromTMDB is disabled, passing to UMS API");
 			//fallback to UMS API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
 		}
 
 		if (!isReady()) {
-			LOGGER.trace("Not doing background TMDB lookup because no/bad api key found");
+			DEBOUNCED_TRACE_LOGGER.log("Not doing background TMDB lookup because no/bad api key found, passing to UMS API");
 			//fallback to UMS API.
 			APIUtils.backgroundLookupAndAddMetadata(file, mediaInfo);
 			return false;
@@ -387,11 +389,11 @@ public class TMDB {
 			videoMetadata.setTvSeriesId(tvSeriesId);
 		}
 		if (videoMetadata.getSeriesMetadata() == null) {
-			TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, videoMetadata.getTvSeriesId());
+			TvSeriesMetadata tvSeriesMetadata = MediaInfoStore.getTvSeriesMetadata(videoMetadata.getTvSeriesId());
 			videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 		}
 
-		//first check if tv series is founded
+		// first check if tv series is found
 		Long tvShowId = videoMetadata.getSeriesMetadata().getTmdbId();
 		if (tvShowId == null) {
 			String showNameFromFilename = videoMetadata.getMovieOrShowName();
@@ -445,7 +447,7 @@ public class TMDB {
 					TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadataFromTmdbId(connection, tvShowId);
 					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
 					videoMetadata.setTmdbTvId(tvShowId);
-					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+					videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(tvSeriesMetadata.getTvSeriesId()));
 				}
 			} catch (IOException ex) {
 				// this likely means a transient error so don't store the failure, to allow retries
@@ -679,7 +681,7 @@ public class TMDB {
 		//clear old localized values
 		tvSeriesMetadata.setTranslations(null);
 		MediaTableVideoMetadataLocalized.clearVideoMetadataLocalized(connection, tvSeriesId, true);
-		MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+		MediaInfoStore.updateTvSeriesMetadata(tvSeriesMetadata, tvSeriesId);
 
 		//ensure we have the default translation
 		tvSeriesMetadata.ensureHavingTranslation(null);
@@ -753,7 +755,7 @@ public class TMDB {
 		if (videoMetadata != null && tvSeriesId != null) {
 			videoMetadata.setTvSeriesId(tvSeriesId);
 			videoMetadata.setTmdbTvId(tvDetails.getId());
-			videoMetadata.setSeriesMetadata(tvSeriesMetadata);
+			videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(tvSeriesId));
 		}
 		return tvSeriesId;
 	}
@@ -826,7 +828,7 @@ public class TMDB {
 		}
 		SearchTvEndpoint searchTvEndpoint = CLIENT.search(title).forTvShow();
 		TvSimpleResultsSchema tvSimpleResultsSchema = searchTvEndpoint.getResults();
-		if (tvSimpleResultsSchema.getTotalResults() > 0) {
+		if (tvSimpleResultsSchema != null && tvSimpleResultsSchema.getTotalResults() > 0) {
 			for (TvSimpleSchema tvSimple : tvSimpleResultsSchema.getResults()) {
 				Long tvShowId = tvSimple.getId();
 				if (tvShowId != null && !tvShowIds.contains(tvShowId)) {
@@ -1169,7 +1171,7 @@ public class TMDB {
 			searchMovieEndpoint.setYear(year);
 		}
 		MovieShortResultsSchema movieShortResults = searchMovieEndpoint.getResults();
-		if (movieShortResults.getTotalResults() > 0) {
+		if (movieShortResults != null && movieShortResults.getTotalResults() > 0) {
 			for (MovieShortSchema movieShort : movieShortResults.getResults()) {
 				Long tmdbId = movieShort.getId();
 				MovieDetailsSchema movieDetails = getMovieInfo(tmdbId, null);
@@ -1340,8 +1342,12 @@ public class TMDB {
 
 	public static String getTmdbImageBaseURL() {
 		if (tmdbImageBaseURL == null && isReady()) {
-			ConfigurationSchema configurationSchema = CLIENT.configuration().getConfiguration();
-			tmdbImageBaseURL = configurationSchema.getImages().getBaseUrl();
+			try {
+				ConfigurationSchema configurationSchema = CLIENT.configuration().getConfiguration();
+				tmdbImageBaseURL = configurationSchema.getImages().getBaseUrl();
+			} catch (Exception e) {
+				//let use APIUtils
+			}
 		}
 		if (tmdbImageBaseURL == null) {
 			//fallback to UMS API

@@ -666,11 +666,11 @@ public class UPNP {
 		}
 
 		public Genre(String value) {
-			super(value, null);
+			super(value, "genre");
 		}
 
 		public Genre(String value, String id, String extended) {
-			super(value, null);
+			super(value, "genre");
 			setId(id);
 			setExtended(extended);
 		}

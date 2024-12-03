@@ -23,6 +23,7 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -35,6 +36,8 @@ import net.pms.store.item.FeedItem;
 import org.apache.commons.lang3.StringUtils;
 import org.jdom2.Content;
 import org.jdom2.Element;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,7 @@ public class Feed extends StoreContainer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Feed.class);
 	private static final int REFRESH_INTERVAL = 60 * 60 * 1000; // 1 hour
 	private static final Map<String, String> FEED_TITLES_CACHE = Collections.synchronizedMap(new HashMap<>());
+	private static final Map<String, String> FEED_URLS_CACHE = Collections.synchronizedMap(new HashMap<>());
 
 	private final String url;
 	private final int childSpecificType;
@@ -55,7 +59,7 @@ public class Feed extends StoreContainer {
 	public Feed(Renderer renderer, String name, String url, int type) {
 		super(renderer, name, null);
 		childSpecificType = type;
-		this.url = url;
+		this.url = getFeedUrl(url);
 	}
 
 	public void parse() throws Exception {
@@ -63,7 +67,7 @@ public class Feed extends StoreContainer {
 		byte[] b = HTTPResource.downloadAndSendBinary(url);
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			name = feed.getTitle();
+			setName(feed.getTitle());
 			if (feed.getCategories() != null && !feed.getCategories().isEmpty()) {
 				SyndCategory category = feed.getCategories().get(0);
 				tempCategory = category.getName();
@@ -209,14 +213,6 @@ public class Feed extends StoreContainer {
 		this.tempItemThumbURL = tempItemThumbURL;
 	}
 
-	/**
-	 * @param name the name to set
-	 * @since 1.50
-	 */
-	protected void setName(String name) {
-		this.name = name;
-	}
-
 	@Override
 	protected void resolveOnce() {
 		try {
@@ -242,13 +238,14 @@ public class Feed extends StoreContainer {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		try {
 			getChildren().clear();
 			parse();
 		} catch (Exception e) {
 			LOGGER.error("Error in parsing stream: " + url, e);
 		}
+		sortChildrenIfNeeded();
 	}
 
 	/**
@@ -257,11 +254,6 @@ public class Feed extends StoreContainer {
 	 * @throws Exception
 	 */
 	public static String getFeedTitle(String url) throws Exception {
-		// Convert YouTube channel URIs to their feed URIs
-		if (url.contains("youtube.com/channel/")) {
-			url = url.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-		}
-
 		// Check cache first
 		String feedTitle = FEED_TITLES_CACHE.get(url);
 		if (feedTitle != null) {
@@ -282,4 +274,64 @@ public class Feed extends StoreContainer {
 		return null;
 	}
 
+	/**
+	 * @param url webpage URL
+	 * @return RSS feed URL
+	 * @throws IOException
+	 */
+	private static String getFeedUrlFromWebpage(String url) throws IOException {
+		// Check cache first
+		String feedUrl = FEED_URLS_CACHE.get(url);
+		if (feedUrl != null) {
+			return feedUrl;
+		}
+
+		Document doc = Jsoup.connect(url).get();
+		feedUrl = doc.select("link[type=application/rss+xml]").first().attr("href");
+		LOGGER.trace("Parsed feed URL {} from webpage {}", feedUrl, url);
+
+		if (StringUtils.isNotBlank(feedUrl)) {
+			FEED_URLS_CACHE.put(url, feedUrl);
+			return feedUrl;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Transforms URLs from YouTube into their channel RSS feeds.
+	 */
+	private static String getYouTubeChannelFeedUrl(String url) throws IOException {
+		/**
+		 * The newer "handle URL" does not contain the URL we want, so we
+		 * parse the webpage contents to get it
+		 */
+		if (url.contains("youtube.com/@")) {
+			return getFeedUrlFromWebpage(url);
+		}
+
+		if (url.contains("youtube.com/channel/")) {
+			return url.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
+		}
+
+		return url;
+	}
+
+	/**
+	 * Performs any known transformations to the incoming URL.
+	 * For now it only handles YouTube but it could grow.
+	 *
+	 * @return a transformed URL or the original one
+	 */
+	public static String getFeedUrl(String url) {
+		try {
+			if (url.contains("youtube.com")) {
+				return getYouTubeChannelFeedUrl(url);
+			}
+		} catch (IOException e) {
+			LOGGER.debug("{}", e);
+		}
+
+		return url;
+	}
 }

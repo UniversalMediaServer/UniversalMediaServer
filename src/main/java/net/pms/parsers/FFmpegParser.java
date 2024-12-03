@@ -78,18 +78,18 @@ public class FFmpegParser {
 
 			boolean ffmpegParsing = true;
 
-			if (type == Format.AUDIO || ext instanceof AudioAsVideo) {
+			if (file != null && type == Format.AUDIO || ext instanceof AudioAsVideo) {
 				ffmpegParsing = false;
 				JaudiotaggerParser.parse(media, file, ext);
 			}
 
-			if (type == Format.IMAGE && file != null) {
+			if (type == Format.IMAGE) {
 				try {
 					ffmpegParsing = false;
-					MetadataExtractorParser.parse(file, media);
+					MetadataExtractorParser.parse(inputFile, media);
 					media.setImageCount(media.getImageCount() + 1);
 				} catch (IOException e) {
-					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", file.getAbsolutePath(), e.getMessage());
+					LOGGER.debug("Error parsing image \"{}\", switching to FFmpeg: {}", inputFile.getFilename(), e.getMessage());
 					LOGGER.trace("", e);
 					ffmpegParsing = true;
 				}
@@ -133,6 +133,7 @@ public class FFmpegParser {
 
 		ArrayList<String> args = new ArrayList<>();
 		args.add(engine);
+		args.add("-hide_banner");
 		args.add("-i");
 
 		String input;
@@ -163,6 +164,42 @@ public class FFmpegParser {
 			LOGGER.info("Error parsing information from the file: " + input);
 		} else {
 			parseFFmpegInfo(media, pw.getResults(), input);
+		}
+
+		media.setParsing(false);
+	}
+
+	public static void parseUrl(MediaInfo media, String url) {
+		String engine = EngineFactory.getEngineExecutable(StandardEngineId.FFMPEG_VIDEO);
+		if (engine == null) {
+			LOGGER.warn("Cannot parse since the FFmpeg executable is undefined");
+			return;
+		}
+
+		ArrayList<String> args = new ArrayList<>();
+		args.add(engine);
+		args.add("-hide_banner");
+		args.add("-i");
+		args.add(url);
+		args.add("-t");
+		args.add("1");
+		args.add("-f");
+		args.add("null");
+		args.add("-");
+
+		OutputParams params = new OutputParams(CONFIGURATION);
+		params.setMaxBufferSize(1);
+
+		// true: consume stderr on behalf of the caller i.e. parse()
+		final ProcessWrapperImpl pw = new ProcessWrapperImpl(args.toArray(String[]::new), true, params, false, true);
+		FailSafeProcessWrapper fspw = new FailSafeProcessWrapper(pw, 10000);
+		media.setParsing(true);
+		fspw.runInSameThread();
+
+		if (fspw.hasFail()) {
+			LOGGER.info("Error parsing information from the url: " + url);
+		} else {
+			parseFFmpegInfo(media, pw.getResults(), url);
 		}
 
 		media.setParsing(false);
@@ -268,7 +305,7 @@ public class FFmpegParser {
 				if (line.startsWith("Output")) {
 					matches = false;
 				} else if (line.startsWith("Input")) {
-					if (line.contains(input)) {
+					if (line.contains(input) || line.contains("from 'fd:':")) {
 						matches = true;
 						media.setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 

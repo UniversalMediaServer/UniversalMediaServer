@@ -38,6 +38,7 @@ import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.parsers.FFmpegParser;
 import net.pms.parsers.Parser;
+import net.pms.parsers.WebStreamParser;
 import net.pms.util.FileNameMetadata;
 import net.pms.util.FileUtil;
 import net.pms.util.InputFile;
@@ -49,6 +50,7 @@ public class MediaInfoStore {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoStore.class);
 	private static final Map<String, WeakReference<MediaInfo>> STORE = new HashMap<>();
+	private static final Map<Long, WeakReference<TvSeriesMetadata>> TV_SERIES_STORE = new HashMap<>();
 	private static final Map<String, Object> LOCKS = new HashMap<>();
 
 	private MediaInfoStore() {
@@ -116,7 +118,7 @@ public class MediaInfoStore {
 			if (mediaInfo != null) {
 				return mediaInfo;
 			}
-			LOGGER.trace("Store do not yet contains MediaInfo for {}", filename);
+			LOGGER.trace("Store does not yet contain MediaInfo for {}", filename);
 			Connection connection = null;
 			InputFile input = new InputFile();
 			input.setFile(file);
@@ -197,6 +199,33 @@ public class MediaInfoStore {
 		}
 	}
 
+	public static MediaInfo getWebStreamMediaInfo(String url, int type) {
+		Object lock = getLock(url);
+		synchronized (lock) {
+			MediaInfo mediaInfo = getMediaInfoStored(url);
+			if (mediaInfo != null) {
+				return mediaInfo;
+			}
+			LOGGER.trace("Store does not yet contain MediaInfo for {}", url);
+			try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+				mediaInfo = MediaTableFiles.getMediaInfo(connection, url, 0);
+				if (mediaInfo == null) {
+					mediaInfo = new MediaInfo();
+				}
+				if (!mediaInfo.isMediaParsed()) {
+					WebStreamParser.parse(mediaInfo, url, type);
+					MediaTableFiles.insertOrUpdateData(connection, url, 0, type, mediaInfo);
+				}
+			} catch (Exception e) {
+				LOGGER.error("Database error while trying to add parsed information for \"{}\" to the cache: {}", url, e.getMessage());
+			}
+			if (mediaInfo != null) {
+				storeMediaInfo(url, mediaInfo);
+			}
+			return mediaInfo;
+		}
+	}
+
 	public static MediaVideoMetadata getMediaVideoMetadata(String filename) {
 		//check on store
 		MediaInfo mediaInfo = getMediaInfoStored(filename);
@@ -216,6 +245,67 @@ public class MediaInfoStore {
 		return null;
 	}
 
+	private static TvSeriesMetadata getTvSeriesMetadataStored(Long tvSeriesId) {
+		synchronized (TV_SERIES_STORE) {
+			if (TV_SERIES_STORE.containsKey(tvSeriesId) && TV_SERIES_STORE.get(tvSeriesId).get() != null) {
+				return TV_SERIES_STORE.get(tvSeriesId).get();
+			}
+		}
+		return null;
+	}
+
+	private static void storeTvSeriesMetadata(Long tvSeriesId, TvSeriesMetadata tvSeriesMetadata) {
+		synchronized (TV_SERIES_STORE) {
+			TV_SERIES_STORE.put(tvSeriesId, new WeakReference<>(tvSeriesMetadata));
+		}
+	}
+
+	public static TvSeriesMetadata getTvSeriesMetadata(Long tvSeriesId) {
+		//check on store
+		TvSeriesMetadata tvSeriesMetadata = getTvSeriesMetadataStored(tvSeriesId);
+		if (tvSeriesMetadata != null || !MediaDatabase.isAvailable()) {
+			return tvSeriesMetadata;
+		}
+		//parse db
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		if (tvSeriesMetadata != null) {
+			storeTvSeriesMetadata(tvSeriesId, tvSeriesMetadata);
+		}
+		return tvSeriesMetadata;
+	}
+
+	public static void updateTvSeriesMetadata(final TvSeriesMetadata tvSeriesMetadata, final Long tvSeriesId) {
+		if (tvSeriesId == null || tvSeriesId < 0) {
+			return;
+		}
+		if (tvSeriesMetadata == null) {
+			LOGGER.warn("Couldn't update Tv Series Metadata for \"{}\" because there is no media information", tvSeriesId);
+			return;
+		}
+		Connection connection = null;
+		try {
+			connection = MediaDatabase.getConnectionIfAvailable();
+			if (connection != null) {
+				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+			}
+		} finally {
+			MediaDatabase.close(connection);
+		}
+		//update referenced objects
+		TvSeriesMetadata storedTvSeriesMetadata = getTvSeriesMetadataStored(tvSeriesId);
+		if (storedTvSeriesMetadata != null) {
+			storedTvSeriesMetadata.update(tvSeriesMetadata);
+		}
+	}
+
 	public static void updateTvEpisodesTvSeriesId(final Long oldTvSeriesId, Long tvSeriesId) {
 		if (oldTvSeriesId == null || tvSeriesId == null) {
 			return;
@@ -224,7 +314,7 @@ public class MediaInfoStore {
 		try {
 			connection = MediaDatabase.getConnectionIfAvailable();
 			if (connection != null) {
-				TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+				TvSeriesMetadata tvSeriesMetadata = getTvSeriesMetadata(tvSeriesId);
 				List<String> filenames = MediaTableVideoMetadata.getTvEpisodesFilesByTvSeriesId(connection, oldTvSeriesId);
 				for (String filename : filenames) {
 					//remove FailedLookups entry on db if exists
@@ -232,7 +322,7 @@ public class MediaInfoStore {
 					MediaInfo mediaInfo = getMediaInfo(filename);
 					if (mediaInfo != null && mediaInfo.hasVideoMetadata()) {
 						mediaInfo.getVideoMetadata().setSeriesMetadata(tvSeriesMetadata);
-						if ((tvSeriesMetadata.getTmdbId() != null &&
+						if ((tvSeriesMetadata != null && tvSeriesMetadata.getTmdbId() != null &&
 								!tvSeriesMetadata.getTmdbId().equals(mediaInfo.getVideoMetadata().getTmdbTvId())) ||
 								!tvSeriesId.equals(mediaInfo.getVideoMetadata().getTvSeriesId())) {
 							//changed, remove old values to lookup for new metadata
@@ -316,7 +406,7 @@ public class MediaInfoStore {
 									// might be enhanced later by the API
 									tvSeriesId = MediaTableTVSeries.set(connection, tvSeriesTitle, tvSeriesYear);
 								}
-								TvSeriesMetadata tvSeriesMetadata = MediaTableTVSeries.getTvSeriesMetadata(connection, tvSeriesId);
+								TvSeriesMetadata tvSeriesMetadata = getTvSeriesMetadata(tvSeriesId);
 								videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 								videoMetadata.setTvSeriesId(tvSeriesId);
 							}

@@ -639,7 +639,7 @@ public class NetworkConfiguration {
 		boolean forcedInetAddress = StringUtils.isNotBlank(CONFIGURATION.getServerHostname());
 		NetworkInterfaceAssociation ia = null;
 		if (forcedNetworkInterface) {
-			LOGGER.info("Using forced network interface: {}", CONFIGURATION.getNetworkInterface());
+			LOGGER.debug("Using forced network interface: {}", CONFIGURATION.getNetworkInterface());
 			ia = NetworkConfiguration.getAddressForNetworkInterfaceName(CONFIGURATION.getNetworkInterface());
 			if (ia == null) {
 				LOGGER.error("Forced network interface {} not found on this system", CONFIGURATION.getNetworkInterface().trim().replace('\n', ' '));
@@ -653,7 +653,7 @@ public class NetworkConfiguration {
 		String hostname = CONFIGURATION.getServerHostname();
 		//look for ip on forced address
 		if (forcedInetAddress) {
-			LOGGER.info("Using forced address: {}", hostname);
+			LOGGER.debug("Using forced address: {}", hostname);
 			InetAddress inetAddress = null;
 			try {
 				inetAddress = InetAddress.getByName(hostname);

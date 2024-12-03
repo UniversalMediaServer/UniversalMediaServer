@@ -23,7 +23,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import net.pms.encoders.Engine;
+import net.pms.PMS;
+import net.pms.encoders.EncodingFormat;
 import net.pms.formats.Format;
 import net.pms.image.ImageFormat;
 import net.pms.image.ImageInfo;
@@ -35,8 +36,11 @@ import net.pms.media.audio.metadata.MediaAudioMetadata;
 import net.pms.media.subtitle.MediaSubtitle;
 import net.pms.media.video.MediaVideo;
 import net.pms.media.video.metadata.MediaVideoMetadata;
+import net.pms.network.configuration.NetworkConfiguration;
+import net.pms.network.configuration.NetworkInterfaceAssociation;
 import net.pms.network.mediaserver.HTTPXMLHelper;
 import net.pms.renderers.Renderer;
+import net.pms.store.MediaStoreIds;
 import net.pms.store.StoreContainer;
 import net.pms.store.StoreItem;
 import net.pms.store.StoreResource;
@@ -66,7 +70,7 @@ public class DidlHelper extends DlnaHelper {
 		StringBuilder filesData = new StringBuilder();
 		filesData.append(HTTPXMLHelper.DIDL_HEADER);
 		for (StoreResource resource : resultResources) {
-			filesData.append(DidlHelper.getDidlString(resource));
+			filesData.append(getDidlString(resource));
 		}
 		filesData.append(HTTPXMLHelper.DIDL_FOOTER);
 		return StringEscapeUtils.unescapeXml(filesData.toString());
@@ -87,7 +91,7 @@ public class DidlHelper extends DlnaHelper {
 		final MediaStatus mediaStatus = resource.getMediaStatus();
 		final StoreContainer container = resource instanceof StoreContainer storeContainer ? storeContainer : null;
 		final StoreItem item = resource instanceof StoreItem storeItem ? storeItem : null;
-		final Engine engine = item != null ? item.getEngine() : null;
+		final EncodingFormat encodingFormat = item != null && item.isTranscoded() ? item.getTranscodingSettings().getEncodingFormat() : null;
 		final Format format = item != null ? item.getFormat() : null;
 		final MediaSubtitle mediaSubtitle = item != null ? item.getMediaSubtitle() : null;
 
@@ -99,7 +103,7 @@ public class DidlHelper extends DlnaHelper {
 				if (
 					!renderer.getUmsConfiguration().isDisableSubtitles() &&
 					(
-						engine == null ||
+						!item.isTranscoded() ||
 						renderer.streamSubsForTranscodedVideo()
 					) &&
 					mediaSubtitle != null &&
@@ -113,7 +117,7 @@ public class DidlHelper extends DlnaHelper {
 						LOGGER.trace("Subtitles are disabled");
 					} else if (mediaSubtitle.isEmbedded()) {
 						LOGGER.trace("Subtitles track {} cannot be streamed because it is internal/embedded", mediaSubtitle.getId());
-					} else if (engine != null && !renderer.streamSubsForTranscodedVideo()) {
+					} else if (item.isTranscoded() && !renderer.streamSubsForTranscodedVideo()) {
 						LOGGER.trace("Subtitles \"{}\" aren't supported while transcoding to {}", mediaSubtitle.getName(), renderer);
 					} else {
 						LOGGER.trace("Subtitles \"{}\" aren't valid for streaming to {}", mediaSubtitle.getName(), renderer);
@@ -131,6 +135,13 @@ public class DidlHelper extends DlnaHelper {
 			// Ensure the xbox 360 doesn't confuse our ids with its own virtual
 			// folder ids.
 			resourceId += "$";
+		}
+
+		if (item != null && renderer.needVersionedObjectId()) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(item.getLongId());
+			if (updateId != null) {
+				resourceId += "#" + updateId;
+			}
 		}
 
 		addAttribute(sb, "id", resourceId);
@@ -283,10 +294,10 @@ public class DidlHelper extends DlnaHelper {
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
-				String dlnaOrgPnFlags = DlnaHelper.getDlnaOrgPnFlags(item, c);
+				String dlnaOrgPnFlags = getDlnaOrgPnFlags(item, c);
 				String dlnaOrgFlags = "*";
 				if (renderer.isSendDLNAOrgFlags()) {
-					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + DlnaHelper.getDlnaOrgOpFlags(item);
+					dlnaOrgFlags = (dlnaOrgPnFlags != null ? (dlnaOrgPnFlags + ";") : "") + getDlnaOrgOpFlags(item);
 				}
 				String tempString = "http-get:*:" + item.getRendererMimeType() + ":" + dlnaOrgFlags;
 				addAttribute(sb, "protocolInfo", tempString);
@@ -294,10 +305,18 @@ public class DidlHelper extends DlnaHelper {
 					addAttribute(sb, "pv:subtitleFileType", mediaSubtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", resource.getSubsURL(mediaSubtitle));
 				}
+				if (item.getRendererMimeType().toLowerCase().startsWith("audio") || item.getRendererMimeType().toLowerCase().startsWith("video")) {
+					NetworkInterfaceAssociation ia = NetworkConfiguration.getNetworkInterfaceAssociationFromConfig();
+					if (ia != null) {
+						int port = PMS.getConfiguration().getMediaServerPort();
+						String hostname = ia.getAddr().getHostAddress();
+						addAttribute(sb, "importUri", String.format("http://%s:%d/import?id=%s", hostname, port, resource.getId()));
+					}
+				}
 
 				if (format != null && format.isVideo() && mediaInfo != null && mediaInfo.isMediaParsed()) {
 					long transcodedSize = renderer.getTranscodedSize();
-					if (engine == null) {
+					if (!item.isTranscoded()) {
 						addAttribute(sb, "size", mediaInfo.getSize());
 					} else if (transcodedSize != 0) {
 						addAttribute(sb, "size", transcodedSize);
@@ -316,7 +335,7 @@ public class DidlHelper extends DlnaHelper {
 					}
 
 					if (defaultVideoTrack != null && defaultVideoTrack.getResolution() != null) {
-						if (engine != null && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
+						if (item.isTranscoded() && (renderer.isKeepAspectRatio() || renderer.isKeepAspectRatioTranscoding())) {
 							addAttribute(sb, "resolution", item.getResolutionForKeepAR(defaultVideoTrack.getWidth(), defaultVideoTrack.getHeight()));
 						} else {
 							addAttribute(sb, "resolution", defaultVideoTrack.getResolution());
@@ -331,7 +350,7 @@ public class DidlHelper extends DlnaHelper {
 
 					if (defaultAudioTrack != null) {
 						if (defaultAudioTrack.getNumberOfChannels() > 0) {
-							if (engine == null) {
+							if (!item.isTranscoded()) {
 								addAttribute(sb, "nrAudioChannels", defaultAudioTrack.getNumberOfChannels());
 							} else {
 								addAttribute(sb, "nrAudioChannels", renderer.getUmsConfiguration().getAudioChannelCount());
@@ -366,7 +385,7 @@ public class DidlHelper extends DlnaHelper {
 						int transcodeFrequency = -1;
 						int transcodeNumberOfChannels = -1;
 						if (defaultAudioTrack != null) {
-							if (engine == null) {
+							if (!item.isTranscoded()) {
 								if (defaultAudioTrack.getSampleRate() > 1) {
 									addAttribute(sb, "sampleFrequency", defaultAudioTrack.getSampleRate());
 								}
@@ -391,7 +410,7 @@ public class DidlHelper extends DlnaHelper {
 							addAttribute(sb, "bitsPerSample", defaultAudioTrack.getBitDepth());
 						}
 
-						if (engine == null) {
+						if (!item.isTranscoded()) {
 							if (mediaInfo.getSize() != 0) {
 								addAttribute(sb, "size", mediaInfo.getSize());
 							}
@@ -420,7 +439,7 @@ public class DidlHelper extends DlnaHelper {
 				endTag(sb);
 				// Add transcoded format extension to the output stream URL.
 				String transcodedExtension = "";
-				if (engine != null && mediaInfo != null) {
+				if (encodingFormat != null && mediaInfo != null) {
 					// Note: Can't use instanceof below because the audio
 					// classes inherit the corresponding video class
 					if (mediaInfo.isVideo()) {
@@ -434,13 +453,13 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.mov";
 						} else if (renderer.getCustomFFmpegOptions().contains("-f webm")) {
 							transcodedExtension = "_transcoded_to.webm";
-						} else if (renderer.isTranscodeToHLS()) {
+						} else if (encodingFormat.isTranscodeToHLS()) {
 							transcodedExtension = "_transcoded_to.m3u8";
-						} else if (renderer.isTranscodeToMPEGTS()) {
+						} else if (encodingFormat.isTranscodeToMPEGTS()) {
 							transcodedExtension = "_transcoded_to.ts";
-						} else if (renderer.isTranscodeToMP4H265AC3()) {
+						} else if (encodingFormat.isTranscodeToMP4()) {
 							transcodedExtension = "_transcoded_to.mp4";
-						} else if (renderer.isTranscodeToWMV() && !xbox360) {
+						} else if (encodingFormat.isTranscodeToWMV() && !xbox360) {
 							transcodedExtension = "_transcoded_to.wmv";
 						} else {
 							transcodedExtension = "_transcoded_to.mpg";
@@ -452,9 +471,9 @@ public class DidlHelper extends DlnaHelper {
 							transcodedExtension = "_transcoded_to.wav";
 						} else if (renderer.getCustomFFmpegAudioOptions().contains("-f s16be")) {
 							transcodedExtension = "_transcoded_to.pcm";
-						} else if (renderer.isTranscodeToMP3()) {
+						} else if (encodingFormat.isTranscodeToMP3()) {
 							transcodedExtension = "_transcoded_to.mp3";
-						} else if (renderer.isTranscodeToWAV()) {
+						} else if (encodingFormat.isTranscodeToWAV()) {
 							transcodedExtension = "_transcoded_to.wav";
 						} else {
 							transcodedExtension = "_transcoded_to.pcm";
@@ -512,10 +531,6 @@ public class DidlHelper extends DlnaHelper {
 			}
 		}
 
-		if (mediaType != MediaType.IMAGE && (container == null || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
-			appendThumbnail(resource, sb, mediaType);
-		}
-
 		String uclass;
 		if (resource.getPrimaryResource() != null && mediaInfo != null && !mediaInfo.isSecondaryFormatValid()) {
 			uclass = "dummy";
@@ -555,6 +570,10 @@ public class DidlHelper extends DlnaHelper {
 			 *      http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v4-Service.pdf
 			 */
 			uclass = "object.item.videoItem";
+		}
+
+		if (mediaType != MediaType.IMAGE && (container == null || uclass.startsWith("object.container.album") || renderer.isSendFolderThumbnails() || resource instanceof DVDISOFile)) {
+			appendThumbnail(resource, sb, mediaType, uclass.startsWith("object.container.album"));
 		}
 
 		addXMLTagAndAttribute(sb, "upnp:class", uclass);
@@ -690,7 +709,7 @@ public class DidlHelper extends DlnaHelper {
 	 * @param mediaType the {@link MediaType} of this {@link StoreResource}.
 	 */
 	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
-	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType) {
+	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType, boolean isAlbum) {
 
 		/*
 		 * JPEG_TN = Max 160 x 160; EXIF Ver.1.x or later or JFIF 1.02; SRGB or
@@ -808,18 +827,22 @@ public class DidlHelper extends DlnaHelper {
 				addImageResource(resource, sb, resElement);
 			}
 
-			//FIXME : as it break upnp standard, implement a renderer setting that allow it
-			for (DLNAImageResElement resElement : resElements) {
-				// Offering AlbumArt for video breaks the standard, but some
-				// renderers need it
-				switch (resElement.getProfile().toInt()) {
-					case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+			if (isAlbum || renderer.needAlbumArtHack()) {
+				for (DLNAImageResElement resElement : resElements) {
+					// Offering AlbumArt for object other than Album container
+					// breaks the standard, but some renderers need it.
+					switch (resElement.getProfile().toInt()) {
+						case DLNAImageProfile.GIF_LRG_INT, DLNAImageProfile.JPEG_SM_INT, DLNAImageProfile.JPEG_TN_INT, DLNAImageProfile.PNG_LRG_INT, DLNAImageProfile.PNG_TN_INT -> addAlbumArt(resource, sb, resElement.getProfile());
+					}
 				}
 			}
 		}
 	}
 
 	private static void addImageResource(StoreResource resource, StringBuilder sb, DLNAImageResElement resElement) {
+		if (resource == null) {
+			throw new NullPointerException("resource cannot be null");
+		}
 		if (resElement == null) {
 			throw new NullPointerException("resElement cannot be null");
 		}
@@ -859,14 +882,34 @@ public class DidlHelper extends DlnaHelper {
 			addAttribute(sb, "protocolInfo", "http-get:*:" + resElement.getProfile().getMimeType() + ":DLNA.ORG_PN=" +
 				resElement.getProfile() + ciFlag + ";DLNA.ORG_FLAGS=00900000000000000000000000000000");
 			endTag(sb);
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && url != null) {
+				if (url.contains("?")) {
+					url += "&update=" + updateId;
+				} else {
+					url += "?update=" + updateId;
+				}
+			}
 			sb.append(url);
 			closeTag(sb, "res");
 		}
 	}
 
 	private static void addAlbumArt(StoreResource resource, StringBuilder sb, DLNAImageProfile thumbnailProfile) {
+		String rendererProfile = resource.getDefaultRenderer().getAlbumArtProfile();
+		if (StringUtils.isNotBlank(rendererProfile) && !rendererProfile.equalsIgnoreCase(thumbnailProfile.toString())) {
+			return;
+		}
 		String albumArtURL = resource.getThumbnailURL(thumbnailProfile);
 		if (StringUtils.isNotBlank(albumArtURL)) {
+			String updateId = MediaStoreIds.getObjectUpdateIdAsString(resource.getLongId());
+			if (updateId != null && albumArtURL != null) {
+				if (albumArtURL.contains("?")) {
+					albumArtURL += "&update=" + updateId;
+				} else {
+					albumArtURL += "?update=" + updateId;
+				}
+			}
 			openTag(sb, "upnp:albumArtURI");
 			addAttribute(sb, "dlna:profileID", thumbnailProfile);
 			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
@@ -975,19 +1018,6 @@ public class DidlHelper extends DlnaHelper {
 		// adds the second layer of encoding/escaping
 		s = s.replace("&", "&amp;");
 		return s;
-	}
-
-	/**
-	 * Removes xml character representations.
-	 *
-	 * @param s String to be cleaned
-	 * @return Encoded String
-	 */
-	public static String unEncodeXML(String s) {
-		// Note: ampersand substitution must be first in order to undo double
-		// transformations
-		// TODO: support ' and " if/when required, see encodeXML() above
-		return s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">");
 	}
 
 }

@@ -31,14 +31,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class is responsible for managing the MusicBrainz releases table. It
- * does everything from creating, checking and upgrading the table to
+ * This class is responsible for managing the MusicBrainz releases table.
+ *
+ * It does everything from creating, checking and upgrading the table to
  * performing lookups, updates and inserts. All operations involving this table
  * shall be done with this class.
  *
  * @author Nadahar
  */
 public final class MediaTableMusicBrainzReleases extends MediaTable {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaTableMusicBrainzReleases.class);
 	public static final String TABLE_NAME = "MUSIC_BRAINZ_RELEASES";
 
@@ -47,8 +49,25 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 * definition. Table upgrade SQL must also be added to
 	 * {@link #upgradeTable()}
 	 */
-	private static final int TABLE_VERSION = 4;
-	private static final String SQL_GET_MBID = "SELECT * FROM " + TABLE_NAME + " WHERE MBID = ?";
+	private static final int TABLE_VERSION = 5;
+
+	/**
+	 * COLUMNS NAMES
+	 */
+	private static final String COL_ID = "ID";
+	private static final String COL_MODIFIED = "MODIFIED";
+	private static final String COL_MBID = "MBID";
+	private static final String COL_ARTIST = "ARTIST";
+	private static final String COL_TITLE = "TITLE";
+	private static final String COL_MEDIA_YEAR = "MEDIA_YEAR";
+	private static final String COL_GENRE = "GENRE";
+	private static final String COL_ARTIST_ID = "ARTIST_ID";
+	private static final String COL_RATING = "RATING";
+
+	/**
+	 * SQL Queries
+	 */
+	private static final String SQL_GET_MBID = SELECT_ALL + FROM + TABLE_NAME + WHERE + COL_MBID + EQUAL + PARAMETER;
 
 	/**
 	 * Checks and creates or upgrades the table as needed.
@@ -95,40 +114,40 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			switch (version) {
 				case 1 -> {
 					// Version 2 increases the size of ARTIST; ALBUM, TITLE and YEAR.
-					try (Statement statement = connection.createStatement()) {
-						statement.executeUpdate(
-								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "ARTIST" + VARCHAR_1000
-						);
-						statement.executeUpdate(
-								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "TITLE" + VARCHAR_1000
-						);
-						statement.executeUpdate(
-								ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "MEDIA_YEAR" + VARCHAR_20
-						);
-					}
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ARTIST + VARCHAR_1000);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_TITLE + VARCHAR_1000);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "`YEAR`" + VARCHAR_20);
 				}
 				case 2 -> {
 					if (isColumnExist(connection, TABLE_NAME, "YEAR")) {
 						LOGGER.trace("Renaming column name YEAR to MEDIA_YEAR");
-						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + "`YEAR`" + RENAME_TO + "MEDIA_YEAR");
+						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + "`YEAR`" + RENAME_TO + COL_MEDIA_YEAR);
 					}
 				}
 				case 3 -> {
-					if (isColumnExist(connection, TABLE_NAME, "MBID")) {
-						LOGGER.trace("alter datatype of MBID column from VARCHAR to UUID");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN MBID SET DATA TYPE UUID");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ALTER COLUMN ARTIST_ID SET DATA TYPE UUID");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN GENRE VARCHAR(1000)");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " ADD COLUMN RATING INTEGER");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN TRACK_ID");
-						executeUpdate(connection, "ALTER TABLE " + TABLE_NAME + " DROP COLUMN ALBUM");
-						executeUpdate(connection, "CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)");
-						executeUpdate(connection, "CREATE INDEX GENRE_IDX ON " + TABLE_NAME + "(GENRE)");
-					}
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_MBID + UUID_TYPE);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ARTIST_ID + UUID_TYPE);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_GENRE + VARCHAR_1000);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ADD + COLUMN + IF_NOT_EXISTS + COL_RATING + INTEGER);
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + "TRACK_ID");
+					executeUpdate(connection, ALTER_TABLE + TABLE_NAME + DROP + COLUMN + IF_EXISTS + "ALBUM");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_GENRE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_GENRE + ")");
+				}
+				case 4 -> {
+					//fix: append the table name to the index name to avoid collisions with indexes of other tables
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + COL_ARTIST + IDX_MARKER);
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + COL_ARTIST_ID + IDX_MARKER);
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + COL_MBID + IDX_MARKER);
+					executeUpdate(connection, DROP_INDEX + IF_EXISTS + COL_GENRE + IDX_MARKER);
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ARTIST + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ARTIST + ")");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ARTIST_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ARTIST_ID + ")");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")");
+					executeUpdate(connection, CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_GENRE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_GENRE + ")");
 				}
 				default -> {
 					throw new IllegalStateException(
-						getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
+							getMessage(LOG_UPGRADING_TABLE_MISSING, DATABASE_NAME, TABLE_NAME, version, TABLE_VERSION)
 					);
 				}
 			}
@@ -139,58 +158,22 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	private static void createTable(final Connection connection) throws SQLException {
 		LOGGER.debug(LOG_CREATING_TABLE, DATABASE_NAME, TABLE_NAME);
 		execute(connection,
-			"CREATE TABLE " + TABLE_NAME + "(" +
-				"ID             IDENTITY         PRIMARY KEY , " +
-				"MODIFIED       TIMESTAMP                    , " +
-				"MBID           UUID                         , " +
-				"ARTIST         VARCHAR(1000)                , " +
-				"TITLE          VARCHAR(1000)                , " +
-				"MEDIA_YEAR     VARCHAR(20)                  , " +
-				"GENRE          VARCHAR(1000)                , " +
-				"ARTIST_ID      UUID                         , " +
-				"RATING         INTEGER                        " +
-			")",
-			"CREATE INDEX ARTIST_IDX ON " + TABLE_NAME + "(ARTIST)",
-			"CREATE INDEX ARTIST_ID_IDX ON " + TABLE_NAME + "(ARTIST_ID)",
-			"CREATE INDEX MBID_IDX ON " + TABLE_NAME + "(MBID)",
-			"CREATE INDEX GENRE_IDX ON " + TABLE_NAME + "(GENRE)"
+				CREATE_TABLE + TABLE_NAME + "(" +
+					COL_ID               + IDENTITY             + COMMA +
+					COL_MODIFIED         + TIMESTAMP            + COMMA +
+					COL_MBID             + UUID_TYPE            + COMMA +
+					COL_ARTIST           + VARCHAR_1000         + COMMA +
+					COL_TITLE            + VARCHAR_1000         + COMMA +
+					COL_MEDIA_YEAR       + VARCHAR_20           + COMMA +
+					COL_GENRE            + VARCHAR_1000         + COMMA +
+					COL_ARTIST_ID        + UUID_TYPE            + COMMA +
+					COL_RATING           + INTEGER              +
+				")",
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ARTIST + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ARTIST + ")",
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_ARTIST_ID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_ARTIST_ID + ")",
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_MBID + IDX_MARKER + ON + TABLE_NAME + "(" + COL_MBID + ")",
+				CREATE_INDEX + IF_NOT_EXISTS + TABLE_NAME + CONSTRAINT_SEPARATOR + COL_GENRE + IDX_MARKER + ON + TABLE_NAME + "(" + COL_GENRE + ")"
 		);
-	}
-
-	/**
-	 * A type class for returning results from MusicBrainzReleases database
-	 * lookup.
-	 */
-	public static class MusicBrainzReleasesResult {
-		private final boolean found;
-		private final Timestamp modified;
-		private final String mBID;
-
-		public MusicBrainzReleasesResult() {
-			this(false, null, null);
-		}
-
-		public MusicBrainzReleasesResult(final boolean found, final Timestamp modified, final String mBID) {
-			this.found = found;
-			this.modified = modified;
-			this.mBID = mBID;
-		}
-
-		public boolean isFound() {
-			return found;
-		}
-
-		public long getModifiedTime() {
-			return modified.getTime();
-		}
-
-		public boolean hasMusicBrainzId() {
-			return StringUtils.isNotBlank(mBID);
-		}
-
-		public String getMusicBrainzId() {
-			return mBID;
-		}
 	}
 
 	private static String constructTagWhere(final MusicBrainzTagInfo tagInfo, final boolean includeAll) {
@@ -199,40 +182,31 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		boolean added = false;
 
 		if (includeAll || StringUtil.hasValue(tagInfo.artistId)) {
-			if (added) {
-				where.append(and);
-			}
-			where.append("ARTIST_ID").append(sqlNullIfBlank(tagInfo.artistId, true, false));
+			where.append(COL_ARTIST_ID).append(sqlNullIfBlank(tagInfo.artistId, true, false));
 			added = true;
 		}
 		if (includeAll || (!StringUtil.hasValue(tagInfo.artistId) && StringUtil.hasValue(tagInfo.artist))) {
 			if (added) {
-				where.append(and);
+				where.append(AND);
 			}
-			where.append("ARTIST").append(sqlNullIfBlank(tagInfo.artist, true, false));
+			where.append(COL_ARTIST).append(sqlNullIfBlank(tagInfo.artist, true, false));
 			added = true;
 		}
 
-		if (
-			includeAll || (
-				StringUtil.hasValue(tagInfo.title) && (
-					StringUtil.hasValue(tagInfo.artist) ||
-					StringUtil.hasValue(tagInfo.artistId)
-				)
-			)
-		) {
+		if (includeAll || (StringUtil.hasValue(tagInfo.title) && (StringUtil.hasValue(tagInfo.artist) ||
+				StringUtil.hasValue(tagInfo.artistId)))) {
 			if (added) {
-				where.append(and);
+				where.append(AND);
 			}
-			where.append("TITLE").append(sqlNullIfBlank(tagInfo.title, true, false));
+			where.append(COL_TITLE).append(sqlNullIfBlank(tagInfo.title, true, false));
 			added = true;
 		}
 
 		if (StringUtil.hasValue(tagInfo.year)) {
 			if (added) {
-				where.append(and);
+				where.append(AND);
 			}
-			where.append("MEDIA_YEAR").append(sqlNullIfBlank(tagInfo.year, true, false));
+			where.append(COL_MEDIA_YEAR).append(sqlNullIfBlank(tagInfo.year, true, false));
 		}
 
 		return where.toString();
@@ -243,14 +217,14 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	 *
 	 * @param connection the db connection
 	 * @param mBID the MBID to store
-	 * @param tagInfo the {@link Tag} who's information should be associated with
-	 *        the given MBID
+	 * @param tagInfo the {@link Tag} who's information should be associated
+	 *                with the given MBID
 	 */
 	public static void writeMBID(final Connection connection, final String mBID, final MusicBrainzTagInfo tagInfo) {
 		boolean trace = LOGGER.isTraceEnabled();
 
 		try {
-			String query = "SELECT * FROM " + TABLE_NAME + constructTagWhere(tagInfo, true) + " LIMIT 1";
+			String query = SELECT_ALL + FROM + TABLE_NAME + constructTagWhere(tagInfo, true) + LIMIT_1;
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\" before update", query);
 			}
@@ -260,15 +234,15 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				ResultSet result = statement.executeQuery(query)
 			) {
 				if (result.next()) {
-					if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString("MBID"))) {
+					if (StringUtil.hasValue(mBID) || !StringUtil.hasValue(result.getString(COL_MBID))) {
 						if (trace) {
-							LOGGER.trace("Updating row {} to MBID \"{}\"", result.getInt("ID"), mBID);
+							LOGGER.trace("Updating row {} to MBID \"{}\"", result.getInt(COL_ID), mBID);
 						}
-						result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+						result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
 						if (StringUtil.hasValue(mBID)) {
-							result.updateString("MBID", mBID);
+							result.updateString(COL_MBID, mBID);
 						} else {
-							result.updateNull("MBID");
+							result.updateNull(COL_MBID);
 						}
 						result.updateRow();
 					} else if (trace) {
@@ -277,34 +251,29 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				} else {
 					if (trace) {
 						LOGGER.trace(
-							"Inserting new row for MBID \"{}\":\n" +
-							"     Artist    \"{}\"\n" +
-							"     Title     \"{}\"\n" +
-							"     Year      \"{}\"\n" +
-							"     Artist ID \"{}\"\n" +
-							"     Track ID  \"{}\"\n",
-							mBID, tagInfo.artist,
-							tagInfo.title, tagInfo.year,
-							tagInfo.artistId, tagInfo.trackId
+								"Inserting new row for MBID '{}':\n\tArtist    \"{}\"\n\tTitle     \"{}\"\n\tYear      \"{}\"\n\tArtist ID \"{}\"\n\tTrack ID  \"{}\"\n",
+								mBID, tagInfo.artist,
+								tagInfo.title, tagInfo.year,
+								tagInfo.artistId, tagInfo.trackId
 						);
 					}
 
 					result.moveToInsertRow();
-					result.updateTimestamp("MODIFIED", new Timestamp(System.currentTimeMillis()));
+					result.updateTimestamp(COL_MODIFIED, new Timestamp(System.currentTimeMillis()));
 					if (StringUtil.hasValue(mBID)) {
-						result.updateString("MBID", mBID);
+						result.updateString(COL_MBID, mBID);
 					}
 					if (StringUtil.hasValue(tagInfo.artist)) {
-						result.updateString("ARTIST", StringUtils.left(tagInfo.artist, 1000));
+						result.updateString(COL_ARTIST, StringUtils.left(tagInfo.artist, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.title)) {
-						result.updateString("TITLE", StringUtils.left(tagInfo.title, 1000));
+						result.updateString(COL_TITLE, StringUtils.left(tagInfo.title, 1000));
 					}
 					if (StringUtil.hasValue(tagInfo.year)) {
-						result.updateString("MEDIA_YEAR", StringUtils.left(tagInfo.year, 20));
+						result.updateString(COL_MEDIA_YEAR, StringUtils.left(tagInfo.year, 20));
 					}
 					if (StringUtil.hasValue(tagInfo.artistId)) {
-						result.updateString("ARTIST_ID", tagInfo.artistId);
+						result.updateString(COL_ARTIST_ID, tagInfo.artistId);
 					}
 					result.insertRow();
 				}
@@ -329,7 +298,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 		MusicBrainzReleasesResult result;
 
 		try {
-			String query = "SELECT MBID, MODIFIED FROM " + TABLE_NAME + constructTagWhere(tagInfo, false) + " LIMIT 1";
+			String query = SELECT + COL_MBID + COMMA + COL_MODIFIED + FROM + TABLE_NAME + constructTagWhere(tagInfo, false) + LIMIT_1;
 
 			if (trace) {
 				LOGGER.trace("Searching for release MBID with \"{}\"", query);
@@ -340,7 +309,7 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 				ResultSet resultSet = statement.executeQuery(query)
 			) {
 				if (resultSet.next()) {
-					result = new MusicBrainzReleasesResult(true, resultSet.getTimestamp("MODIFIED"), resultSet.getString("MBID"));
+					result = new MusicBrainzReleasesResult(true, resultSet.getTimestamp(COL_MODIFIED), resultSet.getString(COL_MBID));
 				} else {
 					result = new MusicBrainzReleasesResult(false, null, null);
 				}
@@ -363,9 +332,8 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 			updateStatement.setObject(1, mbidRecord);
 			try (ResultSet rs = updateStatement.executeQuery()) {
 				if (rs.next()) {
-					MusicBrainzAlbum album = new MusicBrainzAlbum(mbid, rs.getString("TITLE"), rs.getString("ARTIST"), rs.getString("MEDIA_YEAR"),
-						rs.getString("GENRE"));
-					return album;
+					return new MusicBrainzAlbum(mbid, rs.getString(COL_TITLE), rs.getString(COL_ARTIST), rs.getString(COL_MEDIA_YEAR),
+							rs.getString(COL_GENRE));
 				} else {
 					LOGGER.debug("mbid not found in database : " + mbid);
 				}
@@ -405,15 +373,53 @@ public final class MediaTableMusicBrainzReleases extends MediaTable {
 	private static void updateAudioMetadata(ResultSet result, MusicBrainzAlbum album) throws SQLException {
 		try {
 			UUID mbidRecord = UUID.fromString(StringUtils.trimToEmpty(album.getMbReleaseid()));
-			result.updateObject("MBID", mbidRecord);
+			result.updateObject(COL_MBID, mbidRecord);
 		} catch (IllegalArgumentException e) {
 			LOGGER.error("invalid UUID. Cannot add album information.", e);
 			return;
 		}
-		updateString(result, "ARTIST", album.getArtist(), 1000);
-		updateString(result, "TITLE", album.getAlbum(), 1000);
-		updateString(result, "MEDIA_YEAR", album.getYear(), 1000);
-		updateString(result, "GENRE", album.getGenre(), 1000);
+		updateString(result, COL_ARTIST, album.getArtist(), 1000);
+		updateString(result, COL_TITLE, album.getAlbum(), 1000);
+		updateString(result, COL_MEDIA_YEAR, album.getYear(), 1000);
+		updateString(result, COL_GENRE, album.getGenre(), 1000);
 		// ArtistID for future reference
 	}
+
+	/**
+	 * A type class for returning results from MusicBrainzReleases database
+	 * lookup.
+	 */
+	public static class MusicBrainzReleasesResult {
+
+		private final boolean found;
+		private final Timestamp modified;
+		private final String mBID;
+
+		public MusicBrainzReleasesResult() {
+			this(false, null, null);
+		}
+
+		public MusicBrainzReleasesResult(final boolean found, final Timestamp modified, final String mBID) {
+			this.found = found;
+			this.modified = modified;
+			this.mBID = mBID;
+		}
+
+		public boolean isFound() {
+			return found;
+		}
+
+		public long getModifiedTime() {
+			return modified.getTime();
+		}
+
+		public boolean hasMusicBrainzId() {
+			return StringUtils.isNotBlank(mBID);
+		}
+
+		public String getMusicBrainzId() {
+			return mBID;
+		}
+	}
+
 }

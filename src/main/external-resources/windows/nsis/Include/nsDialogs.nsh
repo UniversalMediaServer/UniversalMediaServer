@@ -704,6 +704,21 @@ SendMessage ${CONTROL} ${CB_INSERTSTRING} -1 `STR:${STRING}`
 !macroend
 
 
+!define NSD_CB_SelectStringExact "!insertmacro _NSD_CB_SelectStringExact "
+!macro _NSD_CB_SelectStringExact CONTROL STRING
+	!insertmacro _LOGICLIB_TEMP
+	SendMessage ${CONTROL} ${CB_FINDSTRINGEXACT} -1 `STR:${STRING}` $_LOGICLIB_TEMP
+	StrCmp $_LOGICLIB_TEMP -1 +2
+		SendMessage ${CONTROL} ${CB_SETCURSEL} $_LOGICLIB_TEMP 0
+!macroend
+
+
+!define NSD_CB_FindStringExact "!insertmacro _NSD_CB_FindStringExact "
+!macro _NSD_CB_FindStringExact CONTROL STRING VAR
+	SendMessage ${CONTROL} ${CB_FINDSTRINGEXACT} -1 `STR:${STRING}` ${VAR}
+!macroend
+
+
 !define NSD_CB_GetSelectionIndex `!insertmacro __NSD_CB_GetSelectionIndex `
 !macro __NSD_CB_GetSelectionIndex CONTROL VAR
 	SendMessage ${CONTROL} ${CB_GETCURSEL} 0 0 ${VAR}

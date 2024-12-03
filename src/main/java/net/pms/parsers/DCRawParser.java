@@ -173,7 +173,7 @@ public class DCRawParser {
 	}
 
 	public static boolean isValid() {
-		return EngineFactory.getActiveEngine(DCRaw.ID).isActive();
+		return EngineFactory.isEngineActive(DCRaw.ID);
 	}
 
 }

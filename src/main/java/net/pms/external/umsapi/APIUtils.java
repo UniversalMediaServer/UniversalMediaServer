@@ -48,7 +48,6 @@ import net.pms.database.MediaTableTVSeries;
 import net.pms.database.MediaTableVideoMetadata;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
-import net.pms.external.opensubtitles.OpenSubtitle;
 import net.pms.gui.GuiManager;
 import net.pms.media.MediaInfo;
 import net.pms.media.video.metadata.ApiRatingSource;
@@ -57,6 +56,7 @@ import net.pms.media.video.metadata.ApiStringArray;
 import net.pms.media.video.metadata.MediaVideoMetadata;
 import net.pms.media.video.metadata.TvSeriesMetadata;
 import net.pms.media.video.metadata.VideoMetadataLocalized;
+import net.pms.store.MediaInfoStore;
 import net.pms.store.MediaStore;
 import net.pms.store.MediaStoreIds;
 import net.pms.store.ThumbnailSource;
@@ -276,8 +276,8 @@ public class APIUtils {
 			return false;
 		}
 
-		if (!CONFIGURATION.isUseInfoFromIMDb()) {
-			LOGGER.trace("Not doing background API lookup because isUseInfoFromIMDb is disabled");
+		if (!CONFIGURATION.isUseInfoFromUmsAPI()) {
+			LOGGER.trace("Not doing background API lookup because isUseInfoFromUmsAPI is disabled");
 			return false;
 		}
 
@@ -784,16 +784,20 @@ public class APIUtils {
 					}
 				}
 
-				MediaTableTVSeries.updateAPIMetadata(connection, tvSeriesMetadata, tvSeriesId);
+				MediaInfoStore.updateTvSeriesMetadata(tvSeriesMetadata, tvSeriesId);
 				tvSeriesMetadata.setTvSeriesId(tvSeriesId);
 			}
 			//update MediaVideoMetadata
 			if (videoMetadata != null) {
 				LOGGER.trace("Setting Episode TvSeriesMetadata {}", tvSeriesMetadata.getTitle());
-				videoMetadata.setSeriesMetadata(tvSeriesMetadata);
-				if (tvSeriesMetadata.getTvSeriesId() != null && !tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
-					LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
-					videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+				if (tvSeriesMetadata.getTvSeriesId() != null) {
+					videoMetadata.setSeriesMetadata(MediaInfoStore.getTvSeriesMetadata(videoMetadata.getTvSeriesId()));
+					if (!tvSeriesMetadata.getTvSeriesId().equals(videoMetadata.getTvSeriesId())) {
+						LOGGER.trace("Replacing Episode TvSeriesId from {} to {}", videoMetadata.getTvSeriesId(), tvSeriesMetadata.getTvSeriesId());
+						videoMetadata.setTvSeriesId(tvSeriesMetadata.getTvSeriesId());
+					}
+				} else {
+					videoMetadata.setSeriesMetadata(tvSeriesMetadata);
 				}
 				if (!tvSeriesMetadata.getTmdbId().equals(videoMetadata.getTmdbTvId())) {
 					LOGGER.trace("Replacing Episode TmdbTvId from {} to {}", videoMetadata.getTmdbTvId(), tvSeriesMetadata.getTmdbId());
@@ -822,21 +826,10 @@ public class APIUtils {
 	public static JsonObject getAPIMetadata(File file, String movieOrTVSeriesTitle, Integer year, Integer season, String episode) throws IOException {
 		Path path;
 		String apiResult;
-
 		String imdbID = null;
-		String osdbHash = null;
-		long filebytesize = 0L;
-
 		if (file != null) {
 			path = file.toPath();
-			osdbHash = OpenSubtitle.getHash(path);
-			if (isBlank(osdbHash)) {
-				LOGGER.trace("OSDb hash was blank for " + path);
-			}
-			filebytesize = file.length();
-
 			imdbID = ImdbUtil.extractImdbId(path, false);
-
 			if (isBlank(movieOrTVSeriesTitle)) {
 				movieOrTVSeriesTitle = FileUtil.getFileNameWithoutExtension(file.getName());
 			}
@@ -852,7 +845,7 @@ public class APIUtils {
 			movieOrTVSeriesTitle = movieOrTVSeriesTitle.substring(0, yearIndex);
 		}
 
-		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID, osdbHash, filebytesize);
+		apiResult = getInfoFromAllExtractedData(movieOrTVSeriesTitle, false, year, season, episode, imdbID);
 
 		String notFoundPartialMessage = "Metadata not found";
 		if (apiResult == null || StringUtils.contains(apiResult, notFoundPartialMessage)) {
@@ -893,7 +886,7 @@ public class APIUtils {
 			formattedName = formattedName.substring(0, startYearIndex);
 		}
 
-		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID, null, 0L);
+		apiResult = getInfoFromAllExtractedData(formattedName, true, startYear, null, null, imdbID);
 
 		JsonObject data = null;
 		try {
@@ -930,9 +923,7 @@ public class APIUtils {
 		Integer year,
 		Integer season,
 		String episode,
-		String imdbID,
-		String osdbHash,
-		long filebytesize
+		String imdbID
 	) throws IOException {
 		String endpoint = isSeries ? "series/v2" : "video/v2";
 		ArrayList<String> getParameters = new ArrayList<>();
@@ -951,12 +942,6 @@ public class APIUtils {
 		}
 		if (isNotBlank(imdbID)) {
 			getParameters.add("imdbID=" + imdbID);
-		}
-		if (isNotBlank(osdbHash)) {
-			getParameters.add("osdbHash=" + osdbHash);
-		}
-		if (filebytesize != 0L) {
-			getParameters.add("filebytesize=" + filebytesize);
 		}
 		if (!"en-US".equals(CONFIGURATION.getLanguageTag())) {
 			getParameters.add("language=" + CONFIGURATION.getLanguageTag());

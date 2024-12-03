@@ -23,6 +23,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.media.MediaInfo;
+import net.pms.network.HTTPResource;
 import net.pms.platform.PlatformUtils;
 import net.pms.store.StoreItem;
 import net.pms.util.PlayerUtil;
@@ -60,8 +61,8 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public String mimeType() {
-		return "video/mpeg";
+	public String getMimeType() {
+		return HTTPResource.MPEG_TYPEMIME;
 	}
 
 	protected String[] getDefaultArgs(UmsConfiguration configuration) {
@@ -131,7 +132,8 @@ public class MEncoderWebVideo extends MEncoderVideo {
 	}
 
 	@Override
-	public boolean isCompatible(StoreItem resource) {
-		return PlayerUtil.isWebVideo(resource);
+	public boolean isCompatible(StoreItem item) {
+		return PlayerUtil.isWebVideo(item);
 	}
+
 }

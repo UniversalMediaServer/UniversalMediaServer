@@ -51,6 +51,17 @@ export const Player = () => {
     }
   }
 
+   //set the document title to last breadCrumbs Name else default
+   useEffect(() => {
+    let subTitle="";
+    if(hasBreadcrumbs()){
+      const lastBreadCrumb=data.breadcrumbs[data.breadcrumbs.length-1]
+      subTitle= getI18nName(lastBreadCrumb.name);
+    }
+    document.title=`Universal Media Server${(subTitle?" - ":"")+subTitle}`
+      
+ }, [data.breadcrumbs]);
+
   const refreshPage = () => {
     if (sse.uuid && sse.reqType) {
       setLoading(true);
@@ -271,7 +282,8 @@ export const Player = () => {
     if (icon) {
       image = <Center>{createElement(icon, { size: 60 })}</Center>;
     } else {
-      image = <img src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} alt={media.name}
+      const updateId = media.updateId ? '?update=' + media.updateId : '';
+      image = <img src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} alt={media.name}
         style={{ objectFit: 'contain', maxWidth: '100%', height: 'calc(100% - 2.4rem)' }} />;
     }
     return (
@@ -335,7 +347,7 @@ export const Player = () => {
                     computedColorScheme === 'dark' ? theme.colors.dark[9] : theme.colors.gray[0],
                 },
               })}
-              onClick={() => { media.id && sse.askBrowseId(media.id) }}
+              onClick={() => { if (media.id) { sse.askBrowseId(media.id) } }}
             >
               {getI18nName(media.name)}
             </Badge>);
@@ -357,7 +369,7 @@ export const Player = () => {
                 fontSize: '1.5em',
                 cursor: 'pointer',
               }}
-              onClick={() => { media.id && sse.askBrowseId(media.id) }}
+              onClick={() => { if (media.id) { sse.askBrowseId(media.id) } }}
             />
           );
         })}
@@ -503,7 +515,8 @@ export const Player = () => {
       poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={metadata.poster} />);
     }
     if (!poster && media && media.id) {
-      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} />);
+      const updateId = media.updateId ? '?update=' + media.updateId : '';
+      poster = (<img style={{ maxHeight: '100%', maxWidth: '100%' }} src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />);
     }
     return { logo, poster };
   }
@@ -634,12 +647,13 @@ export const Player = () => {
 
   const getMediaGridCol = () => {
     if (media) {
+      const updateId = media.updateId ? '?update=' + media.updateId : '';
       return (<>
         <Grid mb='md'>
           <Grid.Col span={12}>
             <Grid columns={20} justify='center'>
               <Grid.Col span={6}>
-                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id} />
+                <Image style={{ maxHeight: 500 }} radius='md' fit='contain' src={playerApiUrl + 'thumbnail/' + sse.uuid + '/' + media.id + updateId} />
               </Grid.Col>
               <Grid.Col span={12}  >
                 <Card shadow='sm' p='lg' radius='md' style={(theme: MantineTheme) => ({ backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0], })}>
@@ -767,6 +781,7 @@ export interface BaseMedia {
   id: string,
   name: string,
   fullyplayed?: boolean,
+  updateId?: string,
 }
 
 interface MediasSelections {

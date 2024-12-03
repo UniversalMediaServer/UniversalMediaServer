@@ -75,7 +75,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		super(renderer, i18nName, null, formatString);
 		this.sqls = sql;
 		this.expectedOutputs = expectedOutput;
-		isSorted = (expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0]));
+		setChildrenSorted((expectedOutput == null || expectedOutput.length < 1 || isSortableOutputExpected(expectedOutput[0])));
 	}
 
 	@Override
@@ -216,7 +216,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 	 * Removes all children and re-adds them
 	 */
 	@Override
-	public void doRefreshChildren() {
+	public synchronized void doRefreshChildren() {
 		List<File> filesListFromDb = null;
 		List<String> virtualFoldersListFromDb = null;
 
@@ -298,7 +298,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 								}
 
 								// This block adds the first SQL query for non-TV series, and all queries for TV series
-								if (renderer.getUmsConfiguration().isUseInfoFromIMDb()) {
+								if (renderer.getUmsConfiguration().isUseInfoFromExternalAPI()) {
 									/*
 									* With TV series we manually add the SQL statements, otherwise we
 									* attempt to modify the incoming statements to make filtering versions.
@@ -347,7 +347,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 									watchedSqls.add(watchedSql.toString());
 
 									// Adds modified versions of the query that filter by metadata
-									if (renderer.getUmsConfiguration().isUseInfoFromIMDb() && expectedOutput != TVSERIES_WITH_FILTERS) {
+									if (renderer.getUmsConfiguration().isUseInfoFromExternalAPI() && expectedOutput != TVSERIES_WITH_FILTERS) {
 										actorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataActors.TABLE_NAME, MediaTableVideoMetadataActors.TABLE_COL_ACTOR, i));
 										countriesSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataCountries.TABLE_NAME, MediaTableVideoMetadataCountries.TABLE_COL_COUNTRY, i));
 										directorsSqls.add(getSubsequentNonTVSeriesQuery(sql, MediaTableVideoMetadataDirectors.TABLE_NAME, MediaTableVideoMetadataDirectors.TABLE_COL_DIRECTOR, i));
@@ -604,12 +604,15 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 						}
 					}
 					boolean isExpectedTVSeries = expectedOutput == TVSERIES || expectedOutput == TVSERIES_NOSORT || expectedOutput == TVSERIES_WITH_FILTERS;
+					boolean isExpectedTVSeason = expectedOutput == EPISODES;
 					boolean isExpectedMovieFolder = expectedOutput == MOVIE_FOLDERS;
 					if (isExpectedTVSeries) {
 						Long tvSeriesId = getMediaLibraryTvSeriesId(virtualFolderName);
 						if (tvSeriesId != null) {
 							newVirtualFoldersResources.add(new MediaLibraryTvSeries(renderer, tvSeriesId, sqls2, expectedOutputs2));
 						}
+					} else if (isExpectedTVSeason) {
+						newVirtualFoldersResources.add(new MediaLibraryTvSeason(renderer, i18nName, virtualFolderName, sqls2, expectedOutputs2));
 					} else if (isExpectedMovieFolder) {
 						String filename = getMediaLibraryMovieFilename(virtualFolderName);
 						if (filename != null) {
@@ -730,6 +733,7 @@ public class MediaLibraryFolder extends MediaLibraryAbstract {
 		if (isDiscovered()) {
 			MediaStoreIds.incrementUpdateId(getLongId());
 		}
+		sortChildrenIfNeeded();
 	}
 
 	/**

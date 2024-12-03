@@ -45,7 +45,8 @@ jobs:
               - '.github/workflows/ci.yaml'
 
   macos-browser:
-    needs: changes
+    needs:
+      - changes
     if: |
       (
         (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
@@ -74,10 +75,16 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
+      - name: Cache compiled server binary
+        id: cache-compiled-server-binary
+        uses: actions/cache@v4
+        with:
+          path: ums-testserver.jar
+          key: compiled-server-binary
       - name: Install dependencies
         working-directory: ./react-client
         run: yarn
-      - name: Install Playwright Browsers
+      - name: Install Playwright with dependencies
         working-directory: ./react-client
         run: yarn playwright install --with-deps
       - name: Prepare server for Playwright tests
@@ -189,8 +196,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.01/libmediainfo0v5_24.01-1_amd64.xUbuntu_20.04.deb
-          sudo dpkg -i libmediainfo0v5_24.01-1_amd64.xUbuntu_20.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
+          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-jammy:
@@ -227,8 +234,8 @@ jobs:
           sudo apt-get -y install libmms0
           wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.01/libmediainfo0v5_24.01-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_24.01-1_amd64.xUbuntu_22.04.deb
+          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
+          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   lint:

@@ -126,14 +126,6 @@ export default function GeneralSettings(
               </Tooltip>
             </Group>
             <Divider mt='md' label={<Text fz='md' c={'var(--mantine-color-text)'}>{i18n.get('MediaServer')}</Text>} />
-            <Tooltip label={allowHtml(i18n.get('DefaultOptionIsHighlyRecommended'))} {...defaultTooltipSettings}>
-              <Select
-                disabled={!canModify}
-                label={i18n.get('MediaServerEngine')}
-                data={getI18nSelectData(selectionSettings.serverEngines)}
-                {...form.getInputProps('server_engine')}
-              />
-            </Tooltip>
             <NumberInput
               disabled={!canModify}
               placeholder={defaultConfiguration.port}
@@ -155,17 +147,19 @@ export default function GeneralSettings(
                 {...form.getInputProps('upnp_enable', { type: 'checkbox' })}
               />
               {advancedSettings &&
-                <Checkbox
+                <Select
                   disabled={!canModify}
-                  label={i18n.get('JUPnPDIDLLite')}
-                  {...form.getInputProps('upnp_jupnp_didl', { type: 'checkbox' })}
+                  size='xs'
+                  label={i18n.get('LogLevelColon')}
+                  data={getI18nSelectData(selectionSettings.upnpLoglevels)}
+                  {...form.getInputProps('upnp_log_level')}
                 />
               }
               {advancedSettings &&
                 <Checkbox
                   disabled={!canModify}
-                  label={i18n.get('DebugUpnpService')}
-                  {...form.getInputProps('upnp_debug', { type: 'checkbox' })}
+                  label={i18n.get('JUPnPDIDLLite')}
+                  {...form.getInputProps('upnp_jupnp_didl', { type: 'checkbox' })}
                 />
               }
               <Checkbox

@@ -112,10 +112,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_MIN = 100;
 	private static final int LOGGING_LOGS_TAB_LINEBUFFER_STEP = 500;
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
-	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	private static final String DEFAULT_SHARED_CONF_FILENAME = "SHARED.conf";
 	private static final String DEFAULT_CREDENTIALS_FILENAME = "UMS.cred";
+	private static final String PORTABLE_PATH = "portable";
+	public static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
+
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
 	 * for -lavdopts.
@@ -205,7 +207,13 @@ public class UmsConfiguration extends BaseConfiguration {
 	// "project.skelprofile.dir" project property
 	private static final String SKEL_PROFILE_PATH;
 
-	private static final String SYSTEM_PROFILE_DIRECTORY;
+	/*Profile type : 0
+		0 : System
+		1 : User
+		2 : Portable
+		3 : Custom
+	 */
+	private static final int PROFILE_TYPE;
 
 	/*
 	 * Configuration file keys
@@ -392,7 +400,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SELECTED_RENDERERS = "selected_renderers";
-	private static final String KEY_SERVER_ENGINE = "server_engine";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -426,12 +433,12 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
-	public static final String KEY_UPNP_DEBUG = "upnp_debug";
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
+	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
-	private static final String KEY_USE_IMDB_INFO = "use_imdb_info";
+	private static final String KEY_USE_API_INFO = "use_api_info";
 	private static final String KEY_USE_TMDB_INFO = "use_tmdb_info";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SYMLINKS_TARGET_FILE = "use_symlinks_target_file";
@@ -488,7 +495,9 @@ public class UmsConfiguration extends BaseConfiguration {
 		new AbstractMap.SimpleEntry<>("fmpeg_sox", KEY_FFMPEG_SOX),
 		new AbstractMap.SimpleEntry<>("ALIVE_delay", KEY_UPNP_ALIVE_DELAY),
 		//since 14
-		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY)
+		new AbstractMap.SimpleEntry<>("api_key", KEY_NEXTCP_API_KEY),
+		//since 14.7
+		new AbstractMap.SimpleEntry<>("use_imdb_info", KEY_USE_API_INFO)
 	);
 
 	/**
@@ -518,7 +527,8 @@ public class UmsConfiguration extends BaseConfiguration {
 		"bump.skin",				//old player
 		"min_playtime_web",			//old player
 		"bump",						//old player
-		"shares"					//not used
+		"shares",					//not used
+		"server_engine"				//no more multiple engines
 	);
 
 	/**
@@ -528,7 +538,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	public static final Set<String> NEED_MEDIA_SERVER_RELOAD_FLAGS = Set.of(
 		KEY_CHROMECAST_EXT,
 		KEY_NETWORK_INTERFACE,
-		KEY_SERVER_ENGINE,
 		KEY_SERVER_HOSTNAME,
 		KEY_SERVER_PORT,
 		KEY_UPNP_ENABLED
@@ -593,36 +602,57 @@ public class UmsConfiguration extends BaseConfiguration {
 	);
 
 	static {
+		int systemProfileType = 0;
+		String systemProfileDirectoryPath = null;
 		// first of all, set up the path to the default system profile directory
-		if (Platform.isWindows()) {
-			String programData = System.getenv("ALLUSERSPROFILE");
-
+		File systemConfigDirectory = new File(new File("").getAbsolutePath(), PORTABLE_PATH);
+		if (systemConfigDirectory.exists() && systemConfigDirectory.isDirectory()) {
+			systemProfileDirectoryPath = systemConfigDirectory.getAbsolutePath();
+			systemProfileType = 2; //portable
+		} else if (Platform.isWindows()) {
+			//check user only set up
+			String programData = System.getenv("LOCALAPPDATA");
 			if (programData != null) {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
-			} else {
-				SYSTEM_PROFILE_DIRECTORY = ""; // i.e. current (working) directory
+				systemProfileDirectoryPath = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
+				systemConfigDirectory = new File(systemProfileDirectoryPath);
+				if (systemConfigDirectory.exists() && systemConfigDirectory.isDirectory()) {
+					systemProfileType = 1; //user
+				} else {
+					systemProfileDirectoryPath = null;
+				}
+			}
+			if (systemProfileDirectoryPath == null) {
+				//check all user set up
+				programData = System.getenv("ALLUSERSPROFILE");
+				if (programData != null) {
+					systemProfileDirectoryPath = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
+				} else {
+					systemProfileDirectoryPath = ""; // i.e. current (working) directory
+				}
+				systemProfileType = 0; //system
 			}
 		} else if (Platform.isMac()) {
-			SYSTEM_PROFILE_DIRECTORY = String.format(
+			systemProfileDirectoryPath = String.format(
 				"%s/%s/%s",
 				System.getProperty("user.home"),
 				"/Library/Application Support",
 				PROFILE_DIRECTORY_NAME
 			);
+			systemProfileType = 1; //user
 		} else {
 			String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
 
 			if (xdgConfigHome == null) {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
+				systemProfileDirectoryPath = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
 			} else {
-				SYSTEM_PROFILE_DIRECTORY = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
+				systemProfileDirectoryPath = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
 			}
+			systemProfileType = 1; //user
 		}
-
-		// ensure that the SYSTEM_PROFILE_DIRECTORY exists
-		File systemProfileDirectory = new File(SYSTEM_PROFILE_DIRECTORY);
-		if (!systemProfileDirectory.exists()) {
-			systemProfileDirectory.mkdirs();
+		// ensure that the systemProfileDirectoryPath exists
+		systemConfigDirectory = new File(systemProfileDirectoryPath);
+		if (!systemConfigDirectory.exists()) {
+			systemConfigDirectory.mkdirs();
 		}
 
 		// now set the profile path. first: check for a custom setting.
@@ -637,11 +667,12 @@ public class UmsConfiguration extends BaseConfiguration {
 		// if customProfilePath is still blank, the default profile dir/filename is used
 		FileLocation profileLocation = FileUtil.getFileLocation(
 			customProfilePath,
-			SYSTEM_PROFILE_DIRECTORY,
+			systemProfileDirectoryPath,
 			DEFAULT_PROFILE_FILENAME
 		);
 		PROFILE_PATH = profileLocation.getFilePath();
 		PROFILE_DIRECTORY = profileLocation.getDirectoryPath();
+		PROFILE_TYPE = profileLocation.isCustom() ? 3 : systemProfileType;
 
 		// Set SKEL_PROFILE_PATH for Linux systems
 		PropertiesWrapper projectProperties = PropertiesUtil.getProjectProperties();
@@ -1583,18 +1614,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	}
 
 	/**
-	 * Get the MediaServer Engine version.
-	 * @return the MediaServer engine version selected, or 0 for default.
-	 */
-	public int getServerEngine() {
-		return getInt(KEY_SERVER_ENGINE, 0);
-	}
-
-	public void setServerEngine(int value) {
-		configuration.setProperty(KEY_SERVER_ENGINE, value);
-	}
-
-	/**
 	 * The server port where UMS listens for TCP/IP traffic. Default value is 5001.
 	 * @return The port number.
 	 */
@@ -1665,10 +1684,13 @@ public class UmsConfiguration extends BaseConfiguration {
 		if (lang == null) {
 			lang = getLanguageRawString();
 		}
-		if (lang != null) {
-			lang = lang.toLowerCase();
+		if (lang == null) {
+			lang = PMS.getLocale().toLanguageTag();
 		}
-		return lang;
+		if (lang != null) {
+			return lang.toLowerCase();
+		}
+		return "en-us";
 	}
 
 	/**
@@ -3723,11 +3745,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		}
 		return SubtitlesInfoLevel.BASIC; // Default
 	}
-	public static synchronized JsonArray getFfmpegLoglevels() {
-		String[] values = FFmpegLogLevels.getLabels();
-		String[] labels = FFmpegLogLevels.getLabels();
-		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
-	}
+
 	/**
 	 * Sets if subtitles information should be added to video names.
 	 *
@@ -3735,104 +3753,6 @@ public class UmsConfiguration extends BaseConfiguration {
 	 */
 	public void setSubtitlesInfoLevel(SubtitlesInfoLevel value) {
 		configuration.setProperty(KEY_SUBS_INFO_LEVEL, value == null ? "" : value.toString());
-	}
-
-	/**
-	 * @return available subtitles info levels as a JSON array
-	 */
-	public static synchronized JsonArray getSubtitlesInfoLevelsAsJsonArray() {
-		String[] values = new String[] {
-			SubtitlesInfoLevel.NONE.toString(),
-			SubtitlesInfoLevel.BASIC.toString(),
-			SubtitlesInfoLevel.FULL.toString()
-		};
-		String[] labels = new String[] {
-			"i18n@None",
-			"i18n@Basic",
-			"i18n@Full"
-		};
-		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
-	}
-
-	/**
-	 * @return available fully played actions as a JSON array
-	 */
-	public static synchronized JsonArray getFullyPlayedActionsAsJsonArray() {
-		String[] values = new String[]{
-			String.valueOf(FullyPlayedAction.NO_ACTION.getValue()),
-			String.valueOf(FullyPlayedAction.MARK.getValue()),
-			String.valueOf(FullyPlayedAction.HIDE_MEDIA.getValue()),
-			String.valueOf(FullyPlayedAction.MOVE_FOLDER.getValue()),
-			String.valueOf(FullyPlayedAction.MOVE_FOLDER_AND_MARK.getValue()),
-			String.valueOf(FullyPlayedAction.MOVE_TRASH.getValue())
-		};
-		String[] labels = new String[]{
-			"i18n@DoNothing",
-			"i18n@MarkMedia",
-			"i18n@HideMedia",
-			"i18n@MoveFileToDifferentFolder",
-			"i18n@MoveFileDifferentFolderMark",
-			"i18n@MoveFileRecycleTrashBin"
-		};
-		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
-	}
-
-	public static synchronized JsonArray getSubtitlesCodepageArray() {
-		String[] values = new String[]{
-			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
-			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
-			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
-			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
-			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
-			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
-			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
-			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
-		};
-		String[] labels = new String[]{
-			"i18n@AutoDetect",
-			"i18n@CharacterSet.874",
-			"i18n@CharacterSet.932",
-			"i18n@CharacterSet.936",
-			"i18n@CharacterSet.949",
-			"i18n@CharacterSet.950",
-			"i18n@CharacterSet.1250",
-			"i18n@CharacterSet.1251",
-			"i18n@CharacterSet.1252",
-			"i18n@CharacterSet.1253",
-			"i18n@CharacterSet.1254",
-			"i18n@CharacterSet.1255",
-			"i18n@CharacterSet.1256",
-			"i18n@CharacterSet.1257",
-			"i18n@CharacterSet.1258",
-			"i18n@CharacterSet.2022-CN",
-			"i18n@CharacterSet.2022-JP",
-			"i18n@CharacterSet.2022-KR",
-			"i18n@CharacterSet.8859-1",
-			"i18n@CharacterSet.8859-2",
-			"i18n@CharacterSet.8859-3",
-			"i18n@CharacterSet.8859-4",
-			"i18n@CharacterSet.8859-5",
-			"i18n@CharacterSet.8859-6",
-			"i18n@CharacterSet.8859-7",
-			"i18n@CharacterSet.8859-8",
-			"i18n@CharacterSet.8859-9",
-			"i18n@CharacterSet.8859-10",
-			"i18n@CharacterSet.8859-11",
-			"i18n@CharacterSet.8859-13",
-			"i18n@CharacterSet.8859-14",
-			"i18n@CharacterSet.8859-15",
-			"i18n@CharacterSet.8859-16",
-			"i18n@CharacterSet.Big5",
-			"i18n@CharacterSet.EUC-JP",
-			"i18n@CharacterSet.EUC-KR",
-			"i18n@CharacterSet.GB18030",
-			"i18n@CharacterSet.IBM420",
-			"i18n@CharacterSet.IBM424",
-			"i18n@CharacterSet.KOI8-R",
-			"i18n@CharacterSet.ShiftJIS",
-			"i18n@CharacterSet.TIS-620"
-		};
-		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
 	public boolean isHideExtensions() {
@@ -4398,14 +4318,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
-	public boolean isUseInfoFromIMDb() {
-		return getBoolean(KEY_USE_IMDB_INFO, true);
-	}
-
-	public void setUseInfoFromIMDb(boolean value) {
-		configuration.setProperty(KEY_USE_IMDB_INFO, value);
-	}
-
 	public boolean isRunWizard() {
 		return getBoolean(KEY_RUN_WIZARD, true);
 	}
@@ -4504,12 +4416,37 @@ public class UmsConfiguration extends BaseConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getProfilePath() {
+	public static String getProfilePath() {
 		return PROFILE_PATH;
 	}
 
-	public String getProfileDirectory() {
+	public static String getProfileDirectory() {
 		return PROFILE_DIRECTORY;
+	}
+
+	public static String getProfileType() {
+		return switch (PROFILE_TYPE) {
+			case 1 -> "user";
+			case 2 -> "portable";
+			case 3 -> "custom";
+			default -> "system";
+		};
+	}
+
+	public static boolean isSystemProfile() {
+		return PROFILE_TYPE == 0;
+	}
+
+	public static boolean isUserProfile() {
+		return PROFILE_TYPE == 1;
+	}
+
+	public static boolean isPortableProfile() {
+		return PROFILE_TYPE == 2;
+	}
+
+	public static boolean isCustomProfile() {
+		return PROFILE_TYPE == 3;
 	}
 
 	/**
@@ -4534,7 +4471,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getString(KEY_SHARED_CONF_PATH, sharedConfPath);
 	}
 
-	public String getProfileName() {
+	public static String getHostName() {
 		if (hostName == null) { // Initialise this lazily
 			try {
 				hostName = InetAddress.getLocalHost().getHostName();
@@ -4543,8 +4480,11 @@ public class UmsConfiguration extends BaseConfiguration {
 				hostName = "unknown host";
 			}
 		}
+		return hostName;
+	}
 
-		return getString(KEY_PROFILE_NAME, hostName);
+	public String getProfileName() {
+		return getString(KEY_PROFILE_NAME, getHostName());
 	}
 
 	public boolean isAuthenticationEnabled() {
@@ -4707,6 +4647,18 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public void setExternalNetwork(boolean b) {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
+
+	public boolean isUseInfoFromExternalAPI() {
+		return isUseInfoFromUmsAPI() || isUseInfoFromTMDB();
+	}
+
+	public boolean isUseInfoFromUmsAPI() {
+		return getBoolean(KEY_USE_API_INFO, true);
+	}
+
+	public void setUseInfoFromUmsAPI(boolean value) {
+		configuration.setProperty(KEY_USE_API_INFO, value);
 	}
 
 	public boolean isUseInfoFromTMDB() {
@@ -5353,8 +5305,24 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_ENABLED, true);
 	}
 
-	public boolean isUpnpDebug() {
-		return getBoolean(KEY_UPNP_DEBUG, false);
+	private int getUpnpDebugLevel() {
+		return getInt(KEY_UPNP_LOG_LEVEL, 1);
+	}
+
+	public boolean isUpnpDebugOff() {
+		return getUpnpDebugLevel() < 1;
+	}
+
+	public boolean isUpnpDebugMediaServer() {
+		return getUpnpDebugLevel() > 0;
+	}
+
+	public boolean isUpnpDebugBasic() {
+		return getUpnpDebugLevel() > 1;
+	}
+
+	public boolean isUpnpDebugFull() {
+		return getUpnpDebugLevel() > 2;
 	}
 
 	public boolean isUpnpJupnpDidl() {
@@ -5513,6 +5481,116 @@ public class UmsConfiguration extends BaseConfiguration {
 			"i18n@NoSorting"
 		};
 
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public static synchronized JsonArray getFfmpegLoglevels() {
+		String[] values = FFmpegLogLevels.getLabels();
+		String[] labels = FFmpegLogLevels.getLabels();
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	/**
+	 * @return available subtitles info levels as a JSON array
+	 */
+	public static synchronized JsonArray getSubtitlesInfoLevelsAsJsonArray() {
+		String[] values = new String[] {
+			SubtitlesInfoLevel.NONE.toString(),
+			SubtitlesInfoLevel.BASIC.toString(),
+			SubtitlesInfoLevel.FULL.toString()
+		};
+		String[] labels = new String[] {
+			"i18n@None",
+			"i18n@Basic",
+			"i18n@Full"
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public static synchronized JsonArray getUpnpLoglevels() {
+		String[] values = new String[]{"0", "1", "2", "3"};
+		String[] labels = new String[]{"i18n@None", "i18n@MediaServerOnly", "i18n@Basic", "i18n@Full"};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	/**
+	 * @return available fully played actions as a JSON array
+	 */
+	public static synchronized JsonArray getFullyPlayedActionsAsJsonArray() {
+		String[] values = new String[]{
+			String.valueOf(FullyPlayedAction.NO_ACTION.getValue()),
+			String.valueOf(FullyPlayedAction.MARK.getValue()),
+			String.valueOf(FullyPlayedAction.HIDE_MEDIA.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_FOLDER.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_FOLDER_AND_MARK.getValue()),
+			String.valueOf(FullyPlayedAction.MOVE_TRASH.getValue())
+		};
+		String[] labels = new String[]{
+			"i18n@DoNothing",
+			"i18n@MarkMedia",
+			"i18n@HideMedia",
+			"i18n@MoveFileToDifferentFolder",
+			"i18n@MoveFileDifferentFolderMark",
+			"i18n@MoveFileRecycleTrashBin"
+		};
+		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
+	}
+
+	public static synchronized JsonArray getSubtitlesCodepageArray() {
+		String[] values = new String[]{
+			"", "cp874", "cp932", "cp936", "cp949", "cp950", "cp1250",
+			"cp1251", "cp1252", "cp1253", "cp1254", "cp1255", "cp1256",
+			"cp1257", "cp1258", "ISO-2022-CN", "ISO-2022-JP", "ISO-2022-KR",
+			"ISO-8859-1", "ISO-8859-2", "ISO-8859-3", "ISO-8859-4",
+			"ISO-8859-5", "ISO-8859-6", "ISO-8859-7", "ISO-8859-8",
+			"ISO-8859-9", "ISO-8859-10", "ISO-8859-11", "ISO-8859-13",
+			"ISO-8859-14", "ISO-8859-15", "ISO-8859-16", "Big5", "EUC-JP",
+			"EUC-KR", "GB18030", "IBM420", "IBM424", "KOI8-R", "Shift_JIS", "TIS-620"
+		};
+		String[] labels = new String[]{
+			"i18n@AutoDetect",
+			"i18n@CharacterSet.874",
+			"i18n@CharacterSet.932",
+			"i18n@CharacterSet.936",
+			"i18n@CharacterSet.949",
+			"i18n@CharacterSet.950",
+			"i18n@CharacterSet.1250",
+			"i18n@CharacterSet.1251",
+			"i18n@CharacterSet.1252",
+			"i18n@CharacterSet.1253",
+			"i18n@CharacterSet.1254",
+			"i18n@CharacterSet.1255",
+			"i18n@CharacterSet.1256",
+			"i18n@CharacterSet.1257",
+			"i18n@CharacterSet.1258",
+			"i18n@CharacterSet.2022-CN",
+			"i18n@CharacterSet.2022-JP",
+			"i18n@CharacterSet.2022-KR",
+			"i18n@CharacterSet.8859-1",
+			"i18n@CharacterSet.8859-2",
+			"i18n@CharacterSet.8859-3",
+			"i18n@CharacterSet.8859-4",
+			"i18n@CharacterSet.8859-5",
+			"i18n@CharacterSet.8859-6",
+			"i18n@CharacterSet.8859-7",
+			"i18n@CharacterSet.8859-8",
+			"i18n@CharacterSet.8859-9",
+			"i18n@CharacterSet.8859-10",
+			"i18n@CharacterSet.8859-11",
+			"i18n@CharacterSet.8859-13",
+			"i18n@CharacterSet.8859-14",
+			"i18n@CharacterSet.8859-15",
+			"i18n@CharacterSet.8859-16",
+			"i18n@CharacterSet.Big5",
+			"i18n@CharacterSet.EUC-JP",
+			"i18n@CharacterSet.EUC-KR",
+			"i18n@CharacterSet.GB18030",
+			"i18n@CharacterSet.IBM420",
+			"i18n@CharacterSet.IBM424",
+			"i18n@CharacterSet.KOI8-R",
+			"i18n@CharacterSet.ShiftJIS",
+			"i18n@CharacterSet.TIS-620"
+		};
 		return UMSUtils.getArraysAsJsonArrayOfObjects(values, labels, null);
 	}
 
@@ -5677,7 +5755,6 @@ public class UmsConfiguration extends BaseConfiguration {
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
-		jObj.addProperty(KEY_SERVER_ENGINE, "0");
 		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
 		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
@@ -5697,11 +5774,11 @@ public class UmsConfiguration extends BaseConfiguration {
 		jObj.addProperty(KEY_ASS_SHADOW, 1);
 		jObj.addProperty(KEY_THUMBNAIL_SEEK_POS, 4);
 		jObj.addProperty(KEY_TMDB_API_KEY, "");
-		jObj.addProperty(KEY_UPNP_DEBUG, false);
 		jObj.addProperty(KEY_UPNP_ENABLED, true);
 		jObj.addProperty(KEY_UPNP_JUPNP_DIDL, false);
+		jObj.addProperty(KEY_UPNP_LOG_LEVEL, "1");
+		jObj.addProperty(KEY_USE_API_INFO, true);
 		jObj.addProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true);
-		jObj.addProperty(KEY_USE_IMDB_INFO, true);
 		jObj.addProperty(KEY_USE_TMDB_INFO, true);
 		jObj.addProperty(KEY_USE_SYMLINKS_TARGET_FILE, true);
 		jObj.addProperty(KEY_VLC_AUDIO_SYNC_ENABLED, false);

@@ -17,7 +17,7 @@
 import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, Input, Modal, PasswordInput, Select, Stack, Tabs, Text, TextInput } from '@mantine/core';
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
 
 import AccountsContext from '../../contexts/accounts-context';
@@ -38,6 +38,11 @@ const Accounts = () => {
   const [authOpened, setAuthOpened] = useState(false);
   const [userOpened, setUserOpened] = useState<string | null>(null);
   const [groupOpened, setGroupOpened] = useState<string | null>(null);
+
+  //set the document Title to Accounts
+  useEffect(() => {
+    document.title="Universal Media Server - Accounts";
+  }, []);
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);
@@ -171,7 +176,9 @@ const Accounts = () => {
                   userProfileForm.setFieldValue('avatar', result);
                 }
               }
-              files[0] && reader.readAsDataURL(files[0]);
+              if (files[0]) {
+                reader.readAsDataURL(files[0]);
+              }
             }}
           >
             <Group justify='center'>

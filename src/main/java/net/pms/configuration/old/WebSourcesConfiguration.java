@@ -80,7 +80,7 @@ public class WebSourcesConfiguration {
 								sourceType.equals("videostream")
 							) {
 								String[] values = parseFeedValue(value);
-								String uri = values[0];
+								String uri = Feed.getFeedUrl(values[0]);
 								String thumbnail = values.length > 2 ? values[2] : null;
 								// If the resource does not yet have a name, attempt to get one now
 								String resourceName = values.length > 3 ? values[3] : null;
@@ -88,10 +88,6 @@ public class WebSourcesConfiguration {
 									try {
 										switch (sourceType) {
 											case "imagefeed", "videofeed", "audiofeed" -> {
-												// Convert YouTube channel URIs to their feed URIs
-												if (uri.contains("youtube.com/channel/")) {
-													uri = uri.replaceAll("youtube.com/channel/", "youtube.com/feeds/videos.xml?channel_id=");
-												}
 												resourceName = Feed.getFeedTitle(uri);
 											}
 											case "videostream", "audiostream" -> {
