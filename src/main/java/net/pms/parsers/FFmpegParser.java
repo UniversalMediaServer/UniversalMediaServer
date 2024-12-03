@@ -499,6 +499,8 @@ public class FFmpegParser {
 
 								if (codec.equalsIgnoreCase("hevc")) {
 									codec = FormatConfiguration.H265;
+								} else if (codec.equalsIgnoreCase("mpeg4")) {
+									codec = FormatConfiguration.MP4;
 								}
 								video.setCodec(codec);
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {

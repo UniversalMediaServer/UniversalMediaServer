@@ -57,9 +57,20 @@ public class FFmpegParserTest {
 		}
 
 		//video
+		/**
+		 * note: FFmpeg does not seem to output enough information to get the following:
+		 * - Format Level
+		 * - Display Aspect Ratio
+		 * - Scan Type
+		 * - Frame Rate Mode
+		 */
 		assertEquals(
 			"Container: MP4, Size: 1325017, Overall Bitrate: 692224, Duration: 0:00:15.660, Video Tracks: 1 [Video Id: 0, Codec: h264, Format Profile: high, Stream Order: 0, Resolution: 640 x 360, Frame Rate: 23.98], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 1, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/mp4",
 			getTestFileMediaInfo("video-h264-aac.mp4").toString()
+		);
+		assertEquals(
+			"Container: MKV, Size: 2097841, Overall Bitrate: 1612800, Duration: 0:00:10.650, Video Tracks: 1 [Video Id: 0, Codec: mp4, Format Profile: simple profile, Stream Order: 0, Resolution: 1280 x 720, Frame Rate: 25.0], Audio Tracks: 1 [Audio Id: 0, Codec: AAC-LC, Stream Order: 0, Bitrate: 0, Channels: 6, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
+			getTestFileMediaInfo("video-mpeg4-aac.mkv").toString()
 		);
 		assertEquals(
 			"Container: MKV, Size: 11413502, Overall Bitrate: 6256640, Duration: 0:00:14.940, Video Tracks: 1 [Video Id: 0, Codec: h265, Format Profile: main 10, Stream Order: 0, Resolution: 3840 x 2160, Frame Rate: 25.0, Bit Depth: 10, HDR Format: Dolby Vision / SMPTE ST 2086 (dolbyvision), HDR Format Compatibility: HDR10 (hdr10)], Audio Tracks: 1 [Audio Id: 0, Language Code: eng, Codec: Enhanced AC-3, Stream Order: 1, Bitrate: 0, Channels: 2, Sample Frequency: 48000 Hz], Mime Type: video/x-matroska",
