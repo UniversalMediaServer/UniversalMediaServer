@@ -324,6 +324,10 @@ public class FFmpegParser {
 						if ("matroska".equals(media.getContainer())) {
 							media.setContainer(FormatConfiguration.MKV);
 						}
+						if ("asf".equals(media.getContainer())) {
+							media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
+							LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
+						}
 					} else {
 						matches = false;
 					}
@@ -402,6 +406,10 @@ public class FFmpegParser {
 										} else if (token.contains("(HE-AAC)")) {
 											codec = FormatConfiguration.HE_AAC;
 										}
+									} else if (codec.startsWith("adpcm_ms")) {
+										codec = FormatConfiguration.ADPCM;
+									} else if (codec.startsWith("wma")) {
+										codec = FormatConfiguration.WMA;
 									}
 								} else {
 									codec = token.substring(positionAfterAudioString);
@@ -437,6 +445,11 @@ public class FFmpegParser {
 								audio.setBitDepth(24);
 							} else if (token.equals("s16")) {
 								audio.setBitDepth(16);
+							} else if (token.endsWith(" kb/s") || token.endsWith(" kb/s (default)")) {
+								// parse the bitrate from e.g. "112 kb/s"
+								String[] splitString = token.split("\\s+");
+								int bitrateAsInt = Integer.parseInt(splitString[0] + "000");
+								audio.setBitRate(bitrateAsInt);
 							}
 						}
 						int fFmpegMetaDataNr = fFmpegMetaData.nextIndex();
@@ -499,8 +512,10 @@ public class FFmpegParser {
 
 								if (codec.equalsIgnoreCase("hevc")) {
 									codec = FormatConfiguration.H265;
-								} else if (codec.equalsIgnoreCase("mpeg4")) {
+								} else if (codec.equalsIgnoreCase("mpeg4") || codec.equalsIgnoreCase("msmpeg4v2")) {
 									codec = FormatConfiguration.MP4;
+								} else if (codec.equalsIgnoreCase("wmv2")) {
+									codec = FormatConfiguration.WMV;
 								}
 								video.setCodec(codec);
 							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
