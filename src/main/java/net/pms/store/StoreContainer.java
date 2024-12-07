@@ -103,7 +103,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		child.setParent(this);
-		if (isAddGlobally && renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid()) {
+		if (isAddGlobally && renderer.getUmsConfiguration().useCode() && !PMS.get().masterCodeValid() && PMS.get().codeDb() != null) {
 			String code = PMS.get().codeDb().getCode(child);
 			if (StringUtils.isNotEmpty(code)) {
 				StoreResource cobj = child.isCoded();

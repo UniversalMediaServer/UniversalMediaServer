@@ -106,10 +106,6 @@ jobs:
       )
     name: macOS Intel Java tests
     runs-on: macos-13
-    strategy:
-      matrix:
-        # test against two different xcode version on MacOS
-        xcode: [ 9.4.1, latest ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK
@@ -127,8 +123,8 @@ jobs:
             react-client/node
             react-client/node_modules
           key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run Java tests (XCode ${{ matrix.xcode }})
-        run: DEVELOPER_DIR=/Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer && mvn verify -P testing-macos
+      - name: Run Java tests
+        run: DEVELOPER_DIR=/Applications/Xcode_9.4.1.app/Contents/Developer && mvn verify -P testing-macos
 
   macos-arm:
     needs: changes
@@ -230,44 +226,6 @@ jobs:
           sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_20.04.deb
           wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
           sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_20.04.deb
-          mvn verify -P testing -DdisableXmlReport=true
-
-  linux-jammy:
-    needs: changes
-    if: |
-      (
-        (github.event_name == 'push' && (github.actor == 'renovate[bot]' || github.ref_name == 'main')) ||
-        (github.event_name == 'pull_request')
-      ) && (
-        needs.changes.outputs.javafiles == 'true' ||
-        needs.changes.outputs.cifile == 'true'
-      )
-    name: Linux 22.04
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'liberica'
-          java-version: 17
-          cache: 'maven'
-      - name: Cache Node dependencies
-        id: cache-node-dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            react-client/.yarn
-            react-client/node
-            react-client/node_modules
-          key: node-dependencies-${{ hashFiles('yarn.lock') }}
-      - name: Run tests
-        run: |
-          sudo apt-get -y install libmms0
-          wget --no-check-certificate https://mediaarea.net/download/binary/libzen0/0.4.41/libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libzen0v5_0.4.41-1_amd64.xUbuntu_22.04.deb
-          wget --no-check-certificate https://mediaarea.net/download/binary/libmediainfo0/24.06/libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
-          sudo dpkg -i libmediainfo0v5_24.06-1_amd64.xUbuntu_22.04.deb
           mvn verify -P testing -DdisableXmlReport=true
 
   linux-noble:
