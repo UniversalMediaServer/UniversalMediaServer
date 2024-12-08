@@ -322,7 +322,12 @@ public class FFmpegParser {
 							LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
 						}
 						if ("matroska".equals(media.getContainer())) {
-							media.setContainer(FormatConfiguration.MKV);
+							if (line.contains("matroska,webm, ")) {
+								media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
+								LOGGER.trace("Setting container to " + media.getContainer() + " from the filename. To prevent false-positives, use MediaInfo=true in the renderer config.");
+							} else {
+								media.setContainer(FormatConfiguration.MKV);
+							}
 						}
 						if ("asf".equals(media.getContainer())) {
 							media.setContainer(line.substring(line.lastIndexOf('.') + 1, line.lastIndexOf('\'')).trim());
@@ -410,6 +415,8 @@ public class FFmpegParser {
 										codec = FormatConfiguration.ADPCM;
 									} else if (codec.startsWith("wma")) {
 										codec = FormatConfiguration.WMA;
+									} else if (token.contains("DTS-HD")) {
+										codec = FormatConfiguration.DTSHD;
 									}
 								} else {
 									codec = token.substring(positionAfterAudioString);
@@ -431,7 +438,9 @@ public class FFmpegParser {
 								audio.setNumberOfChannels(1);
 							} else if (token.equals("stereo")) {
 								audio.setNumberOfChannels(2);
-							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
+							} else if (token.equals("7.1")) {
+								audio.setNumberOfChannels(8);
+							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels") || token.equals("5.1(side)")) {
 								audio.setNumberOfChannels(6);
 							} else if (token.equals("5 channels")) {
 								audio.setNumberOfChannels(5);
@@ -476,7 +485,7 @@ public class FFmpegParser {
 							}
 						}
 						media.addAudioTrack(audio);
-					} else if (line.contains("Video:")) {
+					} else if (line.contains("Video:") && !line.contains("(attached pic)")) {
 						MediaVideo video = new MediaVideo();
 						video.setId(videoId++);
 						video.setStreamOrder(getStreamOrder(line));
@@ -510,10 +519,17 @@ public class FFmpegParser {
 									codec = codec.substring(0, profilePos).trim();
 								}
 
-								if (codec.equalsIgnoreCase("hevc")) {
+								if (codec.equalsIgnoreCase("flv1")) {
+									codec = FormatConfiguration.SORENSON;
+								} else if (codec.equalsIgnoreCase("hevc")) {
 									codec = FormatConfiguration.H265;
 								} else if (codec.equalsIgnoreCase("mpeg4") || codec.equalsIgnoreCase("msmpeg4v2")) {
-									codec = FormatConfiguration.MP4;
+									// DivX video codec is printed as "mpeg4 (Advanced Simple Profile) (XVID / 0x44495658)"
+									if (token.contains("mpeg4 (Advanced Simple Profile) (XVID")) {
+										codec = FormatConfiguration.DIVX;
+									} else {
+										codec = FormatConfiguration.MP4;
+									}
 								} else if (codec.equalsIgnoreCase("wmv2")) {
 									codec = FormatConfiguration.WMV;
 								}
@@ -713,7 +729,14 @@ public class FFmpegParser {
 						for (MediaVideo videoTrack : media.getVideoTracks()) {
 							if (videoTrack.getId() == previousVideoId) {
 								String hdrFormat = "Dolby Vision";
-								if (videoTrack.getHDRFormatCompatibility() != null && videoTrack.getHDRFormatCompatibility().equals("HDR10")) {
+								if (line.contains("compatibility id: 2")) {
+									videoTrack.setHDRFormatCompatibility("SDR");
+								} else if (line.contains("compatibility id: 4")) {
+									videoTrack.setHDRFormatCompatibility("HLG");
+								} else if (line.contains("compatibility id: 6")) {
+									videoTrack.setHDRFormatCompatibility("Blu-ray / HDR10");
+									hdrFormat += " / SMPTE ST 2086";
+								} else if (videoTrack.getHDRFormatCompatibility() != null && videoTrack.getHDRFormatCompatibility().equals("HDR10")) {
 									hdrFormat += " / SMPTE ST 2086";
 								}
 								videoTrack.setHDRFormat(hdrFormat);
