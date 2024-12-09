@@ -10,6 +10,7 @@
 - Bump `@mantine/modals` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
 - Bump `@mantine/notifications` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
 - Bump `@playwright/test` from 1.48.2 to 1.49.0 ([#5125](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5125))
+- Bump `axios` from 1.7.7 to 1.7.9 ([#5155](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5155))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.20.1 to 10.20.2 ([#5144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5144))
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
 - Bump `org.jsoup:jsoup` from 1.18.1 to 1.18.3 ([#5145](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5145))
