@@ -348,6 +348,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@commander-js/extra-typings@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "@commander-js/extra-typings@npm:12.1.0"
+  peerDependencies:
+    commander: ~12.1.0
+  checksum: 10c0/5d29eaa724b577e2a52a393ad54992924d2559931b8e493ab892477b7a4e878e475c6bf771260f8585d835f7d8e17ae4a2656c191e9595d210ae0b48291c0b3d
+  languageName: node
+  linkType: hard
+
 "@esbuild/aix-ppc64@npm:0.21.5":
   version: 0.21.5
   resolution: "@esbuild/aix-ppc64@npm:0.21.5"
@@ -1027,6 +1036,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/ansi-html@npm:^0.0.0":
+  version: 0.0.0
+  resolution: "@types/ansi-html@npm:0.0.0"
+  checksum: 10c0/2ac544b04969491c75dca2b534335be4c438397356c1c7848146184d7406ce3425fc9a3a841dbf99ac5f23f3d47f87d814ad9f08653b24e47f0420850ceb59ba
+  languageName: node
+  linkType: hard
+
 "@types/babel__core@npm:^7.20.5":
   version: 7.20.5
   resolution: "@types/babel__core@npm:7.20.5"
@@ -1068,6 +1084,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/debug@npm:^4.1.12":
+  version: 4.1.12
+  resolution: "@types/debug@npm:4.1.12"
+  dependencies:
+    "@types/ms": "npm:*"
+  checksum: 10c0/5dcd465edbb5a7f226e9a5efd1f399c6172407ef5840686b73e3608ce135eeca54ae8037dcd9f16bdb2768ac74925b820a8b9ecc588a58ca09eca6acabe33e2f
+  languageName: node
+  linkType: hard
+
 "@types/estree@npm:1.0.5":
   version: 1.0.5
   resolution: "@types/estree@npm:1.0.5"
@@ -1093,6 +1118,22 @@ __metadata:
   version: 4.17.13
   resolution: "@types/lodash@npm:4.17.13"
   checksum: 10c0/c3d0b7efe7933ac0369b99f2f7bff9240d960680fdb74b41ed4bd1b3ca60cca1e31fe4046d9abbde778f941a41bc2a75eb629abf8659fa6c27b66efbbb0802a9
+  languageName: node
+  linkType: hard
+
+"@types/ms@npm:*":
+  version: 0.7.34
+  resolution: "@types/ms@npm:0.7.34"
+  checksum: 10c0/ac80bd90012116ceb2d188fde62d96830ca847823e8ca71255616bc73991aa7d9f057b8bfab79e8ee44ffefb031ddd1bcce63ea82f9e66f7c31ec02d2d823ccc
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:*":
+  version: 22.10.1
+  resolution: "@types/node@npm:22.10.1"
+  dependencies:
+    undici-types: "npm:~6.20.0"
+  checksum: 10c0/0fbb6d29fa35d807f0223a4db709c598ac08d66820240a2cd6a8a69b8f0bc921d65b339d850a666b43b4e779f967e6ed6cf6f0fca3575e08241e6b900364c234
   languageName: node
   linkType: hard
 
@@ -1129,6 +1170,15 @@ __metadata:
     "@types/prop-types": "npm:*"
     csstype: "npm:^3.0.2"
   checksum: 10c0/8bae8d9a41619804561574792e29112b413044eb0d53746dde2b9720c1f9a59f71c895bbd7987cd8ce9500b00786e53bc032dced38cddf42910458e145675290
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8.5.10":
+  version: 8.5.13
+  resolution: "@types/ws@npm:8.5.13"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/a5430aa479bde588e69cb9175518d72f9338b6999e3b2ae16fc03d3bdcff8347e486dc031e4ed14601260463c07e1f9a0d7511dfc653712b047c439c680b0b34
   languageName: node
   linkType: hard
 
@@ -1271,9 +1321,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@videojs/http-streaming@npm:^3.16.0":
-  version: 3.16.1
-  resolution: "@videojs/http-streaming@npm:3.16.1"
+"@videojs/http-streaming@npm:^3.16.2":
+  version: 3.16.2
+  resolution: "@videojs/http-streaming@npm:3.16.2"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
     "@videojs/vhs-utils": "npm:^4.1.1"
@@ -1285,7 +1335,7 @@ __metadata:
     video.js: "npm:^7 || ^8"
   peerDependencies:
     video.js: ^8.19.0
-  checksum: 10c0/b29d9e5340243cd473b20799d7d7b5239d3d3173236cf1fe2743aabb144ec9ec31d3f429c18e503b5882e0909848b84ce569f4a5f4a3815057f43d36e46ce681
+  checksum: 10c0/841d7e68b918b9ed1274cf29b1bf4ebbc6427a89a9b9a4b65bb4e1493da86294a0343efb307183811f4f4f0295076b3433ab1cc04a811ed9e5690766816bb0d3
   languageName: node
   linkType: hard
 
@@ -1454,6 +1504,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ansi-html@npm:^0.0.9":
+  version: 0.0.9
+  resolution: "ansi-html@npm:0.0.9"
+  bin:
+    ansi-html: bin/ansi-html
+  checksum: 10c0/4a5de9802fb50193e32b51a9ea48dc0d7e4436b860cb819d7110c62f2bfb1410288e1a2f9a848269f5eab8f903797a7f0309fe4c552f92a92b61a5b759ed52bd
+  languageName: node
+  linkType: hard
+
 "ansi-regex@npm:^5.0.1":
   version: 5.0.1
   resolution: "ansi-regex@npm:5.0.1"
@@ -1607,14 +1666,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:1.7.7":
-  version: 1.7.7
-  resolution: "axios@npm:1.7.7"
+"axios@npm:1.7.9":
+  version: 1.7.9
+  resolution: "axios@npm:1.7.9"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/4499efc89e86b0b49ffddc018798de05fab26e3bf57913818266be73279a6418c3ce8f9e934c7d2d707ab8c095e837fc6c90608fb7715b94d357720b5f568af7
+  checksum: 10c0/b7a41e24b59fee5f0f26c1fc844b45b17442832eb3a0fb42dd4f1430eb4abc571fe168e67913e8a1d91c993232bd1d1ab03e20e4d1fee8c6147649b576fc1b0b
   languageName: node
   linkType: hard
 
@@ -1735,6 +1794,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "chalk@npm:5.3.0"
+  checksum: 10c0/8297d436b2c0f95801103ff2ef67268d362021b8210daf8ddbe349695333eb3610a71122172ff3b0272f1ef2cf7cc2c41fdaa4715f52e49ffe04c56340feed09
+  languageName: node
+  linkType: hard
+
 "chownr@npm:^2.0.0":
   version: 2.0.0
   resolution: "chownr@npm:2.0.0"
@@ -1794,6 +1860,13 @@ __metadata:
   dependencies:
     delayed-stream: "npm:~1.0.0"
   checksum: 10c0/0dbb829577e1b1e839fa82b40c07ffaf7de8a09b935cadd355a73652ae70a88b4320db322f6634a4ad93424292fa80973ac6480986247f1734a1137debf271d5
+  languageName: node
+  linkType: hard
+
+"commander@npm:^12.1.0":
+  version: 12.1.0
+  resolution: "commander@npm:12.1.0"
+  checksum: 10c0/6e1996680c083b3b897bfc1cfe1c58dfbcd9842fd43e1aaf8a795fbc237f65efcc860a3ef457b318e73f29a4f4a28f6403c3d653d021d960e4632dd45bde54a9
   languageName: node
   linkType: hard
 
@@ -1882,6 +1955,18 @@ __metadata:
     supports-color:
       optional: true
   checksum: 10c0/082c375a2bdc4f4469c99f325ff458adad62a3fc2c482d59923c260cb08152f34e2659f72b3767db8bb2f21ca81a60a42d1019605a412132d7b9f59363a005cc
+  languageName: node
+  linkType: hard
+
+"debug@npm:^4.3.5":
+  version: 4.3.7
+  resolution: "debug@npm:4.3.7"
+  dependencies:
+    ms: "npm:^2.1.3"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10c0/1471db19c3b06d485a622d62f65947a19a23fbd0dd73f7fd3eafb697eec5360cde447fb075919987899b1a2096e85d35d4eb5a4de09a57600ac9cf7e6c8e768b
   languageName: node
   linkType: hard
 
@@ -2224,6 +2309,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"escape-goat@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "escape-goat@npm:4.0.0"
+  checksum: 10c0/9d2a8314e2370f2dd9436d177f6b3b1773525df8f895c8f3e1acb716f5fd6b10b336cb1cd9862d4709b36eb207dbe33664838deca9c6d55b8371be4eebb972f6
+  languageName: node
+  linkType: hard
+
 "escape-string-regexp@npm:^1.0.5":
   version: 1.0.5
   resolution: "escape-string-regexp@npm:1.0.5"
@@ -2247,12 +2339,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-refresh@npm:0.4.14":
-  version: 0.4.14
-  resolution: "eslint-plugin-react-refresh@npm:0.4.14"
+"eslint-plugin-react-refresh@npm:0.4.16":
+  version: 0.4.16
+  resolution: "eslint-plugin-react-refresh@npm:0.4.16"
   peerDependencies:
-    eslint: ">=7"
-  checksum: 10c0/427108008ffcc2e0be36897398e61a2fae54c5bf092af0171bc4cf1927080d40619bb07be02ecd7c515372210228cf849023997cfa0252d37115f9b0c0debcd2
+    eslint: ">=8.40"
+  checksum: 10c0/0628d54b6cc6773a89252e2a7c82c7905a00dc8dc99a6ae2885a64f3b45bd3012a40cf9791ee24aa5dcf75665d8c8be4699845bbbf205cd0ef652702701a7865
   languageName: node
   linkType: hard
 
@@ -3601,6 +3693,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"ms@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "ms@npm:2.1.3"
+  checksum: 10c0/d924b57e7312b3b63ad21fc5b3dc0af5e78d61a1fc7cfb5457edaf26326bf62be5307cc87ffb6862ef1c2b33b0233cdb5d4f01c4c958cc0d660948b65a287a48
+  languageName: node
+  linkType: hard
+
 "mux.js@npm:7.0.3, mux.js@npm:^7.0.1":
   version: 7.0.3
   resolution: "mux.js@npm:7.0.3"
@@ -3764,6 +3863,13 @@ __metadata:
     type-check: "npm:^0.4.0"
     word-wrap: "npm:^1.2.5"
   checksum: 10c0/4afb687a059ee65b61df74dfe87d8d6815cd6883cb8b3d5883a910df72d0f5d029821f37025e4bccf4048873dbdb09acc6d303d27b8f76b1a80dd5a7d5334675
+  languageName: node
+  linkType: hard
+
+"p-defer@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "p-defer@npm:4.0.1"
+  checksum: 10c0/592f5bd32f8c6a57f892b00976e5272b3bbbd792b503f4cf3bc22094d08d7a973413c59c15deccff4759d860b38467a08b5b3363e865da6f00f44a031777118c
   languageName: node
   linkType: hard
 
@@ -4815,11 +4921,11 @@ __metadata:
     "@types/react": "npm:18.3.12"
     "@types/react-dom": "npm:18.3.1"
     "@vitejs/plugin-react": "npm:4.3.3"
-    axios: "npm:1.7.7"
+    axios: "npm:1.7.9"
     eslint: "npm:9.16.0"
     eslint-plugin-react: "npm:7.37.2"
     eslint-plugin-react-hooks: "npm:5.0.0"
-    eslint-plugin-react-refresh: "npm:0.4.14"
+    eslint-plugin-react-refresh: "npm:0.4.16"
     jwt-decode: "npm:4.0.0"
     lodash: "npm:4.17.21"
     react: "npm:18.3.1"
@@ -4830,8 +4936,9 @@ __metadata:
     tabler-icons-react: "npm:1.56.0"
     typescript: "npm:5.7.2"
     typescript-eslint: "npm:^8.16.0"
-    video.js: "npm:8.20.0"
+    video.js: "npm:8.21.0"
     vite: "npm:5.4.11"
+    vite-live-preview: "npm:0.3.2"
   languageName: unknown
   linkType: soft
 
@@ -4844,6 +4951,13 @@ __metadata:
     has-symbols: "npm:^1.0.3"
     which-boxed-primitive: "npm:^1.0.2"
   checksum: 10c0/81ca2e81134167cc8f75fa79fbcc8a94379d6c61de67090986a2273850989dd3bae8440c163121b77434b68263e34787a675cbdcb34bb2f764c6b9c843a11b66
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~6.20.0":
+  version: 6.20.0
+  resolution: "undici-types@npm:6.20.0"
+  checksum: 10c0/68e659a98898d6a836a9a59e6adf14a5d799707f5ea629433e025ac90d239f75e408e2e5ff086afc3cace26f8b26ee52155293564593fbb4a2f666af57fc59bf
   languageName: node
   linkType: hard
 
@@ -4961,12 +5075,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"video.js@npm:8.20.0":
-  version: 8.20.0
-  resolution: "video.js@npm:8.20.0"
+"video.js@npm:8.21.0":
+  version: 8.21.0
+  resolution: "video.js@npm:8.21.0"
   dependencies:
     "@babel/runtime": "npm:^7.12.5"
-    "@videojs/http-streaming": "npm:^3.16.0"
+    "@videojs/http-streaming": "npm:^3.16.2"
     "@videojs/vhs-utils": "npm:^4.1.1"
     "@videojs/xhr": "npm:2.7.0"
     aes-decrypter: "npm:^4.0.2"
@@ -4977,7 +5091,7 @@ __metadata:
     videojs-contrib-quality-levels: "npm:4.1.0"
     videojs-font: "npm:4.2.0"
     videojs-vtt.js: "npm:0.15.5"
-  checksum: 10c0/9c834dddba40de19fdc270754ee2b4a861f295037ce85990ffac4bda27e22b3190face793b2c2ced78a9c69a54c742a48c1a30a247e46d1d2a3bafecd017ddfb
+  checksum: 10c0/25a3625548a97358ae75adab2f20a62a27ef6a789b1003ac70096ecc324b979339b1af61599a7a77e64602748e3fc4cfad8f8313db1f8bb4bd016533f50874de
   languageName: node
   linkType: hard
 
@@ -5033,6 +5147,30 @@ __metadata:
   dependencies:
     global: "npm:^4.3.1"
   checksum: 10c0/fd595a96c7bee3cb086f58a750d784a8d52db29b3ddf90a079cd283b097c36f976ac9f3835af53dfe5bdac5c7ccbd03db77abbaa37e38bfb3cbe4843e261e02b
+  languageName: node
+  linkType: hard
+
+"vite-live-preview@npm:0.3.2":
+  version: 0.3.2
+  resolution: "vite-live-preview@npm:0.3.2"
+  dependencies:
+    "@commander-js/extra-typings": "npm:^12.1.0"
+    "@types/ansi-html": "npm:^0.0.0"
+    "@types/debug": "npm:^4.1.12"
+    "@types/ws": "npm:^8.5.10"
+    ansi-html: "npm:^0.0.9"
+    chalk: "npm:^5.3.0"
+    commander: "npm:^12.1.0"
+    debug: "npm:^4.3.5"
+    escape-goat: "npm:^4.0.0"
+    p-defer: "npm:^4.0.1"
+    ws: "npm:^8.17.0"
+  peerDependencies:
+    vite: ">=5.2.13"
+  bin:
+    vite-live-preview: bin.js
+    vlp: bin.js
+  checksum: 10c0/df4dcceb41f186bfff576ca0fce667170379569564ee2213cef8b4eb048c8848f17516961302768d370b1104d721f489ad93a9c9e8973a335638c895ef16e7b8
   languageName: node
   linkType: hard
 
@@ -5185,6 +5323,21 @@ __metadata:
     string-width: "npm:^5.0.1"
     strip-ansi: "npm:^7.0.1"
   checksum: 10c0/138ff58a41d2f877eae87e3282c0630fc2789012fc1af4d6bd626eeb9a2f9a65ca92005e6e69a75c7b85a68479fe7443c7dbe1eb8fbaa681a4491364b7c55c60
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.17.0":
+  version: 8.18.0
+  resolution: "ws@npm:8.18.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10c0/25eb33aff17edcb90721ed6b0eb250976328533ad3cd1a28a274bd263682e7296a6591ff1436d6cbc50fa67463158b062f9d1122013b361cec99a05f84680e06
   languageName: node
   linkType: hard
 
