@@ -87,7 +87,7 @@ public class MediaTableFiles extends MediaTable {
 	 * - 41: ID as BIGINT
 	 * - 42: ID as IDENTITY
 	 */
-	private static final int TABLE_VERSION = 42;
+	private static final int TABLE_VERSION = 43;
 
 	/**
 	 * COLUMNS NAMES
@@ -459,6 +459,23 @@ public class MediaTableFiles extends MediaTable {
 					case 41 -> {
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + IF_EXISTS + COL_ID + IDENTITY);
 						executeUpdate(connection, ALTER_TABLE + TABLE_NAME + ALTER_COLUMN + COL_ID + " RESTART WITH (SELECT MAX(ID) + 1 FROM FILES)");
+					}
+					case 42 -> {
+						try (Statement statement = connection.createStatement()) {
+							/*
+							* In 14.9.0 we fixed some bugs with the FFmpeg parser, so clear all file data parsed before that
+							*/
+							StringBuilder sb = new StringBuilder();
+							sb
+								.append(UPDATE)
+									.append(TABLE_NAME)
+								.append(SET)
+									.append("PARSER = NULL")
+								.append(WHERE)
+									.append("PARSER='FFmpeg'");
+							statement.execute(sb.toString());
+						}
+						LOGGER.trace(LOG_UPGRADED_TABLE, DATABASE_NAME, TABLE_NAME, currentVersion, version);
 					}
 					default -> {
 						// Do the dumb way
