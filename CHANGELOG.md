@@ -14,6 +14,7 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 10.20.1 to 10.20.2 ([#5144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5144))
 - Bump `eslint-plugin-react-refresh` from 0.4.14 to 0.4.16 ([#5154](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5154))
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
+- Bump `nanoid` from 3.3.7 to 3.3.8 ([#5157](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5157))
 - Bump `org.jsoup:jsoup` from 1.18.1 to 1.18.3 ([#5145](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5145))
 - Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
 - Bump `video.js` from 8.19.1 to 8.21.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147), [#5153](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5153))
