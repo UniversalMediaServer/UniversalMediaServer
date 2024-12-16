@@ -20,7 +20,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>14.8.0</version>
+	<version>14.8.0-SNAPSHOT</version>
 	<url>https://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -180,7 +180,7 @@
 
 				Check the commons-io:commons-io version of the libraries before upgrading
 			-->
-			<version>2.17.0</version>
+			<version>2.18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
@@ -648,7 +648,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.ee10</groupId>
 			<artifactId>jetty-ee10-servlet</artifactId>
-			<version>12.0.15</version>
+			<version>12.0.16</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -659,7 +659,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>jetty-http2-server</artifactId>
-			<version>12.0.15</version>
+			<version>12.0.16</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -670,7 +670,7 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-client</artifactId>
-			<version>12.0.15</version>
+			<version>12.0.16</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
@@ -697,7 +697,7 @@
 			<!-- jsoup HTML parser library @ https://jsoup.org/ -->
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.18.1</version>
+			<version>1.18.3</version>
 		</dependency>
 		<dependency>
 			<groupId>dev.dirs</groupId>
@@ -3492,7 +3492,7 @@
 							<dependency>
 								<groupId>com.puppycrawl.tools</groupId>
 								<artifactId>checkstyle</artifactId>
-								<version>10.19.0</version>
+								<version>10.20.2</version>
 							</dependency>
 						</dependencies>
 						<configuration>
