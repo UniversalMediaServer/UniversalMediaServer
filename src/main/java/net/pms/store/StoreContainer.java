@@ -119,6 +119,7 @@ public class StoreContainer extends StoreResource {
 		}
 
 		if (child instanceof StoreItem storeItem) {
+			child.resolve();
 			addChildItem(storeItem, isNew, isAddGlobally);
 		} else if (child instanceof StoreContainer storeContainer) {
 			addChildContainer(storeContainer, isNew, isAddGlobally);

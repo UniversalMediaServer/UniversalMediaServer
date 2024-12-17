@@ -378,9 +378,7 @@ public class RendererConfiguration extends BaseConfiguration {
 			configuration.addProperty(KEY_SUPPORTED, "f:.+");
 		}
 
-		if (isUseMediaInfo()) {
-			formatConfiguration = new FormatConfiguration(configuration.getList(KEY_SUPPORTED));
-		}
+		formatConfiguration = new FormatConfiguration(configuration.getList(KEY_SUPPORTED));
 	}
 
 	public void reset() {
