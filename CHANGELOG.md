@@ -3,12 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@mantine/core` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
-- Bump `@mantine/dropzone` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
-- Bump `@mantine/form` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
-- Bump `@mantine/hooks` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
-- Bump `@mantine/modals` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
-- Bump `@mantine/notifications` from 7.14.1 to 7.14.3 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146))
+- Bump `@mantine/core` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
+- Bump `@mantine/dropzone` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
+- Bump `@mantine/form` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
+- Bump `@mantine/hooks` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
+- Bump `@mantine/modals` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
+- Bump `@mantine/notifications` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
 - Bump `@playwright/test` from 1.48.2 to 1.49.0 ([#5125](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5125))
 - Bump `axios` from 1.7.7 to 1.7.9 ([#5155](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5155))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.20.1 to 10.20.2 ([#5144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5144))
