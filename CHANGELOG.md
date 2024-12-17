@@ -19,6 +19,7 @@
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.15 to 12.0.16 ([#5162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5162))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.15 to 12.0.16 ([#5162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5162))
 - Bump `org.jsoup:jsoup` from 1.18.1 to 1.18.3 ([#5145](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5145))
+- Bump `react-router-dom` from 6.28.0 to 7.0.2 ([#5166](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5166))
 - Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
 - Bump `video.js` from 8.19.1 to 8.21.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147), [#5153](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5153))
 
