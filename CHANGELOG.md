@@ -15,6 +15,7 @@
 - Bump `eslint-plugin-react-refresh` from 0.4.14 to 0.4.16 ([#5154](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5154))
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
 - Bump `nanoid` from 3.3.7 to 3.3.8 ([#5157](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5157))
+- Bump `org.apache.commons:commons-text` from 1.12.0 to 1.13.0 ([#5163](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5163))
 - Bump `org.eclipse.jetty:jetty-client` from 12.0.15 to 12.0.16 ([#5162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5162))
 - Bump `org.eclipse.jetty.ee10:jetty-ee10-servlet` from 12.0.15 to 12.0.16 ([#5162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5162))
 - Bump `org.eclipse.jetty.http2:jetty-http2-server` from 12.0.15 to 12.0.16 ([#5162](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5162))
