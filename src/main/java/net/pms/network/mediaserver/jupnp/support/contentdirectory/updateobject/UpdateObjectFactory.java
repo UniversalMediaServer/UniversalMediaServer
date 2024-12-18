@@ -41,6 +41,10 @@ public class UpdateObjectFactory {
 			return new UpnpRatingHandler(objectResource, currentTagNode, newTagNode);
 		}
 
+		if ("upnp:albumArtURI".equalsIgnoreCase(getNodeName(currentTagNode)) || "upnp:albumArtURI".equalsIgnoreCase(getNodeName(newTagNode))) {
+			return new AlbumArtUriHandler(objectResource, currentTagNode, newTagNode);
+		}
+
 		LOGGER.warn("NO handler found for tag pair values : '{}' AND '{}'", currentTagValue, newTagValue);
 		return null;
 	}
