@@ -244,7 +244,6 @@ public final class PlaylistFolder extends StoreContainer {
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
 		List<Entry> entries = getPlaylistEntries();
-		Entry e = entries.stream().filter(entry -> entry.fileName.equals(url)).findAny().orElse(null);
 		try (BufferedReader br = getBufferedReader()) {
 			StringBuilder out = new StringBuilder();
 			StringBuilder lastEntry = new StringBuilder();
@@ -271,7 +270,6 @@ public final class PlaylistFolder extends StoreContainer {
 						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
-					lastEntry.append(System.getProperty("line.separator"));
 					out.append(lastEntry);
 					lastEntry = new StringBuilder();
 				}
@@ -283,6 +281,9 @@ public final class PlaylistFolder extends StoreContainer {
 				LOGGER.debug("writing playlist file ...");
 				writer = new BufferedWriter(new FileWriter(file));
 				writer.append(out);
+				file.setLastModified(System.currentTimeMillis());
+			} catch (Exception e) {
+				LOGGER.warn("cannot update playlist", e);
 			} finally {
 				if (writer != null) {
 					writer.close();
