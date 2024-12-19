@@ -725,7 +725,7 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			resp.setHeader("etag", updateId);
 		}
 
-		InputStream inputStream;
+		InputStream inputStream = null;
 
 		if (req.getHeader("transfermode.dlna.org") != null) {
 			resp.setHeader("TransferMode.DLNA.ORG", req.getHeader("transfermode.dlna.org"));
@@ -755,11 +755,14 @@ public class MediaServerServlet extends MediaServerHttpServlet {
 			filterChain = new BufferedImageFilterChain(FullyPlayed.getOverlayFilter());
 		}
 		filterChain = resource.addFlagFilters(filterChain);
-		inputStream = thumbInputStream.transcode(
-				imageProfile,
-				renderer.isThumbnailPadding(),
-				filterChain
-		);
+
+		if (thumbInputStream != null) {
+			inputStream = thumbInputStream.transcode(
+					imageProfile,
+					renderer.isThumbnailPadding(),
+					filterChain
+			);
+		}
 		if (contentFeatures != null) {
 			resp.setHeader("ContentFeatures.DLNA.ORG", DlnaHelper.getDlnaImageContentFeatures(resource, imageProfile, true));
 		}

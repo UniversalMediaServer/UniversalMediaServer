@@ -26,7 +26,9 @@ public enum ThumbnailSource {
 	MUSICBRAINZ,
 	WEBSTREAM,
 	RADIOBROWSER,
-	EMBEDDED;
+	EMBEDDED,
+	PLAYLIST,
+	USER;
 
 	public static ThumbnailSource valueOfName(String value) {
 		try {
