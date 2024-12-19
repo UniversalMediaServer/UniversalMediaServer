@@ -7,6 +7,8 @@ import org.w3c.dom.NodeList;
 import net.pms.store.StoreResource;
 import net.pms.store.ThumbnailSource;
 import net.pms.store.ThumbnailStore;
+import net.pms.store.container.PlaylistFolder;
+import net.pms.store.item.WebStream;
 
 /**
  * Updates the Thumbnail AlbumArtURI of a resource.
@@ -31,15 +33,17 @@ public class AlbumArtUriHandler extends BaseUpdateObjectHandler {
 					"the CurrentTagValue argument do not match the current state of the ContentDirectory service. " +
 					"The specified data is likely out of date.");
 			}
-
 			ThumbnailStore.updateThumbnailByURI(newValue, getObjectResource().getFileName(), ThumbnailSource.USER);
+			if (getObjectResource() instanceof WebStream ws && getObjectResource().getParent() instanceof PlaylistFolder pls) {
+				// This entry is a webResource from a Playlist. We can try to update the album art uri
+				pls.updateAlbumArtUriDirective(ws.getUrl(), newValue);
+			}
 		} catch (Exception e) {
 			LOGGER.debug("UpdateObject : failed", e);
 		}
 	}
 
 	private boolean isModelValueEqual(String currentValue) {
-		// check URL
 		return true;
 	}
 }
