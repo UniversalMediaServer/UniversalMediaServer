@@ -271,7 +271,6 @@ public final class PlaylistFolder extends StoreContainer {
 						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
-					lastEntry.append(System.getProperty("line.separator"));
 					out.append(lastEntry);
 					lastEntry = new StringBuilder();
 				}
