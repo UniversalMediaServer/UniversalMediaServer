@@ -208,7 +208,7 @@ public final class PlaylistFolder extends StoreContainer {
 				}
 			} else {
 				String u = FileUtil.urlJoin(uri, entry.fileName);
-				Integer type = WebStreamParser.getWebStreamType(entry.fileName, 1);
+				Integer type = MediaTableFiles.getFormatType(u);
 				if (type == null || type == 0) {
 					type = WebStreamParser.getWebStreamType(entry.fileName, defaultContent);
 				}
