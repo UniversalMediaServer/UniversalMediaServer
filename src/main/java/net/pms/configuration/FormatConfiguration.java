@@ -721,21 +721,8 @@ public class FormatConfiguration {
 				renderer
 			);
 			finalMimeType = mimeType;
-
-			/**
-			 * If at least one audio track is not compatible, the file must be transcoded.
-			 *
-			 * Explanation: This was different in the past (see link below).
-			 * The reason it needs to be like this is because some files have the audio tracks
-			 * matching the Blu-rays, which is often a DTS variant main track, with other tracks
-			 * like commentary in Dolby Digital (AC-3), and for a media player that does not
-			 * support DTS that could result in the file being streamed with only the commentary
-			 * track playable, which is really annoying.
-			 *
-			 * @see https://github.com/UniversalMediaServer/UniversalMediaServer/pull/2089/files#diff-3926da02948039b178d111df20a3d7ac43794b5941f24285d300f1c09cb33759R680
-			 */
-			if (mimeType == null) {
-				return null;
+			if (mimeType != null) { // if at least one audio track is compatible, the file can be streamed.
+				return finalMimeType;
 			}
 		}
 
