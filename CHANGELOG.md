@@ -25,6 +25,7 @@
 - Bump `org.jsoup:jsoup` from 1.18.1 to 1.18.3 ([#5145](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5145))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.3 to 5.11.4 ([#5175](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5175))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.3 to 5.11.4 ([#5175](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5175))
+- Bump `react-router-dom` from 6.28.0 to 7.1.0 ([#5180](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5180))
 - Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
 - Bump `video.js` from 8.19.1 to 8.21.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147), [#5153](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5153))
 
