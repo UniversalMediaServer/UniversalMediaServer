@@ -344,20 +344,36 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		return switch (folderName) {
 			case ".." ->
 				"back";
-			case "3D Movies" ->
+			case "3dMovies" ->
 				"badge-3d";
 			case "Audio" ->
 				"audio";
-			case "HD Videos" ->
+			case "ByDate" ->
+				"calendar";
+			case "DvdImages" ->
+				"disc";
+			case "HdVideos" ->
 				"badge-hd";
-			case "Photo" ->
-				"image";
+			case "InProgress" ->
+				"progress";
+			case "MostPlayed" ->
+				"heart";
 			case "Movies" ->
 				"movie";
-			case "TV Shows" ->
+			case "Photo" ->
+				"image";
+			case "RecentlyAdded" ->
+				"calendar";
+			case "RecentlyPlayed" ->
+				"eye";
+			case "SdVideos" ->
+				"badge-sd";
+			case "TvShows" ->
 				"device-tv";
+			case "Unsorted" ->
+				"shuffle";
 			case "Video" ->
-				"video";
+				"movie";
 			default ->
 				defaultIconName;
 		};

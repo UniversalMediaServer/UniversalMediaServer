@@ -20,7 +20,7 @@ import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { IconArrowBigLeft, IconArrowBigRight, IconCast, IconDownload, IconEdit, IconFolder, IconHome, IconLanguageOff, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconTag, IconVideo } from '@tabler/icons-react';
+import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadgeHd, IconBadgeSd, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconLanguageOff, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconProgress, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconTag, IconVideo } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
@@ -263,12 +263,32 @@ export const Player = () => {
           return IconMusic;
         case 'back':
           return i18n.dir === 'rtl' ? IconArrowBigRight : IconArrowBigLeft;
+        case 'badge-3d':
+          return IconBadge3d;
+        case 'badge-hd':
+          return IconBadgeHd;
+        case 'badge-sd':
+          return IconBadgeSd;
+        case 'calendar':
+          return IconCalendar;
+        case 'device-tv':
+          return IconDeviceTv;
+        case 'disc':
+          return IconDisc;
+        case 'eye':
+          return IconEye;
         case 'folder':
           return IconFolder;
+        case 'heart':
+          return IconHeart;
         case 'image':
           return IconPhoto;
         case 'movie':
           return IconMovie;
+        case 'progress':
+          return IconProgress;
+        case 'shuffle':
+          return IconArrowsShuffle;
         case 'video':
           return IconVideo;
         default:
