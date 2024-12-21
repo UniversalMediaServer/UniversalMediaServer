@@ -349,6 +349,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				"settings";
 			case "3dMovies" ->
 				"badge-3d";
+			case "4kVideos" ->
+				"badge-4k";
 			case "Audio" ->
 				"audio";
 			case "ByDate" ->

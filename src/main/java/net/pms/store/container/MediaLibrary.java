@@ -75,6 +75,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			},
 			new int[]{TEXTS_NOSORT, FILES}
 		);
+		MediaLibraryFolder unwatched4kVideos = new MediaLibraryFolder(renderer, "4kVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEO4K + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedMlfVideo03 = new MediaLibraryFolder(renderer, "HdVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedMlfVideo04 = new MediaLibraryFolder(renderer, "SdVideos", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")" + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, FILES);
 		MediaLibraryFolder unwatchedMlfVideo05 = new MediaLibraryFolder(renderer, "DvdImages", SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_ISO + AND + getUnWatchedCondition(renderer.getAccountUserId()) + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC, ISOS);
@@ -140,6 +141,12 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			},
 			new int[]{TEXTS_NOSORT_WITH_FILTERS, FILES}
 		);
+		MediaLibraryFolder fourKVideos = new MediaLibraryFolder(
+			renderer,
+			"4kVideos",
+			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEO4K_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
+			FILES_WITH_FILTERS
+		);
 		MediaLibraryFolder mlfVideo03 = new MediaLibraryFolder(
 			renderer,
 			"HdVideos",
@@ -169,6 +176,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(inProgressVideos);
 			vfVideo.addChild(unwatchedAllVideosFolder);
 			vfVideo.addChild(unwatchedVideosByDate);
+			vfVideo.addChild(unwatched4kVideos);
 			vfVideo.addChild(unwatchedMlfVideo03);
 			vfVideo.addChild(unwatchedMlfVideo04);
 			vfVideo.addChild(unwatchedMlfVideo05);
@@ -192,6 +200,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(mostPlayedVideos);
 			vfVideo.addChild(allVideosFolder);
 			vfVideo.addChild(videosByDate);
+			vfVideo.addChild(fourKVideos);
 			vfVideo.addChild(mlfVideo03);
 			vfVideo.addChild(mlfVideo04);
 			vfVideo.addChild(mlfVideo05);
