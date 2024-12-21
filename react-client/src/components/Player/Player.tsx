@@ -20,7 +20,7 @@ import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconInfoSquare, IconLanguageOff, IconLoader2, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconSettings, IconTag, IconVideo, IconWorldWww } from '@tabler/icons-react';
+import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadge4k, IconBadgeHd, IconBadgeSd, IconBrandYoutube, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconInfoSquare, IconLanguageOff, IconLoader2, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconSettings, IconTag, IconVideo, IconWorldWww } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
@@ -265,6 +265,8 @@ export const Player = () => {
           return i18n.dir === 'rtl' ? IconArrowBigRight : IconArrowBigLeft;
         case 'badge-3d':
           return IconBadge3d;
+        case 'badge-4k':
+          return IconBadge4k;
         case 'badge-hd':
           return IconBadgeHd;
         case 'badge-sd':
