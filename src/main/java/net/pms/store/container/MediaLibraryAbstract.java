@@ -82,6 +82,7 @@ abstract class MediaLibraryAbstract extends LocalizedStoreContainer {
 	protected static final String MOVIE_CONDITION = NOT + TVEPISODE_CONDITION + AND + MediaTableVideoMetadata.TABLE_COL_MEDIA_YEAR + IS_NOT_NULL + AND + MediaTableFiles.TABLE_COL_DURATION + GREATER_THAN + FORTY_MINUTES_IN_SECONDS;
 	protected static final String IS_NOT_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + NOT_IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
 	protected static final String IS_3D_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_IS3D + ")";
+	protected static final String IS_VIDEO4K_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEO4K + ")";
 	protected static final String IS_VIDEOHD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOHD + ")";
 	protected static final String IS_VIDEOSD_CONDITION = MediaTableFiles.TABLE_COL_ID + IN + "(" + MediaTableVideotracks.SQL_GET_FILEID_BY_VIDEOSD + ")";
 

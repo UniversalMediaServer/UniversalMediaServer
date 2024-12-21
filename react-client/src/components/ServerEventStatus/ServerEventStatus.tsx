@@ -16,7 +16,7 @@
  */
 import { ThemeIcon, Tooltip } from '@mantine/core';
 import { useContext } from 'react';
-import { PlugConnected, PlugConnectedX } from 'tabler-icons-react';
+import { IconPlugConnected, IconPlugConnectedX } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -38,7 +38,7 @@ export const ServerEventStatus = () => {
   return (
     <Tooltip label={connectionStatusTooltip[sse.connectionStatus]} style={{ width: 350 }} color='blue' multiline withArrow>
       <ThemeIcon variant='light' color={connectionStatusStr[sse.connectionStatus]}>
-        {sse.connectionStatus === 1 ? <PlugConnected /> : <PlugConnectedX />}
+        {sse.connectionStatus === 1 ? <IconPlugConnected /> : <IconPlugConnectedX />}
       </ThemeIcon>
     </Tooltip>
   );

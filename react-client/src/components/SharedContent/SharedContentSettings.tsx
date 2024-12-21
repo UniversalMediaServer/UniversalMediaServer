@@ -21,7 +21,7 @@ import axios from 'axios';
 import _ from 'lodash';
 import { CSSProperties, useContext, useEffect, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { Analyze, AnalyzeOff, ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Edit, EyeCheck, EyeOff, FolderX, ListSearch, Loader, Menu2, Plus, Share, ShareOff, SquareX, Users, ZoomCheck } from 'tabler-icons-react';
+import { IconAnalyze, IconAnalyzeOff, IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconEdit, IconEyeCheck, IconEyeOff, IconFolderX, IconListSearch, IconLoader, IconMenu2, IconPlus, IconShare, IconShareOff, IconSquareX, IconUsers, IconZoomCheck } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -272,7 +272,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color='blue'
-          leftSection=<ZoomCheck />
+          leftSection=<IconZoomCheck />
           disabled={!canModify || !value.uri || isLoading}
           onClick={() => updateSharedContentFeedName(value)}
         >
@@ -288,7 +288,7 @@ export default function SharedContentSettings(
         <Menu.Divider />
         <Menu.Item
           color={value.monitored ? 'green' : 'red'}
-          leftSection={value.monitored ? <Analyze /> : <AnalyzeOff />}
+          leftSection={value.monitored ? <IconAnalyze /> : <IconAnalyzeOff />}
           disabled={!canModify}
           onClick={() => toggleFolderMonitored(value)}
         >
@@ -296,7 +296,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='blue'
-          leftSection=<EyeCheck />
+          leftSection=<IconEyeCheck />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, true)}
         >
@@ -304,7 +304,7 @@ export default function SharedContentSettings(
         </Menu.Item>
         <Menu.Item
           color='green'
-          leftSection=<EyeOff />
+          leftSection=<IconEyeOff />
           disabled={!canModify || !value.file || isLoading}
           onClick={() => markDirectoryFullyPlayed(value.file, false)}
         >
@@ -362,10 +362,10 @@ export default function SharedContentSettings(
     >
       {
         sharedContents.indexOf(value) === 0 ?
-          (<ArrowNarrowDown />) :
+          (<IconArrowNarrowDown />) :
           sharedContents.indexOf(value) === sharedContents.length - 1 ?
-            (<ArrowNarrowUp />) :
-            (<ArrowsVertical />)
+            (<IconArrowNarrowUp />) :
+            (<IconArrowsVertical />)
       }
     </ActionIcon>
   }
@@ -375,13 +375,13 @@ export default function SharedContentSettings(
       <Menu zIndex={5000}>
         <Menu.Target>
           <ActionIcon variant='default' size={30}>
-            <Menu2 size={16} />
+            <IconMenu2 size={16} />
           </ActionIcon>
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item
             color='green'
-            leftSection=<Edit />
+            leftSection=<IconEdit />
             disabled={!canModify}
             onClick={() => editSharedContentItem(value)}
           >
@@ -389,7 +389,7 @@ export default function SharedContentSettings(
           </Menu.Item>
           <Menu.Item
             color={value.active ? 'blue' : 'orange'}
-            leftSection={value.active ? <Share /> : <ShareOff />}
+            leftSection={value.active ? <IconShare /> : <IconShareOff />}
             disabled={!canModify}
             onClick={() => toogleSharedContentItemActive(value)}
           >
@@ -399,7 +399,7 @@ export default function SharedContentSettings(
           <Menu.Divider />
           <Menu.Item
             color='red'
-            leftSection=<SquareX />
+            leftSection=<IconSquareX />
             disabled={!canModify}
             onClick={() => removeSharedContentItem(value)}
           >
@@ -478,7 +478,7 @@ export default function SharedContentSettings(
           callback={(directory: string) => setSharedContentChild(directory, index)}
         ></DirectoryChooser>
         <ActionIcon variant='filled' color='red' onClick={() => removeSharedContentChild(index)}>
-          <FolderX size={18} />
+          <IconFolderX size={18} />
         </ActionIcon>
       </Group>
     ))
@@ -579,7 +579,7 @@ export default function SharedContentSettings(
           ></DirectoryChooser>
         </>)}
         <MultiSelect
-          leftSection={<Users />}
+          leftSection={<IconUsers />}
           disabled={!canModify}
           data={getUserGroupsSelection(configuration.groups)}
           label={i18n.get('AuthorizedGroups')}
@@ -674,13 +674,13 @@ export default function SharedContentSettings(
     return haveFolder ? (
       <Button
         disabled={!canModify || isLoading}
-        leftSection={<ListSearch />}
+        leftSection={<IconListSearch />}
         variant='outline'
         color={sse.mediaScan ? 'red' : 'blue'}
         onClick={() => sse.mediaScan ? scanAllSharedFoldersCancel() : scanAllSharedFolders()}
       >
         {i18n.get(sse.mediaScan ? 'CancelScanningSharedFolders' : 'ScanAllSharedFolders')}
-        {sse.mediaScan && (<Loader />)}
+        {sse.mediaScan && (<IconLoader />)}
       </Button>
     ) : null;
   }
@@ -709,7 +709,7 @@ export default function SharedContentSettings(
   return (
     <>
       <Group mb="md">
-        <Button leftSection={<Plus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
+        <Button leftSection={<IconPlus />} variant='outline' onClick={() => { setEditingIndex(-1); setNewOpened(true) }}>
           {i18n.get('AddNewSharedContent')}
         </Button>
         {getScanSharedFoldersButton()}

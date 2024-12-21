@@ -18,7 +18,7 @@ import { ActionIcon, Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper,
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
-import { CircleMinus, Devices2, Folder, Folders } from 'tabler-icons-react';
+import { IconCircleMinus, IconDevices2, IconFolder, IconFolders } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { openGitHubNewIssue, settingsApiUrl } from '../../utils';
@@ -104,7 +104,7 @@ export default function DirectoryChooser(props: {
           onClose={() => setOpened(false)}
           title={
             <Group>
-              <Folders />
+              <IconFolders />
               {i18n.get('SelectedDirectory')}
             </Group>
           }
@@ -121,7 +121,7 @@ export default function DirectoryChooser(props: {
                     variant='default'
                     size='compact-md'
                   >
-                    <Devices2 />
+                    <IconDevices2 />
                   </Button>
                   {parents.map(parent => (
                     <Button
@@ -141,7 +141,7 @@ export default function DirectoryChooser(props: {
               {directories.map(directory => (
                 <Group key={'group' + directory.label}>
                   <Button
-                    leftSection={<Folder size={18} />}
+                    leftSection={<IconFolder size={18} />}
                     variant={(selectedDirectory === directory.value) ? 'light' : 'subtle'}
                     loading={isLoading}
                     onClick={() => setSelectedDirectory(directory.value)}
@@ -178,7 +178,7 @@ export default function DirectoryChooser(props: {
               mt={props.label ? '24px' : undefined}
               size={props.size}
               onClick={() => { getSubdirectories(props.path); setOpened(true); }}
-              leftSection={<Folders size={18} />}
+              leftSection={<IconFolders size={18} />}
             >
               ...
             </Button>
@@ -188,7 +188,7 @@ export default function DirectoryChooser(props: {
               onClick={() => selectAndCloseModal(true)}
               variant='default'
             >
-              <CircleMinus size={18} />
+              <IconCircleMinus size={18} />
             </ActionIcon>
           </>
         )}

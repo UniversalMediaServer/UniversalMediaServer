@@ -17,7 +17,7 @@
 import { ActionIcon, Group, Menu, ScrollArea, Text } from '@mantine/core';
 import { useContext } from 'react';
 import ReactCountryFlag from 'react-country-flag';
-import { Language } from 'tabler-icons-react';
+import { IconLanguage } from '@tabler/icons-react';
 
 import I18nContext, { LanguageValue } from '../../contexts/i18n-context';
 
@@ -48,7 +48,7 @@ function LanguagesMenu() {
     <Menu>
       <Menu.Target>
         <ActionIcon variant='default' size={30}>
-          <Language size={16} />
+          <IconLanguage size={16} />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>

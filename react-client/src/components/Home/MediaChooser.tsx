@@ -18,7 +18,7 @@ import { Box, Breadcrumbs, Button, Group, MantineSize, Modal, Paper, ScrollArea,
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useState, ReactNode } from 'react';
-import { Folder, Home, PictureInPicture, PictureInPictureOn } from 'tabler-icons-react';
+import { IconFolder, IconHome, IconPictureInPicture, IconPictureInPictureOn } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { openGitHubNewIssue, renderersApiUrl } from '../../utils';
@@ -99,7 +99,7 @@ export default function MediaChooser(props: {
           onClose={() => setOpened(false)}
           title={
             <Group>
-              <PictureInPictureOn />
+              <IconPictureInPictureOn />
               {i18n.get('SelectedMedia')}
             </Group>
           }
@@ -116,7 +116,7 @@ export default function MediaChooser(props: {
                     variant='default'
                     size='compact-md'
                   >
-                    <Home />
+                    <IconHome />
                   </Button>
                   {parents.map(parent => (
                     <Button
@@ -136,7 +136,7 @@ export default function MediaChooser(props: {
               {medias.map(media => (
                 <Group key={'group' + media.label}>
                   <Button
-                    leftSection={media.browsable ? <Folder size={18} /> : <PictureInPicture size={18} />}
+                    leftSection={media.browsable ? <IconFolder size={18} /> : <IconPictureInPicture size={18} />}
                     variant={(selectedMedia?.value === media.value) ? 'light' : 'subtle'}
                     loading={isLoading}
                     onClick={() => media.browsable ? getMedias(media.value) : setSelectedMedia(media)}
@@ -171,7 +171,7 @@ export default function MediaChooser(props: {
             mt={props.label ? '24px' : undefined}
             size={props.size}
             onClick={() => { getMedias(props.media ? props.media.value : '0'); setOpened(true); }}
-            leftSection={<PictureInPictureOn size={18} />}
+            leftSection={<IconPictureInPictureOn size={18} />}
           >
             ...
           </Button>

@@ -19,7 +19,7 @@ import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { Check, ExclamationMark } from 'tabler-icons-react';
+import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -166,7 +166,7 @@ const Home = () => {
           loading: false,
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
-          icon: <Check size='1rem' />
+          icon: <IconCheck size='1rem' />
         });
         if (fromDevice) {
           refreshDeviceData()
@@ -183,7 +183,7 @@ const Home = () => {
             loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived'),
-            icon: <ExclamationMark size='1rem' />
+            icon: <IconExclamationMark size='1rem' />
           })
         } else {
           updateNotification({

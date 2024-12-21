@@ -18,7 +18,7 @@ import { ActionIcon, Card, Grid, Group, Menu, Modal, Text, TextInput, Tooltip } 
 import { useDisclosure } from '@mantine/hooks';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
-import { CodePlus, DevicesPc, DevicesPcOff, Dots, Refresh, SettingsOff } from 'tabler-icons-react';
+import { IconCodePlus, IconDevicesPc, IconDevicesPcOff, IconDots, IconRefresh, IconSettingsOff } from '@tabler/icons-react';
 
 import { NetworkDevice, NetworkDevicesFilter } from './Home';
 import { defaultTooltipSettings } from '../../utils';
@@ -88,23 +88,23 @@ const NetworkDevices = (
             <Menu withinPortal position='bottom-end' shadow='sm'>
               <Menu.Target>
                 <ActionIcon>
-                  <Dots size={16} />
+                  <IconDots size={16} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>
                 <>
                   {blockedByDefault ? (
-                    <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPc size={14} />} onClick={() => setAllowed('DEFAULT', true)} color='green'>{i18n.get('AllowByDefault')}</Menu.Item>
                   ) : isLocalhost ? (
-                    <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
+                    <Menu.Item leftSection={<IconDevicesPcOff size={14} />} onClick={() => setAllowed('DEFAULT', false)} color='red'>{i18n.get('BlockByDefault')}</Menu.Item>
                   ) : (
                     <Tooltip label={i18n.get('YouHaveToNavigateFromLocalhost')} {...defaultTooltipSettings}>
-                      <Menu.Item leftSection={<DevicesPcOff size={14} />} closeMenuOnClick={false} color='grey'>{i18n.get('BlockByDefault')}</Menu.Item>
+                      <Menu.Item leftSection={<IconDevicesPcOff size={14} />} closeMenuOnClick={false} color='grey'>{i18n.get('BlockByDefault')}</Menu.Item>
                     </Tooltip>
                   )}
-                  <Menu.Item leftSection={<Refresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get('Refresh')}</Menu.Item>
-                  <Menu.Item leftSection={<CodePlus size={14} />} onClick={() => open()}>{i18n.get('AddCustomFilter')}</Menu.Item>
-                  <Menu.Item leftSection={<SettingsOff size={14} />} onClick={() => reset()} color='orange'>{i18n.get('ResetToDefaultSettings')}</Menu.Item>
+                  <Menu.Item leftSection={<IconRefresh size={14} />} onClick={() => refreshDeviceData()}>{i18n.get('Refresh')}</Menu.Item>
+                  <Menu.Item leftSection={<IconCodePlus size={14} />} onClick={() => open()}>{i18n.get('AddCustomFilter')}</Menu.Item>
+                  <Menu.Item leftSection={<IconSettingsOff size={14} />} onClick={() => reset()} color='orange'>{i18n.get('ResetToDefaultSettings')}</Menu.Item>
                 </>
               </Menu.Dropdown>
             </Menu>
@@ -121,7 +121,7 @@ const NetworkDevices = (
         onChange={(event) => setCustomFilterValue(event.currentTarget.value)}
         rightSection={customFilterValid && (
           <ActionIcon variant='outline' onClick={() => setCustomFilterAllowed()}>
-            <CodePlus size={16} />
+            <IconCodePlus size={16} />
           </ActionIcon>
         )}
       />
@@ -138,16 +138,16 @@ const NetworkDevices = (
               <Menu withinPortal position='bottom-end' shadow='sm'>
                 <Menu.Target>
                   <ActionIcon>
-                    <Dots size={16} />
+                    <IconDots size={16} />
                   </ActionIcon>
                 </Menu.Target>
                 <Menu.Dropdown>
                   <>
                     {!deviceFilter.isAllowed && (
-                      <Menu.Item leftSection={<DevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
+                      <Menu.Item leftSection={<IconDevicesPc size={14} />} onClick={() => setAllowed(deviceFilter.name, true)} color='green'>{i18n.get('Allow')}</Menu.Item>
                     )}
                     {deviceFilter.isAllowed && (
-                      <Menu.Item leftSection={<DevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get('Block')}</Menu.Item>
+                      <Menu.Item leftSection={<IconDevicesPcOff size={14} />} onClick={() => setAllowed(deviceFilter.name, false)} color='red'>{i18n.get('Block')}</Menu.Item>
                     )}
                   </>
                 </Menu.Dropdown>

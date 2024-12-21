@@ -19,7 +19,7 @@ import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
-import { ListSearch } from 'tabler-icons-react';
+import { IconListSearch } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import { playerApiUrl } from '../../utils';
@@ -198,7 +198,7 @@ export default function VideoMetadataEditModal(props: {
           fullWidth
           mt='md'
           type='submit'
-          leftSection={<ListSearch size={18} />}
+          leftSection={<IconListSearch size={18} />}
           loading={isLoading}
           size='compact-md'
         >

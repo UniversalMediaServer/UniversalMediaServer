@@ -16,7 +16,7 @@
     "private:ensure-file-permissions": "chmod +x ../runtestserver.sh;chmod +x ../ums-testserver.jar",
     "private:removeconfig:macos": "rm -rf ~/Library/'Application Support'/UMS-tests"
   },
-  "packageManager": "yarn@4.4.0",
+  "packageManager": "yarn@4.5.3",
   "dependencies": {
     "@mantine/core": "7.15.1",
     "@mantine/dropzone": "7.15.1",
@@ -25,6 +25,7 @@
     "@mantine/modals": "7.15.1",
     "@mantine/notifications": "7.15.1",
     "@microsoft/fetch-event-source": "2.0.1",
+    "@tabler/icons-react": "^3.26.0",
     "axios": "1.7.9",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
@@ -33,7 +34,6 @@
     "react-dom": "18.3.1",
     "react-movable": "3.3.1",
     "react-router-dom": "6.28.0",
-    "tabler-icons-react": "1.56.0",
     "video.js": "8.21.0"
   },
   "devDependencies": {
