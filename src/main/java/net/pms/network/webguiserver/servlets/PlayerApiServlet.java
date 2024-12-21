@@ -341,9 +341,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			defaultIconName = "folder";
 		}
 
+		// Some of these are dynamic folders we supply, others are guesses at common folder names users will have
 		return switch (folderName) {
 			case ".." ->
 				"back";
+			case "#--TRANSCODE--#" ->
+				"settings";
 			case "3dMovies" ->
 				"badge-3d";
 			case "Audio" ->
@@ -364,6 +367,8 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				"heart";
 			case "Movies" ->
 				"movie";
+			case "Music" ->
+				"audio";
 			case "Photo" ->
 				"image";
 			case "RecentlyAdded" ->
@@ -378,6 +383,12 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				"shuffle";
 			case "Video" ->
 				"movie";
+			case "Web" ->
+				"world-www";
+			case "YouTube" ->
+				"brand-youtube";
+			case "YouTube Channels" ->
+				"brand-youtube";
 			default ->
 				defaultIconName;
 		};
