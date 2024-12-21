@@ -352,10 +352,14 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				"calendar";
 			case "DvdImages" ->
 				"disc";
+			case "FilterByInformation" ->
+				"info-square";
+			case "FilterByProgress" ->
+				"loader-2";
 			case "HdVideos" ->
 				"badge-hd";
 			case "InProgress" ->
-				"progress";
+				"loader-2";
 			case "MostPlayed" ->
 				"heart";
 			case "Movies" ->

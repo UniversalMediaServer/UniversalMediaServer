@@ -20,7 +20,7 @@ import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadgeHd, IconBadgeSd, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconLanguageOff, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconProgress, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconTag, IconVideo } from '@tabler/icons-react';
+import { IconArrowBigLeft, IconArrowBigRight, IconArrowsShuffle, IconBadge3d, IconBadgeHd, IconBadgeSd, IconCalendar, IconCast, IconDeviceTv, IconDisc, IconDownload, IconEdit, IconEye, IconFolder, IconHeart, IconHome, IconInfoSquare, IconLanguageOff, IconLoader2, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconProgress, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconTag, IconVideo } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
@@ -281,12 +281,14 @@ export const Player = () => {
           return IconFolder;
         case 'heart':
           return IconHeart;
+        case 'info-square':
+          return IconInfoSquare;
         case 'image':
           return IconPhoto;
+        case 'loader-2':
+          return IconLoader2;
         case 'movie':
           return IconMovie;
-        case 'progress':
-          return IconProgress;
         case 'shuffle':
           return IconArrowsShuffle;
         case 'video':
