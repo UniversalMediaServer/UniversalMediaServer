@@ -141,7 +141,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			},
 			new int[]{TEXTS_NOSORT_WITH_FILTERS, FILES}
 		);
-		MediaLibraryFolder FourKVideos = new MediaLibraryFolder(
+		MediaLibraryFolder fourKVideos = new MediaLibraryFolder(
 			renderer,
 			"4kVideos",
 			SELECT_FILES_STATUS_VIDEO_WHERE + FORMAT_TYPE_VIDEO + AND + IS_VIDEO4K_CONDITION + ORDER_BY + MediaTableFiles.TABLE_COL_FILENAME + ASC,
@@ -200,7 +200,7 @@ public class MediaLibrary extends MediaLibraryAbstract {
 			vfVideo.addChild(mostPlayedVideos);
 			vfVideo.addChild(allVideosFolder);
 			vfVideo.addChild(videosByDate);
-			vfVideo.addChild(FourKVideos);
+			vfVideo.addChild(fourKVideos);
 			vfVideo.addChild(mlfVideo03);
 			vfVideo.addChild(mlfVideo04);
 			vfVideo.addChild(mlfVideo05);
