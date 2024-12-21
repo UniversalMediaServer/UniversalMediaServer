@@ -18,7 +18,7 @@ import { Accordion, Avatar, Box, Button, Checkbox, Divider, Group, HoverCard, In
 import { Dropzone, FileWithPath, IMAGE_MIME_TYPE } from '@mantine/dropzone';
 import { useForm } from '@mantine/form';
 import { useContext, useEffect, useState } from 'react';
-import { ExclamationMark, Folder, FolderPlus, PhotoUp, PhotoX, User, UserPlus, X } from 'tabler-icons-react';
+import { IconExclamationMark, IconFolder, IconFolderPlus, IconPhotoUp, IconPhotoX, IconUser, IconUserPlus, IconX } from '@tabler/icons-react';
 
 import AccountsContext from '../../contexts/accounts-context';
 import I18nContext from '../../contexts/i18n-context';
@@ -51,7 +51,7 @@ const Accounts = () => {
     return (
       <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg' src={user.avatar}>
-          {!user.avatar && (user.id === 0 ? (<UserPlus size={24} />) : (<User size={24} />))}
+          {!user.avatar && (user.id === 0 ? (<IconUserPlus size={24} />) : (<IconUser size={24} />))}
         </Avatar>
         <div>
           <Text>{displayName}{groupDisplayName}</Text>
@@ -183,17 +183,17 @@ const Accounts = () => {
           >
             <Group justify='center'>
               <Dropzone.Accept>
-                <PhotoUp />
+                <IconPhotoUp />
               </Dropzone.Accept>
               <Dropzone.Reject>
-                <PhotoX />
+                <IconPhotoX />
               </Dropzone.Reject>
               <Dropzone.Idle>
                 <div onClick={e => { e.stopPropagation() }}>
                   <HoverCard disabled={avatar === ''}>
                     <HoverCard.Target>
                       <Avatar radius='xl' size='lg' src={avatar !== '' ? avatar : null}>
-                        {avatar === '' && <User size={24} />}
+                        {avatar === '' && <IconUser size={24} />}
                       </Avatar>
                     </HoverCard.Target>
                     <HoverCard.Dropdown>
@@ -292,14 +292,14 @@ const Accounts = () => {
             <Button onClick={() => setOpened(false)}>
               {i18n.get('Cancel')}
             </Button>
-            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<IconExclamationMark />} rightSection={<IconExclamationMark />}>
               {i18n.get('Confirm')}
             </Button>
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
             <Text c='red'>{i18n.get('DeleteUser')}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<IconX />}>
               {i18n.get('Delete')}
             </Button>
           </Group>
@@ -358,7 +358,7 @@ const Accounts = () => {
     return (
       <Group wrap='nowrap'>
         <Avatar radius='xl' size='lg'>
-          {group.id === 0 ? (<FolderPlus size={24} />) : (<Folder size={24} />)}
+          {group.id === 0 ? (<IconFolderPlus size={24} />) : (<IconFolder size={24} />)}
         </Avatar>
         <Text>{group.displayName}</Text>
       </Group>
@@ -446,14 +446,14 @@ const Accounts = () => {
             <Button onClick={() => setOpened(false)}>
               {i18n.get('Cancel')}
             </Button>
-            <Button type='submit' color='red' leftSection={<ExclamationMark />} rightSection={<ExclamationMark />}>
+            <Button type='submit' color='red' leftSection={<IconExclamationMark />} rightSection={<IconExclamationMark />}>
               {i18n.get('Confirm')}
             </Button>
           </Group>
         ) : (
           <Group justify='flex-end' mt='md'>
             <Text c='red'>{i18n.get('DeleteGroup')}</Text>
-            <Button onClick={() => setOpened(true)} color='red' leftSection={<X />}>
+            <Button onClick={() => setOpened(true)} color='red' leftSection={<IconX />}>
               {i18n.get('Delete')}
             </Button>
           </Group>

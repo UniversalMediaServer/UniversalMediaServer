@@ -21,7 +21,7 @@ import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { Check, ExclamationMark } from 'tabler-icons-react';
+import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -154,7 +154,7 @@ export default function Settings() {
               color: 'teal',
               title: i18n.get('Saved'),
               message: i18n.get('ConfigurationSaved'),
-              icon: <Check size='1rem' />,
+              icon: <IconCheck size='1rem' />,
               loading: false,
               autoClose: 1000
             })
@@ -166,7 +166,7 @@ export default function Settings() {
                 color: 'red',
                 title: i18n.get('Error'),
                 message: i18n.get('ConfigurationNotReceived'),
-                icon: <ExclamationMark size='1rem' />,
+                icon: <IconExclamationMark size='1rem' />,
                 withCloseButton: true,
                 loading: false,
                 autoClose: 1000

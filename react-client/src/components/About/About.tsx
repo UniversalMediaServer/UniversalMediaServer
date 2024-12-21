@@ -19,7 +19,7 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
-import { Edit, EditOff } from 'tabler-icons-react';
+import { IconEdit, IconEditOff } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext, { UmsMemory } from '../../contexts/server-event-context';
@@ -39,12 +39,12 @@ const About = () => {
     <Table.Tr key={language.id}>
       <Table.Td><Group style={{ cursor: 'default' }}><ReactCountryFlag countryCode={language.country} style={{ fontSize: '1.5em' }} /><Text>{language.name}</Text></Group></Table.Td>
       {language.id === 'en-US' ? (
-        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get('Source')}</Text><ActionIcon disabled><EditOff /></ActionIcon></Group></Table.Td>
+        <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'><Text>{i18n.get('Source')}</Text><ActionIcon disabled><IconEditOff /></ActionIcon></Group></Table.Td>
       ) : (
         <Table.Td><Group style={{ cursor: 'default' }} justify='flex-end'>
           <Text>{language.coverage === 100 ? i18n.get('Completed') : i18n.get('InProgress') + ' (' + language.coverage + '%)'}</Text>
           <ActionIcon variant='default' onClick={() => { window.open('https://crowdin.com/project/universalmediaserver/' + language.id, '_blank'); }}>
-            <Edit />
+            <IconEdit />
           </ActionIcon>
         </Group></Table.Td>
       )}

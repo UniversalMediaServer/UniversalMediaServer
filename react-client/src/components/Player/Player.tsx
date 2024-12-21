@@ -20,7 +20,7 @@ import axios from 'axios';
 import { createElement, useContext, useEffect, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { useParams } from 'react-router-dom';
-import { ArrowBigLeft, ArrowBigRight, Cast, Download, Edit, Folder, Home, LanguageOff, Movie, Music, Photo, PlayerPlay, PlaylistAdd, QuestionMark, RecordMail, RecordMailOff, Tag } from 'tabler-icons-react';
+import { IconArrowBigLeft, IconArrowBigRight, IconCast, IconDownload, IconEdit, IconFolder, IconHome, IconLanguageOff, IconMovie, IconMusic, IconPhoto, IconPlayerPlay, IconPlaylistAdd, IconQuestionMark, IconRecordMail, IconRecordMailOff, IconTag, IconVideo } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
@@ -140,7 +140,7 @@ export const Player = () => {
                   variant='subtle'
                   size='compact-md'
                 >
-                  {breadcrumb.name === 'root' ? (<Home />) : (getI18nName(breadcrumb.name))}
+                  {breadcrumb.name === 'root' ? (<IconHome />) : (getI18nName(breadcrumb.name))}
                 </Button>
               ) : (
                 getBreadcrumbsMenu(breadcrumb)
@@ -182,7 +182,7 @@ export const Player = () => {
             {breadcrumb.fullyplayed === false &&
               <Menu.Item
                 color='blue'
-                leftSection=<RecordMail />
+                leftSection=<IconRecordMail />
                 onClick={() => setFullyPlayed(sse.reqId, true)}
               >
                 {i18n.get('MarkContentsFullyPlayed')}
@@ -191,7 +191,7 @@ export const Player = () => {
             {breadcrumb.fullyplayed === true &&
               <Menu.Item
                 color='green'
-                leftSection=<RecordMailOff />
+                leftSection=<IconRecordMailOff />
                 onClick={() => setFullyPlayed(sse.reqId, false)}
               >
                 {i18n.get('MarkContentsUnplayed')}
@@ -199,7 +199,7 @@ export const Player = () => {
             }
             {isVideoMetadataEditable() &&
               <Menu.Item
-                leftSection=<Edit />
+                leftSection=<IconEdit />
                 onClick={() => setShowVideoMetadataEdit(true)}
               >
                 {i18n.get('Edit')}
@@ -259,18 +259,20 @@ export const Player = () => {
   const getMediaIcon = (media: BaseMedia) => {
     if (media.icon) {
       switch (media.icon) {
-        case 'back':
-          return i18n.dir === 'rtl' ? ArrowBigRight : ArrowBigLeft;
-        case 'video':
-          return Movie;
         case 'audio':
-          return Music;
-        case 'image':
-          return Photo;
+          return IconMusic;
+        case 'back':
+          return i18n.dir === 'rtl' ? IconArrowBigRight : IconArrowBigLeft;
         case 'folder':
-          return Folder;
+          return IconFolder;
+        case 'image':
+          return IconPhoto;
+        case 'movie':
+          return IconMovie;
+        case 'video':
+          return IconVideo;
         default:
-          return QuestionMark;
+          return IconQuestionMark;
       }
     }
     return null;
@@ -396,7 +398,7 @@ export const Player = () => {
     if (title) {
       return (
         <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-          <LanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')' : '')}</Text>
+          <IconLanguageOff /><Text fs='italic'>{title + (language ? ' (' + language + ')' : '')}</Text>
         </Group>);
     }
   }
@@ -405,7 +407,7 @@ export const Player = () => {
     if (mediaString) {
       return (
         <Group mt='sm' style={() => ({ color: computedColorScheme === 'dark' ? 'white' : 'black', })}>
-          <Tag /><Text fs='italic'>{mediaString}</Text>
+          <IconTag /><Text fs='italic'>{mediaString}</Text>
         </Group>);
     }
   }
@@ -592,18 +594,18 @@ export const Player = () => {
     if (data.goal === 'show') {
       return (
         <Button.Group>
-          <Button variant='default' size='compact-md' leftSection={<PlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get('Play')}</Button>
+          <Button variant='default' size='compact-md' leftSection={<IconPlayerPlay size={14} />} onClick={() => sse.askPlayId(data.medias[0].id)}>{i18n.get('Play')}</Button>
           {data.useWebControl && (
             <Tooltip withinPortal label={i18n.get('PlayOnAnotherRenderer')}>
-              <Button variant='default' disabled size='compact-md' onClick={() => { }}><Cast size={14} /></Button>
+              <Button variant='default' disabled size='compact-md' onClick={() => { }}><IconCast size={14} /></Button>
             </Tooltip>
           )}
           <Tooltip withinPortal label={i18n.get('AddToPlaylist')}>
-            <Button variant='default' disabled size='compact-md' onClick={() => { }}><PlaylistAdd size={14} /></Button>
+            <Button variant='default' disabled size='compact-md' onClick={() => { }}><IconPlaylistAdd size={14} /></Button>
           </Tooltip>
           {((data.medias[0]) as PlayMedia).isDownload && (
             <Tooltip withinPortal label={i18n.get('Download')}>
-              <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + sse.uuid + '/' + data.medias[0].id, '_blank')}><Download size={14} /></Button>
+              <Button variant='default' size='compact-md' onClick={() => window.open(playerApiUrl + 'download/' + sse.uuid + '/' + data.medias[0].id, '_blank')}><IconDownload size={14} /></Button>
             </Tooltip>
           )}
         </Button.Group>
@@ -696,7 +698,7 @@ export const Player = () => {
       if (icon) {
         return createElement(icon, { size: 20 });
       }
-      return <Folder size={20} />
+      return <IconFolder size={20} />
     }
     const getFoldersButtons = () => {
       return data.folders.map((folder) => {

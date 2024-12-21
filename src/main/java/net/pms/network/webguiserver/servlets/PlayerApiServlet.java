@@ -332,13 +332,13 @@ public class PlayerApiServlet extends GuiHttpServlet {
 	 * @param [default] optional change the default icon from "folder"
 	 * @return a Tabler icon that matches the folder name
 	 */
-	private static String getIconNameFromFolderName(String folderName, String default) {
+	private static String getIconNameFromFolderName(String folderName, String defaultIconName) {
 		if (folderName.startsWith("i18n@")) {
 			folderName = folderName.substring(5);
 		}
 
-		if (default == null) {
-			default = "folder";
+		if (defaultIconName == null) {
+			defaultIconName = "folder";
 		}
 
 		return switch (folderName) {
@@ -359,7 +359,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			case "Video" ->
 				"video";
 			default ->
-				default;
+				defaultIconName;
 		};
 	}
 
@@ -401,7 +401,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
 					jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
-					jMedia.addProperty("icon", getIconNameFromFolderName(resource.getSystemName()));
+					jMedia.addProperty("icon", getIconNameFromFolderName(resource.getSystemName(), null));
 					jMedias.add(jMedia);
 				}
 			}
@@ -518,7 +518,7 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						jFolder.addProperty("id", resource.getResourceId());
 						String folderName = resource.getLocalizedDisplayName(lang);
 						jFolder.addProperty("name", folderName);
-						jFolder.addProperty("icon", getIconNameFromFolderName(folderName));
+						jFolder.addProperty("icon", getIconNameFromFolderName(folderName, null));
 						jFolders.add(jFolder);
 					}
 				}
