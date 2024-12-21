@@ -10,6 +10,7 @@
 - Bump `@mantine/modals` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
 - Bump `@mantine/notifications` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
 - Bump `@playwright/test` from 1.48.2 to 1.49.0 ([#5125](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5125))
+- Bump `@vitejs/plugin-react` from 4.3.3 to 4.3.4 ([#5177](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5177))
 - Bump `axios` from 1.7.7 to 1.7.9 ([#5155](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5155))
 - Bump `ch.qos.logback:logback-classic` from 1.5.12 to 1.5.14 ([#5176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5176))
 - Bump `ch.qos.logback:logback-core` from 1.5.12 to 1.5.14 ([#5176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5176))
