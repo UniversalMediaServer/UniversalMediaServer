@@ -87,8 +87,7 @@ public class AutoUpdaterServerProperties {
 			HardwareAbstractionLayer hardware = systemInfo.getHardware();
 			CentralProcessor processor = hardware.getProcessor();
 			ProcessorIdentifier processorIdentifier = processor.getProcessorIdentifier();
-			String microarchitecture = processorIdentifier.getMicroarchitecture();
-			if (microarchitecture.isCpu64bit()) {
+			if (processorIdentifier.isCpu64bit()) {
 				os += "-x86_64";
 			}
 		} else if (os.startsWith("mac")) {
