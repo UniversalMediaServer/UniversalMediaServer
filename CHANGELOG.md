@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### General
+- Added new icons to web player:
+  ![new icons](./changelog-images/14.9.0-icons.png)
+- Added 4K Videos folder in the Media Library
+- Fixed missing media info during UPnP searching
+- Fixed web player and settings development workflow
+- Fixed many different parsing mistakes when using FFmpeg parser
+- Fixed broken streaming for web resources
+- Started running tests on newer infrastructure (macOS ARM architecture and Ubuntu 24.04)
+
+### Media players
+- Added renderer configs for LG FHD LED-backlit LCD TVs
+- Added renderer configs for LG NANO (LED-backlit with added green layer) TVs
+- Added renderer configs for LG QNED (MiniLED) TVs
+
 ### Dependencies
 - Bump `@mantine/core` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
 - Bump `@mantine/dropzone` from 7.14.1 to 7.15.1 ([#5146](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5146), [#5159](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5159))
