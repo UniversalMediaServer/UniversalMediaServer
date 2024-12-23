@@ -81,15 +81,7 @@ public class AutoUpdaterServerProperties {
 	private String getPlatformSpecificKey(String key) {
 		String os = operatingSystem.toString();
 		if (os.startsWith("windows")) {
-			os = operatingSystem.getPlatformName();
-
-			SystemInfo systemInfo = new SystemInfo();
-			HardwareAbstractionLayer hardware = systemInfo.getHardware();
-			CentralProcessor processor = hardware.getProcessor();
-			ProcessorIdentifier processorIdentifier = processor.getProcessorIdentifier();
-			if (processorIdentifier.isCpu64bit()) {
-				os += "-x86_64";
-			}
+			os = operatingSystem.toString();
 		} else if (os.startsWith("mac")) {
 			os = operatingSystem.getPlatformName();
 
