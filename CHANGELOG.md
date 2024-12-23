@@ -29,7 +29,7 @@
 - Bump `axios` from 1.7.7 to 1.7.9 ([#5155](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5155))
 - Bump `ch.qos.logback:logback-classic` from 1.5.12 to 1.5.15 ([#5176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5176), [#5184](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5184))
 - Bump `ch.qos.logback:logback-core` from 1.5.12 to 1.5.15 ([#5176](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5176), [#5184](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5184))
-- Bump `com.puppycrawl.tools:checkstyle` from 10.20.1 to 10.20.2 ([#5144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5144))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.20.1 to 10.21.0 ([#5144](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5144), [#5185](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5185))
 - Bump `eslint-plugin-react-refresh` from 0.4.14 to 0.4.16 ([#5154](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5154))
 - Bump `eslint` from 9.13.0 to 9.16.0 ([#5139](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5139))
 - Bump `nanoid` from 3.3.7 to 3.3.8 ([#5157](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5157))
