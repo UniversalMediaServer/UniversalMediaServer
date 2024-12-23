@@ -40,7 +40,7 @@
 - Bump `org.jsoup:jsoup` from 1.18.1 to 1.18.3 ([#5145](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5145))
 - Bump `org.junit.jupiter:junit-jupiter-api` from 5.11.3 to 5.11.4 ([#5175](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5175))
 - Bump `org.junit.jupiter:junit-jupiter-engine` from 5.11.3 to 5.11.4 ([#5175](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5175))
-- Bump `typescript-eslint` from 8.14.0 to 8.16.0 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140))
+- Bump `typescript-eslint` from 8.14.0 to 8.18.1 ([#5140](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5140), [#5183](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5183))
 - Bump `video.js` from 8.19.1 to 8.21.0 ([#5147](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5147), [#5153](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5153))
 
 ## [14.8.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-11-25)
