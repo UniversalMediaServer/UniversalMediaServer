@@ -81,7 +81,7 @@ public class AutoUpdaterServerProperties {
 	private String getPlatformSpecificKey(String key) {
 		String os = operatingSystem.toString();
 		if (os.startsWith("windows")) {
-			os = operatingSystem.getPlatformName();
+			os = operatingSystem.toString();
 		} else if (os.startsWith("mac")) {
 			os = operatingSystem.getPlatformName();
 
