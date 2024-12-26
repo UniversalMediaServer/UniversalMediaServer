@@ -221,6 +221,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	private static final String KEY_ANONYMOUS_DEVICES_WRITE = "anonymous_devices_write";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
@@ -433,6 +434,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
+	private static final String KEY_UPNP_CDS_WRITE = "upnp_cds_write";
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
@@ -5327,6 +5329,20 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	public boolean isUpnpJupnpDidl() {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
+	}
+
+	/**
+	 * This allow remote device to modify CDS.
+	 */
+	public boolean isUpnpCdsWrite() {
+		return getBoolean(KEY_UPNP_CDS_WRITE, false);
+	}
+
+	/**
+	 * This allow anonymous remote devices to add/replace files and folders.
+	 */
+	public boolean isAnonymousDevicesWrite() {
+		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
 	}
 
 	public String getRootLogLevel() {
