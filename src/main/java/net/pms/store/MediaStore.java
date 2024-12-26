@@ -880,7 +880,10 @@ public class MediaStore extends StoreContainer {
 	private static Long parseIndex(String id) {
 		try {
 			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
-			return Long.valueOf(StringUtils.substringBefore(id, "$"));
+			String longId = StringUtils.substringBefore(id, "$");
+			// Id strings may have optional tags beginning with # appended, e.g. '1234#567'
+			longId = StringUtils.substringBefore(longId, "#");
+			return Long.valueOf(longId);
 		} catch (NumberFormatException e) {
 			return null;
 		}
