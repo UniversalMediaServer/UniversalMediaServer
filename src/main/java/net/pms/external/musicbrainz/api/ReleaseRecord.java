@@ -14,23 +14,46 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.external.musicbrainz.coverart;
+package net.pms.external.musicbrainz.api;
 
-import com.google.common.base.Predicate;
-import fm.last.musicbrainz.coverart.CoverArtImage;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Copyright (C) 2012-2018 Last.fm
- *
- * Adapted for JDK11+ HttpClient
- */
-enum IsFrontImage implements Predicate<CoverArtImage> {
+public class ReleaseRecord {
 
-	INSTANCE;
+		/** The release ID */
+		String id;
 
-	@Override
-	public boolean apply(CoverArtImage coverArtImage) {
-		return coverArtImage.isFront();
-	}
+		/** The score */
+		int score;
 
+		/** The song title */
+		String title;
+
+		/** The album name */
+		String album;
+
+		/** The {@link List} of artists */
+		final List<String> artists = new ArrayList<>();
+
+		/** The {@link ReleaseType} */
+		ReleaseType type;
+
+		/** The release year */
+		String year;
+
+		public ReleaseRecord() {
+		}
+
+		public ReleaseRecord(ReleaseRecord source) {
+			id = source.id;
+			score = source.score;
+			title = source.title;
+			album = source.album;
+			type = source.type;
+			year = source.year;
+			for (String artist : source.artists) {
+				artists.add(artist);
+			}
+		}
 }

@@ -14,19 +14,17 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.external.musicbrainz.coverart;
+package net.pms.external.musicbrainz.api;
 
-public class CoverArtResponseException extends RuntimeException {
+import java.util.concurrent.CountDownLatch;
 
-	private final int statusCode;
+public class MusicBrainzTagLatch {
 
-	public CoverArtResponseException(int statusCode, String message) {
-		super(message);
-		this.statusCode = statusCode;
-	}
+	final MusicBrainzTagInfo info;
+	final CountDownLatch latch = new CountDownLatch(1);
 
-	public int getStatusCode() {
-		return statusCode;
+	public MusicBrainzTagLatch(MusicBrainzTagInfo info) {
+		this.info = info;
 	}
 
 }

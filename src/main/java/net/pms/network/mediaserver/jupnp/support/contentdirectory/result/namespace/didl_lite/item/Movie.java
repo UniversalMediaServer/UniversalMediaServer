@@ -167,7 +167,7 @@ public class Movie extends VideoItem {
 	 * @since ContentDirectory v2
 	 */
 	public VideoItem setEpisodeCount(int episodeCount) {
-		return setEpisodeCount(UnsignedInteger.asUnsigned(episodeCount));
+		return setEpisodeCount(UnsignedInteger.fromIntBits(episodeCount));
 	}
 
 	/**
@@ -189,7 +189,7 @@ public class Movie extends VideoItem {
 	 * @since ContentDirectory v2
 	 */
 	public VideoItem setEpisodeNumber(int episodeNumber) {
-		return setEpisodeNumber(UnsignedInteger.asUnsigned(episodeNumber));
+		return setEpisodeNumber(UnsignedInteger.fromIntBits(episodeNumber));
 	}
 
 	/**
@@ -211,7 +211,7 @@ public class Movie extends VideoItem {
 	 * @since ContentDirectory v2
 	 */
 	public VideoItem setEpisodeSeason(int episodeSeason) {
-		return setEpisodeSeason(UnsignedInteger.asUnsigned(episodeSeason));
+		return setEpisodeSeason(UnsignedInteger.fromIntBits(episodeSeason));
 	}
 
 }

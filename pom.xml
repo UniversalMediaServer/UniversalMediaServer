@@ -87,7 +87,6 @@
 				- com.github.junrar:junrar
 				- org.digitalmediaserver:cuelib-core
 				- su.litvak.chromecast:api-v2
-				- fm.last:coverartarchive-api
 				- com.github.oshi:oshi-core
 
 			Check the org.slf4j:slf4j-api version of the other libraries before upgrading
@@ -98,7 +97,6 @@
 			com.fasterxml.jackson.core:logback-classic and logback-core is shared with
 				- net.pms:ums
 				- su.litvak.chromecast:api-v2
-				- fm.last:coverartarchive-api
 		-->
 		<jackson.version>2.18.0</jackson.version>
 
@@ -152,12 +150,6 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<!--
-				commons-logging:commons-logging is shared with
-					- fm.last:coverartarchive-api
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-			-->
 			<version>1.10</version>
 			<exclusions>
 				<exclusion>
@@ -174,12 +166,6 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<!--
-				commons-io:commons-io is shared with
-					- fm.last:coverartarchive-api
-
-				Check the commons-io:commons-io version of the libraries before upgrading
-			-->
 			<version>2.18.0</version>
 		</dependency>
 		<dependency>
@@ -224,6 +210,26 @@
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>23.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.code.findbugs</groupId>
+					<artifactId>jsr305</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>annotations</artifactId>
+			<version>3.0.1u2</version>
 		</dependency>
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
@@ -480,60 +486,6 @@
 			<version>75.1</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>annotations</artifactId>
-			<version>3.0.1u2</version>
-		</dependency>
-		<dependency>
-			<groupId>fm.last</groupId>
-			<artifactId>coverartarchive-api</artifactId>
-			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
-			<!-- Check the com.fasterxml.jackson.core version of the other libraries before upgrading -->
-			<!--
-				commons-logging:commons-logging is shared with
-					- commons-configuration:commons-configuration
-
-				Check the commons-logging:commons-logging version of the other libraries before upgrading
-
-				commons-io:commons-io is shared with
-					- net.pms:ums
-
-				Check the commons-io:commons-io version before upgrading
-			-->
-			<version>2.1.1</version>
-			<exclusions>
-				<!-- This should never have been a dependency in the first place -->
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.httpcomponents</groupId>
-					<artifactId>httpclient</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-core</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.fasterxml.jackson.core</groupId>
-					<artifactId>jackson-databind</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.slf4j</groupId>
-					<artifactId>slf4j-api</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
 			<!-- Check the org.slf4j:slf4j-api version of the other libraries before upgrading -->
@@ -637,6 +589,17 @@
 		<dependency>
 			<groupId>com.universalmediaserver</groupId>
 			<artifactId>tmdbapi</artifactId>
+			<version>1.0.0</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.code.gson</groupId>
+					<artifactId>gson</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.universalmediaserver</groupId>
+			<artifactId>coverartarchive-api</artifactId>
 			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
