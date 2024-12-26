@@ -27,7 +27,6 @@ import java.util.Objects;
 import java.util.Set;
 import net.pms.Messages;
 import net.pms.configuration.sharedcontent.SharedContentConfiguration;
-import static net.pms.database.DatabaseHelper.IF_NOT_EXISTS;
 import net.pms.dlna.DLNAThumbnail;
 import net.pms.external.JavaHttpClient;
 import net.pms.gui.GuiManager;
