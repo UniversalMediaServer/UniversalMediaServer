@@ -215,11 +215,13 @@ Function LockedListShow
 
 	File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\x86-unicode\LockedList64.dll`
 	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
-	LockedList::Dialog /autonext /autoclosesilent
+	LockedList::Dialog /autonext /autoclosesilent `` ``
 	Pop $R0
 
-	Call StopOldUmsService
-	Call StopUmsService
+	${If} $InstallType != "PORTABLE"
+		Call StopOldUmsService
+		Call StopUmsService
+	${EndIf}
 FunctionEnd
 
 Function LockedListLeave
