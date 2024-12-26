@@ -137,7 +137,7 @@ public class PMS {
 	 */
 	private static final ReadWriteLock HEADLESS_LOCK = new ReentrantReadWriteLock();
 
-	public static final String NAME = "Universal Media Server";
+	public static final String NAME = PropertiesUtil.getProjectProperties().get("project.name");
 	public static final String CROWDIN_LINK = "https://crowdin.com/project/universalmediaserver";
 
 	/**
@@ -493,7 +493,7 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.debug("");
-		LOGGER.info("Starting {} {}", PropertiesUtil.getProjectProperties().get("project.name"), getVersion());
+		LOGGER.info("Starting {} {}", NAME, getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("https://www.universalmediaserver.com");
 		LOGGER.info("");
