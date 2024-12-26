@@ -5755,7 +5755,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
-		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
+		jObj.addProperty(KEY_SERVER_NAME, PMS.NAME);
 		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);
