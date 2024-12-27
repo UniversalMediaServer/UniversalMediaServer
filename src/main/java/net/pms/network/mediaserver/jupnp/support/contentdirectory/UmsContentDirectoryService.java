@@ -384,6 +384,14 @@ public class UmsContentDirectoryService {
 				return null;
 			}
 
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
+				}
+				return null;
+			}
+
 			StoreResource parentContainer = renderer.getMediaStore().getResource(containerId);
 			if (parentContainer instanceof StoreContainer storeContainer) {
 				Parser parser = new Parser();
@@ -464,6 +472,7 @@ public class UmsContentDirectoryService {
 		return new CreateObjectResult(result, resource.getId());
 	}
 
+	//FIXME : this should sit in net.​pms.​store side.
 	private StoreResource createEmptyItem(StoreContainer storeContainer, String title) {
 		File newItem = new File(storeContainer.getFileName(), title);
 		if (!newItem.exists()) {
@@ -489,6 +498,7 @@ public class UmsContentDirectoryService {
 		}
 	}
 
+	//FIXME : this should sit in net.​pms.​store side.
 	private StoreResource createFolder(StoreContainer storeContainer, String title) {
 		File newContainer = new File(storeContainer.getFileName(), title);
 		if (!newContainer.exists()) {
@@ -521,6 +531,13 @@ public class UmsContentDirectoryService {
 			if (!renderer.isAllowed()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
+				}
+				return null;
+			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
 				}
 				return null;
 			}
@@ -577,6 +594,13 @@ public class UmsContentDirectoryService {
 				}
 				return;
 			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
+				}
+				return;
+			}
 
 			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);
 			if (objectResource == null) {
@@ -625,6 +649,13 @@ public class UmsContentDirectoryService {
 					LOGGER.trace("Recognized media renderer \"{}\" is not allowed", renderer.getRendererName());
 				}
 				throw new ContentDirectoryException(715, "Source resource access denied");
+			}
+			//FIXME : this is disabled by default as user should explicitly allow file modification/creation.
+			if (!renderer.getUmsConfiguration().isUpnpCdsWrite()) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("file modification/creation is not allowed", renderer.getRendererName());
+				}
+				return;
 			}
 
 			StoreResource objectResource = renderer.getMediaStore().getResource(objectId);

@@ -16,8 +16,15 @@
  */
 package net.pms.network.mediaserver.jupnp.transport.impl.jetty.ee10;
 
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.Servlet;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
+import net.pms.PMS;
+import net.pms.network.mediaserver.jupnp.transport.spi.JakartaServletContainerAdapter;
+import net.pms.network.mediaserver.servlets.MediaServerImportResourceServlet;
+import net.pms.network.mediaserver.servlets.MediaServerServlet;
+import net.pms.network.mediaserver.servlets.NextcpApiServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
@@ -28,13 +35,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import jakarta.servlet.MultipartConfigElement;
-import jakarta.servlet.Servlet;
-import net.pms.PMS;
-import net.pms.network.mediaserver.jupnp.transport.spi.JakartaServletContainerAdapter;
-import net.pms.network.mediaserver.servlets.MediaServerImportResourceServlet;
-import net.pms.network.mediaserver.servlets.MediaServerServlet;
-import net.pms.network.mediaserver.servlets.NextcpApiServlet;
 
 /**
  * A singleton wrapper of a EE10 <code>org.eclipse.jetty.server.Server</code>.
