@@ -782,6 +782,23 @@ public class FormatConfiguration {
 		);
 	}
 
+
+	/**
+	 * Checks if renderer supports a specific mime type.
+	 * @param mimeType
+	 * @return
+	 */
+	public boolean supportsMimeType(String mimeType) {
+		for (SupportSpec supportSpec : supportSpecs) {
+			if (supportSpec.mimeType.equalsIgnoreCase(mimeType)) {
+				LOGGER.debug("renderer supports mime type {}", mimeType);
+				return true;
+			}
+		}
+		LOGGER.debug("renderer doesn't support mime type {}", mimeType);
+		return false;
+	}
+
 	public String getMatchedMIMEtype(
 		String container,
 		String videoCodec,
