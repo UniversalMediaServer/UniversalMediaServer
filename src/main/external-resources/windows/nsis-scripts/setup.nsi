@@ -370,9 +370,9 @@ FunctionEnd
 Function FixSystemInstall
 	${If} $InstallType == "UPDATE"
 	${AndIf} $CurrentInstallType == "SYSTEM"
-		StrCmp $INSTDIR "$PROGRAMFILES\${PROJECT_NAME}" 0 +3
+	${AndIf} $INSTDIR == "$PROGRAMFILES\${PROJECT_NAME}"
 		StrCpy $INSTDIR "$PROGRAMFILES64\${PROJECT_NAME}"
-		Rename $0 $INSTDIR
+		Rename "$PROGRAMFILES\${PROJECT_NAME}" $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "UninstallString" '"$INSTDIR\uninst.exe"'
@@ -571,24 +571,24 @@ Section "Program Files"
 		; Add firewall rules
 		ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
 		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
-	${EndIf}
-	CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+		CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	SimpleSC::ExistsService "${SERVICE_NAME}"
-	Pop $0
-	${If} $0 != 0
-		; Only start UMS with Windows when it is a new install
-		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-			goto end_of_startup_section
-		shortcut_file_not_found:
-			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-		end_of_startup_section:
-	${EndIf}
+		SimpleSC::ExistsService "${SERVICE_NAME}"
+		Pop $0
+		${If} $0 != 0
+			; Only start UMS with Windows when it is a new install
+			IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
+				goto end_of_startup_section
+			shortcut_file_not_found:
+				CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+			end_of_startup_section:
+		${EndIf}
 
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+	${EndIf}
 SectionEnd
 
 Function un.DeleteCurrentRenderers
