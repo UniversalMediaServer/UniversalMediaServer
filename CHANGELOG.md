@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `@mantine/core` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@mantine/dropzone` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@mantine/form` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@mantine/hooks` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@mantine/modals` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@mantine/notifications` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `com.puppycrawl.tools:checkstyle` from 10.21.0 to 10.21.1 ([#5209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5209))
+- Bump `eslint-plugin-react-hooks` from 5.0.0 to 5.1.0 ([#5160](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5160))
+- Bump `jna-version` from 5.15.0 to 5.16.0 ([#5208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5208))
+
 ## [14.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-12-24)
 
 ### General
