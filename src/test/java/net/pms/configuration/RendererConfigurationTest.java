@@ -112,6 +112,7 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 
+		testHeaders("LG LED-backlit LCD TV (2022+)", "DLNADeviceName.lge.com: %5bLG%5d%20webOS%20TV%20LQ63006LA");
 		testUPNPDetails("LG LED-backlit LCD TV (2022+)", "modelNumber=32LQ63006LA");
 
 		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
