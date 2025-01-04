@@ -257,11 +257,16 @@ public class RendererConfigurationTest {
 			"Samsung E+ Series",
 			"User-Agent: SEC_HHP_ Family TV/1.0",
 			"User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0",
-			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50",
-			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50"
 		);
 
 		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
+
+		testHeaders(
+			"Samsung ES6100",
+			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+		);
+		testUPNPDetails("Samsung ES6100", "modelName=UE46ES6100");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 
