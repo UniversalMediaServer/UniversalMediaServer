@@ -283,6 +283,10 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
 
+		testHeaders("Samsung 2018 QLED TV", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q6 Series (65)/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QN65Q6FNAFXZA"); // Q6F, 2018 Edge Lit Flat UHD QLED
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QE55Q7FNATXXH"); // Q7F, 2018 Edge Lit Flat UHD QLED 
+
 		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
@@ -504,10 +508,8 @@ public class RendererConfigurationTest {
 	 * renderer. Set the correct renderer name to <code>null</code> to require
 	 * that nothing matches at all.
 	 *
-	 * @param correctRendererName
-	 *            The name of the renderer.
-	 * @param headerLines
-	 *            One or more raw header lines.
+	 * @param correctRendererName The name of the renderer.
+	 * @param headerLines         One or more raw header lines.
 	 */
 	private static void testHeaders(String correctRendererName, String... headerLines) {
 		SortedHeaderMap headers = new SortedHeaderMap();
