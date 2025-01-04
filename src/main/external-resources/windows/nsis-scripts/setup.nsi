@@ -90,7 +90,7 @@ Function InstallTypeShow
 		${NSD_CreateLabel} 3% 30% 100% 12u "This will extract all files to a directory for portable use"
 		${NSD_CreateButton} 0 40% 100% 12u "Advanced..."
 		Pop $MoreInstallButton
-		${NSD_OnClick} $MoreInstallButton EnableMoreInstallGroup		
+		${NSD_OnClick} $MoreInstallButton EnableMoreInstallGroup
 		${NSD_CreateHLine} 0% 40% 100% 12u ""
 		Pop $MoreInstallLine
 		${NSD_CreateLabel} 0% 45% 100% 20u "Warning! Selecting one of the following options will delete ${PROJECT_NAME}'s configuration directory, program directory and font cache."
@@ -211,11 +211,11 @@ FunctionEnd
 Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
-	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
+	!insertmacro MUI_HEADER_TEXT "UMS must be closed before installation" "Clicking Next will automatically close it and stop the service."
 
-	File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\x86-unicode\LockedList64.dll`
+	File /oname=$PLUGINSDIR\LockedList64.dll "${NSISDIR}\Plugins\x86-unicode\LockedList64.dll"
 	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
-	LockedList::Dialog /autonext /autoclosesilent `` ``
+	LockedList::Dialog /autonext /autoclosesilent "" ""
 	Pop $R0
 
 	${If} $InstallType != "PORTABLE"
@@ -275,18 +275,18 @@ Function AdvancedSettings
 		Pop $4
 
 		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 16000 
+		${If} $4 > 16000
 			StrCpy $DefaultMemoryLimit "4096"
-		${ElseIf} $4 > 8000 
+		${ElseIf} $4 > 8000
 			StrCpy $DefaultMemoryLimit "2048"
-		${ElseIf} $4 > 4000 
+		${ElseIf} $4 > 4000
 			StrCpy $DefaultMemoryLimit "1280"
 		${Else}
 			StrCpy $DefaultMemoryLimit "768"
 		${EndIf}
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended."
 	Pop $DescMemoryLimit
 
 	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
@@ -321,7 +321,7 @@ Function RunUMS
 	${Else}
 		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 	${EndIf}
-FunctionEnd 
+FunctionEnd
 
 Function CreateDesktopShortcut
 	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
@@ -376,6 +376,18 @@ Function FixSystemInstall
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "UninstallString" '"$INSTDIR\uninst.exe"'
+		${If} ${FileExists} "$SMSTARTUP\${PROJECT_NAME}.lnk"
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		${EndIf}
+	${EndIf}
+	;fix bad setup file, dir not moved
+	${If} $InstallType == "UPDATE"
+	${AndIf} $CurrentInstallType == "SYSTEM"
+	${AndIf} ${FileExists} "$PROGRAMFILES\${PROJECT_NAME}\*.*"
+		RMDir /R /REBOOTOK "$PROGRAMFILES\${PROJECT_NAME}"
+		${If} ${FileExists} "$SMSTARTUP\${PROJECT_NAME}.lnk"
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		${EndIf}
 	${EndIf}
 FunctionEnd
 
@@ -512,6 +524,8 @@ Section "Program Files"
 	ReadRegStr $0 SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${If} $0 == "${PROJECT_BINARY_REVISION}"
 	${AndIf} $InstallType == "UPDATE"
+	${AndIf} ${FileExists} "$INSTDIR\jre${PROJECT_JRE_VERSION}\*.*"
+	${AndIf} ${FileExists} "$INSTDIR\bin\*.*"
 		StrCpy $9 1
 	${EndIf}
 
@@ -576,15 +590,12 @@ Section "Program Files"
 		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
 		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
+		; Only start UMS with Windows when it is a new install
 		SimpleSC::ExistsService "${SERVICE_NAME}"
 		Pop $0
 		${If} $0 != 0
-			; Only start UMS with Windows when it is a new install
-			IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-				goto end_of_startup_section
-			shortcut_file_not_found:
-				CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-			end_of_startup_section:
+		${AndIfNot} ${FileExists} "$SMPROGRAMS\${PROJECT_NAME}.lnk"
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 		${EndIf}
 
 		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
@@ -844,20 +855,20 @@ Section "Uninstall"
 SectionEnd
 
 Function FixRegistryWow64
-SetRegView 32
-; Check if wrong registry was set on HKCU (WOW64)
-ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
-${IfNot} $0 == ""
-	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
-	;move it
+	SetRegView 32
+	; Check if wrong registry was set on HKCU (WOW64)
+	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
+	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+	ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	${IfNot} $0 == ""
+		DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+		;move it
+		SetRegView 64
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+	${EndIf}
 	SetRegView 64
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
-${EndIf}
-SetRegView 64
 FunctionEnd
 
 Function FixRegistryCurrentUser
@@ -881,13 +892,14 @@ Function .onInit
 	Call FixRegistryWow64
 	SetShellVarContext current
 	SetRegView 64
-	IfFileExists "$LOCALAPPDATA\UMS\*.*" 0 +2 ;user
-	StrCpy $CurrentInstallType "USER"
-	${If} $CurrentInstallType == ""
+	${If} ${FileExists} "$LOCALAPPDATA\UMS\*.*"
+		StrCpy $CurrentInstallType "USER"
+	${Else}
 		Call FixRegistryCurrentUser
 		SetShellVarContext all
-		IfFileExists "$LOCALAPPDATA\UMS\*.*" 0 +2 ;system
-		StrCpy $CurrentInstallType "SYSTEM"
+		${If} ${FileExists} "$LOCALAPPDATA\UMS\*.*"
+			StrCpy $CurrentInstallType "SYSTEM"
+		${EndIf}
 	${EndIf}
 
 	ReadRegStr $0 SHCTX "${REG_KEY_SOFTWARE}" ""
