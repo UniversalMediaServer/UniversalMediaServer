@@ -287,7 +287,7 @@ public class RendererConfigurationTest {
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
+			"Samsung TV 2019+",
 			"modelName=QN49Q70RAFXZA, modelDescription=Samsung TV", // 2019 starts here (R Series)
 			"modelName=QN75Q90RAFXZA, modelDescription=Samsung TV",
 			"modelName=QE55LS03RAUXXH, modelDescription=Samsung TV",
@@ -311,6 +311,11 @@ public class RendererConfigurationTest {
 			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV",
 			"modelName=QA65QE1DASXNZ, modelDescription=Samsung TV"
+		);
+
+		testUPNPDetails(
+			"Samsung 8K TV 2019+",
+			"modelName=QN75Q900RBFXZA, modelDescription=Samsung TV"
 		);
 
 		testUPNPDetails(

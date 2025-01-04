@@ -392,7 +392,7 @@ Function FixSystemInstall
 FunctionEnd
 
 Function DeleteOldFiles
-	; Old renderer files
+	; Remove renderer configs that are not part of UMS anymore, to prevent conflicts
 	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Android.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\AndroidChromecast.conf"
@@ -437,6 +437,8 @@ Function DeleteOldFiles
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HT-E3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMT-G7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UE-ES6575.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SamsungWiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SharpAquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SMP-N100.conf"
@@ -727,6 +729,8 @@ Function un.DeleteCurrentRenderers
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2019+.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2019+-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-0.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-1.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-2.conf"
@@ -734,8 +738,6 @@ Function un.DeleteCurrentRenderers
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sharp-Aquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime4.conf"
