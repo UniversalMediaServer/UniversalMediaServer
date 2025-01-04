@@ -294,6 +294,7 @@ public class RendererConfigurationTest {
 			"modelName=QN32LS03TBFXZA, modelDescription=Samsung TV", // 2020 starts here (T Series)
 			"modelName=GQ43LS03TAUXZG, modelDescription=Samsung TV",
 			"modelName=QE43LS03TAUXXH, modelDescription=Samsung TV",
+			"friendlyName=[TV] Samsung 7 Series (43), manufacturer=Samsung Electronics, modelName=UN43TU700DFXZA, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
 			"modelName=QA65S95BASXNZ, modelDescription=Samsung TV", // 2022 starts here (B Series)
 			"modelName=QA65Q60BASXNZ, modelDescription=Samsung TV",
 			"modelName=UA65BU8000SXNZ, modelDescription=Samsung TV",
