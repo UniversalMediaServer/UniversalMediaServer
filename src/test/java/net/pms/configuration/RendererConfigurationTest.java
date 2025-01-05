@@ -273,8 +273,14 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
 		testUPNPDetails(
 			"Samsung LED UHD",
-			"modelName=UE88KS9810", 
-			"modelName=UE43RU7179UXZG"
+			"modelName=UA55HU7000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UA55HU9000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UN43JU6400F", // 2015 UHD (note: this string is a guess, not from logs)
+			"modelName=UN65KS8000FXZA", // 2016 SUHD
+			"modelName=UE65KS9002T", // 2016 SUHD
+			"modelName=UE88KS9810", // 2016 SUHD
+			"modelName=UE55MU6170U", // 2017 UHD
+			"modelName=UE43RU7179UXZG" // 2019 UHD
 		);
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
