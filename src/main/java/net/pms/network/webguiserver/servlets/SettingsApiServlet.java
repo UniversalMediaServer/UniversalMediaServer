@@ -67,17 +67,6 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	private static final JsonArray TRANSCODING_ENGINES_PURPOSES = UmsConfiguration.getEnginesPurposesAsJsonArray();
 	private static final JsonArray GPU_ENCODING_H264_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH264EncodingAccelerationMethodsArray();
 	private static final JsonArray GPU_ENCODING_H265_ACCELERATION_METHODS = UmsConfiguration.getFFmpegAvailableGPUH265EncodingAccelerationMethodsArray();
-	private static final List<String> VALID_EMPTY_KEYS = List.of(
-			"alternate_thumb_folder",
-			"hostname",
-			"network_interface",
-			"port",
-			"renderer_default",
-			"web_gui_port",
-			"web_player_port"
-	);
-	private static final List<String> SELECT_KEYS = List.of("server_engine", "audio_thumbnails_method", "sort_method", "ffmpeg_avisynth_output_format_index_3d", "ffmpeg_avisynth_conversion_algorithm_index_2d_to_3d", "ffmpeg_avisynth_horizontal_resize_resolution", UmsConfiguration.KEY_UPNP_LOG_LEVEL);
-	private static final List<String> ARRAY_KEYS = List.of("folders", "folders_monitored");
 
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -118,13 +107,13 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 
 				//select need string, not number
-				for (String key : SELECT_KEYS) {
+				for (String key : UmsConfiguration.SELECT_KEYS) {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						String value = configurationAsJson.get(key).getAsString();
 						configurationAsJson.add(key, new JsonPrimitive(value));
 					}
 				}
-				for (String key : ARRAY_KEYS) {
+				for (String key : UmsConfiguration.ARRAY_KEYS) {
 					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
 						JsonPrimitive value = configurationAsJson.get(key).getAsJsonPrimitive();
 						JsonArray array = new JsonArray();
@@ -243,7 +232,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	}
 
 	public static boolean acceptEmptyValueForKey(String key) {
-		return VALID_EMPTY_KEYS.contains(key);
+		return UmsConfiguration.VALID_EMPTY_KEYS.contains(key);
 	}
 
 	private static String getDirectoryResponse(JsonObject data) {
@@ -339,7 +328,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 					String configurationAsJsonString = new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
 					JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
 					//select need string, not number
-					if (SELECT_KEYS.contains(key)) {
+					if (UmsConfiguration.SELECT_KEYS.contains(key)) {
 						String value = configurationAsJson.get(key).getAsString();
 						userConfiguration.add(key, new JsonPrimitive(value));
 					} else {

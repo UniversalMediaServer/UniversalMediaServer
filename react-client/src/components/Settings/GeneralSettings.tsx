@@ -255,7 +255,7 @@ export default function GeneralSettings(
               <Checkbox
                 disabled={!canModify}
                 label={i18n.get('UseInfoFromOurApi')}
-                {...form.getInputProps('use_imdb_info', { type: 'checkbox' })}
+                {...form.getInputProps('use_api_info', { type: 'checkbox' })}
               />
             </Tooltip>
             <Checkbox

@@ -603,6 +603,40 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_SORT_METHOD
 	);
 
+	/**
+	 * The set of keys that is array of values.
+	 */
+	public static final Set<String> ARRAY_KEYS = Set.of(
+		KEY_ENGINES,
+		KEY_ENGINES_PRIORITY,
+		KEY_SELECTED_RENDERERS
+	);
+
+	/**
+	 * The set of keys that is selectable value.
+	 */
+	public static final Set<String> SELECT_KEYS = Set.of(
+		KEY_AUDIO_THUMBNAILS_METHOD,
+		KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D,
+		KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D,
+		KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION,
+		KEY_SORT_METHOD,
+		KEY_UPNP_LOG_LEVEL
+	);
+
+	/**
+	 * The set of keys that is valid with empty value.
+	 */
+	public static final List<String> VALID_EMPTY_KEYS = List.of(
+		KEY_ALTERNATE_THUMB_FOLDER,
+		KEY_SERVER_HOSTNAME,
+		KEY_NETWORK_INTERFACE,
+		KEY_SERVER_PORT,
+		KEY_RENDERER_DEFAULT,
+		KEY_WEB_GUI_PORT,
+		KEY_WEB_PLAYER_PORT
+	);
+
 	static {
 		int systemProfileType = 0;
 		String systemProfileDirectoryPath = null;
