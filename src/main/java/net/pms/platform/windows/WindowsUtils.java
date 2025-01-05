@@ -133,8 +133,7 @@ public class WindowsUtils extends PlatformUtils {
 					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
 					return result;
 				}
-				LOGGER.debug("Can't find \"{}\"", pathname);
-				return null;
+				return longPathName;
 
 			} catch (Exception e) {
 				return longPathName;
