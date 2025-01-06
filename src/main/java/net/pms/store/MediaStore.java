@@ -55,13 +55,13 @@ import net.pms.store.container.ITunesLibrary;
 import net.pms.store.container.ImagesFeed;
 import net.pms.store.container.MediaLibrary;
 import net.pms.store.container.MediaMonitor;
-import net.pms.store.container.UmsPlaylist;
 import net.pms.store.container.PlaylistFolder;
 import net.pms.store.container.RarredFile;
 import net.pms.store.container.RealFolder;
 import net.pms.store.container.SearchFolder;
 import net.pms.store.container.ServerSettingsFolder;
 import net.pms.store.container.SevenZipFile;
+import net.pms.store.container.UmsPlaylist;
 import net.pms.store.container.UnattachedFolder;
 import net.pms.store.container.UserVirtualFolder;
 import net.pms.store.container.VideosFeed;
@@ -877,7 +877,10 @@ public class MediaStore extends StoreContainer {
 	private static Long parseIndex(String id) {
 		try {
 			// Id strings may have optional tags beginning with $ appended, e.g. '1234$Temp'
-			return Long.valueOf(StringUtils.substringBefore(id, "$"));
+			String longId = StringUtils.substringBefore(id, "$");
+			// Id strings may have optional tags beginning with # appended, e.g. '1234#567'
+			longId = StringUtils.substringBefore(longId, "#");
+			return Long.valueOf(longId);
 		} catch (NumberFormatException e) {
 			return null;
 		}

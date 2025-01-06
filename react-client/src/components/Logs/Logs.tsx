@@ -21,7 +21,7 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { Activity, FileDescription, FileZip, Filter, ListSearch } from 'tabler-icons-react';
+import { IconActivity, IconFileDescription, IconFileZip, IconFilter, IconListSearch } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import ServerEventContext from '../../contexts/server-event-context';
@@ -316,7 +316,7 @@ const Logs = () => {
           </Tooltip>
           <Button
             type='submit'
-            leftSection={<ListSearch />}
+            leftSection={<IconListSearch />}
           >
             {i18n.get('Search')}
           </Button>
@@ -363,11 +363,11 @@ const Logs = () => {
           </Tooltip>
           {traceMode === 0 &&
             <Tooltip label={allowHtml(i18n.get('RestartUniversalMediaServerTrace'))} {...defaultTooltipSettings}>
-              <Button leftSection={<FileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get('CreateTraceLogs')}</Button>
+              <Button leftSection={<IconFileDescription />} onClick={() => { setRestartOpened(true) }}>{i18n.get('CreateTraceLogs')}</Button>
             </Tooltip>
           }
           <Tooltip label={allowHtml(i18n.get('PackLogConfigurationFileCompressed'))} {...defaultTooltipSettings}>
-            <Button leftSection={<FileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get('PackDebugFiles')}</Button>
+            <Button leftSection={<IconFileZip />} onClick={() => { setPackerOpened(true); if (traceMode === 0) { setRestartOpened(true) } }}>{i18n.get('PackDebugFiles')}</Button>
           </Tooltip>
         </Stack>
       </Modal>
@@ -403,7 +403,7 @@ const Logs = () => {
           onChange={setFileMode}
           data={[{ label: i18n.get('Server'), value: '' }, { label: i18n.get('File'), value: 'file' }]}
         />
-        <Button leftSection={<Filter />} onClick={() => { setFilterOpened(true) }}>{i18n.get('Filter')}</Button>
+        <Button leftSection={<IconFilter />} onClick={() => { setFilterOpened(true) }}>{i18n.get('Filter')}</Button>
         {fileMode ?
           <Dropzone
             p={5}
@@ -413,7 +413,7 @@ const Logs = () => {
             <Text ta='center'>Drop/Select log here</Text>
           </Dropzone>
           :
-          <Button leftSection={<Activity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get('Options')}</Button>
+          <Button leftSection={<IconActivity />} onClick={() => { setSettingsOpened(true) }}>{i18n.get('Options')}</Button>
         }
       </Group>
       <Divider my='sm' />

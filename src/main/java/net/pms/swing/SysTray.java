@@ -38,7 +38,6 @@ import net.pms.external.update.AutoUpdater;
 import net.pms.gui.GuiManager;
 import net.pms.platform.PlatformUtils;
 import net.pms.swing.components.SvgMultiResolutionImage;
-import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -64,12 +63,6 @@ public class SysTray {
 			Image trayIconImage = resolveTrayIcon(updateAvailable);
 
 			PopupMenu popup = new PopupMenu();
-			MenuItem quitItem = new MenuItem(Messages.getGuiString("Quit"));
-			MenuItem oldGuiItem = new MenuItem(Messages.getGuiString("SettingsOld"));
-
-			quitItem.addActionListener((ActionEvent e) -> PMS.quit());
-
-			oldGuiItem.addActionListener((ActionEvent e) -> GuiManager.showSwingFrame());
 
 			if (PMS.getConfiguration().useWebPlayerServer()) {
 				MenuItem webPlayerItem = new MenuItem(Messages.getGuiString("WebPlayer"));
@@ -80,10 +73,16 @@ public class SysTray {
 			MenuItem webGuiItem = new MenuItem(Messages.getGuiString("Settings"));
 			webGuiItem.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl()));
 			popup.add(webGuiItem);
+
+			MenuItem oldGuiItem = new MenuItem(Messages.getGuiString("SettingsOld"));
+			oldGuiItem.addActionListener((ActionEvent e) -> GuiManager.showSwingFrame());
 			popup.add(oldGuiItem);
+
+			MenuItem quitItem = new MenuItem(Messages.getGuiString("Quit"));
+			quitItem.addActionListener((ActionEvent e) -> PMS.quit());
 			popup.add(quitItem);
 
-			trayIcon = new TrayIcon(trayIconImage, PropertiesUtil.getProjectProperties().get("project.name"), popup);
+			trayIcon = new TrayIcon(trayIconImage, PMS.getConfiguration().getServerName(), popup);
 
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addActionListener((ActionEvent e) -> PlatformUtils.INSTANCE.browseURI(PMS.get().getGuiServer().getUrl()));

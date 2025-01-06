@@ -19,7 +19,7 @@ import { useLocalStorage } from '@mantine/hooks';
 import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useEffect, useState } from 'react';
-import { ExclamationMark } from 'tabler-icons-react';
+import { IconExclamationMark } from '@tabler/icons-react';
 
 import I18nContext, { LanguageValue } from '../contexts/i18n-context';
 import { i18nApiUrl } from '../utils';
@@ -84,7 +84,7 @@ export const I18nProvider = ({ children }: Props) => {
             color: 'red',
             title: i18n['Warning'],
             message: i18n['UniversalMediaServerUnreachable'],
-            icon: <ExclamationMark size='1rem' />
+            icon: <IconExclamationMark size='1rem' />
           });
         } else {
           showNotification({
@@ -109,7 +109,7 @@ export const I18nProvider = ({ children }: Props) => {
             color: 'red',
             title: i18n['Warning'],
             message: i18n['UniversalMediaServerUnreachable'],
-            icon: <ExclamationMark size='1rem' />
+            icon: <IconExclamationMark size='1rem' />
           });
         } else {
           showNotification({

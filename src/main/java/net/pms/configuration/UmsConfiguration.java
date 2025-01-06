@@ -221,6 +221,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	private static final String KEY_ANONYMOUS_DEVICES_WRITE = "anonymous_devices_write";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
@@ -433,6 +434,7 @@ public class UmsConfiguration extends BaseConfiguration {
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_UPNP_ALIVE_DELAY = "upnp_alive_delay";
+	private static final String KEY_UPNP_CDS_WRITE = "upnp_cds_write";
 	private static final String KEY_UPNP_ENABLED = "upnp_enable";
 	private static final String KEY_UPNP_JUPNP_DIDL = "upnp_jupnp_didl";
 	public static final String KEY_UPNP_LOG_LEVEL = "upnp_log_level";
@@ -599,6 +601,40 @@ public class UmsConfiguration extends BaseConfiguration {
 		KEY_SHOW_SERVER_SETTINGS_FOLDER,
 		KEY_SHOW_TRANSCODE_FOLDER,
 		KEY_SORT_METHOD
+	);
+
+	/**
+	 * The set of keys that is array of values.
+	 */
+	public static final Set<String> ARRAY_KEYS = Set.of(
+		KEY_ENGINES,
+		KEY_ENGINES_PRIORITY,
+		KEY_SELECTED_RENDERERS
+	);
+
+	/**
+	 * The set of keys that is selectable value.
+	 */
+	public static final Set<String> SELECT_KEYS = Set.of(
+		KEY_AUDIO_THUMBNAILS_METHOD,
+		KEY_FFMPEG_AVISYNTH_OUTPUT_FORMAT_3D,
+		KEY_FFMPEG_AVISYNTH_CONVERSION_ALGORITHM_2D_TO_3D,
+		KEY_FFMPEG_AVISYNTH_HORIZONTAL_RESIZE_RESOLUTION,
+		KEY_SORT_METHOD,
+		KEY_UPNP_LOG_LEVEL
+	);
+
+	/**
+	 * The set of keys that is valid with empty value.
+	 */
+	public static final List<String> VALID_EMPTY_KEYS = List.of(
+		KEY_ALTERNATE_THUMB_FOLDER,
+		KEY_SERVER_HOSTNAME,
+		KEY_NETWORK_INTERFACE,
+		KEY_SERVER_PORT,
+		KEY_RENDERER_DEFAULT,
+		KEY_WEB_GUI_PORT,
+		KEY_WEB_PLAYER_PORT
 	);
 
 	static {
@@ -5329,6 +5365,20 @@ public class UmsConfiguration extends BaseConfiguration {
 		return getBoolean(KEY_UPNP_JUPNP_DIDL, false);
 	}
 
+	/**
+	 * This allow remote device to modify CDS.
+	 */
+	public boolean isUpnpCdsWrite() {
+		return getBoolean(KEY_UPNP_CDS_WRITE, false);
+	}
+
+	/**
+	 * This allow anonymous remote devices to add/replace files and folders.
+	 */
+	public boolean isAnonymousDevicesWrite() {
+		return getBoolean(KEY_ANONYMOUS_DEVICES_WRITE, false);
+	}
+
 	public String getRootLogLevel() {
 		String level = getString(KEY_ROOT_LOG_LEVEL, "DEBUG").toUpperCase();
 		return "ALL TRACE DEBUG INFO WARN ERROR OFF".contains(level) ? level : "DEBUG";
@@ -5755,7 +5805,7 @@ public class UmsConfiguration extends BaseConfiguration {
 		JsonArray allRenderers = new JsonArray();
 		allRenderers.add(RendererConfigurations.ALL_RENDERERS_KEY);
 		jObj.add(KEY_SELECTED_RENDERERS, allRenderers);
-		jObj.addProperty(KEY_SERVER_NAME, "Universal Media Server");
+		jObj.addProperty(KEY_SERVER_NAME, PMS.NAME);
 		jObj.addProperty(KEY_SHOW_LIVE_SUBTITLES_FOLDER, false);
 		jObj.addProperty(KEY_SHOW_MEDIA_LIBRARY_FOLDER, true);
 		jObj.addProperty(KEY_SHOW_RECENTLY_PLAYED_FOLDER, true);

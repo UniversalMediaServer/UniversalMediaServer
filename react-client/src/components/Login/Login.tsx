@@ -18,7 +18,7 @@ import { TextInput, Button, Group, Box, Text, Space, Divider, Modal } from '@man
 import { useForm } from '@mantine/form';
 import { showNotification } from '@mantine/notifications';
 import { useContext, useEffect, useState } from 'react';
-import { User, Lock } from 'tabler-icons-react';
+import { IconUser, IconLock } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -104,14 +104,14 @@ const Login = () => {
         <TextInput
           required
           label={i18n.get('Username')}
-          leftSection={<User size={14} />}
+          leftSection={<IconUser size={14} />}
           {...form.getInputProps('username')}
         />
         <TextInput
           required
           label={i18n.get('Password')}
           type='password'
-          leftSection={<Lock size={14} />}
+          leftSection={<IconLock size={14} />}
           {...form.getInputProps('password')}
         />
         <Group justify='flex-end' mt='md'>

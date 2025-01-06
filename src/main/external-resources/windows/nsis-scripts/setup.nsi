@@ -90,7 +90,7 @@ Function InstallTypeShow
 		${NSD_CreateLabel} 3% 30% 100% 12u "This will extract all files to a directory for portable use"
 		${NSD_CreateButton} 0 40% 100% 12u "Advanced..."
 		Pop $MoreInstallButton
-		${NSD_OnClick} $MoreInstallButton EnableMoreInstallGroup		
+		${NSD_OnClick} $MoreInstallButton EnableMoreInstallGroup
 		${NSD_CreateHLine} 0% 40% 100% 12u ""
 		Pop $MoreInstallLine
 		${NSD_CreateLabel} 0% 45% 100% 20u "Warning! Selecting one of the following options will delete ${PROJECT_NAME}'s configuration directory, program directory and font cache."
@@ -211,15 +211,17 @@ FunctionEnd
 Function LockedListShow
 	StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
 		Abort
-	!insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it and stop the service.`
+	!insertmacro MUI_HEADER_TEXT "UMS must be closed before installation" "Clicking Next will automatically close it and stop the service."
 
-	File /oname=$PLUGINSDIR\LockedList64.dll `${NSISDIR}\Plugins\x86-unicode\LockedList64.dll`
+	File /oname=$PLUGINSDIR\LockedList64.dll "${NSISDIR}\Plugins\x86-unicode\LockedList64.dll"
 	LockedList::AddModule "$INSTDIR\bin\MediaInfo.dll"
-	LockedList::Dialog /autonext /autoclosesilent
+	LockedList::Dialog /autonext /autoclosesilent "" ""
 	Pop $R0
 
-	Call StopOldUmsService
-	Call StopUmsService
+	${If} $InstallType != "PORTABLE"
+		Call StopOldUmsService
+		Call StopUmsService
+	${EndIf}
 FunctionEnd
 
 Function LockedListLeave
@@ -273,18 +275,18 @@ Function AdvancedSettings
 		Pop $4
 
 		; Choose the maximum amount of RAM we want to use based on installed RAM
-		${If} $4 > 16000 
+		${If} $4 > 16000
 			StrCpy $DefaultMemoryLimit "4096"
-		${ElseIf} $4 > 8000 
+		${ElseIf} $4 > 8000
 			StrCpy $DefaultMemoryLimit "2048"
-		${ElseIf} $4 > 4000 
+		${ElseIf} $4 > 4000
 			StrCpy $DefaultMemoryLimit "1280"
 		${Else}
 			StrCpy $DefaultMemoryLimit "768"
 		${EndIf}
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended." 
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended."
 	Pop $DescMemoryLimit
 
 	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
@@ -319,7 +321,7 @@ Function RunUMS
 	${Else}
 		Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
 	${EndIf}
-FunctionEnd 
+FunctionEnd
 
 Function CreateDesktopShortcut
 	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
@@ -368,17 +370,29 @@ FunctionEnd
 Function FixSystemInstall
 	${If} $InstallType == "UPDATE"
 	${AndIf} $CurrentInstallType == "SYSTEM"
-		StrCmp $INSTDIR "$PROGRAMFILES\${PROJECT_NAME}" 0 +3
+	${AndIf} $INSTDIR == "$PROGRAMFILES\${PROJECT_NAME}"
 		StrCpy $INSTDIR "$PROGRAMFILES64\${PROJECT_NAME}"
-		Rename $0 $INSTDIR
+		Rename "$PROGRAMFILES\${PROJECT_NAME}" $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_SOFTWARE}" "" $INSTDIR
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "DisplayIcon" "$INSTDIR\icon.ico"
 		WriteRegStr HKLM "${REG_KEY_UNINSTALL}" "UninstallString" '"$INSTDIR\uninst.exe"'
+		${If} ${FileExists} "$SMSTARTUP\${PROJECT_NAME}.lnk"
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		${EndIf}
+	${EndIf}
+	;fix bad setup file, dir not moved
+	${If} $InstallType == "UPDATE"
+	${AndIf} $CurrentInstallType == "SYSTEM"
+	${AndIf} ${FileExists} "$PROGRAMFILES\${PROJECT_NAME}\*.*"
+		RMDir /R /REBOOTOK "$PROGRAMFILES\${PROJECT_NAME}"
+		${If} ${FileExists} "$SMSTARTUP\${PROJECT_NAME}.lnk"
+			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		${EndIf}
 	${EndIf}
 FunctionEnd
 
 Function DeleteOldFiles
-	; Old renderer files
+	; Remove renderer configs that are not part of UMS anymore, to prevent conflicts
 	Delete /REBOOTOK "$INSTDIR\renderers\AirPlayer.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Android.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\AndroidChromecast.conf"
@@ -421,8 +435,14 @@ Function DeleteOldFiles
 	Delete /REBOOTOK "$INSTDIR\renderers\SamsungAllShare-D7000.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SamsungMobile.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HT-E3.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU7000.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU9000.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-JU6400.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Q6.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMT-G7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UE-ES6575.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SamsungWiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SharpAquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\SMP-N100.conf"
@@ -510,6 +530,8 @@ Section "Program Files"
 	ReadRegStr $0 SHCTX "${REG_KEY_SOFTWARE}" "BinaryRevision"
 	${If} $0 == "${PROJECT_BINARY_REVISION}"
 	${AndIf} $InstallType == "UPDATE"
+	${AndIf} ${FileExists} "$INSTDIR\jre${PROJECT_JRE_VERSION}\*.*"
+	${AndIf} ${FileExists} "$INSTDIR\bin\*.*"
 		StrCpy $9 1
 	${EndIf}
 
@@ -569,24 +591,21 @@ Section "Program Files"
 		; Add firewall rules
 		ExecWait 'netsh advfirewall firewall add rule name="UMS Service" dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\java.exe" enable=yes profile=public,private'
 		ExecWait 'netsh advfirewall firewall add rule name=UMS dir=in action=allow program="$INSTDIR\jre${PROJECT_JRE_VERSION}\bin\javaw.exe" enable=yes profile=public,private'
-	${EndIf}
-	CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+		CreateDirectory "$SMPROGRAMS\${PROJECT_NAME}"
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
 
-	SimpleSC::ExistsService "${SERVICE_NAME}"
-	Pop $0
-	${If} $0 != 0
 		; Only start UMS with Windows when it is a new install
-		IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
-			goto end_of_startup_section
-		shortcut_file_not_found:
+		SimpleSC::ExistsService "${SERVICE_NAME}"
+		Pop $0
+		${If} $0 != 0
+		${AndIfNot} ${FileExists} "$SMPROGRAMS\${PROJECT_NAME}.lnk"
 			CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
-		end_of_startup_section:
-	${EndIf}
+		${EndIf}
 
-	CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+		CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+	${EndIf}
 SectionEnd
 
 Function un.DeleteCurrentRenderers
@@ -702,18 +721,20 @@ Function un.DeleteCurrentRenderers
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-H6400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HTE3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HTF4.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU7000.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-HU9000.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-JU6400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-J55xx.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-J6200.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-JU6400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Mobile.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-NotCD.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-PL51E490.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Q9.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Q70.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-SMTG7400.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-Soundbar-MS750.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2018-QLED.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2019+.conf"
+	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2019+-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-0.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-1.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-2.conf"
@@ -721,8 +742,6 @@ Function un.DeleteCurrentRenderers
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-TV-2021-4.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-WiseLink.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019.conf"
-	Delete /REBOOTOK "$INSTDIR\renderers\Samsung-UHD-2019-8K.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Sharp-Aquos.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime3.conf"
 	Delete /REBOOTOK "$INSTDIR\renderers\Showtime4.conf"
@@ -842,20 +861,20 @@ Section "Uninstall"
 SectionEnd
 
 Function FixRegistryWow64
-SetRegView 32
-; Check if wrong registry was set on HKCU (WOW64)
-ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
-ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
-ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
-${IfNot} $0 == ""
-	DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
-	;move it
+	SetRegView 32
+	; Check if wrong registry was set on HKCU (WOW64)
+	ReadRegStr $0 HKCU "${REG_KEY_SOFTWARE}" ""
+	ReadRegStr $1 HKCU "${REG_KEY_SOFTWARE}" "HeapMem"
+	ReadRegStr $2 HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision"
+	${IfNot} $0 == ""
+		DeleteRegKey HKCU "${REG_KEY_SOFTWARE}"
+		;move it
+		SetRegView 64
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
+		WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
+	${EndIf}
 	SetRegView 64
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" "$0"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$1"
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "BinaryRevision" "$2"
-${EndIf}
-SetRegView 64
 FunctionEnd
 
 Function FixRegistryCurrentUser
@@ -879,13 +898,14 @@ Function .onInit
 	Call FixRegistryWow64
 	SetShellVarContext current
 	SetRegView 64
-	IfFileExists "$LOCALAPPDATA\UMS\*.*" 0 +2 ;user
-	StrCpy $CurrentInstallType "USER"
-	${If} $CurrentInstallType == ""
+	${If} ${FileExists} "$LOCALAPPDATA\UMS\*.*"
+		StrCpy $CurrentInstallType "USER"
+	${Else}
 		Call FixRegistryCurrentUser
 		SetShellVarContext all
-		IfFileExists "$LOCALAPPDATA\UMS\*.*" 0 +2 ;system
-		StrCpy $CurrentInstallType "SYSTEM"
+		${If} ${FileExists} "$LOCALAPPDATA\UMS\*.*"
+			StrCpy $CurrentInstallType "SYSTEM"
+		${EndIf}
 	${EndIf}
 
 	ReadRegStr $0 SHCTX "${REG_KEY_SOFTWARE}" ""

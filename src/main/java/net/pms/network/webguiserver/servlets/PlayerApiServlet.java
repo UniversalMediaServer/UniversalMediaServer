@@ -327,6 +327,75 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 	}
 
+	/**
+	 * @param folderName
+	 * @param [default] optional change the default icon from "folder"
+	 * @return a Tabler icon that matches the folder name
+	 */
+	private static String getIconNameFromFolderName(String folderName, String defaultIconName) {
+		if (folderName.startsWith("i18n@")) {
+			folderName = folderName.substring(5);
+		}
+
+		if (defaultIconName == null) {
+			defaultIconName = "folder";
+		}
+
+		// Some of these are dynamic folders we supply, others are guesses at common folder names users will have
+		return switch (folderName) {
+			case ".." ->
+				"back";
+			case "#--TRANSCODE--#" ->
+				"settings";
+			case "3dMovies" ->
+				"badge-3d";
+			case "4kVideos" ->
+				"badge-4k";
+			case "Audio" ->
+				"audio";
+			case "ByDate" ->
+				"calendar";
+			case "DvdImages" ->
+				"disc";
+			case "FilterByInformation" ->
+				"info-square";
+			case "FilterByProgress" ->
+				"loader-2";
+			case "HdVideos" ->
+				"badge-hd";
+			case "InProgress" ->
+				"loader-2";
+			case "MostPlayed" ->
+				"heart";
+			case "Movies" ->
+				"movie";
+			case "Music" ->
+				"audio";
+			case "Photo" ->
+				"image";
+			case "RecentlyAdded" ->
+				"calendar";
+			case "RecentlyPlayed" ->
+				"eye";
+			case "SdVideos" ->
+				"badge-sd";
+			case "TvShows" ->
+				"device-tv";
+			case "Unsorted" ->
+				"shuffle";
+			case "Video" ->
+				"movie";
+			case "Web" ->
+				"world-www";
+			case "YouTube" ->
+				"brand-youtube";
+			case "YouTube Channels" ->
+				"brand-youtube";
+			default ->
+				defaultIconName;
+		};
+	}
+
 	private static JsonObject getBrowsePage(WebGuiRenderer renderer, String id, String search, String lang) throws IOException, InterruptedException {
 		LOGGER.debug("Make browse page " + id);
 		JsonObject result = new JsonObject();
@@ -348,9 +417,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 		}
 
 		boolean hasFile = false;
-		if (!resources.isEmpty() &&
-				resources.get(0).getParent() != null &&
-				resources.get(0).getParent().isFolder()) {
+		if (
+			!resources.isEmpty() &&
+			resources.get(0).getParent() != null &&
+			resources.get(0).getParent().isFolder()
+		) {
 			StoreContainer thisResourceFromResources = resources.get(0).getParent();
 			if (thisResourceFromResources.isChildrenSorted()) {
 				StoreResourceSorter.sortResourcesByDefault(resources, lang);
@@ -359,21 +430,11 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			String thisName = thisResourceFromResources.getSystemName();
 			if (thisName.equals("MediaLibrary")) {
 				for (StoreResource resource : resources) {
-					String icon = switch (resource.getSystemName()) {
-						case "Video" ->
-							"video";
-						case "Audio" ->
-							"audio";
-						case "Photo" ->
-							"image";
-						default ->
-							"folder";
-					};
 					hasFile = true;
 					JsonObject jMedia = new JsonObject();
 					jMedia.addProperty("id", resource.getResourceId());
 					jMedia.addProperty("name", resource.getLocalizedDisplayName(lang));
-					jMedia.addProperty("icon", icon);
+					jMedia.addProperty("icon", getIconNameFromFolderName(resource.getSystemName(), null));
 					jMedias.add(jMedia);
 				}
 			}
@@ -423,13 +484,19 @@ public class PlayerApiServlet extends GuiHttpServlet {
 				* - This is a filtered metadata folder within TV shows, or
 				* - This is Recommendations
 				 */
-				if (resource.getParent().getSystemName().equals("TvShows") ||
-						resource.getParent().getSystemName().equals("Recommendations") ||
-						(resource.getParent().getParent() != null &&
-						resource.getParent().getParent().getSystemName().equals("FilterByProgress")) ||
-						(resource.getParent().getParent() != null &&
+				if (
+					resource.getParent().getSystemName().equals("TvShows") ||
+					resource.getParent().getSystemName().equals("Recommendations") ||
+					(
+						resource.getParent().getParent() != null &&
+						resource.getParent().getParent().getSystemName().equals("FilterByProgress")
+					) ||
+					(
+						resource.getParent().getParent() != null &&
 						resource.getParent().getParent().getParent() != null &&
-						resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation"))) {
+						resource.getParent().getParent().getParent().getSystemName().equals("FilterByInformation")
+					)
+				) {
 					isDisplayFoldersAsThumbnails = true;
 				}
 
@@ -482,7 +549,9 @@ public class PlayerApiServlet extends GuiHttpServlet {
 						// The HlsHelper is a folder
 						JsonObject jFolder = new JsonObject();
 						jFolder.addProperty("id", resource.getResourceId());
-						jFolder.addProperty("name", resource.getLocalizedDisplayName(lang));
+						String folderName = resource.getLocalizedDisplayName(lang);
+						jFolder.addProperty("name", folderName);
+						jFolder.addProperty("icon", getIconNameFromFolderName(folderName, null));
 						jFolders.add(jFolder);
 					}
 				}
@@ -503,13 +572,19 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			}
 
 			// Check whether this HlsHelper is expected to contain folders that display as big thumbnails
-			if (folder.getSystemName().equals("TvShows") ||
-					folder.getSystemName().equals("Recommendations") ||
-					(folder.getParent() != null &&
-					folder.getParent().getSystemName().equals("FilterByProgress")) ||
-					(folder.getParent() != null &&
+			if (
+				folder.getSystemName().equals("TvShows") ||
+				folder.getSystemName().equals("Recommendations") ||
+				(
+					folder.getParent() != null &&
+					folder.getParent().getSystemName().equals("FilterByProgress")
+				) ||
+				(
+					folder.getParent() != null &&
 					folder.getParent().getParent() != null &&
-					folder.getParent().getParent().getSystemName().equals("FilterByInformation"))) {
+					folder.getParent().getParent().getSystemName().equals("FilterByInformation")
+				)
+			) {
 				for (StoreResource resource : resources) {
 					if (resource instanceof MediaLibraryFolder) {
 						hasFile = true;
@@ -622,8 +697,10 @@ public class PlayerApiServlet extends GuiHttpServlet {
 			throw new IOException("Bad Id");
 		}
 
-		if (item.getParent() != null &&
-				item.getParent().isFolder()) {
+		if (
+			item.getParent() != null &&
+			item.getParent().isFolder()
+		) {
 			JsonObject jFolder = new JsonObject();
 			jFolder.addProperty("id", item.getParent().getResourceId());
 			jFolder.addProperty("name", "..");

@@ -18,7 +18,7 @@ import { Accordion, ActionIcon, Box, Button, Checkbox, Code, ColorPicker, ColorS
 import { useLocalStorage } from '@mantine/hooks';
 import { useContext, useState } from 'react';
 import { arrayMove, List } from 'react-movable';
-import { ArrowNarrowDown, ArrowNarrowUp, ArrowsVertical, Ban, ExclamationMark, PlayerPlay } from 'tabler-icons-react';
+import { IconArrowNarrowDown, IconArrowNarrowUp, IconArrowsVertical, IconBan, IconExclamationMark, IconPlayerPlay } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -91,7 +91,7 @@ export default function TranscodingSettings(
       return (
         <Tooltip label={allowHtml(i18n.get('ThereIsProblemTranscodingEngineX')?.replace('%s', engine.name))} {...defaultTooltipSettings}>
           <ActionIcon variant='transparent' size={20}>
-            <ExclamationMark color={'orange'} strokeWidth={3} size={14} />
+            <IconExclamationMark color={'orange'} strokeWidth={3} size={14} />
           </ActionIcon>
         </Tooltip>
       )
@@ -109,7 +109,7 @@ export default function TranscodingSettings(
               e.stopPropagation();
             }}
           >
-            <PlayerPlay strokeWidth={2} color={'green'} size={14} />
+            <IconPlayerPlay strokeWidth={2} color={'green'} size={14} />
           </ActionIcon>
         </Tooltip>
       )
@@ -126,7 +126,7 @@ export default function TranscodingSettings(
             e.stopPropagation();
           }}
         >
-          <Ban color={'red'} size={14} />
+          <IconBan color={'red'} size={14} />
         </ActionIcon>
       </Tooltip>
     )
@@ -154,7 +154,7 @@ export default function TranscodingSettings(
             leftSection={
               <>
                 <ActionIcon variant='transparent' data-movable-handle size={20} style={{ cursor: isDragged ? 'grabbing' : 'grab', }}>
-                  {engines.indexOf(value) === 0 ? (<ArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<ArrowNarrowUp />) : (<ArrowsVertical />)}
+                  {engines.indexOf(value) === 0 ? (<IconArrowNarrowDown />) : engines.indexOf(value) === engines.length - 1 ? (<IconArrowNarrowUp />) : (<IconArrowsVertical />)}
                 </ActionIcon>
                 {getTranscodingEngineStatus(selectionSettings.transcodingEngines[value])}
               </>
@@ -572,7 +572,7 @@ export default function TranscodingSettings(
         <>
           <Title my='sm' order={5}>{currentEngine.name}</Title>
           <Stack gap='xs'>
-            <Text size='xs'><ExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get('ThisEngineNotLoaded')}</Text>
+            <Text size='xs'><IconExclamationMark color={'orange'} strokeWidth={3} size={14} /> {i18n.get('ThisEngineNotLoaded')}</Text>
             <Text size='xs'>{i18n.getI18nFormat(currentEngine.statusText)}</Text>
           </Stack>
         </>

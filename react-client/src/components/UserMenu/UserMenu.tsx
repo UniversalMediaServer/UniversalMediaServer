@@ -16,7 +16,7 @@
  */
 import { Menu, ActionIcon, VisuallyHidden } from '@mantine/core';
 import { useContext } from 'react';
-import { Home, InfoCircle, Logout, Menu2, PlayerPlay, Settings, Share, Tool, User, Users } from 'tabler-icons-react';
+import { IconHome, IconInfoCircle, IconLogout, IconMenu2, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import SessionContext from '../../contexts/session-context';
@@ -32,14 +32,14 @@ function UserMenu() {
       <Menu.Target>
         <ActionIcon variant='default' size={30}>
           <VisuallyHidden>{i18n.get('MainMenu')}</VisuallyHidden>
-          <Menu2 size={16} />
+          <IconMenu2 size={16} />
         </ActionIcon>
       </Menu.Target>
       <Menu.Dropdown>
         {!session.player && havePermission(session, Permissions.settings_view) &&
           <Menu.Item
             color='green'
-            leftSection={<Home size={14} />}
+            leftSection={<IconHome size={14} />}
             onClick={() => { window.location.href = '/'; }}
           >
             {i18n.get('Home')}
@@ -48,7 +48,7 @@ function UserMenu() {
         {havePermission(session, Permissions.web_player_browse) && (
           <Menu.Item
             color='blue'
-            leftSection={<PlayerPlay size={14} />}
+            leftSection={<IconPlayerPlay size={14} />}
             onClick={() => { window.location.href = '/player'; }}
           >
             {i18n.getI18nString('Player')}
@@ -59,7 +59,7 @@ function UserMenu() {
           <Menu.Label>{i18n.get('Settings')}</Menu.Label>
           {havePermission(session, Permissions.settings_view) && (
             <Menu.Item
-              leftSection={<Share size={14} />}
+              leftSection={<IconShare size={14} />}
               onClick={() => { window.location.href = '/shared'; }}
             >
               {i18n.get('SharedContent')}
@@ -67,7 +67,7 @@ function UserMenu() {
           )}
           {havePermission(session, (Permissions.server_restart | Permissions.computer_shutdown) | Permissions.settings_modify) && (
             <Menu.Item
-              leftSection={<Tool size={14} />}
+              leftSection={<IconTool size={14} />}
               onClick={() => { window.location.href = '/actions'; }}
             >
               {i18n.get('Tools')}
@@ -75,14 +75,14 @@ function UserMenu() {
           )}
           {havePermission(session, Permissions.settings_view) && (
             <Menu.Item
-              leftSection={<Settings size={14} />}
+              leftSection={<IconSettings size={14} />}
               onClick={() => { window.location.href = '/settings'; }}
             >
               {i18n.get('ServerSettings')}
             </Menu.Item>
           )}
           <Menu.Item
-            leftSection={havePermission(session, Permissions.users_manage) ? <Users size={14} /> : <User size={14} />}
+            leftSection={havePermission(session, Permissions.users_manage) ? <IconUsers size={14} /> : <IconUser size={14} />}
             onClick={() => { window.location.href = '/accounts'; }}
           >
             {havePermission(session, Permissions.users_manage) ? i18n.get('ManageAccounts') : i18n.get('MyAccount')}
@@ -91,7 +91,7 @@ function UserMenu() {
         <Menu.Divider />
         <Menu.Item
           color='yellow'
-          leftSection={<InfoCircle size={14} />}
+          leftSection={<IconInfoCircle size={14} />}
           onClick={() => { window.location.href = '/about'; }}
         >
           {i18n.get('About')}
@@ -99,7 +99,7 @@ function UserMenu() {
         {session.authenticate && session.account?.user.id !== 2147483647 && (
           <Menu.Item
             color='rgba(255, 0, 0, 1)'
-            leftSection={<Logout size={14} />}
+            leftSection={<IconLogout size={14} />}
             onClick={() => {
               redirectToLogin();
             }}

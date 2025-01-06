@@ -23,7 +23,7 @@ import {
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { MoonStars, Sun, User } from 'tabler-icons-react';
+import { IconMoonStars, IconSun, IconUser } from '@tabler/icons-react';
 
 import './services/http-interceptor';
 import About from './components/About/About'
@@ -107,7 +107,7 @@ function UmsApp() {
                               style={() => ({ cursor: 'default', color: computedColorScheme === 'dark' ? 'white' : 'black' })}
                               leftSection={
                                 <Avatar radius='sm' size='sm' src={session.account.user.avatar !== '' ? session.account.user.avatar : null}>
-                                  {session.account.user.avatar === '' && <User size={16} />}
+                                  {session.account.user.avatar === '' && <IconUser size={16} />}
                                 </Avatar>
                               }
                             >
@@ -117,7 +117,7 @@ function UmsApp() {
                         </Group>
                         <Group justify='right'>
                           <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
-                            {computedColorScheme === 'dark' ? <Sun size={16} /> : <MoonStars size={16} />}
+                            {computedColorScheme === 'dark' ? <IconSun size={16} /> : <IconMoonStars size={16} />}
                           </ActionIcon>
                           <LanguagesMenu />
                           {session.account && <UserMenu />}

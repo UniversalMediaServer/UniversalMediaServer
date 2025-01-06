@@ -112,6 +112,7 @@ public class RendererConfigurationTest {
 
 		testUPNPDetails("LG EG910V", "modelDescription=webOS TV EG910V");
 
+		testHeaders("LG LED-backlit LCD TV (2022+)", "DLNADeviceName.lge.com: %5bLG%5d%20webOS%20TV%20LQ63006LA");
 		testUPNPDetails("LG LED-backlit LCD TV (2022+)", "modelNumber=32LQ63006LA");
 
 		testUPNPDetails("LG LCD TV (2014)", "friendlyName=[TV][LG]42LB5700-ZB");
@@ -256,19 +257,30 @@ public class RendererConfigurationTest {
 			"Samsung E+ Series",
 			"User-Agent: SEC_HHP_ Family TV/1.0",
 			"User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0",
-			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50",
-			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+			"User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50"
 		);
 
 		testUPNPDetails("Samsung EH5300", "modelName=UA32EH5300");
+
+		testHeaders(
+			"Samsung ES6100",
+			"User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50"
+		);
+		testUPNPDetails("Samsung ES6100", "modelName=UE46ES6100");
 
 		testHeaders("Samsung ES8000", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 
 		testHeaders("Samsung LED UHD", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] UE88KS9810/1.0 UPnP/1.0");
 		testUPNPDetails(
 			"Samsung LED UHD",
-			"modelName=UE88KS9810", 
-			"modelName=UE43RU7179UXZG"
+			"modelName=UA55HU7000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UA55HU9000J", // 2014 UHD (note: this string is a guess, not from logs)
+			"modelName=UN43JU6400F", // 2015 UHD (note: this string is a guess, not from logs)
+			"modelName=UN65KS8000FXZA", // 2016 SUHD
+			"modelName=UE65KS9002T", // 2016 SUHD
+			"modelName=UE88KS9810", // 2016 SUHD
+			"modelName=UE55MU6170U", // 2017 UHD
+			"modelName=UE43RU7179UXZG" // 2019 UHD
 		);
 
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");
@@ -282,17 +294,22 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung Soundbar MS750", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[AV] Samsung Soundbar MS750/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Soundbar MS750", "modelName=HW-MS750");
 
+		testHeaders("Samsung 2018 QLED TV", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q6 Series (65)/1.0 UPnP/1.0");
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QN65Q6FNAFXZA"); // Q6F, 2018 Edge Lit Flat UHD QLED
+		testUPNPDetails("Samsung 2018 QLED TV", "modelName=QE55Q7FNATXXH"); // Q7F, 2018 Edge Lit Flat UHD QLED 
+
 		testHeaders("Samsung Q9 Series", "USER-AGENT: DLNADOC/1.50 SEC_HHP_[TV] Samsung Q9 Series (55)/1.0 UPnP/1.0");
 		testUPNPDetails("Samsung Q9 Series", "modelName=QE55Q9FNA");
 
 		testUPNPDetails(
-			"Samsung QLED 4K 2019+",
+			"Samsung TV 2019+",
 			"modelName=QN49Q70RAFXZA, modelDescription=Samsung TV", // 2019 starts here (R Series)
 			"modelName=QN75Q90RAFXZA, modelDescription=Samsung TV",
 			"modelName=QE55LS03RAUXXH, modelDescription=Samsung TV",
 			"modelName=QN32LS03TBFXZA, modelDescription=Samsung TV", // 2020 starts here (T Series)
 			"modelName=GQ43LS03TAUXZG, modelDescription=Samsung TV",
 			"modelName=QE43LS03TAUXXH, modelDescription=Samsung TV",
+			"friendlyName=[TV] Samsung 7 Series (43), manufacturer=Samsung Electronics, modelName=UN43TU700DFXZA, modelNumber=AllShare1.0, modelDescription=Samsung TV DMR, manufacturerURL=http://www.samsung.com/sec, modelURL=http://www.samsung.com/sec",
 			"modelName=QA65S95BASXNZ, modelDescription=Samsung TV", // 2022 starts here (B Series)
 			"modelName=QA65Q60BASXNZ, modelDescription=Samsung TV",
 			"modelName=UA65BU8000SXNZ, modelDescription=Samsung TV",
@@ -309,6 +326,11 @@ public class RendererConfigurationTest {
 			"modelName=UA65DU8000SXNZ, modelDescription=Samsung TV",
 			"modelName=UA65DU8500SXNZ, modelDescription=Samsung TV",
 			"modelName=QA65QE1DASXNZ, modelDescription=Samsung TV"
+		);
+
+		testUPNPDetails(
+			"Samsung 8K TV 2019+",
+			"modelName=QN75Q900RBFXZA, modelDescription=Samsung TV"
 		);
 
 		testUPNPDetails(
@@ -497,10 +519,8 @@ public class RendererConfigurationTest {
 	 * renderer. Set the correct renderer name to <code>null</code> to require
 	 * that nothing matches at all.
 	 *
-	 * @param correctRendererName
-	 *            The name of the renderer.
-	 * @param headerLines
-	 *            One or more raw header lines.
+	 * @param correctRendererName The name of the renderer.
+	 * @param headerLines         One or more raw header lines.
 	 */
 	private static void testHeaders(String correctRendererName, String... headerLines) {
 		SortedHeaderMap headers = new SortedHeaderMap();
