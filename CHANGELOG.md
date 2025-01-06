@@ -9,6 +9,7 @@
 - Bump `@mantine/hooks` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
 - Bump `@mantine/modals` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
 - Bump `@mantine/notifications` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
+- Bump `@types/lodash` from 4.17.13 to 4.17.14 ([#5228](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5228))
 - Bump `ch.qos.logback:logback-classic` from 1.5.15 to 1.5.16 ([#5227](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5227))
 - Bump `ch.qos.logback:logback-core` from 1.5.15 to 1.5.16 ([#5227](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5227))
 - Bump `com.puppycrawl.tools:checkstyle` from 10.21.0 to 10.21.1 ([#5209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5209))
