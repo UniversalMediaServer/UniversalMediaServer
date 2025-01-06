@@ -250,6 +250,7 @@ public class RealFile extends StoreItem implements SystemFileResource {
 			}
 			InputFile input = new InputFile();
 			input.setFile(file);
+			resolveFormat();
 			setMediaInfo(MediaInfoStore.getMediaInfo(filename, file, getFormat(), getType()));
 			setMediaStatus(MediaStatusStore.getMediaStatus(renderer.getAccountUserId(), filename));
 		}
