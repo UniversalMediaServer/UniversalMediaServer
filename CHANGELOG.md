@@ -15,6 +15,7 @@
 - Bump `eslint-plugin-react-hooks` from 5.0.0 to 5.1.0 ([#5160](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5160))
 - Bump `eslint-plugin-react` from 7.37.2 to 7.37.3 ([#5229](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5229))
 - Bump `jna-version` from 5.15.0 to 5.16.0 ([#5208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5208))
+- Bump `react-router-dom` from 6.28.0 to 7.1.1 ([#5186](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5186))
 
 ## [14.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-12-24)
 
