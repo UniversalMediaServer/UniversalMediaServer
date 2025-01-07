@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.platform.PlatformUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.LineIterator;
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextConsumer.class);
-	private static Charset charset = null;
 	private final List<String> lines = new ArrayList<>();
 	private final Object linesLock = new Object();
 	private final boolean log;
@@ -40,14 +38,11 @@ public class OutputTextConsumer extends OutputConsumer {
 	public OutputTextConsumer(InputStream inputStream, boolean log) {
 		super(inputStream);
 		this.log = log;
-		if (charset == null) {
-			charset = PlatformUtils.INSTANCE.getDefaultCharset();
-		}
 	}
 
 	@Override
 	public void run() {
-		try (LineIterator it = IOUtils.lineIterator(inputStream, charset)) {
+		try (LineIterator it = IOUtils.lineIterator(inputStream,  Charset.defaultCharset())) {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 

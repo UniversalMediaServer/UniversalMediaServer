@@ -73,7 +73,6 @@ import org.slf4j.LoggerFactory;
  */
 public class WindowsUtils extends PlatformUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsUtils.class);
-	private final Charset consoleCharset;
 
 	private final boolean kerio;
 	protected final Path psPing;
@@ -133,8 +132,7 @@ public class WindowsUtils extends PlatformUtils {
 					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
 					return result;
 				}
-				LOGGER.debug("Can't find \"{}\"", pathname);
-				return null;
+				return longPathName;
 
 			} catch (Exception e) {
 				return longPathName;
@@ -216,7 +214,25 @@ public class WindowsUtils extends PlatformUtils {
 	 *         or {@code null} if it couldn't be converted.
 	 */
 	public static Charset getOEMCharset() {
-		int codepage = Kernel32.INSTANCE.GetOEMCP();
+		return getCharset(Kernel32.INSTANCE.GetOEMCP());
+	}
+
+	/**
+	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
+	 */
+	public static int getConsoleOutputCP() {
+		return Kernel32.INSTANCE.GetConsoleOutputCP();
+	}
+
+	/**
+	 * @return The result of {@link #getConsoleOutputCP()} converted to a {@link Charset}
+	 *         or {@code null} if it couldn't be converted.
+	 */
+	public static Charset getConsoleOutputCharset() {
+		return getCharset(Kernel32.INSTANCE.GetOEMCP());
+	}
+
+	private static Charset getCharset(int codepage) {
 		Charset result = null;
 		String[] aliases = {"cp" + codepage, "MS" + codepage};
 		for (String alias : aliases) {
@@ -230,13 +246,6 @@ public class WindowsUtils extends PlatformUtils {
 		return result;
 	}
 
-	/**
-	 * @return The result from the Windows API {@code GetConsoleOutputCP()}.
-	 */
-	public static int getConsoleOutputCP() {
-		return Kernel32.INSTANCE.GetConsoleOutputCP();
-	}
-
 	private static String charString2String(CharBuffer buf) {
 		char[] chars = buf.array();
 		int i;
@@ -248,15 +257,10 @@ public class WindowsUtils extends PlatformUtils {
 		return new String(chars, 0, i);
 	}
 
-	/** *  Only to be instantiated by {@link PlatformUtils#createInstance()}. */
+	/**
+	 *  Only to be instantiated by {@link PlatformUtils#createInstance()}.
+	 */
 	public WindowsUtils() {
-		Charset windowsConsole;
-		try {
-			windowsConsole = Charset.forName("cp" + getOEMCP());
-		} catch (Exception e) {
-			windowsConsole = Charset.defaultCharset();
-		}
-		consoleCharset = windowsConsole;
 		setVLCRegistryInfo();
 		avsPluginsFolder = getAviSynthPluginsFolder();
 		aviSynth = avsPluginsFolder != null;
@@ -428,11 +432,6 @@ public class WindowsUtils extends PlatformUtils {
 			LOGGER.info("Could not find the My Music folder");
 		}
 		return null;
-	}
-
-	@Override
-	public Charset getDefaultCharset() {
-		return consoleCharset;
 	}
 
 	@Override
