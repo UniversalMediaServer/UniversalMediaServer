@@ -445,7 +445,7 @@ public class StoreContainer extends StoreResource {
 	 * global ID repository.
 	 */
 	protected synchronized void addChildInternal(StoreResource child, boolean isAddGlobally) {
-		if (child.getId() != null) {
+		if (child.getId() != null && !child.getId().startsWith(DbIdMediaType.GENERAL_PREFIX)) {
 			LOGGER.debug("Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 					new Object[]{child.getClass().getName(), child.getResourceId(), child.getParent()});
 		}
