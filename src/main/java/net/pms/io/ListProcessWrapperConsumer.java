@@ -19,13 +19,11 @@ package net.pms.io;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import javax.annotation.Nullable;
-import net.pms.platform.PlatformUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,9 +53,8 @@ public class ListProcessWrapperConsumer implements ProcessWrapperConsumer<ListPr
 		}
 		Callable<List<String>> callable = () -> {
 			List<String> result = new ArrayList<>();
-			Charset outputCharset = PlatformUtils.INSTANCE.getDefaultCharset();
 			try (
-					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, outputCharset))
+					BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))
 					) {
 				String line;
 				while ((line = reader.readLine()) != null) {
