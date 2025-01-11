@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+### General
+- Made the taskbar tooltip use the custom server name
+- Extended UPnP CreateObject / ImportUri support
+- Fixed various x86_64 Windows installer problems
+- Fixed database update bugs
+- Fixed external subtitles not working since 14.6.0
+- Fixed YouTube channel/video support
+- Fixed saving API configuration via web settings
+- Fixed setting selected renderers via web settings
+- Fixed duplicate key setting via web settings
+- Fixed support for long file paths (above 255 characters) on Windows
+
+### Media players
+- Added streaming support for AAC (main) to LG TVs
+- Added detection of Samsung D6400 TVs from Europe and North America
+- Added detection of Samsung ES6100 TVs from Asia and North America
+- Added detection of Samsung ES6595 TVs from Asia and North America
+- Added detection of Samsung J55xx TVs from Asia and North America
+- Added detection of more Samsung TVs, Blu-ray players and home theater systems from Asia 
+- Added detection of Samsung Q9 TVs from Asia and North America
+- Added detection of Samsung 2018 QLED TVs (Q6, Q7 and Q8)
+- Added detection of more Samsung 2019+ TVs of all types and locations
+
 ### Dependencies
 - Bump `@mantine/core` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
 - Bump `@mantine/dropzone` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
@@ -15,7 +38,10 @@
 - Bump `com.puppycrawl.tools:checkstyle` from 10.21.0 to 10.21.1 ([#5209](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5209))
 - Bump `eslint-plugin-react-hooks` from 5.0.0 to 5.1.0 ([#5160](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5160))
 - Bump `eslint-plugin-react` from 7.37.2 to 7.37.3 ([#5229](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5229))
+- Bump `FFmpeg` from 7.0.2 to 20250103 nightlies
 - Bump `jna-version` from 5.15.0 to 5.16.0 ([#5208](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5208))
+- Bump `MediaInfo` from 24.06 to 24.12
+- Bump `youtube-dl` from 2024.08.07 to 2025.01.01
 
 ## [14.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-12-24)
 
