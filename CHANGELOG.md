@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [14.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.9.0...14.10.0) (2025-01-12)
+
 ### General
 - Made the taskbar tooltip use the custom server name
 - Extended UPnP CreateObject / ImportUri support
@@ -24,6 +26,11 @@
 - Added detection of Samsung Q9 TVs from Asia and North America
 - Added detection of Samsung 2018 QLED TVs (Q6, Q7 and Q8)
 - Added detection of more Samsung 2019+ TVs of all types and locations
+- Expanded support for Yamaha RN500 (thanks, jps92!)
+
+### Translation updates via Crowdin
+- French (100%) (thanks, Fredo1650!)
+- Spanish (66%) (thanks, MarcosHO!)
 
 ### Dependencies
 - Bump `@mantine/core` from 7.15.1 to 7.15.2 ([#5210](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5210))
@@ -43,7 +50,7 @@
 - Bump `MediaInfo` from 24.06 to 24.12
 - Bump `youtube-dl` from 2024.08.07 to 2025.01.01
 
-## [14.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.7.0...14.8.0) (2024-12-24)
+## [14.9.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.8.0...14.9.0) (2024-12-24)
 
 ### General
 - Added new icons to web player, for example:
