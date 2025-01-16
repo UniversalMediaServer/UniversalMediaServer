@@ -17,7 +17,6 @@
 package net.pms.image;
 
 import com.drew.metadata.Metadata;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.color.ColorSpace;
 import java.awt.image.ColorModel;
 import net.pms.util.ParseException;
@@ -31,7 +30,6 @@ import net.pms.util.ParseException;
  */
 
 @SuppressWarnings("serial")
-@SuppressFBWarnings("SE_NO_SERIALVERSIONID")
 public class GenericImageInfo extends ImageInfo {
 
 	/**

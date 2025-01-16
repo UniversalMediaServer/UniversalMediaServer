@@ -17,7 +17,6 @@
 package net.pms.platform.mac.corefoundation;
 
 import com.sun.jna.Native;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import net.pms.platform.jna.ArrayByReference;
 import net.pms.platform.mac.corefoundation.CoreFoundation.CFTypeRef;
 
@@ -121,7 +120,6 @@ public class CFTypeArrayRef extends ArrayByReference<CFTypeRef> {
 	 * @return An array containing the values of the referenced {@link CFTypeRef} array.
 	 */
 	@Override
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public CFTypeRef[] getArray() {
 		if (array == null) {
 			array = super.getArray();

@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,12 +27,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Pattern;
 import net.pms.configuration.RendererConfigurations;
 import net.pms.configuration.UmsConfiguration;
 import net.pms.iam.Account;
@@ -46,7 +44,6 @@ import org.apache.commons.configuration.ConfigurationConverter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 
 /**
  * This class handles calls to the internal API.
@@ -55,6 +52,8 @@ import pl.jalokim.propertiestojson.util.PropertiesToJsonConverter;
 public class SettingsApiServlet extends GuiHttpServlet {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SettingsApiServlet.class);
+	private static final Pattern INT_PATTERN = Pattern.compile("^\\d+$");
+	private static final Pattern FLOAT_PATTERN = Pattern.compile("^\\d+(\\.\\d+)?$");
 	private static final JsonObject WEB_SETTINGS_WITH_DEFAULTS = UmsConfiguration.getWebSettingsWithDefaults();
 	private static final JsonArray AUDIO_COVER_SUPPLIERS = UmsConfiguration.getAudioCoverSuppliersAsJsonArray();
 	private static final JsonArray FFMPEG_LOGLEVEL = UmsConfiguration.getFfmpegLoglevels();
@@ -103,25 +102,7 @@ public class SettingsApiServlet extends GuiHttpServlet {
 				jsonResponse.add("gpuEncodingH264AccelerationMethods", GPU_ENCODING_H264_ACCELERATION_METHODS);
 				jsonResponse.add("gpuEncodingH265AccelerationMethods", GPU_ENCODING_H265_ACCELERATION_METHODS);
 
-				String configurationAsJsonString = getConfigurationAsJsonString();
-				JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-
-				//select need string, not number
-				for (String key : UmsConfiguration.SELECT_KEYS) {
-					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
-						String value = configurationAsJson.get(key).getAsString();
-						configurationAsJson.add(key, new JsonPrimitive(value));
-					}
-				}
-				for (String key : UmsConfiguration.ARRAY_KEYS) {
-					if (configurationAsJson.has(key) && configurationAsJson.get(key).isJsonPrimitive()) {
-						JsonPrimitive value = configurationAsJson.get(key).getAsJsonPrimitive();
-						JsonArray array = new JsonArray();
-						array.add(value);
-						configurationAsJson.add(key, array);
-					}
-				}
-				jsonResponse.add("userSettings", configurationAsJson);
+				jsonResponse.add("userSettings", getConfigurationAsJsonObject());
 
 				respond(req, resp, jsonResponse.toString(), 200, "application/json");
 			} else {
@@ -231,8 +212,16 @@ public class SettingsApiServlet extends GuiHttpServlet {
 		return WEB_SETTINGS_WITH_DEFAULTS.has(key);
 	}
 
-	public static boolean acceptEmptyValueForKey(String key) {
+	private static boolean acceptEmptyValueForKey(String key) {
 		return UmsConfiguration.VALID_EMPTY_KEYS.contains(key);
+	}
+
+	private static boolean isSelectKey(String key) {
+		return UmsConfiguration.SELECT_KEYS.contains(key);
+	}
+
+	private static boolean isArrayKey(String key) {
+		return UmsConfiguration.ARRAY_KEYS.contains(key);
 	}
 
 	private static String getDirectoryResponse(JsonObject data) {
@@ -318,31 +307,12 @@ public class SettingsApiServlet extends GuiHttpServlet {
 			JsonObject datas = new JsonObject();
 			datas.addProperty("action", "set_configuration_changed");
 			Configuration configuration = CONFIGURATION.getConfiguration();
-			JsonObject userConfiguration = new JsonObject();
-			if (configuration.containsKey(key)) {
-				String strValue = Objects.toString(configuration.getProperty(key));
-				if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(key)) {
-					//escape "\" char with "\\" otherwise json will fail
-					Map<String, String> propsAsStringMap = new HashMap<>();
-					propsAsStringMap.put(key, strValue.replace("\\", "\\\\"));
-					String configurationAsJsonString = new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
-					JsonObject configurationAsJson = JsonParser.parseString(configurationAsJsonString).getAsJsonObject();
-					//select need string, not number
-					if (UmsConfiguration.SELECT_KEYS.contains(key)) {
-						String value = configurationAsJson.get(key).getAsString();
-						userConfiguration.add(key, new JsonPrimitive(value));
-					} else {
-						userConfiguration.add(key, configurationAsJson.get(key));
-					}
-				} else {
-					//back to default value
-					userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
-				}
-			} else {
+			JsonObject jsonObject = new JsonObject();
+			if (!configuration.containsKey(key) || !addPropertyToJsonObject(jsonObject, key, configuration.getProperty(key))) {
 				//back to default value
-				userConfiguration.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
+				jsonObject.add(key, WEB_SETTINGS_WITH_DEFAULTS.get(key));
 			}
-			datas.add("value", userConfiguration);
+			datas.add("value", jsonObject);
 			return datas.toString();
 		}
 		return "";
@@ -356,25 +326,48 @@ public class SettingsApiServlet extends GuiHttpServlet {
 	 * Note: We do not save the configuration as JSON at any point, this is just
 	 * a convenience method for our REST API.
 	 *
-	 * @return the user settings as a JSON string.
+	 * @return the user settings as a JSON object.
 	 */
-	public String getConfigurationAsJsonString() {
-		Properties configurationAsProperties = ConfigurationConverter.getProperties(CONFIGURATION.getConfiguration());
+	private static JsonObject getConfigurationAsJsonObject() {
+		Properties userConfiguration = ConfigurationConverter.getProperties(CONFIGURATION.getConfiguration());
+		return getPropertiesAsJsonObject(userConfiguration);
+	}
 
-		Map<String, String> propsAsStringMap = new HashMap<>();
-		configurationAsProperties.forEach((key, value) -> {
+	private static JsonObject getPropertiesAsJsonObject(Properties properties) {
+		JsonObject jsonObject = new JsonObject();
+		properties.forEach((key, value) -> {
 			String strKey = Objects.toString(key);
-			if (SettingsApiServlet.haveKey(strKey)) {
-				String strValue = Objects.toString(value);
-				//do not add non acceptable empty key then it back to default
-				if (StringUtils.isNotEmpty(strValue) || SettingsApiServlet.acceptEmptyValueForKey(strKey)) {
-					//escape "\" char with "\\" otherwise json will fail
-					propsAsStringMap.put(strKey, strValue.replace("\\", "\\\\"));
-				}
-			}
+			addPropertyToJsonObject(jsonObject, strKey, value);
 		});
+		return jsonObject;
+	}
 
-		return new PropertiesToJsonConverter().convertToJson(propsAsStringMap);
+	private static boolean addPropertyToJsonObject(final JsonObject jsonObject, String key, Object value) {
+		if (haveKey(key)) {
+			String strValue = Objects.toString(value);
+			//do not add non acceptable empty key then it back to default
+			if (StringUtils.isNotEmpty(strValue) || acceptEmptyValueForKey(key)) {
+				if (isSelectKey(key)) {
+					jsonObject.addProperty(key, strValue);
+				} else if (isArrayKey(key)) {
+					JsonArray array = new JsonArray();
+					for (String arrayValue : StringUtils.split(strValue, UmsConfiguration.getListDelimiter())) {
+						array.add(arrayValue);
+					}
+					jsonObject.add(key, array);
+				} else if (strValue.equals("true") || strValue.equals("false")) {
+					jsonObject.addProperty(key, Boolean.valueOf(strValue));
+				} else if (INT_PATTERN.matcher(strValue).matches()) {
+					jsonObject.addProperty(key, Integer.valueOf(strValue));
+				} else if (FLOAT_PATTERN.matcher(strValue).matches()) {
+					jsonObject.addProperty(key, Float.valueOf(strValue));
+				} else {
+					jsonObject.addProperty(key, strValue);
+				}
+				return true;
+			}
+		}
+		return false;
 	}
 
 }

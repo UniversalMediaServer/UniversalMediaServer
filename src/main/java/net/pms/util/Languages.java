@@ -18,7 +18,6 @@ package net.pms.util;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -323,7 +322,6 @@ public final class Languages {
 		}
 	}
 
-	@SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
 	private static void populateTranslationsStatistics() {
 		if (TRANSLATIONS_STATISTICS.size() < 1) {
 			try (
