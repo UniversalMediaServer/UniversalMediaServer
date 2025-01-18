@@ -609,7 +609,10 @@ public class UmsConfiguration extends BaseConfiguration {
 	public static final Set<String> ARRAY_KEYS = Set.of(
 		KEY_ENGINES,
 		KEY_ENGINES_PRIORITY,
-		KEY_SELECTED_RENDERERS
+		KEY_SELECTED_RENDERERS,
+		KEY_FFMPEG_AVAILABLE_GPU_ACCELERATION_METHODS,
+		KEY_SKIP_NETWORK_INTERFACES,
+		KEY_FOLDER_NAMES_IGNORED
 	);
 
 	/**
@@ -3652,6 +3655,10 @@ public class UmsConfiguration extends BaseConfiguration {
 
 	private static String collectionToString(Collection<?> list) {
 		return StringUtils.join(list, LIST_SEPARATOR);
+	}
+
+	public static char getListDelimiter() {
+		return LIST_SEPARATOR;
 	}
 
 	@SuppressWarnings("unused")

@@ -78,6 +78,7 @@
 		<git-commit-id-plugin-version>9.0.1</git-commit-id-plugin-version>
 		<maven-assembly-plugin-version>3.7.1</maven-assembly-plugin-version>
 		<maven-enforcer-plugin-version>3.5.0</maven-enforcer-plugin-version>
+		<maven-resources-plugin-version>3.3.1</maven-resources-plugin-version>
 
 		<!--
 			org.slf4j:slf4j-api is shared with
@@ -214,22 +215,13 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>23.0</version>
+			<version>33.4.0-jre</version>
 			<exclusions>
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
 				<exclusion>
 					<groupId>com.google.errorprone</groupId>
 					<artifactId>error_prone_annotations</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>annotations</artifactId>
-			<version>3.0.1u2</version>
 		</dependency>
 		<!-- maven replacement for nsisant-1.2.jar -->
 		<dependency>
@@ -546,42 +538,6 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>pl.jalokim.propertiestojson</groupId>
-			<artifactId>java-properties-to-json</artifactId>
-			<version>5.3.0</version>
-			<exclusions>
-				<!-- This should never have been a dependency in the first place -->
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>jsr305</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.code.findbugs</groupId>
-					<artifactId>annotations</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.projectlombok</groupId>
-					<artifactId>lombok</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.commons</groupId>
-					<artifactId>commons-lang3</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.google.code.gson</groupId>
-					<artifactId>gson</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>commons-io</groupId>
-					<artifactId>commons-io</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
 			<groupId>at.favre.lib</groupId>
 			<artifactId>bcrypt</artifactId>
 			<version>0.10.2</version>
@@ -835,6 +791,15 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<version>${maven-resources-plugin-version}</version>
+				<configuration>
+					<propertiesEncoding>${project.encoding}</propertiesEncoding>
+				</configuration>
 			</plugin>
 
 			<!--
@@ -1196,8 +1161,9 @@
 						"ums.nsi" and "setup.nsi" files.
 					-->
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -1282,17 +1248,6 @@
 								<configuration>
 									<outputFile>${project.build.directory}/${project.name.short}-setup.exe</outputFile>
 									<scriptFile>${project.build.directory}/setup.nsi</scriptFile>
-								</configuration>
-								<phase>package</phase>
-								<goals>
-									<goal>make</goal>
-								</goals>
-							</execution>
-							<execution>
-								<id>build-setup-windows-x86</id>
-								<configuration>
-									<outputFile>${project.build.directory}/${project.name.short}-setup-x86.exe</outputFile>
-									<scriptFile>${project.build.directory}/setup-old.nsi</scriptFile>
 								</configuration>
 								<phase>package</phase>
 								<goals>
@@ -2953,8 +2908,9 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3087,8 +3043,9 @@
 						</executions>
 					</plugin>
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources</id>
@@ -3221,8 +3178,9 @@
 					</plugin>
 					<!-- Copy Web resources -->
 					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-resources-plugin</artifactId>
-						<version>3.3.1</version>
+						<version>${maven-resources-plugin-version}</version>
 						<executions>
 							<execution>
 								<id>copy-resources-macos</id>
