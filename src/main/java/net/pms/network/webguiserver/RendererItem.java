@@ -256,13 +256,25 @@ public class RendererItem implements IRendererGuiListener {
 		result.addProperty("playing", playing);
 		result.addProperty("time", time);
 		result.addProperty("progressPercent", progressPercent);
-		result.addProperty("isActive", isActive);
-		result.addProperty("isAllowed", isAllowed);
-		result.addProperty("isAuthenticated", isAuthenticated);
-		result.addProperty("userId", userId);
-		result.addProperty("controls", controls);
+        result.addProperty("userId", userId);
 		result.add("state", GSON.toJsonTree(state));
-		return result;
+
+        if (this.renderer != null) {
+            //When the device is refreshed, only the renderer is updated, not the RendererItem.
+            // Therefore, the RendererItem returned to the front-end needs to be refreshed based on the renderer.
+            // Otherwise, the "control" button on the page will not be usable.
+            Renderer renderer = this.renderer;
+            result.addProperty("isActive", renderer.isActive());
+            result.addProperty("isAllowed", renderer.isAllowed());
+            result.addProperty("isAuthenticated", renderer.isAuthenticated());
+            result.addProperty("controls", renderer.getControls());
+        } else {
+            result.addProperty("isActive", isActive);
+            result.addProperty("isAllowed", isAllowed);
+            result.addProperty("isAuthenticated", isAuthenticated);
+            result.addProperty("controls", controls);
+        }
+        return result;
 	}
 
 	private void sendRendererAction(String action) {
