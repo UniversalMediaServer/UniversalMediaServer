@@ -9,6 +9,7 @@
 - Bump `@mantine/hooks` from 7.15.2 to 7.16.1 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248))
 - Bump `@mantine/modals` from 7.15.2 to 7.16.1 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248))
 - Bump `@mantine/notifications` from 7.15.2 to 7.16.1 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248))
+- Bump `@playwright/test` from 1.49.0 to 1.50.0 ([#5262](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5262))
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
 - Bump `typescript` from 5.7.2 to 5.7.3 ([#5239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5239))
 - Bump `vite` from 5.4.11 to 5.4.12 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254))
