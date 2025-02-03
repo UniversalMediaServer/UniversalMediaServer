@@ -172,8 +172,10 @@ public class StoreResourceSorter {
 				}
 				File file1 = systemFileResource1.getSystemFile();
 				File file2 = systemFileResource2.getSystemFile();
-				if (file1 == null || file2 == null) {
-					return 0;
+				if (file2 == null) {
+					return 1;
+				} else if (file1 == null) {
+					return -1;
 				}
 				if (asc) {
 					return Long.compare(file1.lastModified(), file2.lastModified());
