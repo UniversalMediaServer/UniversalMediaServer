@@ -63,6 +63,7 @@ import net.pms.store.container.ChapterFileTranscodeVirtualFolder;
 import net.pms.store.item.DVDISOTitle;
 import net.pms.store.item.RealFile;
 import net.pms.store.item.VirtualVideoAction;
+import net.pms.store.item.WebStream;
 import net.pms.util.ByteRange;
 import net.pms.util.FileUtil;
 import net.pms.util.IPushOutput;
@@ -440,6 +441,20 @@ public abstract class StoreItem extends StoreResource {
 		if (renderer.getUmsConfiguration().isDisableTranscoding()) {
 			LOGGER.debug("Final verdict: \"{}\" will be streamed since transcoding is disabled", getName());
 			return null;
+		}
+
+		// WebStreams should be checked against the mime-type of the stream
+		if (this instanceof WebStream ws) {
+			if (getMediaInfo() != null && renderer.getFormatConfiguration() != null) {
+				if (StringUtils.isAllBlank(getMediaInfo().getMimeType())) {
+					LOGGER.warn("cannot read MIME-TYPE of stream {} ...", ws.getUrl());
+				}
+				LOGGER.debug("checking if renderer supports MIME-TYPE {}", getMediaInfo().getMimeType());
+				if (renderer.getFormatConfiguration().supportsMimeType(getMediaInfo().getMimeType())) {
+					LOGGER.debug("MIME-TYPE is supported. No transcoding.", getMediaInfo().getMimeType());
+					return null;
+				}
+			}
 		}
 
 		// Use device-specific conf, if any
