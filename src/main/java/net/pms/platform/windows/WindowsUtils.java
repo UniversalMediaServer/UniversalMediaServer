@@ -109,6 +109,10 @@ public class WindowsUtils extends PlatformUtils {
 		if (path != null) {
 			File file = new File(path);
 			String resolved = file.getAbsolutePath();
+			/*
+			 * On Windows the maximum short path is 260 minus 1 (NUL) -> 259 char.
+			 * But for directories it is 260 minus 12 (8.3 file) minus 1 (NUL) to allow for the creation of a file in the directory -> 247.
+			 */
 			if (resolved.length() > 247) {
 				if (resolved.length() > 32000) {
 					LOGGER.warn("Cannot access file with path exceeding 32000 characters");
