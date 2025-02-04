@@ -18,7 +18,6 @@ package net.pms.image;
 
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -56,7 +55,6 @@ public class Image implements Serializable {
 	 *            support is limited to that of {@link ImageIO}.
 	 * @param copy whether this instance should be copied or shared.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(Image image, boolean copy) {
 		this.bytes = image.getBytes(copy);
 		this.imageInfo = copy && image.getImageInfo() != null ? image.getImageInfo().copy() : image.getImageInfo();
@@ -70,7 +68,6 @@ public class Image implements Serializable {
 	 * @param imageInfo the {@link ImageInfo} to store with this {@link Image}.
 	 * @param copy whether this instance should be copied or shared.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(byte[] bytes, ImageInfo imageInfo, boolean copy) {
 		if (copy && bytes != null) {
 			this.bytes = new byte[bytes.length];
@@ -98,7 +95,6 @@ public class Image implements Serializable {
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(
 		byte[] bytes,
 		int width,
@@ -150,7 +146,6 @@ public class Image implements Serializable {
 	 * @throws ParseException if {@code format} is {@code null} and parsing the
 	 *             format from {@code metadata} fails.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP2")
 	public Image(
 		byte[] bytes,
 		ImageFormat format,
@@ -511,7 +506,6 @@ public class Image implements Serializable {
 	 *             <b>NO MODIFICATIONS must be done to the array!</b>
 	 * @return The bytes of this image.
 	 */
-	@SuppressFBWarnings("EI_EXPOSE_REP")
 	public byte[] getBytes(boolean copy) {
 		if (copy) {
 			byte[] result = new byte[bytes.length];

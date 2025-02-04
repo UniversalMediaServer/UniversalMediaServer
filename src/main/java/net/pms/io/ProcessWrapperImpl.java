@@ -17,7 +17,6 @@
 package net.pms.io;
 
 import com.sun.jna.Platform;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -310,7 +309,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * @see #runInNewThread()
 	 */
 	@Override
-	@SuppressFBWarnings("RU_INVOKE_RUN")
 	public void runInSameThread() {
 		if (!useByteArrayStdConsumer && !params.isLog()) {
 			LOGGER.warn(

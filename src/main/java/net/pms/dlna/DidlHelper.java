@@ -16,7 +16,6 @@
  */
 package net.pms.dlna;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -587,7 +586,6 @@ public class DidlHelper extends DlnaHelper {
 	 *
 	 * @param sb The {@link StringBuilder} to append the elements to.
 	 */
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	private static void appendImage(StoreItem item, StringBuilder sb) {
 		/*
 		 * There's no technical difference between the image itself and the
@@ -703,7 +701,6 @@ public class DidlHelper extends DlnaHelper {
 	 * @param sb the {@link StringBuilder} to append the response to.
 	 * @param mediaType the {@link MediaType} of this {@link StoreResource}.
 	 */
-	@SuppressFBWarnings("SF_SWITCH_NO_DEFAULT")
 	private static void appendThumbnail(StoreResource resource, StringBuilder sb, MediaType mediaType, boolean isAlbum) {
 
 		/*
