@@ -928,7 +928,7 @@ public class FFMpegVideo extends Engine {
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso") && this instanceof AviSynthFFmpeg aviSynthFFmpeg) {
 			AviSynthScriptGenerationResult aviSynthScriptGenerationResult = aviSynthFFmpeg.getAVSScript(filename, params, frameRateRatio, frameRateNumber, media);
-			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(aviSynthScriptGenerationResult.getAvsFile().getAbsolutePath()));
+			cmdList.add(ProcessUtil.getSystemPathName(aviSynthScriptGenerationResult.getAvsFile().getAbsolutePath()));
 			isConvertedTo3d = aviSynthScriptGenerationResult.isConvertedTo3d();
 		} else {
 			if (params.getStdIn() != null) {

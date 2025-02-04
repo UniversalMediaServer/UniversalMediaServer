@@ -96,7 +96,7 @@ public class PlatformUtils implements IPlatformUtils {
 	}
 
 	@Override
-	public String getShortPathNameW(String longPathName) {
+	public String getSystemPathName(String longPathName) {
 		return longPathName;
 	}
 
