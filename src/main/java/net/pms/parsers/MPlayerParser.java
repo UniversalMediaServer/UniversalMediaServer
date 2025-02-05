@@ -99,7 +99,7 @@ public class MPlayerParser {
 			"-vo",
 			"null",
 			"-dvd-device",
-			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
+			ProcessUtil.getSystemPathName(file.getAbsolutePath()),
 			"dvd://"
 		};
 		OutputParams params = new OutputParams(CONFIGURATION);
@@ -170,7 +170,7 @@ public class MPlayerParser {
 				"-vo",
 				"jpeg:outdir=mplayer_thumbs:subdirs=\"" + frameName + "\"",
 				"-dvd-device",
-				ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
+				ProcessUtil.getSystemPathName(file.getAbsolutePath()),
 				"dvd://" + title
 			};
 		} else {
@@ -187,7 +187,7 @@ public class MPlayerParser {
 				"-vo",
 				"null",
 				"-dvd-device",
-				ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
+				ProcessUtil.getSystemPathName(file.getAbsolutePath()),
 				"dvd://" + title
 			};
 		}
@@ -236,7 +236,7 @@ public class MPlayerParser {
 		args[3] = "-quiet";
 
 		if (file != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
+			args[4] = ProcessUtil.getSystemPathName(file.getAbsolutePath());
 		} else {
 			args[4] = "-";
 		}
