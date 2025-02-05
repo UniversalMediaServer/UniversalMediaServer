@@ -243,7 +243,6 @@ public final class PlaylistFolder extends StoreContainer {
 	}
 
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
-		List<Entry> entries = getPlaylistEntries();
 		try (BufferedReader br = getBufferedReader()) {
 			StringBuilder out = new StringBuilder();
 			StringBuilder lastEntry = new StringBuilder();
@@ -255,23 +254,28 @@ public final class PlaylistFolder extends StoreContainer {
 			out.append(lastEntry);
 			String line = "";
 			lastEntry = new StringBuilder();
+			String lastAlbumArtDirective = null;
 			while (br != null &&  (line = br.readLine()) != null) {
 				line = line.trim();
-
 				if (line.startsWith(DIRECTIVE_ALBUMART_URI)) {
-					// do not add this line, since it gets updated
+					lastAlbumArtDirective = line.substring(DIRECTIVE_ALBUMART_URI.length());
 				} else if (line.startsWith("#")) {
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 				} else if (StringUtils.isAllBlank(line)) {
 					lastEntry.append(System.getProperty("line.separator"));
 				} else {
-					// Parsing finished. This lien is the filename.
+					// Parsing finished. This line is the filename.
 					if (line.equalsIgnoreCase(url)) {
 						lastEntry.append(DIRECTIVE_ALBUMART_URI).append(externalAlbumArtUri).append(System.getProperty("line.separator"));
+					} else {
+						if (lastAlbumArtDirective != null) {
+							lastEntry.append(DIRECTIVE_ALBUMART_URI).append(lastAlbumArtDirective).append(System.getProperty("line.separator"));
+						}
 					}
 					lastEntry.append(line).append(System.getProperty("line.separator"));
 					out.append(lastEntry);
 					lastEntry = new StringBuilder();
+					lastAlbumArtDirective = null;
 				}
 			}
 
