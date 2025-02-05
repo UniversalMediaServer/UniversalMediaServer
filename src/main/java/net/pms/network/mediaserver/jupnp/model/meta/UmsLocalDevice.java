@@ -23,6 +23,7 @@ import java.util.List;
 import net.pms.network.mediaserver.MediaServer;
 import net.pms.network.mediaserver.jupnp.support.connectionmanager.UmsConnectionManagerService;
 import net.pms.network.mediaserver.jupnp.support.contentdirectory.UmsContentDirectoryService;
+import net.pms.network.mediaserver.jupnp.support.umsservice.UmsExtendedServices;
 import net.pms.network.mediaserver.jupnp.support.xmicrosoft.UmsMediaReceiverRegistrarService;
 import org.jupnp.binding.annotations.AnnotationLocalServiceBinder;
 import org.jupnp.model.DefaultServiceManager;
@@ -149,6 +150,7 @@ public class UmsLocalDevice extends LocalDevice {
 		services.add(createContentDirectoryService());
 		services.add(createServerConnectionManagerService());
 		services.add(createMediaReceiverRegistrarService());
+		services.add(createUmsConfigurationService());
 		return services.toArray(LocalService[]::new);
 	}
 
@@ -222,4 +224,24 @@ public class UmsLocalDevice extends LocalDevice {
 		return mediaReceiverRegistrarService;
 	}
 
+	/**
+	 * creates the UmsConfigurationService
+	 *
+	 * @return the service
+	 */
+	private static LocalService createUmsConfigurationService() {
+		LocalService umsConfigurationService = new AnnotationLocalServiceBinder().read(UmsExtendedServices.class);
+		umsConfigurationService.setManager(new DefaultServiceManager<UmsExtendedServices>(umsConfigurationService, null) {
+			@Override
+			protected int getLockTimeoutMillis() {
+				return 1000;
+			}
+
+			@Override
+			protected UmsExtendedServices createServiceInstance() throws Exception {
+				return new UmsExtendedServices();
+			}
+		});
+		return umsConfigurationService;
+	}
 }

@@ -24,7 +24,6 @@ import net.pms.PMS;
 import net.pms.network.mediaserver.jupnp.transport.spi.JakartaServletContainerAdapter;
 import net.pms.network.mediaserver.servlets.MediaServerImportResourceServlet;
 import net.pms.network.mediaserver.servlets.MediaServerServlet;
-import net.pms.network.mediaserver.servlets.NextcpApiServlet;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
@@ -96,7 +95,6 @@ public class JettyServletContainer implements JakartaServletContainerAdapter {
 
 			addImportServlet(servletHandler);
 			servletHandler.addServlet(new ServletHolder("MEDIA HTTP SERVER", new MediaServerServlet()), "/ums/*");
-			servletHandler.addServlet(new ServletHolder("NextcpApiServlet", new NextcpApiServlet()), "/api/*");
 			final ServletHolder s = new ServletHolder("UPNP HTTP SERVER", servlet);
 			servletHandler.addServlet(s, "/dev/*");
 			contextHandlers.addHandler(servletHandler);
