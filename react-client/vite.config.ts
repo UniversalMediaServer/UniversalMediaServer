@@ -12,7 +12,7 @@ export default defineConfig({
     emptyOutDir: true,
     assetsDir: 'static',
     sourcemap: true,
-    chunkSizeWarningLimit: 2000,
+    chunkSizeWarningLimit: 10000,
     rollupOptions: {
       output: {
           hashCharacters: 'hex'
