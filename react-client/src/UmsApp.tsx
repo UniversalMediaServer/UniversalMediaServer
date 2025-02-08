@@ -48,6 +48,7 @@ import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { havePermission, Permissions } from './services/accounts-service';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
+import UserMenu2 from './components/UserMenu/UserMenu2';
 
 function UmsApp() {
 
@@ -102,17 +103,7 @@ function UmsApp() {
                             />
                           }
                           {session.account && session.account.user &&
-                            <Button
-                              variant='transparent'
-                              style={() => ({ cursor: 'default', color: computedColorScheme === 'dark' ? 'white' : 'black' })}
-                              leftSection={
-                                <Avatar radius='sm' size='sm' src={session.account.user.avatar !== '' ? session.account.user.avatar : null}>
-                                  {session.account.user.avatar === '' && <IconUser size={16} />}
-                                </Avatar>
-                              }
-                            >
-                              {session.account.user.displayName}
-                            </Button>
+                            <UserMenu2></UserMenu2>
                           }
                         </Group>
                         <Group justify='right'>
