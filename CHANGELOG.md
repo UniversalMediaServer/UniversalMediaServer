@@ -12,6 +12,7 @@
 - Bump `@types/lodash` from 4.17.14 to 4.17.15 ([#5271](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5271))
 - Bump `com.github.oshi:oshi-core` from 6.6.5 to 6.6.6 ([#5260](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5260))
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
+- Bump `react-movable` from 3.3.1 to 3.4.0 ([#5279](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5279))
 - Bump `typescript` from 5.7.2 to 5.7.3 ([#5239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5239))
 - Bump `vite` from 5.4.11 to 5.4.12 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254))
 
