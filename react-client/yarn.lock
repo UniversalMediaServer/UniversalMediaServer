@@ -4441,13 +4441,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-movable@npm:3.3.1":
-  version: 3.3.1
-  resolution: "react-movable@npm:3.3.1"
+"react-movable@npm:3.4.0":
+  version: 3.4.0
+  resolution: "react-movable@npm:3.4.0"
   peerDependencies:
     react: "*"
     react-dom: "*"
-  checksum: 10c0/eb809045471a64ea54f2e9bb0d863d1b835c5d6ec117d77a3369246d6b507ab856b73204fa64dab64739a1d6eb163e739712601f44405294ad1832ee425f57ec
+  checksum: 10c0/54c9b3ace1c29077bd72b4370da4d57c0e245d37ed01bc946d6be52d3747aead757ad3ba19d329bc21a3715947f1cc1dd039706fb15f922c8f9cd4ff422cbbd9
   languageName: node
   linkType: hard
 
@@ -5435,7 +5435,7 @@ __metadata:
     react: "npm:18.3.1"
     react-country-flag: "npm:3.1.0"
     react-dom: "npm:18.3.1"
-    react-movable: "npm:3.3.1"
+    react-movable: "npm:3.4.0"
     react-router-dom: "npm:6.28.0"
     typescript: "npm:5.7.3"
     typescript-eslint: "npm:^8.18.1"
