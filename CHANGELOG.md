@@ -3,12 +3,12 @@
 ## [Unreleased]
 
 ### Dependencies
-- Bump `@mantine/core` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/dropzone` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/form` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/hooks` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/modals` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/notifications` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
+- Bump `@mantine/core` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/dropzone` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/form` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/hooks` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/modals` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/notifications` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
 - Bump `@types/lodash` from 4.17.14 to 4.17.15 ([#5271](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5271))
 - Bump `com.github.oshi:oshi-core` from 6.6.5 to 6.6.6 ([#5260](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5260))
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
