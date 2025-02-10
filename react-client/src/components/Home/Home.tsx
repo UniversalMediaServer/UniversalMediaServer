@@ -14,24 +14,27 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
+import { Box, Button, LoadingOverlay, NavLink, Tabs, Text } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
+import { IconCheck, IconExclamationMark, IconHome, IconInfoCircle, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
+import MainContext from '../../contexts/main-context';
 import SessionContext from '../../contexts/session-context';
 import ServerEventContext from '../../contexts/server-event-context';
 import Renderers from './Renderers';
 import NetworkDevices from './NetworkDevices';
 import { renderersApiUrl } from '../../utils';
 import { havePermission, Permissions } from '../../services/accounts-service';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
 
 const Home = () => {
   const i18n = useContext(I18nContext);
   const sse = useContext(ServerEventContext);
+  const main = useContext(MainContext);
   const [renderers, setRenderers] = useState([] as Renderer[]);
   const [renderersBlockedByDefault, setRenderersBlockedByDefault] = useState(false);
   const [networkDeviceFilters, setNetworkDeviceFilters] = useState([] as NetworkDevicesFilter[]);
@@ -84,6 +87,10 @@ const Home = () => {
       refreshData();
     }
   }, [canView]);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.Home }));
+  }, [i18n.get, main.setNavbarValue]);
 
   const refreshData = async () => {
     setLoading(true);

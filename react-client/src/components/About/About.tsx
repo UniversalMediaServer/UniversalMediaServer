@@ -27,11 +27,14 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { aboutApiUrl } from '../../utils';
 import MemoryBar from '../MemoryBar/MemoryBar';
+import MainContext from '../../contexts/main-context';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
 
 const About = () => {
   const [aboutDatas, setAboutDatas] = useState({ links: [] } as any);
   const [memory, setMemory] = useState<UmsMemory>();
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
   const canView = havePermission(session, Permissions.settings_view | Permissions.settings_modify);
@@ -80,6 +83,10 @@ const About = () => {
   useEffect(() => {
     setMemory(sse.memory);
   }, [sse.memory]);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.About }));
+  }, [i18n.get, main.setNavbarValue]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

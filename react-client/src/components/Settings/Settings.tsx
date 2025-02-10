@@ -32,6 +32,8 @@ import GeneralSettings from './GeneralSettings';
 import NavigationSettings from './NavigationSettings';
 import RenderersSettings from './RenderersSettings';
 import TranscodingSettings from './TranscodingSettings';
+import MainContext from '../../contexts/main-context';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
 
 export default function Settings() {
   const [advancedSettings] = useLocalStorage<boolean>({
@@ -62,6 +64,7 @@ export default function Settings() {
   });
 
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
@@ -115,6 +118,10 @@ export default function Settings() {
         });
     }
   }, [canView, formSetValues]);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.ServerSettings }));
+  }, [i18n.get, main.setNavbarValue]);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);

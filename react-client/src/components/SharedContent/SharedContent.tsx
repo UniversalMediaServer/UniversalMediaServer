@@ -26,12 +26,15 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { openGitHubNewIssue, sharedApiUrl } from '../../utils';
 import SharedContentSettings from './SharedContentSettings';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
+import MainContext from '../../contexts/main-context';
 
 export default function SharedContent() {
   const [isLoading, setLoading] = useState(true);
   const [configuration, setConfiguration] = useState({} as any);
 
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const sse = useContext(ServerEventContext);
   const form = useForm({ initialValues: {} as Record<string, unknown> });
@@ -85,6 +88,10 @@ export default function SharedContent() {
         });
     }
   }, [canView, formSetValues]);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.SharedContent }));
+  }, [i18n.get, main.setNavbarValue]);
 
   const handleSubmit = async (values: typeof form.values) => {
     setLoading(true);

@@ -25,9 +25,12 @@ import I18nContext from '../../contexts/i18n-context';
 import SessionContext, { UmsGroup, UmsUser } from '../../contexts/session-context';
 import { getUserGroup, getUserGroupsSelection, havePermission, Permissions, postAccountAction, postAccountAuthAction } from '../../services/accounts-service';
 import { allowHtml } from '../../utils';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
+import MainContext from '../../contexts/main-context';
 
 const Accounts = () => {
   const i18n = useContext(I18nContext);
+  const main = useContext(MainContext);
   const session = useContext(SessionContext);
   const accounts = useContext(AccountsContext);
   const groupSelectionDatas = getUserGroupsSelection(accounts.groups, i18n.get('None'));
@@ -43,6 +46,10 @@ const Accounts = () => {
   useEffect(() => {
     document.title="Universal Media Server - Accounts";
   }, []);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.ManageAccounts }));
+  }, [i18n.get, main.setNavbarValue]);
 
   const UserAccordionLabel = (user: UmsUser, group: UmsGroup) => {
     const showAsUsername = (user.displayName == null || user.displayName.length === 0 || user.displayName === user.username);

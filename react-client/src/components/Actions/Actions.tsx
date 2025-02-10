@@ -24,10 +24,14 @@ import SessionContext from '../../contexts/session-context';
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { sendAction } from '../../services/actions-service';
 import { actionsApiUrl, defaultTooltipSettings } from '../../utils';
+import Navbar, { NavbarItems } from '../Navbar/Navbar';
+import MainContext from '../../contexts/main-context';
 
 const Actions = () => {
   const i18n = useContext(I18nContext);
   const session = useContext(SessionContext);
+  const main = useContext(MainContext);
+
   const canModify = havePermission(session, Permissions.settings_modify);
   const [actionsValues, setActionsValues] = useState<ActionsValues>({ canShutdownComputer: false });
 
@@ -66,6 +70,10 @@ const Actions = () => {
         setActionsValues(response.data);
       });
   }, []);
+
+  useEffect(() => {
+    main.setNavbarValue(Navbar({ i18n, session, selectedKey: NavbarItems.Tools }));
+  }, [i18n.get, main.setNavbarValue]);
 
   return (
     <Box style={{ maxWidth: 1024 }} mx='auto'>

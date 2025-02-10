@@ -14,16 +14,16 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { ActionIcon, AppShell, Avatar, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useComputedColorScheme, useDirection, useMantineColorScheme } from '@mantine/core';
+import { ActionIcon, AppShell, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useComputedColorScheme, useDirection, useMantineColorScheme } from '@mantine/core';
 
-import { useEffect } from 'react';
+import { useContext, useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
 } from 'react-router-dom';
-import { IconMoonStars, IconSun, IconUser } from '@tabler/icons-react';
+import { IconMoonStars, IconPlayerPlay, IconSettings, IconSun } from '@tabler/icons-react';
 
 import './services/http-interceptor';
 import About from './components/About/About'
@@ -37,7 +37,6 @@ import Player from './components/Player/Player';
 import PlayerLogin from './components/PlayerLogin/PlayerLogin';
 import Settings from './components/Settings/Settings';
 import SharedContent from './components/SharedContent/SharedContent';
-import UserMenu from './components/UserMenu/UserMenu';
 import MainContext from './contexts/main-context';
 import SessionContext from './contexts/session-context';
 import { AccountsProvider } from './providers/accounts-provider';
@@ -48,12 +47,12 @@ import { ServerEventProvider } from './providers/server-event-provider';
 import { SessionProvider } from './providers/session-provider';
 import { havePermission, Permissions } from './services/accounts-service';
 import { refreshAuthTokenNearExpiry, setAxiosAuthorization } from './services/auth-service';
-import UserMenu2 from './components/UserMenu/UserMenu2';
+import UserMenu from './components/UserMenu/UserMenu';
 
 function UmsApp() {
-
   const { dir } = useDirection();
   const { toggleColorScheme } = useMantineColorScheme();
+
   setAxiosAuthorization();
   useEffect(() => {
     refreshAuthTokenNearExpiry();
@@ -72,9 +71,9 @@ function UmsApp() {
                     navbar={main.navbarValue ? {
                       width: { sm: 200, lg: 300 },
                       breakpoint: 'sm',
-                      collapsed: { mobile: !main.navbarOpened, desktop: false }
+                      collapsed: { mobile: !main.navbarOpened, desktop: false },
                     } : undefined}
-                    header={{ height: 50 }}
+                    header={{ height: 60 }}
                     styles={(theme) => ({
                       main: { backgroundColor: computedColorScheme === 'dark' ? theme.colors.darkTransparent[8] : theme.colors.lightTransparent[0] },
                     })}
@@ -102,16 +101,35 @@ function UmsApp() {
                               mr='xl'
                             />
                           }
-                          {session.account && session.account.user &&
-                            <UserMenu2></UserMenu2>
-                          }
-                        </Group>
-                        <Group justify='right'>
+                          <Button.Group>
+                            {!session.player && havePermission(session, Permissions.settings_view) &&
+                              <Button
+                                leftSection={<IconPlayerPlay size={14} />}
+                                variant={!window.location.href.includes('/player') ? 'subtle' : 'light'}
+                                onClick={() => { window.location.href = '/player'; }}
+                              >
+                                Play
+                              </Button>
+                            }
+                            {havePermission(session, Permissions.web_player_browse) && (
+                              <Button
+                                rightSection={<IconSettings size={14} />}
+                                variant={window.location.href.includes('/player') ? 'subtle' : 'light'}
+                                onClick={() => { window.location.href = '/'; }}
+                              >
+                                Manage
+                              </Button>
+                            )}
+                          </Button.Group>
                           <ActionIcon variant='default' onClick={() => toggleColorScheme()} size={30}>
                             {computedColorScheme === 'dark' ? <IconSun size={16} /> : <IconMoonStars size={16} />}
                           </ActionIcon>
                           <LanguagesMenu />
-                          {session.account && <UserMenu />}
+                        </Group>
+                        <Group justify='right'>
+                          {session.account && session.account.user &&
+                            <UserMenu></UserMenu>
+                          }
                         </Group>
                       </Group>
                     </AppShell.Header>
