@@ -14,7 +14,7 @@
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
 - Bump `react-movable` from 3.3.1 to 3.4.0 ([#5279](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5279))
 - Bump `typescript` from 5.7.2 to 5.7.3 ([#5239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5239))
-- Bump `vite` from 5.4.11 to 5.4.12 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254))
+- Bump `vite` from 5.4.11 to 6.0.11 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254), [#5256](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5256))
 
 ## [14.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.9.0...14.10.0) (2025-01-12)
 
