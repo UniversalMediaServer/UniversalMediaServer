@@ -16,7 +16,7 @@
  */
 import { ActionIcon, AppShell, Box, Burger, Button, Center, Group, Loader, MantineTheme, ScrollArea, Stack, Text, useComputedColorScheme, useDirection, useMantineColorScheme } from '@mantine/core';
 
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Route,

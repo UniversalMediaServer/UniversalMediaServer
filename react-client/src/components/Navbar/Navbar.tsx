@@ -15,7 +15,7 @@
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 import { Button } from '@mantine/core';
-import { IconHome, IconInfoCircle, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
+import { IconHome, IconInfoCircle, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
 
 import { havePermission, Permissions } from '../../services/accounts-service';
 import { UmsSession } from '../../contexts/session-context';

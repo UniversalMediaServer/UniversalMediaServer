@@ -14,12 +14,12 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-import { Box, Button, LoadingOverlay, NavLink, Tabs, Text } from '@mantine/core';
+import { Box, LoadingOverlay, Tabs, Text } from '@mantine/core';
 import { showNotification, updateNotification } from '@mantine/notifications';
 import axios from 'axios';
 import _ from 'lodash';
 import { useContext, useEffect, useState } from 'react';
-import { IconCheck, IconExclamationMark, IconHome, IconInfoCircle, IconPlayerPlay, IconSettings, IconShare, IconTool, IconUser, IconUsers } from '@tabler/icons-react';
+import { IconCheck, IconExclamationMark } from '@tabler/icons-react';
 
 import I18nContext from '../../contexts/i18n-context';
 import MainContext from '../../contexts/main-context';
