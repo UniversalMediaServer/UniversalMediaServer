@@ -18,12 +18,12 @@
   },
   "packageManager": "yarn@4.5.3",
   "dependencies": {
-    "@mantine/core": "7.16.1",
-    "@mantine/dropzone": "7.16.1",
-    "@mantine/form": "7.16.1",
-    "@mantine/hooks": "7.16.1",
-    "@mantine/modals": "7.16.1",
-    "@mantine/notifications": "7.16.1",
+    "@mantine/core": "7.16.3",
+    "@mantine/dropzone": "7.16.3",
+    "@mantine/form": "7.16.3",
+    "@mantine/hooks": "7.16.3",
+    "@mantine/modals": "7.16.3",
+    "@mantine/notifications": "7.16.3",
     "@microsoft/fetch-event-source": "2.0.1",
     "@tabler/icons-react": "^3.26.0",
     "axios": "1.7.9",
@@ -32,13 +32,13 @@
     "react": "18.3.1",
     "react-country-flag": "3.1.0",
     "react-dom": "18.3.1",
-    "react-movable": "3.3.1",
+    "react-movable": "3.4.0",
     "react-router-dom": "6.28.0",
     "video.js": "8.21.0"
   },
   "devDependencies": {
     "@playwright/test": "1.49.0",
-    "@types/lodash": "4.17.14",
+    "@types/lodash": "4.17.15",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vitejs/plugin-react": "4.3.4",
@@ -46,9 +46,9 @@
     "eslint-plugin-react": "7.37.3",
     "eslint-plugin-react-hooks": "5.1.0",
     "eslint-plugin-react-refresh": "0.4.16",
-    "typescript": "5.7.2",
+    "typescript": "5.7.3",
     "typescript-eslint": "^8.18.1",
-    "vite": "5.4.11",
+    "vite": "5.4.12",
     "vite-live-preview": "0.3.2"
   }
 }

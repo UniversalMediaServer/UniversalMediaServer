@@ -64,7 +64,7 @@ public class RealFolder extends VirtualFolder implements SystemFileResource {
 
 	@Override
 	public String getSystemName() {
-		return ProcessUtil.getShortFileNameIfWideChars(directory.getAbsolutePath());
+		return ProcessUtil.getSystemPathName(directory.getAbsolutePath());
 	}
 
 	@Override

@@ -333,7 +333,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 			File f = new File(filename);
 			if (f.exists()) {
-				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
+				filename = ProcessUtil.getSystemPathName(filename);
 			}
 
 			String movieLine       		= "";
@@ -450,7 +450,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getSystemPathName(subTrack.getExternalFile()) + "\")";
 				} else {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}

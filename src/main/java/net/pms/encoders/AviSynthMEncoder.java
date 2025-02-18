@@ -109,7 +109,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 			File f = new File(fileName);
 			if (f.exists()) {
-				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+				fileName = ProcessUtil.getSystemPathName(fileName);
 			}
 
 			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
@@ -164,7 +164,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					if (subTrack.getType() == SubtitleType.VOBSUB) {
 						function = "VobSub";
 					}
-					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile()) + "\")";
+					subLine = function + "(\"" + ProcessUtil.getSystemPathName(subTrack.getExternalFile()) + "\")";
 				} else {
 					LOGGER.error("External subtitles file \"{}\" is unavailable", subTrack.getName());
 				}

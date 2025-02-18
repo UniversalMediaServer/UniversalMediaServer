@@ -17,7 +17,6 @@
 package net.pms.platform.windows;
 
 import com.sun.jna.Native;
-import com.sun.jna.WString;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Shell32Util;
 import com.sun.jna.platform.win32.VerRsrc;
@@ -30,11 +29,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
@@ -108,37 +105,25 @@ public class WindowsUtils extends PlatformUtils {
 	}
 
 	@Override
-	public String getShortPathNameW(String longPathName) {
-		if (longPathName == null) {
-			return null;
-		}
-		boolean unicodeChars;
-		try {
-			byte[] b1 = longPathName.getBytes(StandardCharsets.UTF_8);
-			byte[] b2 = longPathName.getBytes("cp1252");
-			unicodeChars = b1.length != b2.length;
-		} catch (UnsupportedEncodingException e) {
-			return longPathName;
-		}
-
-		if (unicodeChars) {
-			try {
-				WString pathname = new WString(longPathName);
-
-				char[] test = new char[2 + pathname.length() * 2];
-				int r = Kernel32.INSTANCE.GetShortPathNameW(pathname, test, test.length);
-				if (r > 0) {
-					String result = Native.toString(test);
-					LOGGER.trace("Using short path name of \"{}\": \"{}\"", pathname, result);
-					return result;
+	public String getSystemPathName(String path) {
+		if (path != null) {
+			File file = new File(path);
+			String resolved = file.getAbsolutePath();
+			/*
+			 * On Windows the maximum short path is 260 minus 1 (NUL) -> 259 char.
+			 * But for directories it is 260 minus 12 (8.3 file) minus 1 (NUL) to allow for the creation of a file in the directory -> 247.
+			 */
+			if (resolved.length() > 247) {
+				if (resolved.length() > 32000) {
+					LOGGER.warn("Cannot access file with path exceeding 32000 characters");
+				} else if (resolved.startsWith("\\\\")) {
+					return "\\\\?\\UNC" + resolved.substring(1, resolved.length());
+				} else {
+					return "\\\\?\\" + resolved;
 				}
-				return longPathName;
-
-			} catch (Exception e) {
-				return longPathName;
 			}
 		}
-		return longPathName;
+		return path;
 	}
 
 	private static String getWindowsDirectory() {
