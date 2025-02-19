@@ -242,6 +242,47 @@ public final class PlaylistFolder extends StoreContainer {
 		}
 	}
 
+	public boolean deleteEntry(String url) {
+		try (BufferedReader br = getBufferedReader()) {
+			boolean entryRemoved = false;
+			StringBuilder out = new StringBuilder();
+			StringBuilder lastEntry = new StringBuilder();
+			String playlistType = getPlaylistType(br, lastEntry);
+			if (!"m3u".equals(playlistType)) {
+				LOGGER.debug("deleting playlists entries active only for m3u or m3u8 files. This playlist is {}", playlistType);
+				return false;
+			}
+			out.append(lastEntry);
+			String line = "";
+			lastEntry = new StringBuilder();
+			while (br != null &&  (line = br.readLine()) != null) {
+				line = line.trim();
+				if (line.startsWith("#")) {
+					lastEntry.append(line).append(System.getProperty("line.separator"));
+				} else if (StringUtils.isAllBlank(line)) {
+					lastEntry.append(System.getProperty("line.separator"));
+				} else {
+					// Parsing finished. This line is the filename.
+					if (!line.equalsIgnoreCase(url)) {
+						lastEntry.append(line).append(System.getProperty("line.separator"));
+						out.append(lastEntry);
+					} else {
+						entryRemoved = true;
+					}
+					lastEntry = new StringBuilder();
+				}
+			}
+
+			if (entryRemoved) {
+				writeContentToFile(out);
+			}
+			return entryRemoved;
+		} catch (Exception er) {
+			LOGGER.error("deleteEntry", er);
+			throw new RuntimeException("deleteEntry", er);
+		}
+	}
+
 	public void updateAlbumArtUriDirective(String url, String externalAlbumArtUri) {
 		try (BufferedReader br = getBufferedReader()) {
 			StringBuilder out = new StringBuilder();
@@ -279,22 +320,26 @@ public final class PlaylistFolder extends StoreContainer {
 				}
 			}
 
-			File file = new File(getFileName());
-			BufferedWriter writer = null;
-			try {
-				LOGGER.debug("writing playlist file ...");
-				writer = new BufferedWriter(new FileWriter(file));
-				writer.append(out);
-				file.setLastModified(System.currentTimeMillis());
-			} catch (Exception e) {
-				LOGGER.warn("cannot update playlist", e);
-			} finally {
-				if (writer != null) {
-					writer.close();
-				}
-			}
+			writeContentToFile(out);
 		} catch (Exception er) {
 			LOGGER.error("updateAlbumArtUriDirective", er);
+		}
+	}
+
+	private void writeContentToFile(StringBuilder out) throws IOException {
+		File file = new File(getFileName());
+		BufferedWriter writer = null;
+		try {
+			LOGGER.debug("writing playlist file ...");
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.append(out);
+			file.setLastModified(System.currentTimeMillis());
+		} catch (Exception e) {
+			LOGGER.warn("cannot update playlist", e);
+		} finally {
+			if (writer != null) {
+				writer.close();
+			}
 		}
 	}
 
