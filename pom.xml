@@ -433,7 +433,7 @@
 		<dependency>
 			<groupId>org.jupnp</groupId>
 			<artifactId>org.jupnp.support</artifactId>
-			<version>3.0.2</version>
+			<version>3.0.3</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.slf4j</groupId>
