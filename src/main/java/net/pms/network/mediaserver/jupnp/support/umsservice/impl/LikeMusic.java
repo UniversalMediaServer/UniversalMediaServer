@@ -14,7 +14,7 @@
  * this program; if not, write to the Free Software Foundation, Inc., 51
  * Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-package net.pms.network.mediaserver.handlers.nextcpapi;
+package net.pms.network.mediaserver.jupnp.support.umsservice.impl;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,97 +24,80 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import net.pms.PMS;
-import net.pms.database.MediaDatabase;
-import net.pms.database.MediaTableAudioMetadata;
-import net.pms.database.MediaTableMusicBrainzReleaseLike;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
+import org.jupnp.model.types.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.pms.PMS;
+import net.pms.configuration.UmsConfiguration;
+import net.pms.database.MediaDatabase;
+import net.pms.database.MediaTableMusicBrainzReleaseLike;
+import net.pms.network.mediaserver.jupnp.support.umsservice.UmsExtendedServicesException;
 
-//FIXME : this should be implemented under upnp, UpdateObject() -> metadata.
-public class LikeMusic implements NextcpApiResponseHandler {
+public class LikeMusic {
 
 	private static final Logger LOG = LoggerFactory.getLogger(LikeMusic.class.getName());
 	public static final String PATH_MATCH = "like";
 	private final String backupFilename;
 
 	public LikeMusic() {
-		String dir = FilenameUtils.concat(PMS.getConfiguration().getProfileDirectory(), "database_backup");
+		PMS.getConfiguration();
+		String dir = FilenameUtils.concat(UmsConfiguration.getProfileDirectory(), "database_backup");
 		backupFilename = FilenameUtils.concat(dir, "MUSIC_BRAINZ_RELEASE_LIKE");
 	}
 
-	@Override
-	public NextcpApiResponse handleRequest(String uri, String content) {
+	private boolean baseDbRequest(String sql, String key) throws UmsExtendedServicesException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			if (connection == null) {
-				return null;
+				throw new RuntimeException("cannot acquire database connection.");
 			}
-			NextcpApiResponse response = new NextcpApiResponse();
-			response.setStatusCode(200);
-			response.setContentType("text/plain; charset=UTF-8");
-			response.setConnection("keep-alive");
-
-			String sql;
-			switch (uri) {
-				case "likealbum" -> {
-					sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
-					try (PreparedStatement ps = connection.prepareStatement(sql)) {
-						ps.setString(1, content);
-						ps.executeUpdate();
-					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
-						response.setResponse("ERROR:" + e.getMessage());
-						return response;
-					}
-				}
-				case "dislikealbum" -> {
-					sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
-					try (PreparedStatement ps = connection.prepareStatement(sql)) {
-						ps.setString(1, content);
-						ps.executeUpdate();
-					} catch (SQLException e) {
-						LOG.warn("error preparing statement", e);
-						response.setResponse("ERROR:" + e.getMessage());
-						return response;
-					}
-				}
-				case "isalbumliked" -> {
-					sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
-					response.setResponse(Boolean.toString(isCountGreaterZero(sql, connection, content)));
-					return response;
-				}
-				case "issongliked" -> {
-					sql = "SELECT COUNT(*) FROM " + MediaTableAudioMetadata.TABLE_NAME + " WHERE " + MediaTableAudioMetadata.TABLE_COL_MBID_TRACK + " = ?";
-					response.setResponse(Boolean.toString(isCountGreaterZero(sql, connection, content)));
-					return response;
-				}
-				case "backupLikedAlbums" -> {
-					backupLikedAlbums();
-					response.setResponse("OK");
-					return response;
-				}
-				case "restoreLikedAlbums" -> {
-					restoreLikedAlbums();
-					response.setResponse("OK");
-					return response;
-				}
-				default -> {
-					response.setStatusCode(404);
-					response.setResponse("ERROR");
-					return response;
-				}
-			}
-
-			response.setResponse("ERROR");
-			return response;
+			return isCountGreaterZero(sql, connection, key);
 		} catch (SQLException e) {
-			throw new RuntimeException("cannot handle request", e);
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException("backup file not found.", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
+		}
+	}
+
+	public boolean isAlbumLiked(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+		String sql = "SELECT COUNT(*) FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
+		return baseDbRequest(sql, musicBrainzReleaseId);
+	}
+
+	public void likeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection == null) {
+				LOG.warn("no database connection");
+				return;
+			}
+			String sql = "MERGE INTO " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " KEY (MBID_RELEASE) values (?)";
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setString(1, musicBrainzReleaseId);
+				ps.executeUpdate();
+			}
+			LOG.debug("album liked with musicBrainzReleaseId {}", musicBrainzReleaseId);
+		} catch (SQLException e) {
+			LOG.warn("like album failed : ", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Like album : " + e.getMessage());
+		}
+	}
+
+	public void dislikeAlbum(String musicBrainzReleaseId) throws UmsExtendedServicesException {
+		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
+			if (connection == null) {
+				LOG.warn("no database connection");
+				return;
+			}
+			String sql = "DELETE FROM " + MediaTableMusicBrainzReleaseLike.TABLE_NAME + " WHERE " + MediaTableMusicBrainzReleaseLike.TABLE_COL_MBID_RELEASE + " = ?";
+			try (PreparedStatement ps = connection.prepareStatement(sql)) {
+				ps.setString(1, musicBrainzReleaseId);
+				ps.executeUpdate();
+			}
+			LOG.debug("disliked album with musicBrainzReleaseId {}", musicBrainzReleaseId);
+		} catch (SQLException e) {
+			LOG.warn("dislike album failed : ", e);
+			throw new UmsExtendedServicesException(ErrorCode.ACTION_FAILED, "Dislike album : " + e.getMessage());
 		}
 	}
 
@@ -131,13 +114,13 @@ public class LikeMusic implements NextcpApiResponseHandler {
 		return false;
 	}
 
-	private void backupLikedAlbums() throws SQLException {
+	public void backupLikedAlbums() throws SQLException {
 		try (Connection connection = MediaDatabase.getConnectionIfAvailable()) {
 			Script.process(connection, backupFilename, "", "TABLE " + MediaTableMusicBrainzReleaseLike.TABLE_NAME);
 		}
 	}
 
-	private void restoreLikedAlbums() throws SQLException, FileNotFoundException {
+	public void restoreLikedAlbums() throws SQLException, FileNotFoundException {
 		File backupFile = new File(backupFilename);
 		if (backupFile.exists() && backupFile.isFile()) {
 			try (Connection connection = MediaDatabase.getConnectionIfAvailable(); Statement stmt = connection.createStatement()) {
