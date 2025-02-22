@@ -1,19 +1,34 @@
 # Changelog
 
-## [Unreleased]
+## [14.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.0...14.10.1) (2025-02-11)
+
+### General
+- Increased browsing and scanning speed
+- Fixed server crash while browsing and scanning
+- Fixed support for transcoding web streams
+- Fixed support for long file paths (above 255 characters) on Windows (again)
+
+### Translation updates via Crowdin
+- Bulgarian (41%) (thanks, Lyubomir Simeonov!)
+- German (88%) (thanks, roland.graf!)
+- Italian (57%) (thanks, Manuele Camilletti!)
 
 ### Dependencies
-- Bump `@mantine/core` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/dropzone` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/form` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/hooks` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/modals` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
-- Bump `@mantine/notifications` from 7.15.2 to 7.16.2 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261))
+- Bump `@mantine/core` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/dropzone` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/form` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/hooks` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/modals` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
+- Bump `@mantine/notifications` from 7.15.2 to 7.16.3 ([#5248](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5248), [#5261](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5261), [#5278](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5278))
 - Bump `@types/lodash` from 4.17.14 to 4.17.15 ([#5271](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5271))
 - Bump `com.github.oshi:oshi-core` from 6.6.5 to 6.6.6 ([#5260](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5260))
+- Bump `com.google.guava` from 23.0 to 33.4.0
 - Bump `commons-codec:commons-codec` from 1.17.1 to 1.17.2 ([#5237](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5237))
+- Bump `Java Runtime Environment` from 17.0.13+12 to 17.0.14+10
+- Bump `react-movable` from 3.3.1 to 3.4.0 ([#5279](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5279))
 - Bump `typescript` from 5.7.2 to 5.7.3 ([#5239](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5239))
 - Bump `vite` from 5.4.11 to 5.4.12 ([#5254](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5254))
+- Removed `java-properties-to-json`
 
 ## [14.10.0](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.9.0...14.10.0) (2025-01-12)
 
