@@ -52,13 +52,13 @@ export const ServerEventProvider = ({ children }: Props) => {
     setStarted(true);
     let notified = false;
 
-    const addNotification = (datas: any) => {
+    const addNotification = (data: { id?: string; color?: string; title: string; message: string; autoClose?: number | boolean; }) => {
       showNotification({
-        id: datas.id ? datas.id : 'sse-notification',
-        color: datas.color,
-        title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
-        autoClose: datas.autoClose ? datas.autoClose : true
+        id: data.id ? data.id : 'sse-notification',
+        color: data.color,
+        title: data.title,
+        message: data.message ? i18n.getI18nString(data.message) : '',
+        autoClose: data.autoClose ? data.autoClose : 8000,
       });
     };
 
@@ -68,7 +68,6 @@ export const ServerEventProvider = ({ children }: Props) => {
         color: 'orange',
         title: i18n.get('Warning'),
         message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false
       });
     }
 
@@ -90,13 +89,13 @@ export const ServerEventProvider = ({ children }: Props) => {
 
     const onMessage = (event: EventSourceMessage) => {
       if (event.event === 'message') {
-        const datas = JSON.parse(event.data);
-        switch (datas.action) {
+        const data = JSON.parse(event.data);
+        switch (data.action) {
           case 'update_memory':
-            setMemory(datas);
+            setMemory(data);
             break;
           case 'notify':
-            addNotification(datas);
+            addNotification(data);
             break;
           case 'update_accounts':
             setUpdateAccounts(true);
@@ -105,32 +104,32 @@ export const ServerEventProvider = ({ children }: Props) => {
             session.refresh();
             break;
           case 'set_reloadable':
-            setReloadable(datas.value);
+            setReloadable(data.value);
             break;
           case 'set_configuration_changed':
-            setUserConfiguration(datas.value);
+            setUserConfiguration(data.value);
             break;
           case 'set_media_scan_status':
-            setMediaScan(datas.running);
+            setMediaScan(data.running);
             break;
           case 'renderer_add':
           case 'renderer_delete':
           case 'renderer_update':
-            rendererActions.push(datas);
+            rendererActions.push(data);
             if (rendererActions.length > 20) {
               rendererActions.slice(0, rendererActions.length - 20);
             }
             setRendererAction(true);
             break;
           case 'log_line':
-            newLogLines.push(datas.value);
+            newLogLines.push(data.value);
             if (newLogLines.length > 20) {
               newLogLines.slice(0, newLogLines.length - 20);
             }
             setNewLogLine(true);
             break;
           case 'set_status_line':
-            main.setStatusLine(datas.value);
+            main.setStatusLine(data.value);
             break;
         }
       }

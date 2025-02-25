@@ -77,7 +77,6 @@ export default function SharedContent() {
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -100,8 +99,8 @@ export default function SharedContent() {
 
       if (_.isEmpty(changedValues)) {
         showNotification({
-          title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
+          autoClose: 8000,
         })
       } else {
         await axios.post(sharedApiUrl, changedValues);
@@ -110,6 +109,7 @@ export default function SharedContent() {
         showNotification({
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
+          autoClose: 8000,
         })
       }
     } catch (err) {

@@ -77,6 +77,7 @@ export default function SharedContentSettings(
 
       showNotification({
         message: i18n.get('Saved'),
+        autoClose: 8000,
       })
     } catch (err) {
       showNotification({
@@ -111,6 +112,7 @@ export default function SharedContentSettings(
           color: 'orange',
           title: i18n.get('Information'),
           message: i18n.get('FeedNameNotFound'),
+          autoClose: 8000,
         })
       }
     } catch (err) {

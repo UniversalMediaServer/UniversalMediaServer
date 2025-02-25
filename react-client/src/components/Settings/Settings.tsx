@@ -107,7 +107,6 @@ export default function Settings() {
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived') + ' ' + i18n.get('ClickHereReportBug'),
             onClick: () => { openGitHubNewIssue(); },
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -123,7 +122,6 @@ export default function Settings() {
       loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
       withCloseButton: false
     });
     try {
@@ -142,7 +140,7 @@ export default function Settings() {
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationHasNoChanges'),
           loading: false,
-          autoClose: 1000
+          autoClose: 8000
         })
       } else {
         await axios.post(settingsApiUrl, changedValues)
@@ -156,7 +154,7 @@ export default function Settings() {
               message: i18n.get('ConfigurationSaved'),
               icon: <IconCheck size='1rem' />,
               loading: false,
-              autoClose: 1000
+              autoClose: 8000
             })
           })
           .catch(function(error) {
@@ -169,7 +167,6 @@ export default function Settings() {
                 icon: <IconExclamationMark size='1rem' />,
                 withCloseButton: true,
                 loading: false,
-                autoClose: 1000
               })
             } else {
               throw new Error(error);
@@ -185,7 +182,6 @@ export default function Settings() {
         onClick: () => { openGitHubNewIssue(); },
         withCloseButton: true,
         loading: false,
-        autoClose: 2000
       })
     }
 

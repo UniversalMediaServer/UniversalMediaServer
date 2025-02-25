@@ -52,7 +52,6 @@ export default function VideoMetadataEditModal(props: {
           color: 'red',
           title: i18n.get('Error'),
           message: 'Your edit data was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -72,7 +71,6 @@ export default function VideoMetadataEditModal(props: {
           color: 'red',
           title: i18n.get('Error'),
           message: 'Your search data was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -93,7 +91,6 @@ export default function VideoMetadataEditModal(props: {
           color: 'red',
           title: i18n.get('Error'),
           message: 'Your data sent was not received from the server.',
-          autoClose: 3000,
         });
       })
       .then(function() {

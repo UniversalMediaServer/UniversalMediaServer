@@ -72,7 +72,6 @@ const About = () => {
           color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [i18n]);

@@ -114,7 +114,6 @@ export const PlayerEventProvider = ({ children }: Props) => {
             color: 'red',
             title: 'Error',
             message: 'Your player session was not received from the server.',
-            autoClose: 3000,
           });
         });
     }
@@ -139,18 +138,18 @@ export const PlayerEventProvider = ({ children }: Props) => {
           color: 'orange',
           title: i18n.get('RemoteControl'),
           message: i18n.get('RemotePlayOnlyAllowed'),
-          autoClose: true
+          autoClose: 8000,
         });
       }
     }
 
-    const addNotification = (datas: any) => {
+    const addNotification = (data: { color: string; title: string; id?: string; message?: string; autoClose?: boolean; }) => {
       showNotification({
-        id: datas.id ? datas.id : 'sse-notification',
-        color: datas.color,
-        title: datas.title,
-        message: datas.message ? i18n.getI18nString(datas.message) : '',
-        autoClose: datas.autoClose ? datas.autoClose : true
+        id: data.id ? data.id : 'sse-notification',
+        color: data.color,
+        title: data.title,
+        message: data.message ? i18n.getI18nString(data.message) : '',
+        autoClose: data.autoClose ? data.autoClose : 8000,
       });
     };
 
@@ -160,7 +159,6 @@ export const PlayerEventProvider = ({ children }: Props) => {
         color: 'orange',
         title: i18n.get('Warning'),
         message: i18n.get('UniversalMediaServerUnreachable'),
-        autoClose: false
       });
     }
 
@@ -182,27 +180,27 @@ export const PlayerEventProvider = ({ children }: Props) => {
 
     const onMessage = (event: EventSourceMessage) => {
       if (event.event === 'message') {
-        const datas = JSON.parse(event.data);
-        if (datas.action === 'player') {
-          switch (datas.request) {
+        const data = JSON.parse(event.data);
+        if (data.action === 'player') {
+          switch (data.request) {
             case 'setPlayId':
               setReqType('');
-              setReqId(datas.arg0);
+              setReqId(data.arg0);
               setReqType('play');
               break;
             case 'notify':
-              switch (datas.arg0) {
+              switch (data.arg0) {
                 case 'okay':
-                  addNotification({ color: 'green', title: datas.arg1 });
+                  addNotification({ color: 'green', title: data.arg1 });
                   break;
                 case 'info':
-                  addNotification({ color: 'blue', title: datas.arg1 });
+                  addNotification({ color: 'blue', title: data.arg1 });
                   break;
                 case 'warn':
-                  addNotification({ color: 'orange', title: datas.arg1 });
+                  addNotification({ color: 'orange', title: data.arg1, autoClose: false });
                   break;
                 case 'err':
-                  addNotification({ color: 'red', title: datas.arg1 });
+                  addNotification({ color: 'red', title: data.arg1, autoClose: false });
                   break;
               }
               break;
@@ -210,7 +208,7 @@ export const PlayerEventProvider = ({ children }: Props) => {
               playPlayer();
               break;
             case 'setvolume':
-              setPlayerVolume(datas.arg0);
+              setPlayerVolume(data.arg0);
               break;
             case 'pause':
               pausePlayer();
