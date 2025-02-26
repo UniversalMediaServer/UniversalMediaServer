@@ -1,5 +1,7 @@
 # Changelog
 
+## [Unreleased]
+
 ## [14.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.0...14.10.1) (2025-02-11)
 
 ### General
