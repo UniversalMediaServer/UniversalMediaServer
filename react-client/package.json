@@ -29,9 +29,9 @@
     "axios": "1.7.9",
     "jwt-decode": "4.0.0",
     "lodash": "4.17.21",
-    "react": "18.3.1",
+    "react": "19.0.0",
     "react-country-flag": "3.1.0",
-    "react-dom": "18.3.1",
+    "react-dom": "19.0.0",
     "react-movable": "3.4.0",
     "react-router-dom": "7.2.0",
     "video.js": "8.21.0"
@@ -39,8 +39,8 @@
   "devDependencies": {
     "@playwright/test": "1.49.0",
     "@types/lodash": "4.17.15",
-    "@types/react": "18.3.18",
-    "@types/react-dom": "18.3.5",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
     "@vitejs/plugin-react": "4.3.4",
     "eslint": "9.21.0",
     "eslint-plugin-react": "7.37.4",
