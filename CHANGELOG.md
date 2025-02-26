@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Dependencies
+- Bump `org.apache.maven.plugins:maven-surefire-plugin` from 3.5.1 to 3.5.2 ([#5089](https://github.com/UniversalMediaServer/UniversalMediaServer/pull/5089))
+
 ## [14.10.1](https://github.com/UniversalMediaServer/UniversalMediaServer/compare/14.10.0...14.10.1) (2025-02-11)
 
 ### General
