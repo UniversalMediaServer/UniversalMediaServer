@@ -13,6 +13,12 @@
 - Bump `react` from 18.3.1 to 19.0.0
 - Bump `react-dom` from 18.3.1 to 19.0.0
 - Bump `react-router-dom` from 6.28.0 to 7.2.0
+- Bump `@mantine/core` from 7.16.3 to 7.17.0
+- Bump `@mantine/dropzone` from 7.16.3 to 7.17.0
+- Bump `@mantine/form` from 7.16.3 to 7.17.0
+- Bump `@mantine/hooks` from 7.16.3 to 7.17.0
+- Bump `@mantine/modals` from 7.16.3 to 7.17.0
+- Bump `@mantine/notifications` from 7.16.3 to 7.17.0
 - Bump `eslint` from 9.16.0 to 9.21.0
 - Bump `eslint-plugin-react` from 7.37.3 to 7.37.4
 - Bump `eslint-plugin-react-refresh` from 0.4.16 to 0.4.19
