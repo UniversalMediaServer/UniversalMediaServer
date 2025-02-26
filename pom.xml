@@ -861,7 +861,7 @@
 					<installDirectory>react-client</installDirectory>
 					<workingDirectory>react-client</workingDirectory>
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
-					<nodeVersion>v20.12.2</nodeVersion>
+					<nodeVersion>v20.18.3</nodeVersion>
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
