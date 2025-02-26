@@ -17,7 +17,7 @@
 import { Direction } from '@mantine/core';
 import { Context, createContext } from 'react';
 
-export const I18nContext: Context<I18nInterface> = createContext({
+const I18nContext: Context<I18nInterface> = createContext({
   get: (value: string) => { return value },
   getI18nString: (value: string) => { return value },
   getI18nFormat: (value: string[]) => { return value.length ? value[0] : '' },

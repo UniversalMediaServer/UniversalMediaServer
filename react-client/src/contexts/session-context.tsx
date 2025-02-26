@@ -16,7 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const SessionContext: Context<UmsSession> = createContext({
+const SessionContext: Context<UmsSession> = createContext({
   noAdminFound: false,
   account: undefined,
   authenticate: false,

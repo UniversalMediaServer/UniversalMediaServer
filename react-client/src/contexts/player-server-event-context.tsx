@@ -16,7 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const PlayerEventContext: Context<PlayerEventInterface> = createContext({
+const PlayerEventContext: Context<PlayerEventInterface> = createContext({
   uuid: '',
   connectionStatus: 0,
   reqId: '0',

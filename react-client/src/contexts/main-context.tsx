@@ -16,7 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const MainContext: Context<MainInterface> = createContext({
+const MainContext: Context<MainInterface> = createContext({
   navbarValue: undefined,
   setNavbarValue: (_navbarValue: any) => { },
   navbarOpened: false as boolean,

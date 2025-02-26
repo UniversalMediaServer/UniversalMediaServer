@@ -16,7 +16,7 @@
  */
 import { Context, createContext } from 'react';
 
-export const ServerEventContext: Context<ServerEventInterface> = createContext({
+const ServerEventContext: Context<ServerEventInterface> = createContext({
   connectionStatus: 0,
   memory: { max: 0, used: 0, dbcache: 0, buffer: 0 },
   updateAccounts: false as boolean,

@@ -18,7 +18,7 @@ import { showNotification } from '@mantine/notifications';
 import axios from 'axios';
 import { ReactNode, useContext, useEffect, useState } from 'react';
 
-import { AccountsContext, UmsAccounts } from '../contexts/accounts-context';
+import AccountsContext, { UmsAccounts } from '../contexts/accounts-context';
 import I18nContext from '../contexts/i18n-context';
 import ServerEventContext from '../contexts/server-event-context';
 import { accountApiUrl } from '../utils';
