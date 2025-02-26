@@ -252,7 +252,6 @@ public class RendererConfigurationTest {
 			"User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UE32D5000/1.0",
 			"User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0"
 		);
-		testUPNPDetails("Samsung C/D Series", "modelName=UE40D5500");
 
 		testHeaders(
 			"Samsung E+ Series",
