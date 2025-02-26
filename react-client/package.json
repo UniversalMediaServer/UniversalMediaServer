@@ -33,14 +33,14 @@
     "react-country-flag": "3.1.0",
     "react-dom": "18.3.1",
     "react-movable": "3.4.0",
-    "react-router-dom": "6.28.0",
+    "react-router-dom": "7.2.0",
     "video.js": "8.21.0"
   },
   "devDependencies": {
     "@playwright/test": "1.49.0",
     "@types/lodash": "4.17.15",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "18.3.1",
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
     "@vitejs/plugin-react": "4.3.4",
     "eslint": "9.21.0",
     "eslint-plugin-react": "7.37.4",
