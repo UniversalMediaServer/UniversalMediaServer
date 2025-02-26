@@ -41,8 +41,7 @@ docker/jre*
 /react-client/node/
 /react-client/node_modules/
 /react-client/.pnp.*
-/react-client/.yarn/*
-!/react-client/.yarn/releases
+/react-client/.yarn/
 # this is where the compiled client goes after "yarn build"
 /src/main/external-resources/web/react-client
 /nbproject/
