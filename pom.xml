@@ -862,8 +862,6 @@
 					<workingDirectory>react-client</workingDirectory>
 					<nodeDownloadRoot>https://nodejs.org/download/release/</nodeDownloadRoot>
 					<nodeVersion>v20.12.2</nodeVersion>
-					<yarnVersion>v1.22.22</yarnVersion>
-					<yarnInheritsProxyConfigFromMaven>false</yarnInheritsProxyConfigFromMaven>					
 					<environmentVariables>
 						<PUBLIC_URL>/</PUBLIC_URL>
 					</environmentVariables>
@@ -887,26 +885,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1276,26 +1277,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1411,26 +1415,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1546,26 +1553,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1681,26 +1691,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1823,26 +1836,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -1965,26 +1981,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2194,26 +2213,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2425,26 +2447,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2824,26 +2849,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -2959,26 +2987,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3094,26 +3125,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
@@ -3352,26 +3386,29 @@
 						<artifactId>frontend-maven-plugin</artifactId>
 						<executions>
 							<execution>
-								<id>install node and yarn</id>
+								<id>install node and corepack</id>
 								<goals>
-									<goal>install-node-and-yarn</goal>
+									<goal>install-node-and-corepack</goal>
 								</goals>
 							</execution>
 							<!-- download Node.js dependencies -->
 							<execution>
 								<id>yarn install</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
+								<configuration>
+									<arguments>yarn install</arguments>
+								</configuration>
 							</execution>
 							<!-- compile the react client to the web directory -->
 							<execution>
 								<id>yarn build</id>
 								<goals>
-									<goal>yarn</goal>
+									<goal>corepack</goal>
 								</goals>
 								<configuration>
-									<arguments>build</arguments>
+									<arguments>yarn build</arguments>
 								</configuration>
 							</execution>
 						</executions>
