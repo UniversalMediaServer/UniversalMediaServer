@@ -47,7 +47,6 @@ export const AccountsProvider = ({ children }: Props) => {
           color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('AccountsNotReceived'),
-          autoClose: 3000,
         });
       });
   }, [sse]);

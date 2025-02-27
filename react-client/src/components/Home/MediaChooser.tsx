@@ -54,7 +54,6 @@ export default function MediaChooser(props: {
       color: 'red',
       title: i18n.get('Error'),
       message: i18n.get('NoMediaSelected'),
-      autoClose: 3000,
     });
   };
 
@@ -72,7 +71,6 @@ export default function MediaChooser(props: {
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
           onClick: () => { openGitHubNewIssue(); },
-          autoClose: 3000,
         });
       })
       .then(function() {

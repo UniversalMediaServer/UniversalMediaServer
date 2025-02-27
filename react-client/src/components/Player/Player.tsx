@@ -84,7 +84,6 @@ export const Player = () => {
             color: 'red',
             title: 'Error',
             message: 'Your browse data was not received from the server.',
-            autoClose: 3000,
           });
         })
         .then(function() {
@@ -104,8 +103,7 @@ export const Player = () => {
           id: 'player-fully-played',
           color: 'red',
           title: 'Error',
-          message: 'Your request was not handled by the server.',
-          autoClose: 3000,
+          message: 'The directory could not be marked as fully played.',
         });
       })
       .then(function() {

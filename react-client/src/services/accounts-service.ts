@@ -88,7 +88,8 @@ export const postAccountAction = (data: any, title: string, message: string, suc
         id: 'account-action',
         color: 'teal',
         title: title,
-        message: successmessage
+        message: successmessage,
+        autoClose: 8000,
       });
     })
     .catch(function() {

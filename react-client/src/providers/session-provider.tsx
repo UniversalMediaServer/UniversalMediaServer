@@ -42,7 +42,6 @@ export const SessionProvider = ({ children }: Props) => {
             color: 'red',
             title: i18n.get('Error'),
             message: i18n.get('SessionNotReceived'),
-            autoClose: 3000,
           });
         });
     }

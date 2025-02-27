@@ -28,8 +28,7 @@ axios.interceptors.response.use(function(response) {
       id: 'authentication-error',
       color: 'red',
       title: 'Authentication error',
-      message: 'You have been logged out from Universal Media Server. Please click here to log in again.',
-      autoClose: false,
+      message: 'You have been logged out. Please click here to log in again.',
       onClick: redirectToLogin,
     });
   }

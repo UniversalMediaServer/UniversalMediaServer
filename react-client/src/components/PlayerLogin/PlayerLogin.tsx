@@ -44,7 +44,6 @@ const Login = () => {
           color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('ErrorLoggingIn'),
-          autoClose: 3000,
         });
       }
     );

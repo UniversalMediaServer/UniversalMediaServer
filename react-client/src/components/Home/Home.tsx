@@ -101,7 +101,6 @@ const Home = () => {
           color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -124,7 +123,6 @@ const Home = () => {
           color: 'red',
           title: i18n.get('Error'),
           message: i18n.get('DataNotReceived'),
-          autoClose: 3000,
         });
       })
       .then(function() {
@@ -154,7 +152,6 @@ const Home = () => {
       loading: true,
       title: i18n.get('Save'),
       message: i18n.get('SavingConfiguration'),
-      autoClose: false,
       withCloseButton: false
     });
     await axios.post(renderersApiUrl + endpoint, data)
@@ -162,7 +159,7 @@ const Home = () => {
         updateNotification({
           id: 'settings-save',
           color: 'teal',
-          autoClose: true,
+          autoClose: 8000,
           loading: false,
           title: i18n.get('Saved'),
           message: i18n.get('ConfigurationSaved'),
@@ -179,7 +176,7 @@ const Home = () => {
           updateNotification({
             id: 'settings-save',
             color: 'red',
-            autoClose: true,
+            autoClose: false,
             loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotReceived'),
@@ -189,7 +186,7 @@ const Home = () => {
           updateNotification({
             id: 'settings-save',
             color: 'red',
-            autoClose: true,
+            autoClose: false,
             loading: false,
             title: i18n.get('Error'),
             message: i18n.get('ConfigurationNotSaved')
